@@ -123,7 +123,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - After each, the patches so far must add up to the whole state, else `PatchMismatchError`.
   - The contract's 300 clicks per game play through it ([patches_in_a_game.py](../../tests/py/core/tests/patches_in_a_game.py)).
 - Five checks keep it in step with the javascript core ([core's AGENTS.md](../core/AGENTS.md)):
-  - the core's method list ([spellCore.declarations.json5](../core/spellCore.declarations.json5)):
+  - the core's method list ([core.declarations.json5](../core/core.declarations.json5)):
     `spell_core` has each name, or lists it, with why, in [not_ported_yet.json5](core/not_ported_yet.json5)
   - seeded random:  both read [seededRandom.expected.json5](../../tests/core/seededRandom.expected.json5)
   - state by id:  both write and read [stateById.expected.json5](../../tests/core/stateById.expected.json5)

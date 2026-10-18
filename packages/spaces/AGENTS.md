@@ -127,8 +127,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   people and orgs, as the people library's things (`@spell/library/people`).
   - Their files:
     - a person, `Person#owen@spell`:  `@spell/owen@/__me.json5`
-    - an org, `Org#spell`:  `@spell/__org.json5`, with its memberships inside it
-      (a person and a role:  member, admin, spell-admin)
+    - an org, `Org#spell`:  `@spell/__org.json5`, with its members inside it
+      (each a membership:  a person and a role, guest, member, admin or spell-admin)
   - Read:  each file checked against its class (`checkEntry()`, its problems returned, read anyway), brought up to
     its version, and every person or org it names read too.
   - Written:  ONE file at a time, its comments kept;  a friend is written as a reference, never into their file.

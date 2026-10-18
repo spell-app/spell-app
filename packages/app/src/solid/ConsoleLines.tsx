@@ -11,7 +11,7 @@ import { tracked } from "./tracked"
 import "./ConsoleLines.css"
 
 //
-//  ## Lines of `spellCore.console`, drawn as a collapsible tree
+//  ## Lines of `core.console`, drawn as a collapsible tree
 //
 //  NOTE: imports nothing of the editor's, the parser's or `$/ui`'s, so the VS Code runner
 //  (`$/app/runner`) can show a console without pulling them in.  What the editor knows beyond plain

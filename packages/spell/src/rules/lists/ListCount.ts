@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_count` rule:  length of something KNOWN to be a list, without naming its items,
- * e.g. `the number of card suits` => `spellCore.itemCountOf(Card.Suits)`.
+ * e.g. `the number of card suits` => `core.itemCountOf(Card.Suits)`.
  * - Rejects the match unless its datatype says it's a list, or a list type, e.g. `Deck`:
  *   else `the number of x` stays a property read, `x.number`.
  * - `Priority.mostSpecific`, as `list_length`, which wins when it names the items:  it's longer.
@@ -35,8 +35,8 @@ lists.addRule(ListCount, {
         scope.compile(["a card is a thing", "a card has a suit as one of clubs, diamonds", "set x to 1"].join("\n"))
       },
       tests: [
-        ["the number of card suits", "spellCore.itemCountOf(Card.Suits)"],
-        ["the number of [1, 2]", "spellCore.itemCountOf([1, 2])"],
+        ["the number of card suits", "core.itemCountOf(Card.Suits)"],
+        ["the number of [1, 2]", "core.itemCountOf([1, 2])"],
         { title: "not a list:  a property read", input: "the number of x", js: "x.number" }
       ]
     }

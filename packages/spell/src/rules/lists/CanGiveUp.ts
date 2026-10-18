@@ -9,7 +9,7 @@ import { type GuardOperands } from "./lists.shared"
  * `can_give_up` rule:  `{list} can give up {thing}` -- would the list give it up, moved elsewhere?  Its guard says:
  * `a stock-pile can give up a card if: ...`.  Yes, if it has none.
  * - `release` ~== `remove` ~== `give up` ~== `let go of`;  `can't`, `cannot` for the opposite.
- * - Compiles to `spellCore.canGiveUp(stock, card)`.
+ * - Compiles to `core.canGiveUp(stock, card)`.
  */
 export class CanGiveUp extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -28,9 +28,9 @@ lists.addRule(CanGiveUp, {
         scope.variables?.add("stock")
       },
       tests: [
-        ["stock can give up card", "spellCore.canGiveUp(stock, card)"],
-        ["stock can let go of card", "spellCore.canGiveUp(stock, card)"],
-        ["stock can't release card", "!spellCore.canGiveUp(stock, card)"]
+        ["stock can give up card", "core.canGiveUp(stock, card)"],
+        ["stock can let go of card", "core.canGiveUp(stock, card)"],
+        ["stock can't release card", "!core.canGiveUp(stock, card)"]
       ]
     }
   ]

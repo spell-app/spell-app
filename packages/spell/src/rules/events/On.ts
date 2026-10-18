@@ -91,13 +91,13 @@ events.addRule(On, {
         {
           title: "Inline statement",
           input: `on event card-click: print 1`,
-          js: 'on("card-click", () => spellCore.console.log(1))'
+          js: 'on("card-click", () => core.console.log(1))'
         },
         {
           title: "Nested block",
           input: [`on event card-click with a card:`, `\tprint the name of the card`],
-          js: ['on("card-click", (event) => {', "  const { card } = event", "  spellCore.console.log(card.name)", "})"],
-          ts: 'on<{ card: Card }>("card-click", ({ card }) => spellCore.console.log(card.name))'
+          js: ['on("card-click", (event) => {', "  const { card } = event", "  core.console.log(card.name)", "})"],
+          ts: 'on<{ card: Card }>("card-click", ({ card }) => core.console.log(card.name))'
         },
         {
           title: "Show error if nested block and inline statement",
@@ -105,12 +105,12 @@ events.addRule(On, {
           js: [
             'on("card-click", (event) => {',
             "  const { card } = event",
-            "  spellCore.console.log(card.name)",
+            "  core.console.log(card.name)",
             "})",
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ],
           ts: [
-            'on<{ card: Card }>("card-click", ({ card }) => spellCore.console.log(card.name))',
+            'on<{ card: Card }>("card-click", ({ card }) => core.console.log(card.name))',
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ]
         }

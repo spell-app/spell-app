@@ -53,7 +53,7 @@ describe("SpellProject imports", () => {
   /**
    * Run compiled `app` in node, linked as a runner links it -- `libIds` are the projects it imports.
    * - A resolve hook does `runCompiled()`'s linking:
-   *   - `@spell/core` => `spellCore`'s source (via `tsx`)
+   *   - `@spell/core` => `core`'s source (via `tsx`)
    *   - `@spell/project/<id>` => that project's compiled file
    */
   function runLinked(app: SP.SpellProject, libIds: string[]) {
@@ -87,7 +87,7 @@ describe("SpellProject imports", () => {
       encoding: "utf8",
       env: {
         ...process.env,
-        SPELL_CORE: pathToFileURL(resolve(environment.spellCoreDir, "index.ts")).href,
+        SPELL_CORE: pathToFileURL(resolve(environment.coreDir, "index.ts")).href,
         SPELL_PROJECTS: JSON.stringify(projects)
       }
     })
@@ -124,9 +124,7 @@ describe("SpellProject imports", () => {
         { "Quiet.spell": 'print "hi"\n' }
       )
       await quiet.compile()
-      expect(readFileSync(resolve(workspace, "quiet", "quiet.nodraw.js"), "utf8")).toContain(
-        'spellCore.console.log("hi")'
-      )
+      expect(readFileSync(resolve(workspace, "quiet", "quiet.nodraw.js"), "utf8")).toContain('core.console.log("hi")')
     } finally {
       delete SP.TARGETS["test/no-draw"]
     }
@@ -210,7 +208,7 @@ describe("SpellProject imports", () => {
     )
     await app.compile()
     const compiled = readFileSync(resolve(workspace, "linked_app", `linked_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    expect(compiled).toContain(`import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"`)
+    expect(compiled).toContain(`import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"`)
     expect(compiled).toMatch(/import \{ Card, Deck, Pile[^}]* \} from "@spell\/project\/@local\/[^"]*\/lib"/)
 
     const run = runLinked(app, [libId])

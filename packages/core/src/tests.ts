@@ -1,5 +1,5 @@
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 
 /** State for the currently-running dynamic `test()`. */
 export type ActiveTest = {
@@ -18,16 +18,16 @@ export type ActiveTest = {
 
 /**
  * Return message as to whether a runtime assertion is true or false.
- * - Message is prefixed with a result icon from `spellCore._getTestResultIcon()` (`✅`/`❌`).
+ * - Message is prefixed with a result icon from `core._getTestResultIcon()` (`✅`/`❌`).
  * - With 2 arguments:
  *    - passes if `thing` is truthy
  *    - `thingSource` is spell Expression source for `thing`
  * - With 4 arguments:
- *    - uses `spellCore.equals(thing, otherThing)`
+ *    - uses `core.equals(thing, otherThing)`
  *    - `thingSource` is spell Expression source for `thing`
  *    - `otherSource` is spell Expression source for `otherThing`
- * - SIDE EFFECT: appends to `spellCore.ACTIVE_TEST.output` if a test is running, else logs directly
- *   to `spellCore.console`.
+ * - SIDE EFFECT: appends to `core.ACTIVE_TEST.output` if a test is running, else logs directly
+ *   to `core.console`.
  * - Compiles from spell `expect {expression} (to be {value})?` (see `expect_test` rule in
  *   `spell/src/rules/tests/`).
  */
@@ -39,35 +39,35 @@ export function expect(thing: unknown, thingSource: string, otherThing?: unknown
     success = !!thing
     otherSource = `truthy`
   } else {
-    success = spellCore.equals(thing, otherThing)
-    otherSource = spellCore.backTickQuote(otherSource)
+    success = core.equals(thing, otherThing)
+    otherSource = core.backTickQuote(otherSource)
   }
 
-  const output: unknown[] = [spellCore._getTestResultIcon(success)]
-  thingSource = spellCore.backTickQuote(thingSource)
+  const output: unknown[] = [core._getTestResultIcon(success)]
+  thingSource = core.backTickQuote(thingSource)
   if (success) {
     output.push("As expected", thingSource, "is", otherSource)
   } else {
-    output.push("Unexpected:", thingSource, "should be", otherSource, "but is actually", spellCore.backTickQuote(thing))
+    output.push("Unexpected:", thingSource, "should be", otherSource, "but is actually", core.backTickQuote(thing))
   }
 
-  const test = spellCore.ACTIVE_TEST
+  const test = core.ACTIVE_TEST
   if (test) {
     if (test.result === undefined) test.result = success
     else if (!success) test.result = false
     test.output.push(output)
   } else {
-    spellCore.console.log(...output)
+    core.console.log(...output)
   }
 }
 
 /**
- * Assembled `spellCore` test-utility methods -- `test()`/`expect()`/`echo()`/`start test`/`end test`
+ * Assembled `core` test-utility methods -- `test()`/`expect()`/`echo()`/`start test`/`end test`
  * for writing inline assertions and debug narration directly in spell source.
- * TODO: merge this with SpellCore.console so `print XXX` in a test goes to ACTIVE_TEST
+ * TODO: merge this with Core.console so `print XXX` in a test goes to ACTIVE_TEST
  * TODO: print result of "executing" e.g. Executing `display the deck` returned `xxx`
  */
-export const testMethods = defineSpellCoreModule({
+export const testMethods = defineCoreModule({
   /** Currently-running dynamic test, if any. */
   ACTIVE_TEST: undefined as ActiveTest | undefined,
 
@@ -78,30 +78,30 @@ export const testMethods = defineSpellCoreModule({
   },
   /**
    * Dynamic test: prints to console for now...
-   * - SIDE EFFECT: sets `spellCore.ACTIVE_TEST` via `startTest()`/`endTest()`, so any `expect()`/
+   * - SIDE EFFECT: sets `core.ACTIVE_TEST` via `startTest()`/`endTest()`, so any `expect()`/
    *   `echo()` during `testMethod()` gets grouped under this test instead of logging directly.
    * - NOTE: errors thrown inside `testMethod` are swallowed silently (see `TODO???` below).
    */
   test(message: unknown, testMethod: () => void, collapse = true): void {
-    spellCore.startTest(message, collapse)
+    core.startTest(message, collapse)
     try {
       testMethod()
     } catch (e) {
       // TODO???
     }
-    spellCore.endTest()
+    core.endTest()
   },
 
   /**
-   * Begin a named test run, becoming `spellCore.ACTIVE_TEST`.
+   * Begin a named test run, becoming `core.ACTIVE_TEST`.
    * - `collapse` controls whether its console group starts collapsed.
    * - SIDE EFFECT: ends any already-running test first (via `endTest()`).
    * - Compiles from spell `start test {message}` / `start quiet test {message}` (`quiet` maps to
    *   `collapse`; see `start_test` rule in `spell/src/rules/tests/`).
    */
   startTest(message: unknown, collapse = true): void {
-    if (spellCore.ACTIVE_TEST) spellCore.endTest()
-    spellCore.ACTIVE_TEST = {
+    if (core.ACTIVE_TEST) core.endTest()
+    core.ACTIVE_TEST = {
       message,
       collapse,
       result: undefined,
@@ -113,8 +113,8 @@ export const testMethods = defineSpellCoreModule({
    * - Compiles from spell `echo {expression}` (see `spell/src/rules/tests/`).
    */
   echo(message: unknown): void {
-    if (spellCore.ACTIVE_TEST) spellCore.ACTIVE_TEST.output.push(message)
-    else spellCore.console.info(message)
+    if (core.ACTIVE_TEST) core.ACTIVE_TEST.output.push(message)
+    else core.console.info(message)
   },
   /**
    * Print `▶️ Executing` plus back-tick-quoted `message`, grouped under current test if one's running.
@@ -122,11 +122,11 @@ export const testMethods = defineSpellCoreModule({
    *   a method defined `to test ...` (see `P.ASTEchoInvocation` usage in `methods/MethodDefinition.ts`).
    */
   echoTestAction(message: unknown): void {
-    const output = ["▶️ Executing  ", spellCore.backTickQuote(message)]
-    if (spellCore.ACTIVE_TEST) {
-      spellCore.ACTIVE_TEST.output.push(output)
+    const output = ["▶️ Executing  ", core.backTickQuote(message)]
+    if (core.ACTIVE_TEST) {
+      core.ACTIVE_TEST.output.push(output)
     } else {
-      spellCore.console.info(...output)
+      core.console.info(...output)
     }
   },
   /**
@@ -135,19 +135,19 @@ export const testMethods = defineSpellCoreModule({
    * - Compiles from spell `end test` (see `spell/src/rules/tests/`).
    */
   endTest(): void {
-    const test = spellCore.ACTIVE_TEST
+    const test = core.ACTIVE_TEST
     if (!test) return
-    spellCore.ACTIVE_TEST = undefined
+    core.ACTIVE_TEST = undefined
 
-    const icon = spellCore._getTestResultIcon(test.result)
-    spellCore.console[test.collapse ? "groupCollapsed" : "group"](`${icon} ${test.message}`)
+    const icon = core._getTestResultIcon(test.result)
+    core.console[test.collapse ? "groupCollapsed" : "group"](`${icon} ${test.message}`)
     test.output.forEach((line) => {
-      if (Array.isArray(line)) spellCore.console.log(...line)
-      else spellCore.console.log(line)
+      if (Array.isArray(line)) core.console.log(...line)
+      else core.console.log(line)
     })
-    spellCore.console.groupEnd()
+    core.console.groupEnd()
   },
 
   expect
 })
-Object.assign(spellCore, testMethods)
+Object.assign(core, testMethods)

@@ -1,5 +1,5 @@
 import { singularize, typeCase } from "$/util"
-import { SPELL_CLASSES } from "$/core/spellCore.types"
+import { SPELL_CLASSES } from "$/core/core.types"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
@@ -85,7 +85,7 @@ export class ScopeExplorer {
 
   /**
    * Pack of spell's built-in types, e.g. `Thing` and `List`, from `SP.BUILT_IN_TYPE_TABLE` -- see `LSP.ScopePack`.
-   * - What `yarn scopes --builtins` writes to `core`'s `src/spellCore.scopes.js`, for pages with no parser.
+   * - What `yarn scopes --builtins` writes to `core`'s `src/core.scopes.js`, for pages with no parser.
    * - That file is GENERATED, so its docs live in the table.
    */
   exportBuiltIns(): LSP.ScopePack {

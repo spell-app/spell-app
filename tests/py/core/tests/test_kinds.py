@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from spell_core import SpellCore
+from spell_core import Core
 
 
 class Thing:
@@ -42,11 +42,11 @@ class Pile(list):
         (Pile(), "pile"),
     ],
 )
-def test_type_of(core: SpellCore, value: object, type_name: str) -> None:
+def test_type_of(core: Core, value: object, type_name: str) -> None:
     assert core.type_of(value) == type_name
 
 
-def test_types_of_lists_every_class_most_specific_first(core: SpellCore) -> None:
+def test_types_of_lists_every_class_most_specific_first(core: Core) -> None:
     assert core.types_of(Joker()) == ["joker", "card", "thing"]
     assert core.types_of(Pile()) == ["pile", "list"]
     assert core.types_of(True) == ["choice"]
@@ -71,16 +71,16 @@ def test_types_of_lists_every_class_most_specific_first(core: SpellCore) -> None
         ([], "list", True),
     ],
 )
-def test_is_of_type(core: SpellCore, value: object, type_name: str, is_of_type: bool) -> None:
+def test_is_of_type(core: Core, value: object, type_name: str, is_of_type: bool) -> None:
     assert core.is_of_type(value, type_name) is is_of_type
 
 
-def test_matches_type_is_one_way(core: SpellCore) -> None:
+def test_matches_type_is_one_way(core: Core) -> None:
     assert core.matches_type(Joker(), Card())
     assert not core.matches_type(Card(), Joker())
 
 
-def test_numbers(core: SpellCore) -> None:
+def test_numbers(core: Core) -> None:
     assert core.is_a_number(3) and core.is_a_number(2.5)
     assert not core.is_a_number(True)
     assert not core.is_a_number(math.nan)
@@ -107,5 +107,5 @@ def test_numbers(core: SpellCore) -> None:
         (Card(rank="queen"), Joker(rank="queen"), False),
     ],
 )
-def test_equals_looks_inside_as_lodash_does(core: SpellCore, thing: object, other: object, equal: bool) -> None:
+def test_equals_looks_inside_as_lodash_does(core: Core, thing: object, other: object, equal: bool) -> None:
     assert core.equals(thing, other) is equal

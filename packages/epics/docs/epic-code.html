@@ -91,6 +91,53 @@ unchosen:  panel=closed
 values:    { panel: "closed" }</pre>
             </epic-code>
             <p class="meta">Live: the real element, drawn by the epics pack this page loads.</p>
+            <ui-section
+              id="epic-code-actions"
+              header="With buttons in its title row"
+              sticky
+              collapsible
+              dividing
+              collapsed
+            >
+              <p>
+                A page's own buttons go in its title row:
+                <code>&lt;ui-button slot=&quot;actions&quot;&gt;</code> children (epic <code>epic-workflow</code> P25).
+              </p>
+              <ul>
+                <li>
+                  They sit at the right of the title row, after the heading. The heading is its fold button, and it ends
+                  where they start.
+                </li>
+                <li>A click on one never folds or unfolds it.</li>
+                <li>The docs runtime puts the block's bullhorn there too, so it never sits over a button.</li>
+                <li>A slotted button's text is never part of the code.</li>
+              </ul>
+              <epic-code title="run.sh · 1 line" language="sh">
+                <pre>spell run app.spell</pre>
+                <ui-button
+                  slot="actions"
+                  circular
+                  basic
+                  size="mini"
+                  icon="play"
+                  title="Run it"
+                  aria-label="Run it"
+                ></ui-button>
+              </epic-code>
+              <ui-accordion class="spell-code" styled>
+                <ui-title>The example above · 4 lines</ui-title>
+                <ui-content>
+                  <ui-code language="html"
+                    ><script type="text/plain">
+                      <epic-code title="run.sh · 1 line" language="sh">
+                        <pre>spell run app.spell</pre>
+                        <ui-button slot="actions" circular basic size="mini" icon="play" title="Run it" aria-label="Run it"></ui-button>
+                      </epic-code>
+                    </script></ui-code
+                  >
+                </ui-content>
+              </ui-accordion>
+            </ui-section>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
@@ -255,6 +302,15 @@ values:    { panel: "closed" }</pre>
                       <td>(default)</td>
                       <td>The code: ONE <code>&lt;pre&gt;</code>, its text the code (never drawn itself).</td>
                     </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        Buttons of the page's own in its title row (<code
+                          >&lt;ui-button slot=&quot;actions&quot;&gt;</code
+                        >): after the title, before its own buttons; a click on one never folds it. The docs runtime
+                        puts the block's bullhorn here too.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -282,6 +338,10 @@ values:    { panel: "closed" }</pre>
                       <td>The panel.</td>
                     </tr>
                     <tr>
+                      <td><code>head</code></td>
+                      <td>Its title row: <code>toggle</code>, then <code>actions</code>.</td>
+                    </tr>
+                    <tr>
                       <td><code>toggle</code></td>
                       <td>
                         Its heading, a <code>&lt;button&gt;</code> that folds it: the chevron, then
@@ -299,6 +359,12 @@ values:    { panel: "closed" }</pre>
                     <tr>
                       <td><code>code</code></td>
                       <td>The <code>&lt;ui-code&gt;</code> that draws the code, highlighted, with its copy button.</td>
+                    </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        In its title row, after the title and before its own buttons: the <code>actions</code> slot.
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -336,6 +402,11 @@ values:    { panel: "closed" }</pre>
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ul>
               <li>
+                Its heading: folded, ONE line cut with “…”, its words the tooltip; open, as many lines as it needs. The
+                chevron and the slot's buttons sit on its first line, so nothing moves as it switches (Owen,
+                2026-10-18).
+              </li>
+              <li>
                 The brand's code well, as the docs' code blocks (<code>ui-accordion.spell-code</code>): a frame with a
                 hairline, its heading small, mono and muted, the code on a card inside.
               </li>
@@ -371,8 +442,7 @@ values:    { panel: "closed" }</pre>
                 >, "Prose").
               </li>
               <li>
-                The epic tool turns the OLD hand-shaped markup into this element, so a doc never holds the old
-                shape.
+                The epic tool turns the OLD hand-shaped markup into this element, so a doc never holds the old shape.
                 <ul>
                   <li>
                     It does this in any HTML a command takes:

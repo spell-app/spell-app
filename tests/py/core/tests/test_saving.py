@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from spell_core import List, Loader, SavedRef, Saver, SpellConsole, SpellCore, Thing, parse_ref, prop, ref_text
+from spell_core import Core, List, Loader, SavedRef, Saver, SpellConsole, Thing, parse_ref, prop, ref_text
 from spell_core.core import using_core
 from spell_core.saving import Entry, iso_text
 from spell_core.things import SpellObject
@@ -241,7 +241,7 @@ def test_saved_loaded_saved_again_gives_the_same_entries() -> None:
 def test_a_reference_to_nothing_saved_is_left_out_of_a_list_with_a_warning() -> None:
     warnings = io.StringIO()
     entries = {"Person#owen": {**EXPECTED["entries"]["Person#owen"], "friends": [{"$ref": "Person#nobody"}]}}
-    with using_core(SpellCore(SpellConsole(stderr=warnings))):
+    with using_core(Core(SpellConsole(stderr=warnings))):
         owen = loader_of(entries).load("Person#owen")
     assert list(owen.friends) == []
     assert warnings.getvalue() == 'Loader.load():  nothing is saved as "Person#nobody"\n'

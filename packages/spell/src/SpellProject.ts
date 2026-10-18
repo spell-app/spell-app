@@ -1,9 +1,9 @@
 import { JSON5File, TaskList, Task, getDier } from "$/util"
 import { P } from "$/parser"
 import { PY } from "$/py"
-// Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself --
+// Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `core` itself --
 // each runner runs its own copy.  See `spellRuntime.ts`.
-import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/spellCore.types"
+import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/core.types"
 import { SP } from "$/spell"
 
 /**
@@ -835,7 +835,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * `import`s leading our compiled output:  spell's runtime, then what we import from other projects.
    * - e.g.
-   *   `import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"`
+   *   `import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"`
    *   `import { Card as Playingcard, Deck, Pile } from "@spell/project/@spell/library/cards"`
    * - Why:  compiled spell reaches everything it didn't declare through `import`s -- NO globals.
    * - A runner rewrites each specifier onto the module it means -- see `runCompiled()` in `$/app/runner/runCompiled`.

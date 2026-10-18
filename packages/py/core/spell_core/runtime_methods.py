@@ -41,7 +41,7 @@ class RuntimeMethods:
     # Do pauses wait?  `False` in a test run, where only what's printed matters
     pauses: bool = True
 
-    # the running program:  `SpellCore` makes one, `reset_runtime()` a new one
+    # the running program:  `Core` makes one, `reset_runtime()` a new one
     RUNTIME: SpellRuntime
 
     def reset_runtime(self) -> None:

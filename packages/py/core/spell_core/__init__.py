@@ -10,7 +10,7 @@
 
 from spell_core.apps import App, Drawable, DrawableList
 from spell_core.console import SpellConsole
-from spell_core.core import SpellCore, core
+from spell_core.core import Core, core
 from spell_core.drawing import h
 from spell_core.lists import List
 from spell_core.positions import end_position, position, spell_position, with_spell_positions
@@ -20,6 +20,7 @@ from spell_core.things import Thing, prop
 
 __all__ = [
     "App",
+    "Core",
     "Drawable",
     "DrawableList",
     "List",
@@ -28,7 +29,6 @@ __all__ = [
     "SavedRef",
     "Saver",
     "SpellConsole",
-    "SpellCore",
     "StateMirror",
     "StateWriter",
     "Thing",

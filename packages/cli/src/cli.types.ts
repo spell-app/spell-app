@@ -132,7 +132,7 @@ export type TestOptions = GlobalOptions &
 /**
  * The flag `spell run` and `spell test` share.
  * - `seed`:  start the program's random numbers from it, so every run deals the same cards --
- *   a whole number from 1 to 2147483646, see `spellCore.seedRandom()`.
+ *   a whole number from 1 to 2147483646, see `core.seedRandom()`.
  *   Left out:  a different deal each run.
  */
 export type SeedOptions = {
@@ -256,11 +256,11 @@ export type NewOptions = GlobalOptions & {
  * - `name`:  the project's, for messages
  * - `entry`:  URL of its compiled javascript -- a temp file, never in the project
  * - `projects`:  URL of each project it imports' `<Project>.spell.js`, by id -- for `@spell/project/<id>`
- * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
+ * - `core`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
  * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
- * - `seed`:  start its random numbers from it, before it loads -- see `spellCore.seedRandom()`.
+ * - `seed`:  start its random numbers from it, before it loads -- see `core.seedRandom()`.
  *   Left out:  random, as in a browser.
  */
 export type RunSpec = {
@@ -268,7 +268,7 @@ export type RunSpec = {
   name: string
   entry: string
   projects: Record<string, string>
-  spellCore: string
+  core: string
   verbose?: boolean
   filter?: string
   dom?: boolean

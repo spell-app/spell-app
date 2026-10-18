@@ -6,7 +6,7 @@ import { expressions } from "./expressions.parser"
 
 /**
  * `as_uppercase` rule:  `as upper case`/`uppercase` postfix, e.g. `"foo" as upper case`.
- * - Compiles to `spellCore.upperCase(lhs)`.
+ * - Compiles to `core.upperCase(lhs)`.
  */
 export class AsUppercase extends PostfixOperatorSuffix {
   @proto static precedence = Precedence.comparison

@@ -39,7 +39,7 @@ export class AssignmentStatement extends SpellStatement<"thing|value", Assignmen
 
   /**
    * Refused when `thing` reads a built-in type's member, e.g. `the length of the name`:  spell works those out.
-   * - Its `readAs`, e.g. `spellCore.itemCountOf(deck)`, is no place to put a value.  See `SP.BUILT_IN_TYPE_TABLE`.
+   * - Its `readAs`, e.g. `core.itemCountOf(deck)`, is no place to put a value.  See `SP.BUILT_IN_TYPE_TABLE`.
    * - And when it reads the pile a card belongs to (`a card belongs to one pile`), e.g. `the pile of the card`:
    *   it's whichever pile holds the card -- see `P.ScopeVariable.exclusive`.
    */

@@ -150,7 +150,7 @@ export class ElementsWriter extends P.JSWriter {
 
   /** In a handler:  a thing's method asks Python, `sendCall("turn_over", [], this)`;  else as `JSWriter`'s. */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
-    if (!this.inHandler || node.thing instanceof P.ASTSpellCoreExpression) return super.ASTScopedMethodInvocation(node)
+    if (!this.inHandler || node.thing instanceof P.ASTCoreExpression) return super.ASTScopedMethodInvocation(node)
     this.coreImports.add("sendCall")
     const args = (node.args.args ?? []).map((arg) => this.bare(arg)).join(", ")
     const name = this.quoted(this.python.nameOf(node.methodName, "method"))

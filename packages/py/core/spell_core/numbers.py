@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class NumberMethods:
     """`core`'s counting:  `get_range()`, `count_to()`."""
 
-    # where a bad call warns:  `SpellCore` sets it
+    # where a bad call warns:  `Core` sets it
     console: "SpellConsole"
 
     def get_range(self, start: float, end: float) -> list[float]:

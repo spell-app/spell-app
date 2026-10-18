@@ -454,7 +454,7 @@ describe("spell compile", () => {
     const { status, stdout } = spell(["compile", "Card.spell"], fixturePath("solitaire"))
     expect(status).toBe(0)
     // after the file's heading and docstring;  just code:  declarations go in the project's declarations file
-    expect(stdout).toMatch(/^spellCore\.heading\(.*\n.*\nexport class Card extends Thing \{/)
+    expect(stdout).toMatch(/^core\.heading\(.*\n.*\nexport class Card extends Thing \{/)
     expect(stdout).not.toContain("SPELL:")
   })
 
@@ -843,7 +843,7 @@ describe("spell parse", () => {
     expect(status).toBe(0)
     expect(stdout).toBe(
       'statement › print  print "hi"\n  Keyword  print\n  expressions: Repeat  "hi"\n' +
-        '    expression: operand › text  "hi"\n\nspellCore.console.log("hi")\n'
+        '    expression: operand › text  "hi"\n\ncore.console.log("hi")\n'
     )
   })
 
@@ -886,7 +886,7 @@ describe("spell repl", () => {
     expect(status).toBe(0)
     expect(stdout).toContain("=> export const x = 3\n")
     expect(stdout).toContain("lhs: operand › known_variable  x\n")
-    expect(stdout).toMatch(/=> spellCore\.console\.log\(x \+ 1\)\n$/)
+    expect(stdout).toMatch(/=> core\.console\.log\(x \+ 1\)\n$/)
   })
 })
 

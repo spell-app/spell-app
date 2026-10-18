@@ -20,6 +20,9 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   - Its title row (Owen, 2026-10-11):  the fold chevron, **Update**: <summary>, and the date at the right,
  *     as a comment thread's message shows its time:  muted, tabular, on the first line's right, the title's later
  *     lines running the full width under it (narrow screens keep their room).
+ *   - Folded, the title is ONE line cut with "…", its words the tooltip;  open, it wraps (Owen, 2026-10-18).
+ *   - Before the date, the `actions` slot (`Fold.actions()`):  the page's own buttons, and the docs runtime's
+ *     bullhorn;  a click on one never folds it.
  *   - What changed under the title row.
  *   - Orange, our colour for "changed since you looked":  a faint orange ground and outline.
  *   - Folds by its title row (Owen, 2026-10-08:  everything in a section box folds):
@@ -40,6 +43,9 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
+  /** Light-DOM slot occupancy:  has it buttons in its `actions` slot? */
+  readonly slots = new E.SlotContent(this.domElement)
+
   /** A block's open or folded state:  open to start with. */
   readonly fold = new Fold(() => true)
 
@@ -55,10 +61,25 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
     return Boolean(this.summary || this.at) || this.hasBody
   }
 
-  /** Has it what changed (children)?  Follows its children;  never on a server. */
+  /** Has it what changed (children, but its slotted buttons)?  Follows its children;  never on a server. */
   @E.watches({ childList: true, characterData: true, subtree: true })
   get hasBody(): boolean {
     return !isServer && EpicUpdate.hasContent(this.domElement)
+  }
+
+  /**
+   * The title's tooltip while it's cut to one line:  folded (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when
+   * expanded");  `Update: <summary>`.
+   */
+  get cutTitleTip(): string | undefined {
+    if (!this.isBlock || this.isOpen) return undefined
+    const title = this.translationForKey("title")
+    return this.summary ? `${title}: ${this.summary}` : title
+  }
+
+  /** Buttons in its `actions` slot (the page's own, the bullhorn)? */
+  get hasActions(): boolean {
+    return this.slots.hasContent(this.slotForName("actions"))
   }
 
   /** `at`, as drawn:  `10/11/26 14:30` (`PlanDates`). */
@@ -94,16 +115,21 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
               tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
             })}
           </Show>
-          {/* the date floats right of the title's FIRST line only:  the lines under it run the full width */}
+          {/* the date (and the page's own buttons) float right of the title's FIRST line only:  the lines under it run
+              the full width */}
           <div class={WORDS}>
-            <Show when={this.date}>
+            <Show when={this.date || this.hasActions}>
               <span class={WHEN}>
-                <time class={TIME} part={this.partForName("time")} datetime={this.at} title={this.dateTip}>
-                  {this.date}
-                </time>
+                {Fold.actions({ part: this.partForName("actions"), hidden: () => !this.hasActions })}
+                <Show when={this.date}>
+                  <time class={TIME} part={this.partForName("time")} datetime={this.at} title={this.dateTip}>
+                    {this.date}
+                  </time>
+                </Show>
               </span>
             </Show>
-            <span id={TITLE_ID} class={TITLE} part={this.partForName("title")}>
+            {/* folded:  ONE line, cut with "…", its words the tooltip;  open:  it wraps (EpicUpdate.css) */}
+            <span id={TITLE_ID} class={TITLE} part={this.partForName("title")} title={this.cutTitleTip}>
               <b>{this.translationForKey("title")}</b>
               <Show when={this.summary}>{(summary) => `: ${summary()}`}</Show>
             </span>
@@ -138,10 +164,10 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
     )
   }
 
-  /** Has `element` any content:  an element, or text that isn't blank? */
+  /** Has `element` any content:  an element (not a slotted one:  `actions`), or text that isn't blank? */
   private static hasContent(element: Element): boolean {
-    return Array.from(element.childNodes).some(
-      (node) => node.nodeType === Node.ELEMENT_NODE || !!node.textContent?.trim()
+    return Array.from(element.childNodes).some((node) =>
+      node.nodeType === Node.ELEMENT_NODE ? !(node as Element).hasAttribute("slot") : !!node.textContent?.trim()
     )
   }
 }

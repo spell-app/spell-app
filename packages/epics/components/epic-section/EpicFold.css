@@ -60,10 +60,27 @@
     display: block;
   }
   ui-section::part(title) {
+    align-items: flex-start;
     letter-spacing: -0.012em;
   }
   ui-section::part(toggle) {
-    align-items: center;
+    align-items: flex-start;
+  }
+  /*
+   * Everything in the title row sits on the title's FIRST line, centred on it, so nothing moves as the title wraps
+   * (open) or goes back to one line (folded):  each at the row's top, moved down by half of what the line has over it
+   * - `--_epic-fold-line`:  the title's line, its font size times its line height (`<ui-section>`'s own sums);  an
+   *   h3 title (a phase, an Overview sub-section) sets its own
+   */
+  ui-section {
+    --_epic-fold-line: calc(var(--ui-font-size, 16px) * var(--ui-section-h2) * var(--ui-section-title-line-height));
+  }
+  ui-section::part(icon),
+  ui-section::part(badge),
+  ui-section::part(actions),
+  ui-section::part(fold-icon) {
+    align-self: flex-start;
+    translate: 0 calc((var(--_epic-fold-line) - 100%) / 2);
   }
   ui-section::part(icon) {
     color: var(--epic-accent, var(--ui-link));
@@ -124,8 +141,34 @@
     height: 0.9em;
     fill: currentColor;
   }
+  /*
+   * The title:  its words (`.words`), then a `mark` never cut (a phase's pen), on the words' first line.
+   * FOLDED, the words are ONE line, cut with "…" (the full title the tooltip, on `.header`);  OPEN, they wrap
+   * (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded").
+   * - laid out the same way in both, only the wrapping differs:  the title's first line never moves as it switches
+   */
+  ui-section::part(header) {
+    display: flex;
+    min-width: 0;
+  }
   .header {
-    display: inline;
+    display: flex;
+    align-items: baseline;
+    min-width: 0;
+  }
+  .words {
+    min-width: 0;
+  }
+  .header > :not(.words) {
+    flex: none;
+  }
+  :host(:not(:state(open))) ui-section::part(header) {
+    overflow: hidden;
+  }
+  :host(:not(:state(open))) .words {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   /*
    * the title's words and icon let the pointer through to `<ui-section>`'s fold button around them,
@@ -135,6 +178,14 @@
   .icon,
   ui-section::part(header),
   ui-section::part(icon) {
+    pointer-events: none;
+  }
+  /* folded, the words carry the full title as their tooltip:  the pointer lands on them, not on what's inside */
+  .header[title] {
+    pointer-events: auto;
+  }
+  .header[title] .words,
+  .header[title] .words * {
     pointer-events: none;
   }
 

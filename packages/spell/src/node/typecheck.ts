@@ -9,14 +9,14 @@ import { fileURLToPath } from "url"
  * - Found from this file's folder, `packages/spell/src/node/`.
  * - `srcDir`:  spell's `src/`
  * - `packagesDir`:  the repo's `packages/`
- * - `spellCoreDir`:  `core`'s `src/`
+ * - `coreDir`:  `core`'s `src/`
  * - Spell's own folders only.
  *   Where PROJECTS are is spaces' (`$/spaces/server/node/environment`), which spell never imports.
  */
 export const CODE_FOLDERS = (() => {
   const srcDir = resolve(fileURLToPath(import.meta.url), "..", "..")
   const packagesDir = resolve(srcDir, "..", "..")
-  return { srcDir, packagesDir, spellCoreDir: resolve(packagesDir, "core", "src") }
+  return { srcDir, packagesDir, coreDir: resolve(packagesDir, "core", "src") }
 })()
 
 /**
@@ -68,7 +68,7 @@ export type TypecheckResult = {
 /** One `tsc` error in a checked file:  1-based `line` and `column`, `code` e.g. `TS2345`. */
 export type TypecheckError = { line: number; column: number; code: string; message: string }
 
-/** `"135:18 TS18048 'spellCore.RUNTIME' is possibly 'undefined'."` */
+/** `"135:18 TS18048 'core.RUNTIME' is possibly 'undefined'."` */
 export function describeTypecheckError({ line, column, code, message }: TypecheckError): string {
   return `${line}:${column} ${code} ${message}`
 }
@@ -114,18 +114,18 @@ const SPELL_ELEMENTS_SOURCE = "app/src/runner/spellElements.ts"
  * - The aliases Spell UI's files import each other by:  `$/spell-solid` too, which Spell UI's core re-exports.
  */
 function tsconfig(names: string[], projects: Record<string, string>) {
-  const { packagesDir, spellCoreDir } = CODE_FOLDERS
+  const { packagesDir, coreDir } = CODE_FOLDERS
   const repo = resolve(packagesDir, "..")
   const imported = Object.fromEntries(Object.entries(projects).map(([id, path]) => [`@spell/project/${id}`, [path]]))
   return {
-    extends: resolve(spellCoreDir, "..", "tsconfig.json"),
+    extends: resolve(coreDir, "..", "tsconfig.json"),
     compilerOptions: {
       paths: {
-        "@spell/core": [`${spellCoreDir}/index.ts`],
+        "@spell/core": [`${coreDir}/index.ts`],
         "$/util": [`${packagesDir}/util/src/index.ts`],
         "$/util/*": [`${packagesDir}/util/src/*`],
-        "$/core": [`${spellCoreDir}/index.ts`],
-        "$/core/*": [`${spellCoreDir}/*`],
+        "$/core": [`${coreDir}/index.ts`],
+        "$/core/*": [`${coreDir}/*`],
         "@spell/elements": [resolve(packagesDir, SPELL_ELEMENTS_SOURCE)],
         "$/spell-solid": [`${packagesDir}/spell-solid/src/index.ts`],
         "$/spell-solid/*": [`${packagesDir}/spell-solid/src/*`],

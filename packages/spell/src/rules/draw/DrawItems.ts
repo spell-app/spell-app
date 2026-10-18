@@ -9,7 +9,7 @@ import { draw } from "./draw.parser"
  * `draw_items` rule:  draw each / all of a collection of items.
  * - e.g. `draw each card in the deck`, `draw all cards of the deck`
  * - Only the trailing `{expression}` (the container) is compiled:
- *   - javascript:  `draw each card in the deck` => `spellCore.drawItems(deck)`
+ *   - javascript:  `draw each card in the deck` => `core.drawItems(deck)`
  *   - TypeScript:  `<For each={deck.items}>{(item) => item.draw()}</For>`, each item in its own error boundary
  * - The `each {variable}` / `(the|all)? {plural_identifier}` part is purely for readability:
  *   it's matched, but never read in `getAST()`.
@@ -41,22 +41,22 @@ draw.addRule(DrawItems, {
       tests: [
         {
           input: "draw each card in the deck",
-          js: "spellCore.drawItems(deck)",
+          js: "core.drawItems(deck)",
           ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
         },
         {
           input: "draw cards of the deck",
-          js: "spellCore.drawItems(deck)",
+          js: "core.drawItems(deck)",
           ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
         },
         {
           input: "draw the cards of the deck",
-          js: "spellCore.drawItems(deck)",
+          js: "core.drawItems(deck)",
           ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
         },
         {
           input: "draw all cards of the deck",
-          js: "spellCore.drawItems(deck)",
+          js: "core.drawItems(deck)",
           ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
         }
       ]

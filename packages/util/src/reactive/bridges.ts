@@ -20,7 +20,7 @@ import { Reaction } from "./Reaction"
  *   second registration would wrap every computation twice.  Remembered in the page's shared context, so a
  *   `<spell-app>` and the editor on one page share the one bridge -- and every runtime copy's cells reach it.
  * - Applies to computations made AFTER it:  call it before the host renders anything that reads spell state.
- * - SIDE EFFECT:  `flushCells()` (`spellCore.flush()`) now also calls this Solid's `flush()`.
+ * - SIDE EFFECT:  `flushCells()` (`core.flush()`) now also calls this Solid's `flush()`.
  * - A changed cell triggers its readers at once, but Solid re-runs them on ITS schedule (a microtask, or
  *   `flushCells()`):  never in the middle of a program's own writes, and ten writes re-run a reader once.
  */

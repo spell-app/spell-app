@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
-import { spellCore, StateMirror, StateWriter, Thing, List } from "$/core"
+import { core, StateMirror, StateWriter, Thing, List } from "$/core"
 
 /**
  * A program's state as JSON by id (`state.ts`):  written by a `StateWriter`, read into a `StateMirror`.
@@ -91,7 +91,7 @@ describe("a StateWriter:  each thing whole once, then by its id", () => {
     const table = aTable()
     writer.stateOf(table)
     const red = table.top
-    spellCore.move(red, table.stacks[1]!)
+    core.move(red, table.stacks[1]!)
     expect(writer.stateOf(table)).toEqual(EXPECTED.moved)
     expect(writer.idOf(red)).toBe("3")
   })
@@ -125,7 +125,7 @@ describe("a StateMirror:  reads states into what it read before", () => {
     const table = mirror.read(EXPECTED.first) as Table
     mirror.read(EXPECTED.patch)
     const moved = aTable()
-    spellCore.move(moved.top, moved.stacks[1]!)
+    core.move(moved.top, moved.stacks[1]!)
     expect(new StateWriter().stateOf(table)).toEqual(new StateWriter().stateOf(moved))
   })
 
@@ -138,14 +138,14 @@ describe("a StateMirror:  reads states into what it read before", () => {
   })
 })
 
-describe("spellCore.fromJSON()", () => {
+describe("core.fromJSON()", () => {
   test("reads ids too", () => {
-    const table = spellCore.fromJSON(JSON.stringify(EXPECTED.first)) as Table
+    const table = core.fromJSON(JSON.stringify(EXPECTED.first)) as Table
     expect(table.top).toBe(table.stacks[0]!.items[0])
   })
 
   test("without ids, makes a thing each time", () => {
-    const [first, second] = spellCore.fromJSON([
+    const [first, second] = core.fromJSON([
       { $type: "Chip", color: "red" },
       { $type: "Chip", color: "red" }
     ]) as Chip[]

@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vite-plus/test"
 
 import { observe } from "$/util"
-import { spellCore, Thing, List } from "$/core"
+import { core, Thing, List } from "$/core"
 
 /**
  * Exclusive lists:  an item is in at most ONE list of a family at a time -- and guards on a move.
@@ -62,7 +62,7 @@ Object.defineProperty(Card.prototype, "hand", {
  */
 class Foundation extends Pile {
   canTake(_card: unknown): boolean {
-    return spellCore.isEmpty(this)
+    return core.isEmpty(this)
   }
   canGiveUp(_card: unknown): boolean {
     return false
@@ -72,7 +72,7 @@ class Foundation extends Pile {
 /** `a stock-pile can give up a card if: the card is its last card`. */
 class StockPile extends Pile {
   canGiveUp(card: unknown): boolean {
-    return card === spellCore.getItemAt(this, -1)
+    return card === core.getItemAt(this, -1)
   }
 }
 
@@ -136,7 +136,7 @@ describe("exclusive lists", () => {
     const [card] = cards(1)
     const pile = new Pile({})
     expect(card!.pile).toBe(undefined)
-    spellCore.append(pile, card)
+    core.append(pile, card)
     expect(card!.pile).toBe(pile)
   })
 
@@ -144,8 +144,8 @@ describe("exclusive lists", () => {
     const [card, other] = cards(2)
     const pile = new Pile({})
     const tableau = new Tableau({})
-    spellCore.append(pile, card, other)
-    spellCore.append(tableau, card)
+    core.append(pile, card, other)
+    core.append(tableau, card)
     expect(itemsOf(pile)).toEqual([other])
     expect(itemsOf(tableau)).toEqual([card])
     expect(card!.pile).toBe(tableau)
@@ -156,8 +156,8 @@ describe("exclusive lists", () => {
     const [card] = cards(1)
     const deck = new Deck({})
     const pile = new Pile({})
-    spellCore.append(deck, card)
-    spellCore.append(pile, card)
+    core.append(deck, card)
+    core.append(pile, card)
     expect(itemsOf(deck)).toEqual([card])
     expect(itemsOf(pile)).toEqual([card])
     expect(Pile.ownerOf(card)).toBe(pile)
@@ -168,8 +168,8 @@ describe("exclusive lists", () => {
     const [card] = cards(1)
     const pile = new Pile({})
     const hand = new Hand({})
-    spellCore.append(pile, card)
-    spellCore.append(hand, card)
+    core.append(pile, card)
+    core.append(hand, card)
     expect(card!.pile).toBe(pile)
     expect(card!.hand).toBe(hand)
   })
@@ -177,12 +177,12 @@ describe("exclusive lists", () => {
   test("adding a card it holds moves it, never twice", () => {
     const [a, b, c] = cards(3)
     const pile = new Pile({})
-    spellCore.append(pile, a, b, c)
-    spellCore.append(pile, a)
+    core.append(pile, a, b, c)
+    core.append(pile, a)
     expect(itemsOf(pile)).toEqual([b, c, a])
-    spellCore.prepend(pile, c)
+    core.prepend(pile, c)
     expect(itemsOf(pile)).toEqual([c, b, a])
-    spellCore.addAtPosition(pile, 2, c)
+    core.addAtPosition(pile, 2, c)
     expect(itemsOf(pile)).toEqual([b, c, a])
     expect(a!.pile).toBe(pile)
   })
@@ -190,12 +190,12 @@ describe("exclusive lists", () => {
   test("removing leaves it with no owner", () => {
     const [a, b, c] = cards(3)
     const pile = new Pile({})
-    spellCore.append(pile, a, b, c)
-    spellCore.remove(pile, a)
+    core.append(pile, a, b, c)
+    core.remove(pile, a)
     expect(a!.pile).toBe(undefined)
-    spellCore.removeItemAt(pile, 0)
+    core.removeItemAt(pile, 0)
     expect(b!.pile).toBe(undefined)
-    spellCore.clear(pile)
+    core.clear(pile)
     expect(c!.pile).toBe(undefined)
     expect(itemsOf(pile)).toEqual([])
   })
@@ -204,14 +204,14 @@ describe("exclusive lists", () => {
     const [a, b, c, d] = cards(4)
     const pile = new Pile({})
     const other = new Pile({})
-    spellCore.append(pile, a, b, c)
-    spellCore.append(other, d)
-    spellCore.setItemAt(pile, 1, d)
+    core.append(pile, a, b, c)
+    core.append(other, d)
+    core.setItemAt(pile, 1, d)
     expect(itemsOf(pile)).toEqual([a, d, c])
     expect(itemsOf(other)).toEqual([])
     expect(d!.pile).toBe(pile)
     expect(b!.pile).toBe(undefined)
-    spellCore.reverse(pile)
+    core.reverse(pile)
     expect(itemsOf(pile)).toEqual([c, d, a])
     expect([a, c, d].map((card) => card!.pile)).toEqual([pile, pile, pile])
   })
@@ -219,8 +219,8 @@ describe("exclusive lists", () => {
   test("shuffling keeps every card, and every owner", () => {
     const deal = cards(10)
     const pile = new Pile({})
-    spellCore.append(pile, ...deal)
-    spellCore.randomize(pile)
+    core.append(pile, ...deal)
+    core.randomize(pile)
     expect(new Set(itemsOf(pile))).toEqual(new Set(deal))
     expect(deal.every((card) => card.pile === pile)).toBe(true)
   })
@@ -229,7 +229,7 @@ describe("exclusive lists", () => {
     const [a, b] = cards(2)
     const pile = new Pile({})
     const other = new Pile({})
-    spellCore.append(pile, a)
+    core.append(pile, a)
     other.items = [a, b]
     expect(itemsOf(pile)).toEqual([])
     expect(a!.pile).toBe(other)
@@ -241,18 +241,18 @@ describe("exclusive lists", () => {
     const [a, b, c] = cards(3)
     const pile = new Pile({})
     const tableau = new Tableau({})
-    spellCore.append(pile, a, b)
-    spellCore.append(tableau, c)
+    core.append(pile, a, b)
+    core.append(tableau, c)
     // as compiled spell passes it:  `a copy of list the stock as a pile`
     const asPile = Pile as unknown as new () => List
     const results = [
-      spellCore.filter(pile, () => true),
-      spellCore.map(pile, (card) => card),
-      spellCore.rangeStartingAt(pile, 0),
-      spellCore.duplicateList(pile),
-      spellCore.duplicateList(pile, asPile),
-      spellCore.mergeLists([pile, tableau]),
-      spellCore.mergeLists([pile, tableau], asPile)
+      core.filter(pile, () => true),
+      core.map(pile, (card) => card),
+      core.rangeStartingAt(pile, 0),
+      core.duplicateList(pile),
+      core.duplicateList(pile, asPile),
+      core.mergeLists([pile, tableau]),
+      core.mergeLists([pile, tableau], asPile)
     ] as List[]
     for (const result of results) expect(result).toBeInstanceOf(Pile)
     expect(itemsOf(results[0]!)).toEqual([a, b])
@@ -262,7 +262,7 @@ describe("exclusive lists", () => {
     expect([a, b, c].map((card) => card!.pile)).toEqual([pile, pile, tableau])
     // moving a card out of a scratch copy's source leaves the copy alone
     const copy = results[3]!
-    spellCore.append(tableau, a)
+    core.append(tableau, a)
     expect(itemsOf(copy)).toEqual([a, b])
     expect(a!.pile).toBe(tableau)
   })
@@ -270,8 +270,8 @@ describe("exclusive lists", () => {
   test("a number or text can't be owned:  the list just holds it", () => {
     const pile = new Pile({})
     const other = new Pile({})
-    spellCore.append(pile, 1, "x")
-    spellCore.append(other, 1)
+    core.append(pile, 1, "x")
+    core.append(other, 1)
     expect(itemsOf(pile)).toEqual([1, "x"])
     expect(Pile.ownerOf(1)).toBe(undefined)
   })
@@ -284,10 +284,10 @@ describe("exclusive lists", () => {
     const stop = observe(() => {
       seen.push(card!.pile)
     })
-    spellCore.append(pile, card)
-    spellCore.append(tableau, card)
-    spellCore.append(tableau, card) // already there:  same owner, nobody's told
-    spellCore.remove(tableau, card)
+    core.append(pile, card)
+    core.append(tableau, card)
+    core.append(tableau, card) // already there:  same owner, nobody's told
+    core.remove(tableau, card)
     stop()
     expect(seen).toEqual([undefined, pile, tableau, undefined])
   })
@@ -298,13 +298,13 @@ describe("guards:  only a move asks them", () => {
     const [a, b] = cards(2)
     const stock = new StockPile({})
     const foundation = new Foundation({})
-    spellCore.append(stock, a, b)
+    core.append(stock, a, b)
     // `a` isn't the stock's last card:  the stock won't give it up
-    expect(spellCore.move(a, foundation)).toBe(false)
+    expect(core.move(a, foundation)).toBe(false)
     expect(itemsOf(stock)).toEqual([a, b])
     expect(a!.pile).toBe(stock)
     // `b` is, and the foundation is empty:  it moves, its owner changing once
-    expect(spellCore.move(b, foundation)).toBe(true)
+    expect(core.move(b, foundation)).toBe(true)
     expect(itemsOf(stock)).toEqual([a])
     expect(itemsOf(foundation)).toEqual([b])
     expect(b!.pile).toBe(foundation)
@@ -314,9 +314,9 @@ describe("guards:  only a move asks them", () => {
     const [a, b] = cards(2)
     const foundation = new Foundation({})
     const pile = new Pile({})
-    spellCore.append(foundation, a)
-    spellCore.append(pile, b)
-    expect(spellCore.move(b, foundation)).toBe(false)
+    core.append(foundation, a)
+    core.append(pile, b)
+    expect(core.move(b, foundation)).toBe(false)
     expect(itemsOf(pile)).toEqual([b])
     expect(itemsOf(foundation)).toEqual([a])
   })
@@ -325,13 +325,13 @@ describe("guards:  only a move asks them", () => {
     const [a, b, c] = cards(3)
     const foundation = new Foundation({})
     const pile = new Pile({})
-    spellCore.append(foundation, a, b, c)
-    expect(spellCore.move(a, pile)).toBe(false)
-    spellCore.append(pile, a)
-    spellCore.remove(foundation, b)
+    core.append(foundation, a, b, c)
+    expect(core.move(a, pile)).toBe(false)
+    core.append(pile, a)
+    core.remove(foundation, b)
     expect(itemsOf(pile)).toEqual([a])
     expect(itemsOf(foundation)).toEqual([c])
-    spellCore.clear(foundation)
+    core.clear(foundation)
     expect(c!.pile).toBe(undefined)
   })
 
@@ -339,23 +339,23 @@ describe("guards:  only a move asks them", () => {
     const [a, b] = cards(2)
     const foundation = new Foundation({})
     const deck = new Deck({})
-    expect(spellCore.move(a, foundation)).toBe(true)
+    expect(core.move(a, foundation)).toBe(true)
     // the deck is outside the pile family:  the foundation isn't asked to give it up
-    expect(spellCore.move(a, deck)).toBe(true)
+    expect(core.move(a, deck)).toBe(true)
     expect(itemsOf(deck)).toEqual([a])
     expect(a!.pile).toBe(foundation)
     const plain: unknown[] = []
-    expect(spellCore.move(b, plain)).toBe(true)
+    expect(core.move(b, plain)).toBe(true)
     expect(plain).toEqual([b])
   })
 
   test("asking without moving:  `can take`, `can give up` -- a plain list allows anything", () => {
     const [a] = cards(1)
     const foundation = new Foundation({})
-    expect(spellCore.canTake(foundation, a)).toBe(true)
-    expect(spellCore.canGiveUp(foundation, a)).toBe(false)
-    expect(spellCore.canTake(new Pile({}), a)).toBe(true)
-    expect(spellCore.canGiveUp([a], a)).toBe(true)
+    expect(core.canTake(foundation, a)).toBe(true)
+    expect(core.canGiveUp(foundation, a)).toBe(false)
+    expect(core.canTake(new Pile({}), a)).toBe(true)
+    expect(core.canGiveUp([a], a)).toBe(true)
   })
 })
 
@@ -428,59 +428,55 @@ function numbers(...items: number[]): List<number> {
 }
 
 /**
- * Each method beside its `spellCore` twin, run on two lists alike:  `[name, method, twin]`.
+ * Each method beside its `core` twin, run on two lists alike:  `[name, method, twin]`.
  * - Compared by `outcome()`.
  */
 const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>) => unknown]> = [
-  ["firstItem", (list) => list.firstItem, (list) => spellCore.getItemAt(list, 0)],
-  ["lastItem", (list) => list.lastItem, (list) => spellCore.getItemAt(list, -1)],
-  ["isEmpty", (list) => list.isEmpty, (list) => spellCore.isEmpty(list)],
-  ["max", (list) => list.max, (list) => spellCore.largestOf(list)],
-  ["min", (list) => list.min, (list) => spellCore.smallestOf(list)],
-  ["values", (list) => list.values, (list) => spellCore.valuesOf(list)],
+  ["firstItem", (list) => list.firstItem, (list) => core.getItemAt(list, 0)],
+  ["lastItem", (list) => list.lastItem, (list) => core.getItemAt(list, -1)],
+  ["isEmpty", (list) => list.isEmpty, (list) => core.isEmpty(list)],
+  ["max", (list) => list.max, (list) => core.largestOf(list)],
+  ["min", (list) => list.min, (list) => core.smallestOf(list)],
+  ["values", (list) => list.values, (list) => core.valuesOf(list)],
   [
     "includes",
     (list) => [list.includes(2, 3), list.includes(2, 9)],
-    (list) => [spellCore.includes(list, 2, 3), spellCore.includes(list, 2, 9)]
+    (list) => [core.includes(list, 2, 3), core.includes(list, 2, 9)]
   ],
-  ["includesAny", (list) => list.includesAny(9, 3), (list) => spellCore.includesAny(list, 9, 3)],
-  ["all", (list) => list.all((it) => it > 0), (list) => spellCore.all(list, (it) => it > 0)],
-  ["any", (list) => list.any((it) => it > 3), (list) => spellCore.any(list, (it) => it > 3)],
+  ["includesAny", (list) => list.includesAny(9, 3), (list) => core.includesAny(list, 9, 3)],
+  ["all", (list) => list.all((it) => it > 0), (list) => core.all(list, (it) => it > 0)],
+  ["any", (list) => list.any((it) => it > 3), (list) => core.any(list, (it) => it > 3)],
   [
     "map",
     (list) => list.map((it, position) => it * position),
-    (list) => spellCore.map(list, (it, position) => it * Number(position))
+    (list) => core.map(list, (it, position) => it * Number(position))
   ],
-  ["filter", (list) => list.filter((it) => it % 2 === 1), (list) => spellCore.filter(list, (it) => it % 2 === 1)],
-  ["append", (list) => list.append(7, 8), (list) => spellCore.append(list, 7, 8)],
-  ["prepend", (list) => list.prepend(7, 8), (list) => spellCore.prepend(list, 7, 8)],
-  ["addAt", (list) => list.addAt(1, 7), (list) => spellCore.addAtPosition(list, 1, 7)],
-  ["addBefore", (list) => list.addBefore(3, 7), (list) => spellCore.addBefore(list, 3, 7)],
-  ["addAfter", (list) => list.addAfter(3, 7), (list) => spellCore.addAfter(list, 3, 7)],
-  ["remove", (list) => list.remove(2, 4), (list) => spellCore.remove(list, 2, 4)],
-  ["removeWhere", (list) => list.removeWhere((it) => it > 2), (list) => spellCore.removeWhere(list, (it) => it > 2)],
-  ["removeBetween", (list) => list.removeBetween(1, 3), (list) => spellCore.removeRangeBetween(list, 1, 3)],
-  ["setItems", (list) => list.setItems(1, 7, 8), (list) => spellCore.setItemsOf(list, 1, 7, 8)],
-  ["reverse", (list) => list.reverse(), (list) => spellCore.reverse(list)],
-  ["startingFrom", (list) => list.startingFrom(-2), (list) => spellCore.rangeStartingAt(list, -2)],
-  [
-    "startingWith",
-    (list) => list.startingWith(3),
-    (list) => spellCore.rangeStartingAt(list, spellCore.positionOf(list, 3))
-  ],
-  ["slice", (list) => list.slice(1, 3), (list) => spellCore.rangeBetween(list, 1, 3)],
+  ["filter", (list) => list.filter((it) => it % 2 === 1), (list) => core.filter(list, (it) => it % 2 === 1)],
+  ["append", (list) => list.append(7, 8), (list) => core.append(list, 7, 8)],
+  ["prepend", (list) => list.prepend(7, 8), (list) => core.prepend(list, 7, 8)],
+  ["addAt", (list) => list.addAt(1, 7), (list) => core.addAtPosition(list, 1, 7)],
+  ["addBefore", (list) => list.addBefore(3, 7), (list) => core.addBefore(list, 3, 7)],
+  ["addAfter", (list) => list.addAfter(3, 7), (list) => core.addAfter(list, 3, 7)],
+  ["remove", (list) => list.remove(2, 4), (list) => core.remove(list, 2, 4)],
+  ["removeWhere", (list) => list.removeWhere((it) => it > 2), (list) => core.removeWhere(list, (it) => it > 2)],
+  ["removeBetween", (list) => list.removeBetween(1, 3), (list) => core.removeRangeBetween(list, 1, 3)],
+  ["setItems", (list) => list.setItems(1, 7, 8), (list) => core.setItemsOf(list, 1, 7, 8)],
+  ["reverse", (list) => list.reverse(), (list) => core.reverse(list)],
+  ["startingFrom", (list) => list.startingFrom(-2), (list) => core.rangeStartingAt(list, -2)],
+  ["startingWith", (list) => list.startingWith(3), (list) => core.rangeStartingAt(list, core.positionOf(list, 3))],
+  ["slice", (list) => list.slice(1, 3), (list) => core.rangeBetween(list, 1, 3)],
   [
     "startsWith",
     (list) => [list.startsWith(1), list.startsWith(2)],
-    (list) => [spellCore.startsWith(list, 1), spellCore.startsWith(list, 2)]
+    (list) => [core.startsWith(list, 1), core.startsWith(list, 2)]
   ],
   [
     "endsWith",
     (list) => [list.endsWith(4), list.endsWith(3)],
-    (list) => [spellCore.endsWith(list, 4), spellCore.endsWith(list, 3)]
+    (list) => [core.endsWith(list, 4), core.endsWith(list, 3)]
   ],
-  ["clone", (list) => list.clone(), (list) => spellCore.duplicateList(list)],
-  ["appendAll", (list) => list.appendAll([7], numbers(8)), (list) => spellCore.mergeListsInto(list, [7], numbers(8))]
+  ["clone", (list) => list.clone(), (list) => core.duplicateList(list)],
+  ["appendAll", (list) => list.appendAll([7], numbers(8)), (list) => core.mergeListsInto(list, [7], numbers(8))]
 ]
 
 /**
@@ -496,7 +492,7 @@ function outcome(result: unknown, list: List): unknown {
 }
 
 describe("List methods", () => {
-  test.each(TWINS)("`%s` does what its `spellCore` twin does", (_name, method, twin) => {
+  test.each(TWINS)("`%s` does what its `core` twin does", (_name, method, twin) => {
     const mine = numbers(1, 2, 3, 4)
     const theirs = numbers(1, 2, 3, 4)
     expect(outcome(method(mine), mine)).toEqual(outcome(twin(theirs), theirs))
@@ -621,10 +617,10 @@ describe("List methods", () => {
     expect([first, doubled.getValues(), odd.getValues()]).toEqual([3, [6, 2, 4], [3, 1]])
   })
 
-  test("`isOfType()`:  its class, each it extends, and `list` -- as `spellCore.isOfType()`", () => {
+  test("`isOfType()`:  its class, each it extends, and `list` -- as `core.isOfType()`", () => {
     const tableau = new Tableau({})
     expect(["tableau", "pile", "list", "Pile"].map((type) => tableau.isOfType(type))).toEqual([true, true, true, true])
     expect(tableau.isOfType("foundation")).toBe(false)
-    expect(tableau.isOfType("pile")).toBe(spellCore.isOfType(tableau, "pile"))
+    expect(tableau.isOfType("pile")).toBe(core.isOfType(tableau, "pile"))
   })
 })

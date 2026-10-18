@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { spellCore, Thing, List } from "$/core"
+import { core, Thing, List } from "$/core"
 import type { ThingExplorerState } from "$/app/ui/ui.types"
 import { uiReady } from "$/app/solid/loadUI"
 import { ThingExplorer } from "$/app/solid/ThingExplorer"
@@ -55,7 +55,7 @@ class Pile extends List {
 const cleanups: (() => void)[] = []
 
 beforeEach(() => {
-  spellCore.resetRuntime()
+  core.resetRuntime()
 })
 
 afterEach(() => {
@@ -140,11 +140,11 @@ describe("<ThingExplorer> (Solid, live)", () => {
 
   test("a computed property filling a list it made doesn't set itself off again -- a real change does", async () => {
     let reads = 0
-    /** Like Solitaire's piles:  `spellCore.map()` makes a new `Pile`, then fills it. */
+    /** Like Solitaire's piles:  `core.map()` makes a new `Pile`, then fills it. */
     class Stack extends Pile {
       get state(): string {
         reads++
-        return String(spellCore.itemCountOf(spellCore.map(this, (card) => card)))
+        return String(core.itemCountOf(core.map(this, (card) => card)))
       }
     }
     const stack = new Stack({ name: "stack" })
@@ -159,7 +159,7 @@ describe("<ThingExplorer> (Solid, live)", () => {
     await settle()
     flush()
     expect(reads).toBe(settled)
-    expect(spellCore.things.all()).toHaveLength(2)
+    expect(core.things.all()).toHaveLength(2)
 
     stack.items = [...stack.items, new Card({ rank: "king" })]
     await settle()
@@ -209,10 +209,7 @@ async function mount(
   await uiReady
   const host = document.createElement("div")
   document.body.append(host)
-  const dispose = render(
-    () => <ThingExplorer things={spellCore.things} state={state} onStateChange={onStateChange} />,
-    host
-  )
+  const dispose = render(() => <ThingExplorer things={core.things} state={state} onStateChange={onStateChange} />, host)
   cleanups.push(() => {
     dispose()
     host.remove()

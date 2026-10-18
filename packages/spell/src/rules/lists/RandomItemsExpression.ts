@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 /**
  * `random_items_expression` rule:  pick a unique set of random items from list, returning an array.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
- * - Compiles to `spellCore.randomItemsOf(list, count)`.
+ * - Compiles to `core.randomItemsOf(list, count)`.
  * TODO: `two random items...`
  */
 export class RandomItemsExpression extends SpellExpression<"number|arg|list"> {
@@ -32,9 +32,9 @@ lists.addRule(RandomItemsExpression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["2 random items of my-list", "spellCore.randomItemsOf(myList, 2)"],
-        [`2 random words in "some other words"`, `spellCore.randomItemsOf("some other words", 2)`],
-        ["3 random cards from deck", "spellCore.randomItemsOf(deck, 3)"]
+        ["2 random items of my-list", "core.randomItemsOf(myList, 2)"],
+        [`2 random words in "some other words"`, `core.randomItemsOf("some other words", 2)`],
+        ["3 random cards from deck", "core.randomItemsOf(deck, 3)"]
       ]
     }
   ]

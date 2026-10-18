@@ -3101,10 +3101,15 @@ const REDRAW_MS = 150
 const SEND_POLL_MS = 30_000
 
 /**
- * What a bullhorn moves left of, in the shadow root of the block it's over (`makeRoom()`):  an epic page item's review
- * pills and Do Now, an update's date.
+ * The blocks with a title row and an `actions` slot in it (epic `epic-workflow` P25):  their bullhorn goes in that
+ * slot, after the title and before their own buttons (review pills, the date, the fold), never over them.
+ * - an epic page's item, update (drawn as a block, with its date), aside and code block:
+ *   `Fold.types.ts`, in the epics pack
+ * - a docs section has its own (`ui-section`'s `actions` slot, `.at-section`);  every other block (a paragraph, a
+ *   table, a list, a message, cards, a phase's field, the summary) has no title row:  its bullhorn sits over its
+ *   corner (`.at-block`)
  */
-const MAKES_ROOM = '[part~="review-buttons"], [part~="time"]'
+const TITLE_ROW_BLOCKS = "epic-item, epic-update[at], epic-aside, epic-code"
 
 /** What a block kind is called in the bullhorn's tooltip and the comment box. */
 const KIND_NAMES = {
@@ -3131,7 +3136,9 @@ const KIND_NAMES = {
  * - served by the page server with a token, on a page that takes comments (the `GET` says `takesComments`):
  *   - a BULLHORN beside every major block (`BlockAnchors.js` `blocksIn()`:  sections, tables, asides, code,
  *     messages, cards, steps, top-level lists;  an epic page's items, phase fields, summary and Overview prose) and in
- *     the page header (the whole page):  shown while the block is hovered, always once it has comments, with a count
+ *     the page header (the whole page):  shown while the block is hovered
+ *     - in the block's title row, when it has one:  a docs section's, an epic page item's, update's, aside's or code
+ *       block's (their `actions` slot);  else over the block's top right corner
  *   - SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn that floats beside the selection:  the box opens for that block,
  *     its header the text's first words;  the comment keeps the quote, highlighted on the page while it exists
  *   - the box is a small PANE, fixed on the screen, just under the selection (or the button clicked):  the page
@@ -3195,7 +3202,7 @@ async function wireComments(main, go) {
     comments.open?.flush?.()
     for (const each of comments.fields()) each.flush?.()
   })
-  // the page's layout changing (a width, an item folding) can bring a bullhorn over a thread's header
+  // the page's layout changing (a width, an item folding) can bring a corner bullhorn over a thread's header
   if (typeof ResizeObserver === "function") new ResizeObserver(() => comments.makeRoom()).observe(main)
   comments.watchContent()
   comments.wireSelection()
@@ -3343,27 +3350,15 @@ class PageComments {
   }
 
   /**
-   * Keep every block's bullhorn off other buttons (Owen, 2026-10-10:  "Overlap in bullhorn buttons"):  a bullhorn
-   * sits over its block's top right corner, so
-   * - an epic page item's own review pills and Do Now are there too:  the bullhorn moves left of them;  so does an
-   *   update's date (`<epic-update>`'s `time` part, at its title row's right)
-   * - a thread just under a short block (a folded item, a one-line paragraph) can lie under it:  that thread's
-   *   header leaves room on its right, its buttons moving left
+   * Keep a corner bullhorn off a thread's buttons (Owen, 2026-10-10:  "Overlap in bullhorn buttons"):  a block with no
+   * title row has its bullhorn over its top right corner (`.at-block`), so a thread just under a short block (a
+   * one-line paragraph) can lie under it:  that thread's header leaves room on its right, its buttons moving left.
+   * - a block with a title row has its bullhorn IN that row (`TITLE_ROW_BLOCKS`), beside its own buttons:  nothing
+   *   to move.  Before P25 of epic `epic-workflow` this also moved an item's corner bullhorn left of its review pills,
+   *   and an update's left of its date.
    */
   makeRoom() {
-    const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
     const marks = this.main.querySelectorAll(".spell-comment-mark.at-block")
-    for (const mark of marks) {
-      const horn = mark.querySelector(":scope > ui-button")
-      const controls = mark.nextElementSibling?.shadowRoot?.querySelectorAll(MAKES_ROOM) ?? []
-      if (!horn) continue
-      horn.style.right = ""
-      const rect = horn.getBoundingClientRect()
-      const under = [...controls].map((each) => each.getBoundingClientRect()).filter((each) => overlaps(rect, each))
-      if (!under.length) continue
-      const right = Math.ceil(mark.getBoundingClientRect().right - Math.min(...under.map((r) => r.left))) + 4
-      horn.style.right = `${right}px`
-    }
     const horns = [...marks]
       .map((each) => each.querySelector(":scope > ui-button"))
       .filter((each) => each?.checkVisibility?.({ contentVisibilityAuto: true }) !== false)
@@ -3667,8 +3662,9 @@ class PageComments {
   ////////////////
 
   /**
-   * The bullhorn of `block`:  in a docs section's title (its `actions` slot), in the page header,
-   * else just before the block, over its top right corner.
+   * The bullhorn of `block`:  in a docs section's title (its `actions` slot), in an epic page block's title row (its
+   * `actions` slot:  `TITLE_ROW_BLOCKS`), in the page header, else just before the block, over its top right corner.
+   * - in a title row it's the last of the page's own buttons there, before the block's own (pills, date, fold)
    * - quiet until the block is hovered, always:  a click opens the pane for a NEW comment on it
    * - no count, and nothing to say about the block's comments (Owen, 2026-10-10:  "Bullhorn to the far right is
    *   unnecessary"):  each has its thread right there on the page, orange while it has news (`thread()`).
@@ -3678,9 +3674,14 @@ class PageComments {
     const place = this.placeOf(block)
     const what = place.kind === "page" ? "this page" : `this ${KIND_NAMES[place.kind] ?? place.kind}`
     const tip = `Comment on ${what}`
-    const inline = place.kind === "section" || place.kind === "page"
-    const mark = document.createElement(inline ? "span" : "div")
-    mark.className = `spell-comment-mark at-${inline ? place.kind : "block"}`
+    const where =
+      place.kind === "section" || place.kind === "page"
+        ? place.kind
+        : block.matches(TITLE_ROW_BLOCKS)
+          ? "title"
+          : "block"
+    const mark = document.createElement(where === "block" ? "div" : "span")
+    mark.className = `spell-comment-mark at-${where}`
     mark.dataset.spellAdded = ""
     mark.innerHTML =
       `<ui-button circular basic size="mini" icon="bullhorn" title="${attr(tip)}" aria-label="${attr(tip)}">` +
@@ -3690,10 +3691,10 @@ class PageComments {
       event.stopPropagation()
       this.openBox({ key: place.anchor, place }, event.currentTarget.getBoundingClientRect())
     })
-    if (place.kind === "section") {
+    if (where === "section" || where === "title") {
       mark.slot = "actions"
       block.append(mark)
-    } else if (place.kind === "page") {
+    } else if (where === "page") {
       // in the page header, before its toolbar:  the toolbar stays its last row
       const head = block.querySelector(".spell-page-head")
       if (head) beforeToolbar(head, mark)

@@ -67,11 +67,11 @@ export const lintBase = {
     ////////////////
 
     // Passing a method reference is idiomatic throughout this codebase --
-    // `store`/`spellCore` are singletons whose methods reach them by name rather than via `this`,
+    // `store`/`core` are singletons whose methods reach them by name rather than via `this`,
     // and React components are handed prototype methods on purpose (see `ErrorHandler`).
     // ~37 hits, all intentional.
     "typescript/unbound-method": "off",
-    // spellCore stringifies arbitrary values on purpose (`upperCase(thing)` etc),
+    // core stringifies arbitrary values on purpose (`upperCase(thing)` etc),
     // so this rule fires ~36 times on intended behaviour.
     // Individual risky spots are suppressed inline.
     "typescript/restrict-template-expressions": "off",

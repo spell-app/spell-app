@@ -205,6 +205,7 @@ classes.addRule(DefinePropertyHas, {
         [
           "a player has a name as text",
           [
+            "// a player has a name as text",
             'Player.declareProp("name", { type: "text" })',
             'Object.defineProperty(Player.prototype, "name", {',
             '  get() { return this.getProp("name") },',
@@ -214,6 +215,7 @@ classes.addRule(DefinePropertyHas, {
           ],
           [
             "export interface Player { name: string }",
+            "// a player has a name as text",
             'Player.declareProp("name", { type: "text" })',
             'Object.defineProperty(Player.prototype, "name", {',
             '  get(this: Player): string { return this.getProp("name") as string },',
@@ -240,15 +242,12 @@ classes.addRule(DefinePropertyHas, {
       tests: [
         // every way to reach an enumeration names its class variable --
         // was CODE-DEBT "Enumerated properties are reachable under inconsistent names"
-        ["print Card suits", "spellCore.console.log(Card.Suits)"],
-        ["print card suits", "spellCore.console.log(Card.Suits)"],
-        [
-          "print the suit of the card is in card suits",
-          "spellCore.console.log(spellCore.includes(Card.Suits, card.suit))"
-        ],
-        ["print the suit of the card", "spellCore.console.log(card.suit)"],
-        ["print the suits of the card", "spellCore.console.log(Card.Suits)"],
-        ["print the number of card suits", "spellCore.console.log(spellCore.itemCountOf(Card.Suits))"]
+        ["print Card suits", "core.console.log(Card.Suits)"],
+        ["print card suits", "core.console.log(Card.Suits)"],
+        ["print the suit of the card is in card suits", "core.console.log(core.includes(Card.Suits, card.suit))"],
+        ["print the suit of the card", "core.console.log(card.suit)"],
+        ["print the suits of the card", "core.console.log(Card.Suits)"],
+        ["print the number of card suits", "core.console.log(core.itemCountOf(Card.Suits))"]
       ]
     },
     {
@@ -268,9 +267,9 @@ classes.addRule(DefinePropertyHas, {
       tests: [
         [
           ["get a new card", "print its suits"],
-          ["const it = new Card()", "spellCore.console.log(Card.Suits)"]
+          ["const it = new Card()", "core.console.log(Card.Suits)"]
         ],
-        ["print bank-account account-types", "spellCore.console.log(BankAccount.AccountTypes)"]
+        ["print bank-account account-types", "core.console.log(BankAccount.AccountTypes)"]
       ]
     },
     {
@@ -287,7 +286,7 @@ classes.addRule(DefinePropertyHas, {
         { input: "a club has an id", js: '/* PARSE ERROR: Can\'t add "id" to Club:  every thing has one, built in */' },
         {
           input: ["person = a new person", "print the id of the person"],
-          js: ["export const person = new Person()", "spellCore.console.log(person.id)"]
+          js: ["export const person = new Person()", "core.console.log(person.id)"]
         },
         {
           input: ["person = a new person", 'set the id of the person to "owen"'],
@@ -295,7 +294,7 @@ classes.addRule(DefinePropertyHas, {
         },
         {
           input: ["club = a new club", "print the id of the club"],
-          js: ["export const club = new Club()", "spellCore.console.log(club.id)"]
+          js: ["export const club = new Club()", "core.console.log(club.id)"]
         }
       ]
     },
@@ -309,6 +308,7 @@ classes.addRule(DefinePropertyHas, {
         {
           input: "a friend-list has people as a new list of people",
           js: [
+            "// a friend-list has people as a new list of people",
             'FriendList.declareProp("people", { itemType: "Person", init: () => new List({ instanceType: "Person" }) })',
             'Object.defineProperty(FriendList.prototype, "people", {',
             '  get() { return this.getProp("people") },',
@@ -318,6 +318,7 @@ classes.addRule(DefinePropertyHas, {
           ],
           ts: [
             "export interface FriendList { people: List<Person> }",
+            "// a friend-list has people as a new list of people",
             'FriendList.declareProp("people", { itemType: "Person", init: () => new List<Person>({ instanceType: "Person" }) })',
             'Object.defineProperty(FriendList.prototype, "people", {',
             '  get(this: FriendList): List<Person> { return this.getProp("people") as List<Person> },',
@@ -338,6 +339,7 @@ classes.addRule(DefinePropertyHas, {
         [
           "a card has short rank as text",
           [
+            "// a card has short rank as text",
             'Card.declareProp("shortRank", { type: "text" })',
             'Object.defineProperty(Card.prototype, "shortRank", {',
             '  get() { return this.getProp("shortRank") },',
@@ -347,6 +349,7 @@ classes.addRule(DefinePropertyHas, {
           ],
           [
             "export interface Card { shortRank: string }",
+            "// a card has short rank as text",
             'Card.declareProp("shortRank", { type: "text" })',
             'Object.defineProperty(Card.prototype, "shortRank", {',
             '  get(this: Card): string { return this.getProp("shortRank") as string },',
@@ -368,6 +371,7 @@ classes.addRule(DefinePropertyHas, {
         [
           "cards have a direction as either up or down",
           [
+            "// cards have a direction as either up or down",
             'Card.Directions = ["up", "down"]',
             'Card.declareProp("direction", { oneOf: Card.Directions })',
             'Object.defineProperty(Card.prototype, "direction", {',
@@ -377,6 +381,7 @@ classes.addRule(DefinePropertyHas, {
             "})"
           ],
           [
+            "// cards have a direction as either up or down",
             'Card.Directions = ["up", "down"]',
             "export interface Card { direction: (typeof Card.Directions)[number] }",
             'Card.declareProp("direction", { oneOf: Card.Directions })',
@@ -390,6 +395,7 @@ classes.addRule(DefinePropertyHas, {
         [
           "todos have a title as text",
           [
+            "// todos have a title as text",
             'Todo.declareProp("title", { type: "text" })',
             'Object.defineProperty(Todo.prototype, "title", {',
             '  get() { return this.getProp("title") },',
@@ -399,6 +405,7 @@ classes.addRule(DefinePropertyHas, {
           ],
           [
             "export interface Todo { title: string }",
+            "// todos have a title as text",
             'Todo.declareProp("title", { type: "text" })',
             'Object.defineProperty(Todo.prototype, "title", {',
             '  get(this: Todo): string { return this.getProp("title") as string },',
@@ -410,6 +417,7 @@ classes.addRule(DefinePropertyHas, {
         [
           "todos have a property completed as yes or no",
           [
+            "// todos have a property completed as yes or no",
             'Todo.declareProp("completed", { type: "choice" })',
             'Object.defineProperty(Todo.prototype, "completed", {',
             '  get() { return this.getProp("completed") },',
@@ -419,6 +427,7 @@ classes.addRule(DefinePropertyHas, {
           ],
           [
             "export interface Todo { completed: boolean }",
+            "// todos have a property completed as yes or no",
             'Todo.declareProp("completed", { type: "choice" })',
             'Object.defineProperty(Todo.prototype, "completed", {',
             '  get(this: Todo): boolean { return this.getProp("completed") as boolean },',
@@ -430,6 +439,7 @@ classes.addRule(DefinePropertyHas, {
         [
           "todos have a property tags as a new list",
           [
+            "// todos have a property tags as a new list",
             'Todo.declareProp("tags", { init: () => new List() })',
             'Object.defineProperty(Todo.prototype, "tags", {',
             '  get() { return this.getProp("tags") },',
@@ -439,6 +449,7 @@ classes.addRule(DefinePropertyHas, {
           ],
           [
             "export interface Todo { tags: any /* spell: type unknown */ }",
+            "// todos have a property tags as a new list",
             'Todo.declareProp("tags", { init: () => new List() })',
             'Object.defineProperty(Todo.prototype, "tags", {',
             '  get(this: Todo): any /* spell: type unknown */ { return this.getProp("tags") },',

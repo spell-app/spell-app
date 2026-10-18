@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
-import { Loader, parseRef, refText, Saver, spellCore, Thing, List } from "$/core"
+import { Loader, parseRef, refText, Saver, core, Thing, List } from "$/core"
 
 /**
  * Things saved by id (`saving.ts`):  written by a `Saver`, read back by a `Loader`.
@@ -83,7 +83,7 @@ class Card extends Thing {
 
 class Pile extends List<Card> {}
 
-/** Look classes up by name, as `spellCore.things` would once a program made them. */
+/** Look classes up by name, as `core.things` would once a program made them. */
 const CLASSES: Record<string, new (props?: Record<string, unknown>) => Thing | List> = {
   Person,
   DatedEvent,
@@ -274,15 +274,15 @@ describe("Loader", () => {
 
   test("a reference to nothing saved:  left out of a list, with a warning", () => {
     const warnings: unknown[][] = []
-    const warn = spellCore.console.warn
-    spellCore.console.warn = (...message: unknown[]) => void warnings.push(message)
+    const warn = core.console.warn
+    core.console.warn = (...message: unknown[]) => void warnings.push(message)
     try {
       const entries = { "Person#owen": { ...EXPECTED.entries["Person#owen"], friends: [{ $ref: "Person#nobody" }] } }
       const owen = loaderOf(entries).load("Person#owen") as Person
       expect(owen.friends.items).toEqual([])
       expect(warnings).toEqual([['Loader.load():  nothing is saved as "Person#nobody"']])
     } finally {
-      spellCore.console.warn = warn
+      core.console.warn = warn
     }
   })
 })

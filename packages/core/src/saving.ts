@@ -44,7 +44,7 @@
  */
 import { getProp, ITEMS_KEY, keysOf, schemaOf, setProp, TYPE_KEY } from "$/util"
 
-import { programThings, spellCore } from "./core"
+import { programThings, core } from "./core"
 import { fieldsOf, hasSetter, isPlainObject, isSpellObject } from "./state"
 // Import directly to avoid circular import
 import { List } from "./classes/List"
@@ -104,7 +104,7 @@ export type LoaderOptions = {
   /** The entry saved under `ref`, if there is one:  JSON as `Saver` wrote it. */
   entryFor: (ref: string) => Record<string, unknown> | undefined
   /**
-   * The class an entry's `"$type"` names:  the running program's (`spellCore.things.classNamed()`) by default.
+   * The class an entry's `"$type"` names:  the running program's (`core.things.classNamed()`) by default.
    * - Needed under `$/core/model`, which has no running program.
    */
   classNamed?: (name: string) => SpellClass | undefined
@@ -287,7 +287,7 @@ export class Loader {
     if (entry) this.index(entry)
     const json = entry ?? this.inside.get(ref)
     if (!json) {
-      spellCore.console.warn(`Loader.load():  nothing is saved as "${ref}"`)
+      core.console.warn(`Loader.load():  nothing is saved as "${ref}"`)
       return undefined
     }
     const made = this.make(json, ref)

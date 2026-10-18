@@ -78,6 +78,54 @@
               </p></epic-aside
             >
             <p class="meta">Live: the real element, drawn by the epics pack this page loads.</p>
+            <ui-section
+              id="epic-aside-actions"
+              header="With buttons in its title row"
+              sticky
+              collapsible
+              dividing
+              collapsed
+            >
+              <p>
+                A page's own buttons go in its title row:
+                <code>&lt;ui-button slot=&quot;actions&quot;&gt;</code> children (epic <code>epic-workflow</code> P25).
+              </p>
+              <ul>
+                <li>
+                  They sit at the right of the title row, after the heading. The heading is its fold button, and it ends
+                  where they start.
+                </li>
+                <li>A click on one never folds or unfolds it.</li>
+                <li>The docs runtime puts the block's bullhorn there too, so it never sits over a button.</li>
+              </ul>
+              <epic-aside title="why a slot, not a float">
+                <p>
+                  A button floated over the heading's corner sat on the fold button; in the row, each has its own room.
+                </p>
+                <ui-button
+                  slot="actions"
+                  circular
+                  basic
+                  size="mini"
+                  icon="copy"
+                  title="Copy a link to it"
+                  aria-label="Copy a link to it"
+                ></ui-button>
+              </epic-aside>
+              <ui-accordion class="spell-code" styled>
+                <ui-title>The example above · 4 lines</ui-title>
+                <ui-content>
+                  <ui-code language="html"
+                    ><script type="text/plain">
+                      <epic-aside title="why a slot, not a float">
+                        <p>A button floated over the heading's corner sat on the fold button; in the row, each has its own room.</p>
+                        <ui-button slot="actions" circular basic size="mini" icon="copy" title="Copy a link to it" aria-label="Copy a link to it"></ui-button>
+                      </epic-aside>
+                    </script></ui-code
+                  >
+                </ui-content>
+              </ui-accordion>
+            </ui-section>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
@@ -221,6 +269,15 @@
                       <td>(default)</td>
                       <td>The aside.</td>
                     </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        Buttons of the page's own in its title row (<code
+                          >&lt;ui-button slot=&quot;actions&quot;&gt;</code
+                        >): after the title, before its own buttons; a click on one never folds it. The docs runtime
+                        puts the block's bullhorn here too.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -248,6 +305,10 @@
                       <td>The panel.</td>
                     </tr>
                     <tr>
+                      <td><code>head</code></td>
+                      <td>Its title row: <code>toggle</code>, then <code>actions</code>.</td>
+                    </tr>
+                    <tr>
                       <td><code>toggle</code></td>
                       <td>
                         Its heading, a <code>&lt;button&gt;</code> that folds it: the chevron, then
@@ -261,6 +322,12 @@
                     <tr>
                       <td><code>body</code></td>
                       <td>What it folds; hidden (<code>until-found</code>) while folded.</td>
+                    </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        In its title row, after the title and before its own buttons: the <code>actions</code> slot.
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -298,6 +365,11 @@
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ul>
               <li>
+                Its heading: folded, ONE line cut with “…”, its words the tooltip; open, as many lines as it needs. The
+                chevron and the slot's buttons sit on its first line, so nothing moves as it switches (Owen,
+                2026-10-18).
+              </li>
+              <li>
                 The brand's ivory panel, as the docs' asides (<code>ui-accordion.spell-aside</code>): warm, rounded, no
                 border (<code>--epic-aside</code> from <code>&lt;epic-page&gt;</code>, with a fallback).
               </li>
@@ -327,8 +399,7 @@
                 one by itself.
               </li>
               <li>
-                The epic tool turns the OLD hand-shaped markup into this element, so a doc never holds the old
-                shape.
+                The epic tool turns the OLD hand-shaped markup into this element, so a doc never holds the old shape.
                 <ul>
                   <li>
                     It does this in any HTML a command takes:

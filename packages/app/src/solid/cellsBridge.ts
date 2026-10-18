@@ -7,7 +7,7 @@
  *   `<spell-editor>` -- and `tracked()`.
  * - ONCE per Solid, however many hosts on a page:  `bridgeSolid()` remembers it in the page's shared cells context,
  *   which every `spell-runtime.js` copy shares too -- so one bridge sees every runtime's Things.
- * - SIDE EFFECT:  `spellCore.flush()` / `flushCells()` now also flush this Solid.
+ * - SIDE EFFECT:  `core.flush()` / `flushCells()` now also flush this Solid.
  */
 
 import { enableExternalSource, flush } from "solid-js"

@@ -1,5 +1,3 @@
-import type { JSX } from "@solidjs/web"
-
 import { E } from "$/spell-solid"
 
 import { epicAsideVocabulary } from "./EpicAside.en"
@@ -26,7 +24,7 @@ export class EpicAside extends EpicPanel<typeof epicAsideVocabulary> {
   } satisfies Partial<E.ElementSetup>
 
   /** `Aside:  <title>`, or `Aside` without one. */
-  protected heading(): JSX.Element {
+  protected heading(): string {
     const title = this.title
     return title ? this.translationForKey("heading", { title }) : this.translationForKey("aside")
   }

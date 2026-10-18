@@ -3,10 +3,10 @@
  * (epic `drawable-thing` P18, Owen's J23).
  *
  * ```ts
- * spellCore.thingForReference("Tableau#T1")   // the tableau named T1
- * spellCore.thingForReference("Pile#T1")      // the same tableau:  a tableau is a pile
- * spellCore.thingForReference("Tableau#1")    // the first tableau the program made
- * spellCore.referenceFor(tableau)             // "Tableau#T1"
+ * core.thingForReference("Tableau#T1")   // the tableau named T1
+ * core.thingForReference("Pile#T1")      // the same tableau:  a tableau is a pile
+ * core.thingForReference("Tableau#1")    // the first tableau the program made
+ * core.referenceFor(tableau)             // "Tableau#T1"
  * ```
  *
  * - A reference reads like CSS's `tag#id`:  the type's name, `#`, then the thing's name or its place.
@@ -21,17 +21,17 @@
  *   (epic `people-and-orgs` P9, Q44).
  *   - So a library's code finds things by name too, under `$/core/model`, which has no running program:
  *     the people store searches its people and orgs, `Person#owen`.
- * - Part of `spellCore`:  imported by `$/core`'s barrel, and by `$/core/model`, for its side effect.
+ * - Part of `core`:  imported by `$/core`'s barrel, and by `$/core/model`, for its side effect.
  *   - The model has no drawing, so no `elementIdFor()`:  it says so if it's called there.
  */
 
 import { untrackCells } from "$/util"
 
-import { programThings, spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { programThings, core } from "./core"
+import { defineCoreModule } from "./core.types"
 
-/** `spellCore`'s methods for thing references. */
-export const referencesMethods = defineSpellCoreModule({
+/** `core`'s methods for thing references. */
+export const referencesMethods = defineCoreModule({
   /**
    * Look things up in `things` from now on, not in the running program's.
    * - Returns what was searched before, to put back.
@@ -39,8 +39,8 @@ export const referencesMethods = defineSpellCoreModule({
    * - What a library's code needs under `$/core/model`, which has no running program, e.g. the people store's:
    *
    *   ```ts
-   *   const before = spellCore.searchThings({ all: () => people, classNamed: (name) => classes[name] })
-   *   try { spellCore.thingForReference("Person#owen") } finally { spellCore.searchThings(before) }
+   *   const before = core.searchThings({ all: () => people, classNamed: (name) => classes[name] })
+   *   try { core.thingForReference("Person#owen") } finally { core.searchThings(before) }
    *   ```
    */
   searchThings(things: ThingsToSearch | undefined): ThingsToSearch | undefined {
@@ -57,7 +57,7 @@ export const referencesMethods = defineSpellCoreModule({
    *   - Digits are always a place:  a thing named "3" can't be found by its name.
    *   - A place across sub-types, `Pile#2` for the second pile of any kind, is a todo (T10).
    * - `Type` is a class's name, exactly as the program declares it:  `Tableau`, never `tableau`.
-   *   Found by `spellCore.things.classNamed()`, which knows a class once one of its things is made;
+   *   Found by `core.things.classNamed()`, which knows a class once one of its things is made;
    *   or by the `classNamed()` of what `searchThings()` says.
    * - Tracked:  a reader re-runs as things are made, so it finds the thing as soon as the program makes it.
    */
@@ -66,7 +66,7 @@ export const referencesMethods = defineSpellCoreModule({
     if (!parts) return undefined
     const [, type, name] = parts as unknown as [string, string, string]
     const Class = thingsSearched().classNamed(type)
-    return Class ? spellCore.thingCalled(Class, name) : undefined
+    return Class ? core.thingCalled(Class, name) : undefined
   },
 
   /**
@@ -78,7 +78,7 @@ export const referencesMethods = defineSpellCoreModule({
    * - Tracked, as `thingForReference()`.
    */
   thingCalled(Class: abstract new (...args: never[]) => unknown, text: string): object | undefined {
-    const thing = PLACE.test(text) ? spellCore.thingAtPlace(Class, Number(text)) : spellCore.thingNamed(Class, text)
+    const thing = PLACE.test(text) ? core.thingAtPlace(Class, Number(text)) : core.thingNamed(Class, text)
     return thing as object | undefined
   },
 
@@ -107,7 +107,7 @@ export const referencesMethods = defineSpellCoreModule({
    * - e.g. `thingAtPlace(Tableau, 1)` is the first tableau made;  `the first tableau` in spell compiles to it.
    * - A place from the end is negative:  `-1` is the last one made, `the last tableau`.
    * - Of `Class` EXACTLY:  a sub-class's things aren't counted (T10).
-   * - Only things the program made and still holds:  the Thing Explorer's (`spellCore.things.all()`).
+   * - Only things the program made and still holds:  the Thing Explorer's (`core.things.all()`).
    * - Tracked, as `thingForReference()`.
    */
   thingAtPlace<T>(Class: abstract new (...args: never[]) => T, place: number): T | undefined {
@@ -131,7 +131,7 @@ export const referencesMethods = defineSpellCoreModule({
     const things = thingsSearched()
     const Class = thing.constructor as abstract new (...args: never[]) => unknown
     const name = nameOf(thing) ?? topLevelNameOf(things, thing)
-    if (name && !PLACE.test(name) && spellCore.thingNamed(Class, name) === thing) return `${Class.name}#${name}`
+    if (name && !PLACE.test(name) && core.thingNamed(Class, name) === thing) return `${Class.name}#${name}`
     const place = things
       .all()
       .filter((each) => each.constructor === Class)
@@ -165,11 +165,11 @@ export const referencesMethods = defineSpellCoreModule({
     return id
   }
 })
-Object.assign(spellCore, referencesMethods)
+Object.assign(core, referencesMethods)
 
 /**
  * What the lookups search:  a list of things, and their classes by name.
- * - The running program's things (`spellCore.things`), or what `searchThings()` was given.
+ * - The running program's things (`core.things`), or what `searchThings()` was given.
  */
 export type ThingsToSearch = {
   /** Every thing to search, in the order they were made:  a place counts in it. */
@@ -206,7 +206,7 @@ const PLACE = /^[1-9]\d*$/
 /**
  * The id each thing drawn as an element was given, and the name it was given for -- see `elementIdFor()`.
  * - Held weakly:  a thing thrown away takes its entry with it.
- * - One per runtime copy, as `spellCore` is:  each `<spell-app>`'s program numbers its own things.
+ * - One per runtime copy, as `core` is:  each `<spell-app>`'s program numbers its own things.
  */
 const ELEMENT_IDS = new WeakMap<object, { name: string; id: string }>()
 
@@ -215,13 +215,13 @@ const ELEMENT_IDS = new WeakMap<object, { name: string; id: string }>()
  * `0` if `thing` isn't the program's.
  */
 function earlierNamed(thing: object, name: string): number {
-  const { things } = spellCore
+  const { things } = core
   const number = things.numberOf(thing as Parameters<typeof things.numberOf>[0])
   if (number === undefined) return 0
   let count = 0
   for (const each of things.all()) {
     if ((things.numberOf(each) ?? 0) >= number) break
-    if (spellCore.elementTagOf(each) && idNameOf(each) === name) count++
+    if (core.elementTagOf(each) && idNameOf(each) === name) count++
   }
   return count
 }

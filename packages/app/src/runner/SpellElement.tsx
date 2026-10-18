@@ -3,7 +3,7 @@ import { insert, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
 import { drawableAttributeFor } from "$/util"
-import type { ElementApi, SpellCore } from "$/core"
+import type { ElementApi, Core } from "$/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 
 /****************
@@ -12,7 +12,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *
  * - A Spell UI component like any `ui-*` one:  its own shadow root, with the page's theme and base styles.
  *   Then its type's own `<css>`, its class's `static css`, after its super-types' (`cssOf()`).
- * - It draws its `thing`, through the program's runtime:  `spellCore.drawOwn()`, in the thing's error boundary.
+ * - It draws its `thing`, through the program's runtime:  `core.drawOwn()`, in the thing's error boundary.
  * - Its outside is its type's (epic `drawable-thing` P8), named as Spell UI names its own elements' API:
  *   - each property its type declares is an attribute and a property:  `<game-card rank="1">`, `card.rank = 12`
  *   - each property stays the same on the element and its thing, both ways (P13):
@@ -36,7 +36,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
  * - Compiled TypeScript writes each type's own class on it, saying only what's the type's (epic `drawable-thing` P10):
  *   `class CardElement extends SpellElement<Card>`, with its attributes, its methods and its sheet.
- *   - The page builds the tag on that class (`spellCore.useElement()`), so both targets draw the same element.
+ *   - The page builds the tag on that class (`core.useElement()`), so both targets draw the same element.
  *   - It reaches compiled code as `@spell/elements`:  see `spellElements.ts`.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
@@ -103,12 +103,12 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * - With no `id`, in a layout:  its one thing of our type exactly.
    * - The program asked is the one that defined our tag last.
    * - `undefined` if there's none (yet).
-   * - Tracked:  found as soon as the program makes it.  See `spellCore.thingFor()`.
+   * - Tracked:  found as soon as the program makes it.  See `core.thingFor()`.
    */
   get boundThing(): object | undefined {
     const { entry, idName } = this
     if (!idName && !this.isInLayout) return undefined
-    return entry?.spellCore.thingFor(entry.Class, idName)
+    return entry?.core.thingFor(entry.Class, idName)
   }
 
   /**
@@ -119,7 +119,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const thing = this.currentThing
     const { entry } = this
     if (!entry) return null
-    if (thing) return entry.spellCore.drawOwn(thing) as JSX.Element
+    if (thing) return entry.core.drawOwn(thing) as JSX.Element
     const isMissing = this.isInLayout || this.idName
     return isMissing ? <span class="spell-draw-error">{this.missingText(entry)}</span> : null
   }
@@ -159,7 +159,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
       () => {
         const list = this.handedThing ? undefined : this.currentThing
         const { entry } = this
-        return list && entry && "items" in list ? (entry.spellCore.drawItems(list) as JSX.Element) : null
+        return list && entry && "items" in list ? (entry.core.drawItems(list) as JSX.Element) : null
       },
       null
     )
@@ -171,7 +171,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * Handed a thing by the program:  our `id` is its name (J43),
    * so the browser's inspector says which thing we draw:  `<solitaire-card id="queen-of-spades">`.
    * - A second of the program's things with that name, e.g. from a second deck:  `queen-of-spades-2`.
-   *   Which is which is the program's to say:  see `spellCore.elementIdFor()`.
+   *   Which is which is the program's to say:  see `core.elementIdFor()`.
    * - It follows the thing's name:  a card whose rank changes changes its id.
    * - A thing with no name:  no id.
    * - An id the page gave the tag itself is kept.
@@ -183,7 +183,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     createEffect(
       () => {
         const thing = this.handedThing
-        return thing && this.entry?.spellCore.elementIdFor(thing)
+        return thing && this.entry?.core.elementIdFor(thing)
       },
       (id) => {
         const element = this.domElement
@@ -257,7 +257,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * Write the thing reference `text`, e.g. `"Tableau#T1"`, to `thing`'s property `property` (P18):
    * - a property holding a thing:  set to the thing the reference finds;  no attribute is nothing
    * - the list holding it, e.g. a card's `pile`:  moved to the list the reference finds,
-   *   as a move in spell is, so the lists' rules are asked (`spellCore.move()`)
+   *   as a move in spell is, so the lists' rules are asked (`core.move()`)
    *   - a move they refuse, or no attribute:  it stays where it is, and the attribute shows that list again
    * - A reference that finds nothing (yet) changes nothing, and the attribute stays as written.
    */
@@ -265,13 +265,13 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const { entry } = this
     if (!entry) return
     const reference = typeof text === "string" ? text.trim() : ""
-    const target = reference ? entry.spellCore.thingForReference(reference) : undefined
+    const target = reference ? entry.core.thingForReference(reference) : undefined
     if (reference && !target) return
     if (property.reference === "thing") {
       ;(thing as Record<string, unknown>)[property.name] = target
       return
     }
-    if (target) entry.spellCore.move(thing, target)
+    if (target) entry.core.move(thing, target)
     this.writeElement(property, thing)
   }
 
@@ -282,7 +282,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    */
   private shownValueOf(property: TypeProperty, thing: object): unknown {
     const value = (thing as Record<string, unknown>)[property.name]
-    return property.reference ? this.entry?.spellCore.referenceFor(value) : value
+    return property.reference ? this.entry?.core.referenceFor(value) : value
   }
 
   /**
@@ -343,18 +343,18 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
           return thing ? component!.shownValueOf(property, thing) : elementValue.call(this)
         },
         set(this: HTMLElement & { component?: SpellElement }, value: unknown) {
-          const spellCore = property.reference && SPELL_ELEMENTS.get(this.localName)?.spellCore
-          const isThing = spellCore && value && typeof value === "object"
-          setElementValue.call(this, isThing ? spellCore.referenceFor(value) : value)
+          const core = property.reference && SPELL_ELEMENTS.get(this.localName)?.core
+          const isThing = core && value && typeof value === "object"
+          setElementValue.call(this, isThing ? core.referenceFor(value) : value)
         }
       })
     }
   }
 
   /**
-   * Make `tag` the element of drawable class `Class`, from `spellCore`'s program, e.g. `solitaire-card` for `Card`.
+   * Make `tag` the element of drawable class `Class`, from `core`'s program, e.g. `solitaire-card` for `Card`.
    * - The first time:  a component class for the tag, defined on the page, built on:
-   *   - the element class compiled TypeScript handed for `Class`, e.g. `CardElement` (`spellCore.useElement()`, P10)
+   *   - the element class compiled TypeScript handed for `Class`, e.g. `CardElement` (`core.useElement()`, P10)
    *   - else a bare `SpellElement`, as for compiled javascript
    * - Its vocabulary is ours under that tag, plus an attribute per property its type declares (`typePropertiesOf()`):
    *   - an attribute the handed class names is its own, as written
@@ -364,17 +364,17 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * - Its sheet is its type's (`sheetFor()`).
    * - Again (a program run again after an edit, or another `<spell-app>` running the same project):
    *   the platform can't define a tag twice, so it stays, and what's behind it is swapped (epic `drawable-thing` P7):
-   *   - it draws with the latest `spellCore` from then on (`SPELL_ELEMENTS`)
+   *   - it draws with the latest `core` from then on (`SPELL_ELEMENTS`)
    *   - its type's CSS is replaced in every element of the tag on the page, at once (`restyle()`)
    *   - what it draws comes from its `thing`, so a program run again draws its new things with their new `draw()`
    */
-  static defineFor(tag: string, Class: Function, spellCore: SpellCore): void {
-    SPELL_ELEMENTS.set(tag, { Class, spellCore })
-    const Base = (spellCore.elementClassOf(Class) ?? SpellElement) as typeof SpellElement
+  static defineFor(tag: string, Class: Function, core: Core): void {
+    SPELL_ELEMENTS.set(tag, { Class, core })
+    const Base = (core.elementClassOf(Class) ?? SpellElement) as typeof SpellElement
     // never "":  `UI.styles.register()` takes that as "unregister", and the tag's elements would lose the sheet
     const css = SpellElement.sheetFor(tag, Class, Base) || `/* <${tag}>:  no styles of its own */`
     if (customElements.get(tag)) return SpellElement.restyle(tag, css)
-    const api = spellCore.elementApiOf(Class)
+    const api = core.elementApiOf(Class)
     const written = SpellElement.writtenAttributesOf(Base)
     const properties = SpellElement.typePropertiesOf(api, written)
     const derived = new Set(properties.map((property) => property.spec.name))
@@ -565,11 +565,11 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 export interface SpellElement<Thing extends object = object> extends E.AttributeValues<typeof spellElementVocabulary> {}
 
 /**
- * Let `spellCore` define its drawable classes' elements:  sets `spellCore.elementDefiner`.
+ * Let `core` define its drawable classes' elements:  sets `core.elementDefiner`.
  * - Called once per runtime copy, by `spellRuntime.ts`.
  */
-export function installSpellElements(spellCore: SpellCore): void {
-  spellCore.elementDefiner = (tag, Class) => SpellElement.defineFor(tag, Class, spellCore)
+export function installSpellElements(core: Core): void {
+  core.elementDefiner = (tag, Class) => SpellElement.defineFor(tag, Class, core)
 }
 
 /** One of a type's properties, as its element shows it -- see `SpellElement.typePropertiesOf()`. */
@@ -595,7 +595,7 @@ type SpellElementEntry = {
   /** The drawable class, e.g. `Card`. */
   Class: Function
   /** The runtime its program runs on:  draws its things. */
-  spellCore: SpellCore
+  core: Core
 }
 
 /**

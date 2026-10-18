@@ -1,16 +1,16 @@
 /**
- * `spellCore` barrel -- core runtime library that compiled `spell` JS calls into (`spellCore.foo(...)`).
- * - Compiled spell modules `import` what they use, e.g. `import { spellCore, Thing, h } from "@spell/core"`:
+ * `core` barrel -- core runtime library that compiled `spell` JS calls into (`core.foo(...)`).
+ * - Compiled spell modules `import` what they use, e.g. `import { core, Thing, h } from "@spell/core"`:
  *   no globals.  See `SPELL_CORE_MODULE`.
- * - `spellCore` is ONE object (constructed in `core.ts`), assembled by ACCRETION:
- *   each sibling module here does `Object.assign(spellCore, <module>Methods)`
- *   as a top-level side effect when its file first loads -- see `defineSpellCoreModule()` in `spellCore.types.ts`.
+ * - `core` is ONE object (constructed in `core.ts`), assembled by ACCRETION:
+ *   each sibling module here does `Object.assign(core, <module>Methods)`
+ *   as a top-level side effect when its file first loads -- see `defineCoreModule()` in `core.types.ts`.
  *   - The modules:  `collection-core`, `collection-other`, `deprecated`, `paths`, `string`, `tests`,
  *     `console`, `runtime`, `things`, `json`, `carry`, `ui`, `drawing`, `elements`, `references`,
  *     plus `core` itself.
  * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no named import):
  *   importing this barrel (or anything that transitively imports `$/core`) is what triggers the assembly.
- * - `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
+ * - `Core` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
  * - NOTE: `SC` ~== `$/core`, this sub-system's self-namespace.
  * - NOTE: `classes/` (`Thing`, `List`, ...) is flattened in via `export * from "./classes"`,
  *   rather than getting its own namespace.
@@ -18,7 +18,7 @@
 export * as SC from "./"
 
 import { assert } from "./assert"
-import { spellCore } from "./core"
+import { core } from "./core"
 import "./collection-core"
 import "./collection-other"
 import "./deprecated"
@@ -36,10 +36,10 @@ import "./drawing"
 import "./elements"
 import "./references"
 
-export { spellCore, assert, SpellEvent, Eventful }
+export { core, assert, SpellEvent, Eventful }
 // Events, imported by name:  `trigger("card-click", { card: this })`.
 // Compiled JavaScript and TypeScript both say it so, since epic `output-targets` P19;
-// `spellCore.trigger(...)`, which javascript compiled before then says, is the same function.
+// `core.trigger(...)`, which javascript compiled before then says, is the same function.
 export { on, off, once, trigger }
 // Helpers compiled and hand-written code import by name, e.g. `positionOf(Card.Ranks, this.rank)`.
 // `itemOf`:  its old name, for TypeScript compiled before epic `output-targets` P16 -- see `deprecated.ts`.
@@ -88,14 +88,8 @@ export {
   type PageSpec
 } from "./page"
 // What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
-// - e.g. `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
+// - e.g. `import { core, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
 // - see `drawing.ts`
 export { h } from "./drawing"
-export {
-  SPELL_CORE_MODULE,
-  SPELL_ELEMENTS_MODULE,
-  SPELL_CORE_NAMES,
-  type SpellCore,
-  type PropCheck
-} from "./spellCore.types"
+export { SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE, SPELL_CORE_NAMES, type Core, type PropCheck } from "./core.types"
 export * from "./classes"

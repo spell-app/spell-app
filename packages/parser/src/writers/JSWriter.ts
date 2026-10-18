@@ -51,7 +51,7 @@ export class JSWriter extends ProgramWriter {
 
   /** `@spell/core`'s helpers the code calls by name, e.g. `on`, `trigger`, `positionOf`:  imported by `module()`. */
   protected coreImports = new Set<string>()
-  /** The nodes written as statements, not values:  `spellCore.map()` there is a `forEach()`. */
+  /** The nodes written as statements, not values:  `core.map()` there is a `forEach()`. */
   protected statements = new WeakSet<P.ASTNode>()
   /** While writing a loop's body:  a bare `return` in it is `continue` -- see `loop()`. */
   protected returnContinues = false
@@ -279,7 +279,7 @@ export class JSWriter extends ProgramWriter {
     return name
   }
 
-  /** `node`'s name, as we write a variable's (`nameOf()`):  `start_pile` => `startPile`;  `spellCore` as is. */
+  /** `node`'s name, as we write a variable's (`nameOf()`):  `start_pile` => `startPile`;  `core` as is. */
   variableName(node: P.ASTVariableExpression): string {
     return node.type === "global" ? node.name : this.nameOf(node.name, "variable")
   }
@@ -447,7 +447,7 @@ export class JSWriter extends ProgramWriter {
     return needsParens ? `(${this.write(inner)})` : String(this.write(inner))
   }
 
-  /** The text `node` says isn't empty (`!spellCore.isEmpty(text)`), else `undefined`. */
+  /** The text `node` says isn't empty (`!core.isEmpty(text)`), else `undefined`. */
   nonEmptyText(node: P.ASTExpression): P.ASTExpression | undefined {
     const not = unwrapped(node)
     if (!(not instanceof P.ASTNotExpression)) return undefined
@@ -473,7 +473,7 @@ export class JSWriter extends ProgramWriter {
     const inner = unwrapped(node)
     if (!this.bindsTightly(inner)) return `(${this.write(inner)})`
     const text = String(this.write(inner))
-    // a `spellCore` helper said with an operator:  `x !== undefined`, `x instanceof Tableau`, `!x`
+    // a `core` helper said with an operator:  `x !== undefined`, `x instanceof Tableau`, `!x`
     return isCoreCall(inner) && LOOSE_CORE_CALL.test(text) ? `(${text})` : text
   }
 
@@ -503,10 +503,10 @@ export class JSWriter extends ProgramWriter {
   /**
    * `thing.method(args)`, by our name:  `card.moveToPile(endPile)`.
    * - `?.` off what may be nothing, see `mayBeNothing()`.
-   * - A `spellCore` helper is written as javascript says it where it can:  see `coreCall()`.
+   * - A `core` helper is written as javascript says it where it can:  see `coreCall()`.
    */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
-    if (node.thing instanceof P.ASTSpellCoreExpression) {
+    if (node.thing instanceof P.ASTCoreExpression) {
       const written = this.coreCall(node)
       if (written !== undefined) return written
       return this.positionOut(
@@ -519,7 +519,7 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * A `spellCore` helper's `(args)`, its positions as indexes (`positionArgs()`):  `(deck, 3)` for `item 4 of deck`.
+   * A `core` helper's `(args)`, its positions as indexes (`positionArgs()`):  `(deck, 3)` for `item 4 of deck`.
    * - One that takes no positions:  as `argsOf()` writes them.
    */
   helperArgs(node: P.ASTScopedMethodInvocation): string {
@@ -552,12 +552,12 @@ export class JSWriter extends ProgramWriter {
   }
 
   ////////////////
-  // ## `spellCore`'s helpers, as javascript says them
+  // ## `core`'s helpers, as javascript says them
   ////////////////
 
   /**
-   * A `spellCore` helper as javascript says it, where it can:
-   * `undefined` where it can't, for `spellCore.<name>()`.
+   * A `core` helper as javascript says it, where it can:
+   * `undefined` where it can't, for `core.<name>()`.
    * - `is defined`:  `x !== undefined`
    * - text spell knows is text:  `!this.right`, `this.input.includes(".")`, `x.toLocaleUpperCase()`
    * - a list written out:  `["diamonds", "hearts"].includes(this.suit)`
@@ -608,7 +608,7 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * `spellCore.isOfType(x, "Tableau")`, as javascript tests a type -- `undefined` to leave it to `spellCore`:
+   * `core.isOfType(x, "Tableau")`, as javascript tests a type -- `undefined` to leave it to `core`:
    * - a class:  `x instanceof Tableau`
    * - a number:  `typeof x === "number"`, text:  `typeof x === "string"`
    * - spell's other kinds, on one of spell's things:  its own `x.isOfType("integer")`
@@ -742,7 +742,7 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * A loop whose body waits, `await spellCore.forEachSequential(cards, async (card) => {...})`, as a plain loop:
+   * A loop whose body waits, `await core.forEachSequential(cards, async (card) => {...})`, as a plain loop:
    * `for (const card of cards) {...}`, so the waits happen in turn -- `undefined` if it isn't one.
    * - Over a spell `List` (iterable) or a plain array, when the body takes the item only.
    * - A bare `return` in the body ends that turn only:  `continue`.
@@ -1177,11 +1177,24 @@ export class JSWriter extends ProgramWriter {
     })
   }
 
-  /** In its class's body:  `static { this.declareProp(...) }` (if it declares anything), its getter and setter. */
+  /**
+   * A comment saying the spell that made `node`:  `// - its "friend-lists" is a list of friend-lists`
+   * -- `undefined` when there's none (`spellOf()`).
+   */
+  spellComment(node: P.ASTNode): string | undefined {
+    const spell = this.spellOf(node)
+    return spell && `// ${spell}`
+  }
+
+  /**
+   * In its class's body:  the spell that made it as a comment, `static { this.declareProp(...) }` (if it declares
+   * anything), its getter and setter.
+   */
   ASTReactivePropertyAsMember(node: P.ASTReactiveProperty): string {
     const name = this.memberKey(node.property)
     const declare = this.declareCall(node, "this")
     return [
+      this.spellComment(node),
       declare && `static { ${declare} }`,
       `get ${name}()${this.valueType(node)} ${this.getterBody(node)}`,
       `set ${name}(${this.setterParams(node)}) ${this.setterBody(node)}`
@@ -1204,7 +1217,7 @@ export class JSWriter extends ProgramWriter {
       const block = jsText.Block({ wrap: true, children: descriptor.join(jsText.NEWLINE) })
       const define = `Object.defineProperty(${this.write(node.prototypeExpression)}, ${this.propertyKey(node)}, ${block})`
       const declare = this.declareCall(node, this.write(node.type))
-      return declare ? [declare, define].join(jsText.NEWLINE) : define
+      return [this.spellComment(node), declare, define].filter(Boolean).join(jsText.NEWLINE)
     })
   }
 
@@ -1275,13 +1288,18 @@ export class JSWriter extends ProgramWriter {
     return `${type}.${name} = ${this.anonymousFunction(node.method)}`
   }
 
-  /** `static Name = value`, by our name. */
+  /** `static Name = value`, by our name;  a list of values below the spell that made it (`spellOf()`). */
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
-    return `static ${this.nameOf(node.name)} = ${this.bare(node.value)}`
+    return this.withSpell(node, `static ${this.nameOf(node.name)} = ${this.bare(node.value)}`)
   }
 
   ASTStaticDefinition(node: P.ASTStaticDefinition): string {
-    return `${this.write(node.type)}.${this.nameOf(node.name)} = ${this.bare(node.value)}`
+    return this.withSpell(node, `${this.write(node.type)}.${this.nameOf(node.name)} = ${this.bare(node.value)}`)
+  }
+
+  /** `code`, below the spell that made `node`, if any (`spellComment()`). */
+  withSpell(node: P.ASTNode, code: string): string {
+    return [this.spellComment(node), code].filter(Boolean).join(jsText.NEWLINE)
   }
 
   /** Its `member`, patched onto its class from outside, wherever that class is written. */

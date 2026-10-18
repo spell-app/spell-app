@@ -5,9 +5,9 @@ import { SpellExpression } from "$/spell/rules/expressions"
 import { lists } from "./lists.parser"
 
 /**
- * `merge_lists` rule:  merge a set of lists together, e.g. `merge the piles` => `spellCore.mergeLists(piles)`.
+ * `merge_lists` rule:  merge a set of lists together, e.g. `merge the piles` => `core.mergeLists(piles)`.
  * - QUESTIONABLE SYNTAX: `(as|into) (a|an) new? {type}` clause picks constructor for result, e.g.
- *   `merge the piles as a list` => `spellCore.mergeLists(piles, List)`.
+ *   `merge the piles as a list` => `core.mergeLists(piles, List)`.
  */
 export class MergeLists extends SpellExpression<"expression|type?"> {
   /** The type it's merged `as`, else a `list`. */
@@ -35,8 +35,8 @@ lists.addRule(MergeLists, {
         scope.variables?.add("piles")
       },
       tests: [
-        ["merge the piles", "spellCore.mergeLists(piles)"],
-        ["merge the piles as a list", "spellCore.mergeLists(piles, List)"]
+        ["merge the piles", "core.mergeLists(piles)"],
+        ["merge the piles as a list", "core.mergeLists(piles, List)"]
       ]
     }
   ]

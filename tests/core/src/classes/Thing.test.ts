@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, afterEach } from "vite-plus/test"
 
 import { observe } from "$/util"
-import { spellCore, Thing, List } from "$/core"
+import { core, Thing, List } from "$/core"
 
 /**
  * A thing written the way spell compiles one:  each property a getter / setter pair over `getProp` / `setProp`.
@@ -79,38 +79,38 @@ describe("compiled-style getter / setter properties", () => {
 })
 
 describe("Thing.isOfType()", () => {
-  test("its own type and each it extends, as `spellCore.isOfType()`", () => {
+  test("its own type and each it extends, as `core.isOfType()`", () => {
     class UrgentTask extends Task {}
     const task = new UrgentTask({})
     expect(["urgenttask", "Task", "thing"].map((type) => task.isOfType(type))).toEqual([true, true, true])
     expect(task.isOfType("list")).toBe(false)
-    expect(task.isOfType("task")).toBe(spellCore.isOfType(task, "task"))
+    expect(task.isOfType("task")).toBe(core.isOfType(task, "task"))
   })
 })
 
 describe("`setProp()` check", () => {
   test("a value of the right type doesn't warn", () => {
-    const warn = vi.spyOn(spellCore.console, "warn").mockImplementation(() => {})
+    const warn = vi.spyOn(core.console, "warn").mockImplementation(() => {})
     new Task({ title: "ok", priority: "low" })
     expect(warn).not.toHaveBeenCalled()
   })
 
   test("a value of the wrong type warns, and is stored anyway", () => {
-    const warn = vi.spyOn(spellCore.console, "warn").mockImplementation(() => {})
+    const warn = vi.spyOn(core.console, "warn").mockImplementation(() => {})
     const task = new Task({ title: 42 })
     expect(warn).toHaveBeenCalledWith("Expected title to be type 'text', got:", 42)
     expect(task.title).toBe(42)
   })
 
   test("a value not in `oneOf` warns, and is stored anyway", () => {
-    const warn = vi.spyOn(spellCore.console, "warn").mockImplementation(() => {})
+    const warn = vi.spyOn(core.console, "warn").mockImplementation(() => {})
     const task = new Task({ priority: "urgent" })
     expect(warn).toHaveBeenCalledWith("Expected priority to be one of 'low,high', got:", "urgent")
     expect(task.priority).toBe("urgent")
   })
 
   test("works on a `List` subclass too", () => {
-    const warn = vi.spyOn(spellCore.console, "warn").mockImplementation(() => {})
+    const warn = vi.spyOn(core.console, "warn").mockImplementation(() => {})
     const deck = new Deck({ name: 7 })
     expect(warn).toHaveBeenCalledWith("Expected name to be type 'text', got:", 7)
     expect(deck.name).toBe(7)
@@ -138,9 +138,9 @@ describe("Thing.id (people-and-orgs P1)", () => {
   })
 
   test("two things NEVER share a made-up id, even in runs seeded the same", () => {
-    spellCore.seedRandom(7)
+    core.seedRandom(7)
     const first = new Task().id
-    spellCore.seedRandom(7)
+    core.seedRandom(7)
     const second = new Task().id
     const ids = new Set(Array.from({ length: 1000 }, () => new Task().id))
     expect(second).not.toBe(first)
@@ -163,7 +163,7 @@ describe("Thing.id (people-and-orgs P1)", () => {
   })
 
   test("not a text:  warns, as any declared prop does, and is stored anyway", () => {
-    const warn = vi.spyOn(spellCore.console, "warn").mockImplementation(() => {})
+    const warn = vi.spyOn(core.console, "warn").mockImplementation(() => {})
     const task = new Task({ id: 42 })
     expect(warn).toHaveBeenCalledWith("Expected id to be type 'text', got:", 42)
     expect(task.id).toBe(42)

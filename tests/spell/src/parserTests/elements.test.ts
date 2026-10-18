@@ -5,7 +5,7 @@ import { SP } from "$/spell"
 
 /**
  * A drawable type defines its element as its class is declared (epic `drawable-thing`, P5):
- * `static elementTag = spellCore.defineElement(this, "<project>")` -- see `TypeDeclaration.elementMember()`.
+ * `static elementTag = core.defineElement(this, "<project>")` -- see `TypeDeclaration.elementMember()`.
  */
 describe("drawable types' elements", () => {
   /** `lines` as one file of a test project:  its compiled module. */
@@ -23,9 +23,9 @@ describe("drawable types' elements", () => {
     ])
     const defining = code.split("\n").filter((line) => line.includes("defineElement"))
     expect(defining.map((line) => line.trim())).toEqual([
-      'static elementTag = spellCore.defineElement(this, "test-project")',
-      'static elementTag = spellCore.defineElement(this, "test-project")',
-      'static elementTag = spellCore.defineElement(this, "test-project")'
+      'static elementTag = core.defineElement(this, "test-project")',
+      'static elementTag = core.defineElement(this, "test-project")',
+      'static elementTag = core.defineElement(this, "test-project")'
     ])
     expect(code).toMatch(/class Note extends Thing \{\}/)
   })

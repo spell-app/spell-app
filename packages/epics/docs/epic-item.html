@@ -171,6 +171,50 @@ holding its id (Q7).  Its colour says where the item stands."
             <epic-item id="j5" title="Kept the old answer ids, so #d7 links still land" status="canceled" state="old">
               <p>Made moot by the converter keeping every id.</p>
             </epic-item>
+            <ui-section
+              id="epic-item-actions"
+              header="With buttons in its title row"
+              sticky
+              collapsible
+              dividing
+              collapsed
+            >
+              <p>
+                A page's own buttons go in its title row:
+                <code>&lt;ui-button slot=&quot;actions&quot;&gt;</code> children (epic <code>epic-workflow</code> P25).
+              </p>
+              <ul>
+                <li>They sit after the title, before its bed icon, git icon, review label and review buttons.</li>
+                <li>A click on one never folds or unfolds it.</li>
+                <li>The docs runtime puts the block's bullhorn there too, so it never sits over a button.</li>
+                <li>Its bed icon (made overnight) is its own: the copy button sits before it.</li>
+              </ul>
+              <epic-item id="t42" title="Give ui-components a docs page" status="open" state="open" overnight>
+                <p>Add it to the library's entries, and give it a page.</p>
+                <ui-button
+                  slot="actions"
+                  circular
+                  basic
+                  size="mini"
+                  icon="copy"
+                  title="Copy its id"
+                  aria-label="Copy its id"
+                ></ui-button>
+              </epic-item>
+              <ui-accordion class="spell-code" styled>
+                <ui-title>The example above · 4 lines</ui-title>
+                <ui-content>
+                  <ui-code language="html"
+                    ><script type="text/plain">
+                      <epic-item id="t42" title="Give ui-components a docs page" status="open" state="open" overnight>
+                        <p>Add it to the library's entries, and give it a page.</p>
+                        <ui-button slot="actions" circular basic size="mini" icon="copy" title="Copy its id" aria-label="Copy its id"></ui-button>
+                      </epic-item>
+                    </script></ui-code
+                  >
+                </ui-content>
+              </ui-accordion>
+            </ui-section>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
@@ -524,6 +568,15 @@ holding its id (Q7).  Its colour says where the item stands."
                         last in its details, under Owen's marked note, above the note box.
                       </td>
                     </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        Buttons of the page's own in its title row (<code
+                          >&lt;ui-button slot=&quot;actions&quot;&gt;</code
+                        >): after the title, before its own buttons; a click on one never folds it. The docs runtime
+                        puts the block's bullhorn here too.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -587,7 +640,10 @@ holding its id (Q7).  Its colour says where the item stands."
                     </tr>
                     <tr>
                       <td><code>actions</code></td>
-                      <td>The box at the end of the line: the git icon, the review label, then the review buttons.</td>
+                      <td>
+                        The box at the end of the line: the <code>actions</code> slot (the page's own buttons, the
+                        bullhorn), then the git icon, the review label, the review buttons and collapse-all.
+                      </td>
                     </tr>
                     <tr>
                       <td><code>details</code></td>
@@ -769,6 +825,11 @@ holding its id (Q7).  Its colour says where the item stands."
                 </table></ui-table
               >
               <ul>
+                <li>
+                  Its title: folded (with details to unfold), ONE line cut with “…”, the full title its tooltip; open,
+                  or with nothing to unfold, as many lines as it needs. Its first line and the buttons after it never
+                  move as it switches (Owen, 2026-10-18).
+                </li>
                 <li>A canceled item's title is struck through.</li>
                 <li>An item made overnight (<code>overnight</code>) has a small bed icon at the end of its line.</li>
                 <li>

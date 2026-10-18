@@ -9,7 +9,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_add_relative` rule:  add to list before/after some other item, e.g. `add thing to my-list before other-thing`.
- * - Compiles to `spellCore.addBefore(list, item, thing)` / `spellCore.addAfter(list, item, thing)`.
+ * - Compiles to `core.addBefore(list, item, thing)` / `core.addAfter(list, item, thing)`.
  * - `item` not in the list:  `before` adds at the START, `after` at the END (epic `output-targets`, P14) --
  *   the same rule as `List`'s own `addBefore()` / `addAfter()`.
  * TODO: `relative_position_expression` rule?
@@ -36,8 +36,8 @@ lists.addRule(ListAddRelative, {
         scope.variables?.add("other-thing")
       },
       tests: [
-        ["add thing to my-list before other-thing", "spellCore.addBefore(myList, otherThing, thing)"],
-        ["add thing to my-list after other-thing", "spellCore.addAfter(myList, otherThing, thing)"]
+        ["add thing to my-list before other-thing", "core.addBefore(myList, otherThing, thing)"],
+        ["add thing to my-list after other-thing", "core.addAfter(myList, otherThing, thing)"]
       ]
     }
   ]

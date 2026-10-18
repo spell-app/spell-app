@@ -1194,9 +1194,11 @@ pre code {
 /*
  * ## Guide comments (epic `airplane`, P11):  Owen's comments on a page's blocks, from the inbox file
  * (`GuideInbox`, `packages/epics/src/tool/`), drawn by the runtime's "Comments" (`PageComments`).
- * - the BULLHORN (`.spell-comment-mark`):  in a section's title (`.at-section`, its `actions` slot), in the page
- *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
- *   top right corner;  shown only while the block is hovered (a section:  its innermost hovered one) or focused.
+ * - the BULLHORN (`.spell-comment-mark`):  in a section's title (`.at-section`, its `actions` slot), in an epic page
+ *   block's title row (`.at-title`:  an item's, update's, aside's or code block's `actions` slot, before its own
+ *   buttons;  epic `epic-workflow` P25), in the page header (`.at-page`), else (`.at-block`:  a block with no title
+ *   row) a line of no height just before the block, its button over the block's top right corner;  shown only while
+ *   the block is hovered (a section:  its innermost hovered one) or focused.
  *   It starts a new comment;  no count:  the block's threads are right there (Owen, 2026-10-10:  "Bullhorn to the
  *   far right is unnecessary")
  * - every comment's THREAD (`.spell-thread`, in a `.spell-comments` box), under the paragraph holding the quote, else
@@ -1229,20 +1231,13 @@ pre code {
   border-radius: 999px;
   background: var(--spell-bg);
 }
-/*
- * a folding block's title row (`<epic-code>`, `<epic-aside>`) is its fold button, the row's whole width:  it ends
- * short of the bullhorn over its corner, so the two sit side by side, never one on the other (Owen, 2026-10-17:
- * "the bullhorn appears to be overlapping with the collapse button")
- */
-.spell-doc-main .spell-comment-mark.at-block + :is(epic-code, epic-aside)::part(toggle) {
-  width: calc(100% - 34px);
-}
 .spell-doc-main .spell-comment-mark:not(.at-block) {
   position: relative;
 }
 .spell-doc-main
   :is(
     ui-section:hover:not(:has(ui-section:hover)) > .spell-comment-mark,
+    :is(epic-item, epic-update, epic-aside, epic-code):hover > .spell-comment-mark,
     .spell-page-head:hover > .spell-comment-mark,
     .spell-comment-mark:has(+ :hover),
     .spell-comment-mark:hover,

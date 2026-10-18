@@ -32,8 +32,8 @@ UI.addRule(Warn, {
     {
       compileAs: "statement",
       tests: [
-        [`warn "Yo!"`, `await spellCore.warn("Yo!")`],
-        [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`]
+        [`warn "Yo!"`, `await core.warn("Yo!")`],
+        [`warn "Yo!" with "yep"`, `await core.warn("Yo!", "yep")`]
       ]
     }
   ]

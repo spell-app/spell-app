@@ -390,7 +390,7 @@ export type BuiltInType = {
  * One member of a `BuiltInType` -- read through its `readAs` template, or written with its own built-in `rules`.
  * - With `readAs`:  a property READ, resolved by the type of what it's read from:
  *   - `the length of the name` => `name.length`
- *   - `the length of the deck` => `spellCore.itemCountOf(deck)`
+ *   - `the length of the deck` => `core.itemCountOf(deck)`
  *   - loaded into its type's `TypeScope` as a `P.ScopeVariable`, so `TypeScope.getMember()` finds it
  * - With `rules` (and no `readAs`):  docs for what built-in rules already say, e.g. `shuffle (a list)`.
  *   - Their rules compile them;  NOT loaded into scope -- see `loadBuiltInTypes()`.
@@ -413,7 +413,7 @@ export type BuiltInMember = {
    * How a read of it compiles:  a template, `{it}` standing for what it's read from.  One of:
    * - `{it}.length`:  a javascript property
    * - `{it}.getFullYear()`:  a javascript method, no arguments
-   * - `spellCore.itemCountOf({it})`:  a `spellCore` helper, `{it}` its one argument
+   * - `core.itemCountOf({it})`:  a `core` helper, `{it}` its one argument
    * - Pinned to a real property or method by `builtinTypes.test.ts`.  See `parseReadAsTemplate()`.
    */
   readAs?: string
@@ -435,10 +435,10 @@ export type ReadAsTemplate = {
    * Which form it is:
    * - `property`:  `{it}.name`
    * - `method`:  `{it}.name()`
-   * - `spellCore`:  `spellCore.name({it})`
+   * - `core`:  `core.name({it})`
    * - `static`:  `Type.name({it})` -- a VALUE kind's property, e.g. `Suit.color({it})` (epic `outline-spell`)
    */
-  form: "property" | "method" | "spellCore" | "static"
+  form: "property" | "method" | "core" | "static"
   /** Property or method name, e.g. `length`, `itemCountOf`. */
   name: string
   /** `static` form:  the class it's called on, e.g. `Suit`. */

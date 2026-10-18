@@ -6,8 +6,8 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_add` rule:  add to list, e.g. `add thing to my-list`, `add thing to the front of my-list`.
- * - Compiles to `spellCore.prepend(list, thing)` when `method` is `start`/`front`/`top`,
- *   else `spellCore.append(list, thing)`.
+ * - Compiles to `core.prepend(list, thing)` when `method` is `start`/`front`/`top`,
+ *   else `core.append(list, thing)`.
  */
 export class ListAdd extends SpellStatement<"thing|method?|list"> {
   @proto static alias = "statement"
@@ -31,14 +31,14 @@ lists.addRule(ListAdd, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["add thing to the start of my-list", "spellCore.prepend(myList, thing)"],
-        ["add thing to the front of my-list", "spellCore.prepend(myList, thing)"],
-        ["add thing to the top of my-list", "spellCore.prepend(myList, thing)"],
+        ["add thing to the start of my-list", "core.prepend(myList, thing)"],
+        ["add thing to the front of my-list", "core.prepend(myList, thing)"],
+        ["add thing to the top of my-list", "core.prepend(myList, thing)"],
 
-        ["add thing to my-list", "spellCore.append(myList, thing)"],
-        ["add thing to the end of my-list", "spellCore.append(myList, thing)"],
-        ["add thing to the back of my-list", "spellCore.append(myList, thing)"],
-        ["add thing to the bottom of my-list", "spellCore.append(myList, thing)"]
+        ["add thing to my-list", "core.append(myList, thing)"],
+        ["add thing to the end of my-list", "core.append(myList, thing)"],
+        ["add thing to the back of my-list", "core.append(myList, thing)"],
+        ["add thing to the bottom of my-list", "core.append(myList, thing)"]
       ]
     }
   ]

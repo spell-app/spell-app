@@ -74,7 +74,7 @@ classes.addRule(CSSBlock, {
           ["a card is a drawable thing:", "\t<css>", "\t\t.red { color: crimson }", "\t</css>"],
           [
             "export class Card extends Drawable {",
-            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            '  static elementTag = core.defineElement(this, "test_classes")',
             "",
             "  static css = css`",
             "    .red { color: crimson }",
@@ -83,7 +83,7 @@ classes.addRule(CSSBlock, {
           ],
           [
             "export class Card extends Drawable {",
-            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            '  static elementTag = core.defineElement(this, "test_classes")',
             "",
             "  static css = css`",
             "    .red { color: crimson }",
@@ -92,7 +92,7 @@ classes.addRule(CSSBlock, {
             "",
             "/**",
             " * `<test-class-card>`:  a card, drawn in its own element, e.g. by `draw the card`.",
-            " * - The page defines its tag with this class:  `spellCore.useElement()`, below.",
+            " * - The page defines its tag with this class:  `core.useElement()`, below.",
             " * - Its attributes are its card's properties;  its methods call its card's.",
             " * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.",
             " */",
@@ -102,7 +102,7 @@ classes.addRule(CSSBlock, {
             '    styleSheets: { "test-class-card": Card.css }',
             "  } satisfies Partial<E.ElementSetup>",
             "}",
-            "spellCore.useElement(Card, CardElement)"
+            "core.useElement(Card, CardElement)"
           ]
         ]
       ]

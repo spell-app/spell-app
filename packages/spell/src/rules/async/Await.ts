@@ -37,7 +37,7 @@ _async.addRule(Await, {
         ["wait for 1", "await 1"],
         ["set the result to wait for 1", "export const result = await 1"],
         ["wait for 2 is 1", "await (2 === 1)"],
-        ["if wait for 2 is 1 then print 1", "if (await 2 == 1) spellCore.console.log(1)"]
+        ["if wait for 2 is 1 then print 1", "if (await 2 == 1) core.console.log(1)"]
       ]
     },
     {

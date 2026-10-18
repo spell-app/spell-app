@@ -103,3 +103,24 @@ describe("<epic-overview>", () => {
     expect(host.shadowRoot!.querySelector('[part~="prompt"], [part~="estimate"]')).toBeNull()
   })
 })
+
+// epic `epic-workflow` P25:  the page's own buttons in the title row, where the docs runtime puts the bullhorn too
+describe("<epic-overview> actions slot", () => {
+  // P25:  the page's own buttons at the title's end, before its fold
+  test('`slot="actions"`:  at the title\'s end, before the chevron;  a click never folds it', async () => {
+    const host = await ElementFixture.render<E.DOMElement>(
+      `<epic-overview id="overview"><button slot="actions" aria-label="Copy">C</button></epic-overview>`
+    )
+    await inner(host).ready
+    await ElementFixture.settle(host)
+    const button = host.querySelector<HTMLElement>("button[slot=actions]")!
+    expect(button.assignedSlot?.getAttribute("name")).toBe("actions")
+    const chevron = inner(host).shadowRoot!.querySelector('[part~="fold-icon"]')!
+    expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(chevron.getBoundingClientRect().left + 0.5)
+    // folded, its title is one line, its words the tooltip (J183);  open, no tooltip
+    expect(host.shadowRoot!.querySelector(".header")!.getAttribute("title")).toBe("1. Overview")
+    button.click()
+    await ElementFixture.tick()
+    expect(host.matches(":state(open)")).toBe(false)
+  })
+})

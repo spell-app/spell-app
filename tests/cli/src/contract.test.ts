@@ -20,13 +20,13 @@ import { CLI } from "$/cli"
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
  *   - Python's core, `spell_core` (`packages/py/core`), prints the same
  *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
- *   - What a core must HAVE is `SC.SpellCore` (`packages/core/src/spellCore.types.ts`).
+ *   - What a core must HAVE is `SC.Core` (`packages/core/src/core.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
  * - A fixture that imports another (`Klondike` imports `Cards`)
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
  *   What it drew is printed last, so drawing is compared too.
- * - Its random numbers start from seed 1 (`spellCore.seedRandom()`),
+ * - Its random numbers start from seed 1 (`core.seedRandom()`),
  *   so Solitaire deals the same cards every run, on every target.
  * - Only STDOUT is compared:  the program's own output, as data.
  *   A dump of a thing (`print the card`) goes to stderr, as do warnings (epic `python-target`, Q17):
@@ -117,7 +117,7 @@ describe("the core contract:  every target prints the same", () => {
 })
 
 /**
- * `spellCore`'s names before epic `output-targets` P16, by their new ones:
+ * `core`'s names before epic `output-targets` P16, by their new ones:
  * a program compiled before then calls the old ones, and nothing recompiles it.  See `deprecated.ts` in `$/core`.
  */
 const OLD_NAMES: Record<string, string> = {
@@ -132,8 +132,8 @@ const OLD_NAMES: Record<string, string> = {
 }
 
 /**
- * Javascript as written before epic `output-targets` P19:  every `spellCore` helper called by name,
- * `spellCore.getItemAt(stock, -1)`, never a list's own method -- see `P.JSWriter.coreCall()`.
+ * Javascript as written before epic `output-targets` P19:  every `core` helper called by name,
+ * `core.getItemAt(stock, -1)`, never a list's own method -- see `P.JSWriter.coreCall()`.
  */
 class HelpersByName extends P.JSWriter {
   coreCall(): string | undefined {
@@ -141,16 +141,16 @@ class HelpersByName extends P.JSWriter {
   }
 }
 
-describe("a program compiled before P16, with spellCore's old names", () => {
+describe("a program compiled before P16, with core's old names", () => {
   test("prints what it prints today", async () => {
     const name = "Solitaire"
     const helpersByName = compiledFixture(name, new HelpersByName())
-    const before = helpersByName.replace(/\bspellCore\.(\w+)\(/g, (call, method: string) =>
-      OLD_NAMES[method] ? `spellCore.${OLD_NAMES[method]}(` : call
+    const before = helpersByName.replace(/\bcore\.(\w+)\(/g, (call, method: string) =>
+      OLD_NAMES[method] ? `core.${OLD_NAMES[method]}(` : call
     )
     // it calls the old names, or this test proves nothing
     for (const old of ["itemOf", "getItemOf", "duplicateCollection", "mergeCollections"]) {
-      expect(before).toContain(`spellCore.${old}(`)
+      expect(before).toContain(`core.${old}(`)
     }
     await expect(printed(name, "js/solid", before)).resolves.toEqual(await printed(name, "js/solid"))
   }, 60_000)
@@ -162,12 +162,12 @@ describe("a program compiled before P16, with spellCore's old names", () => {
  * - `{{rank}}` is where each card's rank goes.
  */
 const DRAWN_WITH_H = `
-import { spellCore, Thing, List, App, h } from "@spell/core"
+import { core, Thing, List, App, h } from "@spell/core"
 export class Card extends Thing {
   draw() { return h("td", { class: "card", colspan: "2" }, () => this.rank) }
 }
 export class Table extends App {
-  draw() { return h("table", h("tr", () => spellCore.drawItems(this.cards))) }
+  draw() { return h("table", h("tr", () => core.drawItems(this.cards))) }
 }
 const table = new Table()
 table.cards = new List()

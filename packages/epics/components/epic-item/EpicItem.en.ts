@@ -1,13 +1,15 @@
 /**
  * Every name `<epic-item>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus data from `epic-review`'s types file.
+ * - Pure data:  `import type`, plus data from `epic-review`'s types file and the folds' (`Fold.types.ts`).
  *   - the review controls' parts and button names (`REVIEW_*`):
  *     it draws `<epic-review>`, and its id chip's tooltip names the chosen button
+ *   - the `actions` slot every title row shares (`ACTIONS_*`)
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
+import { ACTIONS_CHILD, ACTIONS_SLOT_SPEC } from "$/epics/components/epic-item/Fold.types"
 import { REVIEW_NAME_TEXTS, REVIEW_PARTS } from "$/epics/components/epic-review/EpicReview.types"
 
 /****************
@@ -171,6 +173,7 @@ export const epicItemVocabulary = {
   slots: [
     { name: "", description: "Its details." },
     { name: "title", description: "A title with markup, in place of `title`." },
+    ACTIONS_SLOT_SPEC,
     {
       name: "status",
       description:
@@ -208,7 +211,9 @@ export const epicItemVocabulary = {
     },
     {
       name: "actions",
-      description: "The box at the end of the line:  the git icon, the review label, then the review buttons."
+      description:
+        "The box at the end of the line:  the `actions` slot (the page's own buttons, the bullhorn), then the git " +
+        "icon, the review label, the review buttons and collapse-all."
     },
     { name: "details", description: "Its details:  hidden while folded." },
     { name: "label", description: "`Original question` / `Original reply` over its own text." },
@@ -301,6 +306,7 @@ export const epicItemVocabulary = {
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
+    ACTIONS_CHILD,
     { tag: "epic-question", max: 1, description: "A question's text as first asked, before the rest of its text." },
     {
       tag: "flow",

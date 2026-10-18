@@ -31,9 +31,9 @@ const SPELL_ELEMENTS = new URL("./spellElements.mjs", import.meta.url).href
 /** Resolve the three kinds of spell import, and Solid's packages;  leave everything else to node. */
 export async function resolve(specifier, context, next) {
   if (SOLID.test(specifier)) {
-    return next(specifier, { ...context, parentURL: spec.spellCore, conditions: ["browser", ...context.conditions] })
+    return next(specifier, { ...context, parentURL: spec.core, conditions: ["browser", ...context.conditions] })
   }
-  if (specifier === "@spell/core") return next(spec.spellCore, context)
+  if (specifier === "@spell/core") return next(spec.core, context)
   if (specifier === "@spell/elements") return { url: SPELL_ELEMENTS, shortCircuit: true }
   const project = specifier.startsWith("@spell/project/") && spec.projects?.[decodeURI(specifier.slice(15))]
   return project ? { url: project, shortCircuit: true } : next(specifier, context)

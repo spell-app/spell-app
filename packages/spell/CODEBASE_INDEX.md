@@ -40,7 +40,7 @@ The Spell Parser is a sophisticated parsing and compilation system for the Spell
   - `constants.js` - Constant definitions (2.7KB, 94 lines)
   - `draw.js` - Drawing operations (1.7KB, 67 lines)
 
-#### 3. **SpellCore Runtime** (`src/spellCore/`)
+#### 3. **Core Runtime** (`src/core/`)
 
 - **Core Library** (`core.js`): Base runtime with type system, property definitions, and utilities
 - **Classes** (`classes/`): Built-in class definitions (App, List, Thing)

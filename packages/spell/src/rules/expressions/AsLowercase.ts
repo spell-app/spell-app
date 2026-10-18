@@ -6,7 +6,7 @@ import { expressions } from "./expressions.parser"
 
 /**
  * `as_lowercase` rule:  `as lower case`/`lowercase` postfix, e.g. `"foo" as lower case`.
- * - Compiles to `spellCore.lowerCase(lhs)`.
+ * - Compiles to `core.lowerCase(lhs)`.
  */
 export class AsLowercase extends PostfixOperatorSuffix {
   @proto static precedence = Precedence.comparison
@@ -26,7 +26,7 @@ expressions.addRule(AsLowercase, {
       compileAs: "expression",
       tests: [
         [`"foo" as lower case`, '"foo".toLocaleLowerCase()'],
-        [`1 as lowercase`, `spellCore.lowerCase(1)`]
+        [`1 as lowercase`, `core.lowerCase(1)`]
       ]
     }
   ]

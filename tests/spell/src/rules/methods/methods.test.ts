@@ -2,10 +2,10 @@ import { describe, test, expect } from "vite-plus/test"
 import { describeWarnings, unitTestModuleRules } from "$/spell/test"
 import { P } from "$/parser"
 import { spellParser } from "$/spell"
-import { spellCore } from "$/core"
+import { core } from "$/core"
 
 describe("testing spell module methods", () => {
-  unitTestModuleRules(spellParser, "methods", spellCore.resetRuntime)
+  unitTestModuleRules(spellParser, "methods", core.resetRuntime)
 
   describe("declarations", () => {
     test("a method's call-site rule maps back to its definition, and its args to the definition too", () => {

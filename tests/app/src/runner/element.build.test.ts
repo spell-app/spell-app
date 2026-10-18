@@ -24,11 +24,11 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *   The rest of Spell UI loads tag by tag, never through `spell-ui.js`.
  * - The component pack, `spell.pack.js`:  a classic script registering both tags,
  *   whose `define()` imports their modules;  `spell-ui.js` gives it `SpellUI.registerPack`.
- * - `spellCore` MUST be in `spell-runtime.js` ALONE:
- *   each runner loads its own copy of that file, for a `spellCore` of its own.
+ * - `core` MUST be in `spell-runtime.js` ALONE:
+ *   each runner loads its own copy of that file, for a `core` of its own.
  *   - In a shared chunk, every app on a page would share one -- one runtime, one console --
- *     and a runner would show a `spellCore` its program doesn't run on.
- *   - So nothing a runner itself imports may import `spellCore`.
+ *     and a runner would show a `core` its program doesn't run on.
+ *   - So nothing a runner itself imports may import `core`.
  * - And `spell-runtime.js` draws with the page's one Solid (epic `output-targets` P10):
  *   - it imports Solid and `h` through `spell-solid-shared.js`, bundles none of its own, and never loads `ui`
  *   - it exports that same `h`:  what compiled javascript draws with (P20)
@@ -38,7 +38,7 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *   e.g. vite's module preloading once moved an `await` into a non-`async` arrow.  See `agents/PAPERCUTS.md`.
  * - What a chunk holds comes from its sourcemap's `sources` (every build here writes maps),
  *   not from guessing at minified text.
- *   - `spellCore` is the exception, found by `resetRuntime`:
+ *   - `core` is the exception, found by `resetRuntime`:
  *     `spell-editor.js` holds a few of `core`'s runtime-light modules.
  */
 describe("runner builds", () => {
@@ -101,10 +101,10 @@ describe("runner builds", () => {
     }
   })
 
-  test("`spellCore` only in `spell-runtime.js`, every bundle parses", () => {
+  test("`core` only in `spell-runtime.js`, every bundle parses", () => {
     for (const dir of [element, runner]) {
       const files = chunks(dir)
-      // `resetRuntime` is `spellCore`'s own -- see `spellCore/runtime.ts`
+      // `resetRuntime` is `core`'s own -- see `core/runtime.ts`
       const withCore = files.filter((file) => readFileSync(join(dir, file), "utf8").includes("resetRuntime"))
       expect(withCore, dir).toEqual(["spell-runtime.js"])
       expectParses(dir, files)
@@ -116,7 +116,7 @@ describe("runner builds", () => {
       expect.arrayContaining(["spell-app.js", "spell-runtime.js", "spell-shared.js", "spell-solid.js", "spell-ui.js"])
     )
     expect(readFileSync(join(element, "spell-app.css"), "utf8")).not.toContain(".monaco-editor")
-    expect(existsSync(join(element, "spellCore.scopes.js"))).toBe(true)
+    expect(existsSync(join(element, "core.scopes.js"))).toBe(true)
     expect(existsSync(join(element, "semantic-ui-css", "semantic.min.css"))).toBe(true)
   })
 

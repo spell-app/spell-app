@@ -1,17 +1,18 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, position, on } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, position, on } from "@spell/core"
 import { Card, Deck, Pile } from "@spell/project/@spell/test/cards"
 
-spellCore.heading("Klondike Solitaire Card Game")
+core.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
 // ## Klondike Solitaire Card Game
 //////////////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
-spellCore.heading("Game bits")
+core.heading("Game bits")
 /** Game bits */
 export class Game extends App {
   static description = "A game of **Klondike**:  its piles, and its score."
 
+  // a game has a score as a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }
@@ -20,7 +21,7 @@ export class Game extends App {
 
   get state() {
     const state = []
-    allPiles.forEach((pile) => spellCore.append(state, pile.state))
+    allPiles.forEach((pile) => core.append(state, pile.state))
     return state
   }
 
@@ -40,22 +41,22 @@ export class Game extends App {
           ),
           h("tbody",
             h("tr",
-              h("td", () => spellCore.drawThing(stock)),
-              h("td", () => spellCore.drawThing(discards)),
+              h("td", () => core.drawThing(stock)),
+              h("td", () => core.drawThing(discards)),
               h("td"),
-              h("td", () => spellCore.drawThing(foundations.firstItem)),
-              h("td", () => spellCore.drawThing(foundations.getItem(1))),
-              h("td", () => spellCore.drawThing(foundations.getItem(2))),
-              h("td", () => spellCore.drawThing(foundations.getItem(3)))
+              h("td", () => core.drawThing(foundations.firstItem)),
+              h("td", () => core.drawThing(foundations.getItem(1))),
+              h("td", () => core.drawThing(foundations.getItem(2))),
+              h("td", () => core.drawThing(foundations.getItem(3)))
             ),
             h("tr",
-              h("td", () => spellCore.drawThing(tableaus.firstItem)),
-              h("td", () => spellCore.drawThing(tableaus.getItem(1))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(2))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(3))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(4))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(5))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(6)))
+              h("td", () => core.drawThing(tableaus.firstItem)),
+              h("td", () => core.drawThing(tableaus.getItem(1))),
+              h("td", () => core.drawThing(tableaus.getItem(2))),
+              h("td", () => core.drawThing(tableaus.getItem(3))),
+              h("td", () => core.drawThing(tableaus.getItem(4))),
+              h("td", () => core.drawThing(tableaus.getItem(5))),
+              h("td", () => core.drawThing(tableaus.getItem(6)))
             )
           )
         )
@@ -69,9 +70,9 @@ export class Game extends App {
   }
 }
 export const game = new Game()
-spellCore.console.log(game)
+core.console.log(game)
 
-spellCore.heading("set up all piles")
+core.heading("set up all piles")
 /** set up all piles */
 export const allPiles = new List({ instanceType: "Pile" })
 export const foundations = new List({ instanceType: "Pile" })
@@ -86,7 +87,7 @@ export class StockPile extends Pile {
   draw() {
     return h("div", { class: "Pile Stock stacked" },
       h("div", { class: "Placeholder ui button basic compact fluid", onClick: () => playFromTheStockPile() }),
-      () => spellCore.drawThing(this.lastItem)
+      () => core.drawThing(this.lastItem)
     )
   }
 }
@@ -100,7 +101,7 @@ export class DiscardPile extends Pile {
   }
 
   draw() {
-    return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
+    return h("div", { class: "Pile Discards stacked" }, () => core.drawThing(this.lastItem))
   }
 }
 export const discards = new DiscardPile({ name: "discards", droppable: false })
@@ -129,7 +130,7 @@ export class Foundation extends Pile {
       h("div", { class: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` },
         h("div", { class: () => `suit ${this.name}` }, () => this.symbol)
       ),
-      () => spellCore.drawThing(this.lastItem)
+      () => core.drawThing(this.lastItem)
     )
   }
 }
@@ -171,10 +172,10 @@ export class Tableau extends Pile {
   }
 
   draw() {
-    return h("div", { class: "Pile Tableau staggered" }, () => spellCore.drawItems(this))
+    return h("div", { class: "Pile Tableau staggered" }, () => core.drawItems(this))
   }
 }
-spellCore.getRange(1, 7).forEach((number) => {
+core.getRange(1, 7).forEach((number) => {
   const it5 = new Tableau({ name: `T${number}`, droppable: true })
   tableaus.append(it5)
   allPiles.append(it5)
@@ -186,9 +187,9 @@ deck.setUp()
 // start with cards in the stock pile
 deck.forEach((card) => stock.append(card))
 
-spellCore.heading("actions")
+core.heading("actions")
 export function debugTheGame() {
-  spellCore.map(game.state, (line) => spellCore.console.log(line))
+  core.map(game.state, (line) => core.console.log(line))
 }
 
 export function resetTheStockPile() {
@@ -201,24 +202,24 @@ export function resetTheStockPile() {
 }
 
 export async function playFromTheStockPile() {
-  if (spellCore.processIsRunning("play_from_the_stock_pile")) return
-  spellCore.startProcess("play_from_the_stock_pile", "EXCLUSIVE")
+  if (core.processIsRunning("play_from_the_stock_pile")) return
+  core.startProcess("play_from_the_stock_pile", "EXCLUSIVE")
   try {
     if (stock.isEmpty) await resetTheStockPile()
 
     const it5 = stock.lastItem
     it5?.turnFaceUp()
     // pause for 150 msec
-    spellCore.move(it5, discards)
+    core.move(it5, discards)
   }
   finally {
-    spellCore.stopProcess("play_from_the_stock_pile")
+    core.stopProcess("play_from_the_stock_pile")
   }
 }
 
 export async function dealTheCards() {
-  if (spellCore.processIsRunning("deal_the_cards")) return
-  spellCore.startProcess("deal_the_cards", "EXCLUSIVE")
+  if (core.processIsRunning("deal_the_cards")) return
+  core.startProcess("deal_the_cards", "EXCLUSIVE")
   try {
     /** pull all cards into stock with a nice animation */
     const cards = allPiles.merged(Pile)
@@ -228,49 +229,49 @@ export async function dealTheCards() {
       card.turnFaceDown()
       if (startPile !== stock) {
         stock.append(card)
-        await spellCore.pauseFor(50, "msec")
+        await core.pauseFor(50, "msec")
       }
     }
     stock.randomize()
 
     // deal cards into tableaus
-    for (const row of spellCore.getRange(1, 7)) {
+    for (const row of core.getRange(1, 7)) {
       stock.lastItem?.turnFaceUp()
-      for (const column of spellCore.getRange(row, 7)) {
+      for (const column of core.getRange(row, 7)) {
         tableaus.getItem(position(column))?.append(stock.lastItem)
-        await spellCore.pauseFor(50, "msec")
+        await core.pauseFor(50, "msec")
       }
     }
 
     await playFromTheStockPile()
   }
   finally {
-    spellCore.stopProcess("deal_the_cards")
+    core.stopProcess("deal_the_cards")
   }
 }
 
 Card.prototype.play = async function () {
   const startPile = this.pile
-  if (!spellCore.canGiveUp(startPile, this)) return false
+  if (!core.canGiveUp(startPile, this)) return false
 
   if (startPile === stock) {
     playFromTheStockPile()
     return
   }
 
-  const endPile = allPiles.filter((pile) => pile.droppable && spellCore.canTake(pile, this)).firstItem
+  const endPile = allPiles.filter((pile) => pile.droppable && core.canTake(pile, this)).firstItem
   if (endPile === undefined) return false
 
   const cardsToMove = startPile.startingWith(this)
   cardsToMove.name = startPile.name
-  spellCore.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
+  core.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
 
-  cardsToMove.forEach((card) => spellCore.move(card, endPile))
+  cardsToMove.forEach((card) => core.move(card, endPile))
 
   if (startPile instanceof Tableau && !startPile.isEmpty) {
-    await spellCore.pauseFor(200, "msec")
+    await core.pauseFor(200, "msec")
     const it = startPile.lastItem
-    spellCore.console.log(`turning over (${startPile.name}: ${it?.state})`)
+    core.console.log(`turning over (${startPile.name}: ${it?.state})`)
     it?.turnFaceUp()
   }
 
@@ -290,7 +291,7 @@ export async function autoPlay() {
     const testCard = discards.lastItem
     if (await testCard?.play()) {
       anythingChanged = true
-      await spellCore.pauseFor(500, "msec")
+      await core.pauseFor(500, "msec")
     }
   }
 
@@ -299,10 +300,10 @@ export async function autoPlay() {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
     const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
-    if (spellCore.canTake(foundation, testCard)) {
+    if (core.canTake(foundation, testCard)) {
       anythingChanged = true
       await testCard.play()
-      await spellCore.pauseFor(100, "msec")
+      await core.pauseFor(100, "msec")
     }
   }
 
@@ -314,7 +315,7 @@ export async function autoPlay() {
     if (testCard.isARank("king") && testCard === pile.firstItem) continue
     if (await testCard.play()) {
       anythingChanged = true
-      await spellCore.pauseFor(500, "msec")
+      await core.pauseFor(500, "msec")
     }
   }
 
@@ -334,12 +335,12 @@ export async function cheat() {
   const unplaidCards = pile?.filter((card) => card.isFaceDown)
   const card = unplaidCards?.randomItem()
   card?.turnFaceUp()
-  await spellCore.pauseFor(30, "ticks")
-  spellCore.move(card, discards)
+  await core.pauseFor(30, "ticks")
+  core.move(card, discards)
 }
 
-spellCore.heading("rendering the bits")
+core.heading("rendering the bits")
 resetTheGame()
-if (!spellCore.isCarryingOver) game.start()
+if (!core.isCarryingOver) game.start()
 // -----------
-spellCore.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
+core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)

@@ -140,6 +140,55 @@
                 >.
               </li>
             </ul>
+            <ui-section
+              id="epic-phase-actions"
+              header="With buttons in its title row"
+              sticky
+              collapsible
+              dividing
+              collapsed
+            >
+              <p>
+                A page's own buttons go in its title row:
+                <code>&lt;ui-button slot=&quot;actions&quot;&gt;</code> children (epic <code>epic-workflow</code> P25).
+              </p>
+              <ul>
+                <li>
+                  They sit after the title, before its review buttons (while the page is reviewed), collapse-all and the
+                  fold chevron.
+                </li>
+                <li>A click on one never folds or unfolds it.</li>
+                <li>The docs runtime puts the block's bullhorn there too, so it never sits over a button.</li>
+                <li>
+                  The estimate (<code>2-3h</code>) stays just after the title, where Spell UI's section draws its badge.
+                </li>
+              </ul>
+              <epic-phase id="p-actions-example" title="Header Actions Slot" status="active" estimate="2-3h">
+                <epic-field name="symptom">A block's bullhorn floated over its title row's buttons.</epic-field>
+                <ui-button
+                  slot="actions"
+                  circular
+                  basic
+                  size="mini"
+                  icon="copy"
+                  title="Copy a link to it"
+                  aria-label="Copy a link to it"
+                ></ui-button>
+              </epic-phase>
+              <ui-accordion class="spell-code" styled>
+                <ui-title>The example above · 4 lines</ui-title>
+                <ui-content>
+                  <ui-code language="html"
+                    ><script type="text/plain">
+                      <epic-phase id="p-actions-example" title="Header Actions Slot" status="active" estimate="2-3h">
+                        <epic-field name="symptom">A block's bullhorn floated over its title row's buttons.</epic-field>
+                        <ui-button slot="actions" circular basic size="mini" icon="copy" title="Copy a link to it" aria-label="Copy a link to it"></ui-button>
+                      </epic-phase>
+                    </script></ui-code
+                  >
+                </ui-content>
+              </ui-accordion>
+            </ui-section>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
@@ -381,9 +430,9 @@
                     <td>text: phase id</td>
                     <td>
                       Stable, made from its name when it's added and kept through renames and inserts:
-                      <code>p-epic-migrate</code> (an older page's <code>p2</code>, until <code>stable-phase-ids</code>).
-                      Links and comments use it (<code>#p-epic-migrate</code>); the number shown,
-                      <code>P2 · &lt;title&gt;</code>, is its place among the phases.
+                      <code>p-epic-migrate</code> (an older page's <code>p2</code>, until
+                      <code>stable-phase-ids</code>). Links and comments use it (<code>#p-epic-migrate</code>); the
+                      number shown, <code>P2 · &lt;title&gt;</code>, is its place among the phases.
                     </td>
                     <td>yes</td>
                   </tr>
@@ -419,7 +468,10 @@
                   <tr>
                     <td><code>source</code></td>
                     <td>text</td>
-                    <td>Its body's part file (<code>parts/p-epic-migrate.html</code>), loaded into its children when it opens.</td>
+                    <td>
+                      Its body's part file (<code>parts/p-epic-migrate.html</code>), loaded into its children when it
+                      opens.
+                    </td>
                     <td></td>
                   </tr>
                   <tr>
@@ -438,9 +490,9 @@
                     <td><code>changes</code></td>
                     <td>a number</td>
                     <td>
-                      How many plan changes (<code>&lt;epic-update&gt;</code> blocks) it holds, written by the epic
-                      tool on every edit: its title says so while it isn't done, folded too (a part's body loads only
-                      when it opens).
+                      How many plan changes (<code>&lt;epic-update&gt;</code> blocks) it holds, written by the epic tool
+                      on every edit: its title says so while it isn't done, folded too (a part's body loads only when it
+                      opens).
                     </td>
                     <td></td>
                   </tr>
@@ -482,6 +534,15 @@
                         migrates them: drawn at the end of its body, unboxed.
                       </td>
                     </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        Buttons of the page's own in its title row (<code
+                          >&lt;ui-button slot=&quot;actions&quot;&gt;</code
+                        >): after the title, before its own buttons; a click on one never folds it. The docs runtime
+                        puts the block's bullhorn here too.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -516,6 +577,13 @@
                     <tr>
                       <td><code>note</code></td>
                       <td>The <code>Loads from parts/x.html ...</code> line, when its part can't load.</td>
+                    </tr>
+                    <tr>
+                      <td><code>tools</code></td>
+                      <td>
+                        At the title's end: the page's own buttons (the <code>actions</code> slot), then its review
+                        buttons, while the page is reviewed.
+                      </td>
                     </tr>
                     <tr>
                       <td><code>status</code></td>
@@ -604,6 +672,11 @@
           <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ul>
+              <li>
+                Its title: folded, ONE line cut with “…”, the full title its tooltip, the plan-changed pen never cut;
+                open, as many lines as it needs. Everything in its title row sits on the title's first line, so nothing
+                moves as it switches (Owen, 2026-10-18).
+              </li>
               <li>
                 <b>The status icon</b>, in
                 <a href="../../guides/epic-components/colours.html" target="src-guides-epic-components-colours-html"

@@ -9,15 +9,15 @@
  * - TODO: collections for `words`, `lines`, etc?
  */
 import _ from "lodash"
-import { spellCore } from "./core"
+import { core } from "./core"
 // Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
 import { assert } from "./assert"
 import type { List } from "./classes/List"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { defineCoreModule } from "./core.types"
 import { zeroIndexOf } from "./positions"
 
 /**
- * Loose shape for the duck-typed "collection" concept used throughout `spellCore`:
+ * Loose shape for the duck-typed "collection" concept used throughout `core`:
  * either an array/array-like thing, a plain object (used as a keyed collection),
  * or a custom collection class (e.g. `List`) implementing some/all of these methods.
  */
@@ -81,7 +81,7 @@ function asCollection(collection: unknown): CollectionLike {
   return collection as CollectionLike
 }
 
-export const collectionCoreMethods = defineSpellCoreModule({
+export const collectionCoreMethods = defineCoreModule({
   ////////////////
   // ## primitive accessors/setters
   ////////////////
@@ -91,11 +91,11 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - For object: number of "own" keys.
    */
   itemCountOf(collection?: unknown): number {
-    if (!assert.isDefined(collection, "spellCore.itemCountOf(collection)")) return 0
+    if (!assert.isDefined(collection, "core.itemCountOf(collection)")) return 0
     const coll = asCollection(collection)
     if (typeof coll.itemCount === "function") return coll.itemCount()
-    if (spellCore.isArrayLike(collection)) return coll.length ?? 0
-    return spellCore.keysOf(collection).length
+    if (core.isArrayLike(collection)) return coll.length ?? 0
+    return core.keysOf(collection).length
   },
 
   /**
@@ -104,9 +104,9 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * TODO: `null` or `undefined`???
    */
   isEmpty(collection?: unknown): boolean {
-    if (!assert.isDefined(collection, "spellCore.isEmpty(collection)")) return true
+    if (!assert.isDefined(collection, "core.isEmpty(collection)")) return true
     if (typeof collection === "number") return isNaN(collection)
-    return spellCore.itemCountOf(collection) === 0
+    return core.itemCountOf(collection) === 0
   },
 
   /**
@@ -116,11 +116,11 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * TODO: `itemsOf()` is not quite right either...
    */
   keysOf(collection?: unknown): Array<string | number> {
-    if (!assert.isDefined(collection, "spellCore.keysOf(collection)")) return []
+    if (!assert.isDefined(collection, "core.keysOf(collection)")) return []
     const coll = asCollection(collection)
     if (typeof coll.getKeys === "function") return coll.getKeys()
-    if (spellCore.isArrayLike(collection)) {
-      return _.range(0, spellCore.itemCountOf(collection))
+    if (core.isArrayLike(collection)) {
+      return _.range(0, core.itemCountOf(collection))
     }
     return Object.keys(coll)
   },
@@ -131,10 +131,10 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - For object: returns array of "own" values.
    */
   valuesOf(collection?: unknown): unknown[] {
-    if (!assert.isDefined(collection, "spellCore.valuesOf(collection)")) return []
+    if (!assert.isDefined(collection, "core.valuesOf(collection)")) return []
     const coll = asCollection(collection)
     if (typeof coll.getValues === "function") return coll.getValues()
-    if (spellCore.isArrayLike(collection)) return Array.from(collection as ArrayLike<unknown>)
+    if (core.isArrayLike(collection)) return Array.from(collection as ArrayLike<unknown>)
     return Object.values(coll)
   },
 
@@ -152,11 +152,11 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - Typed by `collection`:  a `List<Card>`'s is a `Card`, if it has one -- see `CollectionOf`.
    */
   getItemAt<T = unknown>(collection?: CollectionOf<T>, position?: string | number): T | undefined {
-    if (!assert.isDefined(collection, "spellCore.getItemAt(collection)")) return undefined
+    if (!assert.isDefined(collection, "core.getItemAt(collection)")) return undefined
     const coll = asCollection(collection)
     if (typeof coll.getItem === "function") return coll.getItem(position as string | number) as T | undefined
-    if (spellCore.isArrayLike(collection)) {
-      const index = zeroIndexOf(position as number, spellCore.itemCountOf(collection))
+    if (core.isArrayLike(collection)) {
+      const index = zeroIndexOf(position as number, core.itemCountOf(collection))
       return index === undefined ? undefined : (coll[index] as T | undefined)
     }
     return coll[position as string] as T | undefined
@@ -169,12 +169,12 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - For object: `position` is its string key.
    */
   setItemAt(collection?: unknown, position?: string | number, value?: unknown): unknown {
-    if (!assert.isDefined(collection, "spellCore.setItemAt(collection)")) return undefined
+    if (!assert.isDefined(collection, "core.setItemAt(collection)")) return undefined
     const coll = asCollection(collection)
     if (typeof coll.setItem === "function") return coll.setItem(position as string | number, value)
 
-    if (spellCore.isArrayLike(collection)) {
-      const index = zeroIndexOf(position as number, spellCore.itemCountOf(collection))
+    if (core.isArrayLike(collection)) {
+      const index = zeroIndexOf(position as number, core.itemCountOf(collection))
       if (index !== undefined) coll[index] = value
     } else coll[position as string] = value
     return value
@@ -186,7 +186,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - Compiles from `add thing to my-list at position of other-thing (+ 1)` -- see `rules/lists/`.
    */
   addAtPosition(collection?: unknown, start?: number, ...things: unknown[]): void {
-    if (!assert.isArrayLike(collection, "spellCore.addAtPosition(collection)")) return
+    if (!assert.isArrayLike(collection, "core.addAtPosition(collection)")) return
     const coll = asCollection(collection)
     const at = start ?? 0
     if (typeof coll.addAtPosition === "function") {
@@ -205,14 +205,14 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - Compiles from `remove last card of deck` / `remove item 4 of my-list` -- see `rules/lists/`.
    */
   removeItemAt(collection?: unknown, position?: string | number): void {
-    if (!assert.isDefined(collection, "spellCore.removeItemAt(collection)")) return
+    if (!assert.isDefined(collection, "core.removeItemAt(collection)")) return
     const coll = asCollection(collection)
     if (coll.removeItem) {
       coll.removeItem(position as string | number)
       return
     }
-    if (spellCore.isArrayLike(collection)) {
-      const index = zeroIndexOf(position as number, spellCore.itemCountOf(collection))
+    if (core.isArrayLike(collection)) {
+      const index = zeroIndexOf(position as number, core.itemCountOf(collection))
       if (index !== undefined) Array.prototype.splice.call(collection, index, 1)
     } else delete coll[position as string]
   },
@@ -222,14 +222,14 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - Compiles from `empty my-list` / `clear the cards of the deck` -- see `rules/lists/ListEmpty.ts`.
    */
   clear(collection?: unknown): void {
-    if (!assert.isDefined(collection, "spellCore.clear(collection)")) return
+    if (!assert.isDefined(collection, "core.clear(collection)")) return
     const coll = asCollection(collection)
     if (typeof coll.clear === "function") {
       coll.clear()
       return
     }
-    const keys = spellCore.keysOf(collection).reverse()
-    keys.forEach((key) => spellCore.removeItemAt(collection, key))
+    const keys = core.keysOf(collection).reverse()
+    keys.forEach((key) => core.removeItemAt(collection, key))
 
     // For arrays, try to set the `length` to 0
     // Might fail on a read-only object.
@@ -248,7 +248,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - Typed by `collection`, so their callbacks are too -- see `CollectionOf`.
    * - e.g.
    *   ```
-   *   iterator = spellCore.getIteratorFor(collection)
+   *   iterator = core.getIteratorFor(collection)
    *   let result = iterator.next()
    *   while (!result.done) {
    *     const [ value, position, collection ] = result.value
@@ -257,7 +257,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
    *   ```
    */
   getIteratorFor<T = unknown>(collection?: CollectionOf<T>): Iterator<[T, string | number, unknown]> {
-    if (!assert.isDefined(collection, "spellCore.getIteratorFor(collection)")) {
+    if (!assert.isDefined(collection, "core.getIteratorFor(collection)")) {
       return (function* emptyIterator() {
         // THIS SPACE INTENTIONALLY LEFT BLANK
       })()
@@ -265,30 +265,30 @@ export const collectionCoreMethods = defineSpellCoreModule({
     const coll = asCollection(collection)
     if (typeof coll.iterator === "function") return coll.iterator() as Iterator<[T, string | number, unknown]>
 
-    if (spellCore.isArrayLike(collection)) {
+    if (core.isArrayLike(collection)) {
       return (function* numericIterator() {
-        const count = spellCore.itemCountOf(collection)
+        const count = core.itemCountOf(collection)
         for (let position = 0; position < count; position++) {
-          yield [spellCore.getItemAt(collection, position), position, collection] as [T, number, unknown]
+          yield [core.getItemAt(collection, position), position, collection] as [T, number, unknown]
         }
       })()
     }
-    const keys = spellCore.keysOf(collection)
+    const keys = core.keysOf(collection)
     return (function* keyedIterator() {
       for (let i = 0; i < keys.length; i++) {
-        yield [spellCore.getItemAt(collection, keys[i]), keys[i], collection] as [T, string | number, unknown]
+        yield [core.getItemAt(collection, keys[i]), keys[i], collection] as [T, string | number, unknown]
       }
     })()
   }
 })
-Object.assign(spellCore, collectionCoreMethods)
+Object.assign(core, collectionCoreMethods)
 
 /**
  * Index of `thing` in `collection`, from 0:  `undefined` if it isn't there, never `-1`.
  * - In a plain object:  its key.
  * - Hand-written TypeScript imports it by name, `import { positionOf } from "@spell/core"`,
  *   then calls `positionOf(Card.Ranks, this.rank)`.
- *   Compiled JavaScript calls it as `spellCore.positionOf(...)`:  the SAME function.
+ *   Compiled JavaScript calls it as `core.positionOf(...)`:  the SAME function.
  * - Typed `number` when `thing` is of an array's own item type, e.g. a `Rank` in `Card.Ranks` (`as const`):
  *   a value of an enumeration's type is always in it.
  *   TYPES ONLY:  it's the same call.
@@ -298,10 +298,10 @@ Object.assign(spellCore, collectionCoreMethods)
 export function positionOf<T>(collection: readonly T[], thing: NoInfer<T>): number
 export function positionOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined
 export function positionOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined {
-  if (!assert.isDefined(collection, "spellCore.positionOf(collection)")) return undefined
+  if (!assert.isDefined(collection, "core.positionOf(collection)")) return undefined
   const coll = asCollection(collection)
   if (typeof coll.positionOf === "function") return coll.positionOf(thing) as KeyOf<C> | undefined
-  const iterator = spellCore.getIteratorFor(collection)
+  const iterator = core.getIteratorFor(collection)
   let result = iterator.next()
   while (!result.done) {
     const [value, position] = result.value

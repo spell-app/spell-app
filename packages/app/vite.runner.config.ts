@@ -9,7 +9,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   - `runner.js` (+ `runner.css`):  the runner, from `src/runner/main.tsx`
  *   - `spell-runtime.js`:  what programs run on, which the runner loads a copy of -- see `spellRuntime.ts`
  * - What both use goes in ONE shared chunk.
- *   - `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
+ *   - `core` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
  *   - As `vite.element.config.ts`, which builds `<spell-app>`.
  * - Solid and `@spell-app/ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`), as in
  *   `dist-element/`:  one layout, one pin.

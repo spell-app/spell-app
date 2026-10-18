@@ -72,10 +72,10 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   onCleanup(() => window.removeEventListener("message", onMessage))
   post({ type: "ready" })
 
-  // our own copy of the spell runtime -- SIDE EFFECT:  its `spellCore` is global `spellCore`, for devtools
+  // our own copy of the spell runtime -- SIDE EFFECT:  its `core` is global `core`, for devtools
   loadRuntime(runtimeUrl).then(
     (copy) => {
-      Object.assign(globalThis, { spellCore: copy.runtime.spellCore })
+      Object.assign(globalThis, { core: copy.runtime.core })
       setLoaded(copy)
       if (toRun !== undefined) run(copy, toRun)
       toRun = undefined
@@ -192,7 +192,7 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
       <Show when={loaded()} keyed>
         {(copy) => (
           <ThingExplorer
-            things={copy.runtime.spellCore.things}
+            things={copy.runtime.core.things}
             words={words()}
             state={settings().thingExplorer}
             onStateChange={(thingExplorer) => save({ thingExplorer })}
@@ -206,7 +206,7 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   function output() {
     return (
       <Show when={loaded()} keyed>
-        {(copy) => <RunnerConsole console={copy.runtime.spellCore.console} />}
+        {(copy) => <RunnerConsole console={copy.runtime.core.console} />}
       </Show>
     )
   }

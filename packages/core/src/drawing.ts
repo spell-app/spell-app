@@ -6,11 +6,11 @@
  *   - Every value that can change is written as a function.
  *     Solid calls it, and again when what it read changes, updating only that node:  nothing redraws a whole board.
  *   - Since epic `output-targets` P20.
- *     Before it, compiled spell called `spellCore.element()`:  gone since P22, with every example recompiled.
+ *     Before it, compiled spell called `core.element()`:  gone since P22, with every example recompiled.
  * - Each drawn thing sits in its own error boundary (`drawInBoundary()`, on Solid's `<Errored>`):
  *   when its `draw()` throws, it shows a small stand-in, and the rest keeps drawing.
  *   ONE boundary, for both targets:
- *   - compiled JavaScript draws a thing with `spellCore.drawThing(card)`, which puts its `draw()` in the boundary
+ *   - compiled JavaScript draws a thing with `core.drawThing(card)`, which puts its `draw()` in the boundary
  *   - compiled TypeScript (and hand-written code) writes `@drawn draw() { ... }`, which puts it there itself,
  *     so a parent draws a child with a plain call, `{card.draw()}`
  *   - `h()` returns a THUNK, a function that makes the element:  the boundary makes it, once (`madeOnce()`)
@@ -18,15 +18,15 @@
  *   `spell-runtime.js` imports `solid-js`, `@solidjs/web` and `@solidjs/h` from the page's one shared Solid,
  *   `spell-solid.js`.
  *   - Spell state reaches Solid through the host's `bridgeSolid()` (`$/util/reactive`).
- * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
+ * - Part of `core`:  imported by `$/core`'s barrel for its side effect.
  */
 
 import h from "@solidjs/h"
 import { createComponent, render, type JSX } from "@solidjs/web"
 import { Errored, For, createMemo, runWithOwner } from "solid-js"
 
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 import { DrawableList } from "./classes/DrawableList"
 
 /**
@@ -45,8 +45,8 @@ export type Drawable = {
   draw(): Drawing
 }
 
-/** `spellCore`'s drawing methods, on Solid. */
-export const drawingMethods = defineSpellCoreModule({
+/** `core`'s drawing methods, on Solid. */
+export const drawingMethods = defineCoreModule({
   ////////////////
   // ## Drawing things
   ////////////////
@@ -65,14 +65,14 @@ export const drawingMethods = defineSpellCoreModule({
   drawThing(drawable?: unknown): Drawing | null {
     const thing = drawable as Partial<Drawable> | undefined
     if (typeof thing?.draw !== "function") return null
-    const tag = spellCore.elementFor(thing)
+    const tag = core.elementFor(thing)
     if (tag) {
       // a drawable list's items are its element's children:  shown in its drawing's `<slot>`
-      const items = thing instanceof DrawableList ? [() => spellCore.drawItems(thing)] : []
+      const items = thing instanceof DrawableList ? [() => core.drawItems(thing)] : []
       // made NOW:  the thing is a plain value, set once
       return (h(tag, { "prop:thing": thing }, ...items) as unknown as () => Drawing)()
     }
-    return spellCore.drawOwn(thing)
+    return core.drawOwn(thing)
   },
 
   /**
@@ -104,7 +104,7 @@ export const drawingMethods = defineSpellCoreModule({
       get each() {
         return (list as { items: unknown[] }).items
       },
-      children: (item: unknown) => spellCore.drawThing(item)
+      children: (item: unknown) => core.drawThing(item)
     })
   },
 
@@ -114,7 +114,7 @@ export const drawingMethods = defineSpellCoreModule({
 
   /**
    * Mount `app`'s drawing into `element` -- replacing what was there -- and return how to take it down again.
-   * - What `App.start()` does, into `spellCore.appElement()`.
+   * - What `App.start()` does, into `core.appElement()`.
    * - SIDE EFFECT:  `element.spellRoot` is the mounted app, so a runner can `unmount()` it before running a program
    *   again (`runCompiled()`).
    */
@@ -122,7 +122,7 @@ export const drawingMethods = defineSpellCoreModule({
     ;(element as AppElement).spellRoot?.unmount()
     // a root of its own:  `start the game` may run inside the host's drawing (a runner's effect), whose owner would
     // otherwise own the app's drawing -- and hold or re-run it with the host's
-    const dispose = runWithOwner(null, () => render(() => spellCore.drawThing(app), element))
+    const dispose = runWithOwner(null, () => render(() => core.drawThing(app), element))
     const mounted: MountedApp = {
       app,
       unmount() {
@@ -134,20 +134,20 @@ export const drawingMethods = defineSpellCoreModule({
     return mounted
   }
 })
-Object.assign(spellCore, drawingMethods)
+Object.assign(core, drawingMethods)
 
 ////////////////
 // ## `@drawn`
 ////////////////
 
 /**
- * `@drawn draw() { ... }`:  the drawing in its own error boundary, the same boundary `spellCore.drawThing()` gives.
+ * `@drawn draw() { ... }`:  the drawing in its own error boundary, the same boundary `core.drawThing()` gives.
  * - So a parent draws a child with a plain call, `{card.draw()}`:
  *   it neither re-runs when the card's reads change, nor dies with the card's errors.
  *   The card's drawing re-runs by itself, inside its boundary.
  * - What compiled TypeScript (`ts/solid`) and hand-written classes write.
  *   - Compiled JavaScript has no decorators:
- *     it draws a thing with `spellCore.drawThing(card)`, which puts a `draw()` in the same boundary.
+ *     it draws a thing with `core.drawThing(card)`, which puts a `draw()` in the same boundary.
  *   - ONE boundary, `drawInBoundary()`, for both targets.
  * - SIDE EFFECT:  marks the method it returns (`isDrawn()`), so `drawThing()` calls it straight:
  *   no second boundary around it.
@@ -263,14 +263,14 @@ const H_THUNK: symbol | undefined = Object.getOwnPropertySymbols(h("i"))[0]
  */
 function drawingFailed(thing: object, error: unknown): Drawing | null {
   const type = (thing as { type?: string }).type ?? thing.constructor?.name ?? "thing"
-  spellCore.console.error(`${type}:  draw() failed`, error)
+  core.console.error(`${type}:  draw() failed`, error)
   const event = new CustomEvent(ERROR_EVENT, {
     bubbles: true,
     composed: true,
     cancelable: true,
     detail: { error, thing }
   })
-  const target = spellCore.appElement()
+  const target = core.appElement()
   if (target && !target.dispatchEvent(event)) return null
   const message = error instanceof Error ? error.message : String(error)
   // made NOW, as `madeOnce()` makes a drawing:  the stand-in is made once, as the memo's value

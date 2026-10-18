@@ -2,26 +2,25 @@ import { readFileSync } from "fs"
 import { resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
-import { spellCore } from "$/core"
+import { core } from "$/core"
 import { coreDeclarations, docsIn, paramNamesOf, unlistedCoreNames } from "$/core/coreDeclarations"
 
 /** Where `yarn gen:declarations` writes the core's method list. */
-const DECLARATIONS_FILE = resolve(import.meta.dirname, "../../../packages/core/spellCore.declarations.json5")
+const DECLARATIONS_FILE = resolve(import.meta.dirname, "../../../packages/core/core.declarations.json5")
 
-describe("the core's method list, spellCore.declarations.json5", () => {
+describe("the core's method list, core.declarations.json5", () => {
   test("is up to date with the core:  if not, run `yarn gen:declarations` in packages/core", () => {
     const written = JSON.parse(readFileSync(DECLARATIONS_FILE, "utf8")) as unknown
-    expect(
-      written,
-      "spellCore.declarations.json5 is out of date:  run `yarn gen:declarations` in packages/core"
-    ).toEqual(coreDeclarations())
+    expect(written, "core.declarations.json5 is out of date:  run `yarn gen:declarations` in packages/core").toEqual(
+      coreDeclarations()
+    )
   })
 
-  test("lists every name on spellCore, except old names and the core's own `_` helpers", () => {
+  test("lists every name on core, except old names and the core's own `_` helpers", () => {
     const { statements } = coreDeclarations()
-    const listed = statements.filter((it) => it.of === "spellCore").map((it) => it.name ?? it.property)
+    const listed = statements.filter((it) => it.of === "core").map((it) => it.name ?? it.property)
     const unlisted = unlistedCoreNames()
-    const shouldList = Object.keys(spellCore).filter((name) => !unlisted.includes(name))
+    const shouldList = Object.keys(core).filter((name) => !unlisted.includes(name))
     expect(new Set(shouldList)).toEqual(new Set(listed))
   })
 
@@ -33,19 +32,17 @@ describe("the core's method list, spellCore.declarations.json5", () => {
 
   test("a method with its parameters, a property, a class and a function", () => {
     const { provides, statements } = coreDeclarations()
-    expect(provides.slice(0, 2)).toEqual(["spellCore", "Thing"])
+    expect(provides.slice(0, 2)).toEqual(["core", "Thing"])
     expect(statements).toContainEqual(
       expect.objectContaining({
         kind: "method",
         name: "getItemAt",
-        of: "spellCore",
+        of: "core",
         module: "collection-core",
         params: [{ name: "collection" }, { name: "position" }]
       })
     )
-    expect(statements).toContainEqual(
-      expect.objectContaining({ property: "console", of: "spellCore", module: "console" })
-    )
+    expect(statements).toContainEqual(expect.objectContaining({ property: "console", of: "core", module: "console" }))
     expect(statements).toContainEqual(
       expect.objectContaining({ type: "App", superType: "Thing", module: "classes/App" })
     )

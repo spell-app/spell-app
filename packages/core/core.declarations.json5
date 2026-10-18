@@ -1,6 +1,6 @@
 {
   "provides": [
-    "spellCore",
+    "core",
     "Thing",
     "List",
     "App",
@@ -18,21 +18,21 @@
     {
       "kind": "method",
       "name": "doNothing",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "description": "Do nothing -- use this as a placeholder, e.g. in an `if` branch."
     },
     {
       "kind": "method",
       "name": "flush",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "description": "Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid."
     },
     {
       "kind": "method",
       "name": "checkProp",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -51,7 +51,7 @@
     {
       "kind": "method",
       "name": "newThingLike",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -64,7 +64,7 @@
     {
       "kind": "method",
       "name": "newScratch",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -76,7 +76,7 @@
     },
     {
       "property": "TYPE_NAME_CONVERSIONS",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "section": "types",
       "description": "Maps a JS `typeof`/constructor-name result to the `spell`-facing type name shown to users."
@@ -84,7 +84,7 @@
     {
       "kind": "method",
       "name": "typeOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -96,7 +96,7 @@
     },
     {
       "property": "IS_OF_TYPE_SPECIALS",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "section": "types",
       "description": "Special methods for `isOfType()`, for type names `typeOf()` never actually returns (`integer`, `character`, `char`) -- checked instead of a plain `=== typeOf(thing)` comparison."
@@ -104,7 +104,7 @@
     {
       "kind": "method",
       "name": "typesOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -117,7 +117,7 @@
     {
       "kind": "method",
       "name": "isOfType",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -128,12 +128,12 @@
         }
       ],
       "section": "types",
-      "description": "Is `thing` an instance of string `type`, or of a sub-type of it -- as per `spellCore.typesOf()`?"
+      "description": "Is `thing` an instance of string `type`, or of a sub-type of it -- as per `core.typesOf()`?"
     },
     {
       "kind": "method",
       "name": "matchesType",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -149,7 +149,7 @@
     {
       "kind": "method",
       "name": "isANumber",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -162,7 +162,7 @@
     {
       "kind": "method",
       "name": "isAnInteger",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -175,7 +175,7 @@
     {
       "kind": "method",
       "name": "isArrayLike",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -188,7 +188,7 @@
     {
       "kind": "method",
       "name": "isTruthy",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -201,7 +201,7 @@
     {
       "kind": "method",
       "name": "isDefined",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -214,7 +214,7 @@
     {
       "kind": "method",
       "name": "get",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -230,7 +230,7 @@
     {
       "kind": "method",
       "name": "set",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -249,7 +249,7 @@
     {
       "kind": "method",
       "name": "equals",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -265,7 +265,7 @@
     {
       "kind": "method",
       "name": "absoluteValue",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -278,7 +278,7 @@
     {
       "kind": "method",
       "name": "seedRandom",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -291,7 +291,7 @@
     {
       "kind": "method",
       "name": "random",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "section": "random numbers",
       "description": "The next random number:  at least 0 and less than 1 -- the core's own `Math.random()`."
@@ -299,7 +299,7 @@
     {
       "kind": "method",
       "name": "randomNumber",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -314,7 +314,7 @@
     {
       "kind": "method",
       "name": "shuffled",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -327,7 +327,7 @@
     {
       "kind": "method",
       "name": "countTo",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -340,7 +340,7 @@
     {
       "kind": "method",
       "name": "getRange",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -356,7 +356,7 @@
     {
       "kind": "method",
       "name": "repeat",
-      "of": "spellCore",
+      "of": "core",
       "module": "core",
       "params": [
         {
@@ -367,12 +367,12 @@
         }
       ],
       "section": "primitive iteration",
-      "description": "Call `callback()` `count` times, ignoring its return value. TODO: `repeat {number} times` currently compiles to `spellCore.map(spellCore.getRange(...), ...)` instead (see `rules/lists/RepeatNTimes.ts`) -- no rule currently calls this method; confirm whether it's still needed."
+      "description": "Call `callback()` `count` times, ignoring its return value. TODO: `repeat {number} times` currently compiles to `core.map(core.getRange(...), ...)` instead (see `rules/lists/RepeatNTimes.ts`) -- no rule currently calls this method; confirm whether it's still needed."
     },
     {
       "kind": "method",
       "name": "itemCountOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -385,7 +385,7 @@
     {
       "kind": "method",
       "name": "isEmpty",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -398,7 +398,7 @@
     {
       "kind": "method",
       "name": "keysOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -411,7 +411,7 @@
     {
       "kind": "method",
       "name": "valuesOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -424,7 +424,7 @@
     {
       "kind": "method",
       "name": "positionOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -440,7 +440,7 @@
     {
       "kind": "method",
       "name": "getItemAt",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -456,7 +456,7 @@
     {
       "kind": "method",
       "name": "setItemAt",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -475,7 +475,7 @@
     {
       "kind": "method",
       "name": "addAtPosition",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -494,7 +494,7 @@
     {
       "kind": "method",
       "name": "removeItemAt",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -510,7 +510,7 @@
     {
       "kind": "method",
       "name": "clear",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -523,7 +523,7 @@
     {
       "kind": "method",
       "name": "getIteratorFor",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-core",
       "params": [
         {
@@ -536,7 +536,7 @@
     {
       "kind": "method",
       "name": "includes",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -552,7 +552,7 @@
     {
       "kind": "method",
       "name": "includesAny",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -568,7 +568,7 @@
     {
       "kind": "method",
       "name": "duplicateList",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -584,7 +584,7 @@
     {
       "kind": "method",
       "name": "mergeListsInto",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -600,7 +600,7 @@
     {
       "kind": "method",
       "name": "mergeLists",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -616,7 +616,7 @@
     {
       "kind": "method",
       "name": "startsWith",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -632,7 +632,7 @@
     {
       "kind": "method",
       "name": "endsWith",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -648,7 +648,7 @@
     {
       "kind": "method",
       "name": "prepend",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -664,7 +664,7 @@
     {
       "kind": "method",
       "name": "append",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -680,7 +680,7 @@
     {
       "kind": "method",
       "name": "addBefore",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -699,7 +699,7 @@
     {
       "kind": "method",
       "name": "addAfter",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -718,7 +718,7 @@
     {
       "kind": "method",
       "name": "setItemsOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -737,7 +737,7 @@
     {
       "kind": "method",
       "name": "reverse",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -750,7 +750,7 @@
     {
       "kind": "method",
       "name": "rangeBetween",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -769,7 +769,7 @@
     {
       "kind": "method",
       "name": "removeRangeBetween",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -788,7 +788,7 @@
     {
       "kind": "method",
       "name": "rangeStartingAt",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -807,7 +807,7 @@
     {
       "kind": "method",
       "name": "forEach",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -823,7 +823,7 @@
     {
       "kind": "method",
       "name": "forEachSequential",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -839,7 +839,7 @@
     {
       "kind": "method",
       "name": "map",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -855,7 +855,7 @@
     {
       "kind": "method",
       "name": "filter",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -871,7 +871,7 @@
     {
       "kind": "method",
       "name": "all",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -887,7 +887,7 @@
     {
       "kind": "method",
       "name": "any",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -903,7 +903,7 @@
     {
       "kind": "method",
       "name": "removeItemsAt",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -919,7 +919,7 @@
     {
       "kind": "method",
       "name": "remove",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -935,7 +935,7 @@
     {
       "kind": "method",
       "name": "removeWhere",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -951,7 +951,7 @@
     {
       "kind": "method",
       "name": "move",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -967,7 +967,7 @@
     {
       "kind": "method",
       "name": "canTake",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -983,7 +983,7 @@
     {
       "kind": "method",
       "name": "canGiveUp",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -999,7 +999,7 @@
     {
       "kind": "method",
       "name": "randomItemOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -1012,7 +1012,7 @@
     {
       "kind": "method",
       "name": "randomItemsOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -1028,7 +1028,7 @@
     {
       "kind": "method",
       "name": "randomize",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -1041,7 +1041,7 @@
     {
       "kind": "method",
       "name": "smallestOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -1054,7 +1054,7 @@
     {
       "kind": "method",
       "name": "largestOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "collection-other",
       "params": [
         {
@@ -1067,7 +1067,7 @@
     {
       "kind": "method",
       "name": "doubleQuote",
-      "of": "spellCore",
+      "of": "core",
       "module": "string",
       "params": [
         {
@@ -1079,7 +1079,7 @@
     {
       "kind": "method",
       "name": "backTickQuote",
-      "of": "spellCore",
+      "of": "core",
       "module": "string",
       "params": [
         {
@@ -1091,7 +1091,7 @@
     {
       "kind": "method",
       "name": "upperCase",
-      "of": "spellCore",
+      "of": "core",
       "module": "string",
       "params": [
         {
@@ -1103,7 +1103,7 @@
     {
       "kind": "method",
       "name": "lowerCase",
-      "of": "spellCore",
+      "of": "core",
       "module": "string",
       "params": [
         {
@@ -1114,15 +1114,15 @@
     },
     {
       "property": "TIME_UNITS_MAP",
-      "of": "spellCore",
+      "of": "core",
       "module": "ui",
       "section": "Time",
-      "description": "Multiplier from a unit name to milliseconds, e.g. `spellCore.TIME_UNITS_MAP.tick`."
+      "description": "Multiplier from a unit name to milliseconds, e.g. `core.TIME_UNITS_MAP.tick`."
     },
     {
       "kind": "method",
       "name": "pauseFor",
-      "of": "spellCore",
+      "of": "core",
       "module": "ui",
       "params": [
         {
@@ -1138,7 +1138,7 @@
     {
       "kind": "method",
       "name": "notify",
-      "of": "spellCore",
+      "of": "core",
       "module": "ui",
       "params": [
         {
@@ -1154,7 +1154,7 @@
     {
       "kind": "method",
       "name": "alert",
-      "of": "spellCore",
+      "of": "core",
       "module": "ui",
       "params": [
         {
@@ -1170,7 +1170,7 @@
     {
       "kind": "method",
       "name": "confirm",
-      "of": "spellCore",
+      "of": "core",
       "module": "ui",
       "params": [
         {
@@ -1189,7 +1189,7 @@
     {
       "kind": "method",
       "name": "prompt",
-      "of": "spellCore",
+      "of": "core",
       "module": "ui",
       "params": [
         {
@@ -1205,7 +1205,7 @@
     {
       "kind": "method",
       "name": "installStyles",
-      "of": "spellCore",
+      "of": "core",
       "module": "ui",
       "params": [
         {
@@ -1221,7 +1221,7 @@
     {
       "kind": "method",
       "name": "drawThing",
-      "of": "spellCore",
+      "of": "core",
       "module": "drawing",
       "params": [
         {
@@ -1234,7 +1234,7 @@
     {
       "kind": "method",
       "name": "drawOwn",
-      "of": "spellCore",
+      "of": "core",
       "module": "drawing",
       "params": [
         {
@@ -1247,7 +1247,7 @@
     {
       "kind": "method",
       "name": "drawItems",
-      "of": "spellCore",
+      "of": "core",
       "module": "drawing",
       "params": [
         {
@@ -1260,7 +1260,7 @@
     {
       "kind": "method",
       "name": "mountApp",
-      "of": "spellCore",
+      "of": "core",
       "module": "drawing",
       "params": [
         {
@@ -1275,14 +1275,14 @@
     },
     {
       "property": "elementDefiner",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "description": "How the page defines the element for a drawable class -- `undefined` until the page running programs sets it."
     },
     {
       "kind": "method",
       "name": "defineElement",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "params": [
         {
@@ -1297,7 +1297,7 @@
     {
       "kind": "method",
       "name": "useElement",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "params": [
         {
@@ -1307,12 +1307,12 @@
           "name": "ElementClass"
         }
       ],
-      "description": "Hand the page `ElementClass`, the element class compiled TypeScript writes for drawable class `Class` (epic `drawable-thing` P10, J41): `spellCore.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`."
+      "description": "Hand the page `ElementClass`, the element class compiled TypeScript writes for drawable class `Class` (epic `drawable-thing` P10, J41): `core.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`."
     },
     {
       "kind": "method",
       "name": "elementClassOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "params": [
         {
@@ -1324,7 +1324,7 @@
     {
       "kind": "method",
       "name": "elementFor",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "params": [
         {
@@ -1336,7 +1336,7 @@
     {
       "kind": "method",
       "name": "elementApiOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "params": [
         {
@@ -1348,7 +1348,7 @@
     {
       "kind": "method",
       "name": "thingFor",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "params": [
         {
@@ -1363,7 +1363,7 @@
     {
       "kind": "method",
       "name": "elementTagOf",
-      "of": "spellCore",
+      "of": "core",
       "module": "elements",
       "params": [
         {
@@ -1375,7 +1375,7 @@
     {
       "kind": "method",
       "name": "searchThings",
-      "of": "spellCore",
+      "of": "core",
       "module": "references",
       "params": [
         {
@@ -1387,7 +1387,7 @@
     {
       "kind": "method",
       "name": "thingForReference",
-      "of": "spellCore",
+      "of": "core",
       "module": "references",
       "params": [
         {
@@ -1399,7 +1399,7 @@
     {
       "kind": "method",
       "name": "thingCalled",
-      "of": "spellCore",
+      "of": "core",
       "module": "references",
       "params": [
         {
@@ -1414,7 +1414,7 @@
     {
       "kind": "method",
       "name": "thingNamed",
-      "of": "spellCore",
+      "of": "core",
       "module": "references",
       "params": [
         {
@@ -1429,7 +1429,7 @@
     {
       "kind": "method",
       "name": "thingAtPlace",
-      "of": "spellCore",
+      "of": "core",
       "module": "references",
       "params": [
         {
@@ -1444,7 +1444,7 @@
     {
       "kind": "method",
       "name": "referenceFor",
-      "of": "spellCore",
+      "of": "core",
       "module": "references",
       "params": [
         {
@@ -1456,7 +1456,7 @@
     {
       "kind": "method",
       "name": "elementIdFor",
-      "of": "spellCore",
+      "of": "core",
       "module": "references",
       "params": [
         {
@@ -1468,7 +1468,7 @@
     {
       "kind": "method",
       "name": "getPath",
-      "of": "spellCore",
+      "of": "core",
       "module": "paths",
       "params": [
         {
@@ -1483,7 +1483,7 @@
     {
       "kind": "method",
       "name": "setPath",
-      "of": "spellCore",
+      "of": "core",
       "module": "paths",
       "params": [
         {
@@ -1501,7 +1501,7 @@
     {
       "kind": "method",
       "name": "splitPath",
-      "of": "spellCore",
+      "of": "core",
       "module": "paths",
       "params": [
         {
@@ -1512,14 +1512,14 @@
     },
     {
       "property": "ACTIVE_TEST",
-      "of": "spellCore",
+      "of": "core",
       "module": "tests",
       "description": "Currently-running dynamic test, if any."
     },
     {
       "kind": "method",
       "name": "test",
-      "of": "spellCore",
+      "of": "core",
       "module": "tests",
       "params": [
         {
@@ -1537,7 +1537,7 @@
     {
       "kind": "method",
       "name": "startTest",
-      "of": "spellCore",
+      "of": "core",
       "module": "tests",
       "params": [
         {
@@ -1547,12 +1547,12 @@
           "name": "collapse"
         }
       ],
-      "description": "Begin a named test run, becoming `spellCore.ACTIVE_TEST`."
+      "description": "Begin a named test run, becoming `core.ACTIVE_TEST`."
     },
     {
       "kind": "method",
       "name": "echo",
-      "of": "spellCore",
+      "of": "core",
       "module": "tests",
       "params": [
         {
@@ -1564,7 +1564,7 @@
     {
       "kind": "method",
       "name": "echoTestAction",
-      "of": "spellCore",
+      "of": "core",
       "module": "tests",
       "params": [
         {
@@ -1576,14 +1576,14 @@
     {
       "kind": "method",
       "name": "endTest",
-      "of": "spellCore",
+      "of": "core",
       "module": "tests",
       "description": "End currently-running test (if any), logging its icon-prefixed `message` as a console group containing all buffered `output`."
     },
     {
       "kind": "method",
       "name": "expect",
-      "of": "spellCore",
+      "of": "core",
       "module": "tests",
       "params": [
         {
@@ -1603,26 +1603,26 @@
     },
     {
       "property": "console",
-      "of": "spellCore",
+      "of": "core",
       "module": "console",
-      "description": "The shared `SpellConsole` instance, exposed as `spellCore.console`."
+      "description": "The shared `SpellConsole` instance, exposed as `core.console`."
     },
     {
       "property": "DEBUG_RUNTIME",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
-      "description": "Set to `true` to show debug messages for `spellCore.RUNTIME` actions."
+      "description": "Set to `true` to show debug messages for `core.RUNTIME` actions."
     },
     {
       "property": "DEBUG_PROCESSES",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "description": "Set to `true` to show debug messages for process start/stop actions."
     },
     {
       "kind": "method",
       "name": "on",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1633,12 +1633,12 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
+      "description": "`core.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
     },
     {
       "kind": "method",
       "name": "off",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1649,12 +1649,12 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.off(...)` -- see `off()`."
+      "description": "`core.off(...)` -- see `off()`."
     },
     {
       "kind": "method",
       "name": "once",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1665,12 +1665,12 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.once(...)` -- see `once()`."
+      "description": "`core.once(...)` -- see `once()`."
     },
     {
       "kind": "method",
       "name": "trigger",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1681,11 +1681,11 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.trigger(...)` -- see `trigger()`."
+      "description": "`core.trigger(...)` -- see `trigger()`."
     },
     {
       "property": "RUNTIME",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "section": "Runtime State",
       "description": "Global runtime state root."
@@ -1693,23 +1693,23 @@
     {
       "kind": "method",
       "name": "resetRuntime",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "section": "Runtime State",
-      "description": "Reset `spellCore.RUNTIME`, e.g. when a project starts or a test is run. Returns the new runtime."
+      "description": "Reset `core.RUNTIME`, e.g. when a project starts or a test is run. Returns the new runtime."
     },
     {
       "kind": "method",
       "name": "clearRuntime",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "section": "Runtime State",
-      "description": "Clear `spellCore.RUNTIME`:  unset again, as before the first `resetRuntime()` -- see `RUNTIME`."
+      "description": "Clear `core.RUNTIME`:  unset again, as before the first `resetRuntime()` -- see `RUNTIME`."
     },
     {
       "kind": "method",
       "name": "getRuntimeState",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1725,7 +1725,7 @@
     {
       "kind": "method",
       "name": "clearRuntimeState",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1738,15 +1738,15 @@
     {
       "kind": "method",
       "name": "getProcessFlags",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "section": "Process Management",
-      "description": "Initialize and return process flags for the current `spellCore.RUNTIME`. If `RUNTIME` is not set up, warns and returns a new object each time."
+      "description": "Initialize and return process flags for the current `core.RUNTIME`. If `RUNTIME` is not set up, warns and returns a new object each time."
     },
     {
       "kind": "method",
       "name": "startProcess",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1762,7 +1762,7 @@
     {
       "kind": "method",
       "name": "processIsRunning",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1775,7 +1775,7 @@
     {
       "kind": "method",
       "name": "stopProcess",
-      "of": "spellCore",
+      "of": "core",
       "module": "runtime",
       "params": [
         {
@@ -1787,7 +1787,7 @@
     },
     {
       "property": "things",
-      "of": "spellCore",
+      "of": "core",
       "module": "things",
       "section": "Inspecting things",
       "description": "Each still alive, in the order they were made."
@@ -1795,7 +1795,7 @@
     {
       "kind": "method",
       "name": "heading",
-      "of": "spellCore",
+      "of": "core",
       "module": "things",
       "params": [
         {
@@ -1808,7 +1808,7 @@
     {
       "kind": "method",
       "name": "fromJSON",
-      "of": "spellCore",
+      "of": "core",
       "module": "json",
       "params": [
         {
@@ -1819,14 +1819,14 @@
     },
     {
       "property": "isCarryingOver",
-      "of": "spellCore",
+      "of": "core",
       "module": "carry",
       "description": "Is a recompiled program loading, to take over the last run's things?"
     },
     {
       "kind": "method",
       "name": "carryOver",
-      "of": "spellCore",
+      "of": "core",
       "module": "carry",
       "params": [
         {
@@ -1841,7 +1841,7 @@
     {
       "kind": "method",
       "name": "carryProblems",
-      "of": "spellCore",
+      "of": "core",
       "module": "carry",
       "params": [
         {
@@ -1855,39 +1855,39 @@
     },
     {
       "property": "BASE_TYPES",
-      "of": "spellCore",
+      "of": "core",
       "module": "classes",
       "description": "Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`."
     },
     {
       "property": "appLayout",
-      "of": "spellCore",
+      "of": "core",
       "module": "classes",
       "description": "Is the app's page laid out in markup, around the program?  Then `App.start()` draws nothing: the markup is the app's drawing, and its tags find their things (epic `drawable-thing` P9)."
     },
     {
       "property": "REACT_APP_ROOT_ID",
-      "of": "spellCore",
+      "of": "core",
       "module": "classes",
       "description": "DOM `id` of the element an `App` mounts into when the host set no `appRoot`."
     },
     {
       "property": "appRoot",
-      "of": "spellCore",
+      "of": "core",
       "module": "classes",
       "description": "Element `App.start()` mounts into, if the host says -- e.g. `<spell-app>`'s, inside its shadow root."
     },
     {
       "kind": "method",
       "name": "appElement",
-      "of": "spellCore",
+      "of": "core",
       "module": "classes",
       "description": "Element the app mounts into:  `appRoot`, else `#spell-app-root` in `document` -- `null` if neither."
     },
     {
       "kind": "method",
       "name": "domRoot",
-      "of": "spellCore",
+      "of": "core",
       "module": "classes",
       "description": "Document or shadow root the app lives in:  `appRoot`'s shadow root, if it's in one, else `document`."
     },
@@ -1972,7 +1972,7 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
+      "description": "`core.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
     },
     {
       "kind": "function",
@@ -1987,7 +1987,7 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.off(...)` -- see `off()`."
+      "description": "`core.off(...)` -- see `off()`."
     },
     {
       "kind": "function",
@@ -2002,7 +2002,7 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.once(...)` -- see `once()`."
+      "description": "`core.once(...)` -- see `once()`."
     },
     {
       "kind": "function",
@@ -2017,7 +2017,7 @@
         }
       ],
       "section": "Events -- the running program's, on RUNTIME",
-      "description": "`spellCore.trigger(...)` -- see `trigger()`."
+      "description": "`core.trigger(...)` -- see `trigger()`."
     }
   ]
 }

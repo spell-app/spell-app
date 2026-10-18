@@ -92,6 +92,50 @@
               Live: the real element, drawn by the epics pack this page loads (the main checkout's, until this change
               merges).
             </p>
+            <ui-section
+              id="epic-update-actions"
+              header="With buttons in its title row"
+              sticky
+              collapsible
+              dividing
+              collapsed
+            >
+              <p>
+                A page's own buttons go in its title row:
+                <code>&lt;ui-button slot=&quot;actions&quot;&gt;</code> children (epic <code>epic-workflow</code> P25).
+              </p>
+              <ul>
+                <li>They sit after the title, before its date, at the right of its first line.</li>
+                <li>A click on one never folds or unfolds it.</li>
+                <li>The docs runtime puts the block's bullhorn there too, so it never sits over a button.</li>
+                <li>Only a block has a title row: a bare <code>UPDATE</code> label draws no slot.</li>
+              </ul>
+              <epic-update at="2026-10-17 12:00" summary="Bullhorns go in the title row" phase="25">
+                <p>Each titled block's bullhorn is in its own row now, never over its buttons.</p>
+                <ui-button
+                  slot="actions"
+                  circular
+                  basic
+                  size="mini"
+                  icon="copy"
+                  title="Copy a link to it"
+                  aria-label="Copy a link to it"
+                ></ui-button>
+              </epic-update>
+              <ui-accordion class="spell-code" styled>
+                <ui-title>The example above · 4 lines</ui-title>
+                <ui-content>
+                  <ui-code language="html"
+                    ><script type="text/plain">
+                      <epic-update at="2026-10-17 12:00" summary="Bullhorns go in the title row" phase="25">
+                        <p>Each titled block's bullhorn is in its own row now, never over its buttons.</p>
+                        <ui-button slot="actions" circular basic size="mini" icon="copy" title="Copy a link to it" aria-label="Copy a link to it"></ui-button>
+                      </epic-update>
+                    </script></ui-code
+                  >
+                </ui-content>
+              </ui-accordion>
+            </ui-section>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
@@ -272,6 +316,15 @@
                       <td>(default)</td>
                       <td>What changed, and why; none for a bare label.</td>
                     </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        Buttons of the page's own in its title row (<code
+                          >&lt;ui-button slot=&quot;actions&quot;&gt;</code
+                        >): after the title, before its own buttons; a click on one never folds it. The docs runtime
+                        puts the block's bullhorn here too.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -313,6 +366,12 @@
                     <tr>
                       <td><code>time</code></td>
                       <td>A block's date, at the right of its title row.</td>
+                    </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        In its title row, after the title and before its own buttons: the <code>actions</code> slot.
+                      </td>
                     </tr>
                     <tr>
                       <td><code>body</code></td>
@@ -361,6 +420,10 @@
           <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ul>
+              <li>
+                A block's title: folded, ONE line beside the date, cut with “…”, its words the tooltip; open (as it
+                starts), it wraps under the date (Owen, 2026-10-18).
+              </li>
               <li>
                 Orange: changed since you looked. On every doc page, orange means only that, and warnings (<a
                   href="../../templates/epics/plan-doc.md"

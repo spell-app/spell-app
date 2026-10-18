@@ -3,7 +3,7 @@ import { describe, expect, test } from "vite-plus/test"
 import { linkModule, projectImportsOf, startChanged } from "$/app/runner"
 
 const COMPILED = `/*! SPELL: PROJECT { spellVersion: "0.8.0" } */
-import { spellCore, Thing, List, App } from "@spell/core"
+import { core, Thing, List, App } from "@spell/core"
 import { Card, Deck } from "@spell/project/@spell/library/cards"
 import { Pile } from "@spell/project/@spell/examples/solitaire"
 import { Card as Again } from "@spell/project/@spell/library/cards"
@@ -17,7 +17,7 @@ describe("projectImportsOf()", () => {
   })
 
   test("is empty with no project imports", () => {
-    expect(projectImportsOf(`import { spellCore } from "@spell/core"`)).toEqual([])
+    expect(projectImportsOf(`import { core } from "@spell/core"`)).toEqual([])
   })
 })
 
@@ -27,7 +27,7 @@ describe("linkModule()", () => {
       "@spell/library/cards": "blob:cards",
       "@spell/examples/solitaire": "blob:solitaire"
     })
-    expect(linked).toContain(`import { spellCore, Thing, List, App } from "blob:core"`)
+    expect(linked).toContain(`import { core, Thing, List, App } from "blob:core"`)
     expect(linked).toContain(`import { Card, Deck } from "blob:cards"`)
     expect(linked).toContain(`import { Pile } from "blob:solitaire"`)
     expect(linked).toContain(`import { Card as Again } from "blob:cards"`)
@@ -46,16 +46,16 @@ describe("linkModule()", () => {
   })
 
   test('handles minified `from"..."`', () => {
-    expect(linkModule(`import{spellCore}from"@spell/core"`, "blob:core")).toBe(`import{spellCore}from"blob:core"`)
+    expect(linkModule(`import{core}from"@spell/core"`, "blob:core")).toBe(`import{core}from"blob:core"`)
   })
 })
 
 describe("startChanged():  does a recompile change the program's start, so it runs afresh?  (P17)", () => {
   const SEPARATOR = "\n// -----------\n"
-  const IMPORT = 'import { spellCore, Thing, App } from "@spell/core"\n'
-  const CARD = "export class Card extends Thing {}\nif (!spellCore.isCarryingOver) testCardSetup()"
-  const GAME = "export let game = new Game()\nresetTheGame()\nif (!spellCore.isCarryingOver) game.start()"
-  const STYLES = "spellCore.installStyles(undefined, `.board {}`)"
+  const IMPORT = 'import { core, Thing, App } from "@spell/core"\n'
+  const CARD = "export class Card extends Thing {}\nif (!core.isCarryingOver) testCardSetup()"
+  const GAME = "export let game = new Game()\nresetTheGame()\nif (!core.isCarryingOver) game.start()"
+  const STYLES = "core.installStyles(undefined, `.board {}`)"
   /** A project of `files`, compiled:  the runtime's import first, a separator between each file's code. */
   const project = (...files: string[]) => IMPORT + files.join(SEPARATOR)
 

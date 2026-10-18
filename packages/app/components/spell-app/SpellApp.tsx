@@ -7,7 +7,7 @@ import { UIRoot, type RootVocabulary } from "$/ui/components/ui-root"
 import { SpellUrls } from "$/spell/SpellUrls"
 // Import directly:  spell's project groups alone (for `@spell/examples/...`), without spaces' or spell's barrels
 import "$/spaces/models/projectGroups"
-// Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `spellCore`.
+// Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "$/app/runner/runner.types"
 import { adoptShadowStyles } from "$/app/runner/shadowStyles"
 import {
@@ -307,7 +307,7 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
               debug={this.debug}
               fluid={!cssSize(this.height)}
               runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}
-              builtInsUrl={new URL("spellCore.scopes.js", BUNDLE).href}
+              builtInsUrl={new URL("core.scopes.js", BUNDLE).href}
               onOpen={(href) => this.send("spell-open", { href })}
               onControls={(controls) => (this.controls = controls)}
             />

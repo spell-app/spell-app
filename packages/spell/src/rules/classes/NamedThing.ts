@@ -12,7 +12,7 @@ import { ThingName } from "./ThingName"
  * - e.g. `the count of tableau T1`, `move the card to tableau T1`, `foundation "clubs"`
  * - A sub-type's thing too:  `pile T1` finds the tableau named T1, since a tableau is a pile.
  * - The name:  a word starting with a capital letter (`thing_name`), or any text in quotes.
- * - Compiles to core's `spellCore.thingNamed(Tableau, "T1")`:  the reference `Tableau#T1`.
+ * - Compiles to core's `core.thingNamed(Tableau, "T1")`:  the reference `Tableau#T1`.
  *   Nothing (`undefined`) when the program has no such thing (yet).
  * - Warns, carefully, when the project gives two things that name in so many words:
  *   e.g. `set a to a new tableau with name = "T1"` twice.
@@ -80,8 +80,8 @@ classes.addRule(NamedThing, {
         scope.compile(["a pile is a list of things", "a tableau is a pile"].join("\n"), "block")
       },
       tests: [
-        ["tableau T1", 'spellCore.thingNamed(Tableau, "T1")'],
-        ["pile T1", 'spellCore.thingNamed(Pile, "T1")'],
+        ["tableau T1", 'core.thingNamed(Tableau, "T1")'],
+        ["pile T1", 'core.thingNamed(Pile, "T1")'],
         { title: "a name in lowercase is quoted", input: "tableau stock", js: undefined }
       ]
     }
@@ -96,7 +96,7 @@ classes.addRule(NamedThing, {
       beforeEach(scope: P.Scope) {
         scope.compile(["a pile is a list of things", "a foundation is a pile"].join("\n"), "block")
       },
-      tests: [['foundation "clubs"', 'spellCore.thingNamed(Foundation, "clubs")']]
+      tests: [['foundation "clubs"', 'core.thingNamed(Foundation, "clubs")']]
     }
   ]
 })

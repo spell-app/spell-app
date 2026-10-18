@@ -1,11 +1,15 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
 
-spellCore.heading("Todo app example")
+core.heading("Todo app example")
 /** Todo app example */
 export class Task extends Thing {
-  @prop({ type: "text" }) accessor title!: string
+  // a task has a title as text
+  @prop({ type: "text" })
+  accessor title!: string
 
-  @prop({ type: "choice" }) accessor completed!: boolean
+  // a task has a property completed as yes or no
+  @prop({ type: "choice" })
+  accessor completed!: boolean
 
   get isComplete() {
     return this.completed
@@ -20,22 +24,26 @@ const FILTERS = ["all", "active", "completed"] as const
 export type Filter = (typeof FILTERS)[number]
 
 export class TodosApp extends App {
-  @prop({ itemType: "Task", init: () => new List<Task>({ instanceType: "Task" }) }) accessor tasks!: List<Task>
+  // a todos-app has a property tasks as a new list of tasks
+  @prop({ itemType: "Task", init: () => new List<Task>({ instanceType: "Task" }) })
+  accessor tasks!: List<Task>
 
-  @prop({ type: "text" }) accessor newTaskName!: string
+  // a todos-app has a property newTaskName as text
+  @prop({ type: "text" })
+  accessor newTaskName!: string
 
+  // a todos-app has a filter as one of all, active or completed
   static Filters = FILTERS
-  @prop({ oneOf: FILTERS }) accessor filter!: Filter
+  @prop({ oneOf: FILTERS })
+  accessor filter!: Filter
 
-  @derived
-  get shownTasks() {
-    if (this.filter == "active") return spellCore.filter(this.tasks, (task: Task) => task.isActive)
-    if (this.filter == "completed") return spellCore.filter(this.tasks, (task: Task) => task.isComplete)
+  @derived get shownTasks() {
+    if (this.filter == "active") return core.filter(this.tasks, (task: Task) => task.isActive)
+    if (this.filter == "completed") return core.filter(this.tasks, (task: Task) => task.isComplete)
     return this.tasks
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <ui-container>
         <ui-segment>
@@ -75,9 +83,9 @@ export class TodosApp extends App {
           <ui-menu inverted={true} color="grey">
             <ui-item type="header">Test:</ui-item>
             <ui-item onClick={() => createANewTask({ title: "Moar" })}>Add Item</ui-item>
-            <ui-item onClick={() => spellCore.removeItemAt(app.tasks, 0)}>Remove Item</ui-item>
-            <ui-item onClick={() => (spellCore.getItemAt(app.tasks, 0)!.title = "New title")}>Change name</ui-item>
-            <ui-item onClick={() => spellCore.removeWhere(app.tasks, (item: Task) => item.isComplete)}>
+            <ui-item onClick={() => core.removeItemAt(app.tasks, 0)}>Remove Item</ui-item>
+            <ui-item onClick={() => (core.getItemAt(app.tasks, 0)!.title = "New title")}>Change name</ui-item>
+            <ui-item onClick={() => core.removeWhere(app.tasks, (item: Task) => item.isComplete)}>
               Remove Completed
             </ui-item>
           </ui-menu>
@@ -99,12 +107,12 @@ export function createANewTask(props: { title?: string; completed?: boolean } = 
     app.newTaskName = ""
   }
   const it = new Task({ title: title, completed: completed || false })
-  spellCore.append(app.tasks, it)
+  core.append(app.tasks, it)
 }
 
 createANewTask({ title: "Create todos app", completed: true })
 createANewTask({ title: "Teach it to draw" })
 createANewTask({ title: "Test app" })
 
-if (!spellCore.isCarryingOver) app.start()
-spellCore.console.log(app)
+if (!core.isCarryingOver) app.start()
+core.console.log(app)

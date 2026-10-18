@@ -1,8 +1,8 @@
 import { getDerived, singularize } from "$/util"
 import { P } from "$/parser"
-// Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `spellCore` itself.
+// Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `core` itself.
 // Each runner runs its own copy:  see `spellRuntime.ts`.
-import { SPELL_BASE_TYPES } from "$/core/spellCore.types"
+import { SPELL_BASE_TYPES } from "$/core/core.types"
 import { SP } from "$/spell"
 
 // Registers `RulexParser` on `P.Parser.rulexParser` -- MUST load before any rule with a `syntax:` string.
@@ -168,7 +168,7 @@ export class SpellParser extends P.Parser {
   static get rootScope(): P.RootScope {
     return getDerived(this, "rootScope", (): P.RootScope => {
       const scope = new P.RootScope({ name: "spellRoot", parser: SP.spellParser })
-      // spell's built-in types -- `spellCore.BASE_TYPES`
+      // spell's built-in types -- `core.BASE_TYPES`
       SPELL_BASE_TYPES.forEach((type) => scope.types.add(type))
       for (const [name, superType] of Object.entries(P.BUILT_IN_TYPES)) {
         const existing = scope.types.get(name, "LOCAL_ONLY")

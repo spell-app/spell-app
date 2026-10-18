@@ -46,7 +46,7 @@ export default defineConfig({
     outDir: "dist",
     sourcemap: false,
     rollupOptions: {
-      // the app, and the runtime its programs run on -- its own entry, so it holds ALL of `spellCore`, at a FIXED
+      // the app, and the runtime its programs run on -- its own entry, so it holds ALL of `core`, at a FIXED
       // name for `editor.loadRuntime()` to import.  See `spellRuntime.ts`.
       input: { index: "index.html", [RUNTIME_ENTRY]: "src/runner/spellRuntime.ts" },
       // keep `spell-runtime.js`'s exports by NAME:  it's compiled spell's `@spell/core`

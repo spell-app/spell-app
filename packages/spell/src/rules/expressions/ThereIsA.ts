@@ -10,7 +10,7 @@ import { expressions } from "./expressions.parser"
  * - Takes an `operand`, like a test,
  *   e.g. `there is a winner and the game is over` => `winner !== undefined && ...`
  * - Negates when `operator` contains `no`, covering both `is not a` and `is no such`.
- * - Builds `spellCore.isDefined(expression)`, negated as needed.
+ * - Builds `core.isDefined(expression)`, negated as needed.
  *   Javascript writes it as a test:  `thing !== undefined`, or `thing === undefined` negated.
  */
 export class ThereIsA extends SpellExpression<"operator|expression"> {

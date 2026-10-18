@@ -40,9 +40,9 @@ describe("a compiled library", () => {
 
   test("its things are saved and loaded by id, with no running program", async () => {
     const People = await import(library)
-    const { Saver, Loader, spellCore } = await import("$/core/model")
+    const { Saver, Loader, core } = await import("$/core/model")
     // no program's list of things:  the model leaves it out
-    expect("things" in spellCore).toBe(false)
+    expect("things" in core).toBe(false)
     const matt = new People.Person({ id: "matt", name: "Matt" })
     const family = new People.FriendList({ name: "family" })
     family.relationships.add(new People.Relationship({ kind: "brother", person: matt }))

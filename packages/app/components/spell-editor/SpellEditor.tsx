@@ -5,7 +5,7 @@ import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import type * as UIT from "$/app/ui/ui.types"
 import type { monaco } from "$/app/ui/monaco"
-// Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `spellCore`.
+// Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.
 import type { SpellCompiled } from "$/app/runner/runner.types"
 import { adoptShadowStyles } from "$/app/runner/shadowStyles"
 import { SpellEditorPane, type SpellEditorStatus, type MonacoModule } from "$/app/spellEditor/SpellEditorPane"

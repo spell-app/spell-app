@@ -37,11 +37,11 @@ UI.addRule(Print, {
     {
       compileAs: "statement",
       tests: [
-        [`print "Yo!"`, `spellCore.console.log("Yo!")`],
-        [`print warning "Yo!"`, `spellCore.console.warn("Yo!")`],
-        [`print error "Yo!"`, `spellCore.console.error("Yo!")`],
-        [`print group "Yo!"`, `spellCore.console.group("Yo!")`],
-        [`print collapsed group "Yo!"`, `spellCore.console.groupCollapsed("Yo!")`]
+        [`print "Yo!"`, `core.console.log("Yo!")`],
+        [`print warning "Yo!"`, `core.console.warn("Yo!")`],
+        [`print error "Yo!"`, `core.console.error("Yo!")`],
+        [`print group "Yo!"`, `core.console.group("Yo!")`],
+        [`print collapsed group "Yo!"`, `core.console.groupCollapsed("Yo!")`]
       ]
     }
   ]

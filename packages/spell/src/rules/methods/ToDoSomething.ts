@@ -55,11 +55,11 @@ methods.addRule(ToDoSomething, {
         {
           title: "paren-free type arg in signature - it",
           input: "to create a card: print it",
-          js: [`Card.prototype.create = function () {`, `  return spellCore.console.log(this)`, `}`],
+          js: [`Card.prototype.create = function () {`, `  return core.console.log(this)`, `}`],
           ts: [
             "export interface Card { create(): any /* spell: type unknown */ }",
             "Card.prototype.create = function (this: Card) {",
-            "  return spellCore.console.log(this)",
+            "  return core.console.log(this)",
             "}"
           ]
         },
@@ -87,10 +87,10 @@ methods.addRule(ToDoSomething, {
         {
           title: "simple arg in signature - arg is defined",
           input: "to notify (message): print the message",
-          js: ["export function notifyMessage(message) {", "  return spellCore.console.log(message)", "}"],
+          js: ["export function notifyMessage(message) {", "  return core.console.log(message)", "}"],
           ts: [
             "export function notifyMessage(message: any /* spell: type unknown */) {",
-            "  return spellCore.console.log(message)",
+            "  return core.console.log(message)",
             "}"
           ]
         },
@@ -106,8 +106,8 @@ methods.addRule(ToDoSomething, {
         {
           title: "typed simple arg in signature - arg is defined",
           input: "to notify (message as text): print the message",
-          js: ["export function notifyMessage(message) {", "  return spellCore.console.log(message)", "}"],
-          ts: ["export function notifyMessage(message: string) {", "  return spellCore.console.log(message)", "}"]
+          js: ["export function notifyMessage(message) {", "  return core.console.log(message)", "}"],
+          ts: ["export function notifyMessage(message: string) {", "  return core.console.log(message)", "}"]
         },
         {
           title: "typed simple arg in signature - `it` is not defined",
@@ -118,10 +118,10 @@ methods.addRule(ToDoSomething, {
         {
           title: "valued simple arg in signature - arg is defined",
           input: 'to notify (message = "Really?"): print the message',
-          js: ['export function notifyMessage(message = "Really?") {', "  return spellCore.console.log(message)", "}"],
+          js: ['export function notifyMessage(message = "Really?") {', "  return core.console.log(message)", "}"],
           ts: [
             'export function notifyMessage(message: string = "Really?") {',
-            "  return spellCore.console.log(message)",
+            "  return core.console.log(message)",
             "}"
           ]
         },
@@ -140,22 +140,22 @@ methods.addRule(ToDoSomething, {
         {
           title: "type arg in signature - thisVar",
           input: "to create (a card): print the card",
-          js: [`Card.prototype.create = function () {`, `  return spellCore.console.log(this)`, `}`],
+          js: [`Card.prototype.create = function () {`, `  return core.console.log(this)`, `}`],
           ts: [
             "export interface Card { create(): any /* spell: type unknown */ }",
             "Card.prototype.create = function (this: Card) {",
-            "  return spellCore.console.log(this)",
+            "  return core.console.log(this)",
             "}"
           ]
         },
         {
           title: "type arg in signature - it",
           input: "to create (a card): print it",
-          js: [`Card.prototype.create = function () {`, `  return spellCore.console.log(this)`, `}`],
+          js: [`Card.prototype.create = function () {`, `  return core.console.log(this)`, `}`],
           ts: [
             "export interface Card { create(): any /* spell: type unknown */ }",
             "Card.prototype.create = function (this: Card) {",
-            "  return spellCore.console.log(this)",
+            "  return core.console.log(this)",
             "}"
           ]
         },
@@ -206,44 +206,44 @@ methods.addRule(ToDoSomething, {
         {
           title: "typed arg in signature -- arg name",
           input: "to show (thing as a card): print the thing",
-          js: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this)`, `}`],
+          js: [`Card.prototype.show = function () {`, `  return core.console.log(this)`, `}`],
           ts: [
             "export interface Card { show(): any /* spell: type unknown */ }",
             "Card.prototype.show = function (this: Card) {",
-            "  return spellCore.console.log(this)",
+            "  return core.console.log(this)",
             "}"
           ]
         },
         {
           title: "typed arg in signature -- thisVar",
           input: "to show (thing as a card): print the card",
-          js: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this)`, `}`],
+          js: [`Card.prototype.show = function () {`, `  return core.console.log(this)`, `}`],
           ts: [
             "export interface Card { show(): any /* spell: type unknown */ }",
             "Card.prototype.show = function (this: Card) {",
-            "  return spellCore.console.log(this)",
+            "  return core.console.log(this)",
             "}"
           ]
         },
         {
           title: "typed arg in signature -- it",
           input: "to show (thing as a card): print it",
-          js: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this)`, `}`],
+          js: [`Card.prototype.show = function () {`, `  return core.console.log(this)`, `}`],
           ts: [
             "export interface Card { show(): any /* spell: type unknown */ }",
             "Card.prototype.show = function (this: Card) {",
-            "  return spellCore.console.log(this)",
+            "  return core.console.log(this)",
             "}"
           ]
         },
         {
           title: "typed arg in signature -- its",
           input: "to show (thing as a card): print its name",
-          js: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this.name)`, `}`],
+          js: [`Card.prototype.show = function () {`, `  return core.console.log(this.name)`, `}`],
           ts: [
             "export interface Card { show(): any /* spell: type unknown */ }",
             "Card.prototype.show = function (this: Card) {",
-            "  return spellCore.console.log(this.name)",
+            "  return core.console.log(this.name)",
             "}"
           ]
         },
@@ -252,17 +252,17 @@ methods.addRule(ToDoSomething, {
           input: ["to show (thing as a card)", "\tprint it", "\tget its name", "\tprint it"],
           js: [
             "Card.prototype.show = function () {",
-            "  spellCore.console.log(this)",
+            "  core.console.log(this)",
             "  const it = this.name",
-            "  spellCore.console.log(it)",
+            "  core.console.log(it)",
             "}"
           ],
           ts: [
             "export interface Card { show(): any /* spell: type unknown */ }",
             "Card.prototype.show = function (this: Card) {",
-            "  spellCore.console.log(this)",
+            "  core.console.log(this)",
             "  const it = this.name",
-            "  spellCore.console.log(it)",
+            "  core.console.log(it)",
             "}"
           ]
         },
@@ -285,20 +285,20 @@ methods.addRule(ToDoSomething, {
         {
           title: "top level keyword-only method",
           input: ["to start the game", "\tprint 1", "start the game"],
-          js: ["export function startTheGame() {", "  spellCore.console.log(1)", "}", "startTheGame()"]
+          js: ["export function startTheGame() {", "  core.console.log(1)", "}", "startTheGame()"]
         },
         {
           title: "top level simple argument method",
           input: ["to notify (message): print the message", "notify 1"],
           js: [
             "export function notifyMessage(message) {",
-            "  return spellCore.console.log(message)",
+            "  return core.console.log(message)",
             "}",
             "notifyMessage(1)"
           ],
           ts: [
             "export function notifyMessage(message: any /* spell: type unknown */) {",
-            "  return spellCore.console.log(message)",
+            "  return core.console.log(message)",
             "}",
             "notifyMessage(1)"
           ]
@@ -308,13 +308,13 @@ methods.addRule(ToDoSomething, {
           input: ["to notify (message as text): print the message", 'notify "hi"'],
           js: [
             "export function notifyMessage(message) {",
-            "  return spellCore.console.log(message)",
+            "  return core.console.log(message)",
             "}",
             'notifyMessage("hi")'
           ],
           ts: [
             "export function notifyMessage(message: string) {",
-            "  return spellCore.console.log(message)",
+            "  return core.console.log(message)",
             "}",
             'notifyMessage("hi")'
           ]
@@ -323,17 +323,12 @@ methods.addRule(ToDoSomething, {
           title:
             "typed call:  an argument KNOWN to be the wrong type isn't a call to it -- here, the built-in `notify`",
           input: ["to notify (message as text): print the message", "notify 1"],
-          js: [
-            "export function notifyMessage(message) {",
-            "  return spellCore.console.log(message)",
-            "}",
-            "spellCore.notify(1)"
-          ],
+          js: ["export function notifyMessage(message) {", "  return core.console.log(message)", "}", "core.notify(1)"],
           ts: [
             "export function notifyMessage(message: string) {",
-            "  return spellCore.console.log(message)",
+            "  return core.console.log(message)",
             "}",
-            "spellCore.notify(1)"
+            "core.notify(1)"
           ]
         },
         {
@@ -347,7 +342,7 @@ methods.addRule(ToDoSomething, {
           js: [
             "export class Joker extends Card {}",
             "Card.prototype.showOnPile = function (pile) {",
-            "  return spellCore.console.log(1)",
+            "  return core.console.log(1)",
             "}",
             "(new Joker()).showOnPile(new Pile())",
             '/* PARSE ERROR: Don\'t understand "show a new card on a new card" */'
@@ -356,7 +351,7 @@ methods.addRule(ToDoSomething, {
             "export class Joker extends Card {}",
             "export interface Card { showOnPile(pile: Pile): any /* spell: type unknown */ }",
             "Card.prototype.showOnPile = function (this: Card, pile: Pile) {",
-            "  return spellCore.console.log(1)",
+            "  return core.console.log(1)",
             "}",
             "(new Joker()).showOnPile(new Pile())",
             '/* PARSE ERROR: Don\'t understand "show a new card on a new card" */'
@@ -365,16 +360,11 @@ methods.addRule(ToDoSomething, {
         {
           title: "type arg in signature",
           input: ["to show (a card): print the card", "show a new card"],
-          js: [
-            "Card.prototype.show = function () {",
-            "  return spellCore.console.log(this)",
-            "}",
-            "(new Card()).show()"
-          ],
+          js: ["Card.prototype.show = function () {", "  return core.console.log(this)", "}", "(new Card()).show()"],
           ts: [
             "export interface Card { show(): any /* spell: type unknown */ }",
             "Card.prototype.show = function (this: Card) {",
-            "  return spellCore.console.log(this)",
+            "  return core.console.log(this)",
             "}",
             "(new Card()).show()"
           ]
@@ -434,14 +424,14 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function notify(props = {}) {",
             "  const { message } = props",
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             "notify()"
           ],
           ts: [
             "export function notify(props: Object = {}) {",
             "  const { message } = props",
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             "notify()"
           ]
@@ -453,14 +443,14 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function notify(props = {}) {",
             "  const { message } = props",
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             'notify({ message: "It worked!" })'
           ],
           ts: [
             "export function notify(props: Object = {}) {",
             "  const { message } = props",
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             'notify({ message: "It worked!" })'
           ]
@@ -476,7 +466,7 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function play(props = {}) {",
             "  const { card } = props",
-            "  spellCore.console.log(card)",
+            "  core.console.log(card)",
             "}",
             "play({ card: new Card() })",
             'play({ card: new Card({ suit: "hearts" }) })'
@@ -484,7 +474,7 @@ methods.addRule(ToDoSomething, {
           ts: [
             "export function play(props: { card?: Card } = {}) {",
             "  const { card } = props",
-            "  spellCore.console.log(card)",
+            "  core.console.log(card)",
             "}",
             "play({ card: new Card() })",
             'play({ card: new Card({ suit: "hearts" }) })'
@@ -496,14 +486,14 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function notify(props = {}) {",
             '  const { message = "nope" } = props',
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             'notify({ message: "Ship it!!" })'
           ],
           ts: [
             "export function notify(props: Object = {}) {",
             '  const { message = "nope" } = props',
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             'notify({ message: "Ship it!!" })'
           ]
@@ -519,7 +509,7 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function notify(props = {}) {",
             '  const { message = "nope", reply = "yep" } = props',
-            "  spellCore.console.log(message + reply)",
+            "  core.console.log(message + reply)",
             "}",
             'notify({ message: "How many?" })',
             'notify({ message: "How many?", reply: 2 })'
@@ -527,7 +517,7 @@ methods.addRule(ToDoSomething, {
           ts: [
             "export function notify(props: Object = {}) {",
             '  const { message = "nope", reply = "yep" } = props',
-            "  spellCore.console.log(message + reply)",
+            "  core.console.log(message + reply)",
             "}",
             'notify({ message: "How many?" })',
             'notify({ message: "How many?", reply: 2 })'
@@ -543,7 +533,7 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function notify(props = {}) {",
             '  const { name, message, reply = "yep" } = props',
-            "  spellCore.console.log(name + message + reply)",
+            "  core.console.log(name + message + reply)",
             "}",
             "notify({",
             '  name: "Bob",',
@@ -554,7 +544,7 @@ methods.addRule(ToDoSomething, {
           ts: [
             "export function notify(props: { name?: any /* spell?: type unknown */; message?: string; reply?: any /* spell?: type unknown */ } = {}) {",
             '  const { name, message, reply = "yep" } = props',
-            "  spellCore.console.log(name + message + reply)",
+            "  core.console.log(name + message + reply)",
             "}",
             "notify({",
             '  name: "Bob",',
@@ -574,16 +564,16 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function notifyMessage(message, props = {}) {",
             '  const { reply = "yep" } = props',
-            "  spellCore.console.log(message)",
-            "  spellCore.console.log(reply)",
+            "  core.console.log(message)",
+            "  core.console.log(reply)",
             "}",
             'notifyMessage("Really?", { reply: "yes" })'
           ],
           ts: [
             "export function notifyMessage(message: any /* spell: type unknown */, props: Object = {}) {",
             '  const { reply = "yep" } = props',
-            "  spellCore.console.log(message)",
-            "  spellCore.console.log(reply)",
+            "  core.console.log(message)",
+            "  core.console.log(reply)",
             "}",
             'notifyMessage("Really?", { reply: "yes" })'
           ]
@@ -598,14 +588,14 @@ methods.addRule(ToDoSomething, {
           js: [
             "export function notify(props = {}) {",
             "  const { message } = props",
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             'notify({ message: "It worked!", reply: "No it didn\'t" })'
           ],
           ts: [
             "export function notify(props: Object = {}) {",
             "  const { message } = props",
-            "  spellCore.console.log(message)",
+            "  core.console.log(message)",
             "}",
             'notify({ message: "It worked!", reply: "No it didn\'t" })'
           ]

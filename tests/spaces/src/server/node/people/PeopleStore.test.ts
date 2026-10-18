@@ -88,7 +88,7 @@ describe("PeopleStore", () => {
         $type: "Org",
         id: "spell",
         name: "Spell",
-        memberships: [{ $type: "Membership", person: { $ref: "Person#owen@spell" }, role: "spell-admin" }]
+        members: [{ $type: "Membership", person: { $ref: "Person#owen@spell" }, role: "spell-admin" }]
       })
     )
     await storage.write(
@@ -96,7 +96,7 @@ describe("PeopleStore", () => {
       JSON.stringify({
         $type: "Org",
         id: "three-degrees",
-        memberships: [{ $type: "Membership", person: { $ref: "Person#owen" }, role: "member" }]
+        members: [{ $type: "Membership", person: { $ref: "Person#owen" }, role: "member" }]
       })
     )
     const { orgs } = await store.orgs()

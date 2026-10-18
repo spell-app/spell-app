@@ -176,3 +176,72 @@ describe("<epic-updated> (retired:  migrated to <epic-update>)", () => {
     await expectAccessible(host)
   })
 })
+
+// epic `epic-workflow` P25:  the page's own buttons in the title row, where the docs runtime puts the bullhorn too
+describe("<epic-phase> actions slot", () => {
+  // P25:  the page's own buttons at the title's end, before its fold
+  test('`slot="actions"`:  at the title\'s end, before the chevron;  a click never folds it', async () => {
+    const host = await render(
+      `<epic-phase id="p-one" title="One" status="active"><button slot="actions" aria-label="Copy">C</button></epic-phase>`
+    )
+    const button = host.querySelector<HTMLElement>("button[slot=actions]")!
+    expect(host.shadowRoot!.querySelector('[part~="tools"]')!.contains(button.assignedSlot)).toBe(true)
+    const chevron = inner(host).shadowRoot!.querySelector('[part~="fold-icon"]')!
+    const header = inner(host).shadowRoot!.querySelector('[part~="header"]')!
+    const [b, fold, words] = [button, chevron, header].map((each) => each.getBoundingClientRect())
+    expect([words.right <= b.left + 0.5, b.right <= fold.left + 0.5]).toEqual([true, true])
+    button.click()
+    await ElementFixture.tick()
+    expect(host.matches(":state(open)")).toBe(false)
+  })
+})
+
+/** Where `element`'s first line of text starts, from the viewport top:  its first character's box. */
+function firstLineTop(element: Element): number {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, (node) =>
+    node.textContent!.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+  )
+  const text = walker.nextNode()!
+  const range = document.createRange()
+  range.setStart(text, text.textContent!.search(/\S/))
+  range.setEnd(text, text.textContent!.search(/\S/) + 1)
+  return range.getBoundingClientRect().top
+}
+
+// epic `epic-workflow` P25, J183 (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded")
+describe("<epic-phase> title, folded and open", () => {
+  test("folded:  ONE line cut with …, the pen never cut, its full title the tooltip;  open:  it wraps", async () => {
+    const host = await render(
+      `<div style="width: 320px"><epic-section id="phases" kind="phases" open>` +
+        `<epic-phase id="p-long" title="A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps" status="active" changes="2"><button slot="actions" aria-label="Copy">C</button></epic-phase>` +
+        `</epic-section></div>`,
+      "#p-long"
+    )
+    const header = host.shadowRoot!.querySelector<HTMLElement>(".header")!
+    const words = host.shadowRoot!.querySelector<HTMLElement>(".words")!
+    const pen = host.shadowRoot!.querySelector<HTMLElement>('[part~="changed"]')!
+    const button = host.querySelector<HTMLElement>("button[slot=actions]")!
+    const lineHeight = parseFloat(getComputedStyle(words).lineHeight)
+    const folded = { top: firstLineTop(words), button: button.getBoundingClientRect() }
+    expect(header.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5)
+    expect(words.scrollWidth).toBeGreaterThan(words.clientWidth)
+    expect(header.title).toBe(
+      "P1 · A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps"
+    )
+    // the pen:  whole, inside the title's box, after the cut words
+    const [penBox, headerBox, wordsBox] = [pen, header, words].map((each) => each.getBoundingClientRect())
+    expect([penBox.width > 0, penBox.right <= headerBox.right + 0.5, penBox.left >= wordsBox.right - 0.5]).toEqual([
+      true,
+      true,
+      true
+    ])
+    inner(host).shadowRoot!.querySelector<HTMLElement>('[part~="toggle"]')!.click()
+    await ElementFixture.tick()
+    expect(host.matches(":state(open)")).toBe(true)
+    expect(header.getBoundingClientRect().height).toBeGreaterThan(lineHeight * 1.5)
+    expect(header.hasAttribute("title")).toBe(false)
+    expect(firstLineTop(words)).toBeCloseTo(folded.top, 0)
+    // collapse-all shows only while open (as before P25), so the slot's button keeps its height, not its x
+    expect(button.getBoundingClientRect().top).toBeCloseTo(folded.button.top, 0)
+  })
+})

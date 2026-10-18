@@ -3,6 +3,8 @@ import type { JSX } from "@solidjs/web"
 
 import { E } from "$/spell-solid"
 
+import { ACTIONS_SLOT } from "./Fold.types"
+
 /****************
  * ### `Fold`
  * The open / folded state of a box an `<epic-*>` element folds by itself, never written to the file.
@@ -22,6 +24,7 @@ import { E } from "$/spell-solid"
  *   - its fold button (`fold.button()`)
  *   - the chevron (`Fold.chevron()`)
  *   - the collapse-all button of an open title (`Fold.collapseAllButton()`, folding all under it:  `foldAllUnder()`)
+ *   - the box of a title row's `actions` slot (`Fold.actions()`):  the page's own buttons there
  * - Those are methods, not tags of their own (P10):
  *   - the button is named by `aria-labelledby`, whose ids must be in the same shadow root as the card's heading:
  *     a tag would put a shadow root between them
@@ -124,6 +127,21 @@ export class Fold {
           <path d="M4 8.5 8 4.5 12 8.5M4 12.5 8 8.5 12 12.5" />
         </svg>
       </button>
+    )
+  }
+
+  /**
+   * The box of a title row's ACTIONS SLOT (`Fold.types.ts`):  the page's own buttons there
+   * (`<ui-button slot="actions">`), and the docs runtime's bullhorn.
+   * - Each element puts it after its title, before its own buttons.
+   * - A click in it never folds (`CONTROLS`).
+   * - `hidden` while nothing is slotted, so an empty box takes no room:  read where it's drawn, so it follows.
+   */
+  static actions({ part, hidden }: ActionsBoxOptions): JSX.Element {
+    return (
+      <span class={ACTIONS_BOX} part={part} hidden={hidden?.()}>
+        <slot name={ACTIONS_SLOT} />
+      </span>
     )
   }
 
@@ -238,6 +256,14 @@ export type CollapseAllOptions = {
   onCollapse: () => void
 }
 
+/** What `Fold.actions()` takes. */
+export type ActionsBoxOptions = {
+  /** its `part`:  `actions` in each owner's vocabulary (`ACTIONS_PART_SPEC`), or the owner's own box's */
+  part?: string
+  /** nothing slotted:  hidden;  a function, read where the box is drawn (tracked) */
+  hidden?: () => boolean
+}
+
 /** What `fold.button()` takes. */
 export type FoldButtonOptions = {
   /** the `id` of the box it folds */
@@ -264,8 +290,16 @@ export const FOLD_BUTTON = "fold-button"
 /** Class word of a heading band that folds its card (it has a body):  a pointer over it (`Fold.css`). */
 export const FOLDS = "folds"
 
-/** What, on a line or a heading band, acts by itself:  a click there doesn't fold (`<epic-item>`'s line too). */
-export const CONTROLS = "a[href], button, input, select, textarea, label, summary, [role='button'], [contenteditable]"
+/** Class of the box of a title row's `actions` slot (`Fold.actions()`). */
+export const ACTIONS_BOX = "slotted-actions"
+
+/**
+ * What, on a line or a heading band, acts by itself:  a click there doesn't fold (`<epic-item>`'s line too).
+ * - the `actions` slot and its box:  whatever the page put there acts by itself, even a plain `<span>`
+ */
+export const CONTROLS =
+  "a[href], button, input, select, textarea, label, summary, [role='button'], [contenteditable], " +
+  `slot[name='${ACTIONS_SLOT}'], .${ACTIONS_BOX}`
 
 /** `Fold.chevron()`'s class. */
 const CHEVRON = "chevron"

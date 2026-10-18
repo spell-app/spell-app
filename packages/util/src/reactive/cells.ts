@@ -129,7 +129,7 @@ export function runCellChecks(): void {
 /**
  * Settle spell state's readers NOW:  run pending derived checks, THEN each host's own flush, e.g. Solid's
  * `flush()`.
- * - `spellCore.flush()`.  Tests and imperative code call this, NEVER Solid's `flush()` directly:  a Solid
+ * - `core.flush()`.  Tests and imperative code call this, NEVER Solid's `flush()` directly:  a Solid
  *   computation reading only a derived value hears of a change on a microtask -- see `scheduleCellCheck()`.
  * - NEVER inside a Solid `action`, effect apply or `onSettled`:  Solid's own rule for its `flush()`.
  */

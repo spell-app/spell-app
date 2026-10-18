@@ -38,10 +38,13 @@ class Deck(List):
             card_names.append(card.short_name)
         core.echo(f"deck: {card_names}")
 
+    # "suits" as one of clubs, diamonds, hearts or spades
     SUITS = ("clubs", "diamonds", "hearts", "spades")
 
+    # "ranks" as one of ace, 2 ... 10, jack, queen or king
     RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
 
+    # set the is-set-up of the deck to yes
     is_set_up = prop(type="choice")
 
 
@@ -66,6 +69,7 @@ class Card(Thing):
     """Definition of a card -- in the outline style:  a heading, then what's true of it"""
 
     # suit and rank
+    # - its "suit" is a suit of its deck
     suit = prop(one_of=lambda: Deck.SUITS)
 
     @property
@@ -76,6 +80,7 @@ class Card(Thing):
         """e.g. "the card is a spade\""""
         return self.suit == suit
 
+    # - its "rank" is a rank of its deck
     rank = prop(one_of=lambda: Deck.RANKS)
 
     def is_a_rank(self, rank: Any) -> bool:
@@ -95,6 +100,7 @@ class Card(Thing):
         return spell_position(core.position_of(Deck.RANKS, self.rank))
 
     # direction
+    # - its direction is up or down
     DIRECTIONS = ("up", "down")
     direction = prop(one_of=DIRECTIONS)
 
@@ -369,6 +375,7 @@ class Pile(List):
 
     exclusive = True
 
+    # set the name of cards-to-move to the name of the start-pile
     name = prop()
 
 
@@ -387,6 +394,7 @@ class Pile(List):
 class Game(App):
     """Game bits"""
 
+    # a game has a score as a number
     score = prop(type="number")
 
     # actions

@@ -67,7 +67,10 @@ import tooltipCSS from "./Tooltip.css?inline"
  * - Its LINE, in the shadow root, sticky while open (under the section titles stuck above it):
  *   - the fold chevron (only with details)
  *   - the id chip (`Q7`, a link to `#q7`), in its state's colour
- *   - the title (`title`, or `slot="title"`)
+ *   - the title (`title`, or `slot="title"`):  folded, ONE line cut with "…", its full text the tooltip;  open (or
+ *     with nothing to unfold), as many lines as it needs (Owen, 2026-10-18)
+ *   - the page's own buttons (`slot="actions"`, and the docs runtime's bullhorn):  before its own;
+ *     a click on one never folds it
  *   - the bed icon (`overnight`:  made overnight), the git icon (with commits)
  *   - the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons
  * - `calm`:  an open judgement call or issue not reviewed yet is yellow (`open`), not red (`attention`).
@@ -325,10 +328,28 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     return undefined
   })
 
-  /** Anything at the end of the line:  the bed and git icons, a review label, or the review buttons. */
+  /**
+   * The title's tooltip while it's cut to one line:  folded, with details to unfold (Owen, 2026-10-18:  "ellipsis
+   * when collapsed, wrap when expanded");  its full title, the `slot="title"` child's words when it has one.
+   * - an item with no details never opens:  its title always wraps, no tooltip
+   */
+  readonly cutTitleTip = createMemo((): string | undefined => {
+    if (!this.hasDetails() || this.isOpen()) return undefined
+    const slotted = this.slots.hasContent(this.slotForName("title"))
+      ? this.domElement.querySelector(':scope > [slot="title"]')?.textContent
+      : undefined
+    return (slotted ?? this.title ?? "").replace(/\s+/g, " ").trim() || undefined
+  })
+
+  /** Anything at the line's end:  the page's own buttons, the bed and git icons, a review label, the review buttons. */
   readonly hasExtras = createMemo(
     () =>
-      !!this.overnight || this.hasCommits() || !!this.review() || this.reviewState.reviewing() || this.canCollapseAll()
+      this.slots.hasContent(this.slotForName("actions")) ||
+      !!this.overnight ||
+      this.hasCommits() ||
+      !!this.review() ||
+      this.reviewState.reviewing() ||
+      this.canCollapseAll()
   )
 
   /**
@@ -457,7 +478,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     )
   }
 
-  /** The line:  chevron, id chip, title, review label, actions. */
+  /** The line:  chevron, id chip, title, then its actions box:  the `actions` slot, review label, review buttons. */
   private renderLine(): JSX.Element {
     return (
       <div
@@ -512,10 +533,13 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
             </button>
           </Show>
         </span>
-        <span class={TITLE} part={this.partForName("title")}>
+        {/* folded:  ONE line, cut with "…", its full text the tooltip;  open:  it wraps (EpicItem.css) */}
+        <span class={TITLE} part={this.partForName("title")} title={this.cutTitleTip()}>
           <slot name={this.slotForName("title")}>{this.title}</slot>
         </span>
         <span class={[CELL, EXTRAS]} part={this.partForName("actions")} hidden={!this.hasExtras()}>
+          {/* the page's own buttons first, then the item's (`CONTROLS`:  a click on one never folds) */}
+          <slot name={this.slotForName("actions")} />
           <Show when={this.overnight}>
             <span
               class={OVERNIGHT}

@@ -1,17 +1,17 @@
 /**
- * `spellCore.things`:  every thing the running program has made, by type -- for the runners' Thing Explorer.
+ * `core.things`:  every thing the running program has made, by type -- for the runners' Thing Explorer.
  * - Each `Thing` registers itself as it's constructed, and so does each instance of a `List` sub-class,
  *   e.g. a `Deck` -- NOT a plain `new List()`, which would bury the explorer in scratch lists.
  * - NOT while a test runs, e.g. in `to test card setup`:  a test's things are its own, not the program's.
  * - Plus the program's top-level things, by name (see `setTopLevel()`):
  *   so a plain list the program keeps, e.g. `allPiles`, shows too.
  * - And the heading each was made under, as the program ran -- see `heading()`.
- * - And the program's classes, by name, e.g. for `spellCore.fromJSON()` -- see `classNamed()`.
+ * - And the program's classes, by name, e.g. for `core.fromJSON()` -- see `classNamed()`.
  */
 import { Cell } from "$/util"
 
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 // Import directly to avoid circular import
 import { Thing } from "./classes/Thing"
 import { List } from "./classes/List"
@@ -20,7 +20,7 @@ import { Drawable } from "./classes/Drawable"
 import { DrawableList } from "./classes/DrawableList"
 
 /**
- * Registry of the things one run of a program made -- `spellCore.things`, cleared by `resetRuntime()`.
+ * Registry of the things one run of a program made -- `core.things`, cleared by `resetRuntime()`.
  * - Holds each thing WEAKLY, so it shows only while the program still holds it:
  *   a thing thrown away drops out once it's garbage-collected -- which may be a while.
  * - `version` is a spell cell, so a reader of the registry (the Thing Explorer) re-runs as things come and go.
@@ -78,7 +78,7 @@ export class ThingRegistry {
   /**
    * Register `thing`, as it's constructed -- see `Thing` and `List`'s constructors.
    * - A `List` counts only if it's a sub-class's, e.g. a `Deck` -- see `ThingRegistry`.
-   * - Nothing made while a test runs counts:  see `spellCore.ACTIVE_TEST`.
+   * - Nothing made while a test runs counts:  see `core.ACTIVE_TEST`.
    *   It gets no creation number either, so the program's things keep theirs whatever its tests make.
    * - NOTE: a `start test` with no `end test` runs till the next test starts, or the program ends:
    *   so nothing made after it shows.
@@ -87,7 +87,7 @@ export class ThingRegistry {
    */
   add(thing: ThingLike): void {
     this.addClass(thing.constructor as ThingClass)
-    if (this.quiet || spellCore.ACTIVE_TEST || thing.constructor === List || this.numbers.has(thing)) return
+    if (this.quiet || core.ACTIVE_TEST || thing.constructor === List || this.numbers.has(thing)) return
     const number = ++this.lastNumber
     this.entries.set(number, new WeakRef(thing))
     this.numbers.set(thing, number)
@@ -124,7 +124,7 @@ export class ThingRegistry {
 
   /**
    * Forget `thing`, at once:  it drops out of the Thing Explorer without waiting to be garbage-collected.
-   * - e.g. the cards a recompiled program dealt, replaced by the last run's (`spellCore.carryOver()`).
+   * - e.g. the cards a recompiled program dealt, replaced by the last run's (`core.carryOver()`).
    * - Nothing, for a thing never registered.
    */
   forget(thing: ThingLike): void {
@@ -155,7 +155,7 @@ export class ThingRegistry {
 
   ////////////////
   // ## The program's classes
-  //  Found by name, e.g. to read a thing's JSON back as its class:  `spellCore.fromJSON()` (`json.ts`).
+  //  Found by name, e.g. to read a thing's JSON back as its class:  `core.fromJSON()` (`json.ts`).
   ////////////////
 
   /**
@@ -199,7 +199,7 @@ export class ThingRegistry {
 
   /**
    * Every class `addClass()` has seen:  the program's own, e.g. `Card`, `Pile`, `Tableau` -- NOT spell's own.
-   * - e.g. for what a drawable class's element shows:  `spellCore.elementApiOf()` looks for the lists
+   * - e.g. for what a drawable class's element shows:  `core.elementApiOf()` looks for the lists
    *   a card belongs to.
    */
   knownClasses(): ThingClass[] {
@@ -267,7 +267,7 @@ export class ThingRegistry {
   /**
    * The program's running the code under heading `text` now, e.g. `set up all piles` for `## set up all piles`:
    * what it makes from here on was made under it.
-   * - Compiled spell calls it, as `spellCore.heading("set up all piles")`, at each heading at a file's top level:
+   * - Compiled spell calls it, as `core.heading("set up all piles")`, at each heading at a file's top level:
    *   see `Block.getAST()`.
    * - So it's the heading of the TOP-LEVEL code running:
    *   cards a `new Deck()` deals are under the heading above that line, not one in `Deck.spell`.
@@ -328,7 +328,7 @@ export class ThingRegistry {
   /**
    * Property `name` of `thing`, as the explorer shows it -- its `value`, or the `error` reading it threw.
    * - Read `quietly()`:  a computed property may make things,
-   *   e.g. a pile's `state` makes a new `Pile` in `spellCore.map()`.
+   *   e.g. a pile's `state` makes a new `Pile` in `core.map()`.
    */
   read(thing: ThingLike, name: string): { value: unknown } | { error: string } {
     try {
@@ -343,8 +343,8 @@ export class ThingRegistry {
    * - the explorer reading a value.
    *   Registering what that makes would also redraw the explorer,
    *   which would read the value again, and make another -- forever.
-   * - a collection helper's result, e.g. the new `Pile` `spellCore.map()` makes:
-   *   see `spellCore.newThingLike()` and `agents/CODE-DEBT.md`.
+   * - a collection helper's result, e.g. the new `Pile` `core.map()` makes:
+   *   see `core.newThingLike()` and `agents/CODE-DEBT.md`.
    */
   quietly<T>(work: () => T): T {
     this.quiet++
@@ -426,10 +426,10 @@ export class ThingRegistry {
 
   /**
    * Do action `name` to `thing`, e.g. `turnOver` -- one which takes no arguments.
-   * - An error, thrown or from a promise it returns, goes to `spellCore.console`, as the program's would.
+   * - An error, thrown or from a promise it returns, goes to `core.console`, as the program's would.
    */
   perform(thing: ThingLike, name: string): void {
-    const report = (error: unknown) => spellCore.console.error(`${this.labelOf(thing)}:  ${name}() failed`, error)
+    const report = (error: unknown) => core.console.error(`${this.labelOf(thing)}:  ${name}() failed`, error)
     try {
       const result: unknown = (thing as unknown as Record<string, () => unknown>)[name]!()
       if (result instanceof Promise) result.catch(report)
@@ -523,8 +523,8 @@ export type NamedThing = {
   thing: ThingLike
 }
 
-/** Assembled `spellCore.things` module. */
-export const thingsMethods = defineSpellCoreModule({
+/** Assembled `core.things` module. */
+export const thingsMethods = defineCoreModule({
   /** Every thing the running program has made -- see `ThingRegistry`. */
   things: new ThingRegistry(),
 
@@ -533,7 +533,7 @@ export const thingsMethods = defineSpellCoreModule({
    * - Compiles from each heading at a file's top level, e.g. `## set up all piles`.
    */
   heading(text: string): void {
-    spellCore.things.heading(text)
+    core.things.heading(text)
   }
 })
-Object.assign(spellCore, thingsMethods)
+Object.assign(core, thingsMethods)

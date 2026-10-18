@@ -54,7 +54,12 @@ const PAGES: Record<string, string> = {
   "packages/epics/docs/__parts/layout.html": PAGE,
   // epic py's guide:  a page epic py owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13)
   "guides/py.html": PAGE,
-  "epics/py/py.plan.html": `<epic-page epic="py" updated="2026-10-13"><a slot="durable" href="../../guides/py.html">Py</a></epic-page>`
+  "epics/py/py.plan.html": `<epic-page epic="py" updated="2026-10-13"><a slot="durable" href="../../guides/py.html">Py</a></epic-page>`,
+  // an epic page whose prose names a details page's markup (epic `epic-workflow`'s own item titles)
+  "epics/asks/asks.plan.html": PAGE.replace(
+    "<p>Body.</p>",
+    '<epic-item id="j1" title="holding an <epic-ask>"></epic-item>'
+  )
 }
 
 /** A comment on the second table of section `model`. */
@@ -363,6 +368,12 @@ test("an epic page's comments go in the epic's REVIEW INBOX, beside its marks;  
   })
   const read = await ask(port, "GET", "/api/docs/comments?page=%2Fepics%2Fbig%2Fbig.plan.html")
   expect(JSON.parse(read.text)).toMatchObject({ takesComments: true, comments: [{ id: "m1", status: "new" }] })
+})
+
+// epic `epic-workflow` P25:  `epic-workflow`'s own page took no comments, its item titles naming `<epic-ask>`
+test("an epic page takes comments whatever its prose names:  `<epic-ask>` in an item's title", async () => {
+  const read = await ask(port, "GET", "/api/docs/comments?page=%2Fepics%2Fasks%2Fasks.plan.html")
+  expect(JSON.parse(read.text)).toMatchObject({ takesComments: true })
 })
 
 // epic `epic-workflow` P15:  a saga page is an epic page of kind "saga"

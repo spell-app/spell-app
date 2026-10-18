@@ -270,7 +270,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - Unknown always fits.
     - `put the chip on the pot` finds Chip's `put`.
     - `add the card to the deck` falls past a user's `to add a card to a pile`,
-      to the built-in `spellCore.append(deck, card)`.
+      to the built-in `core.append(deck, card)`.
   - `MethodInfixRule` checks only its right side:  a suffix can't see its left while parsing.
   - A `MethodPostfixRule` checks nothing.
   - Declarations need nothing new:  `of` / `params` are the method record's, in the same comment.
@@ -394,11 +394,11 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - It's ONE of three forms (`parseReadAsTemplate()`):
     - `{it}.length`
     - `{it}.getFullYear()`
-    - `spellCore.itemCountOf({it})`
+    - `core.itemCountOf({it})`
   - `MemberReadExpression.getMemberAST()` builds it.
   - So the same words compile per type:
     - `the length of the name` => `name.length`
-    - `the length of the deck` => `spellCore.itemCountOf(deck)`
+    - `the length of the deck` => `core.itemCountOf(deck)`
   - Its datatype is the member's.
   - An unknown type still reads loose:  `x.length`.
 - A `stored` member is a property the runtime class KEEPS, e.g. `id`, on `thing` and `list`.
@@ -422,10 +422,10 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - hover shows a member's `docstring`, and a built-in rule's member (`builtInMembersOfRule()`)
   - completion offers them with their docs
   - the Type Explorer lists the table's types and members, and its rules' syntax from the live grammar
-  - `core`'s [`spellCore.scopes.js`](../core/src/spellCore.scopes.js) is the same, for pages with no parser.
+  - `core`'s [`core.scopes.js`](../core/src/core.scopes.js) is the same, for pages with no parser.
     - It's GENERATED from the table:  `yarn scopes --builtins` in `packages/lsp`.
     - A test fails until you do.
-- Adding a member:  ONE table entry, plus the `spellCore` method or javascript property its `readAs` names.
+- Adding a member:  ONE table entry, plus the `core` method or javascript property its `readAs` names.
   - [builtinTypes.test.ts](../../tests/spell/src/builtinTypes.test.ts) reads each one off a sample value, so it must be real.
   - Then `yarn scopes --builtins`.
 - Adding a TYPE:  its name in `P.BUILT_IN_TYPES` first, then its entry.
@@ -499,12 +499,12 @@ A kind that says so is saved in a file of its own.
 - Two expression rules name ONE of the program's things (epic `drawable-thing` P19), in [classes/](src/rules/classes/):
   - [`named_thing`](src/rules/classes/NamedThing.ts), by its name:
     - e.g. `tableau T1`, `foundation "clubs"`
-    - compiles to `spellCore.thingNamed(Tableau, "T1")`
+    - compiles to `core.thingNamed(Tableau, "T1")`
     - the name:  one word starting with a capital (`thing_name`), or text in quotes
     - a sub-type's thing too:  `pile T1` finds a tableau
   - [`thing_at_place`](src/rules/classes/ThingAtPlace.ts), by its place, in the order the program made them:
     - e.g. `the first tableau`, `the last tableau`
-    - compiles to `spellCore.thingAtPlace(Tableau, 1)`
+    - compiles to `core.thingAtPlace(Tableau, 1)`
   - Both are core's thing references, `Tableau#T1` and `Tableau#1`:  [references.ts](../core/src/references.ts).
   - The writers read off either with `?.`:  the program may not have made it (`ProgramWriter.ITEM_READS`).
 - `named_thing` has its own quick `test()`:  a name near its start.
@@ -536,7 +536,7 @@ A kind that says so is saved in a file of its own.
   - A sub-type inherits it.
   - No scope record and no declaration:  it's the class's own method, which an importer gets with it.
 - [`list_move`](src/rules/lists/ListMove.ts):  moves a thing from one list to another.
-  - e.g. `move the card to the tableau` => `spellCore.move(card, tableau)`
+  - e.g. `move the card to the tableau` => `core.move(card, tableau)`
   - It's a statement, or a yes / no (`operandInExpressions`):  `if move the card to the tableau then ...`.
   - It asks the list of the card's family holding it to give it up, then the target to take it.
   - Refused:  nothing changes.
@@ -546,7 +546,7 @@ A kind that says so is saved in a file of its own.
   - The other list statements never do:  they're for dealing, gathering cards back, shuffling.
   - They're `add`, `remove` and `empty`.
 - Asking without moving:  two `Negatable` suffixes, `can_take` and `can_give_up`.
-  - `the tableau can take the card` => `spellCore.canTake(tableau, card)`
+  - `the tableau can take the card` => `core.canTake(tableau, card)`
   - `cannot give up` negates
 - Probe ledger:  `probeMembership()`, probes `X1` ... `X9`.
   - It uses the frozen `Card` and `Deck`.
@@ -739,7 +739,7 @@ A kind that says so is saved in a file of its own.
   - `value_otherwise`:  `black otherwise` => `return 'black'`
 - A choice of values is `is_in` with [`value_choices`](src/rules/lists/ValueChoices.ts).
   - e.g. `it is diamonds or hearts`, `is jack, queen or king`
-  - two or more KNOWN constants or numbers joined by `or` => `spellCore.includes([...], it)`
+  - two or more KNOWN constants or numbers joined by `or` => `core.includes([...], it)`
   - It was `(it == 'diamonds') || 'hearts'`.
 - Ranges in a list of values:  `2 ... 10`.
   - Its rule:  `number_range`, spread by `identifier_list`.
@@ -1199,7 +1199,7 @@ A kind that says so is saved in a file of its own.
     - `create_type` declares an imported type again, just so it's seen.
     - Rule names may repeat:  they merge.
 - Compiled spell uses NO globals:  it `import`s what it didn't declare (`SpellProject.importHeader()`).
-  - `import { spellCore, Thing, List, App } from "@spell/core"` (`SC.SPELL_CORE_MODULE`)
+  - `import { core, Thing, List, App } from "@spell/core"` (`SC.SPELL_CORE_MODULE`)
   - `import { Card, Deck } from "@spell/project/<projectId>"`, for each compiled import (`ImportScope.modules`)
   - and it exports what it declares:
     - types:  `export class`
@@ -1210,7 +1210,7 @@ A kind that says so is saved in a file of its own.
     - Its specifiers are rewritten (`runCompiled()` / `linkModule()`, in [the app's runner](../app/src/runner/)):
       - `@spell/core` => the runtime it runs on (`spellRuntime.ts`)
       - `@spell/project/<projectId>` => that project's compiled JS, fetched and linked the same way, afresh each run
-    - The app, parser and forms NEVER load `spellCore` themselves.
+    - The app, parser and forms NEVER load `core` themselves.
 - ALL files parse first, then ALL compile, so lazy compile-time lookups see the whole project.
 - The editor calls `project.updateText(file, text)` on every keystroke
   (`onInputChanged`, in [the app's editor](../app/src/editor.ts)).
@@ -1327,13 +1327,13 @@ A kind that says so is saved in a file of its own.
   - It's worked out from the block's lines when asked, never stored while parsing:
     an edited comment line re-parses on its own.
   - The language server shows the same docstring on hover and in completion.
-- A heading at a FILE's top level also compiles to `spellCore.heading("set up all piles")`, just above its own lines.
+- A heading at a FILE's top level also compiles to `core.heading("set up all piles")`, just above its own lines.
   - It's a `P.ASTHeadingInvocation`.
   - Why:  as the program runs, the Thing Explorer knows which heading's code made each thing.
   - NOT in a plain block, e.g. a rule test's.
   - NOT for a heading with no text, e.g. `##########`.
 - A line of the program's START, at a FILE's top level, runs only when the program starts afresh
-  (epic `drawable-thing` P17):  `if (!spellCore.isCarryingOver) game.start()`.
+  (epic `drawable-thing` P17):  `if (!core.isCarryingOver) game.start()`.
   - Its lines:
     - calling one of its tests:  `test card setup`
     - starting its app:  `start the game`
@@ -1362,7 +1362,7 @@ A kind that says so is saved in a file of its own.
     It holds the docstring, the `SPELL: DECLARES` comment and the code.
     - Then `SP.hoistClassMembers()` moves each member into its class's body, if that's in the block.
     - Comments directly above a member go with it, e.g. a `## properties` banner.
-      - They go past a heading's `spellCore.heading()` call, which stays put.
+      - They go past a heading's `core.heading()` call, which stays put.
     - Everything else stays put too.
   - A project then does the same across ALL its files (`SpellProject.combineCompiled()`).
     - So `Card.move_to_$pile` from `Pile.spell` ends up in `Card.spell`'s class.

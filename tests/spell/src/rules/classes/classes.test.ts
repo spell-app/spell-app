@@ -1,10 +1,10 @@
 import { describe, test, expect } from "vite-plus/test"
 import { describeWarnings, unitTestModuleRules } from "$/spell/test"
 import { SP, spellParser } from "$/spell"
-import { spellCore } from "$/core"
+import { core } from "$/core"
 
 describe("testing spell module classes", () => {
-  unitTestModuleRules(spellParser, "classes", spellCore.resetRuntime)
+  unitTestModuleRules(spellParser, "classes", core.resetRuntime)
 
   describe("declarations", () => {
     test("a type's `declaredBy` is its `is a` line", () => {

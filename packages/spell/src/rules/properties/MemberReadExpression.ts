@@ -24,7 +24,7 @@ export class MemberReadExpression<
    * - for an enumerated property's values, its type's class variable,
    *   e.g. `Card.Suits` for `the suits of the card`
    * - for a built-in type's member, what its `readAs` template says,
-   *   e.g. `spellCore.itemCountOf(deck)` for `the length of the deck` -- see `builtInMemberAST()`
+   *   e.g. `core.itemCountOf(deck)` for `the length of the deck` -- see `builtInMemberAST()`
    */
   getMemberAST(match: P.MatchFor<this>, object: P.ASTExpression, property: P.Match): P.ASTExpression {
     const { member, enumerationOf } = match.data as MemberData
@@ -124,7 +124,7 @@ export class MemberReadExpression<
    * A built-in type's member read off `object`, as its `readAs` template says -- see `SP.BuiltInMember.readAs`.
    * - `{it}.length` => `object.length`
    * - `{it}.getFullYear()` => `object.getFullYear()`
-   * - `spellCore.itemCountOf({it})` => `spellCore.itemCountOf(object)`
+   * - `core.itemCountOf({it})` => `core.itemCountOf(object)`
    * - The table's templates are checked as it loads (`SP.loadBuiltInTypes()`), so one always reads.
    */
   private static builtInMemberAST(match: P.AnyMatch, object: P.ASTExpression, readAs: string): P.ASTExpression {

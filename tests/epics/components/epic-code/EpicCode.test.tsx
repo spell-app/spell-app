@@ -77,3 +77,47 @@ describe("<epic-code>", () => {
     await expectAccessible(host)
   })
 })
+
+// epic `epic-workflow` P25:  the page's own buttons in the title row, where the docs runtime puts the bullhorn too
+describe("<epic-code> actions slot", () => {
+  // P25:  the page's own buttons in the heading's row, where the docs runtime puts the bullhorn
+  test('`slot="actions"`:  in the heading\'s row, before nothing of its own;  never folds it, never part of the code', async () => {
+    const host = await ElementFixture.render(
+      `<epic-code title="x.ts"><pre>const x = 1</pre><button slot="actions" aria-label="Run">Run</button></epic-code>`
+    )
+    const button = host.querySelector<HTMLElement>("button[slot=actions]")!
+    expect(button.assignedSlot?.getAttribute("name")).toBe("actions")
+    expect(part(host, "toggle").getBoundingClientRect().right).toBeLessThanOrEqual(
+      button.getBoundingClientRect().left + 0.5
+    )
+    button.click()
+    await ElementFixture.tick()
+    expect(host.matches(":state(open)")).toBe(false)
+    // no `<pre>`:  its text is the code, but never a slotted button's
+    const bare = await ElementFixture.render(`<epic-code>const y = 2<button slot="actions">Run</button></epic-code>`)
+    expect((bare as unknown as { component: { code: string } }).component.code).toBe("const y = 2")
+  })
+})
+
+// epic `epic-workflow` P25, J183 (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded")
+
+describe("<epic-code> heading, folded and open", () => {
+  test("folded:  ONE line cut with …, its title the tooltip;  open:  it wraps", async () => {
+    const wrap = await ElementFixture.render(
+      `<div style="width: 320px"><epic-code title="A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps"><pre>const x = 1</pre></epic-code></div>`
+    )
+    const host = wrap.querySelector("epic-code")!
+    const heading = part(host, "heading")
+    const lineHeight = parseFloat(getComputedStyle(heading).lineHeight)
+    expect([heading.getBoundingClientRect().height < lineHeight * 1.5, heading.title]).toEqual([
+      true,
+      "A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps"
+    ])
+    part(host, "toggle").click()
+    await ElementFixture.tick()
+    expect([heading.getBoundingClientRect().height > lineHeight * 1.5, heading.hasAttribute("title")]).toEqual([
+      true,
+      false
+    ])
+  })
+})

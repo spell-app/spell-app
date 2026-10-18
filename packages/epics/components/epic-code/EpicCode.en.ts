@@ -1,11 +1,12 @@
 /**
  * Every name `<epic-code>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the panel's parts and states from `epic-aside`'s types file, which is data too.
+ * - Pure data:  `import type`, the `actions` slot (`Fold.types.ts`), plus the panel's parts and states from `epic-aside`'s types file, which is data too.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
+import { ACTIONS_CHILD, ACTIONS_SLOT_SPEC } from "$/epics/components/epic-item/Fold.types"
 // the folded panel's parts and states, shared with `<epic-aside>`
 import { PANEL_PARTS, PANEL_STATES } from "$/epics/components/epic-aside/EpicPanel.types"
 
@@ -45,7 +46,10 @@ export const epicCodeVocabulary = {
     }
   ],
   events: [],
-  slots: [{ name: "", description: "The code:  ONE `<pre>`, its text the code (never drawn itself)." }],
+  slots: [
+    { name: "", description: "The code:  ONE `<pre>`, its text the code (never drawn itself)." },
+    ACTIONS_SLOT_SPEC
+  ],
   parts: [
     ...PANEL_PARTS,
     { name: "code", description: "The `<ui-code>` that draws the code, highlighted, with its copy button." }
@@ -62,7 +66,8 @@ export const epicCodeVocabulary = {
       description:
         "The code:  ONE `<pre>` holding it as text (`&lt;` for a `<`).  A `<pre>`, so a formatter keeps its " +
         "white space and the page reads it before the pack loads."
-    }
+    },
+    ACTIONS_CHILD
   ],
   flow: true
 } as const satisfies EpicVocabulary

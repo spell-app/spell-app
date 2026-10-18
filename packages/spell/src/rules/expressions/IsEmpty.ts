@@ -6,7 +6,7 @@ import { expressions } from "./expressions.parser"
 
 /**
  * `is_empty` rule:  `{lhs} is [not] empty` postfix, e.g. `thing is empty`.
- * - Compiles to `spellCore.isEmpty(lhs)`, negated for `is not empty`.
+ * - Compiles to `core.isEmpty(lhs)`, negated for `is not empty`.
  */
 export class IsEmpty extends PostfixOperatorSuffix<"operator"> {
   @proto static precedence = Precedence.comparison
@@ -30,8 +30,8 @@ expressions.addRule(IsEmpty, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["thing is empty", "spellCore.isEmpty(thing)"],
-        ["thing is not empty", "!spellCore.isEmpty(thing)"]
+        ["thing is empty", "core.isEmpty(thing)"],
+        ["thing is not empty", "!core.isEmpty(thing)"]
       ]
     }
   ]

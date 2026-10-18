@@ -9,7 +9,7 @@ import { type GuardOperands } from "./lists.shared"
  * `can_take` rule:  `{list} can take {thing}` -- would the list take it, moved there?  Its guard says:
  * `a tableau can take a card if: ...`.  Yes, if it has none.
  * - `add` ~== `take`;  `can't`, `cannot` for the opposite.
- * - Compiles to `spellCore.canTake(tableau, card)`.
+ * - Compiles to `core.canTake(tableau, card)`.
  */
 export class CanTake extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -28,9 +28,9 @@ lists.addRule(CanTake, {
         scope.variables?.add("tableau")
       },
       tests: [
-        ["tableau can take card", "spellCore.canTake(tableau, card)"],
-        ["tableau can add card", "spellCore.canTake(tableau, card)"],
-        ["tableau cannot take card", "!spellCore.canTake(tableau, card)"]
+        ["tableau can take card", "core.canTake(tableau, card)"],
+        ["tableau can add card", "core.canTake(tableau, card)"],
+        ["tableau cannot take card", "!core.canTake(tableau, card)"]
       ]
     }
   ]

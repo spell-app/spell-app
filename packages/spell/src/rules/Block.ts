@@ -87,11 +87,11 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    *   each class member moves into its class's body, if that's in this block -- see `SP.hoistClassMembers()`.
    * - A `##` heading followed by a regular comment compiles as a banner -- see `P.ASTBannerComment`.
    * - A heading at a FILE's top level also says so as the program runs, just above its own lines:
-   *   `spellCore.heading("set up all piles")`.
+   *   `core.heading("set up all piles")`.
    *   - So the Thing Explorer knows which heading's code made each thing.
    *   - See `P.ASTHeadingInvocation`.
    * - A line of the program's START at a FILE's top level runs only when it starts afresh:
-   *   `if (!spellCore.isCarryingOver) game.start()` -- see `codeOf()`.
+   *   `if (!core.isCarryingOver) game.start()` -- see `codeOf()`.
    * - A FILE also declares each property a `set` in it declared, as its type never did:
    *   once, at its top -- or right after its type's declaration, if that's in this file.
    *   - Never moved into a class:  it mustn't change another file's output.

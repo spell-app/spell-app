@@ -4,7 +4,7 @@ import { P } from "$/parser"
  * What the javascript writers (`P.JSWriter`, `P.TSWriter`) read off a spell tree:  pure helpers, nothing written.
  * - What a node is (`isCoreCall()`, `isTight()` ...)
  * - What a datatype is, as `JSWriter.kindOf()` says it
- * - The `spellCore` helpers both writers say their own way
+ * - The `core` helpers both writers say their own way
  * - How an element's attribute is named on the page (`attributeName()`)
  * - Not in the barrel:  the writers' own.
  */
@@ -28,10 +28,10 @@ export function isTight(node: P.ASTExpression): boolean {
   )
 }
 
-/** Is `node` a `spellCore` method's result, maybe in parens?  `@spell/core` types those `unknown`. */
+/** Is `node` a `core` method's result, maybe in parens?  `@spell/core` types those `unknown`. */
 export function isCoreCall(node: P.ASTNode): boolean {
   while (node instanceof P.ASTParenthesizedExpression) node = node.expression
-  return node instanceof P.ASTScopedMethodInvocation && node.thing instanceof P.ASTSpellCoreExpression
+  return node instanceof P.ASTScopedMethodInvocation && node.thing instanceof P.ASTCoreExpression
 }
 
 /** Is `node` the number `value` written out, e.g. `-1`? */
@@ -113,16 +113,16 @@ const BUILT_IN_KINDS: Record<P.Datatype, string | undefined> = {
 }
 
 ////////////////
-// ## `spellCore` helpers
+// ## `core` helpers
 ////////////////
 
-/** A `spellCore` helper written with an operator, which needs parentheses as an operand:  see `JSWriter.tight()`. */
+/** A `core` helper written with an operator, which needs parentheses as an operand:  see `JSWriter.tight()`. */
 export const LOOSE_CORE_CALL = /^!|^typeof |\s(?:===|!==|instanceof)\s/
 
 /** Spell's events, through `@spell/core`'s own `on()`, `trigger()` ... -- see `JSWriter.eventCall()`. */
 export const EVENTS = new Set(["on", "off", "once", "trigger"])
 
-/** `spellCore` helpers worth importing by name, e.g. `positionOf(Card.Ranks, this.rank)`. */
+/** `core` helpers worth importing by name, e.g. `positionOf(Card.Ranks, this.rank)`. */
 export const IMPORTED_HELPERS = new Set(["positionOf"])
 
 /** `@spell/core`'s template tags, imported by name, e.g. `css` for a drawable type's style sheet. */
@@ -165,7 +165,7 @@ export const ATTRIBUTES_ONLY = new Set(["class", "className", "style", "id", "sl
 /** An import from another project:  `import { Card, play_it as play } from "@spell/project/..."`. */
 export const PROJECT_IMPORT = /^import \{ ([^}]*) \} from "(@spell\/project\/[^"]*)"$/gm
 
-/** The import from `@spell/core`:  `import { spellCore, Thing, List, App, h } from "@spell/core"`. */
+/** The import from `@spell/core`:  `import { core, Thing, List, App, h } from "@spell/core"`. */
 export const CORE_IMPORT = /^import \{ ([^}]*) \} from "@spell\/core"$/m
 
 /**
@@ -184,7 +184,7 @@ export function importedClasses(code: string): Map<string, [string, string]> {
 }
 
 /**
- * The project drawable class `node` is in, as its `static elementTag = spellCore.defineElement(this, "Solitaire")`
+ * The project drawable class `node` is in, as its `static elementTag = core.defineElement(this, "Solitaire")`
  * names it, e.g. `Solitaire` -- `undefined` for a class that isn't drawable (epic `drawable-thing` P10).
  */
 export function elementProjectOf(node: P.ASTClassDeclaration): string | undefined {
@@ -196,7 +196,7 @@ export function elementProjectOf(node: P.ASTClassDeclaration): string | undefine
 }
 
 /**
- * The project `member` names, when it's a drawable class's `static elementTag = spellCore.defineElement(this, "...")`:
+ * The project `member` names, when it's a drawable class's `static elementTag = core.defineElement(this, "...")`:
  * the line the page defines the type's element from -- `undefined` for any other member.
  * - Javascript's own, written as it is:  a target with no page of its own leaves it out (Python's program side).
  */
@@ -206,5 +206,5 @@ export function elementTagProject(member: P.ASTNode): string | undefined {
   return found ? (JSON.parse(found[1]!) as string) : undefined
 }
 
-/** What a drawable class's `elementTag` is:  `spellCore.defineElement(this, "<project>")`. */
-const DEFINE_ELEMENT = /^spellCore\.defineElement\(this, ("(?:[^"\\]|\\.)*")\)$/
+/** What a drawable class's `elementTag` is:  `core.defineElement(this, "<project>")`. */
+const DEFINE_ELEMENT = /^core\.defineElement\(this, ("(?:[^"\\]|\\.)*")\)$/

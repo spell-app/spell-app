@@ -7,9 +7,9 @@ import "./RunnerConsole.css"
 
 /****************
  * ### `<RunnerConsole>`
- * A `spellCore.console`, e.g. what `print` statements say.
+ * A `core.console`, e.g. what `print` statements say.
  * - Its lines are spell cells:  read through `tracked()`, so a line logged adds a row.
- * - `console` is a prop, NOT the imported `spellCore`'s:  `<spell-app>` shows each app's own copy's.
+ * - `console` is a prop, NOT the imported `core`'s:  `<spell-app>` shows each app's own copy's.
  * - `console` is read ONCE:  remount for another, e.g. `<Show when={loaded()} keyed>`.
  * - SEE:  its App UI components page, `packages/app/docs/RunnerConsole.html` (`/components/app/RunnerConsole.html`).
  ****************/
@@ -27,6 +27,6 @@ export function RunnerConsole(props: RunnerConsoleProps) {
 
 /** Props for `<RunnerConsole>`. */
 export type RunnerConsoleProps = {
-  /** Console to show, e.g. `spellCore.console`. */
+  /** Console to show, e.g. `core.console`. */
   console: SpellConsole
 }

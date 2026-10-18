@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vite-plus/test"
 
-import { spellCore, Thing, on, off, once, trigger } from "$/core"
+import { core, Thing, on, off, once, trigger } from "$/core"
 
 /** `a card is a thing`:  what an event brings, e.g. `trigger card-click with the card`. */
 class Card extends Thing {}
@@ -8,7 +8,7 @@ class Card extends Thing {}
 // `SpellEvent.trigger()` says what it triggers on `console.info`
 beforeEach(() => {
   vi.spyOn(console, "info").mockImplementation(() => {})
-  spellCore.resetRuntime()
+  core.resetRuntime()
 })
 
 afterEach(() => {
@@ -35,7 +35,7 @@ describe("on() / trigger()", () => {
   test("each finds the CURRENT runtime:  a new run hears nothing of the last run's listeners", () => {
     const first = vi.fn()
     on("card-click", first)
-    spellCore.resetRuntime()
+    core.resetRuntime()
     const second = vi.fn()
     on("card-click", second)
     trigger("card-click")
@@ -43,14 +43,14 @@ describe("on() / trigger()", () => {
     expect(second).toHaveBeenCalledOnce()
   })
 
-  test("`spellCore.on()` ... are the same functions, on the same lists as `spellCore.RUNTIME`'s own", () => {
-    expect([spellCore.on, spellCore.off, spellCore.once, spellCore.trigger]).toEqual([on, off, once, trigger])
+  test("`core.on()` ... are the same functions, on the same lists as `core.RUNTIME`'s own", () => {
+    expect([core.on, core.off, core.once, core.trigger]).toEqual([on, off, once, trigger])
     const listener = vi.fn()
     // a program compiled before `on()` says it this way
-    spellCore.RUNTIME.on("card-click", listener)
-    spellCore.trigger("card-click")
+    core.RUNTIME.on("card-click", listener)
+    core.trigger("card-click")
     on("card-click", listener)
-    spellCore.RUNTIME.trigger("card-click")
+    core.RUNTIME.trigger("card-click")
     expect(listener).toHaveBeenCalledTimes(3)
   })
 
@@ -67,10 +67,10 @@ describe("on() / trigger()", () => {
   })
 
   test("nothing running:  `trigger()` is heard by nobody, `on()` throws saying what to do", () => {
-    spellCore.clearRuntime()
+    core.clearRuntime()
     expect(trigger("tick")).toEqual([])
     expect(() => off("tick", () => {})).not.toThrow()
-    expect(() => on("tick", () => {})).toThrow("call spellCore.resetRuntime() first")
+    expect(() => on("tick", () => {})).toThrow("call core.resetRuntime() first")
     expect(() => once("tick", () => {})).toThrow(TypeError)
   })
 })

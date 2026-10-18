@@ -54,9 +54,34 @@
     flex: 1 1 auto;
     min-width: 0;
   }
+  /* the first line's right:  the page's own buttons (`slot="actions"`, the bullhorn), then the date */
   .when {
+    display: flex;
     float: right;
+    align-items: center;
+    gap: 6px;
     margin-inline-start: 12px;
+  }
+  .slotted-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .slotted-actions[hidden] {
+    display: none;
+  }
+  /*
+   * FOLDED, the title is ONE line beside the date, cut with "…", its words the tooltip;  OPEN, it wraps under the date
+   * (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded").  Its first line never moves as it switches.
+   */
+  :host(:state(block):not(:state(open))) .title {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .title[title] > * {
+    pointer-events: none;
   }
   .time {
     color: var(--epic-muted, var(--ui-text-muted));

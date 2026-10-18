@@ -12,10 +12,14 @@ export const words = {
     },
     DatedEvent: {
       label: "label",
-      day: "day"
+      day: "day",
+      notes: "notes"
     },
     Note: {
-      body: "body"
+      title: "title",
+      body: "body",
+      created: "created",
+      modified: "modified"
     },
     Relationship: {
       kind: "kind",
@@ -28,7 +32,7 @@ export const words = {
     },
     Org: {
       name: "name",
-      memberships: "memberships"
+      members: "members"
     },
     Membership: {
       person: "person",

@@ -31,9 +31,9 @@ lists.addRule(OrdinalPositionExpression, {
         scope.variables?.add("words")
       },
       tests: [
-        ["the first item of my-list", "spellCore.getItemAt(myList, 0)"],
-        ["the tenth card of deck", "spellCore.getItemAt(deck, 9)"],
-        ["the penultimate word in words", "spellCore.getItemAt(words, -2)"]
+        ["the first item of my-list", "core.getItemAt(myList, 0)"],
+        ["the tenth card of deck", "core.getItemAt(deck, 9)"],
+        ["the penultimate word in words", "core.getItemAt(words, -2)"]
       ]
     }
   ]

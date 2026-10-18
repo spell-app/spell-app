@@ -81,3 +81,80 @@ describe("<epic-update>", () => {
     expect(note!.matches(":state(block)")).toBe(false)
   })
 })
+
+// epic `epic-workflow` P25:  the page's own buttons in the title row, where the docs runtime puts the bullhorn too
+describe("<epic-update> actions slot", () => {
+  // P25:  the page's own buttons in the title row, where the docs runtime puts the bullhorn
+  test("`slot=\"actions\"`:  on the title row's right, BEFORE the date;  a click never folds it, and isn't what changed", async () => {
+    const update = await ElementFixture.render(
+      `<epic-update at="2026-10-11 14:30" summary="Split P7"><p>Why.</p>` +
+        `<button slot="actions" aria-label="Copy">C</button></epic-update>`
+    )
+    await ElementFixture.tick()
+    const shadow = update.shadowRoot!
+    const button = update.querySelector<HTMLElement>("button[slot=actions]")!
+    expect(button.assignedSlot?.getAttribute("name")).toBe("actions")
+    const [b, time, title] = [
+      button,
+      shadow.querySelector('[part~="time"]')!,
+      shadow.querySelector('[part~="title"]')!
+    ].map((each) => each.getBoundingClientRect())
+    expect(b.right).toBeLessThanOrEqual(time.left + 0.5)
+    expect(title.top).toBeLessThan(b.bottom)
+    button.click()
+    await ElementFixture.tick()
+    expect(update.matches(":state(open)")).toBe(true)
+    // a summary and a button, no children:  nothing to fold
+    const alone = await ElementFixture.render(
+      `<epic-update at="2026-10-11 14:30" summary="Alone"><button slot="actions">C</button></epic-update>`
+    )
+    await ElementFixture.tick()
+    expect(alone.shadowRoot!.querySelector('[part~="toggle"]')).toBeNull()
+    await expectAccessible(update)
+  })
+})
+
+/** Where `element`'s first line of text starts, from the viewport top:  its first character's box. */
+function firstLineTop(element: Element): number {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, (node) =>
+    node.textContent!.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+  )
+  const text = walker.nextNode()!
+  const range = document.createRange()
+  range.setStart(text, text.textContent!.search(/\S/))
+  range.setEnd(text, text.textContent!.search(/\S/) + 1)
+  return range.getBoundingClientRect().top
+}
+
+// epic `epic-workflow` P25, J183 (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded")
+
+describe("<epic-update> title, folded and open", () => {
+  test("open (as it starts):  the title wraps;  folded:  ONE line beside the date, cut with …, its words the tooltip", async () => {
+    const wrap = await ElementFixture.render(
+      `<div style="width: 320px"><epic-update at="2026-10-11 14:30" summary="A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps"><p>Why.</p></epic-update></div>`
+    )
+    await ElementFixture.tick()
+    const update = wrap.querySelector("epic-update")!
+    const shadow = update.shadowRoot!
+    const title = shadow.querySelector<HTMLElement>('[part~="title"]')!
+    const time = shadow.querySelector<HTMLElement>('[part~="time"]')!
+    const lineHeight =
+      parseFloat(getComputedStyle(title).lineHeight) || parseFloat(getComputedStyle(title).fontSize) * 1.2
+    const open = { top: firstLineTop(title), time: time.getBoundingClientRect() }
+    expect([title.getBoundingClientRect().height > lineHeight * 1.5, title.hasAttribute("title")]).toEqual([
+      true,
+      false
+    ])
+    shadow.querySelector<HTMLElement>('[part~="toggle"]')!.click()
+    await ElementFixture.tick()
+    expect(update.matches(":state(open)")).toBe(false)
+    expect(title.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5)
+    expect(title.scrollWidth).toBeGreaterThan(title.clientWidth)
+    expect(title.title).toBe(
+      "Update: A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps"
+    )
+    expect(title.getBoundingClientRect().right).toBeLessThanOrEqual(time.getBoundingClientRect().left)
+    expect(firstLineTop(title)).toBeCloseTo(open.top, 0)
+    expect(time.getBoundingClientRect().left).toBeCloseTo(open.time.left, 0)
+  })
+})

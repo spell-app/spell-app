@@ -1,10 +1,12 @@
 /**
  * Every name `<epic-update>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type` only.
+ * - Pure data:  `import type`, plus the `actions` slot every title row shares (`Fold.types.ts`), data too.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
+
+import { ACTIONS_CHILD, ACTIONS_PART_SPEC, ACTIONS_SLOT_SPEC } from "$/epics/components/epic-item/Fold.types"
 
 /****************
  * ### `<epic-update>`
@@ -42,13 +44,14 @@ export const epicUpdateVocabulary = {
     }
   ],
   events: [],
-  slots: [{ name: "", description: "What changed, and why;  none for a bare label." }],
+  slots: [{ name: "", description: "What changed, and why;  none for a bare label." }, ACTIONS_SLOT_SPEC],
   parts: [
     { name: "base", description: "The block, or the bare label." },
-    { name: "header", description: "A block's title row:  the fold chevron, the title, the date." },
+    { name: "header", description: "A block's title row:  the fold chevron, the title, `actions`, the date." },
     { name: "toggle", description: "A block's fold chevron, a `<button>`, first:  a click folds what changed." },
     { name: "title", description: "A block's `Update: <summary>`." },
     { name: "time", description: "A block's date (`at`), at the right of its title row." },
+    ACTIONS_PART_SPEC,
     { name: "body", description: "What changed, under the title row;  hidden (`until-found`) while folded." },
     { name: "label", description: "The bare orange `UPDATE` label." }
   ],
@@ -65,6 +68,6 @@ export const epicUpdateVocabulary = {
     { key: "label", text: "UPDATE", description: "The bare label." },
     { key: "tip", text: "Changed during P{phase}", description: "The bare label's tooltip." }
   ],
-  children: [{ tag: "flow", description: "What changed, and why." }],
+  children: [{ tag: "flow", description: "What changed, and why." }, ACTIONS_CHILD],
   flow: true
 } as const satisfies EpicVocabulary
