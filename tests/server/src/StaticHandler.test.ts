@@ -106,3 +106,33 @@ describe("StaticHandler overlays", () => {
     }
   })
 })
+
+describe("StaticHandler layers", () => {
+  it("lays folders mounted at one prefix over each other:  the first that has the path serves it", () => {
+    const dir = mkdtempSync(join(tmpdir(), "srv-layers-"))
+    for (const [folder, file] of [
+      ["new", "both.html"],
+      ["new", "new-only.html"],
+      ["old", "both.html"],
+      ["old", "old-only.html"]
+    ] as const) {
+      mkdirSync(join(dir, folder, "w"), { recursive: true })
+      writeFileSync(join(dir, folder, "w", file), folder)
+    }
+    const files = new SRV.StaticHandler({ mounts: [{ prefix: "/", dir: join(dir, "new") }] })
+    files.mount({ prefix: "/", dir: join(dir, "old") })
+    expect(fileOf("/w/both.html")).toBe(join(dir, "new", "w", "both.html"))
+    expect(fileOf("/w/new-only.html")).toBe(join(dir, "new", "w", "new-only.html"))
+    expect(fileOf("/w/old-only.html")).toBe(join(dir, "old", "w", "old-only.html"))
+    expect(fileOf("/w")).toMatchObject({ redirect: "/w/" })
+    expect(fileOf("/w/missing.html")).toMatchObject({ status: 404 })
+    expect(fileOf("/.git")).toMatchObject({ status: 403 })
+    rmSync(dir, { recursive: true, force: true })
+
+    /** the file `path` resolves to, else what it resolved to */
+    function fileOf(path: string) {
+      const resolved = files.resolve(path)
+      return resolved && "file" in resolved ? resolved.file : resolved
+    }
+  })
+})

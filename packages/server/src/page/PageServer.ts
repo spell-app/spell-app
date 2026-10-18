@@ -35,6 +35,8 @@ import {
  * - `/worktrees/<w>/...` -> worktree `<w>`'s checkout, with the same URLs inside (dot files still refused)
  *   - once a route module says where the worktrees are (`serveWorktrees()`):
  *     epics' running epics, in the main checkout;  the server itself knows no worktree folder
+ *   - from several folders at once, the first that has `<w>` serving it:
+ *     the worktrees beside the repo, and those left in the old `.claude/worktrees` (epic `epic-eject` J28)
  * - what pages are told (`window.SPELL_SERVER`):  the checkout, its branch, the edit API ... and what route modules
  *   add (`addPageConfig()`), e.g. epics' airplane mode
  * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
@@ -78,8 +80,8 @@ export class PageServer {
   /** more fields for every page's `window.SPELL_SERVER`, from route modules (`addPageConfig()`) */
   private pageConfigs: PageConfig[] = []
 
-  /** the folder `/worktrees/<w>/` serves, once `serveWorktrees()` has said */
-  private worktrees: string | undefined
+  /** the folders `/worktrees/<w>/` serves, in order, once `serveWorktrees()` has said;  none before */
+  private worktrees: string[] = []
 
   constructor({ root, token }: { root: string; token?: string }) {
     this.root = resolve(root)
@@ -102,10 +104,9 @@ export class PageServer {
         root: this.root,
         branch: this.info.branch,
         worktree: this.info.worktree,
-        // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge
-        ...(this.worktrees && worktreeOf(served.file, this.worktrees)),
-        // the worktrees' folder, and its URL path:  live reload reports their changes under it (`SRV.servedPath()`)
-        ...(this.worktrees && { worktrees: this.worktrees, worktreesPath: urlPathOf(this.root, this.worktrees) }),
+        // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge;
+        // and its worktrees' folder, with its URL path:  live reload reports its changes under it (`SRV.servedPath()`)
+        ...this.worktreesConfig(served.file),
         edit: PageEditor.PREFIX,
         etag: SRV.StaticHandler.etagOf(statSync(served.file)),
         // e.g. Owen is offline, no Claude:  pages say "queued for when you land" (epics' airplane mode)
@@ -199,20 +200,42 @@ export class PageServer {
   }
 
   /**
-   * Serve every worktree in folder `dir` at `/worktrees/<w>/`, with the same URLs inside (dot files refused);
-   * returns `this`.
+   * Serve every worktree in each of folders `dirs` at `/worktrees/<w>/`, with the same URLs inside (dot files
+   * refused);  returns `this`.
    * - so the main checkout's server shows a running epic's pages
    * - called by epics' running-epics route module, in the main checkout:
-   *   the worktrees' folder is set in the repo's `.epic/config.json5`,
+   *   the worktrees' folders are set in the repo's `.epic/config.json5`,
    *   which this package can't read (it imports no other package)
+   * - several folders (epic `epic-eject` J28):  the place new worktrees go first, then the old places still holding
+   *   some;  a `<w>` in two is served from the first
+   *   - one mount per folder at the same prefix, laid over each other (`SRV.StaticHandler`)
+   *   - called again:  the new folders join the end;  a folder already served is skipped
    * - a page served from one gets ITS branch and worktree name (the header's badge)
-   * - every page gets the folder (`SPELL_SERVER.worktrees`), as `/api/server` does (`ServerInfo.worktrees`)
+   * - every page gets a folder (`SPELL_SERVER.worktrees`):  its own worktree's, else the first
+   * - `/api/server` gets the first (`ServerInfo.worktrees`) and all of them (`ServerInfo.worktreesFolders`)
    */
-  serveWorktrees(dir: string): this {
-    this.worktrees = resolve(dir)
-    this.info.worktrees = this.worktrees
-    this.web.files.mount({ prefix: WORKTREES_PREFIX, dir: this.worktrees })
+  serveWorktrees(...dirs: string[]): this {
+    for (const dir of dirs.map((each) => resolve(each))) {
+      if (this.worktrees.includes(dir)) continue
+      this.worktrees.push(dir)
+      this.web.files.mount({ prefix: WORKTREES_PREFIX, dir })
+    }
+    this.info.worktrees = this.worktrees[0]
+    this.info.worktreesFolders = [...this.worktrees]
     return this
+  }
+
+  /**
+   * What page `file`'s `window.SPELL_SERVER` says of the worktrees;  `{}` before `serveWorktrees()`.
+   * - `worktrees`:  the folder holding `file`'s worktree, else the first served;  `worktreesPath`:  its URL path
+   * - in a worktree:  its `branch` and `worktree` name too (`worktreeOf()`)
+   */
+  private worktreesConfig(
+    file: string
+  ): Partial<Record<"branch" | "worktree" | "worktrees" | "worktreesPath", string>> {
+    if (!this.worktrees.length) return {}
+    const folder = this.worktrees.find((each) => isInside(file, each)) ?? this.worktrees[0]!
+    return { ...worktreeOf(file, folder), worktrees: folder, worktreesPath: urlPathOf(this.root, folder) }
   }
 
   /** Add `add`'s fields to every page's `window.SPELL_SERVER`, from a route module;  returns `this`. */
@@ -248,7 +271,7 @@ export class PageServer {
       live: this.web.live!,
       web: this.web,
       info: this.info,
-      serveWorktrees: (dir) => void this.serveWorktrees(dir),
+      serveWorktrees: (...dirs) => void this.serveWorktrees(...dirs),
       addPageConfig: (add) => void this.addPageConfig(add),
       onListening: (start) => this.listenings.push(start),
       onStop: (stop) => this.stops.push(stop)
@@ -313,16 +336,22 @@ export function findRoot(start: string): string | undefined {
  * - cached per worktree:  every page served asks
  */
 function worktreeOf(file: string, worktrees: string): { branch?: string; worktree?: string } {
-  const inside = relative(worktrees, file)
-  if (!inside || inside.startsWith("..") || isAbsolute(inside)) return {}
-  const name = inside.split(sep)[0]!
-  let found = WORKTREES.get(name)
+  if (!isInside(file, worktrees)) return {}
+  const name = relative(worktrees, file).split(sep)[0]!
+  const folder = join(worktrees, name)
+  let found = WORKTREES.get(folder)
   // its name is its folder's, in the worktrees' folder
-  if (!found) WORKTREES.set(name, (found = { ...checkoutInfo(join(worktrees, name)), worktree: name }))
+  if (!found) WORKTREES.set(folder, (found = { ...checkoutInfo(folder), worktree: name }))
   return found
 }
 
-/** `worktreeOf()`'s cache, by worktree name. */
+/** Whether `file` is inside folder `dir`, below it (never `dir` itself). */
+function isInside(file: string, dir: string): boolean {
+  const inside = relative(dir, file)
+  return Boolean(inside) && !inside.startsWith("..") && !isAbsolute(inside)
+}
+
+/** `worktreeOf()`'s cache, by worktree folder:  two worktrees folders may each hold a `<w>`. */
 const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
 
 /** Folder of a component set's address served from its site bundle (`ComponentSet.assets`, `componentSetPath()`). */

@@ -7,6 +7,8 @@ import { SRV, type FileTransform, type Handler, type HtmlTransform, type Mount }
 /**
  * Serves folders under URL prefixes:  `GET` / `HEAD` only, never anything outside a folder.
  * - the LONGEST matching prefix wins, e.g. `/element/` over `/`
+ * - folders mounted at the SAME prefix are laid over each other:  the first mounted that has the path serves it
+ *   - e.g. the page server's `/worktrees/`, from the worktrees beside the repo and from the old `.claude/worktrees`
  * - a folder serves its `index.html`;  asked for without its trailing `/`, it redirects (301) to it
  * - names starting with `.` are 403 unless the mount says `dotFiles`
  * - every answer is `Cache-Control: no-store` (pages change under us),
@@ -22,7 +24,7 @@ import { SRV, type FileTransform, type Handler, type HtmlTransform, type Mount }
  * - nothing matched or file missing:  `next()`, so routes after it (an SPA fallback) still get a turn
  */
 export class StaticHandler {
-  /** folders served, longest prefix first */
+  /** folders served, longest prefix first;  at one prefix, in the order mounted (`sort()` is stable) */
   private mounts: Required<Mount>[] = []
 
   /** rewrites of `.html` pages, in order */
@@ -46,7 +48,7 @@ export class StaticHandler {
     for (const mount of mounts) this.mount(mount)
   }
 
-  /** serve `mount.dir` under `mount.prefix` too */
+  /** serve `mount.dir` under `mount.prefix` too;  a prefix already mounted:  laid under the folders there */
   mount(mount: Mount): this {
     const prefix = mount.prefix.endsWith("/") ? mount.prefix : `${mount.prefix}/`
     this.mounts.push({ dotFiles: false, index: "index.html", ...mount, prefix, dir: resolve(mount.dir) })
@@ -83,13 +85,22 @@ export class StaticHandler {
     return this.resolveMounted(path)
   }
 
-  /** `resolve()` without the overlays:  through the mounts alone. */
+  /**
+   * `resolve()` without the overlays:  through the mounts alone.
+   * - several folders at the longest matching prefix:  the first one that has the path (not a 404) answers
+   */
   private resolveMounted(path: string): SRV.Resolved | undefined {
     const mount = this.mounts.find((each) => path.startsWith(each.prefix) || `${path}/` === each.prefix)
     if (!mount) return undefined
     // a mount's own folder without its slash (`/ui`):  redirect like any folder, so its pages' relative links resolve
     if (path.length < mount.prefix.length) return { redirect: `${path}/` }
-    return SRV.resolveInside(mount.dir, path.slice(mount.prefix.length - 1), mount)
+    const inside = path.slice(mount.prefix.length - 1)
+    let resolved: SRV.Resolved | undefined
+    for (const each of this.mounts.filter(({ prefix }) => prefix === mount.prefix)) {
+      resolved = SRV.resolveInside(each.dir, inside, each)
+      if (!("status" in resolved) || resolved.status !== 404) return resolved
+    }
+    return resolved
   }
 
   /** answer with `file`, through the hooks */

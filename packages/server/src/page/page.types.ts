@@ -22,7 +22,8 @@ export type RouteModule = {
  * - `live`:  `live.watch(dir)` to reload pages when files under `dir` change
  * - `web`:  the whole server, e.g. `web.files.html.push()` for an html hook
  * - `info`:  pid, port, root, branch ...
- * - `serveWorktrees`:  serve the worktrees in folder `dir` at `/worktrees/<w>/` (`PageServer.serveWorktrees()`)
+ * - `serveWorktrees`:  serve the worktrees in each of folders `dirs` at `/worktrees/<w>/`, the first that has `<w>`
+ *   serving it (`PageServer.serveWorktrees()`)
  * - `addPageConfig`:  more fields for every page's `window.SPELL_SERVER` (`PageServer.addPageConfig()`)
  * - `onListening`:  run `start` once the server listens -- `info.port` is set by then
  *   - e.g. to start a child process that needs the page server's port (`setup()` runs BEFORE it listens)
@@ -35,7 +36,7 @@ export type RouteContext = {
   live: SRV.LiveReload
   web: SRV.WebServer
   info: ServerInfo
-  serveWorktrees: (dir: string) => void
+  serveWorktrees: (...dirs: string[]) => void
   addPageConfig: (add: PageConfig) => void
   onListening: (start: () => unknown) => void
   onStop: (stop: () => unknown) => void

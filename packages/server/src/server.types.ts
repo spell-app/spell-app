@@ -83,10 +83,16 @@ export type ServerInfo = {
   /** worktree name, when `root` is a worktree of a main checkout (`SRV.checkoutOf()`) */
   worktree?: string
   /**
-   * the folder its `/worktrees/<w>/` serves, when it serves worktrees (`PageServer.serveWorktrees()`):
+   * the first folder its `/worktrees/<w>/` serves, when it serves worktrees (`PageServer.serveWorktrees()`):
    * the main checkout's server, once epics' running-epics route module has told it where they are
+   * - the place new worktrees go;  every folder:  `worktreesFolders`
    */
   worktrees?: string
+  /**
+   * every folder its `/worktrees/<w>/` serves, in order:  `worktrees` first, then the old places still holding some
+   * (epic `epic-eject` J28);  a `<w>` in two is served from the first
+   */
+  worktreesFolders?: string[]
 }
 
 /**

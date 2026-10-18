@@ -226,6 +226,60 @@ describe("PageServer", () => {
     })
   })
 
+  // epic `epic-eject` J28:  worktrees beside the repo, and those left in the old place, at the same URLs
+  it("serves worktrees from several folders:  the first that has <w>;  each page told its own folder", async () => {
+    // a checkout of its own:  stopping a second server here would take the first's pid file (same pid)
+    const main = mkdtempSync(join(tmpdir(), "srv-places-"))
+    mkdirSync(join(main, "docs"))
+    writeFileSync(join(main, "docs", "page.html"), PAGE)
+    const beside = `${main}.worktrees`
+    const old = join(main, ".claude", "worktrees")
+    const pageIn = (folder: string, name: string, text: string) => {
+      mkdirSync(join(folder, name, "docs"), { recursive: true })
+      writeFileSync(join(folder, name, "docs", "page.html"), `<!doctype html><head></head><p>${text}</p>\n`)
+    }
+    pageIn(beside, "moved", "beside")
+    pageIn(beside, "both", "beside")
+    pageIn(old, "both", "old")
+    pageIn(old, "stayed", "old")
+    const several = await new PageServer({ root: main }).start({
+      port: 0,
+      routes: false,
+      pidFile: false,
+      bundles: false
+    })
+    try {
+      several.serveWorktrees(beside, old).serveWorktrees(old)
+      expect(several.info).toMatchObject({ worktrees: beside, worktreesFolders: [beside, old] })
+      const at = several.info.port
+      const served = async (path: string) => {
+        const answer = await ask(at, "GET", path)
+        const told = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(answer.text)![1]!) as SRV.ServerConfig
+        return { text: /<p>(.*?)<\/p>/.exec(answer.text)?.[1], ...told }
+      }
+      expect(await served("/worktrees/moved/docs/page.html")).toMatchObject({
+        text: "beside",
+        worktree: "moved",
+        worktrees: beside,
+        worktreesPath: urlPathOf(main, beside)
+      })
+      expect(await served("/worktrees/stayed/docs/page.html")).toMatchObject({
+        text: "old",
+        worktree: "stayed",
+        worktrees: old,
+        worktreesPath: "/.claude/worktrees/"
+      })
+      // a worktree in both places:  the first folder's
+      expect((await served("/worktrees/both/docs/page.html")).text).toBe("beside")
+      // a page of the main checkout:  the first folder
+      expect(await served("/docs/page.html")).toMatchObject({ worktrees: beside })
+      expect((await ask(at, "GET", "/worktrees/nowhere/docs/page.html")).status).toBe(404)
+    } finally {
+      await several.stop()
+      for (const dir of [main, beside]) rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
   it("urlPathOf():  a folder as a URL path from the root, inside it or beside it", () => {
     expect(urlPathOf("/r/app", "/r/app/.claude/worktrees")).toBe("/.claude/worktrees/")
     expect(urlPathOf("/r/app", "/r/app.worktrees")).toBe("/../app.worktrees/")

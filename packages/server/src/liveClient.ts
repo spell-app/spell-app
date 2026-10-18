@@ -32,7 +32,10 @@ export type ServerConfig = {
   root?: string
   branch?: string
   worktree?: string
-  /** the folder `/worktrees/<w>/` serves, on the main checkout's server (`PageServer.serveWorktrees()`) */
+  /**
+   * the folder holding this page's worktree, served at `/worktrees/<w>/` on the main checkout's server, else the
+   * first such folder (`PageServer.serveWorktrees()`)
+   */
   worktrees?: string
   /**
    * that folder as a URL path from the server's root, e.g. `/.claude/worktrees/`
