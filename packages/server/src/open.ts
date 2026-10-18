@@ -8,10 +8,11 @@
 import { spawn, spawnSync } from "node:child_process"
 
 /**
- * The URI that opens a page in VS Code's Simple Browser:
- * the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`).
+ * The URI that opens a page in VS Code's doc preview:
+ * spell-epic's extension's URI handler (spell-epic's `vscode/src/DocPreview.ts`;  the spell language extension's,
+ * `spell-app.spell-language`, until epic `epic-eject` I7).
  */
-export const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
+export const VSCODE_PREVIEW = "vscode://spell-app.spell-epic/doc-preview"
 
 /** Whether opening is turned off:  `SPELL_NO_BROWSER` set. */
 export function noBrowser(): boolean {
@@ -101,7 +102,7 @@ end tell`
 }
 
 /**
- * Show a page in VS Code's Simple Browser, beside the editor, through the spell extension (`spell dev vscode`).
+ * Show a page in VS Code's doc preview (the "Epic Docs" tab), through spell-epic's extension.
  * - `url`:  a page a local server serves (preferred:  it live-reloads)
  * - `file`:  a file the extension serves itself
  * - returns whether `open` handed the URI over;  without the extension, VS Code says it can't handle it

@@ -1,5 +1,5 @@
 {
-  // Extends the root alias table:  the extension bundles `$/server` (DocPreview), resolved by tsc AND esbuild.
+  // Extends the root alias table, as every package does:  tsc and esbuild resolve a `$/` import the same way.
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",

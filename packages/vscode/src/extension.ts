@@ -1,12 +1,10 @@
 /**
  * VS Code extension for spell:  runs the spell parser's language server, and shows the code a file compiles to:
  *   javascript, TypeScript or Python, from the editor's title bar.
- * - Also shows docs pages rendered, in the right side bar's "Spell Docs" and "Review" tabs (`DocView`),
- *   when opened by URI or through the bridge -- see `DocPreview`.
- * - And lets a Claude Code session reach ITS window (add a worktree folder, show a doc) -- see `WindowBridge`.
- * - Activates at startup (`onStartupFinished`), in EVERY window, for the bridge;  the language server waits for the
- *   window's first spell file, as it did when `onLanguage:spell` activated us.  A window without spell files runs
- *   no server.
+ * - And runs a project, in a panel beside it -- see `RunnerPanel`.
+ * - The spell LANGUAGE only:  the docs and Review tabs, "Open Epic...", the window bridge and the handoff are
+ *   spell-epic's own extension's (`spell-app.spell-epic`, built from spell-epic's `vscode/`;  epic `epic-eject` I7).
+ * - Activates on the window's first spell file (`onLanguage:spell`):  a window without spell files runs no server.
  * - The server is the spell monorepo's own `packages/lsp/src/server.ts`, run by its `tsx` -- see `getRepoRoot()`.
  *   So the editor always runs spell as it is on disk:  restart the server to pick up a change.
  * - The server asks to watch `project.json` / `.spell` files itself, so there's no `synchronize` here.
@@ -21,9 +19,7 @@ import {
   type ServerOptions
 } from "vscode-languageclient/node"
 
-import { DocPreview } from "./DocPreview"
 import { RunnerPanel } from "./RunnerPanel"
-import { WindowBridge } from "./WindowBridge"
 
 /** Scheme of the read-only documents showing a spell file's compiled code -- see `CompiledProvider`. */
 const COMPILED_SCHEME = "spell-compiled"
@@ -53,25 +49,9 @@ declare const REPO_ROOT: string
 /** Client for the running language server, once `activate()` has started it. */
 let client: LanguageClient | undefined
 
-/**
- * Set up the doc preview and the window bridge, then the language server once a spell file is open.
- * - The first two first:  they work even when the language server can't start.
- */
+/** Start the language server, once a spell file is open (`onLanguage:spell`) -- see `startLanguageServer()`. */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  DocPreview.register(context)
-  WindowBridge.register(context)
-  if (vscode.workspace.textDocuments.some(isSpell)) return startLanguageServer(context)
-  const opened = vscode.workspace.onDidOpenTextDocument((document) => {
-    if (!isSpell(document)) return
-    opened.dispose()
-    void startLanguageServer(context)
-  })
-  context.subscriptions.push(opened)
-}
-
-/** Whether `document` is a spell file. */
-function isSpell(document: vscode.TextDocument): boolean {
-  return document.languageId === "spell"
+  return startLanguageServer(context)
 }
 
 /**

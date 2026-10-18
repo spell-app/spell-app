@@ -117,7 +117,7 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  *   - a page that loads it (a body from a file) re-fetches it
  * - keeps its place across a reload:  the scroll position (`sessionStorage`, when it works);
  *   the docs runtime keeps its folds and comment drafts itself (`localStorage`)
- * - in a frame (VS Code's "Spell Docs" view, `packages/vscode/src/DocView.ts`):
+ * - in a frame (VS Code's "Epic Docs" and "Review" views, spell-epic's `vscode/src/DocView.ts`):
  *   - posts its place to the parent:  on every load and hash change, and on `spell-doc:place`
  *     (the docs runtime moved the address with `history.replaceState()`, which fires no `hashchange`)
  *   - runs `history.go()` when the parent posts `{ spell: "history", go: -1 | 1 }`
@@ -182,7 +182,7 @@ export function liveClient(): void {
     return y
   }
   config.readPage = readPage
-  // in a frame (VS Code's "Spell Docs" view):  say where we are, and step back / forward when the frame's parent asks
+  // in a frame (VS Code's "Epic Docs" view):  say where we are, and step back / forward when the frame's parent asks
   if (window.parent !== window) {
     reportPlace()
     addEventListener("pageshow", reportPlace)
@@ -485,7 +485,7 @@ export function liveClient(): void {
   }
 
   /**
-   * An edit key, sent in by VS Code's docs view (`packages/vscode/src/DocView.ts` `edit()`):
+   * An edit key, sent in by VS Code's docs view (spell-epic's `vscode/src/DocView.ts` `edit()`):
    * `{ spell: "edit", command, text? }`.
    * - copy / cut:  the selection (a field's, else the page's) goes back to the view, which puts it on the clipboard
    *   - cut then deletes it here
