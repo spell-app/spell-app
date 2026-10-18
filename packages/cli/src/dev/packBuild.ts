@@ -58,20 +58,20 @@ export async function buildPack(root: string, name: string): Promise<PackBuildRe
 export function buildSiteData(pack: PackInfo, { check = false } = {}): boolean {
   if (!hasSiteData(pack)) return false
   const run = spawnSync("yarn", [SITE_DATA_SCRIPT, ...(check ? ["--check"] : [])], {
-    cwd: pack.dir,
+    cwd: manifestOf(pack),
     encoding: "utf8"
   })
   if (run.status === 0) return true
   if (check && run.status === 1) return false
   throw new CliError(
-    `pack '${pack.name}':  \`yarn ${SITE_DATA_SCRIPT}\` failed (in packages/${pack.name}):\n${run.stdout}${run.stderr}`,
+    `pack '${pack.name}':  \`yarn ${SITE_DATA_SCRIPT}\` failed (in ${manifestOf(pack)}):\n${run.stdout}${run.stderr}`,
     EXIT.ERRORS
   )
 }
 
 /** Whether pack `pack` has a docs set to build data for:  a `site:data` script (`buildSiteData()`). */
 export function hasSiteData(pack: PackInfo): boolean {
-  return Boolean(packScripts(pack.dir)[SITE_DATA_SCRIPT])
+  return Boolean(packScripts(manifestOf(pack))[SITE_DATA_SCRIPT])
 }
 
 /**
@@ -109,9 +109,12 @@ export async function checkPack(root: string, name: string): Promise<PackCheckRe
 
 /**
  * Pack `name` in checkout `root`, from its `package.json`'s `"spellPack": { "prefix" }`.
+ * - the checkout itself, when its root `package.json` names the pack (`rootPack()`);  else `packages/<name>/`
  * - Throws `CliError` when there's no such package, or it isn't a pack.
  */
 export function readPack(root: string, name: string): PackInfo {
+  const own = rootPack(root)
+  if (own?.name === name) return own
   const dir = join(root, "packages", name)
   const prefix = packPrefix(dir)
   if (prefix === undefined) {
@@ -123,13 +126,41 @@ export function readPack(root: string, name: string): PackInfo {
   return { name, prefix, dir }
 }
 
-/** Every component pack in checkout `root`:  the `packages/*` whose `package.json` has a `spellPack`, sorted. */
+/**
+ * Every component pack in checkout `root`, sorted:  the `packages/*` whose `package.json` has a `spellPack`, and the
+ * checkout itself when it's one (`rootPack()`).
+ */
 export function packNames(root: string): string[] {
+  const own = rootPack(root)?.name
   const packages = join(root, "packages")
-  if (!existsSync(packages)) return []
-  return readdirSync(packages)
-    .filter((name) => packPrefix(join(packages, name)) !== undefined)
-    .sort()
+  const named = existsSync(packages)
+    ? readdirSync(packages).filter((name) => packPrefix(join(packages, name)) !== undefined)
+    : []
+  return [...new Set([...(own ? [own] : []), ...named])].sort()
+}
+
+/**
+ * The pack checkout `root` IS, when its root `package.json` says so:  a repo of one package, not a monorepo.
+ * - `"spellPack": { "name": "epics", "prefix": "epic-", "dir": "src" }`:  spell-epic (epic `epic-eject` J14)
+ * - `dir` holds the pack's `components/` and `docs/`, and is what `$/<name>` names itself (no `src/` inside it)
+ * - `undefined` when the root's `package.json` names no pack.  NEVER throws.
+ */
+function rootPack(root: string): PackInfo | undefined {
+  const { spellPack } = packageJson(root)
+  const { name, prefix, dir } = spellPack ?? {}
+  if (typeof name !== "string" || typeof prefix !== "string" || typeof dir !== "string") return undefined
+  const folder = join(root, dir)
+  return { name, prefix, dir: folder, src: folder, manifest: root }
+}
+
+/** The folder `$/<pack>` names:  the pack's `src` (a pack at a checkout's root), else its `src/` folder. */
+function srcOf(pack: PackInfo): string {
+  return pack.src ?? join(pack.dir, "src")
+}
+
+/** The folder holding the pack's `package.json`:  its `manifest`, else its own folder. */
+function manifestOf(pack: PackInfo): string {
+  return pack.manifest ?? pack.dir
 }
 
 /**
@@ -237,9 +268,6 @@ const DOCS_DATA_FOLDER = "docs/__data"
 
 /** The yarn script of a pack's package that writes `DOCS_DATA_FOLDER` (`buildSiteData()`);  takes `--check`. */
 const SITE_DATA_SCRIPT = "site:data"
-
-/** Folders whose files a pack's script may be built from:  its elements, and code they share with node. */
-const SOURCE_FOLDERS = [COMPONENTS_FOLDER, "src"]
 
 /** Files under them that never reach the pack:  tests, their snapshots, and the pack's own generated folder. */
 const NOT_SOURCE = /\.test\.[cm]?[jt]sx?$|[\\/]__snapshots__[\\/]|[\\/]components[\\/]__pack[\\/]/
@@ -405,8 +433,8 @@ function packAliases(pack: PackInfo) {
   return [
     { find: new RegExp(`^\\$/${name}/components$`), replacement: join(pack.dir, COMPONENTS_FOLDER, "index.ts") },
     { find: new RegExp(`^\\$/${name}/components/`), replacement: `${join(pack.dir, COMPONENTS_FOLDER)}/` },
-    { find: new RegExp(`^\\$/${name}$`), replacement: join(pack.dir, "src", "index.ts") },
-    { find: new RegExp(`^\\$/${name}/`), replacement: `${join(pack.dir, "src")}/` }
+    { find: new RegExp(`^\\$/${name}$`), replacement: join(srcOf(pack), "index.ts") },
+    { find: new RegExp(`^\\$/${name}/`), replacement: `${srcOf(pack)}/` }
   ]
 }
 
@@ -425,9 +453,12 @@ function resolveImport(pack: PackInfo, from: string, specifier: string): string 
   return candidates.find((it) => existsSync(it) && statSync(it).isFile())
 }
 
-/** Whether `file` is under one of the pack's `SOURCE_FOLDERS`. */
+/**
+ * Whether `file` is under one of the folders a pack's script may be built from:
+ * its elements (`components/`), and the code they share with node (`srcOf()`).
+ */
 function isPackSource(pack: PackInfo, file: string): boolean {
-  return SOURCE_FOLDERS.some((folder) => !relative(join(pack.dir, folder), file).startsWith(".."))
+  return [join(pack.dir, COMPONENTS_FOLDER), srcOf(pack)].some((folder) => !relative(folder, file).startsWith(".."))
 }
 
 /** The hash a generated file records, if any. */
@@ -453,4 +484,7 @@ function filesUnder(dir: string): string[] {
 }
 
 /** The part of a pack's `package.json` read here. */
-type PackPackageJson = { spellPack?: { prefix?: unknown }; scripts?: Record<string, string> }
+type PackPackageJson = {
+  spellPack?: { prefix?: unknown; name?: unknown; dir?: unknown }
+  scripts?: Record<string, string>
+}

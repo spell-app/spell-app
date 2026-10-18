@@ -171,6 +171,37 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
   })
 })
 
+// epic `epic-eject` J14:  spell-epic is one package, its pack in `src/`, `$/epics` that folder itself
+describe("a pack at a checkout's root", () => {
+  test("its root `package.json` names it:  `components/` and `$/<name>` in its `dir`, its scripts at the root", () => {
+    const repo = realpathSync(mkdtempSync(join(tmpdir(), "pack-root-")))
+    const src = join(repo, "src")
+    writeFileSync(
+      join(repo, "package.json"),
+      JSON.stringify({ spellPack: { name: "flat", prefix: "flat-", dir: "src" }, scripts: {} })
+    )
+    mkdirSync(join(src, "components", "flat-card"), { recursive: true })
+    mkdirSync(join(src, "shared"))
+    writeFileSync(join(src, "components", "index.ts"), `export * from "./flat-card"\n`)
+    writeFileSync(join(src, "components", "flat-card", "index.ts"), `import { WORDS } from "$/flat/shared"\n`)
+    writeFileSync(join(src, "shared", "index.ts"), `export const WORDS = 1\n`)
+    writeFileSync(join(src, "unused.ts"), `export const NODE_ONLY = 1\n`)
+    try {
+      const pack = CLI.readPack(repo, "flat")
+      expect(pack).toEqual({ name: "flat", prefix: "flat-", dir: src, src, manifest: repo })
+      expect(CLI.packNames(repo)).toEqual(["flat"])
+      expect(CLI.packSources(pack).map((file) => file.slice(src.length + 1))).toEqual([
+        "components/flat-card/index.ts",
+        "components/index.ts",
+        "shared/index.ts"
+      ])
+      expect(() => CLI.readPack(repo, "other")).toThrow(/isn't a component pack/)
+    } finally {
+      rmSync(repo, { recursive: true, force: true })
+    }
+  })
+})
+
 /** `spell dev pack <args>` run as a person would, in the throwaway pack's folder:  its exit code and output. */
 function spell(...args: string[]) {
   const run = spawnSync(process.execPath, [SPELL, "dev", "pack", ...args], { cwd: PACK, encoding: "utf8" })
