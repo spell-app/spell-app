@@ -2888,7 +2888,7 @@
           "ruleNames": [],
           "internal": true,
           "file": "packages/spell/src/rules/classes/TypeDeclaration.ts",
-          "line": 23,
+          "line": 25,
           "purpose": "A statement declaring a type -- which may take an OUTLINE body: `a card is a thing where:`, then indented lines all about cards, e.g. `- it has a deck` (epic page `outline-spell`).",
           "syntaxes": [],
           "aliases": ["statement"]
@@ -3069,7 +3069,7 @@
           "ruleNames": ["with_nested_statements"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/WithNestedStatements.ts",
-          "line": 11,
+          "line": 12,
           "purpose": "`where:`, `with:` or a bare `:` ending a line -- then the indented block under it is the statement's body, e.g. a type's outline body (epic page `outline-spell` Q7).",
           "syntaxes": [
             {
@@ -3081,6 +3081,21 @@
                 },
                 "ts": {
                   "code": "where :"
+                },
+                "py": {
+                  "error": "writes itself, in javascript:  no Python writer"
+                }
+              }
+            },
+            {
+              "syntax": "where",
+              "example": "where",
+              "outputs": {
+                "js": {
+                  "code": "where"
+                },
+                "ts": {
+                  "code": "where"
                 },
                 "py": {
                   "error": "writes itself, in javascript:  no Python writer"

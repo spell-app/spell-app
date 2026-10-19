@@ -168,6 +168,7 @@ exports[`rule names > spell's rules keep their names, modules and order 1`] = `
       "prompt",
       "css",
       "with_nested_statements",
+      "with_nested_statements",
       "create_type",
       "create_type",
       "create_list_type",
@@ -588,6 +589,10 @@ exports[`rule names > spell's rules keep their names, modules and order 1`] = `
       "version_step",
       "version_step",
     ],
+    "with_nested_statements": [
+      "with_nested_statements",
+      "with_nested_statements",
+    ],
   },
   "rules": [
     "a_things_property · classes · 1",
@@ -790,7 +795,7 @@ exports[`rule names > spell's rules keep their names, modules and order 1`] = `
     "warn · UI · 1",
     "whitespace · core · 1",
     "will · expressions · 1",
-    "with_nested_statements · classes · 1",
+    "with_nested_statements · classes · 2",
     "with_props_arg · methods · 1",
   ],
 }

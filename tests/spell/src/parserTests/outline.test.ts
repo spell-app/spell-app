@@ -159,10 +159,31 @@ describe("outline style", () => {
     expect(quoted).toBe(compile(["the card is a new card", "a card is a thing"]))
   })
 
-  test("no `where:` / `with:` / `:`, no body:  the indented lines under `a card is a thing` aren't its", () => {
-    expect(errorsOf(["a card is a thing", "\t- its rank is a number"])).toEqual([
-      `2:3 Don't understand "its rank is a number"`
-    ])
+  describe("a heading without a colon (P10):  the indented lines under it are its body", () => {
+    const withColon = ["a card is a thing where:", "\t- its rank is a number", "\t- suit is one of clubs or spades"]
+
+    test("no `where:`, or `where` alone:  the same body", () => {
+      const expected = compile(withColon)
+      expect(compile(["a card is a thing", ...withColon.slice(1)])).toBe(expected)
+      expect(compile(["a card is a thing where", ...withColon.slice(1)])).toBe(expected)
+    })
+
+    test("a list type's sub-type:  `a stock-pile is a pile`, then its guard", () => {
+      const sentences = [
+        "a card is a thing",
+        "a pile is a list of cards",
+        "a stock-pile is a pile",
+        "a stock-pile can give up a card if: the card is its last card"
+      ]
+      const outline = [...sentences.slice(0, 3), "\t- can give up a card if: the card is its last card"]
+      expect(compile(outline)).toBe(compile(sentences))
+    })
+
+    test("nothing indented under it:  the type alone, as before", () => {
+      expect(compile(["a card is a thing", "a card has a rank as a number"])).toBe(
+        compile(["a card is a thing:", "a card has a rank as a number"])
+      )
+    })
   })
 
   describe('value kinds (P2):  `"suits" as one of ...` in a deck\'s body', () => {

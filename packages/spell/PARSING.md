@@ -666,8 +666,10 @@ A kind that says so is saved in a file of its own.
   - [outline.test.ts](../../tests/spell/src/parserTests/outline.test.ts) pins it.
 - `create_type` / `create_list_type` share [`TypeDeclaration`](src/rules/classes/TypeDeclaration.ts).
   - A syntax ending `{with_nested_statements}?` takes the body.
-    - That's `where:`, `with:` or `:`.
-  - Without it, the same syntax declares the type alone.
+    - That's `where:`, `with:`, `:`, or `where` alone.
+    - Or nothing at all (P10):  the indented block under a type's heading is its body anyway
+      (`TypeDeclaration.takesNestedBody()`), e.g. `a stock-pile is a pile`, then `- can give up a card if: ...`.
+  - With nothing indented under it, the same syntax declares the type alone.
   - The body's scope is a [`P.SubjectScope`](../parser/src/scope/SubjectScope.ts):
     - it owns nothing, so what its lines declare lands where the same lines at the top level would
     - `subject` names the type

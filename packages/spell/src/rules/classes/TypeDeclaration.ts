@@ -13,6 +13,8 @@ import { SpellType } from "$/spell/rules/types/SpellType"
  * - `flatBody`:  the body compiles beside the class, as if its lines were written out at the top level,
  *   so its members are hoisted into the class as usual.
  * - `where:`, `with:` and a bare `:` all open the body (epic page Q7):  `{with_nested_statements}?`.
+ *   - So does `where` alone, or nothing at all:  the indented block under the heading is its body
+ *     (epic page `outline-spell`, P10) -- see `takesNestedBody()`.
  * - Its name may be several words, and it may have a short name too (epic `drawable-thing`, P1):
  *   `a bank account aka account is a thing` -- `{type:type_words} (aka {aka:singular_type})?`.
  *   - Either name finds the type afterwards, e.g. `the accounts`, `a new bank account`.
@@ -27,6 +29,15 @@ export class TypeDeclaration<
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static flatBody = true
+
+  /**
+   * The indented block under us is our body, whether or not the line ends `where:`, `with:` or `:`
+   * (epic page `outline-spell`, P10):  `a stock-pile is a pile`, then `- can give up a card if: ...` under it.
+   * - Only a syntax which takes a body at all, `{with_nested_statements}?`.
+   */
+  takesNestedBody(_match: P.Match): boolean {
+    return !!this.bodySpec
+  }
 
   /** Our body is all about the type we declare -- see class docs. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.SubjectScope {
