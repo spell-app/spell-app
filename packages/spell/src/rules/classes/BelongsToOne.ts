@@ -170,3 +170,5 @@ classes.addRule(BelongsToOne, {
 })
 // in an outline body:  `- it belongs to a deck` -- tests in `parserTests/outline.test.ts`
 classes.addRule(BelongsToOne, { syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" })
+// ... and with the subject left out (P8):  `- belongs to a pile`
+classes.addRule(BelongsToOne, { syntax: "{type:subject_implied} belongs to (one|a|an) {list:type}" })

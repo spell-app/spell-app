@@ -112,11 +112,14 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
    * - `its "rank" is a number` => `a card has a rank as a number`
    * - `its direction is up or down` => `a card has a direction as one of up or down`
    * - `its "people" is a list of people` => `a friend-list has a people as a new list of people`
+   * - the same with the subject left out (epic page `outline-spell`, P8):  `"rank" is a number`
    */
   getLongForm(match: P.Match): string | undefined {
     const typeWords = SpellStatement.subjectWords(match)
     const { type, property, specifier } = match.groups as { type: P.Match; property: P.Match; specifier?: P.Match }
-    if (!typeWords || !/^its$/i.test(type.inputText.trim())) return super.getLongForm(match)
+    // `its "rank" is ...`, or `"rank" is ...`:  NOT `it has ...` / `has ...`, which say it as the sentence style does
+    const isItsForm = /^its$/i.test(type.inputText.trim()) || (!type.length && property.start === match.start)
+    if (!typeWords || !isItsForm) return super.getLongForm(match)
     const said = specifier?.inputText.trim()
     const as = !said
       ? ""
@@ -478,6 +481,17 @@ classes.addRule(DefinePropertyHas, {
 })
 classes.addRule(DefinePropertyHas, {
   syntax: "{type:subject_its} {property:quoted_member} is {specifier:outline_specifier}"
+})
+// ... and with the subject left out (P8):  `- has a deck`, `- "suit" is one of clubs, diamonds, hearts or spades`
+classes.addRule(DefinePropertyHas, {
+  syntax: "{type:subject_implied} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?"
+})
+classes.addRule(DefinePropertyHas, {
+  syntax: "{type:subject_implied} {property:quoted_member} (is|are) {specifier:outline_specifier}"
+})
+// ... and a bare name (P9):  `- suit is a suit of its deck`, `- foundations are a list of piles`
+classes.addRule(DefinePropertyHas, {
+  syntax: "{type:subject_implied} {property:body_member_words} (is|are) {specifier:outline_specifier}"
 })
 // ... and the quotes are optional (epic page Q4):  `- its rank is a number`
 classes.addRule(DefinePropertyHas, {

@@ -392,6 +392,14 @@ export abstract class Rule<
   @proto static declares?: P.DeclaresSpec = undefined
   /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
   @proto static highlightAs?: P.HighlightKind = undefined
+  /**
+   * Do our matches take NO tokens, e.g. a subject a line leaves out (spell's `subject_implied`)?
+   * - A `Sequence`'s quick test passes over us where we stand, rather than skipping a token:  see `Sequence.test()`.
+   *   A subrule naming us knows it from the start (`P.Subrule.zeroWidthRule`):
+   *   so register us before any syntax that names us.
+   * - Our `test()` still says whether we could match here at all, e.g. only in a type's outline body.
+   */
+  @proto static zeroWidth?: boolean = false
   /** What our matches ARE, in spell's words, e.g. `text` -- see `getDatatype()`. */
   static datatype?: P.Datatype
   /** Description. */
@@ -459,6 +467,8 @@ export abstract class Rule<
   declare declares: P.DeclaresSpec | undefined
   /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
   declare highlightAs: P.HighlightKind | undefined
+  /** Do our matches take no tokens?  See `static zeroWidth`. */
+  declare zeroWidth: boolean
   /** Name another project can rebuild our `specialize()`d rules by -- see `static importableAs`. */
   declare importableAs: string | undefined
 

@@ -428,11 +428,7 @@ describe("outline style", () => {
       "\t- it belongs to a pile"
     ]
     const { files } = parseSpellProject([{ path: "/test.spell", contents: outline.join("\n") }])
-    const typeLine = files[0]!.match!.matched[1] as P.Match
-    const body = (typeLine.data.statement as P.Match).data.body as P.Match
-    const longForms = body.matched
-      .map((line) => (line as P.Match).data.statement as P.Match | undefined)
-      .map((statement) => statement && (statement.rule as SP.SpellStatement).getLongForm(statement))
+    const longForms = longFormsOf(files[0]!.match!)
     expect(longForms).toEqual([
       "a card has a name as text",
       "a card has a rank as a number",
@@ -447,6 +443,136 @@ describe("outline style", () => {
     expect(compile(["a pile is a list of cards", "a card is a thing", ...(longForms as string[])])).toBe(
       compile(outline)
     )
+  })
+
+  describe('the subject left out (P8):  `- has a name as text`, `- "suit" is ...`', () => {
+    const withSubject = [
+      "a pile is a list of cards",
+      "a card is a thing where:",
+      "\t- it has a name as text",
+      '\t- its "rank" is a number',
+      '\t- its "direction" is either up or down',
+      '\t- its "suit" is one of clubs, diamonds, hearts or spades',
+      '\t- it "is face up" if its direction is up',
+      '\t- it "is a (suit)"',
+      '\t- it "can move" always',
+      '\t- its "color" is red if its suit is either diamonds or hearts otherwise it is black',
+      '\t- its "short name" is: its rank + " of " + its suit',
+      "\t- it belongs to a pile",
+      "\t- it is saved inline"
+    ]
+    const withoutSubject = withSubject.map((line) => line.replace(/^\t- its? /, "\t- "))
+
+    test("compiles exactly as the same lines with `it` / `its` do", () => {
+      expect(withoutSubject[2]).toBe("\t- has a name as text")
+      expect(compile(withoutSubject)).toBe(compile(withSubject))
+    })
+
+    test("each line's long form puts the subject back", () => {
+      const { files } = parseSpellProject([{ path: "/test.spell", contents: withoutSubject.join("\n") }])
+      expect(files[0]!.errors).toEqual([])
+      expect(longFormsOf(files[0]!.match!)).toEqual([
+        "a card has a name as text",
+        "a card has a rank as a number",
+        "a card has a direction as either up or down",
+        "a card has a suit as one of clubs, diamonds, hearts or spades",
+        'a card "is face up" if its direction is up',
+        'a card "is a (suit)" for its suits',
+        'a card "can move" always',
+        'the "color" of a card is red if its suit is either diamonds or hearts otherwise it is black',
+        'the "short name" of a card is: its rank + " of " + its suit',
+        "a card belongs to one pile",
+        "a card is saved inline"
+      ])
+    })
+
+    test("a list type's guards:  `- can take a card if: ...`, with `it` or without", () => {
+      const sentences = [
+        "a card is a thing",
+        "a pile is a list of cards",
+        "a pile can take a card if: it is empty",
+        "a pile can give up a card if: the card is its last card",
+        "a stock is a list of cards",
+        "a stock can never let go of a card"
+      ]
+      const outline = (subject: string) => [
+        "a card is a thing",
+        "a pile is a list of cards where:",
+        `\t- ${subject}can take a card if: it is empty`,
+        `\t- ${subject}can give up a card if: the card is its last card`,
+        "a stock is a list of cards where:",
+        `\t- ${subject}can never let go of a card`
+      ]
+      expect(compile(outline("it "))).toBe(compile(sentences))
+      expect(compile(outline(""))).toBe(compile(sentences))
+    })
+
+    test('`"x" is ...` is a property, not a phrase:  a getter, or a type', () => {
+      const compiled = compile(["a card is a thing where:", '\t- "rank" is a number', '\t- "double" is: its rank * 2'])
+      expect(compiled).toContain('this.declareProp("rank", { type: "number" })')
+      expect(compiled).toContain("return this.rank * 2")
+    })
+
+    test("only in a type's body:  at the top level, or in a getter there, it's still an error", () => {
+      expect(errorsOf(['"rank" is a number'])).toEqual([`1:0 Don't understand ""rank" is a number"`])
+      expect(errorsOf(["has a name as text"])).toEqual([`1:0 Don't understand "has a name as text"`])
+    })
+
+    test("a getter's line outside a getter is an error, not a return at the top level (I9)", () => {
+      expect(errorsOf(["x is 1", "red if x is 1"])).toEqual([
+        `2:0 A line of a getter's body:  put it under one, e.g. "the color of a card is:"`
+      ])
+    })
+  })
+
+  describe("a bare name is a property (P9):  `- suit is a suit of its deck`", () => {
+    const withIts = [
+      "a pile is a list of cards",
+      "a card is a thing where:",
+      "\t- its name is text",
+      "\t- its rank is a number",
+      "\t- its direction is either up or down",
+      "\t- its suit is one of clubs, diamonds, hearts or spades",
+      "\t- its color is red if its suit is either diamonds or hearts otherwise it is black",
+      '\t- its short name is: its rank + " of " + its suit',
+      "\t- its state is:",
+      "\t\treturn its rank",
+      "\t- its piles is a list of piles"
+    ]
+    const bare = withIts.map((line) => line.replace(/^\t- its /, "\t- "))
+
+    test("compiles exactly as the same lines with `its` do", () => {
+      expect(bare[2]).toBe("\t- name is text")
+      expect(compile(bare)).toBe(compile(withIts))
+    })
+
+    test("`are` as well as `is`:  `- piles are a list of piles`", () => {
+      expect(compile([...bare.slice(0, -1), "\t- piles are a list of piles"])).toBe(compile(withIts))
+    })
+
+    test("a bare name with a value is a getter, not a variable, and warns:  `- score is 0`", () => {
+      const lines = ["a card is a thing where:", "\t- score is 0", '\t- label is "card"']
+      const { files } = parseSpellProject([{ path: "/test.spell", contents: lines.join("\n") }])
+      expect(files[0]!.errors).toEqual([])
+      expect(compile(lines)).toContain("get score() {\n    return 0")
+      expect(SP.SpellWarnings.in(files[0]!.match!).map(({ message }) => message)).toEqual([
+        'score is always 0:  to give it a type, write "score is a number"',
+        'label is always "card":  to give it a type, write "label is text"'
+      ])
+    })
+
+    test("a line starting with a statement's word stays that statement:  `- return x is 1`", () => {
+      expect(compile(["x is 1", "to check:", "\ta card is a thing where:", "\t\t- return x is 1"])).toContain(
+        "return x === 1"
+      )
+    })
+
+    test("only in a type's body:  in a getter there, or at the top level, it sets a variable", () => {
+      expect(compile(["a card is a thing where:", "\t- double is:", "\t\ttotal is 2", "\t\treturn total"])).toContain(
+        "const total = 2"
+      )
+      expect(compile(["score is 0"])).toContain("const score = 0")
+    })
   })
 
   test("the outline Solitaire's cards pass their own tests, as today's cards do (P5)", () => {
@@ -515,6 +641,15 @@ function compile(lines: string[]): string {
     .split("\n")
     .filter((line) => line.trim() && !line.trim().startsWith("//"))
     .join("\n")
+}
+
+/** The long form of each line in the body of `file`'s 2nd line, a type's outline -- see `SpellStatement.getLongForm()`. */
+function longFormsOf(file: P.Match): Array<string | undefined> {
+  const typeLine = file.matched[1] as P.Match
+  const body = (typeLine.data.statement as P.Match).data.body as P.Match
+  return body.matched
+    .map((line) => (line as P.Match).data.statement as P.Match | undefined)
+    .map((statement) => statement && (statement.rule as SP.SpellStatement).getLongForm(statement))
 }
 
 /** The parse errors of `lines`, as one file of its own project. */

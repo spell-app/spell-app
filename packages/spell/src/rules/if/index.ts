@@ -5,6 +5,7 @@
  *   `priority` and length, the one registered first wins.  Moving a line here can change what parses.
  */
 export * from "./if.parser"
+export * from "./if.shared"
 export * from "./If"
 export * from "./ElseIf"
 export * from "./Else"
