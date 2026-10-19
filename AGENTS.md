@@ -233,7 +233,13 @@ ui -> util
 
 ### Windows
 
-- Owen works in VS Code windows opened from `workspaces/<pkg>.code-workspace`.
+- Owen works in VS Code windows opened from their WINDOW FILES, `<pkg>.code-workspace`.
+  - They live in the content repo's `windows/` folder, not in this repo (epic `epic-eject` P13):
+    `../spell-app.epics/windows/`, each machine's own, git-ignored there.
+    - Where:  `windowsFolder` in [the repo's epic settings](.epic/config.json5);  `epic config windowsFolder` prints it.
+    - A worktree's window file is in its `ongoing/` folder.
+    - Before P13 they were this repo's `workspaces/`, tracked and marked `skip-worktree`:
+      `epic window move` carried them over once.
   - `epic window init` writes missing ones, and brings the rest up to date.
   - Each has its own theme.
 - Each window shows the WHOLE branch:
@@ -268,18 +274,9 @@ ui -> util
     - The window is titled `⎇ <name>` and its title bar tinted at once (`epic window stay <name>`).
     - Both are put back at `/isolate done`.
   - NEVER add a worktree's folders to a package window (`epic window add`).
-    - VS Code writes them into `workspaces/<pkg>.code-workspace`,
+    - VS Code writes them into the window file,
       and they stay there after the worktree is gone (three did, by 2026-10-03).
-    - Nobody sees them:  those files are `skip-worktree` in the main checkout,
-      so Owen's theme changes never show as changes either.
-  - A branch that changes those files merges onto `main` only once the flag is off
-    ([the papercuts log](agents/PAPERCUTS.md), "claude-code"):
-    1. back up the local files
-    2. `git update-index --no-skip-worktree`
-    3. `git checkout --` them
-    4. merge
-    5. write the local edits back on top
-    6. set the flag again
+    - Nobody sees them:  the window files are in no git repo.
 
 ### A new window
 
@@ -304,7 +301,7 @@ ui -> util
         - the window's file and look stay as they are
         - the epic's running session there is typed into;  a new one starts only when none runs
     - The epic skill's "From another worktree" has the steps.
-- The window's file is git-ignored:  `<name>.code-workspace`, in `workspaces/ongoing/`.
+- The window's file:  `<name>.code-workspace`, in the windows folder's `ongoing/` (above, "Windows").
   - Its look:  that of the window it's opened from, or the one asked for.
   - `/epic <name> -purple`:  Tomorrow Night Blue's look in one of 12 hues (`epic window color`).
   - `/epic color <look>` recolours the window you're in, live.

@@ -29,7 +29,7 @@
   // The VS Code windows (`epic window`).
   "windows": {
     // The window a worktree's window is opened from, when the session's own window isn't a package's:
-    // `workspaces/<default>.code-workspace`, the whole repo's.
+    // `<windowsFolder>/<default>.code-workspace`, the whole repo's.
     "default": "spell-app",
     // The repo root's folder name in every window.
     "repoName": "spell-app",
@@ -53,5 +53,11 @@
   // (`epic shared link`, and the worktree hook through it;  only where `.gitignore` ignores `spell-epic`).
   // - The `$/epics` aliases (tsconfig.base.json) and the page server's epic route modules go through that link.
   // - `""`:  no link.
-  "engineFolder": "../spell-epic"
+  "engineFolder": "../spell-epic",
+
+  // The VS Code window files (`epic window`), each machine's own (epic `epic-eject` P13):
+  // package windows here, worktree windows in its `ongoing/`;  git-ignored in the content repo.
+  // - Before P13:  `workspaces/` in this repo, tracked and marked `skip-worktree`;
+  //   `epic window move` carried them over once, each folder path rewritten for the new place.
+  "windowsFolder": "../spell-app.epics/windows"
 }
