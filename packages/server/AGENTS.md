@@ -92,6 +92,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         and pages on the old one found the server down (epic `airplane`, 2026-10-10).
   - [mainServer.ts](src/mainServer.ts) -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server.
     - It asks that server for `/api/epics/running` (`RUNNING_EPICS_API`).
+    - A file of the shared content folder, by its own path (`.../spell-app.epics/epics/...`, as spell-epic hands
+      them out):  its path there, `/epics/...` (epic `epic-eject` I20).
+      - The content folder:  the one the server says it serves, `contentFolder` in its `/api/server`.
+      - Which main checkout, when the caller names none (the doc preview):  the one beside the content repo whose
+        pid file names it (`contentServerOf()`).
   - [checkout.ts](src/checkout.ts) -- `checkoutOf()`:  the git checkout a path is in, and its MAIN checkout.
     - Read from the disk as git finds them (a worktree's `.git` file, git's common dir), with no `git` run.
     - Plain `node` loads it by path (epics' `EpicConfig`, for the hooks), so node built-ins only.
