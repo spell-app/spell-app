@@ -234,6 +234,8 @@ export class Linker {
   /**
    * Where bare file names (`withSolid.ts`) are looked up:
    * - every package's `src/`, and its `components/` (a component set's elements:  `UIButton.tsx`)
+   *   - none in a repo without `packages/`:  a plain one, spell-epic's own (epic `epic-engine` I14)
+   * - a plain repo's own `src/`, when it has one (spell-epic's:  `PlanDocFiles.ts`)
    * - the repo's `tests/`, where every package's tests live (`List.test.ts`)
    * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`)
    * - the epic engine's code, its docs tools included:  spell-epic's `src/`, through the checkout's `spell-epic` link
@@ -242,10 +244,10 @@ export class Linker {
    */
   private get indexRoots(): string[] {
     return [
-      ...readdirSync(this.packages)
+      ...(isDir(this.packages) ? readdirSync(this.packages) : [])
         .flatMap((name) => [join(this.packages, name, "src"), join(this.packages, name, "components")])
         .filter(isDir),
-      ...[join(this.root, "tests")].filter(isDir),
+      ...[join(this.root, "src"), join(this.root, "tests")].filter(isDir),
       ...AREAS.map((area) => join(this.root, area)),
       ...[join(this.root, "spell-epic", "src")].filter(isDir),
       join(this.ui, "notes")
