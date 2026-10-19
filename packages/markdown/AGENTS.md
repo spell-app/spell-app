@@ -13,7 +13,7 @@ when working with code in this package, `@spell-app/markdown`.
 
 - GitHub-flavoured markdown on the generic parser (`$/parser`, `P`), drawing `ui-*` markup.
   - It's the second language on the parser, after spell:  the proof that the parser knows no language.
-  - The plan:  [its epic page](../../epics/markdown/markdown.plan.html).
+  - The plan:  [its epic page](../../../spell-app.epics/epics/markdown/markdown.plan.html).
 - It depends only on `$/parser` and `$/util`.
   - NEVER import `$/spell`, or anything above it.
   - `ui` NEVER imports this package:  it gets a precompiled bundle (as with spell's highlighter).
@@ -21,7 +21,7 @@ when working with code in this package, `@spell-app/markdown`.
   - words:  letters / digits
   - one symbol per other character
   - whitespace rides on the token before it (`LEADING_ONLY`), so rulex's spacing (`{spaces}`, touching parts) sees it
-- Rules are written in rulex as much as possible ([the Rulex guide](../../guides/rulex/rulex.html)).
+- Rules are written in rulex as much as possible ([the Rulex guide](../../../spell-app.epics/guides/rulex/rulex.html)).
   - What rulex can't say is hand-written:  block nesting, emphasis pairing, "any token but a backtick".
 - The tests live in the repo's `tests/markdown/`, at the same paths as the code.
 - `src/spec/`:  the GFM spec examples, and their test.

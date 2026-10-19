@@ -204,7 +204,7 @@ when working with code in this package, `@spell-app/spell`.
       (comments left out)
     - its aliases
     - its docstring's first sentence
-    - What [the spell syntax guide](../../guides/spell-syntax/spell-syntax.html) draws.
+    - What [the spell syntax guide](../../../spell-app.epics/guides/spell-syntax/spell-syntax.html) draws.
     - Generated:  `yarn gen:syntax`, after adding, renaming or changing a rule, its class docstring or its tests.
       [spellSyntax.test.ts](../../tests/spell/src/node/spellSyntax.test.ts) fails until you do.
     - So a class docstring's first sentence says what the rule is FOR, in plain words:  it's the guide's Purpose.

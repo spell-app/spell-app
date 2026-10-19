@@ -78,7 +78,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - `Sequence`, before each part:  a miss is no match (an optional part is skipped)
     - `Literals`, per literal (`LiteralMatcher.spacing`)
     - `Repeat`, between copies (`itemSpacing`) and before its delimiter
-  - Rulex sets it from how the syntax is spaced (see [the Rulex guide](../../guides/rulex/rulex.html)):
+  - Rulex sets it from how the syntax is spaced (see [the Rulex guide](../../../spell-app.epics/guides/rulex/rulex.html)):
     - parts written touching must touch (`isn't`, `\[{x}\]`);  spaced ones may space
     - `{space}` / `{spaces}` set the next part's
     - a symbol touching its flag repeats as a run (`#+`)

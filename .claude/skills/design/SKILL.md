@@ -7,7 +7,7 @@ argument-hint: "[push | pull <design link> [page] | new \"<title>\" | page <page
 # /design
 
 Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design draws with the real `<ui-*>` elements.
-- Epic `claude-design`;  [its epic page](epics/claude-design/claude-design.plan.html).
+- Epic `claude-design`;  [its epic page](../spell-app.epics/epics/claude-design/claude-design.plan.html).
 - Claude Design can't reach this laptop.
   This skill carries things across with the Artifact tool, and `spell dev design ...` does the local half.
 
@@ -73,7 +73,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
    Several:  ask which (a modal), or take the one Owen named.
 2. Read the board (`path: "project/<Board>.dc.html"`);  the result names where it was saved.
 3. The page:  Owen's path.
-   Else `brand/<slug>.html` for a brand page, `guides/<slug>.html` for a guide.
+   Else `$(epic config contentFolder)/brand/<slug>.html` for a brand page, `.../guides/<slug>.html` for a guide.
 
    ```sh
    spell dev design pull <saved board> <page> --from <design link>

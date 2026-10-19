@@ -9,7 +9,7 @@ Plain, hand-authored `.html` pages in [fomantic-ui.com](https://fomantic-ui.com)
 
 More:
 - Where a widget can't do what a page needs, that's a gap in the library,
-  recorded in the plan doc of epic `spell-ui-pages` ([its folder](../../../epics/spell-ui-pages/)).
+  recorded in the plan doc of epic `spell-ui-pages` ([its folder](../../../../spell-app.epics/epics/spell-ui-pages/)).
 - No build step to VIEW a page:  pages are static files loading ONE bundle.
   - The page server builds it when it starts, if it's stale (not committed since 2026-10-07).
 - Served at `/components/ui/` by the repo's page server, live-reloading
@@ -121,7 +121,7 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
     - a Theming tab only when a family token names it
   - Its family page keeps the whole family's API, and a one-line link to it.
   - The nav, search, card index and kitchen sink follow.
-- How to write one (sources, examples, usage, theming, gaps):  [the pages guide](../../../epics/spell-ui-pages/PAGES.md).
+- How to write one (sources, examples, usage, theming, gaps):  [the pages guide](../../../../spell-app.epics/epics/spell-ui-pages/PAGES.md).
   - The model page:  [`ui-button.html`](ui-button.html).
 - Content is nested `<ui-section id header sticky collapsible dividing>`s:
   a section per topic, a section per example inside it.

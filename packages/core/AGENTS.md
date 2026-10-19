@@ -23,7 +23,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   the core's method list, what another target's core must have (Python's `spell_core`, say).
   - Read from the running core by [`coreDeclarations()`](src/coreDeclarations.ts).
   - Each name's `section` and `description` come from the lead of its docstring, in the module's source.
-    - They're what [the core reference page](../../guides/targets/core-reference.html) shows
+    - They're what [the core reference page](../../../spell-app.epics/guides/targets/core-reference.html) shows
       (epic `python-target` P29).
     - A name with no docstring fails `coreDeclarations.test.ts`.
   - Written by `yarn gen:declarations` ([writeCoreDeclarations.ts](src/writeCoreDeclarations.ts)).

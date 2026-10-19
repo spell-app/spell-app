@@ -7,7 +7,7 @@ when working with code in this package, `@spell-app/spell-solid`.
 the repo's layout, and the house style every package shares.
 Only what's local is below;  a section named like a WWOD rule extends it.
 
-**This is Solid work:  READ [the Solid 2 rules](../../guides/solid/solid-2.md) IN FULL FIRST,**
+**This is Solid work:  READ [the Solid 2 rules](../../../spell-app.epics/guides/solid/solid-2.md) IN FULL FIRST,**
 then [ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring":  how an element is written on this package.
 
 ## Overview
@@ -17,7 +17,7 @@ then [ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring":  how an element is wr
   - Until then it was the element half of Spell UI's element core, in [its elements folder](../ui/src/elements/).
   - Owen, round 7 of the spaces page:  "Move the code in spell/ui that creates custom components into $/spell-solid."
   - Its place in the layout:
-    the epic's spaces page, [4.3 and 7.4](../../epics/people-and-orgs/details/spaces-package.html#spell-solid).
+    the epic's spaces page, [4.3 and 7.4](../../../spell-app.epics/epics/people-and-orgs/details/spaces-package.html#spell-solid).
 - What's in `src/`, imported as `$/spell-solid`, namespace `E`:
   - [UIComponent](src/UIComponent.tsx), the COMPONENT base:  one instance per element, its `render()` returns JSX
   - [DOMElement](src/DOMElement.ts), the DOM element base:  attributes, properties, the upgrade, shown or hidden
@@ -114,7 +114,7 @@ As WWOD §4, plus:
 
 - Two copies of this package on a page would mean two `UIComponent`s and two registries.
   - It fails silently, as two Solids do
-    ([the Solid 2 rules](../../guides/solid/solid-2.md), "One Solid per page").
+    ([the Solid 2 rules](../../../spell-app.epics/guides/solid/solid-2.md), "One Solid per page").
 - So no bundle of ours carries its own:
   - Spell UI's `core` entry carries it, and so everything built on that entry:
     - Spell UI's built `core.js`

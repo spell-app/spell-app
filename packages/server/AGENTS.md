@@ -12,7 +12,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Serving pages locally, for every package:  `$/server` (`SRV`).
   - Before this package, six servers each had their own mime table, path check, port choice and opener.
     Now they share these.
-  - Docs:  [the page server guide](../../guides/server.html):  the library, the page server's flows,
+  - Docs:  [the page server guide](../../../spell-app.epics/guides/server.html):  the library, the page server's flows,
     route modules, safety, why.
 - What's in it:
   - [mime.ts](src/mime.ts) -- ONE content-type table, `typeFor()`

@@ -9,7 +9,7 @@ the repo's layout, and the house style every package shares.
 - A section named like a WWOD rule extends it.
 
 **New to how a `<ui-*>` element works:
-READ [the custom elements guide](../../guides/custom-elements/custom-elements.html),** with live elements to click.
+READ [the custom elements guide](../../../spell-app.epics/guides/custom-elements/custom-elements.html),** with live elements to click.
 - It covers the platform, the DOM element / component pair, the decorators, every hook.
 - The rules below are its short form.
 
@@ -142,7 +142,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
     - `StaticFlattener` swaps each DOM element for its root
     - `StaticInteractions` wires what works without JS
   - Node only:  NEVER imported by a component or `$/ui`.
-  - Plan:  [the seo epic page](../../epics/seo/seo.plan.html).
+  - Plan:  [the seo epic page](../../../spell-app.epics/epics/seo/seo.plan.html).
   - Server code, so every file is `<Name>.ssr.ts`, `.server.ts`'s short form
     (WWOD §10 › "Server code stays out of the browser bundle").
     - `static.types.ssr.ts`;  tests are `<Name>.ssr.test.ts`, in the `ssr` project.
@@ -444,7 +444,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     A sub-tag its family's `pages` lists gets `<tag>.html` (`ui-radio`).
   - Else `<page>.html`, in `docs/` too.
   - Title, summary and status come from [the pages data](docs/__data/pages.json5).
-  - How to write one:  [the pages guide](../../epics/spell-ui-pages/PAGES.md).
+  - How to write one:  [the pages guide](../../../spell-app.epics/epics/spell-ui-pages/PAGES.md).
 - `yarn site:sections [--check] [page...]` ([its script](scripts/site-sections.ts)):
   nests every page's flat level 2 / 3 headers and headed examples into `<ui-section>`s.
   - It writes (or fixes) their ids, `<tab>-<section>-<example>`;  idempotent.
@@ -567,7 +567,7 @@ As WWOD §18, plus:
 ## Solid authoring
 
 - Solid's own rules (no writes in an owned scope, staged writes, two-function effects, eager memos):
-  SEE:  [the Solid 2 rules](../../guides/solid/solid-2.md).
+  SEE:  [the Solid 2 rules](../../../spell-app.epics/guides/solid/solid-2.md).
   - Below:  only what's `ui`'s own.
 - A tag's COMPONENT is a class `UI<Name> extends UIComponent<typeof nameVocabulary>`
   (or `FormComponent`, `PartComponent`).  It has:
@@ -911,7 +911,7 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
     `this.on()` for one added later, or under a condition.
   - Inside a component, `onClick={...}` for native events.
     - No `on:` namespace.
-    - Rich data as `prop:options` ([the Solid 2 rules](../../guides/solid/solid-2.md), "DOM and `@spell-app/ui` elements").
+    - Rich data as `prop:options` ([the Solid 2 rules](../../../spell-app.epics/guides/solid/solid-2.md), "DOM and `@spell-app/ui` elements").
   - A THIRD-PARTY Solid app listening for `ui-*` events uses a `ref` callback + `addEventListener`
     ([the Solid host app](tools/frameworks/solid/app.tsx)).
     Our app:  WWOD §17 › "Events:  `onClick`, or `on()` for `ui-*`".
