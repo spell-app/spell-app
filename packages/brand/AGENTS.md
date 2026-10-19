@@ -11,9 +11,9 @@ when working with code in this package, `@spell-app/brand`.
 ## Overview
 
 - This package is Spell's brand, and the work of bringing it into Spell UI.
-  - epic `design-system`:  [its epic page](../../epics/design-system/design-system.plan.html)
+  - epic `design-system`:  [its epic page](../../../spell-app.epics/epics/design-system/design-system.plan.html)
   - its elements in Claude Design:  epic `claude-design`, P11
-- READ FIRST for the big picture:  the guide, [the design system guide](../../guides/design-system/design-system.html).
+- READ FIRST for the big picture:  the guide, [the design system guide](../../../spell-app.epics/guides/design-system/design-system.html).
   - the Brand tab and Compare
   - the `spell-brand` theme and its brand roles
   - every element, making a copy, its limits
@@ -50,7 +50,7 @@ when working with code in this package, `@spell-app/brand`.
     - the React wrappers, in `components/*/`
 - The copies on Spell UI (shared):  beside each `.dc.html`, its `.spell.html`, same name.
   - e.g. `Brand Montage.dc.html` -> `Brand Montage.spell.html`
-- [The Brand tab's home page](../../brand/index.html) (shared):
+- [The Brand tab's home page](../../../spell-app.epics/brand/index.html) (shared):
   - every page, with Original / Spell / Compare links
   - the elements
   - every other page in `brand/`, e.g. ones pulled from Claude Design (written by `spell dev docs index`)

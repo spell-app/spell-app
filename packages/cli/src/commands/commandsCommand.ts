@@ -5,6 +5,7 @@ import { join } from "path"
 
 import { CLI } from "$/cli"
 import { COMMANDS_JSON } from "$/cli/dev/dev.types"
+import { contentFolderOf } from "$/assembler/contentFolder"
 import { DataFile } from "$/assembler/DataFile"
 
 export { COMMANDS_JSON }
@@ -12,13 +13,15 @@ export { COMMANDS_JSON }
 /**
  * `spell dev commands [list|check]`:  every command the repo has, against the commands page.
  * - the commands:  yarn scripts, `spell` commands, skills
- * - the page's data:  `commands.json5` (`guides/dev/commands/`), which maps each command to the operations it does
+ * - the page's data:  `commands.json5` (`guides/dev/commands/`, in the shared content folder), which maps each command
+ *   to the operations it does
  * - `list` (default):  every command, with whether the page names it (`✓` / `✗`)
  * - `check`:  just the problems:  commands the page never names, and names on the page no command has
  *   - exits 1 if there are any
  *   - run it after adding, renaming or removing a command (root `yarn commands:check`)
  * - `--json`:  `{ commands: [{ name, surface, named }], missing, stale }`
  * - Which checkout:  the nearest one from the current folder up (`CLI.findCheckout()`), so a worktree checks its own.
+ *   Its page's data:  in the repo's content folder (`contentFolderOf()`), with no link at the checkout's root.
  * - What counts:  `commandSources()`;  what the page names:  `pageNames()`.
  */
 export async function commandsCommand(
@@ -28,10 +31,11 @@ export async function commandsCommand(
 ): Promise<number> {
   const [verb = "list"] = args
   if (verb !== "list" && verb !== "check") throw new CLI.CliError(`unknown verb '${verb}':  list or check`)
-  const root = CLI.findCheckout(join("guides", "dev", "commands"))
-  const file = join(root, COMMANDS_JSON)
+  const root = CLI.findCheckout("tsconfig.base.json")
+  const content = contentFolderOf(root) ?? root
+  const file = join(content, COMMANDS_JSON)
   const data = DataFile.read<CommandsData>(file)
-  if (!data) throw new CLI.CliError(`no ${COMMANDS_JSON} in ${root}`)
+  if (!data) throw new CLI.CliError(`no ${COMMANDS_JSON} in ${content}`)
   const commands = commandSources(root, data.sources)
   const named = pageNames(data)
   const missing = commands.filter((command) => !named.has(command.name)).map((command) => command.name)

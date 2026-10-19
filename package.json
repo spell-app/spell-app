@@ -105,13 +105,6 @@
   },
   "shared": {
     "links": [
-      "epics",
-      "guides",
-      "pages",
-      "brand",
-      "ui",
-      "goals",
-      "sagas",
       "agents"
     ]
   }

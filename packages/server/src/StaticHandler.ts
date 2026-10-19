@@ -9,6 +9,8 @@ import { SRV, type FileTransform, type Handler, type HtmlTransform, type Mount }
  * - the LONGEST matching prefix wins, e.g. `/element/` over `/`
  * - folders mounted at the SAME prefix are laid over each other:  the first mounted that has the path serves it
  *   - e.g. the page server's `/worktrees/`, from the worktrees beside the repo and from the old `.claude/worktrees`
+ *   - a catch-all mount (`Mount.skip`, which drops folders of the path) comes after the others there, whenever mounted:
+ *     e.g. the content folder under every worktree's address, after the worktrees' own files
  * - a folder serves its `index.html`;  asked for without its trailing `/`, it redirects (301) to it
  * - names starting with `.` are 403 unless the mount says `dotFiles`
  * - every answer is `Cache-Control: no-store` (pages change under us),
@@ -24,7 +26,10 @@ import { SRV, type FileTransform, type Handler, type HtmlTransform, type Mount }
  * - nothing matched or file missing:  `next()`, so routes after it (an SPA fallback) still get a turn
  */
 export class StaticHandler {
-  /** folders served, longest prefix first;  at one prefix, in the order mounted (`sort()` is stable) */
+  /**
+   * folders served, longest prefix first;  at one prefix, in the order mounted (`sort()` is stable),
+   * the catch-alls (`skip`) last
+   */
   private mounts: Required<Mount>[] = []
 
   /** rewrites of `.html` pages, in order */
@@ -51,8 +56,8 @@ export class StaticHandler {
   /** serve `mount.dir` under `mount.prefix` too;  a prefix already mounted:  laid under the folders there */
   mount(mount: Mount): this {
     const prefix = mount.prefix.endsWith("/") ? mount.prefix : `${mount.prefix}/`
-    this.mounts.push({ dotFiles: false, index: "index.html", ...mount, prefix, dir: resolve(mount.dir) })
-    this.mounts.sort((a, b) => b.prefix.length - a.prefix.length)
+    this.mounts.push({ dotFiles: false, index: "index.html", skip: 0, ...mount, prefix, dir: resolve(mount.dir) })
+    this.mounts.sort((a, b) => b.prefix.length - a.prefix.length || a.skip - b.skip)
     return this
   }
 
@@ -88,6 +93,7 @@ export class StaticHandler {
   /**
    * `resolve()` without the overlays:  through the mounts alone.
    * - several folders at the longest matching prefix:  the first one that has the path (not a 404) answers
+   * - a catch-all (`skip`) looks without the path's first folders;  a path too short for it isn't its
    */
   private resolveMounted(path: string): SRV.Resolved | undefined {
     const mount = this.mounts.find((each) => path.startsWith(each.prefix) || `${path}/` === each.prefix)
@@ -97,7 +103,9 @@ export class StaticHandler {
     const inside = path.slice(mount.prefix.length - 1)
     let resolved: SRV.Resolved | undefined
     for (const each of this.mounts.filter(({ prefix }) => prefix === mount.prefix)) {
-      resolved = SRV.resolveInside(each.dir, inside, each)
+      const at = each.skip ? skipFolders(inside, each.skip) : inside
+      if (at === undefined) continue
+      resolved = SRV.resolveInside(each.dir, at, each)
       if (!("status" in resolved) || resolved.status !== 404) return resolved
     }
     return resolved
@@ -129,6 +137,14 @@ export class StaticHandler {
   static etagOf(stat: Stats): string {
     return `"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`
   }
+}
+
+/**
+ * URL path `path` (`/w/epics/x.html`) without its first `count` folders (`/epics/x.html`);
+ * `undefined` when it has no more than that (`/w`).
+ */
+function skipFolders(path: string, count: number): string | undefined {
+  return new RegExp(`^(?:/[^/]+){${count}}(/.*)$`).exec(path)?.[1]
 }
 
 /**

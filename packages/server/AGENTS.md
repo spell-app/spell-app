@@ -12,7 +12,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Serving pages locally, for every package:  `$/server` (`SRV`).
   - Before this package, six servers each had their own mime table, path check, port choice and opener.
     Now they share these.
-  - Docs:  [the page server guide](../../guides/server.html):  the library, the page server's flows,
+  - Docs:  [the page server guide](../../../spell-app.epics/guides/server.html):  the library, the page server's flows,
     route modules, safety, why.
 - What's in it:
   - [mime.ts](src/mime.ts) -- ONE content-type table, `typeFor()`
@@ -48,8 +48,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         - today:  `epics`, `guides`, `pages`, `brand`
           (not `templates` since epic `epic-eject` T11:  they're spell-epic's, at the engine route `/templates/`)
       - The page editor's writes are held to the same list (`FileOperations.writableFile()`).
-      - Those folders are links into the shared repo:
-        paths are resolved (`fileInside()`), never followed, so they stay "inside".
+      - Those folders are the shared content folder's, once the page server serves it (`FileOperations.content`,
+        `serveContent()`, below);  else the checkout's.
+        - In a checkout that still links them in:  paths are resolved (`fileInside()`), never followed,
+          so they stay "inside".
   - `LiveReload` + [liveClient.ts](src/liveClient.ts) -- live reload over a websocket, and the page-side client.
     - The client:  `/api/server/live.js` (`editPage()`).
     - Its websocket:  `/api/server/live`.
@@ -90,6 +92,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         and pages on the old one found the server down (epic `airplane`, 2026-10-10).
   - [mainServer.ts](src/mainServer.ts) -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server.
     - It asks that server for `/api/epics/running` (`RUNNING_EPICS_API`).
+    - A file of the shared content folder, by its own path (`.../spell-app.epics/epics/...`, as spell-epic hands
+      them out):  its path there, `/epics/...` (epic `epic-eject` I20).
+      - The content folder:  the one the server says it serves, `contentFolder` in its `/api/server`.
+      - Which main checkout, when the caller names none (the doc preview):  the one beside the content repo whose
+        pid file names it (`contentServerOf()`).
   - [checkout.ts](src/checkout.ts) -- `checkoutOf()`:  the git checkout a path is in, and its MAIN checkout.
     - Read from the disk as git finds them (a worktree's `.git` file, git's common dir), with no `git` run.
     - Plain `node` loads it by path (epics' `EpicConfig`, for the hooks), so node built-ins only.
@@ -131,6 +138,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       The old paths answer "not found" (no redirects, Q30 of `people-and-orgs`).
     - It may use deps (`parse5`).
     - It serves the repo at `/`.
+      - And the SHARED CONTENT folder after it (`serveContent(dir)`, epic `epic-eject` P12):
+        epics, guides, pages, sagas, brand ... with no link at the checkout's root.
+        - The checkout first:  a path it has is its own (the brand pages load `../packages/brand/_assets/...`).
+        - Under every worktree's address too (`/worktrees/<w>/...`), after that worktree's own files:
+          a catch-all mount (`Mount.skip`).
+        - The running epics' route module calls it, in every checkout:
+          the folder is the repo's `.epic/config.json5`'s `contentFolder`, which this package can't read.
+          - `RouteContext.serveContent` is optional:  a server that serves the content itself (spell-epic's
+            `EpicServer`) has none.
+        - Live reload watches it whole, reporting each change at `/<path>` and under every worktree's address.
+        - A page from it is told its path there (`SPELL_SERVER.file`, `/epics/x/x.plan.html`).
+        - `/api/files` and `/api/pages` write in it:  the `"writable"` names are its folders.
+        - `/api/server` reports it (`contentFolder`);  `spell dev server url <file>` gives a file of it its path there
+          (`contentPathOf()`).
       - For the SHARED pages every checkout shows:
         - the engine's old folders still serve from spell-epic (`movedFolderPath()`), a safety net for a page that
           still links them (the shared pages load `/_epic/...` since `epic-eject` T13):

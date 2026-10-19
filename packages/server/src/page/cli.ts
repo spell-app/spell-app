@@ -8,6 +8,8 @@
  * - `url <file>` -- `ensure`, then print the URL that serves `file`
  *   - a worktree's file:  on the MAIN checkout's server (`/worktrees/<w>/...`),
  *     when that one runs and serves worktrees (`SRV.mainServerUrl()`)
+ *   - a file of the shared content folder:  its path there (`/epics/...`), on the main checkout's server if it runs,
+ *     else this checkout's (`SRV.contentPathOf()`)
  * - `prune [--dry-run]` -- stop the page and vite servers whose checkout is gone (`pruneServers()`), on any checkout;
  *   `--dry-run` only says which
  * - `--root <dir>`:  the checkout (default:  the one holding the folder `yarn` ran in, `INIT_CWD`)
@@ -59,11 +61,12 @@ async function main(args: string[]): Promise<void> {
       if (!file) throw new Error("usage:  spell dev server url <file>")
       const absolute = resolve(process.env.INIT_CWD ?? process.cwd(), file)
       // a worktree's file:  the MAIN checkout's server, when it serves worktrees, so every link is on one port
-      const main = await SRV.mainServerUrl(absolute)
+      const main = await SRV.mainServerUrl(absolute, root)
       if (main) return console.log(main)
-      const { base } = await PageServer.ensure(root, port)
+      const running = await PageServer.ensure(root, port)
       const path = relative(root, absolute)
-      return console.log(`${base}/${path.split(sep).map(encodeURIComponent).join("/")}`)
+      const served = SRV.contentPathOf(absolute, running) ?? `/${path.split(sep).map(encodeURIComponent).join("/")}`
+      return console.log(`${running.base}${served}`)
     }
     case "prune": {
       const dryRun = rest.includes("--dry-run")

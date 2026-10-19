@@ -196,7 +196,7 @@ Longer notes on some of them follow the table.
 
 - `dev` commands are the repo-tool commands, `spell dev <noun> <verb>`.
   `dev commands` was the first:  the plan for the rest is the commands page's Roadmap.
-- `dev commands`:  checks against [the commands page's data](../../guides/dev/commands/commands.json5).
+- `dev commands`:  checks against [the commands page's data](../../../spell-app.epics/guides/dev/commands/commands.json5).
   - `list` marks each ✓ / ✗.
   - `check` prints only the gaps, and exits 1 on any.
   - `--json`.
@@ -353,7 +353,7 @@ Longer notes on some of them follow the table.
     ```
 
   - Owen sends a page with "Do it".
-  - What they are:  [the choice-page guide](../../guides/syntax-choices.html).
+  - What they are:  [the choice-page guide](../../../spell-app.epics/guides/syntax-choices.html).
 - `notes`:  runs [`notes.ts`](../../spell-epic/src/tools/notes.ts), in the caller's folder.
   The notes are written into the pages.
   - `list [<epic>] [--all] [--json]`, the default:  every `new` note in the shared folders.
@@ -537,7 +537,7 @@ Longer notes on some of them follow the table.
 ### `static`
 
 - Renders through `@spell-app/ui`'s static server render
-  (`$/ui/static`;  [its epic page](../../epics/seo/seo.plan.html)).
+  (`$/ui/static`;  [its epic page](../../../spell-app.epics/epics/seo/seo.plan.html)).
   - In a child process, [`renderStatic.ts`](src/runner/renderStatic.ts),
     on an SSR-only Vite server ([`StaticRenderer.ts`](../ui/tools/StaticRenderer.ts)).
   - Why a child:  `ui`'s Solid JSX must compile for the server, which `tsx` can't.

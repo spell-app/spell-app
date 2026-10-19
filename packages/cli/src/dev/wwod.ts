@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "fs"
 import { join, relative, resolve } from "path"
 
 import { type AgentRulesProblem, type AgentRulesReport } from "$/cli"
+import { contentFolderOf } from "$/assembler/contentFolder"
 
 /**
  * The agents' rules (epic `wwod`):  WWOD, the house style in `agents/wwod/*.md`, and the files that cite it
@@ -11,21 +12,20 @@ import { type AgentRulesProblem, type AgentRulesReport } from "$/cli"
  * - ported from the epic's `cites.py`
  */
 
-/** WWOD's folder, from a checkout's root. */
+/** WWOD's folder, from a checkout's root:  the `agents` link into the shared content folder, which stays. */
 const WWOD_FOLDER = "agents/wwod"
 
 /**
  * The files that cite WWOD, checked by default:  repo paths, `*` for one folder level.
  * - NOTE:  a skill or doc that starts citing WWOD belongs here
  */
-const CITERS = [
-  "AGENTS.md",
-  "CLAUDE.md",
-  "packages/*/AGENTS.md",
-  "packages/*/CLAUDE.md",
-  "goals/AGENTS.md",
-  "guides/solid/solid-2.md"
-]
+const CITERS = ["AGENTS.md", "CLAUDE.md", "packages/*/AGENTS.md", "packages/*/CLAUDE.md"]
+
+/**
+ * The files in the shared content folder that cite WWOD:  paths in it (`contentFolderOf()`, epic `epic-eject` P12),
+ * with no link at the checkout's root.
+ */
+const CONTENT_CITERS = ["goals/AGENTS.md", "guides/solid/solid-2.md"]
 
 /** Files checked for citations ONLY:  a skill's paths are relative to its own folder, or the skill it calls. */
 const CITATIONS_ONLY = [".claude/skills/*/SKILL.md"]
@@ -59,21 +59,25 @@ const LINE_SUFFIX = /:\d+(-\d+)?$/
  *   in `CITATIONS_ONLY`
  * - a bare `NAME.md` resolves from the repo root, the citing file's folder, any package (`PARSING.md`) or any
  *   dependency (`CHEATSHEET.md`, `solid-js`'s)
+ * - a content folder's file (`CONTENT_CITERS`) is named by its path there, `guides/solid/solid-2.md`
  * - NEVER throws on a missing citer:  `CITERS` lists what MAY cite
  */
 export function checkAgentRules(checkout: string, files: string[] = []): AgentRulesReport {
+  const content = contentFolderOf(checkout) ?? checkout
   const wwod = mdFiles(join(checkout, WWOD_FOLDER))
   const sections = sectionsOf(wwod)
   const citationsOnly = CITATIONS_ONLY.flatMap((pattern) => expand(checkout, pattern))
+  const fromContent = CONTENT_CITERS.flatMap((pattern) => expand(content, pattern))
   const citers = [
     ...CITERS.flatMap((pattern) => expand(checkout, pattern)),
+    ...fromContent,
     ...citationsOnly,
     ...files.map((file) => resolve(checkout, file))
   ]
   const problems: AgentRulesProblem[] = []
   for (const path of [...wwod, ...citers.filter((path) => !wwod.includes(path))]) {
     const checkPaths = !citationsOnly.includes(path)
-    const file = relative(checkout, path)
+    const file = relative(fromContent.includes(path) ? content : checkout, path)
     const cite = wwod.includes(path) ? BARE_CITE : WWOD_CITE
     readFileSync(path, "utf8")
       .split("\n")

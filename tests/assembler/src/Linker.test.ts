@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { describe, expect, test } from "vite-plus/test"
+import { afterAll, describe, expect, test } from "vite-plus/test"
 
 import { AS } from "$/assembler"
 
@@ -114,7 +114,9 @@ describe("Linker.link()", () => {
 
 describe("Linker.resolve()", () => {
   test("resolves against the page's folder, the repo root, `packages/`, `#name/` aliases and bare file names", () => {
-    expect(LINKER.resolve("spell-docs.md", PAGE_DIR)).toBe(join(PAGE_DIR, "spell-docs.md"))
+    // a content folder's file is found where it is, not through the checkout's old link (epic `epic-eject` P12)
+    const guides = LINKER.content ? join(LINKER.content, "guides", "spell-docs") : PAGE_DIR
+    expect(LINKER.resolve("spell-docs.md", PAGE_DIR)).toBe(join(guides, "spell-docs.md"))
     expect(LINKER.resolve("tsconfig.base.json")).toBe(join(ROOT, "tsconfig.base.json"))
     expect(LINKER.resolve("ui/tools/SiteCheck.ts")).toBe(join(TOOLS, "SiteCheck.ts"))
     expect(LINKER.resolve("#ui/../tools/SiteCheck.ts")).toBe(join(TOOLS, "SiteCheck.ts"))
@@ -219,5 +221,52 @@ describe("Linker served folders", () => {
   test("checks its links from its address:  a link written from its file's folder is missing", () => {
     const { problems } = served.check('<a href="../../../docs/tools/pages.js" target="x">p</a>', dir)
     expect(problems).toEqual(["missing:  ../../../docs/tools/pages.js"])
+  })
+})
+
+// epic `epic-eject` P12:  the shared content in a folder of its own, with no link at the checkout's root
+describe("Linker content folder", () => {
+  const top = mkdtempSync(join(tmpdir(), "linker-content-"))
+  const root = join(top, "app")
+  const content = join(top, "app.epics")
+  afterAll(() => rmSync(top, { recursive: true, force: true }))
+  for (const file of [
+    "app/packages/a/src/A.ts",
+    "app.epics/epics/x/x.plan.html",
+    "app.epics/epics/y/y.plan.html",
+    "app.epics/guides/g.html",
+    // the content repo's own `packages/`:  never the checkout's
+    "app.epics/packages/docs/old.html"
+  ]) {
+    mkdirSync(dirname(join(top, file)), { recursive: true })
+    writeFileSync(join(top, file), "")
+  }
+  const linker = new AS.Linker(root, { content })
+  const page = join(content, "epics", "x")
+
+  test("links a content page as from its place in the checkout:  the same hrefs and targets as through a link", () => {
+    const { text, unresolved } = linker.link(
+      "<p><code>packages/a/src/A.ts</code> <code>epics/y/y.plan.html</code> <code>guides/g.html</code></p>",
+      page
+    )
+    expect(unresolved).toEqual([])
+    expect(text).toBe(
+      '<p><a href="../../packages/a/src/A.ts" target="src-packages-a-src-a-ts"><code>packages/a/src/A.ts</code></a> ' +
+        '<a href="../y/y.plan.html" target="y"><code>epics/y/y.plan.html</code></a> ' +
+        '<a href="../../guides/g.html" target="src-guides-g-html"><code>guides/g.html</code></a></p>'
+    )
+    // the page's folder given either way
+    expect(linker.link("<p><code>guides/g.html</code></p>", join(root, "epics", "x")).text).toContain(
+      'href="../../guides/g.html"'
+    )
+    expect(linker.check(text, page)).toEqual({ destinations: 3, problems: [] })
+  })
+
+  test("checks a content page's links:  missing ones reported, the content repo's packages/ never the checkout's", () => {
+    const { problems } = linker.check(
+      '<a href="../../guides/nope.html" target="a">1</a> <a href="../../packages/docs/old.html" target="b">2</a>',
+      page
+    )
+    expect(problems).toEqual(["missing:  ../../guides/nope.html", "missing:  ../../packages/docs/old.html"])
   })
 })

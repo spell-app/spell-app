@@ -8,7 +8,7 @@ working with code in this repository.
   functions, types, classes, decorators, CSS, tests ...
 - Its table names the spoke to read for what you're touching.
 
-**If working with Solid (2.0):  READ [the Solid 2 rules](guides/solid/solid-2.md) IN FULL FIRST.**
+**If working with Solid (2.0):  READ [the Solid 2 rules](../spell-app.epics/guides/solid/solid-2.md) IN FULL FIRST.**
 - Solid work is any of:
   - components, JSX, effects / signals / stores
   - `core` rendering, `$/util` reactivity
@@ -18,7 +18,7 @@ working with code in this repository.
   and guessing from either produces wrong code.
 
 **If asked for a new skill or `spell` command, or about to add, rename or remove a yarn script:
-READ [the commands guide](guides/dev/commands/commands.md) FIRST,**
+READ [the commands guide](../spell-app.epics/guides/dev/commands/commands.md) FIRST,**
 and suggest where it belongs before building it (see "Commands").
 
 ## Overview
@@ -105,7 +105,7 @@ More on some of them:
   (epic `people-and-orgs` P16, Q23), and that into spell-epic (epic `epic-eject` I5).
   - The pages themselves are SHARED root folders, tracked by no package (see "Shared content").
   - `epics/`, `guides/`
-  - `pages/`:  [the docs' home page](pages/index.html)
+  - `pages/`:  [the docs' home page](../spell-app.epics/pages/index.html)
   - NOT the templates (epic `epic-eject` T11):  spell-epic's own `templates/`, through the `spell-epic` link,
     served at `/templates/` (an engine route);  `epic pages template <name>` prints one's path.
   - Its route modules answer under `/api/epics/` (review, agents, running, favorite, new) and `/api/docs/`
@@ -320,7 +320,7 @@ ui -> util
 - A running epic's epic page is shared (see "Shared content"):  ONE file, the same in every checkout.
   - So the MAIN checkout's page server shows it too,
     listed on the Epics list page with the merged ones.
-  - `spell dev server url` gives that URL ([the page server guide](guides/server.html), "Running epics").
+  - `spell dev server url` gives that URL ([the page server guide](../spell-app.epics/guides/server.html), "Running epics").
 - NEVER `code --add` / `--remove`:
   they act on the focused window, and a one-folder window restarts its extensions, Claude panel included.
 - NEVER `code -r`:  it restarts the session.
@@ -369,9 +369,9 @@ ui -> util
   - Epic `claude-design` P4 split them into root folders, 2026-10-05.
 - The folders:
   - `epics/` -- epic pages, `epics/<name>/<name>.plan.html`, with their inboxes and details pages
-  - `guides/` -- every other docs page ([the Solid 2 guide](guides/solid/solid-2.html), say),
+  - `guides/` -- every other docs page ([the Solid 2 guide](../spell-app.epics/guides/solid/solid-2.html), say),
     with its Markdown, JSON and `experiments/`
-  - `pages/` -- [the docs' home page](pages/index.html), and the scratch details pages, `pages/details/`
+  - `pages/` -- [the docs' home page](../spell-app.epics/pages/index.html), and the scratch details pages, `pages/details/`
   - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), LEFT for the other checkouts.
     - Since epic `people-and-orgs` P18 they're in [ui's docs/](packages/ui/docs/), served at `/components/ui/`.
     - This branch's page server answers "not found" for `/ui/`;  the merge removes the folder (that epic's T3).
@@ -385,7 +385,7 @@ ui -> util
   - `goals/` -- the first saga pages (once goal sets), PARKED since 2026-10-11 (epic `epic-workflow` P6):
     read only, buttons saying TODO.
     Their tooling is in `packages/goals.zip`;
-    epic `epic-goals` rebuilds it ([the parked sagas guide](guides/goals/goals.html)).
+    epic `epic-goals` rebuilds it ([the parked sagas guide](../spell-app.epics/guides/goals/goals.html)).
   - `agents/` -- one copy of the rules for every branch:
     - the three logs:
       [PAPERCUTS.md](agents/PAPERCUTS.md), [SUSPECTED-BUGS.md](agents/SUSPECTED-BUGS.md),
@@ -394,19 +394,26 @@ ui -> util
 
 ### How they're linked
 
-- In EVERY checkout (main and each worktree) they're folder SYMLINKS into one shared content repo.
+- They're ONE shared content repo, the same for main and every worktree.
   - It's `../spell-app.epics`, beside the main checkout:  an ordinary git repo, local only.
   - Where it is:  `contentFolder`, in [the repo's epic settings](.epic/config.json5) (epic `epic-eject` P4).
     `epic config contentFolder` prints it.
   - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
+- Only `agents/` is linked in at every checkout's root, a folder SYMLINK (epic `epic-eject` P12):
+  the instructions name `agents/...` from the checkout.
   - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
+  - The rest (`epics`, `guides`, `pages`, `brand`, `ui`, `goals`, `sagas`) are found in the content folder itself:
+    - the page server serves it at `/`, after the checkout's own files (`serveContent()`,
+      [server's AGENTS.md](packages/server/AGENTS.md)), and under every worktree's address
+    - the tools read it from the epic settings (spell-epic's `EpicConfig`, `$/assembler`'s `contentFolderOf()`)
+    - a checkout cut before P12 still links them in, by its own manifest, until it merges `main`
 - Claude edits shared files at their REAL path, from main or any worktree.
   - That's `/Users/owen/www/spell-app/spell-app.epics/<path>`:  `$(epic config contentFolder)/<path>`.
   - E.g. `.../spell-app.epics/agents/PAPERCUTS.md`.
   - A worktree session's Edit / Write refuses a path through the links, before any hook could step in.
     It says "Edit the worktree copy of this file instead of the shared-checkout path":
     there is no worktree copy.
-  - Reading and tools (`epic`, the page server) use the links as usual.
+  - Reading goes through `agents/` as usual;  every other shared file by its real path.
 - The manifest has two parts:
   - the root `package.json`'s `"shared": { "links" }`
     (its old `"dir"` is the epic settings' `contentFolder` since epic `epic-eject` P4)
@@ -478,7 +485,7 @@ ui -> util
 
 ## Changelog
 
-- [The changelog](guides/changelog.html):  what the repo shipped, newest first.
+- [The changelog](../spell-app.epics/guides/changelog.html):  what the repo shipped, newest first.
 - MUST be kept up to date by every `/isolate` and `/epic`:
   - `/epic`:  at its Doc Review, add the entry to "2. In worktrees".
     When it merges into `main`, move it under its month in "3. Merged into main".
@@ -500,7 +507,7 @@ ui -> util
 ## Commands
 
 - Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.
-- Their map, one row per operation:  [the commands page](guides/dev/commands/commands.html).
+- Their map, one row per operation:  [the commands page](../spell-app.epics/guides/dev/commands/commands.html).
   - Its data:  `commands.json5` beside it.
   - Shown by the page server:  `spell dev docs open guides/dev/commands/commands.html`.
 - Target:  the CLI drives everything.
@@ -508,7 +515,7 @@ ui -> util
   - Skills keep judgement and dialog, and call it.
   - Yarn keeps each package's own scripts, and aliases the rest.
 - Owen asks for a new skill or `spell` command, or you add a yarn script to solve a problem:
-  - READ [the commands guide](guides/dev/commands/commands.md).
+  - READ [the commands guide](../spell-app.epics/guides/dev/commands/commands.md).
   - Then SUGGEST, before building:  where it belongs, its name, what it replaces,
     which roadmap move it advances.
 - MUST keep the page true in the same change:  `commands.json5`, then `spell dev commands check`.
@@ -568,11 +575,11 @@ ui -> util
   - Version `2.0.0-rc.13`, for every package:  one copy at the root.
   - So is what compiled spell draws (epic `output-targets` P10-P11).
   - React is left only in the `spell` CLI's terminal screens (Ink).
-- The rules:  [solid-2.md](guides/solid/solid-2.md) (see the top of this file).
+- The rules:  [solid-2.md](../spell-app.epics/guides/solid/solid-2.md) (see the top of this file).
   - NOT `@`-imported on purpose:  it loads only when the task needs it.
   - Claude also has the [solid-2 skill](.claude/skills/solid-2/SKILL.md), which triggers on Solid work.
-- The why and the measurements:  [the Solid 2 guide](guides/solid/solid-2.html).
-- The API:  [the Solid 2 cheatsheet](guides/solid/cheatsheet.html).
+- The why and the measurements:  [the Solid 2 guide](../spell-app.epics/guides/solid/solid-2.html).
+- The API:  [the Solid 2 cheatsheet](../spell-app.epics/guides/solid/cheatsheet.html).
 - MUST keep `solid-2.md` up to date when a Solid decision changes, or an RC bump changes behaviour.
 - How `ui` writes its elements on Solid:  "Solid authoring" in [ui's AGENTS.md](packages/ui/AGENTS.md).
 - House style for app components, on top of `solid-2.md`:  WWOD §17 ([solid.md](agents/wwod/solid.md)).

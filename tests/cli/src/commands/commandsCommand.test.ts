@@ -13,6 +13,8 @@ afterAll(() => {
   rmSync(HOME, { recursive: true, force: true })
 })
 
+// what marks a checkout (`CLI.findCheckout()`)
+write(ROOT, "tsconfig.base.json", "{}")
 write(ROOT, "package.json", { scripts: { "/////// SECTION": "", ts: "tsc", serve: "node serve.mjs" } })
 write(ROOT, "packages/parser/package.json", { scripts: { test: "vitest run" } })
 write(ROOT, "packages/ui/site/package.json", { scripts: { dev: "astro dev" } })
@@ -84,6 +86,20 @@ describe("the commands page's data (epic `epic-workflow` P21)", () => {
     expect((await listed()).commands.find((it) => it.name === "spell compile")?.named).toBe(true)
     write(ROOT, "guides/dev/commands/commands.json5", `// Owen:  the rows\n${JSON.stringify({ families: [] })}`)
     expect((await listed()).commands.find((it) => it.name === "spell compile")?.named).toBe(false)
+  })
+
+  // epic `epic-eject` P12:  no `guides` link at the checkout's root
+  test("read from the shared content folder, not the checkout", async () => {
+    const content = mkdtempSync(join(tmpdir(), "commands-content-"))
+    const page = { families: [{ rows: [{ cli: { names: "spell compile" } }] }] }
+    write(content, "guides/dev/commands/commands.json5", page)
+    vi.stubEnv("SPELL_SHARED_DIR", content)
+    try {
+      expect((await listed()).commands.find((it) => it.name === "spell compile")?.named).toBe(true)
+    } finally {
+      vi.unstubAllEnvs()
+      rmSync(content, { recursive: true, force: true })
+    }
   })
 })
 

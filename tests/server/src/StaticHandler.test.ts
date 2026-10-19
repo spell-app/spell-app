@@ -135,4 +135,30 @@ describe("StaticHandler layers", () => {
       return resolved && "file" in resolved ? resolved.file : resolved
     }
   })
+
+  // epic `epic-eject` P12:  the content folder under every worktree's address, after the worktrees' own files
+  it("lays a catch-all (`skip`) under the others at its prefix, whenever mounted:  any first folder, dropped", () => {
+    const dir = mkdtempSync(join(tmpdir(), "srv-skip-"))
+    for (const [folder, file] of [
+      ["worktrees/w/epics", "own.html"],
+      ["content/epics", "own.html"],
+      ["content/epics", "shared.html"]
+    ] as const) {
+      mkdirSync(join(dir, folder), { recursive: true })
+      writeFileSync(join(dir, folder, file), folder)
+    }
+    // the catch-all first:  still laid under
+    const files = new SRV.StaticHandler({ mounts: [{ prefix: "/worktrees/", dir: join(dir, "content"), skip: 1 }] })
+    files.mount({ prefix: "/worktrees/", dir: join(dir, "worktrees") })
+    const fileOf = (path: string) => {
+      const resolved = files.resolve(path)
+      return resolved && "file" in resolved ? resolved.file : resolved
+    }
+    expect(fileOf("/worktrees/w/epics/own.html")).toBe(join(dir, "worktrees", "w", "epics", "own.html"))
+    expect(fileOf("/worktrees/w/epics/shared.html")).toBe(join(dir, "content", "epics", "shared.html"))
+    expect(fileOf("/worktrees/any/epics/shared.html")).toBe(join(dir, "content", "epics", "shared.html"))
+    expect(fileOf("/worktrees/w/epics")).toHaveProperty("redirect")
+    expect(fileOf("/worktrees/w/missing.html")).toMatchObject({ status: 404 })
+    rmSync(dir, { recursive: true, force: true })
+  })
 })

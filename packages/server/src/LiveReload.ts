@@ -80,18 +80,24 @@ export class LiveReload {
    *   (a folder laid over another, `StaticHandler.overlays`)
    *   - its changes are reported there, e.g. `/components/ui/_assets/` for `packages/ui/site/_assets/`,
    *     so a page loading `/components/ui/_assets/site.js` sees its script change
+   *   - or a function of the URL paths it's served at NOW, each change reported at every one:
+   *     e.g. the page server's content folder, at `/` and under every worktree's address (`PageServer.serveContent()`)
    * - a missing folder is skipped
    * - SIDE EFFECT:  an `fs.watch` per call, closed by `close()`
    */
-  watch(dir: string, { ignore, servedAt }: { ignore?: RegExp; servedAt?: string } = {}): this {
+  watch(dir: string, { ignore, servedAt }: { ignore?: RegExp; servedAt?: string | (() => string[]) } = {}): this {
     const folder = resolve(dir)
-    const at = servedAt?.replace(/\/?$/, "/")
+    const places = (): (string | undefined)[] =>
+      servedAt === undefined
+        ? [undefined]
+        : (typeof servedAt === "string" ? [servedAt] : servedAt()).map((at) => at.replace(/\/?$/, "/"))
     try {
       const watcher = watch(folder, { recursive: true }, (_event, name) => {
         if (!name) return
         const inside = name.split(sep).join("/")
         if (IGNORED.test(inside) || ignore?.test(inside)) return
-        this.changed(join(folder, name), at && `${at}${inside.split("/").map(encodeURIComponent).join("/")}`)
+        const path = inside.split("/").map(encodeURIComponent).join("/")
+        for (const at of places()) this.changed(join(folder, name), at && `${at}${path}`)
       })
       watcher.on("error", () => {})
       this.watchers.push(watcher)

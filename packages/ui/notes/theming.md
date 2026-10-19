@@ -482,7 +482,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
 
 ### Our own theme:  `spell`
 
-[`spell.css`](../src/styles/themes/spell.css) is the Spell brand as a theme ([the brand's design system](../../../brand/spell-design-system/)).
+[`spell.css`](../src/styles/themes/spell.css) is the Spell brand as a theme ([the brand's design system](../../../../spell-app.epics/brand/spell-design-system/)).
 - It's the DEFAULT look of Spell UI's docs site (`ThemePreference`), until the viewer picks another.
 - The docs pages wore it too (`spell-ui.entry.js`),
   until epic `design-system` moved them to `spell-brand` (below).
@@ -532,7 +532,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
 ### Our own theme:  `spell-brand`
 
 [`spell-brand.css`](../src/styles/themes/spell-brand.css) is `spell` as Claude Design's brand pages draw it, converging on them
-(epic `design-system`, [its epic page](../../../epics/design-system/design-system.plan.html)).
+(epic `design-system`, [its epic page](../../../../spell-app.epics/epics/design-system/design-system.plan.html)).
 - Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift.
   - Whether it replaces `spell` is a later call.
 - Also in `UI.themes.own`, and in the docs' theme picker as "Spell Brand", second.

@@ -8,7 +8,8 @@
 //   new worktrees beside the repo, their session folders linked, their packages installed first.
 {
   // The shared content repo:  epics, guides, sagas, pages, brand, the logs (not the templates:  spell-epic's).
-  // - Every checkout links its folders in (`epic shared link`).
+  // - Found here, by its own path:  the page server serves it at `/` after the checkout (epic `epic-eject` P12),
+  //   and the tools read it from here, with no link at the checkout's root.
   // - Each turn's end commits it.
   // - Renamed from spell-app-dev by `epic shared rename spell-app.epics`, which left a spell-app-dev link behind.
   "contentFolder": "../spell-app.epics",
@@ -44,7 +45,9 @@
   "linkSessionFolders": true,
 
   // The content folder's folders every checkout links in at its root (`epic shared link`).
-  "sharedFolders": ["epics", "guides", "pages", "brand", "ui", "goals", "sagas", "agents"],
+  // - Only the logs and WWOD, `agents`, since epic `epic-eject` P12:  the instructions name `agents/...` from the checkout.
+  // - The rest (epics, guides, pages, brand, ui, goals, sagas) are found in the content folder itself.
+  "sharedFolders": ["agents"],
 
   // The epic engine:  the spell-epic checkout, which every checkout links in at its root as `spell-epic`
   // (`epic shared link`, and the worktree hook through it;  only where `.gitignore` ignores `spell-epic`).

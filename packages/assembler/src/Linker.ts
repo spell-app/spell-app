@@ -1,10 +1,12 @@
 import { spawnSync } from "node:child_process"
-import { existsSync, readdirSync, statSync } from "node:fs"
+import { existsSync, lstatSync, readdirSync, statSync } from "node:fs"
 import { join, relative, resolve as resolvePath } from "node:path"
 
 import { parseHTML } from "linkedom"
 
 import type { AS } from "$/assembler"
+
+import { contentFolderOf } from "./contentFolder"
 
 /**
  * Links source references in a page of the spell-app checkout at `root`:
@@ -31,6 +33,11 @@ import type { AS } from "$/assembler"
  *   - E.g. a component set:  `packages/ui/docs/` at `/components/ui/`.
  *   - Its pages' links are written as from that address, so they hold under `/worktrees/<w>/` too.
  *   - Give such a page `servedDir()` of its folder as its `pageDir`:  links then resolve, and are written, from there.
+ * - The SHARED CONTENT folder (`content`, epic `epic-eject` P12):  laid under the checkout, as the page server serves it.
+ *   - Its folders the checkout doesn't have (`epics/`, `guides/`, `pages/` ...) are served folders too:
+ *     `<root>/epics/` is `<content>/epics/`, with no link at the checkout's root.
+ *   - So a page there links `../../packages/...` as before, and a link into it is "inside the repo".
+ *   - A page's folder is taken from where it's served, whichever way it's given (`link()`, `check()`).
  * - From the docs tools' `doc-links.js` (epic `epic-components`, P7;  spell-epic's `src/tools/` now), which runs its
  *   command line on this.
  */
@@ -56,8 +63,15 @@ export class Linker {
   /**
    * the served folders, absolute, each `[address folder, the folder it serves]`
    * - e.g. `[<root>/components/ui, <root>/packages/ui/docs]`
+   * - and the content folder's, e.g. `[<root>/epics, <content>/epics]`
    */
   readonly served: readonly (readonly [string, string])[]
+
+  /** the shared content folder, laid under the checkout;  `undefined` when the repo names none */
+  readonly content?: string
+
+  /** the content folder's served folders alone (`served`'s last), each `[<root>/<name>, <content>/<name>]` */
+  private contentAreas: readonly (readonly [string, string])[]
 
   /** basename -> paths under `indexRoots`, built on first use (`fileIndex`) */
   private index?: Map<string, string[]>
@@ -66,10 +80,24 @@ export class Linker {
    * - `served`:  the address folder => the folder it serves, both relative to `root`,
    *   e.g. `{ "components/ui": "packages/ui/docs" }`
    *   (`COMPONENT_SETS` in `$/server/page`, which this package can't import)
+   * - `content`:  the shared content folder, absolute;  default the repo's (`contentFolderOf()`)
    */
-  constructor(root: string, { served = {} }: { served?: Readonly<Record<string, string>> } = {}) {
+  constructor(
+    root: string,
+    {
+      served = {},
+      content = contentFolderOf(root)
+    }: { served?: Readonly<Record<string, string>>; content?: string } = {}
+  ) {
     this.root = root
-    this.served = Object.entries(served).map(([address, dir]) => [join(root, address), join(root, dir)] as const)
+    this.content = content
+    this.contentAreas = content
+      ? contentAreasOf(root, content).map((name) => [join(root, name), join(content, name)] as const)
+      : []
+    this.served = [
+      ...Object.entries(served).map(([address, dir]) => [join(root, address), join(root, dir)] as const),
+      ...this.contentAreas
+    ]
     this.packages = join(root, "packages")
     this.ui = join(this.packages, "ui")
     this.home = join(root, "pages")
@@ -90,7 +118,8 @@ export class Linker {
    * `text` (a page in `pageDir`) with its code spans linked and every link given a target.
    * - idempotent:  a second run changes nothing
    */
-  link(text: string, pageDir: string): AS.LinkResult {
+  link(text: string, _pageDir: string): AS.LinkResult {
+    const pageDir = this.servedDir(_pageDir)
     const spans = PROTECTED.flatMap((pattern) =>
       Array.from(text.matchAll(pattern), (m) => [m.index, m.index + m[0].length])
     )
@@ -132,7 +161,7 @@ export class Linker {
    */
   targetFor(dest: string): string {
     if (URL_START.test(dest)) return `ext-${slug(dest.replace(/^https?:\/\/(www\.)?/, "")).slice(0, 80)}`
-    const rel = relative(this.root, dest)
+    const rel = relative(this.root, this.inCheckout(dest))
     const plan = PLAN_DOC.exec(rel)
     if (plan) return plan[1]
     return `src-${slug(rel).slice(0, 80)}`
@@ -147,7 +176,7 @@ export class Linker {
     if (href.startsWith("#") || SAGA_ADDRESS.test(href)) return tag
     const dest = URL_START.test(href) ? href : this.real(resolvePath(pageDir, href.split("#")[0]))
     if (tag.includes("target=")) {
-      if (URL_START.test(dest) || !PLAN_DOC.test(relative(this.root, dest))) return tag
+      if (URL_START.test(dest) || !PLAN_DOC.test(relative(this.root, this.inCheckout(dest)))) return tag
       return tag.replace(/target="[^"]*"/g, () => `target="${this.targetFor(dest)}"`)
     }
     return `${tag.slice(0, -1)} target="${this.targetFor(dest)}">`
@@ -159,8 +188,8 @@ export class Linker {
 
   /**
    * The folder a page in `dir` is SERVED from:  in a served folder, its place under the address folder
-   * (`<root>/packages/ui/docs` => `<root>/components/ui`);  else `dir`.
-   * - What to pass `link()` / `check()` as a page's folder.
+   * (`<root>/packages/ui/docs` => `<root>/components/ui`, `<content>/epics/x` => `<root>/epics/x`);  else `dir`.
+   * - What `link()` / `check()` take a page's folder as:  they ask it themselves, so either may be given.
    */
   servedDir(dir: string): string {
     return this.swap(resolvePath(dir), 1, 0)
@@ -176,9 +205,18 @@ export class Linker {
     return this.swap(path, 1, 0)
   }
 
-  /** `path` with the first served pair's side `from` at its start swapped for side `to`;  else `path`. */
-  private swap(path: string, from: 0 | 1, to: 0 | 1): string {
-    for (const pair of this.served) {
+  /**
+   * `path`, a file, as the checkout's:  a content folder's file at its place in the checkout
+   * (`<content>/epics/x` => `<root>/epics/x`);  any other file as it is
+   * - so its target is the one it had through an old link
+   */
+  private inCheckout(path: string): string {
+    return this.swap(path, 1, 0, this.contentAreas)
+  }
+
+  /** `path` with the first of `pairs` whose side `from` starts it swapped for side `to`;  else `path`. */
+  private swap(path: string, from: 0 | 1, to: 0 | 1, pairs = this.served): string {
+    for (const pair of pairs) {
       if (path === pair[from]) return pair[to]
       if (path.startsWith(`${pair[from]}/`)) return pair[to] + path.slice(pair[from].length)
     }
@@ -237,7 +275,7 @@ export class Linker {
    *   - none in a repo without `packages/`:  a plain one, spell-epic's own (epic `epic-engine` I14)
    * - a plain repo's own `src/`, when it has one (spell-epic's:  `PlanDocFiles.ts`)
    * - the repo's `tests/`, where every package's tests live (`List.test.ts`)
-   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`)
+   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`), the content folder's when it has them
    * - the epic engine's code, its docs tools included:  spell-epic's `src/`, through the checkout's `spell-epic` link
    *   (epic `epic-eject` I5), when the checkout has it
    * - UI's design notes, `notes/`
@@ -248,7 +286,7 @@ export class Linker {
         .flatMap((name) => [join(this.packages, name, "src"), join(this.packages, name, "components")])
         .filter(isDir),
       ...[join(this.root, "src"), join(this.root, "tests")].filter(isDir),
-      ...AREAS.map((area) => join(this.root, area)),
+      ...AREAS.map((area) => this.real(join(this.root, area))),
       ...[join(this.root, "spell-epic", "src")].filter(isDir),
       join(this.ui, "notes")
     ]
@@ -277,7 +315,8 @@ export class Linker {
    *   - a destination with several targets, or a target shared by several destinations
    * - SIDE EFFECT:  runs `git check-ignore` once per missing local file
    */
-  check(text: string, pageDir: string): AS.LinkCheck {
+  check(text: string, _pageDir: string): AS.LinkCheck {
+    const pageDir = this.servedDir(_pageDir)
     const byDest = new Map<string, Set<string>>()
     const byTarget = new Map<string, Set<string>>()
     const body = text.replace(PRE, "")
@@ -318,14 +357,20 @@ export class Linker {
    * Whether version control ignores `path`:  a local-only or runtime file, fine to be missing here.
    * - e.g. `.spell-server.json`, a local clone in `packages/ui/reference/`
    * - a folder MUST keep its trailing `/`:  a missing path can't match a folder-only rule (`ongoing/`) without it
+   * - in the content folder:  ITS repo's rules (`pages/details/` ...), never the checkout's,
+   *   which ignores the old links' names
    */
   private isGitIgnored(path: string): boolean {
-    return spawnSync("git", ["-C", this.root, "check-ignore", "-q", path]).status === 0
+    const repo = this.content && isUnder(path, this.content) ? this.content : this.root
+    return spawnSync("git", ["-C", repo, "check-ignore", "-q", path]).status === 0
   }
 
-  /** Whether `path`, absolute and normalised, is the repo root or inside it. */
+  /**
+   * Whether `path`, absolute and normalised, is the repo root or inside it:
+   * a content folder's file counts, at its place in the checkout (`inCheckout()`)
+   */
   private isInside(path: string): boolean {
-    return path === this.root || path.startsWith(`${this.root}/`)
+    return isUnder(this.inCheckout(path), this.root)
   }
 }
 
@@ -333,7 +378,10 @@ export class Linker {
 // ## Constants
 ////////////////
 
-/** The shared content areas, folders at the checkout's root, whose pages the bare-name index walks. */
+/**
+ * The shared content areas, folders at the checkout's root (or the content folder's), whose pages the bare-name index
+ * walks.
+ */
 const AREAS = ["pages", "guides", "epics", "templates"]
 
 /** Folders the bare-name index never walks into (nor any `.folder`). */
@@ -453,6 +501,32 @@ function walk(dir: string, index: Map<string, string[]>): void {
       index.get(entry.name)!.push(path)
     }
   }
+}
+
+/** Whether `path`, absolute and normalised, is folder `dir` or inside it. */
+function isUnder(path: string, dir: string): boolean {
+  return path === dir || path.startsWith(`${dir}/`)
+}
+
+/**
+ * The content folder's folders laid under checkout `root` (`Linker.content`):  each one the checkout has no folder of
+ * its own by that name (none, or an old link to it), but dot folders;  none when `content` can't be read.
+ * - so the content repo's `packages/` (old-path links) never stands for the checkout's
+ */
+function contentAreasOf(root: string, content: string): string[] {
+  let entries
+  try {
+    entries = readdirSync(content, { withFileTypes: true })
+  } catch {
+    return []
+  }
+  return entries
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
+    .map((entry) => entry.name)
+    .filter((name) => {
+      const own = lstatSync(join(root, name), { throwIfNoEntry: false })
+      return !own || own.isSymbolicLink()
+    })
 }
 
 /** Whether `path` is a folder (following symlinks);  `false` when it doesn't exist. */

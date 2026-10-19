@@ -71,7 +71,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       and one copy of `$/server` must run.
       [devMain.test.ts](../../tests/cli/src/devMain.test.ts) checks it, import by import.
   - A new or renamed command:
-    FIRST [the commands guide](../../guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
+    FIRST [the commands guide](../../../spell-app.epics/guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
     - Suggest where it belongs.
     - Then add it to the commands page's `commands.json5`, and run `spell dev commands check`.
   - `spell dev commands` reads the TEXT of the command trees, for each `<receiver>.command(...)` call.

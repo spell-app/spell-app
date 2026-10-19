@@ -14,7 +14,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Spell's projects came in P15:  their groups and lists, their files on disk, and the built-in projects.
   - People came in P7-P9:  the people library, the storage adapter (P8) and the people store (P9), below.
   - The whole layout, on the epic's spaces page:
-    [its package section](../../epics/people-and-orgs/details/spaces-package.html).
+    [its package section](../../../spell-app.epics/epics/people-and-orgs/details/spaces-package.html).
 - Its folders:
   - [@spell/](@spell/):  the `@spell` space's built-in projects, committed (see "Projects" below)
     - `examples/`:  the `@spell/examples` group (solitaire, todos ...)
