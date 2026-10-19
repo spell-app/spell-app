@@ -131,6 +131,19 @@ describe("Linker.resolve()", () => {
     for (const text of ["/", "./", "..", "foo", "nope/missing.ts", "$/util/index.ts"])
       expect(LINKER.resolve(text)).toBe(undefined)
   })
+
+  test("in a plain repo with no `packages/` (spell-epic's, epic `epic-engine` I14):  its own `src/`, nothing thrown", () => {
+    const plain = mkdtempSync(join(tmpdir(), "linker-plain-"))
+    try {
+      mkdirSync(join(plain, "src", "tool"), { recursive: true })
+      writeFileSync(join(plain, "src", "tool", "PlanDocFiles.ts"), "export {}\n")
+      const linker = new AS.Linker(plain)
+      expect(linker.resolve("PlanDocFiles.ts")).toBe(join(plain, "src", "tool", "PlanDocFiles.ts"))
+      expect(linker.resolve("nowhere.ts")).toBe(undefined)
+    } finally {
+      rmSync(plain, { recursive: true, force: true })
+    }
+  })
 })
 
 describe("Linker.targetFor()", () => {
