@@ -186,6 +186,69 @@ describe("outline style", () => {
     })
   })
 
+  describe("re-opening a type (P11):  `a game:` adds to it", () => {
+    test("in the same file:  its bullets go into the one class", () => {
+      const sentences = [
+        "a game is an app",
+        "a card is a thing",
+        "a game has a score as a number",
+        "the state of a game is: its score * 2"
+      ]
+      const outline = [
+        "a game is an app",
+        "a card is a thing",
+        "a game:",
+        "\t- score is a number",
+        "\t- state is: its score * 2"
+      ]
+      expect(compile(outline)).toBe(compile(sentences))
+      expect(compile(["a game is an app", "a game where:", "\t- score is a number"])).toBe(
+        compile(sentences.slice(0, 3).filter((line) => !line.startsWith("a card")))
+      )
+    })
+
+    test("in a later file of the project, as a sentence there would", () => {
+      const reopened = parseSpellProject([
+        { path: "/Game.spell", contents: "a game is an app" },
+        { path: "/Score.spell", contents: "a game:\n\t- score is a number" }
+      ])
+      const sentence = parseSpellProject([
+        { path: "/Game.spell", contents: "a game is an app" },
+        { path: "/Score.spell", contents: "a game has a score as a number" }
+      ])
+      expect(reopened.files.flatMap(({ errors }) => errors)).toEqual([])
+      expect(withoutComments(reopened.files[1]!.compiled)).toBe(withoutComments(sentence.files[1]!.compiled))
+    })
+
+    test("a type nobody declares is an error saying how:  `a gmae:`", () => {
+      expect(errorsOf(["a game is an app", "a gmae:", "\t- score is a number"])).toEqual([
+        `2:0 There's no type "gmae":  declare it, e.g. "a gmae is a thing"`,
+        // its body isn't read:  nothing to add it to
+        `3:3 Don't understand "score is a number"`
+      ])
+    })
+
+    test("a type declared twice is an error on its second line, saying to re-open it (I13)", () => {
+      expect(errorsOf(["a game is an app", "a card is a thing", "a game is an app"])).toEqual([
+        `3:0 There's a game already, on line 1:  to add to it, write "a game:"`
+      ])
+    })
+
+    test("declared twice in two files:  the error names the first one's", () => {
+      const { files } = parseSpellProject([
+        { path: "/Game.spell", contents: "a game is an app" },
+        { path: "/More.spell", contents: "a game is an app" }
+      ])
+      expect(files[1]!.errors).toEqual([
+        `1:0 There's a game already, on line 1 of /Game.spell:  to add to it, write "a game:"`
+      ])
+    })
+
+    test("a lone `a game` is not an opener:  the colon stays", () => {
+      expect(errorsOf(["a game is an app", "a game"])).toEqual([`2:0 Don't understand "a game"`])
+    })
+  })
+
   describe('value kinds (P2):  `"suits" as one of ...` in a deck\'s body', () => {
     /** A card's suit is one of the deck's suits, read when set:  the deck's class may be defined after the card's. */
     const LAZY_SUITS = /static \{ this\.declareProp\("suit", \{ oneOf: \(\) => Deck\.Suits \}\) \}/
@@ -657,7 +720,12 @@ function compile(lines: string[]): string {
   const { files } = parseSpellProject([{ path: "/test.spell", contents: lines.join("\n") }])
   const [file] = files
   if (file!.errors.length) throw new Error(`parse errors:\n${JSON.stringify(file!.errors, null, 2)}`)
-  return file!.compiled
+  return withoutComments(file!.compiled)
+}
+
+/** `compiled` javascript without its comments and declarations, which name source lines and positions. */
+function withoutComments(compiled: string): string {
+  return compiled
     .replace(/\/\*! SPELL: DECLARES[^]*?\*\//g, "")
     .split("\n")
     .filter((line) => line.trim() && !line.trim().startsWith("//"))

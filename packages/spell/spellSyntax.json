@@ -2888,7 +2888,7 @@
           "ruleNames": [],
           "internal": true,
           "file": "packages/spell/src/rules/classes/TypeDeclaration.ts",
-          "line": 25,
+          "line": 26,
           "purpose": "A statement declaring a type -- which may take an OUTLINE body: `a card is a thing where:`, then indented lines all about cards, e.g. `- it has a deck` (epic page `outline-spell`).",
           "syntaxes": [],
           "aliases": ["statement"]
@@ -3988,6 +3988,20 @@
             }
           ],
           "aliases": []
+        },
+        {
+          "className": "ReopenType",
+          "ruleNames": ["reopen_type"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/ReopenType.ts",
+          "line": 26,
+          "purpose": "Adds to a type declared elsewhere, in the outline style -- `a game:`, then bullets about games (epic page `outline-spell`, P11).",
+          "syntaxes": [
+            {
+              "syntax": "(a|an) {type} {with_nested_statements}"
+            }
+          ],
+          "aliases": ["statement"]
         },
         {
           "className": "ValueKind",

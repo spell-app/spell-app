@@ -19,6 +19,7 @@ import { SpellType } from "$/spell/rules/types/SpellType"
  *   `a bank account aka account is a thing` -- `{type:type_words} (aka {aka:singular_type})?`.
  *   - Either name finds the type afterwards, e.g. `the accounts`, `a new bank account`.
  *   - A name some other type already goes by is refused -- see `refuseTakenNames()`.
+ *   - So is a type declared a second time (issue I13):  `a game:` adds to it -- see `reopen_type`.
  * - A DRAWABLE type (`a card is a drawable thing`, or a sub-type of one) defines its element as its class is declared,
  *   in a static field:  `static elementTag = core.defineElement(this, "Solitaire")` -- see `elementMember()`.
  */
@@ -49,6 +50,8 @@ export class TypeDeclaration<
    * `match`, or a parse error if one of its names is already some other type's:
    * - its name is another type's short name, e.g. `an account is a thing` after `a bank account aka account ...`
    * - its short name names another type, e.g. `a bank account aka card ...` when there's a card
+   * - it's declared already, by another line of the project (issue I13):  JavaScript won't load two classes of
+   *   one name, so the error says to add to it, `a game:` -- see `reopen_type`
    * - Call it WHILE PARSING:  it looks up scope.
    */
   refuseTakenNames(match: P.Match): P.Match {
@@ -62,6 +65,15 @@ export class TypeDeclaration<
     const akaNamed = aka && scope.types?.get(`${aka.value}`)
     if (akaNamed && akaNamed.name !== name) {
       return SpellStatement.refuse(match, `"${aka.raw}" already names a type:  ${wordsOf(akaNamed.name)}`)
+    }
+    if (named && TypeDeclaration.isDeclaredElsewhere(named, match)) {
+      // as the line says it, e.g. `an account`
+      const words = `${match.tokens[0]!.value} ${`${groups.type.raw}`.replace(/^["']|["']$/g, "")}`.toLowerCase()
+      return SpellStatement.refuse(
+        match,
+        `There's ${words} already, ${TypeDeclaration.whereDeclared(named.declaredBy!, match)}:  ` +
+          `to add to it, write "${words}:"`
+      )
     }
     return match
   }
@@ -116,6 +128,30 @@ export class TypeDeclaration<
   }
 
   /** `match`, with the groups every type declaration has:  TS can't see every subclass has them. */
+  /**
+   * Did ANOTHER line of the project declare `type`?
+   * - Not a stub (a mention, or the pre-pass's), an imported type, a built-in, or this line's own earlier parse.
+   */
+  private static isDeclaredElsewhere(type: P.TypeScope, match: P.Match): boolean {
+    if (type.stub || !type.declaredBy || type.parentScope instanceof P.ImportScope) return false
+    return !P.TypeScope.sameStatement(type.declaredBy, match)
+  }
+
+  /** Where `declaredBy` is, as seen from `match`:  `on line 3`, or `on line 3 of /Card.spell` in another file. */
+  private static whereDeclared(declaredBy: P.Match, match: P.Match): string {
+    const line = `on line ${declaredBy.line! + 1}`
+    const file = TypeDeclaration.fileOf(declaredBy.scope)
+    return file && file !== TypeDeclaration.fileOf(match.scope) ? `${line} of ${file.path}` : line
+  }
+
+  /** The file `scope` is in, if any. */
+  private static fileOf(scope: P.Scope | undefined): P.FileScope | undefined {
+    for (let current = scope; current; current = current.parentScope) {
+      if (current instanceof P.FileScope) return current
+    }
+    return undefined
+  }
+
   private static named(match: object) {
     return match as unknown as P.Match<{ type: P.Match; aka?: P.Match }>
   }

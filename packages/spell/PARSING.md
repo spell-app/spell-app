@@ -670,6 +670,12 @@ A kind that says so is saved in a file of its own.
     - Or nothing at all (P10):  the indented block under a type's heading is its body anyway
       (`TypeDeclaration.takesNestedBody()`), e.g. `a stock-pile is a pile`, then `- can give up a card if: ...`.
   - With nothing indented under it, the same syntax declares the type alone.
+- Re-opening a type (P11):  [`reopen_type`](src/rules/classes/ReopenType.ts), `a game:` + a body, adds to a type
+  declared elsewhere, in the same file or a later one.
+  - A `TypeDeclaration` with no class of its own:  its body's lines compile beside it, as the sentence style's would.
+  - The colon stays required (`where:`, `with:`, `:`, or `where`);  a type nobody declares is refused, saying how.
+  - A type declared a SECOND time is refused, naming the first and saying to write `a game:` (issue I13):
+    `TypeDeclaration.refuseTakenNames()`.
   - The body's scope is a [`P.SubjectScope`](../parser/src/scope/SubjectScope.ts):
     - it owns nothing, so what its lines declare lands where the same lines at the top level would
     - `subject` names the type
