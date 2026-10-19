@@ -16,8 +16,9 @@ import { PAGE_MAIN } from "./site.types"
  *   pointed at it, so it goes in already defined;  inside a View Transition where the browser has them.
  * - On `ui-insert` (any include, the footer too, before its markup goes in):  examples keep their authored markup
  *   (`ExampleSource.keep()`), and every relative URL left is made absolute, so it holds after the next swap.
- * - After a swap:  the title, the nav's `current`, live reload's file (`SPELL_SERVER.file`), inline scripts run
- *   again, then the hash (or the top, or the scroll kept for back / forward), and focus to `main`.
+ * - After a swap:  the title, the nav's `current`, live reload's file (`SPELL_SERVER.file`) and the file on disk
+ *   (`SPELL_SERVER.source`, the header's "open in VS Code"), inline scripts run again, then the hash (or the top,
+ *   or the scroll kept for back / forward), and focus to `main`.
  * - Anything that fails falls back to a full load of the URL.
  * - Plain DOM, no Solid.
  ****************/
@@ -42,6 +43,9 @@ export class SiteRouter {
 
   /** The first page's file, as the page server named it (`SPELL_SERVER.file`). */
   private readonly firstFile = SiteRouter.server()?.file
+
+  /** The first page's file on disk, as the page server named it (`SPELL_SERVER.source`):  `serverSource()`'s anchor. */
+  private readonly firstSource = SiteRouter.server()?.source
 
   constructor({ siteRoot, content }: SiteRouterProps) {
     this.siteRoot = siteRoot
@@ -241,6 +245,10 @@ export class SiteRouter {
     const server = SiteRouter.server()
     const file = this.serverFile(url)
     if (server && file) server.file = file
+    // and the file on disk, which the header's "open in VS Code" opens:  none known, the header falls back
+    const source = this.serverSource(url)
+    if (server && source) server.source = source
+    else if (server) delete server.source
     const main = this.main()
     if (main) SiteRouter.runScripts(main)
     this.followPage()
@@ -291,6 +299,18 @@ export class SiteRouter {
     return siteFolder + this.tail(url.pathname)
   }
 
+  /**
+   * The file on disk for `url`, from the first page's (`SPELL_SERVER.source`):  as `serverFile()`, decoded.
+   * - `undefined`:  the server named none, or the first page's file doesn't end in its URL's tail
+   */
+  private serverSource(url: URL): string | undefined {
+    if (!this.firstSource) return undefined
+    const tail = decodeURIComponent(this.tail(this.firstPage))
+    if (!this.firstSource.endsWith(tail)) return undefined
+    const siteFolder = this.firstSource.slice(0, this.firstSource.length - tail.length)
+    return siteFolder + decodeURIComponent(this.tail(url.pathname))
+  }
+
   /** `path` below the site root, a folder as its `index.html`:  `/components/ui/` => `index.html`. */
   private tail(path: string): string {
     const rest = path.slice(this.siteRoot.pathname.length)
@@ -298,8 +318,8 @@ export class SiteRouter {
   }
 
   /** What the page server injected (`window.SPELL_SERVER`);  live reload reads its `file`. */
-  private static server(): { file?: string } | undefined {
-    return (globalThis as { SPELL_SERVER?: { file?: string } }).SPELL_SERVER
+  private static server(): { file?: string; source?: string } | undefined {
+    return (globalThis as { SPELL_SERVER?: { file?: string; source?: string } }).SPELL_SERVER
   }
 
   /** Load the family defining `tag`, if any. */
