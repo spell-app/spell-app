@@ -143,6 +143,7 @@ export class WebServer {
       events: LIVE_EVENTS,
       run: this.live?.run,
       file,
+      source: served.file,
       ...this.configure?.(served)
     }
   }

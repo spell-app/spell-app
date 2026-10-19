@@ -44,6 +44,10 @@ import {
  *     (toggles `ui-light` / `ui-dark`, as Spell App's pill does) re-draws it too,
  *     through a `MutationObserver` on `<html>`'s class;  a click then flips from what the page shows
  * - Self-contained:  its own shadow DOM and CSS, no UI elements, so it looks the same on every property.
+ * - Tooltips:  the browser's own, a `title` on each link and button (the logo, the pencil, `<>`, the theme)
+ *   - its icon takes no pointer (`pointer-events: none`):  the pointer lands on the titled element ITSELF
+ *   - why:  VS Code's side bar (Electron 38 and up, on macOS) shows a `title` only on the element under the
+ *     pointer, not on its parent (electron/electron#49843;  epic `epic-engine` I43)
  * - `docked`:  a compact row in place, not a fixed bar, inside the page's own chrome
  *   (the Spell UI site's side column and top bar)
  *   - no light / dark button (the page has its own)
@@ -148,10 +152,18 @@ export class SiteHeader extends HTMLElement {
     return `${this.root}/${property.path}`
   }
 
-  /** absolute path of the page's source file, for VS Code;  `undefined` when unknown (a proxied page) */
+  /**
+   * Absolute path of the page's source file, for VS Code;  `undefined` when unknown (a proxied page).
+   * - served:  the file the server served (`SPELL_SERVER.source`), wherever it lives
+   *   - e.g. a guide, from the content folder:  `.../spell-app.epics/guides/x.html`
+   *   - epic `epic-engine` I42:  `root` + `file` gave `.../spell-app/guides/x.html`, which doesn't exist since the
+   *     guides moved to the content folder (epic `epic-eject` P12;  `file` is the page's path in it)
+   * - a server from before `source`:  `root` + `file`, right for the checkout's own pages
+   */
   get sourceFile(): string | undefined {
     if (location.protocol === "file:") return decodeURIComponent(location.pathname)
     const config = serverConfig()
+    if (config?.source) return config.source
     if (config?.root && config.file) return config.root + decodeURIComponent(config.file)
     return undefined
   }
@@ -418,6 +430,8 @@ nav { display: flex; gap: 2px; }
 }
 .tool:hover { background: light-dark(#f0eef8, #2c2a38); color: inherit; }
 .tool.on { background: light-dark(#e9e4ff, #33295e); color: light-dark(#3d2a9e, #d9d0ff); }
+/* the icons take no pointer:  it lands on the titled link or button, so Electron shows its tooltip (I43) */
+.brand svg, .tool svg { pointer-events: none; }
 .tool:focus-visible, .tab:focus-visible, .brand:focus-visible { outline: 2px solid light-dark(#5b3fd0, #b3a2ff); outline-offset: 2px; }
 /* docked:  a compact row in the page's own chrome */
 :host([docked]) header {

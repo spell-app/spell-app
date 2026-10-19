@@ -131,7 +131,8 @@ describe("PageServer", () => {
     const answer = await ask(port, "GET", "/docs/page.html")
     expect(answer.text).toContain(`<script src="/api/server/live.js" defer></script>`)
     const served = await config()
-    expect(served).toMatchObject({ port, file: "/docs/page.html", token: server.web.guard.token })
+    // `source`:  the file on disk, what the site header's "open in VS Code" opens (epic `epic-engine` I42)
+    expect(served).toMatchObject({ port, file: "/docs/page.html", source: page, token: server.web.guard.token })
     expect(served.etag).toBe(answer.headers.etag)
   })
 
@@ -326,18 +327,27 @@ describe("PageServer", () => {
       expect(() => served.serveContent(worktrees)).toThrow(/already serving/)
       expect(JSON.parse((await ask(at, "GET", "/api/server")).text)).toMatchObject({ contentFolder: content })
 
-      // its pages, told their path in it:  what the page editor saves and live reload reports
-      expect(await told("/epics/x/x.plan.html")).toMatchObject({ text: "plan", file: "/epics/x/x.plan.html" })
+      // its pages, told their path in it:  what the page editor saves and live reload reports;
+      // and the file itself, in the content folder, not the checkout (`source`, epic `epic-engine` I42)
+      expect(await told("/epics/x/x.plan.html")).toMatchObject({
+        text: "plan",
+        file: "/epics/x/x.plan.html",
+        source: plan
+      })
       // the checkout first
       expect((await told("/brand/index.html")).text).toBe("checkout brand")
       // under a worktree's address, after its own files, with ITS badge
       expect(await told("/worktrees/w/epics/x/x.plan.html")).toMatchObject({
         text: "plan",
         file: "/epics/x/x.plan.html",
+        source: plan,
         worktree: "w",
         worktrees: worktrees
       })
-      expect((await told("/worktrees/w/epics/own.html")).text).toBe("own")
+      expect(await told("/worktrees/w/epics/own.html")).toMatchObject({
+        text: "own",
+        source: join(worktrees, "w", "epics", "own.html")
+      })
       expect((await ask(at, "GET", "/worktrees/w/epics/missing.html")).status).toBe(404)
 
       // writes land in the content folder, and live pages hear of it at / and at the worktree's address

@@ -13,6 +13,10 @@
  *   means the server restarted, and the page reloads
  * - `file`:  URL path of the FILE served, e.g. `/guides/solid/index.html` for `/guides/solid/`
  * - `etag`:  the file's `ETag` when served, for `If-Match` on edits
+ * - `source`:  the served file's absolute path on disk, e.g. `/Users/x/spell-app.epics/guides/solid/index.html`
+ *   - what the site header's "open in VS Code" opens (`SiteHeader.sourceFile`)
+ *   - `root` + `file` isn't always it:  a content folder's page (`file` is from the content folder), a worktree's
+ *     on the main checkout's server, spell-epic's server's `/r/<repo>/...` (epic `epic-engine` I42)
  * - `root`:  absolute folder served
  * - `branch` / `worktree`:  of that checkout, when known
  * - `editPage`, `saveFile`, `readPage`, `takeScroll`:  added by `liveClient()`
@@ -28,6 +32,7 @@ export type ServerConfig = {
   events: string
   run?: string
   file: string
+  source?: string
   etag?: string
   root?: string
   branch?: string
