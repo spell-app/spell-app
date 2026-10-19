@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { dirname, join } from "path"
-import { afterAll, describe, expect, test } from "vite-plus/test"
+import { afterAll, describe, expect, test, vi } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 
@@ -57,6 +57,25 @@ describe("checkAgentRules()", () => {
       cite: '§2 › "Lax"',
       problem: "no such rule"
     })
+  })
+
+  // epic `epic-eject` P12:  no `guides` or `goals` link at the checkout's root
+  test("the shared content folder's citers, named by their path there", () => {
+    const content = realpathSync(mkdtempSync(join(tmpdir(), "agents-content-")))
+    mkdirSync(join(content, "guides", "solid"), { recursive: true })
+    writeFileSync(join(content, "guides", "solid", "solid-2.md"), "See WWOD §4.\n")
+    vi.stubEnv("SPELL_SHARED_DIR", content)
+    try {
+      expect(CLI.checkAgentRules(CHECKOUT).problems).toContainEqual({
+        file: "guides/solid/solid-2.md",
+        line: 1,
+        cite: "§4",
+        problem: "no such section"
+      })
+    } finally {
+      vi.unstubAllEnvs()
+      rmSync(content, { recursive: true, force: true })
+    }
   })
 
   test("lines:  one per problem, then the totals", () => {

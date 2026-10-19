@@ -394,19 +394,26 @@ ui -> util
 
 ### How they're linked
 
-- In EVERY checkout (main and each worktree) they're folder SYMLINKS into one shared content repo.
+- They're ONE shared content repo, the same for main and every worktree.
   - It's `../spell-app.epics`, beside the main checkout:  an ordinary git repo, local only.
   - Where it is:  `contentFolder`, in [the repo's epic settings](.epic/config.json5) (epic `epic-eject` P4).
     `epic config contentFolder` prints it.
   - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
+- Only `agents/` is linked in at every checkout's root, a folder SYMLINK (epic `epic-eject` P12):
+  the instructions name `agents/...` from the checkout.
   - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
+  - The rest (`epics`, `guides`, `pages`, `brand`, `ui`, `goals`, `sagas`) are found in the content folder itself:
+    - the page server serves it at `/`, after the checkout's own files (`serveContent()`,
+      [server's AGENTS.md](packages/server/AGENTS.md)), and under every worktree's address
+    - the tools read it from the epic settings (spell-epic's `EpicConfig`, `$/assembler`'s `contentFolderOf()`)
+    - a checkout cut before P12 still links them in, by its own manifest, until it merges `main`
 - Claude edits shared files at their REAL path, from main or any worktree.
   - That's `/Users/owen/www/spell-app/spell-app.epics/<path>`:  `$(epic config contentFolder)/<path>`.
   - E.g. `.../spell-app.epics/agents/PAPERCUTS.md`.
   - A worktree session's Edit / Write refuses a path through the links, before any hook could step in.
     It says "Edit the worktree copy of this file instead of the shared-checkout path":
     there is no worktree copy.
-  - Reading and tools (`epic`, the page server) use the links as usual.
+  - Reading goes through `agents/` as usual;  every other shared file by its real path.
 - The manifest has two parts:
   - the root `package.json`'s `"shared": { "links" }`
     (its old `"dir"` is the epic settings' `contentFolder` since epic `epic-eject` P4)

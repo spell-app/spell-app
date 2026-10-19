@@ -48,8 +48,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         - today:  `epics`, `guides`, `pages`, `brand`
           (not `templates` since epic `epic-eject` T11:  they're spell-epic's, at the engine route `/templates/`)
       - The page editor's writes are held to the same list (`FileOperations.writableFile()`).
-      - Those folders are links into the shared repo:
-        paths are resolved (`fileInside()`), never followed, so they stay "inside".
+      - Those folders are the shared content folder's, once the page server serves it (`FileOperations.content`,
+        `serveContent()`, below);  else the checkout's.
+        - In a checkout that still links them in:  paths are resolved (`fileInside()`), never followed,
+          so they stay "inside".
   - `LiveReload` + [liveClient.ts](src/liveClient.ts) -- live reload over a websocket, and the page-side client.
     - The client:  `/api/server/live.js` (`editPage()`).
     - Its websocket:  `/api/server/live`.
@@ -131,6 +133,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       The old paths answer "not found" (no redirects, Q30 of `people-and-orgs`).
     - It may use deps (`parse5`).
     - It serves the repo at `/`.
+      - And the SHARED CONTENT folder after it (`serveContent(dir)`, epic `epic-eject` P12):
+        epics, guides, pages, sagas, brand ... with no link at the checkout's root.
+        - The checkout first:  a path it has is its own (the brand pages load `../packages/brand/_assets/...`).
+        - Under every worktree's address too (`/worktrees/<w>/...`), after that worktree's own files:
+          a catch-all mount (`Mount.skip`).
+        - The running epics' route module calls it, in every checkout:
+          the folder is the repo's `.epic/config.json5`'s `contentFolder`, which this package can't read.
+          - `RouteContext.serveContent` is optional:  a server that serves the content itself (spell-epic's
+            `EpicServer`) has none.
+        - Live reload watches it whole, reporting each change at `/<path>` and under every worktree's address.
+        - A page from it is told its path there (`SPELL_SERVER.file`, `/epics/x/x.plan.html`).
+        - `/api/files` and `/api/pages` write in it:  the `"writable"` names are its folders.
+        - `/api/server` reports it (`contentFolder`);  `spell dev server url <file>` gives a file of it its path there
+          (`contentPathOf()`).
       - For the SHARED pages every checkout shows:
         - the engine's old folders still serve from spell-epic (`movedFolderPath()`), a safety net for a page that
           still links them (the shared pages load `/_epic/...` since `epic-eject` T13):

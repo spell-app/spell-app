@@ -60,6 +60,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - NEVER make it import spell-epic's code:  spell-epic imports this.
   - `DataFile` (`$/assembler/DataFile`):  the tooling's JSON5 data files, here since epic `epic-eject` I5, so the CLI
     reads the commands page's data without the engine.
+  - `contentFolderOf()` (`$/assembler/contentFolder`, epic `epic-eject` P12):  the repo's shared content folder,
+    `contentFolder` in the main checkout's `.epic/config.json5`, so a tool finds the content with no link at the
+    checkout's root.
+    - The `Linker` lays it under the checkout (`content`), and the CLI reads the commands page's data and the WWOD
+      check's shared citers from it.
+    - Opt-in by path, like `DataFile`:  the CLI's lean `spell dev` loads no linkedom.
 - It knows the checkout's LAYOUT as folder names, never as imports:  `Linker` takes the checkout's root.
   - The folder names:
     - `packages/*/src`, and `packages/*/components` (a component set's elements)
@@ -69,6 +75,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - `guides/`
       - `epics/`
       - `templates/`
+      - in the shared content folder (`contentFolderOf()`), laid under the checkout:
+        its folders the checkout has none of are found there (`Linker`'s `content`)
     - the epic engine's code, docs tools included:  spell-epic's `src/`, through the checkout's `spell-epic` link
 - Commands, the usual five (node tests):
 

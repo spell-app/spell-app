@@ -16,6 +16,9 @@ import { SRV } from "$/server"
  * - writes the ORIGINAL file in the checkout, and never commits:  that's for whoever reviews the change
  * - a section edit replaces only the element's exact byte range (parse5 source locations)
  *   - every other byte of the file stays as it was, so diffs show only the edit
+ * - which file a path names:  as the page server serves it
+ *   - reading:  the checkout's, else the content folder's (`SRV.FileOperations.content`, `PageServer.serveContent()`)
+ *   - writing:  the content folder's, once there is one, else the checkout's (`SRV.FileOperations.writableRoot`)
  * - safety:
  *   - writes need the `Guard` token and same origin
  *   - under the root only, through `resolveInside()` (no dot files, no `..`)
@@ -44,12 +47,12 @@ export class PageEditor {
   /** folder pages live under */
   readonly root: string
 
-  /** what decides which files it may write:  the same `writable` list as `/api/files` */
+  /** what decides which files it may write, and where:  the same `writable` list as `/api/files` */
   private files: SRV.FileOperations
 
-  constructor({ root, writable = [] }: PageEditorProps) {
+  constructor({ root, writable = [], files }: PageEditorProps) {
     this.root = root
-    this.files = new SRV.FileOperations({ root, writable })
+    this.files = files ?? new SRV.FileOperations({ root, writable })
   }
 
   /** add the `/api/pages` routes to `router`, guarded by `guard`;  bodies up to 10mb */
@@ -62,7 +65,7 @@ export class PageEditor {
 
   /** answer `GET`:  `{ path, etag, html }` */
   private async read(request: SRV.Request, reply: SRV.Reply): Promise<void> {
-    const { path, file } = this.pageFile(request, PageEditor.TEXT_FILE)
+    const { path, file } = this.pageFile(request, PageEditor.TEXT_FILE, "read")
     const source = await readFile(file, "utf8")
     const etag = SRV.StaticHandler.etagOf(await stat(file))
     const id = one(request.query.id)
@@ -73,7 +76,7 @@ export class PageEditor {
 
   /** answer `PUT` / `PATCH`:  `{ path, etag }`, the file's new `ETag` */
   private async write(request: SRV.Request, reply: SRV.Reply, how: "put" | "patch"): Promise<void> {
-    const { path, file } = this.pageFile(request, how === "put" ? PageEditor.TEXT_FILE : PageEditor.PAGE_FILE)
+    const { path, file } = this.pageFile(request, how === "put" ? PageEditor.TEXT_FILE : PageEditor.PAGE_FILE, "write")
     // 403 outside the `writable` folders, as `/api/files`
     this.files.writableFile(path)
     const expected = request.get("if-match")
@@ -98,12 +101,22 @@ export class PageEditor {
     reply.set("Cache-Control", "no-store").json({ path, etag })
   }
 
-  /** the file a request names in `?path=`:  one under the root that `allowed` matches, or an `HttpError` */
-  private pageFile(request: SRV.Request, allowed: RegExp): { path: string; file: string } {
+  /**
+   * The file a request names in `?path=`:  one that `allowed` matches, or an `HttpError`.
+   * - to `read`:  the checkout's, else the content folder's, as the page server serves them
+   * - to `write`:  in the folder the `writable` folders are in (`SRV.FileOperations.writableRoot`)
+   */
+  private pageFile(request: SRV.Request, allowed: RegExp, to: "read" | "write"): { path: string; file: string } {
     const asked = one(request.query.path)
     if (!asked) throw new SRV.HttpError(400, "?path= required, e.g. /pages/index.html")
     const path = asked.startsWith("/") ? asked : `/${asked}`
-    const resolved = SRV.resolveInside(this.root, path, { index: false })
+    const { content, writableRoot } = this.files
+    const roots = to === "write" ? [writableRoot] : [this.root, ...(content ? [content] : [])]
+    let resolved!: SRV.Resolved
+    for (const root of roots) {
+      resolved = SRV.resolveInside(root, path, { index: false })
+      if (!("status" in resolved) || resolved.status !== 404) break
+    }
     if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
     if ("redirect" in resolved || !allowed.test(resolved.file))
       throw new SRV.HttpError(
@@ -119,8 +132,10 @@ export class PageEditor {
  * - `root`:  folder pages live under (the checkout)
  * - `writable`:  folders, relative to `root`, whose files it may write
  *   (the root `package.json`'s `"pageServer"` `"writable"`);  none by default:  it reads, and writes nothing
+ * - `files`:  the `/api/files` it writes beside, instead of `writable`:  the page server's, which learns the content
+ *   folder later (`PageServer.serveContent()`)
  */
-export type PageEditorProps = { root: string; writable?: string[] }
+export type PageEditorProps = { root: string; writable?: string[]; files?: SRV.FileOperations }
 
 /**
  * Where one element sits in a page's source:  character offsets.

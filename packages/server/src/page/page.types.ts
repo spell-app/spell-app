@@ -24,6 +24,13 @@ export type RouteModule = {
  * - `info`:  pid, port, root, branch ...
  * - `serveWorktrees`:  serve the worktrees in each of folders `dirs` at `/worktrees/<w>/`, the first that has `<w>`
  *   serving it (`PageServer.serveWorktrees()`)
+ * - `serveContent`:  serve the shared content folder `dir` at `/`, after the checkout's own files,
+ *   and under every worktree's address;  live-reload it;  write the `writable` folders in it
+ *   (`PageServer.serveContent()`, epic `epic-eject` P12)
+ *   - so `/epics/...`, `/guides/...` ... need no link at the checkout's root
+ *   - epics' running-epics route module calls it, with the repo's `.epic/config.json5`'s `contentFolder`
+ *   - optional:  a server serving the content folder by itself has none (spell-epic's `EpicServer`),
+ *     so call it as `serveContent?.(dir)`
  * - `addPageConfig`:  more fields for every page's `window.SPELL_SERVER` (`PageServer.addPageConfig()`)
  * - `onListening`:  run `start` once the server listens -- `info.port` is set by then
  *   - e.g. to start a child process that needs the page server's port (`setup()` runs BEFORE it listens)
@@ -37,6 +44,7 @@ export type RouteContext = {
   web: SRV.WebServer
   info: ServerInfo
   serveWorktrees: (...dirs: string[]) => void
+  serveContent?: (dir: string) => void
   addPageConfig: (add: PageConfig) => void
   onListening: (start: () => unknown) => void
   onStop: (stop: () => unknown) => void
@@ -49,13 +57,20 @@ export type PageConfig = (served: ServedFile) => Record<string, unknown>
 export type PageServerSettings = {
   /** route modules, paths relative to the repo root */
   routes?: string[]
-  /** folders to live-reload, relative to the root (default:  the docs pages and their bundle, `DEFAULT_WATCH`) */
+  /**
+   * folders to live-reload, relative to the root (default:  the docs pages and their bundle, `DEFAULT_WATCH`)
+   * - one the checkout doesn't have is skipped
+   * - the shared content folders (`epics`, `guides` ...):  the content folder's, which the server watches whole once
+   *   a route module serves it (`PageServer.serveContent()`);  named for a checkout that still links them in
+   */
   watch?: string[]
   /**
-   * folders, relative to the root, whose files and folders `/api/files` may change (`SRV.FileOperations`),
+   * folders whose files and folders `/api/files` may change (`SRV.FileOperations`),
    * and `/api/pages` may write (`PageEditor`);  none by default
    * - the shared content folders:  each turn's commit of the shared repo makes a mistake undoable
-   * - links into another repo, and still "inside":  paths are resolved, never followed (`SRV.fileInside()`)
+   * - relative to the content folder once a route module serves one (`PageServer.serveContent()`), else to the root
+   *   (a checkout that still links them in:  links into another repo, and still "inside":
+   *   paths are resolved, never followed, `SRV.fileInside()`)
    */
   writable?: string[]
   /**

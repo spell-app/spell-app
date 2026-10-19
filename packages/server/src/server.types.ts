@@ -56,12 +56,17 @@ export type ServedFile = {
  * - `prefix`:  e.g. `/element/`;  `/` serves the folder at the root
  * - `dotFiles`:  serve names starting with `.` (default:  403)
  * - `index`:  file a folder resolves to (default `index.html`);  `false`:  folders 404
+ * - `skip`:  how many folders of the path after `prefix` to drop before looking in `dir` (default 0)
+ *   - e.g. `{ prefix: "/worktrees/", dir: content, skip: 1 }`:  `/worktrees/<w>/epics/x.html` is `<content>/epics/x.html`,
+ *     for EVERY `<w>` (the page server's content folder, `PageServer.serveContent()`)
+ *   - a catch-all:  at one prefix, it comes after the folders that look the path up as it is (`StaticHandler`)
  */
 export type Mount = {
   prefix: string
   dir: string
   dotFiles?: boolean
   index?: string | false
+  skip?: number
 }
 
 ////////////////
@@ -93,6 +98,11 @@ export type ServerInfo = {
    * (epic `epic-eject` J28);  a `<w>` in two is served from the first
    */
   worktreesFolders?: string[]
+  /**
+   * the shared content folder it serves at `/`, after the checkout's own files, once a route module has said where it
+   * is (`PageServer.serveContent()`, epic `epic-eject` P12):  epics, guides, pages, sagas, brand ...
+   */
+  contentFolder?: string
 }
 
 ////////////////

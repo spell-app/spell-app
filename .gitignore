@@ -38,9 +38,17 @@ PARKED-*.md
 /packages/brand/docs/**/*.inbox.json*
 
 # `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json5`):  ignored by the shared
-# content repo's own `.gitignore` (`../spell-app-dev`);  here the whole folders are ignored (`# shared:` block below)
+# content repo's own `.gitignore` (`../spell-app.epics`);  here the whole folders are ignored (below)
 
-# shared:start  (epics shared-content, claude-design P4 / P6:  links into ../spell-app-dev, the shared content repo;  never tracked)
+# shared:start  (epics shared-content, claude-design P4 / P6:  links into ../spell-app.epics, the shared content repo;  never tracked)
+/agents
+# the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)
+/packages/docs/content
+# shared:end
+
+# the shared content folders a checkout linked in at its root until epic epic-eject P12:  the page server and the tools
+# find them in the content folder itself now (`contentFolder` in .epic/config.json5), and `epic shared link` removes the
+# links;  ignored still, for a link left behind
 /epics
 /guides
 /pages
@@ -48,10 +56,6 @@ PARKED-*.md
 /ui
 /goals
 /sagas
-/agents
-# the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)
-/packages/docs/content
-# shared:end
 
 # the epic engine:  a link to the spell-epic checkout (`engineFolder` in .epic/config.json5, made by `epic shared link`;
 # epic epic-eject I5):  the `$/epics` aliases and the page server's epic route modules go through it

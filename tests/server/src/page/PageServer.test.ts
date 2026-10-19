@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
@@ -283,6 +283,88 @@ describe("PageServer", () => {
     } finally {
       await several.stop()
       for (const dir of [main, beside]) rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  // epic `epic-eject` P12:  the shared content with no link at the checkout's root
+  it("serves the content folder at / after the checkout, and under every worktree's address (serveContent())", async () => {
+    // a checkout of its own, with no links:  its content folder and worktrees beside it
+    const main = mkdtempSync(join(tmpdir(), "srv-content-"))
+    const content = `${main}.epics`
+    const worktrees = `${main}.worktrees`
+    const put = (file: string, text: string) => {
+      mkdirSync(dirname(file), { recursive: true })
+      writeFileSync(file, text)
+    }
+    const plan = join(content, "epics", "x", "x.plan.html")
+    put(plan, "<!doctype html><head></head><p id=p>plan</p>\n")
+    put(join(content, "brand", "index.html"), "<!doctype html><head></head><p>content brand</p>\n")
+    put(join(main, "brand", "index.html"), "<!doctype html><head></head><p>checkout brand</p>\n")
+    put(join(main, "other", "page.html"), "<!doctype html><head></head><p>other</p>\n")
+    put(join(worktrees, "w", "epics", "own.html"), "<!doctype html><head></head><p>own</p>\n")
+    put(join(main, "package.json"), JSON.stringify({ pageServer: { writable: ["epics", "guides"] } }))
+    const served = await new PageServer({ root: main }).start({
+      port: 0,
+      routes: false,
+      pidFile: false,
+      bundles: false
+    })
+    try {
+      const at = served.info.port
+      const told = async (path: string) => {
+        const answer = await ask(at, "GET", path)
+        expect(answer.status, path).toBe(200)
+        const config = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(answer.text)![1]!) as SRV.ServerConfig
+        return { text: /<p[^>]*>(.*?)<\/p>/.exec(answer.text)?.[1], ...config }
+      }
+      expect((await ask(at, "GET", "/epics/x/x.plan.html")).status).toBe(404)
+      // the content folder first, then the worktrees:  either order;  a second call with it changes nothing
+      const context = served.routeContext()
+      context.serveContent!(content)
+      context.serveContent!(content)
+      served.serveWorktrees(worktrees)
+      expect(() => served.serveContent(worktrees)).toThrow(/already serving/)
+      expect(JSON.parse((await ask(at, "GET", "/api/server")).text)).toMatchObject({ contentFolder: content })
+
+      // its pages, told their path in it:  what the page editor saves and live reload reports
+      expect(await told("/epics/x/x.plan.html")).toMatchObject({ text: "plan", file: "/epics/x/x.plan.html" })
+      // the checkout first
+      expect((await told("/brand/index.html")).text).toBe("checkout brand")
+      // under a worktree's address, after its own files, with ITS badge
+      expect(await told("/worktrees/w/epics/x/x.plan.html")).toMatchObject({
+        text: "plan",
+        file: "/epics/x/x.plan.html",
+        worktree: "w",
+        worktrees: worktrees
+      })
+      expect((await told("/worktrees/w/epics/own.html")).text).toBe("own")
+      expect((await ask(at, "GET", "/worktrees/w/epics/missing.html")).status).toBe(404)
+
+      // writes land in the content folder, and live pages hear of it at / and at the worktree's address
+      const events = await listen(at)
+      const changed = events.next("change", "/epics/x/x.plan.html")
+      const inWorktree = events.next("change", `${urlPathOf(main, worktrees)}w/epics/x/x.plan.html`)
+      await new Promise((done) => setTimeout(done, 100))
+      const { etag } = await told("/epics/x/x.plan.html")
+      const headers = { "content-type": "application/json", "x-server-token": served.web.guard.token }
+      const patch = await ask(at, "PATCH", "/api/pages?path=/epics/x/x.plan.html", {
+        headers: { ...headers, "if-match": etag! },
+        body: JSON.stringify({ id: "p", html: "edited", inner: true })
+      })
+      expect(patch.status).toBe(200)
+      expect(readFileSync(plan, "utf8")).toContain("<p id=p>edited</p>")
+      expect(await changed).toEqual({ path: "/epics/x/x.plan.html" })
+      expect(await inWorktree).toEqual({ path: `${urlPathOf(main, worktrees)}w/epics/x/x.plan.html` })
+      events.close()
+      const text = { ...headers, "content-type": "text/plain" }
+      const saved = await ask(at, "PUT", "/api/files?path=/guides/new/notes.md", { headers: text, body: "# New\n" })
+      expect(saved.status).toBe(200)
+      expect(readFileSync(join(content, "guides", "new", "notes.md"), "utf8")).toBe("# New\n")
+      expect(existsSync(join(main, "guides"))).toBe(false)
+      expect((await ask(at, "PUT", "/api/files?path=/other/x.md", { headers: text, body: "x" })).status).toBe(403)
+    } finally {
+      await served.stop()
+      for (const dir of [main, content, worktrees]) rmSync(dir, { recursive: true, force: true })
     }
   })
 

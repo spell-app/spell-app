@@ -1,9 +1,9 @@
 import { spawnSync } from "node:child_process"
-import { existsSync, statSync } from "node:fs"
+import { existsSync, readdirSync, statSync } from "node:fs"
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
-import { SRV, type ServerInfo } from "$/server"
+import { SRV, type ServedFile, type ServerInfo } from "$/server"
 import {
   BundleBuild,
   COMPONENT_SETS,
@@ -24,11 +24,17 @@ import {
  *     `/api/server/live` and `/api/server/live.js`, live reload (`SRV.WebServer`)
  *   - `/api/files` -> `SRV.FileOperations`:  files and folders saved, made, moved, copied and deleted
  *   - `/api/pages` -> `PageEditor`:  a page's source, saving it, saving one section
- *   - both write only inside the root `package.json`'s `"pageServer"` `"writable"` folders (the shared content ones)
+ *   - both write only inside the root `package.json`'s `"pageServer"` `"writable"` folders (the shared content ones):
+ *     the content folder's, once it's served (`serveContent()`)
  *   - the rest come from route modules:
  *     - epics':  `/api/epics/...` and `/api/docs/...`
  *     - spaces':  `/api/projects/...` and `/api/spaces/...`
  * - `/` -> the home page (`pages/index.html`)
+ * - `/<x>` -> the checkout's file `<x>`, else the shared content folder's (epic `epic-eject` P12)
+ *   - once a route module says where that folder is (`serveContent()`):  epics', from the repo's `.epic/config.json5`
+ *   - so `/epics/...`, `/guides/...`, `/pages/...`, `/sagas/...`, `/brand/...` need no link at the checkout's root
+ *   - the checkout first:  the brand pages load `../packages/brand/_assets/...`
+ *   - the same under `/worktrees/<w>/`, after the worktree's own files
  * - `/components/<set>/` -> the component sets' docs (`COMPONENT_SETS`):  Spell UI's, Epic UI's, App UI's, the brand's
  *   - each its package's `docs/` folder, with Spell UI's site bundle laid over it at `_assets/` (`componentSetPath()`)
  *   - live-reloading like every page;  the same at `/worktrees/<w>/components/<set>/`
@@ -85,6 +91,15 @@ export class PageServer {
   /** the folders `/worktrees/<w>/` serves, in order, once `serveWorktrees()` has said;  none before */
   private worktrees: string[] = []
 
+  /** the shared content folder served after the checkout, once `serveContent()` has said;  none before */
+  private content?: string
+
+  /** whether the content folder is mounted under every worktree's address yet (`mountContentInWorktrees()`) */
+  private contentInWorktrees = false
+
+  /** what `/api/files` and `/api/pages` write through:  told the content folder by `serveContent()` */
+  private writes: SRV.FileOperations
+
   constructor({ root, token }: { root: string; token?: string }) {
     this.root = resolve(root)
     this.pidFile = new SRV.PidFile(this.root)
@@ -108,7 +123,9 @@ export class PageServer {
         worktree: this.info.worktree,
         // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge;
         // and its worktrees' folder, with its URL path:  live reload reports its changes under it (`SRV.servedPath()`)
-        ...this.worktreesConfig(served.file),
+        ...this.worktreesConfig(served),
+        // a content folder's page:  its path there, what the page editor saves and live reload reports
+        ...this.contentFileConfig(served.file),
         edit: PageEditor.PREFIX,
         etag: SRV.StaticHandler.etagOf(statSync(served.file)),
         // e.g. Owen is offline, no Claude:  pages say "queued for when you land" (epics' airplane mode)
@@ -134,8 +151,9 @@ export class PageServer {
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams.
 
     // `/api/pages` and `/api/files`:  saving, making, moving and deleting files, only inside the `"writable"` folders
-    new PageEditor({ root: this.root, writable }).route(router, this.web.guard)
-    new SRV.FileOperations({ root: this.root, writable }).route(router, this.web.guard)
+    this.writes = new SRV.FileOperations({ root: this.root, writable })
+    new PageEditor({ root: this.root, files: this.writes }).route(router, this.web.guard)
+    this.writes.route(router, this.web.guard)
   }
 
   /**
@@ -224,20 +242,82 @@ export class PageServer {
     }
     this.info.worktrees = this.worktrees[0]
     this.info.worktreesFolders = [...this.worktrees]
+    this.mountContentInWorktrees()
     return this
   }
 
   /**
-   * What page `file`'s `window.SPELL_SERVER` says of the worktrees;  `{}` before `serveWorktrees()`.
-   * - `worktrees`:  the folder holding `file`'s worktree, else the first served;  `worktreesPath`:  its URL path
-   * - in a worktree:  its `branch` and `worktree` name too (`worktreeOf()`)
+   * Serve the shared content folder `dir` at `/`, after the checkout's own files;  returns `this`
+   * (epic `epic-eject` P12).
+   * - so `/epics/x/x.plan.html` is `<dir>/epics/x/x.plan.html`, with no `epics` link at the checkout's root
+   *   - the checkout FIRST:  a path it has is its own (the brand pages load `../packages/brand/_assets/...`)
+   * - called by epics' running-epics route module, in every checkout:
+   *   the folder is the repo's `.epic/config.json5`'s `contentFolder`, which this package can't read
+   * - under every worktree's address too, `/worktrees/<w>/...`, after that worktree's own files
+   *   (`Mount.skip`), once the worktrees are served (`serveWorktrees()`), in either order
+   * - live reload watches it whole (but `UNWATCHED`), reporting each change at `/<path>`,
+   *   and at `/worktrees/<w>/<path>`'s served path for every worktree (`contentAddresses()`)
+   * - a page from it is told its path there (`SPELL_SERVER.file`, `/epics/x/x.plan.html`):
+   *   what the page editor saves and live reload reports
+   * - `/api/files` and `/api/pages` write in it:  the `"writable"` folders are its folders (`SRV.FileOperations.content`)
+   * - `/api/server` reports it (`ServerInfo.contentFolder`)
+   * - called again with the same folder:  nothing;  with another:  throws a `TypeError` (one content folder a server)
+   * - works with old links at the checkout's root, or none:  a linked folder is the checkout's, the same files
    */
-  private worktreesConfig(
-    file: string
-  ): Partial<Record<"branch" | "worktree" | "worktrees" | "worktreesPath", string>> {
+  serveContent(dir: string): this {
+    const content = resolve(dir)
+    if (this.content === content) return this
+    if (this.content)
+      throw new TypeError(`PageServer.serveContent():  already serving ${this.content};  one content folder a server`)
+    this.content = content
+    this.web.files.mount({ prefix: "/", dir: content })
+    this.mountContentInWorktrees()
+    this.writes.content = content
+    this.info.contentFolder = content
+    this.web.live!.watch(content, { ignore: UNWATCHED, servedAt: () => this.contentAddresses() })
+    return this
+  }
+
+  /** the content folder under every worktree's address, once both are known:  after the worktrees' own files */
+  private mountContentInWorktrees(): void {
+    if (!this.content || !this.worktrees.length || this.contentInWorktrees) return
+    this.web.files.mount({ prefix: WORKTREES_PREFIX, dir: this.content, skip: 1 })
+    this.contentInWorktrees = true
+  }
+
+  /**
+   * The URL folders a content folder's change is reported at, as the live client reads them (`SRV.servedPath()`):
+   * `/`, and each worktree's, `<worktreesPath><w>/`, once worktrees are served
+   * - read at each change:  a worktree made since is reported too
+   */
+  private contentAddresses(): string[] {
+    const worktrees = this.worktrees.flatMap((folder) =>
+      subfolders(folder).map((name) => `${urlPathOf(this.root, folder)}${encodeURIComponent(name)}/`)
+    )
+    return ["/", ...worktrees]
+  }
+
+  /** A content folder's page's `SPELL_SERVER.file`:  its path from the content folder;  `{}` for any other file. */
+  private contentFileConfig(file: string): { file?: string } {
+    if (!this.content || !isInside(file, this.content)) return {}
+    return { file: `/${relative(this.content, file).split(sep).map(encodeURIComponent).join("/")}` }
+  }
+
+  /**
+   * What `served`'s page's `window.SPELL_SERVER` says of the worktrees;  `{}` before `serveWorktrees()`.
+   * - `worktrees`:  the folder holding the page's worktree, else the first served;  `worktreesPath`:  its URL path
+   * - in a worktree:  its `branch` and `worktree` name too (`worktreeOf()`)
+   *   - a content folder's page at `/worktrees/<w>/...`:  worktree `<w>`'s, as its address says
+   */
+  private worktreesConfig({
+    file,
+    path
+  }: ServedFile): Partial<Record<"branch" | "worktree" | "worktrees" | "worktreesPath", string>> {
     if (!this.worktrees.length) return {}
-    const folder = this.worktrees.find((each) => isInside(file, each)) ?? this.worktrees[0]!
-    return { ...worktreeOf(file, folder), worktrees: folder, worktreesPath: urlPathOf(this.root, folder) }
+    const name = this.content && isInside(file, this.content) ? WORKTREE_ADDRESS.exec(path)?.[1] : undefined
+    const at = name ? this.worktrees.map((each) => join(each, name)).find((each) => existsSync(each)) : file
+    const folder = (at && this.worktrees.find((each) => isInside(at, each))) ?? this.worktrees[0]!
+    return { ...(at && worktreeOf(at, folder)), worktrees: folder, worktreesPath: urlPathOf(this.root, folder) }
   }
 
   /** Add `add`'s fields to every page's `window.SPELL_SERVER`, from a route module;  returns `this`. */
@@ -274,6 +354,7 @@ export class PageServer {
       web: this.web,
       info: this.info,
       serveWorktrees: (...dirs) => void this.serveWorktrees(...dirs),
+      serveContent: (dir) => void this.serveContent(dir),
       addPageConfig: (add) => void this.addPageConfig(add),
       onListening: (start) => this.listenings.push(start),
       onStop: (stop) => this.stops.push(stop)
@@ -306,6 +387,9 @@ const TSCONFIG = fileURLToPath(new URL("../../tsconfig.json", import.meta.url))
 
 /** Where worktrees are served, once a route module says where they are (`serveWorktrees()`). */
 const WORKTREES_PREFIX = "/worktrees/"
+
+/** A worktree's address, `/worktrees/<w>/...`:  `[1]` is `<w>`. */
+const WORKTREE_ADDRESS = /^\/worktrees\/([^/]+)\//
 
 /** Port the page server asks for first:  `SPELL_SERVER_PORT`, else 4747 (the goals server's old port). */
 export const DEFAULT_PORT = Number(process.env.SPELL_SERVER_PORT) || 4747
@@ -347,6 +431,17 @@ function worktreeOf(file: string, worktrees: string): { branch?: string; worktre
   return found
 }
 
+/** The folders right inside `dir`, by name, but dot folders;  none when it can't be read. */
+function subfolders(dir: string): string[] {
+  try {
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
+      .map((entry) => entry.name)
+  } catch {
+    return []
+  }
+}
+
 /** Whether `file` is inside folder `dir`, below it (never `dir` itself). */
 function isInside(file: string, dir: string): boolean {
   const inside = relative(dir, file)
@@ -373,7 +468,12 @@ const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
  */
 const UNWATCHED = /(^|\/)scripts\/|(^|\/)experiments\/(?!(.*\/)?[^/]+\.bundle\.js$)/
 
-/** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
+/**
+ * Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle.
+ * - each relative to the checkout;  one it doesn't have is skipped
+ * - the content folder's (`epics` ...) are the content folder's once it's served, which is watched whole
+ *   (`serveContent()`):  named here for a checkout that still links them in
+ */
 const DEFAULT_WATCH = ["epics", "guides", "pages", "brand", "spell-epic/src/tools/_assets"]
 
 /**

@@ -5,6 +5,7 @@ import { dirname, join, relative } from "path"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT } from "$/cli/cli.types"
+import { contentFolderOf } from "$/assembler/contentFolder"
 import { DataFile } from "$/assembler/DataFile"
 import { COMMANDS_JSON, type PackInfo, type PackScaffoldReport } from "$/cli/dev/dev.types"
 import { PACK_FOLDER, buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
@@ -279,14 +280,16 @@ function solidVersion(root: string): string {
  * - `vite.lint.ts`:  `components/__pack/` out of lint and format
  * - `.gitattributes`:  `components/__pack/**` generated, `merge=binary -diff`
  * - `.epic/generators.json5`:  the pack's generated files, rebuilt at a merge by `yarn pack:build` (epic `epic-eject` T4)
- * - `guides/dev/commands/commands.json5` (shared):  the pack's yarn scripts in the commands page's rows
+ * - `guides/dev/commands/commands.json5` (shared, in the content folder:  `contentFolderOf()`):
+ *   the pack's yarn scripts in the commands page's rows
  *   - a data file (`DataFile`, epic `epic-workflow` P21):  its old `commands.json` read while there's no `.json5`,
  *     and written as the `.json5`, its comments kept
  * - A file that isn't there is skipped, said so.  Text edits keep the files' own layout;  JSON is rewritten.
  */
 export function wirePack(root: string, pack: PackInfo, report: PackScaffoldReport) {
+  const content = contentFolderOf(root) ?? root
   for (const step of wiringSteps(pack)) {
-    const file = join(root, step.file)
+    const file = join(step.shared ? content : root, step.file)
     const found = step.data ? DataFile.found(file) : existsSync(file) ? file : undefined
     if (!found) {
       report.skipped.push(`${step.file} (not found:  ${step.what})`)
@@ -313,6 +316,8 @@ type WiringStep = {
   after?: (file: string) => void
   /** a data file (`DataFile`):  read by its old `.json` name too, which goes once it's written */
   data?: boolean
+  /** in the shared content folder (`contentFolderOf()`), not the checkout */
+  shared?: boolean
 }
 
 /** Every edit wiring `pack` in takes. */
@@ -407,7 +412,8 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       what: `${name}'s yarn scripts`,
       edit: (text) => commandsWithPack(text, name),
       after: formatJson,
-      data: true
+      data: true,
+      shared: true
     }
   ]
 }

@@ -13,6 +13,7 @@ import { SRV } from "$/server"
  *   - over HTTP, for pages the server served:  `/api/files` (`route()`), on URL paths,
  *     and ONLY inside the folders of a `writable` list (the page server's:  the shared content folders).
  *     The page editor (`/api/pages`) checks its writes against the same list (`writableFile()`).
+ *     - those folders are in `root`, or in the content folder once the page server serves one (`content`)
  * - Every change is made under the file's `FileLock`, so tools writing the same file take turns.
  * - A save is all at once:  a temp file beside the file, then a rename,
  *   so a reader never sees half a file.
@@ -23,12 +24,29 @@ export class FileOperations {
   /** checkout the URL paths are under */
   readonly root: string
 
-  /** absolute folders `/api/files` may change things in;  nothing outside them */
-  readonly writable: string[]
+  /**
+   * the shared content folder, once the page server serves one (`PageServer.serveContent()`):
+   * the `writable` folders are ITS folders from then on, not `root`'s
+   * - so `/epics/x/x.plan.html` is written in `<content>/epics/x/`, with no `epics` link in the checkout
+   */
+  content?: string
+
+  /** the `writable` folders' names, relative to `writableRoot` */
+  private writableNames: string[]
 
   constructor({ root, writable = [] }: FileOperationsProps) {
     this.root = resolve(root)
-    this.writable = writable.map((folder) => resolve(this.root, folder))
+    this.writableNames = writable
+  }
+
+  /** folder the `writable` folders are in:  `content` once set, else `root` */
+  get writableRoot(): string {
+    return this.content ?? this.root
+  }
+
+  /** absolute folders `/api/files` may change things in;  nothing outside them */
+  get writable(): string[] {
+    return this.writableNames.map((folder) => resolve(this.writableRoot, folder))
   }
 
   ////////////////
@@ -128,7 +146,7 @@ export class FileOperations {
   }
 
   /**
-   * The file a request names by URL path:  under the root, inside a `writable` folder, there or not.
+   * The file a request names by URL path:  under `writableRoot`, inside a `writable` folder, there or not.
    * - throws `HttpError`:  400 no path or a bad one;  403 `..`, a dot file, or not in a `writable` folder
    *   (nor a `writable` folder itself)
    * - the page editor (`/api/pages`) holds its writes to the same list through this
@@ -138,9 +156,10 @@ export class FileOperations {
     if (typeof one !== "string" || !one)
       throw new SRV.HttpError(400, "a path is required, e.g. /guides/server/notes.md")
     const path = one.startsWith("/") ? one : `/${one}`
-    const file = SRV.fileInside(this.root, path)
-    if (!this.writable.some((folder) => file !== folder && SRV.isInside(folder, file))) {
-      const folders = this.writable.map((folder) => `${relative(this.root, folder)}/`).join(", ")
+    const file = SRV.fileInside(this.writableRoot, path)
+    const writable = this.writable
+    if (!writable.some((folder) => file !== folder && SRV.isInside(folder, file))) {
+      const folders = writable.map((folder) => `${relative(this.writableRoot, folder)}/`).join(", ")
       throw new SRV.HttpError(
         403,
         `can't change ${path}:  only files in ${folders || "no folders"} can be changed here`
@@ -310,6 +329,7 @@ export class FileOperations {
  * `new FileOperations()` props.
  * - `root`:  folder URL paths are under (the checkout)
  * - `writable`:  folders, relative to `root`, that `/api/files` may change things in;  none by default
+ *   - relative to the content folder instead, once it's set (`FileOperations.content`)
  */
 export type FileOperationsProps = { root: string; writable?: string[] }
 

@@ -10,7 +10,9 @@
 ////////////////
 
 /**
- * The commands page's data, from a checkout's root (`spell dev commands`, `spell dev pack new`).
+ * The commands page's data, from the shared content folder (`spell dev commands`, `spell dev pack new`).
+ * - the content folder:  `contentFolderOf()` (`$/assembler/contentFolder`);  a checkout's root when the repo names none
+ *   (an old `guides` link there)
  * - a data file (`DataFile`, epic `epic-workflow` P21), JSON5
  * - its old `commands.json` is read while there's no `.json5`
  */
