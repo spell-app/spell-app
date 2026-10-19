@@ -32,8 +32,8 @@ export class Request {
   /**
    * parsed body, when a body parser ran (`SRV.parseBodies`):  object (JSON / form), string (text)
    * - `{}` when there's none, as Express's body-parser leaves it
+   * - `any`:  what callers send is theirs to check, as in Express
    */
-  // oxlint-disable-next-line typescript/no-explicit-any -- what callers send is theirs to check, as in Express
   body: any = {}
 
   /** scratch space for handlers further down, e.g. a resolved project */
