@@ -123,6 +123,7 @@ export class FormBinding {
     this.bindings.clear()
     this.changed.clear()
     this.delayed.clear()
+    this.waiting.clear()
     this.dropHeld()
   }
 
@@ -159,7 +160,7 @@ export class FormBinding {
     if (!control) return
     const apply = FormBinding.applyOf(control)
     const isCommitted = event.type === "change"
-    if (apply.mode === "on leave" && !isCommitted) return
+    if (apply.mode === "on leave" && !isCommitted) return void this.waiting.add(control)
     if (apply.mode === "delayed" && !isCommitted) return this.writeAfterPause(control, apply.delay)
     this.delayed.get(control)?.cancel()
     this.delayed.delete(control)
@@ -191,6 +192,7 @@ export class FormBinding {
 
   /** Write `control` back once typing pauses for `delay` ms;  each change starts the wait again. */
   private writeAfterPause(control: Element, delay: number) {
+    this.waiting.add(control)
     this.delayed.get(control)?.cancel()
     this.delayed.set(
       control,
@@ -199,6 +201,21 @@ export class FormBinding {
         this.writeBack(control)
       })
     )
+  }
+
+  /** Controls changed but not written yet:  a `delayed` one waiting for the pause, an `on leave` one for the leave. */
+  private readonly waiting = new Set<Element>()
+
+  /**
+   * Write every control still waiting (`delayed`, `on leave`) now:  before a save or a submit,
+   * which a keyboard or a script can start without the cursor leaving the field.
+   */
+  flushWaiting() {
+    for (const control of [...this.waiting]) {
+      this.delayed.get(control)?.cancel()
+      this.delayed.delete(control)
+      this.writeBack(control)
+    }
   }
 
   /** Write every bound control back:  after a reset or a clear changed them all. */
@@ -214,6 +231,7 @@ export class FormBinding {
    */
   @E.untracked
   private writeBack(control: Element) {
+    this.waiting.delete(control)
     const binding = this.bindings.get(control)
     if (!binding) return
     const targets = FormBinding.targetsOf(binding.scope())

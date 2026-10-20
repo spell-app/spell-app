@@ -355,6 +355,34 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
     return true
   }
 
+  /**
+   * Save `project`'s settings into its project file:  `title`, `version`, `targets`, `listsStartAt`
+   * (Project Settings, epic `property-editor` P5).
+   * - A setting that's `null`, `""` or `[]` is removed from the file:  its default applies.
+   * - SIDE EFFECT:  `project.contents` takes what the file says now, so its `title`, `targets` ... follow at once.
+   * - throws on a server error
+   */
+  async saveSettings(project: SP.SpellProject, settings: ProjectSettings): Promise<void> {
+    const die = getDier(this, `saving the settings of ${project.projectId}`, { settings })
+    let saved: ProjectSettings = {}
+    try {
+      saved = await $fetch<ProjectSettings>({
+        url: `/api/projects/settings/project`,
+        contents: { projectId: project.projectId, settings },
+        requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
+        format: "json"
+      })
+    } catch (e) {
+      die(`Server error saving the settings of ${project.projectId}`, e)
+    }
+    const contents = { ...project.contents } as Record<string, unknown>
+    for (const key of PROJECT_SETTINGS) {
+      if (key in saved) contents[key] = saved[key]
+      else delete contents[key]
+    }
+    project.contents = contents as SP.ProjectManifestJSON5
+  }
+
   ////////////////
   // ## Debug
   ////////////////
@@ -363,4 +391,12 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }
+}
+
+/** The project file's settings a person edits:  what `saveSettings()` sends, and the server's route keeps. */
+export const PROJECT_SETTINGS = ["title", "version", "targets", "listsStartAt"] as const
+
+/** A project's settings, as Project Settings edits them:  each optional, `null` to remove it from the file. */
+export type ProjectSettings = {
+  [K in (typeof PROJECT_SETTINGS)[number]]?: SP.ProjectManifestJSON5[K] | null
 }

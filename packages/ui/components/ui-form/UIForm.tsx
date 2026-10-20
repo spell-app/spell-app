@@ -421,6 +421,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   /** Validate, then land the held edits (`DOMFormElement.save()`). */
   @E.untracked
   save(): boolean {
+    this.binding.flushWaiting()
     if (!this.validateFields()) return false
     const detail: UIT.FormSaveDetail = { changes: this.binding.changes, value: this.value }
     if (!this.send("ui-saving", detail)) return false
@@ -598,6 +599,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   /** Submit:  validate everything first, see the class doc. */
   @E.untracked
   private readonly onSubmit = (event: Event) => {
+    this.binding.flushWaiting()
     const errors = this.validateAll()
     if (Object.keys(errors).length) {
       event.preventDefault()

@@ -97,11 +97,20 @@ export class EditorStore extends Observable {
     }
   }
 
-  // TODO: these are referenced by `$/app/solid`'s `Actions` but not yet implemented.
-  /** Show settings for the current `project`. TODO: not yet implemented. */
+  /**
+   * Show the current `project`'s settings, in a dialog (`<ProjectSettings>`).
+   * - Through a DYNAMIC `import()`:  `editor.ts` stays free of Solid and `$/ui`.
+   * - NEVER throws:  an error loading it, or saving, shows.
+   */
   showProjectSettings(): void {
-    console.warn("TODO: editor.showProjectSettings() not yet implemented")
+    const { project, projectRoot } = editor
+    if (!project || !projectRoot) return
+    void import("$/app/pages/ProjectSettings")
+      .then(({ openProjectSettings }) => openProjectSettings(project, projectRoot, (error) => editor.showError(error)))
+      .catch((error) => editor.showError(error))
   }
+
+  // TODO: these are referenced by `$/app/solid`'s `Actions` but not yet implemented.
   /** Show the "About Spell" dialog. TODO: not yet implemented. */
   aboutSpell(): void {
     console.warn("TODO: editor.aboutSpell() not yet implemented")

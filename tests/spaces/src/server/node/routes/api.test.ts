@@ -442,6 +442,31 @@ describe("request body parsing on POST /api/projects/create/file", () => {
 // ## DELETE with a body
 ////////////////
 
+describe("POST /api/projects/settings/project", () => {
+  it("writes the settings into the project file, keeping its imports;  an empty one is removed", async () => {
+    const body = (settings: object) => JSON.stringify({ projectId: PROJECT, settings })
+    const saved = await request(
+      "POST",
+      "/api/projects/settings/project",
+      body({ title: "My Project", version: "1.2.0", targets: ["ts/solid"], listsStartAt: 0 }),
+      "application/json"
+    )
+    expect(saved.status).toBe(200)
+    expect(saved.json()).toEqual({ title: "My Project", version: "1.2.0", targets: ["ts/solid"], listsStartAt: 0 })
+    const file = readFixture("user/Proj/__project.json5")!
+    expect(file).toContain('"listsStartAt": 0')
+    expect(file).toContain("/top.spell")
+
+    const cleared = await request(
+      "POST",
+      "/api/projects/settings/project",
+      body({ title: "", targets: [] }),
+      "application/json"
+    )
+    expect(cleared.json()).toEqual({ version: "1.2.0", listsStartAt: 0 })
+  })
+})
+
 describe("DELETE /api/projects/remove/file", () => {
   it("JSON body is parsed on DELETE => 200 ProjectIndexJSON, file gone", async () => {
     writeFixture("user/Proj/doomed.spell", "bye")

@@ -549,6 +549,40 @@ export async function setProjectTitle(projectId: string, title: string | null | 
 }
 
 /**
+ * SIDE EFFECT:  project `projectId`'s file says `settings`, its comments and its `imports` kept.
+ * - Only the settings a person edits (`SPACES.PROJECT_SETTINGS`), never its `imports`:  Project Settings, epic `property-editor` P5.
+ * - A setting that's `null`, `""` or `[]` is removed:  its default applies.
+ * - A setting `settings` doesn't name is left as it is.
+ * - Returns the settings the file says now.
+ */
+export async function saveProjectSettings(
+  projectId: string,
+  settings: SPACES.ProjectSettings
+): Promise<SPACES.ProjectSettings> {
+  const file: Record<string, unknown> = { ...(await loadProjectFile(projectId)) }
+  for (const key of SPACES.PROJECT_SETTINGS) {
+    if (!(key in settings)) continue
+    const value = settings[key]
+    const isEmpty = value === null || value === "" || (Array.isArray(value) && !value.length)
+    if (isEmpty) delete file[key]
+    else file[key] = value
+  }
+  await saveProjectFile(projectId, file as ProjectFileJSON)
+  return Object.fromEntries(SPACES.PROJECT_SETTINGS.filter((key) => key in file).map((key) => [key, file[key]]))
+}
+
+/**
+ * `POST /api/projects/settings/project` -- save a project's settings into its project file.
+ * - Client sends body:  `{ projectId, settings }`, see `saveProjectSettings()`.
+ * - Returns:  the settings its file says now.
+ * - Failure:  500 if `projectId` is invalid, or on write error.
+ */
+export const request_saveProjectSettings = respondWithJSON(async (request) => {
+  const { projectId, settings } = request.body
+  return await saveProjectSettings(projectId, settings ?? {})
+})
+
+/**
  * Remove (permanently delete) project `projectId` -- recursive folder delete via `fileUtils.deletePath()`.
  * - Its build folder too.
  */

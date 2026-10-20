@@ -129,6 +129,19 @@ describe('<ui-form apply="on save">', () => {
     expect(types).toEqual(["ui-cancelling", "ui-cancelled"])
   })
 
+  it("`save()` first writes a field still waiting for the cursor to leave (a keyboard or scripted Save)", async () => {
+    const thing = { title: "Milk" }
+    const { host, named } = await bound(
+      `<ui-field apply="on leave"><ui-input name="title" aria-label="Title"></ui-input></ui-field>`,
+      thing,
+      `apply="on save"`
+    )
+    await userEvent.type(inner(named("title")), "!")
+    await settle()
+    expect(host.save()).toBe(true)
+    expect(thing.title).toBe("Milk!")
+  })
+
   it("a cancelled `ui-saving` keeps the edits held", async () => {
     const thing = { title: "Milk" }
     const { host, named } = await bound(FIELDS, thing, `apply="on save"`)
