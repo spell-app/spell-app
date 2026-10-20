@@ -6,5 +6,6 @@
  */
 export * from "./assignment.parser"
 export * from "./AssignmentStatement"
+export * from "./WordsAssignment"
 export * from "./Get"
 export * from "./ReturnStatement"
