@@ -1,4 +1,4 @@
-import { typeCase, proto } from "$/util"
+import { kebabCase, typeCase, proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import
@@ -55,9 +55,12 @@ export class MethodDefinition<
    *     e.g. `to show (thing as a card)` aliases `thing` to `this`
    * - Also promotes to a `test` method when `asTest`, prefixing `test` onto the method name and syntax.
    */
-  processSignature(groups: P.MatchGroups, signature: MethodSignatureData, _scope: P.Scope): MethodSignatureData {
+  processSignature(groups: P.MatchGroups, signature: MethodSignatureData, scope: P.Scope): MethodSignatureData {
     const initialType = signature.types.find((type) => !type.isSimple)
-    if (this.inlineInitialType && initialType) {
+    const subject = this.inlineInitialType && !initialType ? P.SubjectScope.of(scope)?.subjectType : undefined
+    if (subject) {
+      MethodDefinition.takeSubject(signature, subject)
+    } else if (this.inlineInitialType && initialType) {
       signature.instanceType = initialType.name
       // remove instance bits from args and method signature
       signature.args.splice(initialType.argIndex, 1)
@@ -79,6 +82,38 @@ export class MethodDefinition<
       signature.syntaxBits.unshift("test")
     }
     return signature
+  }
+
+  /**
+   * A method in a type's outline body that names no type is the type's own (epic page `outline-spell`, P20, I15).
+   * - `- to debug it:` is `to debug a solitaire`:  `it` is where the receiver goes, `debug the solitaire`.
+   *   - After a little word, the method's name keeps the type's:  `- to cheat at it:` => `cheat_at_solitaire`.
+   * - With no `it`, `- animation deal the cards:` takes it after `of`:  `deal the cards of the solitaire`.
+   *   - One word reads as a verb, so takes it straight after:  `- to reset:` is `reset the solitaire`.
+   *   - And inside the type's own methods, the words alone call it on this one:  `deal the cards`.
+   *     So its receiver is optional:  `deal the cards (of {thisArg:expression})?`.
+   * - SIDE EFFECT: mutates `signature` in place, as `processSignature()` does.
+   */
+  static takeSubject(signature: MethodSignatureData, subject: P.TypeScope): void {
+    // in the words a signature names a type with, `stock-pile`, as `(a stock pile)` gives
+    const typeWords = kebabCase(subject.name).replace(/^-/, "")
+    signature.instanceType = typeWords
+    const at = signature.syntaxBits.indexOf("it")
+    const methodAt = signature.methodBits.indexOf("it")
+    if (at >= 0 && methodAt >= 0) {
+      const wordBefore = signature.methodBits[methodAt - 1]
+      if (wordBefore && DANGLING_WORDS.test(wordBefore)) {
+        signature.methodBits[methodAt] = typeWords.replace(/-/g, "_")
+      } else {
+        signature.methodBits.splice(methodAt, 1)
+      }
+      signature.syntaxBits[at] = "{thisArg:expression}"
+      return
+    }
+    // one word reads as a verb, `reset the solitaire`;  more, as a phrase, `deal the cards of the solitaire`
+    // -- and left out, the call is on this one:  see `DynamicMethodRule.onThis()`
+    if (signature.syntaxBits.length === 1) signature.syntaxBits.push("{thisArg:expression}?")
+    else signature.syntaxBits.push("(of {thisArg:expression})?")
   }
 
   /**

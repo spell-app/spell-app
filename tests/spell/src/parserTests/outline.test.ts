@@ -207,6 +207,42 @@ describe("outline style", () => {
     expect(tableaus.items.length).toBe(1)
   })
 
+  describe("body methods (P20, I15):  a method in a type's body that names no type is the type's", () => {
+    test("`- to debug it:` is `to debug a game`;  `- to cheat at it:` keeps the type's name after `at`", () => {
+      const sentences = ["a game is an app", "to debug a game:\n\tprint 1", "to cheat at a game:\n\tprint 2"]
+      const outline = ["a game is an app where:", "\t- to debug it:\n\t\tprint 1", "\t- to cheat at it:\n\t\tprint 2"]
+      expect(compile(outline)).toBe(compile(sentences))
+    })
+
+    test("with no `it`:  bare inside its own methods, `of` (or after one word) from outside", () => {
+      const run = runSpell([
+        "a game is an app where:",
+        "\t- its score is a number",
+        "\t- to add a point:\n\t\tset its score to its score + 1",
+        "\t- to reset:\n\t\tset its score to 0\n\t\tadd a point\n\t\tfor each number from 1 to 2\n\t\t\tadd a point",
+        "a stock pile is a list",
+        "\t- to flip:\n\t\tprint 1",
+        "set game to a new game",
+        "reset the game",
+        "add a point of game",
+        "set score to the score of game"
+      ])
+      expect(run("score")).toEqual({ score: 4 })
+      expect(compile(["a stock pile is a list", "\t- to flip:\n\t\tprint 1"])).toContain("class StockPile extends List {\n  flip()")
+    })
+
+    test("one word, `- to reset:`, is bare inside too", () => {
+      const lines = ["a game is an app where:", "\t- to reset:\n\t\tprint 1", "\t- to restart:\n\t\treset"]
+      expect(compile(lines)).toContain("restart() {\n    this.reset()")
+    })
+
+    test("its words alone aren't a call outside the type's own methods", () => {
+      const lines = ["a game is an app where:", "\t- to add a point:\n\t\tprint 1", "a card is a thing"]
+      expect(() => runSpell([...lines, "add a point"])).toThrow(/parse errors/)
+      expect(() => runSpell([...lines, "to play a card:\n\tadd a point"])).toThrow(/parse errors/)
+    })
+  })
+
   describe("starting values (P19):  `- its clubs is a new foundation with ...`", () => {
     const types = ["a pile is a thing", "a foundation is a pile", "\t- its symbol is text"]
 

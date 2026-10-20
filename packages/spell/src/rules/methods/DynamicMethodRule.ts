@@ -63,6 +63,29 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   }
 
   /**
+   * Is `match` a call on THIS thing, its receiver left out (epic page `outline-spell`, P20)?
+   * - e.g. `deal the cards` in the solitaire's `reset`, after `- animation deal the cards:` in its body,
+   *   whose receiver is optional:  see `MethodDefinition.takeSubject()`.
+   * - A method of a type with no `thisArg` matched.
+   */
+  onThis(match: P.MatchFor<this>): boolean {
+    return !!this.thisType && !match.groups.thisArg
+  }
+
+  /**
+   * Is `scope` inside a method of our type (or a sub-type), where `this` is one of ours?
+   * - The nearest method with a `this`:  a loop's body has none of its own.
+   */
+  insideOurType(scope: P.Scope): boolean {
+    for (let current: P.Scope | undefined = scope; current; current = current.parentScope) {
+      if (!(current instanceof P.MethodScope) || !current.thisVar) continue
+      const type = scope.getType(current.itDatatype)
+      return !!type && !!this.thisType && type.isA(this.thisType)
+    }
+    return false
+  }
+
+  /**
    * Match, unless an argument is the wrong type.
    * - Then note the method we call, while we can look it up (`MethodDefinition.findMethod()`):
    *   on `thisArg`'s type, if it has one, else a free function.
@@ -73,7 +96,10 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match || !this.argumentsFit(match)) return undefined
-    match.data.method = MethodDefinition.findMethod(scope, this.methodName, match.groups.thisArg?.datatype)
+    // on this thing:  only inside our type's own methods
+    if (this.onThis(match) && !this.insideOurType(scope)) return undefined
+    const thisDatatype = this.onThis(match) ? this.thisType : match.groups.thisArg?.datatype
+    match.data.method = MethodDefinition.findMethod(scope, this.methodName, thisDatatype)
     return match
   }
 
@@ -118,7 +144,9 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   getAST(match: P.MatchFor<this>): P.ASTMethodInvocation | P.ASTScopedMethodInvocation {
     const { methodName } = this
     const { thisArg, callArgs, props } = match.groups
-    const thing = thisArg?.AST as P.ASTExpression | undefined
+    const thing = this.onThis(match)
+      ? new P.ASTVariableExpression(match, { name: "this" })
+      : (thisArg?.AST as P.ASTExpression | undefined)
     // `match.AST` is typed as the generic `ASTNode` (from `Rule.getAST()`);
     // `callArgs`/`props` are always parsed via `{callArgs:expression}` / `object_literal_properties`,
     // so their AST is always an Expression.

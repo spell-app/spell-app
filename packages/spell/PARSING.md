@@ -1000,6 +1000,12 @@ A kind that says so is saved in a file of its own.
     - its compiled NAME drops the receiver's type (`turn_over`), unless that leaves a little word dangling (Q44)
       - then it keeps the type's name:  `to update the total of (a calculator)` => `update_the_total_of_calculator`
       - `MethodDefinition.processSignature()`, `DANGLING_WORDS`
+    - in a type's outline body, a signature that names no type takes the body's subject (P20, I15)
+      - `- to debug it:` ~== `to debug a solitaire`:  `it` is where the receiver goes
+      - with no `it`, the receiver is optional, after `of` (or after the one word, `- to reset:`):
+        `deal the cards (of {thisArg:expression})?`
+      - left out, the call is on `this`, and only inside the type's own methods:  `DynamicMethodRule.onThis()`
+      - `MethodDefinition.takeSubject()`
     - [`MethodDefinition`](src/rules/methods/MethodDefinition.ts) adds a rule for its call site,
       AND a `P.ScopeMethod` record
       - by `addMethod()`
