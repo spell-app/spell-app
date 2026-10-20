@@ -438,6 +438,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
               {this.bodyFailureText}
             </p>
           </Show>
+          {this.contentStart()}
           <slot />
         </div>
         <Show when={this.isLoading}>
@@ -447,6 +448,16 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
         </Show>
       </section>
     )
+  }
+
+  /** Drawn at the end of the title bar, after the actions:  for a subclass (a property group's output);  nothing here. */
+  protected titleBarEnd(): JSX.Element {
+    return undefined
+  }
+
+  /** Drawn first in the content, before the slot:  for a subclass (a property group's error);  nothing here. */
+  protected contentStart(): JSX.Element {
+    return undefined
   }
 
   /** `<header class="title">`:  the heading around the toggle, then the badge and actions. */
@@ -497,6 +508,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
             <slot name={this.slotForName("actions")} />
           </span>
         </Show>
+        {this.titleBarEnd()}
         <Show when={this.isCollapsible && this.foldIconIsAtEnd}>{this.foldChevron(this.onFoldIconClick)}</Show>
         <Show when={this.hasInfo}>
           <span id={TIP_ID} class={TIP} part={this.partForName("tip")} role="tooltip">

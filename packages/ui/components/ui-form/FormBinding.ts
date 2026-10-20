@@ -23,6 +23,7 @@ import { FIELD_SELECTOR, type FieldApply } from "./UIForm.types"
  *     spell's objects (their page bridges spell cells into Solid)
  *   - a checkbox / toggle shows `!!value` (`selected`);  a radio is chosen while `value` is its own value;
  *     anything else shows `value` (`""` for nullish)
+ * - A dotted `name` reaches into nested things:  `name="font.size"` shows and writes `scope.font.size`.
  * - Control => object:  a change from a bound control (`input`, `change`, `ui-change`) writes `scope[name]`,
  *   when its `<ui-field apply>` says (`applyOf()`):
  *   - `immediately` (the default):  a microtask later, once the control holds its new value
@@ -224,13 +225,15 @@ export class FormBinding {
     if (next === current) return
     FormBinding.markMixed(control, false)
     for (const target of targets) FormBinding.write(target, binding.name, next)
+    this.form.onWrite?.({ control, name: binding.name, value: next, things: targets })
   }
 
   /** `target[name] = value`, unless it's that already;  warns if it can't be set. */
   private static write(target: Record<PropertyKey, unknown>, name: string, value: unknown) {
-    if (target[name] === value) return
+    if (FormBinding.read(target, name) === value) return
     try {
-      target[name] = value
+      const { owner, key } = FormBinding.ownerOf(target, name)
+      if (owner) owner[key] = value
     } catch (error) {
       E.Warnings.warn("<ui-form value>", `can't set \`${name}\`:`, error)
     }
@@ -250,6 +253,11 @@ export class FormBinding {
 
   /** Edits held until `save()`, by control:  the control keeps showing its new value meanwhile. */
   private readonly held = new Map<Element, HeldEdit>()
+
+  /** The controls whose edits are held. */
+  get heldControls(): Element[] {
+    return [...this.held.keys()]
+  }
 
   /** Holds edits now. */
   get hasHeld(): boolean {
@@ -277,7 +285,9 @@ export class FormBinding {
   saveHeld() {
     for (const [control, { binding, value }] of this.held) {
       FormBinding.markMixed(control, false)
-      for (const target of FormBinding.targetsOf(binding.scope())) FormBinding.write(target, binding.name, value)
+      const things = FormBinding.targetsOf(binding.scope())
+      for (const target of things) FormBinding.write(target, binding.name, value)
+      this.form.onWrite?.({ control, name: binding.name, value, things })
     }
     this.held.clear()
     this.form.onHeldChange()
@@ -352,8 +362,32 @@ export class FormBinding {
   private static valueIn(scope: unknown, name: string): unknown {
     const targets = FormBinding.targetsOf(scope)
     if (!targets.length) return UNBOUND
-    const first = targets[0]![name]
-    return targets.every((target) => target[name] === first) ? first : MIXED
+    const first = FormBinding.read(targets[0]!, name)
+    return targets.every((target) => FormBinding.read(target, name) === first) ? first : MIXED
+  }
+
+  /**
+   * `target`'s property `name`;  a dotted name reaches into nested things (`font.size`).
+   * - `undefined` where the path meets nothing.
+   */
+  static read(target: unknown, name: string): unknown {
+    let value = target
+    for (const key of name.split(".")) {
+      if (!FormBinding.isObject(value)) return undefined
+      value = value[key]
+    }
+    return value
+  }
+
+  /** What a dotted `name` writes to:  the thing holding its last key (`undefined` where the path meets nothing), and that key. */
+  private static ownerOf(
+    target: Record<PropertyKey, unknown>,
+    name: string
+  ): { owner?: Record<PropertyKey, unknown>; key: string } {
+    const keys = name.split(".")
+    const key = keys.pop()!
+    const owner = keys.length ? FormBinding.read(target, keys.join(".")) : target
+    return { owner: FormBinding.isObject(owner) ? owner : undefined, key }
   }
 
   /**
@@ -453,6 +487,8 @@ export type FormBindingProps = {
     canWrite(control: Element): boolean
     /** The held edits changed:  some, none, or others. */
     onHeldChange(): void
+    /** A control's value was written to its things (after a save, for held edits). */
+    onWrite?(write: { control: Element; name: string; value: unknown; things: readonly object[] }): void
   }
 }
 

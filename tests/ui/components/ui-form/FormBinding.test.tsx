@@ -45,22 +45,23 @@ afterEach(() => {
 ////////////////
 
 describe("<ui-field apply>", () => {
+  // A 2s pause and ~1s margins either side:  the review runs many browser tests at once, and short waits run long
   it("`delayed`:  writes after a pause in typing;  each keystroke starts the wait again", async () => {
     const thing = { title: "Milk" }
     const { named } = await bound(
-      `<ui-field apply="delayed 200"><ui-input name="title" aria-label="Title"></ui-input></ui-field>`,
+      `<ui-field apply="delayed 2000"><ui-input name="title" aria-label="Title"></ui-input></ui-field>`,
       thing
     )
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
     await userEvent.type(inner(named("title")), "!")
     await settle()
     expect(thing.title).toBe("Milk")
-    await new Promise((resolve) => setTimeout(resolve, 120))
+    await wait(1000)
     await userEvent.type(inner(named("title")), "?")
-    await new Promise((resolve) => setTimeout(resolve, 120))
+    await wait(1100)
+    // 2.1s after "!":  its wait would have ended, but "?" started a new one
     expect(thing.title).toBe("Milk")
-    await new Promise((resolve) => setTimeout(resolve, 150))
-    await settle()
-    expect(thing.title).toBe("Milk!?")
+    await expect.poll(() => thing.title, { timeout: 4000 }).toBe("Milk!?")
   })
 
   // NOT `name="id"`:  a `<form>` with a control named `id` answers `form.id` with that control

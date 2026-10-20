@@ -34,6 +34,7 @@ import { Ids } from "./Ids"
 import { Keyboard } from "./Keyboard"
 import { Modals } from "./Modals"
 import { Overlays } from "./Overlays"
+import { PropertyControls } from "./PropertyControls"
 import { Sources } from "./Sources"
 import { Styles } from "./Styles"
 import { Themes } from "./Themes"
@@ -107,6 +108,8 @@ export class UIRuntime {
   readonly code = new CodeLanguages()
   /** canonical + localized component names (the translation hook) */
   readonly vocabulary = new Vocabulary()
+  /** what `<ui-property-editor>` draws and reads by name:  control kinds, choice sources, rules, schemas */
+  readonly propertyControls = new PropertyControls()
 
   /** Resolves once every service is constructed and the runtime is published on `globalThis`. */
   readonly ready: Promise<void>

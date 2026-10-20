@@ -2042,6 +2042,24 @@
       ]
     },
     {
+      "path": "ui-property-editor.html",
+      "title": "Property Editor",
+      "summary": "A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.",
+      "tag": "ui-property-editor",
+      "tabs": {"examples":"Examples","usage":"Usage","api":"API"},
+      "sections": [
+        {"id":"examples-types","title":"Types","tab":"examples"},
+        {"id":"examples-types-from-a-schema","title":"From a schema","parent":0},
+        {"id":"examples-types-laid-out","title":"Laid out","parent":0},
+        {"id":"examples-binding","title":"Binding","tab":"examples"},
+        {"id":"examples-binding-save-and-cancel","title":"Save and Cancel","parent":3},
+        {"id":"examples-binding-many-things","title":"Many things","parent":3},
+        {"id":"usage-using-it","title":"Using it","tab":"usage"},
+        {"id":"usage-controls-choices-and-rules","title":"Controls, choices and rules","tab":"usage"},
+        {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}
+      ]
+    },
+    {
       "path": "ui-radio.html",
       "title": "Radio",
       "summary": "A radio button lets a user choose exactly one value of a group.",

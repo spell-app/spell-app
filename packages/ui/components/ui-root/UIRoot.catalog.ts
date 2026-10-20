@@ -163,6 +163,15 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-placeholder-paragraph": { folder: "ui-placeholder" },
   "ui-popup": { folder: "ui-popup" },
   "ui-progress": { folder: "ui-progress", skeleton: { height: "2em" } },
+  "ui-property": { folder: "ui-property-editor", skeleton: { height: "4.5em" } },
+  "ui-property-editor": {
+    folder: "ui-property-editor",
+    skeleton: { parts: [{ shape: "header" }, { shape: "paragraph", lines: 3 }] }
+  },
+  "ui-property-group": {
+    folder: "ui-property-editor",
+    skeleton: { parts: [{ shape: "header" }, { shape: "paragraph" }] }
+  },
   "ui-pushable": { folder: "ui-sidebar" },
   "ui-pusher": { folder: "ui-sidebar" },
   "ui-radio": { folder: "ui-checkbox", skeleton: { display: "inline", width: "6em", height: "1.25em" } },

@@ -73,7 +73,8 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
  ****************/
 export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.proto static vocabulary = fieldVocabulary
-  @E.protoMerged static elementSetup = {
+  // `Partial`:  the property (`UIProperty`) and the editor (`UIPropertyEditor`) extend it
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     styleSheets: { form: formCSS, field: fieldCSS },
     DOMElement: DOMFieldElement,
     delegatesFocus: false
@@ -86,9 +87,19 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   /** Light-DOM slot occupancy:  label, description, hint, output, actions. */
   readonly slots = new E.SlotContent(this.domElement)
 
-  /** Has a label in the row:  `label`, or `slot="label"`. */
+  /** The label the row shows:  `label`;  a subclass may find another (a property's, from its schema). */
+  get labelText(): string | undefined {
+    return this.label
+  }
+
+  /** The tip the row shows:  `description`;  a subclass may find another. */
+  get descriptionText(): string | undefined {
+    return this.description
+  }
+
+  /** Has a label in the row:  `labelText`, or `slot="label"`. */
   get hasLabel(): boolean {
-    return !!this.label || this.slots.hasContent(this.slotForName("label"))
+    return !!this.labelText || this.slots.hasContent(this.slotForName("label"))
   }
 
   /** Has actions (`slot="actions"`). */
@@ -103,7 +114,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
 
   /** Has a tip:  `description`, or `slot="description"`. */
   get hasDescription(): boolean {
-    return !!this.description || this.slots.hasContent(this.slotForName("description"))
+    return !!this.descriptionText || this.slots.hasContent(this.slotForName("description"))
   }
 
   /** Has a hint:  `hint`, or `slot="hint"`. */
@@ -230,7 +241,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
     return (
       <div class={CLASSES.row} part={this.partForName("row")}>
         <span class={CLASSES.label} part={this.partForName("label")} onClick={this.onLabelClick}>
-          <slot name={this.slotForName("label")}>{this.label}</slot>
+          <slot name={this.slotForName("label")}>{this.labelText}</slot>
         </span>
         <Show when={this.hasActions}>
           <span class={CLASSES.actions} part={this.partForName("actions")}>
@@ -248,12 +259,12 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
             part={this.partForName("info")}
             tabindex="0"
             role="img"
-            aria-label={this.translationForKey("info", { label: this.label ?? "" })}
+            aria-label={this.translationForKey("info", { label: this.labelText ?? "" })}
             aria-describedby={TIP_ID}
           >
             {this.infoGlyph.svg}
             <span id={TIP_ID} class={CLASSES.tip} part={this.partForName("tip")} role="tooltip">
-              <slot name={this.slotForName("description")}>{this.description}</slot>
+              <slot name={this.slotForName("description")}>{this.descriptionText}</slot>
             </span>
           </span>
         </Show>
@@ -281,7 +292,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   private readonly named = new WeakSet<Element>()
 
   /** A new `label`, once drawn:  rename the controls this field named. */
-  @E.onChange("label", "isReady")
+  @E.onChange("labelText", "isReady")
   protected onLabelChanged(label: string | undefined, isReady: boolean) {
     if (isReady) this.nameControls(label)
   }
@@ -289,7 +300,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   /** The slotted controls changed:  name the new ones. */
   @E.untracked
   private readonly onControlChange = () => {
-    this.nameControls(this.label)
+    this.nameControls(this.labelText)
   }
 
   /**

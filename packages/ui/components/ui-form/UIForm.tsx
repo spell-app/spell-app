@@ -123,7 +123,8 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
  ****************/
 export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.proto static vocabulary = formVocabulary
-  @E.protoMerged static elementSetup = {
+  // `Partial`:  the property (`UIProperty`) and the editor (`UIPropertyEditor`) extend it
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     styleSheets: { form: formCSS },
     DOMElement: DOMFormElement,
     delegatesFocus: false,
@@ -142,7 +143,11 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     form: {
       isHolding: () => this.apply === ON_SAVE,
       canWrite: (control) => this.passes(control),
-      onHeldChange: () => (this.hasHeldChanges = this.binding.hasHeld)
+      onHeldChange: () => {
+        this.hasHeldChanges = this.binding.hasHeld
+        this.onHeldChanged()
+      },
+      onWrite: (write) => this.onWritten(write)
     }
   })
 
@@ -232,13 +237,20 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
         aria-busy={this.loading ? "true" : undefined}
       >
         <slot />
-        <Show when={this.debug}>
-          <figure class="debug">
-            <figcaption>{this.debugCaption}</figcaption>
-            <pre part={this.partForName("debug")}>{this.debugText}</pre>
-          </figure>
-        </Show>
+        {this.debugBox()}
       </div>
+    )
+  }
+
+  /** `debug`'s box:  the bound object (or `values`) as JSON, below the content;  a subclass draws it too. */
+  protected debugBox(): JSX.Element {
+    return (
+      <Show when={this.debug}>
+        <figure class="debug">
+          <figcaption>{this.debugCaption}</figcaption>
+          <pre part={this.partForName("debug")}>{this.debugText}</pre>
+        </figure>
+      </Show>
     )
   }
 
@@ -414,6 +426,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     if (!this.send("ui-saving", detail)) return false
     this.binding.saveHeld()
     this.send("ui-saved", detail)
+    this.onSucceeded()
     E.afterSolidUpdate(() => this.saveValues())
     return true
   }
@@ -483,9 +496,12 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     const formRules = this.formRules
     let rules: UIT.FormRules | undefined = formRules
     for (const { identifier, controls } of fields) {
-      const own = UIForm.fieldElementFor(controls)?.rules
-      if (!own) continue
-      const ownList = (Array.isArray(own) ? own : [own]) as E.ValidationRule[]
+      const field = UIForm.fieldElementFor(controls)
+      const own = [field?.rules, field?.schemaRules].flatMap((rules) =>
+        rules ? (Array.isArray(rules) ? rules : [rules]) : []
+      )
+      if (!own.length) continue
+      const ownList = own as E.ValidationRule[]
       const theirs = formRules?.[identifier]
       rules = { ...rules, [identifier]: UIForm.joinRules(theirs, ownList) }
     }
@@ -513,6 +529,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     }
     if (messages.length) this.fieldsShowingErrors.add(identifier)
     else this.fieldsShowingErrors.delete(identifier)
+    this.onFieldChecked({ identifier, controls }, messages)
     const value = values[identifier]
     if (messages.length) {
       const detail: UIT.FormInvalidDetail = { field: identifier, value, errors: messages, values }
@@ -522,6 +539,23 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
       this.send("ui-valid", detail)
     }
   }
+
+  /** A field was validated and shown:  for a subclass (the property editor tells the field's group);  nothing here. */
+  protected onFieldChecked(_field: Field, _messages: readonly string[]) {}
+
+  /** Held edits came or went (`hasHeldChanges`):  for a subclass;  nothing here. */
+  protected onHeldChanged() {}
+
+  /** The controls whose edits are held (`apply="on save"`). */
+  protected get heldControls(): readonly Element[] {
+    return this.binding.heldControls
+  }
+
+  /** A submit or a save passed validation:  for a subclass (the property editor tells its groups);  nothing here. */
+  protected onSucceeded() {}
+
+  /** A control's value was written to its things:  for a subclass (`ui-change`, "on change" rules);  nothing here. */
+  protected onWritten(_write: { control: Element; name: string; value: unknown; things: readonly object[] }) {}
 
   /** Forget every prompt, `aria-invalid` and the failed state. */
   private clearErrors() {
@@ -575,7 +609,10 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     }
     const detail: UIT.FormSuccessDetail = { values: this.values, originalEvent: event }
     if (!this.send("ui-success", detail)) event.preventDefault()
-    else this.saveValues()
+    else {
+      this.saveValues()
+      this.onSucceeded()
+    }
   }
 
   /** Native reset:  prompts go once the controls have reset, and a bound object takes their values. */
@@ -655,7 +692,9 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
    * The `<ui-field>` of a field's first control, if any:  where its prompt shows.
    * - STATIC:  pure, reads only the controls.
    */
-  private static fieldElementFor(controls: readonly Element[]): (DOMFieldElement & { rules?: unknown }) | undefined {
+  private static fieldElementFor(
+    controls: readonly Element[]
+  ): (DOMFieldElement & { rules?: unknown; schemaRules?: unknown }) | undefined {
     return (controls[0]?.closest(FIELD_SELECTOR) as DOMFieldElement | null) ?? undefined
   }
 

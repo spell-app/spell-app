@@ -8,6 +8,7 @@
  *   whatever form-associated elements and native controls it holds, without importing them.
  */
 
+import { FormBinding } from "./FormBinding"
 import { DOMFieldElement, UIField } from "./UIField"
 import { UIFields } from "./UIFields"
 import { DOMFormElement, UIForm } from "./UIForm"
@@ -18,4 +19,4 @@ UIFields.define()
 UIForm.define()
 UIRepeat.define()
 
-export { UIField, UIFields, UIForm, UIRepeat, DOMFieldElement, DOMFormElement }
+export { UIField, UIFields, UIForm, UIRepeat, DOMFieldElement, DOMFormElement, FormBinding }
