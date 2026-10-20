@@ -6,7 +6,7 @@ import { CODE_LANGUAGES_EVENT, type CodeLanguage, type RegisteredCodeLanguage } 
  * - In the runtime's lazy chunk;  only the registry lives here:  highlight.js itself loads with `ui-code`'s own
  *   chunk.
  * - `register(name, language)`:  a highlight.js grammar, a highlighter of our own, or a `load()` that fetches either
- *   on first use (spell's pre-compiled bundle, `language="spell/es"`).
+ *   on first use (e.g. the app's spell highlighter, `language="spell/es"`).
  * - A name may carry a VARIANT after a `/`:  `spell/es` is language `spell`, variant `es`;  `find()` splits it.
  * - `version` goes up on every `register()`, and `document` gets `CODE_LANGUAGES_EVENT`, so an element showing a
  *   now-registered language highlights again.

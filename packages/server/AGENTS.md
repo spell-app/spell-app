@@ -114,7 +114,17 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - its info:  `/api/server`
     - Its settings:  the `"pageServer"` block of the root `package.json`.
       - Read by `pageServerSettings()`, in [settings.ts](src/page/settings.ts).
-      - route modules, watched folders, writable folders, bundles
+      - route modules, watched folders, writable folders, bundles, page scripts
+    - PAGE SCRIPTS (`"pageScripts"`, epic `repo-split` P2):  module scripts it adds to every HTML page it serves,
+      before `</body>` (`PageServer.withPageScripts()`).
+      - Each says its URL (`src`), the file it is (`file`, from the root) and the pages it skips (`skip`, URL prefixes).
+        - Added only while its file exists:  a checkout that hasn't built it serves its pages without it, no 404.
+        - `skip` is matched without a worktree's `/worktrees/<w>` prefix.
+      - Today one:  the app's `spell-language.js` (`/element/`, `yarn build:element`), skipping the component sets.
+        - It registers spell with the page's `UI.code`, so epic pages and guides colour `language="spell"`
+          though spell-epic imports nothing of the app (Q23).
+        - Not the component sets' pages:  Spell UI's docs show no spell, and App UI loads `<spell-code>` from its pack.
+      - The server knows nothing of what they are:  the paths are the settings'.
     - It mounts every worktree's files at `/worktrees/<w>/`, once a route module says where they are:
       `serveWorktrees(dir)` (epic `epic-eject` P4).
       - The running epics' route module does, in the main checkout:

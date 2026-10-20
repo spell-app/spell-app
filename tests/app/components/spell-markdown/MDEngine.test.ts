@@ -1,9 +1,8 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import { MDEngine } from "$/ui/components/ui-markdown/MDEngine"
+import { MDEngine } from "$/app/components/spell-markdown/MDEngine"
 
 describe("MDEngine.render()", () => {
-  // the bundle (md.bundle.js) decodes with the browser's <textarea>, not `entities`' table (`gen-markdown.ts`, I6)
   test("decodes entities as the spec does:  whole references only, unknown ones kept", () => {
     const { html } = MDEngine.instance.render("&notit; &amp; &semi; &#0; &NotEqualTilde; &Afr; &nope; &copy", {
       breaks: false,

@@ -93,7 +93,17 @@ describe("PageServer", () => {
     // a folder outside `writable`
     mkdirSync(join(root, "other"), { recursive: true })
     writeFileSync(join(root, "other", "button.html"), "<!doctype html><head></head><p>other</p>\n")
-    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["docs"], writable: ["docs"] } }))
+    // a built page script, and one not built:  only the first is added (`pageScripts`)
+    mkdirSync(join(root, "build"), { recursive: true })
+    writeFileSync(join(root, "build", "colours.js"), "export {}\n")
+    const pageScripts = [
+      { src: "/colours.js", file: "build/colours.js", skip: ["/components/"] },
+      { src: "/unbuilt.js", file: "build/unbuilt.js" }
+    ]
+    writeFileSync(
+      join(root, "package.json"),
+      JSON.stringify({ pageServer: { watch: ["docs"], writable: ["docs"], pageScripts } })
+    )
     writeFileSync(page, PAGE)
     server = await new PageServer({ root }).start({ port: 0, routes: false })
     port = server.info.port
@@ -134,6 +144,17 @@ describe("PageServer", () => {
     // `source`:  the file on disk, what the site header's "open in VS Code" opens (epic `epic-engine` I42)
     expect(served).toMatchObject({ port, file: "/docs/page.html", source: page, token: server.web.guard.token })
     expect(served.etag).toBe(answer.headers.etag)
+  })
+
+  it("adds its settings' page scripts before `</body>`:  only those built, never on pages they skip", async () => {
+    const tag = `<script type="module" src="/colours.js"></script>`
+    const answer = await ask(port, "GET", "/docs/page.html")
+    expect(answer.text).toContain(`${tag}\n</body>`)
+    expect(answer.text).not.toContain("/unbuilt.js")
+    // a component set's page:  skipped (`/components/`)
+    expect((await ask(port, "GET", "/components/ui/ui-button.html")).text).not.toContain(tag)
+    // a page with no `</body>`:  at its end
+    expect((await ask(port, "GET", "/brand/index.html")).text.trimEnd().endsWith(tag)).toBe(true)
   })
 
   it("serves highlight.js from the repo, not cdnjs, so pages load offline", async () => {

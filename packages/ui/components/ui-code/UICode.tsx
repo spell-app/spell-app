@@ -40,14 +40,15 @@ export class DOMCodeElement extends E.DOMLoadableElement<UICode> {
  *   (`CodeHighlighter` -> `CodeEngine`, the lazy chunk):
  *   - no `language`:  guessed among the detect set
  *   - `text`:  none
- *   - a language `UI.code` knows (spell):  its own highlighter
+ *   - a language `UI.code` knows (a page's own, e.g. spell's):  its own highlighter
  * - The code shows plain until the colours arrive.
  *   An unknown language stays plain, with a `render` `ui-error` (no message:  the code is still there).
  * - `line-numbers` (from `start`) and `wrap` are CSS:  counters, and a hanging indent per `.line`.
  * - The `<pre>` is a tab stop, named "`<language>` code", so a keyboard can scroll it.
  ****************/
 export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
-  @E.proto static vocabulary = codeVocabulary
+  // typed wide, as `UIRoot`'s:  a subclass names its own (the app's `<spell-code>`)
+  @E.proto static vocabulary: E.ComponentVocabulary = codeVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { code: codeCSS },
     DOMElement: DOMCodeElement,

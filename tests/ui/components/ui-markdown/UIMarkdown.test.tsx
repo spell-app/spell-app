@@ -52,7 +52,7 @@ function nextRender(target: EventTarget): Promise<void> {
 
 /**
  * Resolves once every `ui-*` element in `root` is defined and rendered.
- * - Why:  the markup brings tags whose families load lazily (`MarkdownRenderer.loadMD()`),
+ * - Why:  the markup brings tags whose families load lazily (`<ui-code>`'s),
  *   and `ElementFixture.settle()` only waits for elements already defined.
  */
 async function drawn(root: Element) {
@@ -323,22 +323,23 @@ describe("<ui-markdown editable>", () => {
     expect(body(host).childNodes.length).toBe(0)
   })
 
-  it("previews with spell's engine:  ui-* elements, ids, labelled task boxes, a table", async () => {
+  it("previews with marked, as the element draws:  ids, labelled task boxes, a table", async () => {
     const host = await editable("# Title\n\n- [x] done\n- [ ] todo\n\n| a | b |\n| - | - |\n| 1 | 2 |")
     await preview(host)
     expect(body(host).parentElement!.hidden).toBe(false)
     expect(editor(host).closest("section")!.hidden).toBe(true)
-    expect(body(host).querySelector("ui-header")!.id).toBe("title")
+    expect(body(host).querySelector("h1")!.id).toBe("title")
     expect(host.headings).toEqual([{ level: 1, text: "Title", id: "title" }])
-    const boxes = body(host).querySelectorAll("ui-checkbox")
+    const boxes = body(host).querySelectorAll("input[type=checkbox]")
     expect([...boxes].map((box) => box.getAttribute("aria-label"))).toEqual(["done", "todo"])
-    expect(body(host).querySelectorAll("ui-table td").length).toBe(2)
+    expect(body(host).querySelectorAll("table td").length).toBe(2)
+    expect(body(host).querySelector("ui-header, ui-checkbox, ui-table")).toBeNull()
   })
 
   it("each edit is `ui-change` and dirty;  the preview swaps only the changed blocks", async () => {
     const host = await editable("# Title\n\nfirst\n\nlast")
     await preview(host)
-    const [title, , last] = body(host).childNodes
+    const [title, , last] = body(host).children
     tabs(host)[0].click()
     const onChange = vi.fn()
     host.addEventListener("ui-change", onChange)
@@ -347,8 +348,8 @@ describe("<ui-markdown editable>", () => {
     expect(host.matches(":state(dirty)")).toBe(true)
     await preview(host)
     expect(body(host).textContent).toContain("changed")
-    expect(body(host).childNodes[0]).toBe(title)
-    expect(body(host).lastChild).toBe(last)
+    expect(body(host).children[0]).toBe(title)
+    expect(body(host).lastElementChild).toBe(last)
   })
 
   it("arrow keys, Home and End move between the tabs", async () => {
@@ -368,15 +369,6 @@ describe("<ui-markdown editable>", () => {
       tabs(host)[0].parentElement!.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }))
       await ElementFixture.settle(host)
     }
-  })
-
-  it("`sanitized` sanitizes spell's engine's output too, keeping ui-* elements", async () => {
-    const host = await editable("placeholder", "sanitized")
-    await type(host, '<b onclick="window.__md = 3">bold</b>\n\n<ui-label onclick="window.__md = 4">kept</ui-label>')
-    await preview(host)
-    expect(body(host).querySelector("b")!.hasAttribute("onclick")).toBe(false)
-    expect(body(host).querySelector("ui-label")!.hasAttribute("onclick")).toBe(false)
-    expect(body(host).querySelector("ui-label")!.textContent).toBe("kept")
   })
 
   it("axe passes on both tabs", async () => {

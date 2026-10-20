@@ -84,13 +84,6 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-spell" header="Spell" sticky collapsible dividing>
-                <ui-docs-example
-                  description='`language="spell"` colours spell with spell&apos;s own parser, loaded the first time a page shows spell.'
-                >
-                  <ui-code language="spell">a pile is a list of cards</ui-code>
-                </ui-docs-example>
-              </ui-section>
             </ui-section>
 
             <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
@@ -146,13 +139,15 @@
             <ui-section id="usage-languages" header="Languages" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  highlight.js loads lazily, with the first code shown; until it arrives, the code shows plain. `spell` (and
-                  `spell/<lang>` for a translation) colours spell with spell's own parser, loaded the first time a page shows spell.
+                  highlight.js loads lazily, with the first code shown; until it arrives, the code shows plain.
 
                   `UI.code.register(name, language)` adds a language: a highlight.js grammar, a highlighter of your own returning
                   `{ start, end, kind }` spans, or a `load()` that fetches either on first use. Elements already showing that
                   language colour again. An unknown language shows plain text and fires a `ui-error` (`kind: "render"`), with no
                   message: the code is still there.
+
+                  Spell itself is such a language, from outside Spell UI: the app's `<spell-code>` registers it, so on a page
+                  that loads it, `language="spell"` is coloured here too.
                 </script>
               </ui-markdown>
               <ui-code language="js">

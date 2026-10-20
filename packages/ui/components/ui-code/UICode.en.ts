@@ -28,8 +28,9 @@ export const codeVocabulary = {
       name: "language",
       kind: "string",
       description:
-        "Language to colour it as:  a highlight.js name or alias (`ts`, `html`, `css`, `json`, `bash` ...), `spell` " +
-        "(~== `spell/en`) or `spell/<lang>` for a translation, or `text` for none.  Absent:  guessed from the code."
+        "Language to colour it as:  a highlight.js name or alias (`ts`, `html`, `css`, `json`, `bash` ...), one the " +
+        "page registered with `UI.code` (e.g. `spell`, once the app's `<spell-code>` is loaded), or `text` for none.  " +
+        "Absent:  guessed from the code."
     },
     {
       name: "line-numbers",

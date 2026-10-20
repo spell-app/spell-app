@@ -197,21 +197,19 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
   - the site bundle's build, `site-bundle.ts`, watched by `site-dev.ts`
   - `site-check.ts`, `tokens-alias.ts`, `design-build.ts`
   - What several scripts share:  camelCase helper files, run by none.
-    - `browserBundles.ts`:  `gen:spell` / `gen:markdown`
     - `generatedFiles.ts`:  write-or-`--check`, `vp fmt`, markup escaping
     - data:  `iconExtras.ts`
   - A class other code uses lives in `tools/` (PascalCase), and its script here is a few lines:
     `site-check.ts` -> [`SiteCheck`](tools/SiteCheck.ts).
   - A folder of `tools/` with its own flags has a `cli.ts` instead, as WWOD §8 says:
     [the tools' cli](tools/cli.ts), [the visual tests' cli](tools/visual/cli.ts).
-- [`src/languages/`](src/languages/):  GENERATED, committed.
-  - `spell.<lang>.js`:  spell's pre-compiled highlighter, for `<ui-code language="spell">`.
-  - Built by `yarn gen:spell`:  the root `AGENTS.md`'s one `ui` -> spell exception.
-  - NEVER edit;  lint and format skip it.
-- [The markdown bundle](components/ui-markdown/md.bundle.js) (`md.bundle.js`, + `.d.ts`, `MDBundle.ts`):
-  GENERATED, committed the same way.
-  - The pre-compiled markdown engine (`@spell-app/markdown`), built by `yarn gen:markdown`.
-  - NEVER edit;  lint and format skip it.
+- Nothing of spell (epic `repo-split` P2):  no parser, no spell language, no spell markdown engine, prebuilt or not.
+  - `<ui-code>` colours with highlight.js, and with any language a page registers (`UI.code.register()`).
+  - `<ui-markdown>` draws with marked, `editable`'s preview too;  a subclass may draw with its own engine
+    (`UIMarkdown.loadEngine()`).
+  - Spell's own are the app's subclasses, `<spell-code>` and `<spell-markdown>`
+    ([app's AGENTS.md](../app/AGENTS.md), `components/`).
+    Loading `<spell-code>` registers spell with `UI.code`, so a `spell` block in any `<ui-markdown>` is coloured too.
 - `reference/Fomantic-UI/`:  a READ-ONLY, git-ignored clone of Fomantic, for porting.
   NEVER edit or import it.
 
@@ -471,7 +469,6 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - `gen:icons`:  the built-in icon packs.  Downloads Font Awesome, needs `reference/Fomantic-UI/`.
   - `gen:emoji`:  `ui-emoji/data/`.  Needs `reference/Fomantic-UI/`.
   - `gen:root`:  `<ui-root>`'s catalog
-  - `gen:spell` / `gen:markdown`:  the pre-compiled bundles
 - `yarn tokens:alias <family> [--write]`:  the codemod of [the theming doc](notes/theming.md).
   It only prints, without `--write`.
 - `yarn tsc`, not `npx tsc`, and no hard-coded `node_modules` paths:
@@ -1257,6 +1254,5 @@ As WWOD §20, plus:
 ## Out of scope for WWOD
 
 - Generated files are never edited, only regenerated:
-  - `src/languages/`, `md.bundle.js`
   - `site/_assets/`, `docs/__data/` (all but the hand-kept `pages.json5`)
   - `UIRoot.catalog.ts`

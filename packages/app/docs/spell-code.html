@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>spell-code</title>
+    <meta name="description" content="A block of spell, coloured by spell's own parser." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="&lt;spell-code&gt;">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/app/components/spell-code/SpellCode.tsx"
+              icon="code"
+              aria-label="Its code, SpellCode.tsx"
+              title="Its code, SpellCode.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            &lt;spell-code&gt;
+            <ui-header>A block of spell, coloured by spell's own parser.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            A
+            <a href="../ui/ui-code.html" target="src-packages-ui-docs-ui-code-html"><code>&lt;ui-code&gt;</code></a>
+            whose language is spell unless it says otherwise. Loading it registers spell with the page's Spell UI, so
+            every <code>&lt;ui-code language="spell"&gt;</code> on the page is coloured too, and every spell block of a
+            markdown.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user"
+              >Written for: anyone showing spell in a page, or changing how spell is coloured</ui-item
+            >
+            <ui-item icon="play">Live: the real element, from the app's element build this page loads</ui-item>
+          </ui-list>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+            <p>A snippet, and the same in a plain <code>&lt;ui-code language="spell"&gt;</code> beside it.</p>
+            <ui-docs-example description="`<spell-code>`:  spell, by default.">
+              <spell-code
+                ><script type="text/plain">
+                  ## Piles
+                  a pile is a list of cards
+                  the value of a pile is:
+                  	return 0
+                </script></spell-code
+              >
+            </ui-docs-example>
+            <ui-docs-example
+              description='Spell UI&apos;s `<ui-code language="spell">`, coloured once `<spell-code>` has loaded.'
+            >
+              <ui-code language="spell">a card is a drawable thing</ui-code>
+            </ui-docs-example>
+            <p class="meta">
+              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >), which this set's pages load.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <ul>
+              <li>
+                Everything <code>&lt;ui-code&gt;</code> takes: inline text or a <code>source</code> file,
+                <code>line-numbers</code>, <code>wrap</code>, <code>copy</code>, another <code>language</code>.
+              </li>
+              <li>
+                <code>spell/&lt;lang&gt;</code> asks for a translation; one that doesn't exist stays plain, with a
+                <code>ui-error</code>.
+              </li>
+              <li>The colours come from spell's own parser, a lazy chunk fetched the first time a page shows spell.</li>
+              <li>
+                Spell UI itself knows nothing of spell: this is one more language a page registers with
+                <code>UI.code.register()</code>.
+              </li>
+              <li>
+                The docs pages (epic pages, guides) colour spell without it: the page server adds the app's
+                <code>spell-language.js</code> to them, which registers the language and defines no element.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-api" header="3. Attributes, events and texts" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <p>
+              Its own names; the rest are
+              <a href="../ui/ui-code.html" target="src-packages-ui-docs-ui-code-html"><code>&lt;ui-code&gt;</code></a
+              >'s, which it extends:
+            </p>
+            <ui-docs-api family="spell-code"></ui-docs-api>
+            <p class="meta">
+              From its vocabulary, by <code>yarn site:data</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../../packages/app/components/spell-code/SpellCode.tsx"
+                  target="src-packages-app-components-spell-code-spellcode-tsx"
+                  ><code title="packages/app/components/spell-code/SpellCode.tsx">SpellCode.tsx</code></a
+                >: its component, a <code>UICode</code>
+              </li>
+              <li>
+                <a
+                  href="../../packages/app/components/spell-code/SpellCode.en.ts"
+                  target="src-packages-app-components-spell-code-spellcode-en-ts"
+                  ><code title="packages/app/components/spell-code/SpellCode.en.ts">SpellCode.en.ts</code></a
+                >: what its vocabulary adds to <code>&lt;ui-code&gt;</code>'s
+              </li>
+              <li>
+                <a
+                  href="../../packages/app/components/spell-code/SpellLanguage.ts"
+                  target="src-packages-app-components-spell-code-spelllanguage-ts"
+                  ><code title="packages/app/components/spell-code/SpellLanguage.ts">SpellLanguage.ts</code></a
+                >: the <code>spell</code> language it registers
+              </li>
+              <li>
+                Its build: <code>yarn build:element</code>, into <code>dist-element/</code>, served at
+                <code>/element/</code>
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-20 against branch <code>repo-split</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

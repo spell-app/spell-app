@@ -101,6 +101,15 @@
     "bundles": [
       "packages/ui/site/_assets",
       "packages/brand/_assets/ui"
+    ],
+    "pageScripts": [
+      {
+        "src": "/element/spell-language.js",
+        "file": "packages/app/dist-element/spell-language.js",
+        "skip": [
+          "/components/"
+        ]
+      }
     ]
   },
   "shared": {

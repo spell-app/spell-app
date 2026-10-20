@@ -124,8 +124,6 @@ export const rootLintIgnore = [
   "**/src/icons/icon-packs",
   "**/src/icons/data",
   "**/components/ui-emoji/data",
-  "**/src/languages",
-  "**/components/ui-markdown/md.bundle.js",
   "**/site/dist",
   "**/tools/frameworks/solid/dist",
   "**/tools/results",
@@ -315,8 +313,6 @@ export const fmtConfig = {
     "**/src/icons/data/**",
     "**/src/icons/icon-packs/**",
     "**/components/ui-emoji/data/**",
-    "**/src/languages/spell.*.js",
-    "**/components/ui-markdown/md.bundle.js",
     "**/ui/site/_assets/**",
     // the brand set's data, ALL of it (`yarn site:data` in `packages/brand`):  `pages.json5` too, which it rewrites
     "**/brand/docs/__data/**",

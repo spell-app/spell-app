@@ -9,6 +9,7 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
 /**
  * Production builds of the runners:
  * - `<spell-app>` and `<spell-editor>` (`yarn build:element` => `dist-element/`)
+ *   - with `<spell-code>`, `<spell-markdown>` and `spell-language.js` (`vite.code.config.ts`)
  * - the VS Code runner (`yarn build:runner` => `dist-runner/`)
  *
  * Each folder is built as its script builds it, into a temp folder:
@@ -22,8 +23,11 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *     (a docs page's `SpellUI.packModules`):  `sharedPage()` in `vite.solid.config.ts`.
  * - `<spell-app>` is a root:  Spell UI's root family in `spell-solid.js` too.
  *   The rest of Spell UI loads tag by tag, never through `spell-ui.js`.
- * - The component pack, `spell.pack.js`:  a classic script registering both tags,
+ * - The component pack, `spell.pack.js`:  a classic script registering every tag of `components/`,
  *   whose `define()` imports their modules;  `spell-ui.js` gives it `SpellUI.registerPack`.
+ * - `<spell-code>` and `<spell-markdown>` extend Spell UI's families through `spell-ui-shared.js`:  the page's when it
+ *   has its own Spell UI.  `spell-language.js` loads none of it up front:  it's what the page server adds to EVERY
+ *   docs page, some with no Spell UI.
  * - `core` MUST be in `spell-runtime.js` ALONE:
  *   each runner loads its own copy of that file, for a `core` of its own.
  *   - In a shared chunk, every app on a page would share one -- one runtime, one console --
@@ -48,7 +52,7 @@ describe("runner builds", () => {
 
   beforeAll(() => {
     element = mkdtempSync(join(tmpdir(), "spell-element-"))
-    build(element, "vite.solid.config.ts", "vite.element.config.ts", "vite.editor.config.ts")
+    build(element, "vite.solid.config.ts", "vite.element.config.ts", "vite.editor.config.ts", "vite.code.config.ts")
     runner = mkdtempSync(join(tmpdir(), "spell-runner-"))
     build(runner, "vite.solid.config.ts", "vite.runner.config.ts")
   }, 180_000)
@@ -192,7 +196,7 @@ describe("runner builds", () => {
     }
   })
 
-  test("the component pack:  a classic script registering both tags, its `define()` importing their modules", () => {
+  test("the component pack:  a classic script registering every tag, its `define()` importing their modules", () => {
     const pack = readFileSync(join(element, "spell.pack.js"), "utf8")
     // run as `<ui-components source>` runs it:  a CLASSIC script, `SpellUI.registerPack()` on the page
     const registered: { name: string; prefix: string; catalog: object }[] = []
@@ -205,16 +209,64 @@ describe("runner builds", () => {
       {
         name: "spell",
         prefix: "spell-",
-        catalog: { "spell-app": { folder: "spell-app" }, "spell-editor": { folder: "spell-editor" } },
+        catalog: {
+          "spell-app": { folder: "spell-app" },
+          "spell-code": { folder: "spell-code", skeleton: expect.any(Object) },
+          "spell-editor": { folder: "spell-editor" },
+          "spell-markdown": { folder: "spell-markdown", skeleton: expect.any(Object) }
+        },
         define: expect.any(Function)
       }
     ])
-    for (const file of ["spell-app.js", "spell-editor.js"]) {
-      expect(pack).toContain(`import(at(${JSON.stringify(file)}))`)
+    // each family's module, one that won't load leaving the rest (a warning)
+    expect(pack).toContain(".catch(")
+    for (const file of ["spell-app.js", "spell-code.js", "spell-editor.js", "spell-markdown.js"]) {
+      expect(pack).toContain(`load(${JSON.stringify(file)})`)
       expect(existsSync(join(element, file)), file).toBe(true)
     }
     // `spell-ui.js` gives a page `SpellUI.registerPack()`, as the docs bundle does
     expect(readFileSync(join(element, "spell-ui.js"), "utf8")).toMatch(/SpellUI\b[^;]*registerPack/)
+  })
+
+  test("<spell-code> and <spell-markdown>:  Spell UI's families through `spell-ui-shared.js`;  `spell-language.js` imports none of it up front", () => {
+    for (const entry of ["spell-code.js", "spell-markdown.js"]) {
+      const files = staticImports(element, entry)
+      expect(files, entry).toEqual(expect.arrayContaining(["spell-solid-shared.js", "spell-ui-shared.js"]))
+      expect(files, entry).not.toContain("spell-ui.js")
+    }
+    // the page server adds it to every docs page:  nothing of Solid or Spell UI until it finds the page's
+    const language = staticImports(element, "spell-language.js")
+    expect(language.filter((file) => /^spell-(solid|ui)/.test(file))).toEqual([])
+    expect(readFileSync(join(element, "spell-language.js"), "utf8")).toContain("import(`./spell-code-SpellLanguage.js`)")
+    // spell's parser only lazily, on first colouring
+    for (const entry of ["spell-code.js", "spell-markdown.js", "spell-language.js"]) {
+      for (const file of staticImports(element, entry)) {
+        expect(
+          sources(element, file).some((source) => SPELL_HIGHLIGHTER.test(source)),
+          `${entry} ${file}`
+        ).toBe(false)
+      }
+    }
+  })
+
+  test("`spell-ui-shared.js` takes the families from a page with its own Spell UI, and says so when it can't", async () => {
+    const text = readFileSync(join(element, "spell-ui-shared.js"), "utf8")
+    const specifiers = JSON.parse(SHARED_SPECIFIERS.exec(text)![1]!) as string[]
+    const core = Object.fromEntries(specifiers.map((specifier) => [specifier, {}]))
+    const copy = join(element, "spell-ui-shared.page.mjs")
+    writeFileSync(copy, text)
+    try {
+      const families = { "$/ui/components/ui-code": { UICode: "page's UICode" }, "$/ui/components/ui-markdown": { UIMarkdown: "page's UIMarkdown" } }
+      Object.assign(globalThis, { SpellUI: { packModules: { ...core, ...families } } })
+      const shared = (await import(`${pathToFileURL(copy).href}?families`)) as Record<string, unknown>
+      expect(shared.UICode).toBe("page's UICode")
+      expect(shared.UIMarkdown).toBe("page's UIMarkdown")
+      // its own core, but not the families:  an error naming them, never a second Spell UI
+      Object.assign(globalThis, { SpellUI: { packModules: core } })
+      await expect(import(`${pathToFileURL(copy).href}?core-only`)).rejects.toThrow(/shares no \$\/ui\/components\/ui-code/)
+    } finally {
+      Reflect.deleteProperty(globalThis, "SpellUI")
+    }
   })
 
   test("VS Code runner:  its files and CSS", () => {
@@ -250,6 +302,9 @@ const UI_COMPONENT = /\/packages\/spell-solid\/src\/UIComponent\.tsx$/
 
 /** `ui`'s root component, which `<spell-app>` extends. */
 const UI_ROOT = /\/packages\/ui\/components\/ui-root\/UIRoot\.tsx$/
+
+/** Spell's highlighter, which colours spell for `<spell-code>`. */
+const SPELL_HIGHLIGHTER = /\/packages\/spell\/src\/highlight\/SpellHighlighter\.ts$/
 
 /** `<spell-editor>`'s component. */
 const SPELL_EDITOR = /\/components\/spell-editor\/SpellEditor\.tsx$/

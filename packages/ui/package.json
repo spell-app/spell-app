@@ -395,8 +395,6 @@
     "gen:icons": "tsc -p scripts && tsx scripts/gen-icons.ts",
     "gen:emoji": "tsc -p scripts && tsx scripts/gen-emoji.ts",
     "gen:root": "tsc -p scripts && tsx scripts/gen-root.ts",
-    "gen:spell": "tsc -p scripts && tsx scripts/gen-spell.ts",
-    "gen:markdown": "tsc -p scripts && tsx scripts/gen-markdown.ts",
     "tokens:alias": "tsx scripts/tokens-alias.ts",
     "/////// DESIGN SYSTEM (claude.ai)": "",
     "design:build": "tsc -p scripts && tsx scripts/design-build.ts",

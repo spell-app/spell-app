@@ -9,13 +9,6 @@
 # Vitest snapshots:  regenerated with `vp test run --update`, then checked against both sides
 **/__snapshots__/*.snap                                       linguist-generated merge=binary
 
-# ui:  pre-compiled spell highlighter and markdown (`yarn gen:spell`, `yarn gen:markdown`)
-packages/ui/src/languages/spell.*                             linguist-generated merge=binary
-packages/ui/src/languages/spell.*.bundle.js                   -diff
-packages/ui/components/ui-markdown/md.bundle.*                linguist-generated merge=binary
-packages/ui/components/ui-markdown/md.bundle.js               -diff
-packages/ui/components/ui-markdown/MDBundle.ts                linguist-generated merge=binary
-
 # ui:  Spell UI site data (`yarn site:data`;  `.json5` since epic `epic-workflow` P20);  `pages.json5` is hand-kept.
 # Its bundle, `_assets/`, isn't committed:  the page server builds it (root `.gitignore`)
 packages/ui/docs/__data/components.json5                      linguist-generated merge=binary

@@ -25,7 +25,7 @@
  *   `globalThis.SpellUI` first (`SitePacks`) for the component packs their examples use;  the root's module joins its
  *   `packModules` here, once imported
  * - Lazy, by `import()`:  families, the runtime, icon packs (`_assets/icon-packs/`), emoji names, `<ui-code>`'s and
- *   `<ui-markdown>`'s engines, spell's highlighter, the Temporal polyfill.
+ *   `<ui-markdown>`'s engines, the Temporal polyfill.
  * - `window.UI`:  the runtime (`UI.load()` works at once;  the rest after it), for poking in DevTools.
  * - `window.SiteData`:  the site's data reader, for a page's own script:
  *   the icon browser reads `__data/icons.json5` with `SiteData.json()` (JSON5, so a comment written into it reads too).

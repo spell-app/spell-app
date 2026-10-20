@@ -37,8 +37,16 @@ export type MarkdownResult = {
   headings: MarkdownHeading[]
 }
 
-/** What renders markdown:  marked (`MarkdownEngine`) or spell's (`MDEngine`, `editable`). */
+/**
+ * What renders markdown:  marked (`MarkdownEngine`), or a subclass's own engine (`UIMarkdown.loadEngine()`),
+ * e.g. the app's `<spell-markdown>`'s, spell's.
+ */
 export type MarkdownRendering = {
+  /**
+   * Its markup holds `ui-*` elements (`<ui-table>`, `<ui-checkbox>` ...):  `sanitized` keeps them.
+   * Default:  `false`, plain HTML (marked).
+   */
+  readonly drawsUITags?: boolean
   /** `text` rendered as `options` say. */
   render(text: string, options: MarkdownOptions): MarkdownResult
 }

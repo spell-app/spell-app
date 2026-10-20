@@ -21,6 +21,9 @@
  *   - `ui-root` arrives later, from the site entry (`site.ts`), once it imports it:  importing it defines
  *     `<ui-root>`, which the site does only once its layout and theme are in.  A pack's script comes a network round
  *     trip after the root asks for it, by when it's in the map.
+ * - The code and markdown families join the map then too (`shareFamilies()`), as a pack's `define()` starts:
+ *   the app's `<spell-code>` and `<spell-markdown>` extend them (`spell-ui-shared.js`, app's `vite.solid.config.ts`),
+ *   so on App UI's pages they extend the page's own.
  */
 import * as solidH from "@solidjs/h"
 import * as solidWeb from "@solidjs/web"
@@ -43,9 +46,19 @@ const packModules: Record<string, unknown> = {
   "$/ui/forms": uiForms
 }
 
-/** `registerPack()`, its `define()` after every Spell UI family's:  the ones its elements draw in their shadow roots. */
+/**
+ * `registerPack()`, its `define()` after every Spell UI family's:  the ones its elements draw in their shadow roots.
+ * - The families a pack's elements may EXTEND join `packModules` first (`shareFamilies()`).
+ */
 function registerWithFamilies(pack: ComponentPack): void {
-  registerPack({ ...pack, define: () => import("$/ui").then(() => pack.define()) })
+  registerPack({ ...pack, define: () => import("$/ui").then(shareFamilies).then(() => pack.define()) })
+}
+
+/** Put the families a pack's elements may extend in `packModules`, by their specifiers. */
+async function shareFamilies(): Promise<void> {
+  const [code, markdown] = await Promise.all([import("$/ui/components/ui-code"), import("$/ui/components/ui-markdown")])
+  packModules["$/ui/components/ui-code"] = code
+  packModules["$/ui/components/ui-markdown"] = markdown
 }
 
 const spellUI = (globalThis as { SpellUI?: object }).SpellUI

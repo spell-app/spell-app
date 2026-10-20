@@ -3729,7 +3729,7 @@
           "name": "language",
           "description": {
             "kind": "markdown",
-            "value": "Language to colour it as:  a highlight.js name or alias (`ts`, `html`, `css`, `json`, `bash` ...), `spell` (~== `spell/en`) or `spell/<lang>` for a translation, or `text` for none.  Absent:  guessed from the code.\n\nTakes:  text"
+            "value": "Language to colour it as:  a highlight.js name or alias (`ts`, `html`, `css`, `json`, `bash` ...), one the page registered with `UI.code` (e.g. `spell`, once the app's `<spell-code>` is loaded), or `text` for none.  Absent:  guessed from the code.\n\nTakes:  text"
           }
         },
         {
@@ -13875,7 +13875,7 @@
           "name": "editable",
           "description": {
             "kind": "markdown",
-            "value": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn with `ui-*` elements by spell's markdown engine (`@spell-app/markdown`, its own lazy chunk).  Each edit is a `ui-change`;  `save()` writes it.\n\nTakes:  flag (present / absent)"
+            "value": "Write / Preview tabs:  a text box for the markdown, and its preview.  Each edit is a `ui-change`;  `save()` writes it.\n\nTakes:  flag (present / absent)"
           }
         },
         {

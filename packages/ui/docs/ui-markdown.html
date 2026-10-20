@@ -112,7 +112,7 @@
 
               <ui-section id="examples-variations-editable" header="Editable" sticky collapsible dividing>
                 <ui-docs-example
-                  description="`editable` adds Write / Preview tabs:  a text box, and a preview drawn with `ui-*` elements by spell's own markdown engine (on spell's parser), loaded with the first preview."
+                  description="`editable` adds Write / Preview tabs:  a text box, and its preview, drawn as the rest of the element draws."
                 >
                   <ui-markdown editable>
                     <script type="text/markdown">
@@ -120,16 +120,13 @@
 
                       Type **markdown** here, then look at the *Preview*.
 
-                      - [x] tables, task lists, alerts
+                      - [x] tables, task lists, code
                       - [ ] your text
 
-                      > [!TIP]
-                      > Alerts become messages.
-
-                      | Engine | Draws with |
-                      | ------ | ---------- |
-                      | marked | plain HTML |
-                      | spell  | `ui-*`     |
+                      | Tab     | Shows            |
+                      | ------- | ---------------- |
+                      | Write   | the text box     |
+                      | Preview | the markdown     |
                     </script>
                   </ui-markdown>
                 </ui-docs-example>
@@ -192,10 +189,11 @@
                     leaves room for a sticky header.
                   - `skip-title` drops the text's leading `#` title (the page shows its own headline above a README); the
                     text itself keeps it.
-                  - `editable`: Write / Preview tabs. The preview uses spell's own markdown engine (`@spell-app/markdown`,
-                    on spell's parser), in a lazy chunk of its own, and draws with `ui-*` elements: headers, lists, tables,
-                    messages for alerts, checkboxes for tasks. Each keystroke is a `ui-change` and makes the element dirty;
-                    `save()` writes the text back to `source`.
+                  - `editable`: Write / Preview tabs. The preview draws as the element does, swapping only the blocks an
+                    edit changed. Each keystroke is a `ui-change` and makes the element dirty; `save()` writes the text back
+                    to `source`.
+                  - Spell's own markdown engine, which draws with `ui-*` elements (headers, lists, tables, messages for
+                    alerts, checkboxes for tasks), is the app's `<spell-markdown>`: a subclass, outside Spell UI.
                 </script>
               </ui-markdown>
             </ui-section>

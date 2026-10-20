@@ -26,7 +26,8 @@ export class MarkdownSanitizer {
 
   /**
    * `html`, sanitized, as a fragment of this document;  throws where DOMPurify can't sanitize.
-   * - `uiTags`:  keep `ui-*` elements (spell's engine draws with them), with any attribute but an `on*` handler.
+   * - `uiTags`:  keep `ui-*` elements (an engine that draws with them:  `<spell-markdown>`'s),
+   *   with any attribute but an `on*` handler.
    *   Default:  `false`.
    */
   sanitize(html: string, { uiTags = false }: { uiTags?: boolean } = {}): DocumentFragment {

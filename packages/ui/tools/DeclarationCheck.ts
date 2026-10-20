@@ -80,7 +80,7 @@ export class DeclarationCheck {
 
   /**
    * Whether `target` (an import path) is a declaration file, or a folder with an `index.d.ts`.
-   * - `./x.js` means `./x.d.ts`, as TypeScript reads it (`MDBundle.d.ts` imports `./md.bundle.js`)
+   * - `./x.js` means `./x.d.ts`, as TypeScript reads it (a declaration importing a generated `./x.js`)
    */
   private static resolvesToDeclaration(target: string): boolean {
     return (

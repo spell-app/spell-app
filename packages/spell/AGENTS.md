@@ -64,8 +64,8 @@ when working with code in this package, `@spell-app/spell`.
 - `src/highlight/`:  `SpellHighlighter`.
   - It colours a snippet without a project, for `<ui-code language="spell">`.
   - Call it as `SP.SpellHighlighter.spans(text)`.
-  - [The browser entry](src/highlight/browser.ts) is what `@spell-app/ui`'s `yarn gen:spell` bundles.
-  - After changing the grammar, run it there, so `ui`'s committed bundle follows.
+  - The app's `<spell-code>` colours pages with it, from source, in a lazy chunk
+    ([SpellLanguage](../app/components/spell-code/SpellLanguage.ts)):  nothing to regenerate after a grammar change.
 - [targets.ts](src/targets.ts):  the TARGETS spell compiles to, `SP.TARGETS`.
   Each is a language, the runtime its code runs on, and the writer that writes it:
   - `js/solid`:  ALWAYS compiled, as the editor, the runners and `spell run` run it

@@ -12,6 +12,7 @@
   },
   "include": [
     "vite.config.ts",
+    "vite.code.config.ts",
     "vite.editor.config.ts",
     "vite.element.config.ts",
     "vite.runner.config.ts",

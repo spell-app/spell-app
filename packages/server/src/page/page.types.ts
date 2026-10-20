@@ -80,6 +80,31 @@ export type PageServerSettings = {
    * - THE list:  `$/assembler`'s `Bundle.all()` builds the bundles whose output folders it names
    */
   bundles?: string[]
+  /**
+   * module scripts added to every HTML page it serves, before `</body>` (`PageServer.withPageScripts()`);
+   * none by default
+   * - e.g. the app's `spell-language.js`, which colours spell on the docs pages (epic `repo-split` Q23):
+   *   the pages' own tooling (spell-epic) imports nothing of the app, the server's settings add it
+   * - the server knows nothing of what they are:  the paths come from here
+   */
+  pageScripts?: PageScript[]
+}
+
+/** One of the page server's `pageScripts`:  a module script added to the pages it serves. */
+export type PageScript = {
+  /** the script's URL, as a page loads it, e.g. `/element/spell-language.js` */
+  src: string
+  /**
+   * the file it is, relative to the root, e.g. `packages/app/dist-element/spell-language.js`:
+   * added only while it exists, so a checkout that hasn't built it serves its pages without it (no 404)
+   * - none:  always added
+   */
+  file?: string
+  /**
+   * URL paths of pages that DON'T get it, by prefix, e.g. `/components/` (the component sets' pages);
+   * matched against a worktree's page without its `/worktrees/<w>` (`/worktrees/w/guides/x.html` => `/guides/x.html`)
+   */
+  skip?: string[]
 }
 
 /**

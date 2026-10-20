@@ -27,6 +27,18 @@
       "status": "done",
       "group": "web components"
     },
+    "spell-code": {
+      "title": "<spell-code>",
+      "summary": "A block of spell, coloured by spell's own parser.",
+      "status": "done",
+      "group": "web components"
+    },
+    "spell-markdown": {
+      "title": "<spell-markdown>",
+      "summary": "Markdown drawn by spell's own engine, in ui-* elements.",
+      "status": "done",
+      "group": "web components"
+    },
     "SpellPage": {
       "title": "SpellPage",
       "summary": "A whole page's box:  its look, and its children laid out down or across it.",

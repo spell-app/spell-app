@@ -16,7 +16,8 @@ when working with code in this package, `@spell-app/markdown`.
   - The plan:  [its epic page](../../../spell-app.epics/epics/markdown/markdown.plan.html).
 - It depends only on `$/parser` and `$/util`.
   - NEVER import `$/spell`, or anything above it.
-  - `ui` NEVER imports this package:  it gets a precompiled bundle (as with spell's highlighter).
+  - `ui` NEVER imports this package, nor ships it prebuilt:  Spell UI's `<ui-markdown>` draws with marked.
+    The app's `<spell-markdown>` draws with it, from source ([MDEngine](../app/components/spell-markdown/MDEngine.ts)).
 - [MarkdownTokenizer.ts](src/MarkdownTokenizer.ts):  how text becomes tokens.
   - words:  letters / digits
   - one symbol per other character

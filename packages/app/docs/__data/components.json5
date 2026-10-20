@@ -245,6 +245,128 @@
       "href": "spell-app.html"
     },
     {
+      "tag": "spell-code",
+      "name": "<spell-code>",
+      "folder": "spell-code",
+      "topics": [
+        "web components"
+      ],
+      "aka": [
+        "spell snippet",
+        "spell source",
+        "spell highlighter"
+      ],
+      "description": "Spell code shows a block of spell coloured by spell's own parser:  `<ui-code>`, its language `spell` unless it says otherwise.  Loading it registers spell with the page's `UI.code`, so every `<ui-code language=\"spell\">` on the page, and every spell block of a markdown, is coloured too.",
+      "noun": "code",
+      "attributes": [
+        {
+          "name": "language",
+          "kind": "string",
+          "default": "spell",
+          "description": "Language to colour it as:  `spell` (~== `spell/en`, the default), `spell/<lang>` for a translation, or any language `<ui-code>` knows."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins."
+        },
+        {
+          "name": "animation",
+          "kind": "enum",
+          "values": [
+            "fade",
+            "fade up",
+            "fade down",
+            "fade left",
+            "fade right",
+            "scale",
+            "zoom",
+            "drop",
+            "browse",
+            "browse right",
+            "fly",
+            "fly up",
+            "fly down",
+            "fly left",
+            "fly right",
+            "slide",
+            "slide up",
+            "slide down",
+            "slide left",
+            "slide right",
+            "swing",
+            "swing up",
+            "swing down",
+            "swing left",
+            "swing right",
+            "horizontal flip",
+            "vertical flip",
+            "flash",
+            "shake",
+            "bounce",
+            "tada",
+            "pulse",
+            "jiggle",
+            "glow",
+            "none"
+          ],
+          "shared": true,
+          "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+        },
+        {
+          "name": "still",
+          "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+        },
+        {
+          "name": "hiding",
+          "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+        }
+      ],
+      "texts": [],
+      "mainTag": "spell-code",
+      "main": true,
+      "page": true,
+      "href": "spell-code.html"
+    },
+    {
       "tag": "spell-editor",
       "name": "<spell-editor>",
       "folder": "spell-editor",
@@ -407,6 +529,129 @@
       "main": true,
       "page": true,
       "href": "spell-editor.html"
+    },
+    {
+      "tag": "spell-markdown",
+      "name": "<spell-markdown>",
+      "folder": "spell-markdown",
+      "topics": [
+        "web components"
+      ],
+      "aka": [
+        "spell markdown",
+        "markdown editor",
+        "gfm",
+        "readme",
+        "rich text"
+      ],
+      "description": "Spell markdown draws GitHub-flavoured markdown with spell's own engine, in `ui-*` elements -- headers, lists, tables, alerts as messages, tasks as checkboxes -- plain or `editable`.  Its spell blocks are coloured by spell's parser.",
+      "noun": "markdown",
+      "attributes": [
+        {
+          "name": "editable",
+          "kind": "boolean",
+          "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn by spell's engine in `ui-*` elements.  Each edit is a `ui-change`;  `save()` writes it."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins."
+        },
+        {
+          "name": "animation",
+          "kind": "enum",
+          "values": [
+            "fade",
+            "fade up",
+            "fade down",
+            "fade left",
+            "fade right",
+            "scale",
+            "zoom",
+            "drop",
+            "browse",
+            "browse right",
+            "fly",
+            "fly up",
+            "fly down",
+            "fly left",
+            "fly right",
+            "slide",
+            "slide up",
+            "slide down",
+            "slide left",
+            "slide right",
+            "swing",
+            "swing up",
+            "swing down",
+            "swing left",
+            "swing right",
+            "horizontal flip",
+            "vertical flip",
+            "flash",
+            "shake",
+            "bounce",
+            "tada",
+            "pulse",
+            "jiggle",
+            "glow",
+            "none"
+          ],
+          "shared": true,
+          "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+        },
+        {
+          "name": "still",
+          "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+        },
+        {
+          "name": "hiding",
+          "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+        }
+      ],
+      "texts": [],
+      "mainTag": "spell-markdown",
+      "main": true,
+      "page": true,
+      "href": "spell-markdown.html"
     },
     {
       "tag": "Action",
@@ -3202,6 +3447,30 @@
       "docs": false,
       "tags": [
         "spell-editor"
+      ],
+      "tokens": []
+    },
+    "spell-code": {
+      "folder": "spell-code",
+      "mainTag": "spell-code",
+      "title": "<spell-code>",
+      "summary": "A block of spell, coloured by spell's own parser.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "spell-code"
+      ],
+      "tokens": []
+    },
+    "spell-markdown": {
+      "folder": "spell-markdown",
+      "mainTag": "spell-markdown",
+      "title": "<spell-markdown>",
+      "summary": "Markdown drawn by spell's own engine, in ui-* elements.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "spell-markdown"
       ],
       "tokens": []
     },

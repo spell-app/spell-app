@@ -11,6 +11,7 @@ import {
   PageEditor,
   pageServerSettings,
   type PageConfig,
+  type PageScript,
   type PageServerSettings,
   type RouteContext,
   type RouteModule
@@ -49,6 +50,8 @@ import {
  *   `start()` builds the stale ones in the background (`BundleBuild`),
  *   and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics
+ * - the page scripts there (`"pageScripts"`) go on every page, before `</body>` (`withPageScripts()`):
+ *   the app's `spell-language.js`, so the docs pages colour spell
  * - `/_epic/assets/...`, `/_epic/pack/...` -> the engine's files (`engineRoutePath()`, epic `epic-eject` P7)
  *   - at the routes spell-epic's server serves them at, which the pages load
  *   - from spell-epic, through the checkout's `spell-epic` link (epic `epic-eject` I5)
@@ -100,6 +103,9 @@ export class PageServer {
   /** what `/api/files` and `/api/pages` write through:  told the content folder by `serveContent()` */
   private writes: SRV.FileOperations
 
+  /** the module scripts every page gets (`"pageScripts"`, `withPageScripts()`), from the settings as it starts */
+  private readonly pageScripts: PageScript[]
+
   constructor({ root, token }: { root: string; token?: string }) {
     this.root = resolve(root)
     this.pidFile = new SRV.PidFile(this.root)
@@ -110,13 +116,14 @@ export class PageServer {
       started: new Date().toISOString(),
       ...checkoutInfo(this.root)
     }
-    const { writable } = this.settings()
+    const { writable, pageScripts = [] } = this.settings()
+    this.pageScripts = pageScripts
     this.web = new SRV.WebServer({
       root: this.root,
       token,
       live: true,
       mounts: [{ prefix: "/", dir: this.root }],
-      html: [localHighlight],
+      html: [localHighlight, (page, served) => this.withPageScripts(page, served)],
       configure: (served) => ({
         root: this.root,
         branch: this.info.branch,
@@ -318,6 +325,26 @@ export class PageServer {
     const at = name ? this.worktrees.map((each) => join(each, name)).find((each) => existsSync(each)) : file
     const folder = (at && this.worktrees.find((each) => isInside(at, each))) ?? this.worktrees[0]!
     return { ...(at && worktreeOf(at, folder)), worktrees: folder, worktreesPath: urlPathOf(this.root, folder) }
+  }
+
+  /**
+   * `page` with the settings' page scripts (`"pageScripts"`) before its `</body>` (at its end without one):
+   * each one whose file exists, unless `served`'s path is under one of its `skip` prefixes.
+   * - The settings are read as the server starts;  the files at each page, so a build that lands meanwhile counts.
+   * - The server knows nothing of what they are (the app's `spell-language.js`):  the paths come from the settings.
+   */
+  withPageScripts(page: string, served: ServedFile): string {
+    const path = served.path.replace(WORKTREE_ADDRESS, "/")
+    const tags = this.pageScripts
+      .filter(
+        ({ file, skip }) =>
+          !skip?.some((prefix) => path.startsWith(prefix)) && (!file || existsSync(join(this.root, file)))
+      )
+      .map(({ src }) => `<script type="module" src="${src}"></script>\n`)
+      .join("")
+    if (!tags) return page
+    const end = page.search(/<\/body>/i)
+    return end < 0 ? page + tags : page.slice(0, end) + tags + page.slice(end)
   }
 
   /** Add `add`'s fields to every page's `window.SPELL_SERVER`, from a route module;  returns `this`. */

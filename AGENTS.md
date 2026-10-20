@@ -174,16 +174,13 @@ ui -> util
   - epics (its docs tools and its `epic` tool) imports it.
   - So do spaces and ui's tools (the site data writers), for `$/assembler/json5`.
   - Any other node-side package or tool may import it too.
-- The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED.
-  - It's a committed bundle per language:  [`spell.<lang>.js`](packages/ui/src/languages/).
-  - `yarn gen:spell` (in `packages/ui`) builds it
-    from [the highlighter's browser entry](packages/spell/src/highlight/browser.ts).
-  - `ui`'s source never imports `$/spell`.
-  - Regenerate after changing spell's grammar.
-  - Likewise markdown:  [md.bundle.js](packages/ui/components/ui-markdown/md.bundle.js).
-    - `yarn gen:markdown` (in `packages/ui`) builds it
-      from [markdown's browser entry](packages/markdown/src/browser.ts).
-    - Regenerate after changing `markdown` or `parser`.
+- No exceptions (since epic `repo-split` P2):  `ui` holds nothing of spell, not even pre-compiled.
+  - `<ui-code>` colours with highlight.js, and `<ui-markdown>` draws with marked.
+  - Spell's own are the app's subclasses, `<spell-code>` and `<spell-markdown>`
+    ([app's AGENTS.md](packages/app/AGENTS.md), `components/`), built from source with the app:
+    nothing to regenerate after a grammar change.
+  - The docs pages colour spell because the page server adds the app's `spell-language.js` to them
+    (its `"pageScripts"`, [server's AGENTS.md](packages/server/AGENTS.md)):  spell-epic imports nothing of the app.
 - The direction is by convention, not enforced:  every alias works from every package.
 
 ### Aliases and global types

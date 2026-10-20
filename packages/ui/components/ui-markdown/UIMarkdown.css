@@ -7,8 +7,8 @@
  *     `table`, `hr`, `img`, inline `code`, `del`), with each code block as a `<ui-code>` (its own sheet).
  * - `editable`:  `<nav part="tabs">` of `<button part="tab" aria-selected>`,
  *   a `<section>` around `<textarea part="editor">`, then the article's `<section>` (both `role=tabpanel`).
- *   The article's blocks are spell's engine's `ui-*` elements (`ui-header`, `ui-list`, `ui-table` ...):
- *   each styles itself, and this sheet only spaces them.
+ * - A subclass's engine may draw the article's blocks as `ui-*` elements (`ui-header`, `ui-list`, `ui-table` ...:
+ *   the app's `<spell-markdown>`, on spell's engine):  each styles itself, and this sheet only spaces them.
  * - Sizes by the generic remap:  `.ui.small` ... set `--ui-scale`, and the article scales its font by it.
  * - Public tokens are NEVER declared here:  each is read through its private alias (`notes/theming.md`).
  * - Headings:  GitHub's look by default (sans 600, a rule under `h1` / `h2`).
@@ -214,7 +214,7 @@
     display: block;
   }
 
-  /* spell's engine (`editable`):  its `ui-*` blocks get the same rhythm */
+  /* an engine drawing `ui-*` blocks (a subclass's:  `<spell-markdown>`):  the same rhythm */
   .ui.markdown :is(ui-header, ui-list, ui-message, ui-segment, ui-table, ui-divider) {
     display: block;
     margin-block: 0 1em;

@@ -11,7 +11,7 @@
     "start:server:prod": "tsx ../spaces/src/server/node/routes/cli.ts",
     "build": "tsc && vp build",
     "build:runner": "vp build -c vite.solid.config.ts --outDir dist-runner && vp build -c vite.runner.config.ts",
-    "build:element": "vp build -c vite.solid.config.ts && vp build -c vite.element.config.ts && vp build -c vite.editor.config.ts",
+    "build:element": "vp build -c vite.solid.config.ts && vp build -c vite.element.config.ts && vp build -c vite.editor.config.ts && vp build -c vite.code.config.ts",
     "build:page": "vp build -c vite.solid.config.ts --outDir dist-page && vp build -c vite.page.config.ts",
     "preview": "vp preview",
     "site:data": "tsx scripts/site-data.ts",

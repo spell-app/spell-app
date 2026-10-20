@@ -12,6 +12,8 @@ import { AppUIDataBuilder } from "../../../packages/app/tools/AppUIDataBuilder.t
 const VOCABULARY_FAMILY_FILES = {
   "spell-app": "components/spell-app/SpellApp.tsx",
   "spell-editor": "components/spell-editor/SpellEditor.tsx",
+  "spell-code": "components/spell-code/SpellCode.tsx",
+  "spell-markdown": "components/spell-markdown/SpellMarkdown.tsx",
   "spell-element": "src/runner/SpellElement.tsx"
 }
 

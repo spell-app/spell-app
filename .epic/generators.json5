@@ -14,22 +14,12 @@
 //     Spell UI's site and the brand pages (`spell dev bundles`)
 //   - the epic engine's (the docs bundle, the epics pack, Epic UI's data):  spell-epic's own, built there
 //     (epic `epic-eject` I5)
+//   - spell's highlighter and markdown engine:  no committed bundle since epic `repo-split` P2;  the app builds them
+//     from source (`<spell-code>`, `<spell-markdown>`)
 // - A new component pack's line is added by `spell dev pack new`.
 {
   "generators": [
     { "name": "yarn.lock", "outputs": ["yarn.lock"], "cwd": ".", "run": ["yarn", "install"] },
-    {
-      "name": "spell highlighter",
-      "outputs": ["packages/ui/src/languages/spell.*"],
-      "cwd": "packages/ui",
-      "run": ["yarn", "gen:spell"]
-    },
-    {
-      "name": "markdown bundle",
-      "outputs": ["packages/ui/components/ui-markdown/md.bundle.*", "packages/ui/components/ui-markdown/MDBundle.ts"],
-      "cwd": "packages/ui",
-      "run": ["yarn", "gen:markdown"]
-    },
     {
       "name": "Spell UI site data",
       "outputs": [

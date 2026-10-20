@@ -4,7 +4,7 @@ import type { JSX } from "@solidjs/web"
 import { E, UI, UIT } from "$/ui/core"
 import type { codeVocabulary } from "$/ui/components/ui-code/UICode.en"
 import { MarkdownRenderer } from "./MarkdownRenderer"
-import type { MarkdownHeading, MarkdownOptions } from "./UIMarkdown.types"
+import type { MarkdownHeading, MarkdownOptions, MarkdownRendering } from "./UIMarkdown.types"
 import { markdownVocabulary } from "./UIMarkdown.en"
 
 import markdownCSS from "./UIMarkdown.css?inline"
@@ -46,6 +46,8 @@ export class DOMMarkdownElement extends E.DOMLoadableElement<UIMarkdown> {
  *   or a `source` file (see `LoadableComponent`).
  * - Rendering:  marked, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy chunk).
  *   Headings get GitHub's ids (`headings`, `ui-render`).
+ *   - A subclass may draw with an engine of its own (`loadEngine()`):
+ *     the app's `<spell-markdown>` draws with spell's, in `ui-*` elements.
  * - NOT sanitized unless `sanitized`:  raw HTML in the text is kept.
  *   `sanitized` loads DOMPurify (`MarkdownSanitizer`, a lazy chunk of its own) alongside the engine:
  *   set it for text you didn't write.
@@ -60,17 +62,17 @@ export class DOMMarkdownElement extends E.DOMLoadableElement<UIMarkdown> {
  * - `skip-title`:  the text's leading `#` title isn't rendered (the text keeps it).
  * - A failed render (an engine that won't load) is a `render` error, with its message.
  * - `editable`:  Write / Preview tabs (`role=tablist`, arrow keys), a `<textarea>` for the text,
- *   and the article as the preview, drawn by spell's engine
- *   (`MarkdownRenderer.loadMD()`:  `ui-*` elements, with `<ui-table>`'s sheet adopted here too).
+ *   and the article as the preview, drawn by the same engine.
  *   - each keystroke sets `content`:  `ui-change`, `:state(dirty)`, and `save()` writes it back to `source`
  *   - the preview renders while it's shown:  the WHOLE text each time (~2 ms for 32 kB),
  *     then swaps only the top-level blocks whose markup changed (`patchBody()`),
- *     so unchanged `ui-*` elements keep their state.
+ *     so unchanged elements keep their state (a highlighted `<ui-code>`, a scrolled table).
  * - SIDE EFFECTS:  listens to `window`'s `hashchange` while connected;
  *   a revealed heading is put in the address (`history.replaceState`, no new entry).
  ****************/
 export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
-  @E.proto static vocabulary = markdownVocabulary
+  // typed wide, as `UIRoot`'s:  a subclass names its own (the app's `<spell-markdown>`)
+  @E.proto static vocabulary: E.ComponentVocabulary = markdownVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { markdown: markdownCSS },
     DOMElement: DOMMarkdownElement,
@@ -133,12 +135,6 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
         </section>
       </>
     )
-  }
-
-  /** `editable`:  `<ui-table>`'s sheet too, since the preview draws tables with it (a page sheet:  `TABLE_SHEET`). */
-  get styleSheetNames(): string[] {
-    const names = super.styleSheetNames
-    return this.editable ? [...names, TABLE_SHEET] : names
   }
 
   ////////////////
@@ -281,21 +277,30 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   ////////////////
 
   /**
+   * The engine this element draws with, loaded on first use:  marked (`MarkdownRenderer.load()`).
+   * - A HOOK:  a subclass draws with an engine of its own by overriding it (the app's `<spell-markdown>`).
+   *   Its markup may hold `ui-*` elements (`MarkdownRendering.drawsUITags`), which `sanitized` then keeps.
+   */
+  protected loadEngine(): Promise<MarkdownRendering> {
+    return MarkdownRenderer.load()
+  }
+
+  /**
    * Render `text` into the article;  `ui-render` when done.
-   * - `isEditable`:  with spell's engine, its markup patched in (`patchBody()`);  sanitized keeping `ui-*` tags.
+   * - `isEditable`:  the markup patched in (`patchBody()`), so unchanged blocks keep their state.
    */
   private async renderMarkdown({ text, options, isEditable }: RenderParams) {
     const ticket = ++this.ticket
     try {
       await UI.load()
       const [engine, sanitizer] = await Promise.all([
-        isEditable ? MarkdownRenderer.loadMD() : MarkdownRenderer.load(),
+        this.loadEngine(),
         options.sanitized ? MarkdownRenderer.loadSanitizer() : undefined
       ])
       if (ticket !== this.ticket || !this.body) return
       const { html, headings } = engine.render(text, options)
       const fragment = sanitizer
-        ? sanitizer.sanitize(html, { uiTags: isEditable })
+        ? sanitizer.sanitize(html, { uiTags: !!engine.drawsUITags })
         : this.domElement.ownerDocument.createRange().createContextualFragment(html)
       this.upgradeCode(fragment)
       this.labelTaskItems(fragment)
@@ -357,7 +362,7 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
    * the unchanged lead and tail stay, only the middle is swapped.
    * - Why:  an edit changes a block or two;  re-creating every `ui-*` element would re-highlight every code block
    *   and lose each one's state (a scrolled table, a copied-code tick).
-   * - A node not put here (marked's render, before `editable`) has no markup recorded, so it's always swapped.
+   * - A node not put here (a render from before `editable`) has no markup recorded, so it's always swapped.
    */
   private patchBody(body: HTMLElement, fragment: DocumentFragment) {
     const next = [...fragment.childNodes]
@@ -433,7 +438,7 @@ type RenderParams = {
   text: string
   /** how to render it */
   options: MarkdownOptions
-  /** `editable`:  spell's engine, patched in, `ui-*` tags kept when sanitized */
+  /** `editable`:  patched in, block by block (`patchBody()`) */
   isEditable: boolean
 }
 
@@ -451,9 +456,6 @@ type MarkdownTab = (typeof MarkdownTabs)[number]
 
 /** `editable`'s tab roles. */
 const TAB_ROLES = { list: "tablist", tab: "tab", panel: "tabpanel" } as const
-
-/** `<ui-table>`'s sheet (`UI.styles` name):  a page sheet, so `editable` adopts it into its shadow root too. */
-const TABLE_SHEET = "table"
 
 /**
  * A leading `#` title (`skip-title`), with its line end:
@@ -476,7 +478,7 @@ const LANGUAGE: E.AttributeName<typeof codeVocabulary> = "language"
 /** `<ui-code>`'s copy button. */
 const COPY: E.AttributeName<typeof codeVocabulary> = "copy"
 
-/** Task-list checkboxes:  marked's (`<input>`) and spell's engine's (`<ui-checkbox>`). */
+/** Task-list checkboxes:  marked's (`<input>`), and a `ui-*` engine's (`<ui-checkbox>`:  `<spell-markdown>`'s). */
 const TASK_BOXES = "li > input[type=checkbox], ui-item > ui-checkbox"
 
 /**

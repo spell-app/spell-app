@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url"
 import { defineConfig, type Plugin } from "vite"
 
-import { SHARED_DEFAULTS, SHARED_SOLID, SHARED_SPECIFIERS, appConfig } from "./vite.shared.ts"
+import { SHARED_DEFAULTS, SHARED_FAMILIES, SHARED_SOLID, SHARED_SPECIFIERS, appConfig } from "./vite.shared.ts"
 
 /** Virtual module re-exporting what `SHARED_SOLID.solid` holds:  see `sharedEntries()`. */
 const SOLID_ENTRY = "\0spell-solid-entry"
@@ -49,6 +49,8 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *     so a `<ui-components source>` can load a component pack:
  *     `spell.pack.js`, `<spell-app>` and `<spell-editor>`'s (`vite.element.config.ts`).
  *   - Its lazy chunks (the `UI` runtime, emoji data, `<ui-root>`'s families) go in `ui/`.
+ * - `spell-ui-shared.js`, what `<spell-code>` and `<spell-markdown>` import Spell UI's code and markdown families from
+ *   (`SHARED_FAMILIES`):  the page's, on the same condition, else `spell-ui.js`'s (`sharedPage()`).
  * - The other builds mark those packages external and import these files instead --
  *   `sharedSolid()` in `vite.shared.ts`, which also lists what they may import.
  * - Icon packs (`appConfig({ iconPacks })`):  beside the chunk holding `BuiltInPacks`, wherever it lands.
@@ -134,6 +136,9 @@ function sharedEntries(): Plugin {
  *   - Our lazy chunks (`spell-ui.js`, `ui/`) import `spell-solid.js` directly:  only ever loaded with ours.
  * - A page's module has a name ours lacks, or the other way round:  the name is `undefined` there.
  *   None does today.
+ * - And `spell-ui-shared.js` (`SHARED_SOLID.families`), what `<spell-code>` and `<spell-markdown>` extend:
+ *   Spell UI's code and markdown families, the page's on the same condition, else `spell-ui.js`'s
+ *   (`sharedFamiliesSource()`).
  */
 function sharedPage(): Plugin {
   return {
@@ -143,6 +148,14 @@ function sharedPage(): Plugin {
       const entry = bundle[SHARED_SOLID.solid]
       if (entry?.type !== "chunk") return this.error(`no ${SHARED_SOLID.solid} to share`)
       this.emitFile({ type: "asset", fileName: SHARED_SOLID.shared, source: sharedPageSource(entry.exports) })
+      const ui = bundle[SHARED_SOLID.ui]
+      if (ui?.type !== "chunk") return this.error(`no ${SHARED_SOLID.ui} to share its families from`)
+      const missing = Object.values(SHARED_FAMILIES)
+        .flat()
+        .filter((name) => !ui.exports.includes(name))
+      if (missing.length)
+        return this.error(`${SHARED_SOLID.ui} doesn't export ${missing.join(", ")}:  see SHARED_FAMILIES`)
+      this.emitFile({ type: "asset", fileName: SHARED_SOLID.families, source: sharedFamiliesSource() })
     }
   }
 }
@@ -166,6 +179,38 @@ const from = specifiers.every((specifier) => page?.[specifier])
     )
   : await import("./${SHARED_SOLID.solid}")
 export const { ${[...names].sort().join(", ")} } = from
+`
+}
+
+/**
+ * The text of `spell-ui-shared.js` (`SHARED_SOLID.families`):  Spell UI's families that `<spell-code>` and
+ * `<spell-markdown>` extend (`SHARED_FAMILIES`), the PAGE's when it has Spell UI of its own, else `spell-ui.js`'s.
+ * - The page's:  when it has every module `spell-solid-shared.js` takes from it (`SHARED_SPECIFIERS`), so the
+ *   families sit on the same core.  It MUST share these too then, or the script stops, saying which.
+ * - `spell-ui.js`'s:  that defines every Spell UI family, which spell's markdown engine draws with.
+ */
+function sharedFamiliesSource(): string {
+  const exports = Object.entries(SHARED_FAMILIES).map(
+    ([specifier, names]) => `export const { ${names.join(", ")} } = from(${JSON.stringify(specifier)})`
+  )
+  return `/* GENERATED -- do not edit:  \`vite.solid.config.ts\` (\`sharedPage()\`) */
+/**
+ * Spell UI's code and markdown families, which \`<spell-code>\` and \`<spell-markdown>\` extend:  the PAGE's own when it
+ * has Spell UI of its own (a docs page's \`SpellUI.packModules\`), else \`${SHARED_SOLID.ui}\`'s beside this file.
+ */
+const page = globalThis.SpellUI?.packModules
+const specifiers = ${JSON.stringify(SHARED_SPECIFIERS)}
+const families = ${JSON.stringify(Object.keys(SHARED_FAMILIES))}
+const ours = specifiers.every((specifier) => page?.[specifier]) ? undefined : await import("./${SHARED_SOLID.ui}")
+const missing = ours ? [] : families.filter((specifier) => !page[specifier])
+if (missing.length) {
+  throw new Error(
+    "${SHARED_SOLID.families}:  this page's Spell UI shares no " + missing.join(", ") +
+      " (SpellUI.packModules);  to colour spell alone, load spell-language.js"
+  )
+}
+const from = (specifier) => ours ?? page[specifier]
+${exports.join("\n")}
 `
 }
 

@@ -259,6 +259,17 @@
       ]
     },
     {
+      "path": "spell-code.html",
+      "title": "<spell-code>",
+      "summary": "A block of spell, coloured by spell's own parser.",
+      "sections": [
+        {"id":"1-example","title":"1. Example"},
+        {"id":"2-using-it","title":"2. Using it"},
+        {"id":"3-api","title":"3. Attributes, events and texts"},
+        {"id":"4-its-code","title":"4. Its code"}
+      ]
+    },
+    {
       "path": "spell-editor.html",
       "title": "<spell-editor>",
       "summary": "Edits a spell project in any page, and runs it in the apps beside it.",
@@ -277,6 +288,17 @@
         {"id":"1-example","title":"1. Example"},
         {"id":"2-using-it","title":"2. Using it"},
         {"id":"3-api","title":"3. Attributes"},
+        {"id":"4-its-code","title":"4. Its code"}
+      ]
+    },
+    {
+      "path": "spell-markdown.html",
+      "title": "<spell-markdown>",
+      "summary": "Markdown drawn by spell's own engine, in ui-* elements.",
+      "sections": [
+        {"id":"1-example","title":"1. Example"},
+        {"id":"2-using-it","title":"2. Using it"},
+        {"id":"3-api","title":"3. Attributes, events and texts"},
         {"id":"4-its-code","title":"4. Its code"}
       ]
     },

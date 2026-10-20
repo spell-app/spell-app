@@ -106,7 +106,8 @@ const PACK_FILE = "spell.pack.js"
 const PACK = { name: "spell", prefix: "spell-" }
 
 /**
- * Write `spell.pack.js`:  `<spell-app>` and `<spell-editor>` as a Spell UI COMPONENT PACK,
+ * Write `spell.pack.js`:  the app's elements as a Spell UI COMPONENT PACK
+ * (`<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`:  every family in `components/`),
  * which a page with a `<ui-root>` loads through `<ui-components source>`, as the docs' pages load `epics.pack.js`:
  *
  *     <script type="module" src="/element/spell-ui.js"></script>
@@ -119,13 +120,16 @@ const PACK = { name: "spell", prefix: "spell-" }
  *   `spell-ui.js` (`vite.solid.config.ts`) puts `registerPack` there.
  * - Its `catalog` is read from the families' vocabularies by Spell UI's own `RootCatalog`,
  *   as `spell dev pack build` reads a pack's.
- * - Its `define()` imports each family's ES module beside it (`spell-app.js`, `spell-editor.js`):
+ * - Its `define()` imports each family's ES module beside it (`spell-app.js`, `spell-editor.js` ...;
+ *   `spell-code.js` and `spell-markdown.js` are `vite.code.config.ts`'s):
  *   NOT one script holding them, as `spell dev pack build` makes,
  *   because the elements need what a classic script can't have --
  *   Monaco and the parser as lazy chunks, `spell-runtime.js` loaded afresh per app.
  * - The modules take Solid and Spell UI's core from the page when it has its own
  *   (a docs page's bundle:  `spell-solid-shared.js`, `vite.solid.config.ts`), else from `spell-solid.js` beside them:
  *   one Solid per page either way (two fail silently).
+ * - A family that won't load is a warning, and the others still define:  e.g. `spell-code.js` on a page whose own
+ *   Spell UI shares no code family (`spell-ui-shared.js`), where `<spell-app>` still runs.
  * - A page with only `<spell-app>`s needs no pack:  `spell-app.js` by itself
  *   (`<spell-app>` is a root, which loads `spell-editor.js` only when an editor appears inside it).
  */
@@ -146,7 +150,7 @@ function componentPack(): Plugin {
 /** The text of `spell.pack.js`, for `catalog`. */
 function packSource(catalog: Record<string, CatalogEntry>): string {
   const folders = [...new Set(Object.values(catalog).map((entry) => entry.folder))].sort()
-  const imports = folders.map((folder) => `import(at(${JSON.stringify(`${folder}.js`)}))`)
+  const imports = folders.map((folder) => `load(${JSON.stringify(`${folder}.js`)})`)
   return `/* GENERATED -- do not edit:  \`yarn build:element\` (\`componentPack()\`, \`vite.element.config.ts\`) */
 /**
  * The \`${PACK.name}\` component pack:  ${Object.keys(catalog)
@@ -158,6 +162,9 @@ function packSource(catalog: Record<string, CatalogEntry>): string {
 ;(() => {
   const here = document.currentScript.src
   const at = (file) => new URL(file, here).href
+  // one family that won't load (\`spell-code.js\` on a page whose Spell UI shares no code family) leaves the rest
+  const load = (file) =>
+    import(at(file)).catch((error) => console.warn(\`spell.pack.js:  \${file} didn't load;  its tags stay undefined\`, error))
   globalThis.SpellUI.registerPack({
     name: ${JSON.stringify(PACK.name)},
     prefix: ${JSON.stringify(PACK.prefix)},

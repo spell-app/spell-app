@@ -63,8 +63,9 @@ when working with code in this package, `@spell-app/app`.
       on port 3001 ([its entry](../spaces/src/server/node/routes/cli.ts), in spaces).
   - `yarn build`:  the app.
     - `yarn build:runner`:  `dist-runner/`, VS Code's "Run Project" webview
-    - `yarn build:element`:  `dist-element/`, the two web components and their pack
+    - `yarn build:element`:  `dist-element/`, the web components and their pack
       - `<spell-app>` and `<spell-editor>`
+      - `<spell-code>` and `<spell-markdown>`, and `spell-language.js` (`vite.code.config.ts`, below)
       - their pack, `spell.pack.js`
     - `yarn build:page`:  `dist-page/`, the page side of a Python spell app (epic `python-target` P20)
       - `spell-page.js` ([spellPage.ts](src/runner/spellPage.ts)):  the page's `@spell/core`
@@ -86,6 +87,11 @@ when working with code in this package, `@spell-app/app`.
     - They take Solid and the core through `spell-solid-shared.js`:
       - the page's own, when it has them (a docs page's `SpellUI.packModules`)
       - else `spell-solid.js`
+    - `<spell-code>` and `<spell-markdown>` take the Spell UI families they extend through `spell-ui-shared.js`
+      (`SHARED_FAMILIES`, `vite.shared.ts`):
+      - the page's own, on the same condition:  its `SpellUI.packModules` MUST then name them too
+        (`$/ui/components/ui-code`, `$/ui/components/ui-markdown`), or the script stops with an error saying so
+      - else `spell-ui.js`'s
     - `spell-runtime.js` takes Solid and `h` through it too, since compiled spell draws with Solid.
       It never takes `spell-ui.js`.
     - Pinned by `element.build.test.ts`.
@@ -180,7 +186,8 @@ when working with code in this package, `@spell-app/app`.
         - VS Code's, from the extension's `words` message
         - an editor's, in what it pushes
       - No words file:  each by its name, `move to pile`.
-- `components/`:  `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4).
+- `components/`:  `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4);
+  `<spell-code>` and `<spell-markdown>` (epic `repo-split` P2).
   - They're Spell UI components, written as a component pack's families are ([epics' AGENTS.md](../epics/AGENTS.md)).
   - `components/<tag>/` holds:
     - `<Name>.en.ts`:  the vocabulary
@@ -207,13 +214,34 @@ when working with code in this package, `@spell-app/app`.
       - e.g. the editor demo:  its editors sit beside the apps, outside any `<spell-app>`
   - The pack is NOT `spell dev pack build`'s one classic script.
     - [vite.element.config.ts](vite.element.config.ts) writes it, with `componentPack()`:  a classic `spell.pack.js`.
-    - Its `define()` imports the two ES modules beside it.
+    - Its `define()` imports each family's ES module beside it, one per folder of `components/`.
+      - One that won't load is a warning, and the rest still define:
+        `spell-code.js` on a docs page whose Spell UI shares no code family, where `<spell-app>` still runs.
     - They need lazy chunks (Monaco, the parser), and `spell-runtime.js` per app.
   - On a docs page (with Spell UI of its own), both take Solid and Spell UI's core from the page.
     - That's `SpellUI.packModules`, through `spell-solid-shared.js`.
     - Never a second copy (T3).
   - Leaving the page releases each (`domElement.dispose()`) a microtask later.
     A move in one go keeps it.
+  - `<spell-code>` and `<spell-markdown>`:  spell's code and markdown, as SUBCLASSES of Spell UI's `<ui-code>` and
+    `<ui-markdown>`, which hold nothing of spell (epic `repo-split` P2, Q19 / Q24).
+    - `<spell-code>` (`SpellCode extends UICode`):  `language` is `spell` unless it says otherwise.
+      - Its family registers `spell` with the page's `UI.code` as it loads ([SpellLanguage](components/spell-code/SpellLanguage.ts)),
+        so EVERY `<ui-code language="spell">` on the page is coloured, and every spell block of a markdown.
+      - The colours are spell's parser's (`SP.SpellHighlighter`), from source:  a lazy chunk, on first use.
+    - `<spell-markdown>` (`SpellMarkdown extends UIMarkdown`):  drawn by spell's engine (`$/markdown`), plain and
+      `editable`, in `ui-*` elements ([MDEngine](components/spell-markdown/MDEngine.ts), a lazy chunk).
+      - It overrides `UIMarkdown.loadEngine()`;  its barrel imports the families the engine draws with, and
+        `<spell-code>` for its spell blocks.
+    - Built by [vite.code.config.ts](vite.code.config.ts), its own build (`yarn build:element` runs it last):
+      - `spell-code.js`, `spell-markdown.js`:  the families' barrels;  the pack imports them too
+      - `spell-language.js` ([spellLanguage.ts](src/spellLanguage.ts)):  ONLY `spell` registered, no element,
+        on a page with Spell UI of its own
+        - what the page server adds to the docs pages it serves (its `"pageScripts"`:
+          [server's AGENTS.md](../server/AGENTS.md)), so epic pages and guides colour spell (Q23)
+        - it needs only the page's core, so any docs bundle will do
+    - Compiled spell's `<markdown>` blocks stay `<ui-markdown>` (marked):  they're plain text in a drawing
+      (`LayoutSpell.ts`, `MarkdownBlock`).
 - `docs/` is App UI (epic `epic-workflow` P11):  the docs pages of the app's components, a COMPONENT SET.
   - Served at `/components/app/`.
   - Laid out as every set is since P18 of `people-and-orgs` (the root's `AGENTS.md`).

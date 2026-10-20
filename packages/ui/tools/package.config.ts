@@ -32,8 +32,7 @@ const EXTRA_ENTRIES = { api: ENTRIES.api!, styles: ENTRIES.styles! }
  *   - lazy tiers:  runtime services + the theme sheets (`styles/themes/`, loaded by `UI.themes`) => `runtime`;
  *     icon name / alias maps => `icons`;  a family's lazily imported data (`components/ui-<family>/data/`, the emoji
  *     chunks) and the Temporal polyfill (`temporal-polyfill`, loaded only where the browser lacks `Temporal`) =>
- *     `data`;  so are the source elements' engines' libraries (highlight.js, marked, DOMPurify) and spell's
- *     pre-compiled highlighter (`src/languages/`), loaded on first use
+ *     `data`;  so are the source elements' engines' libraries (highlight.js, marked, DOMPurify), loaded on first use
  *   - `src/docs-components/` (the doc-only `<ui-docs-*>` families) => `docs`:  never in the lib build, which a check
  *     flags (`docsBundled`);  only the docs site's bundle adds them (`DocsFamilies`)
  *   - any other `src/` module (incl. `\0` virtual helpers) => `core`
@@ -86,7 +85,7 @@ function bucket(id: string): Bucket {
   )
     return "shared:forms"
   if (/^(api\.ts|elements\/index\.ts|vocabulary\/vocabulary\.api\.ts)$/.test(src)) return "extra:api"
-  if (/^components\/[\w-]+\/data\/|^languages\//.test(src)) return "data"
+  if (/^components\/[\w-]+\/data\//.test(src)) return "data"
   if (src.startsWith("docs-components/")) return "docs"
   const component = /^components\/([\w-]+)\/([\w.-]+)$/.exec(src)
   if (component) {
