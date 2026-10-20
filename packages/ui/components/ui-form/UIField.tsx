@@ -30,6 +30,11 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
     return this.component?.formErrors ?? []
   }
 
+  /** The placeholder `<ui-form>` shows in a control while its things disagree (`mixed`), in the page's language. */
+  @E.untracked
+  get mixedText(): string | undefined {
+    return this.component?.translationForKey("mixed")
+  }
 }
 
 /****************

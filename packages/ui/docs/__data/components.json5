@@ -7171,11 +7171,38 @@
         "form field",
         "form group",
         "form control",
-        "label and input"
+        "label and input",
+        "property",
+        "inspector row"
       ],
-      "description": "A field is a form element containing a label and an input.",
+      "description": "A field is a form element containing a label and an input, with a hint, a tip and its errors.",
       "noun": "field",
       "attributes": [
+        {
+          "name": "label",
+          "kind": "string",
+          "description": "The label, in the label row;  `slot=\"label\"` is the rich version.  Names the control for screen readers."
+        },
+        {
+          "name": "description",
+          "kind": "string",
+          "description": "A tip behind an info icon at the end of the label row, shown on hover and focus;  `slot=\"description\"` is the rich version (bold words, line breaks)."
+        },
+        {
+          "name": "hint",
+          "kind": "string",
+          "description": "Text under the control;  `slot=\"hint\"` is the rich version."
+        },
+        {
+          "name": "output",
+          "kind": "string",
+          "description": "A value shown at the end of the label row (`100%`, `+8°`);  `slot=\"output\"` is the rich version."
+        },
+        {
+          "name": "error",
+          "kind": "string",
+          "description": "An error, as a line under the control, and the `error` state.  `<ui-form>`'s validation shows its own there."
+        },
         {
           "name": "state",
           "kind": "valueOnly",
@@ -7185,7 +7212,24 @@
             "success",
             "warning"
           ],
-          "description": "Field state:  tints its label and controls.  Failed validation shows `error` on top."
+          "description": "Field state:  tints its label and controls.  An error shows `error` on top."
+        },
+        {
+          "name": "apply",
+          "kind": "string",
+          "default": "immediately",
+          "description": "When a change to the control is written to the bound value:  `immediately`;  `delayed`, after a pause in typing (300ms;  `delayed 100` for 100ms);  or `on leave`, when the cursor leaves the field."
+        },
+        {
+          "name": "mixed",
+          "kind": "boolean",
+          "description": "The things being edited disagree on this value:  the control shows blank, with a `Mixed` placeholder.  Set by the form;  writing a value clears it."
+        },
+        {
+          "name": "rules",
+          "kind": "json",
+          "reflect": false,
+          "description": "Validation rules for this field's control, in `<ui-form rules>`'s shape (`\"email\"`, `[\"notEmpty\", \"minLength[6]\"]`);  added to the form's own rules for it."
         },
         {
           "name": "inline",
@@ -7196,6 +7240,11 @@
           "name": "required",
           "kind": "keyOnly",
           "description": "Marks the label with an asterisk (validation is `rules` / `required`)."
+        },
+        {
+          "name": "readonly",
+          "kind": "boolean",
+          "description": "Shows the value;  it can't be changed.  Nests like `disabled`:  set on a group, it reaches each field."
         },
         {
           "name": "disabled",
@@ -7285,7 +7334,27 @@
       "slots": [
         {
           "name": "",
-          "description": "A `<label for>`, then the control(s):  `<ui-input>`, `<ui-dropdown>`, native inputs ..."
+          "description": "The control(s):  `<ui-input>`, `<ui-dropdown>`, native inputs ...;  or a `<label for>`, then them."
+        },
+        {
+          "name": "label",
+          "description": "Rich label (instead of `label`)."
+        },
+        {
+          "name": "description",
+          "description": "Rich tip (instead of `description`):  bold words, line breaks."
+        },
+        {
+          "name": "hint",
+          "description": "Rich hint (instead of `hint`)."
+        },
+        {
+          "name": "output",
+          "description": "Rich output (instead of `output`)."
+        },
+        {
+          "name": "actions",
+          "description": "Small buttons at the end of the label row (`Reset`, `Auto`);  a taller one never grows the row."
         }
       ],
       "events": [],
@@ -7295,8 +7364,40 @@
           "description": "The field box."
         },
         {
-          "name": "prompt",
-          "description": "The inline validation prompt, a pointing label."
+          "name": "row",
+          "description": "The label row."
+        },
+        {
+          "name": "label",
+          "description": "The label."
+        },
+        {
+          "name": "actions",
+          "description": "The actions, at the end of the label row."
+        },
+        {
+          "name": "output",
+          "description": "The output."
+        },
+        {
+          "name": "info",
+          "description": "The info icon."
+        },
+        {
+          "name": "tip",
+          "description": "The tip, shown from the info icon."
+        },
+        {
+          "name": "control",
+          "description": "Around the control(s) under a label row;  no box of its own (`display: contents`)."
+        },
+        {
+          "name": "hint",
+          "description": "The hint."
+        },
+        {
+          "name": "error",
+          "description": "The error lines."
         }
       ],
       "states": [
@@ -7319,6 +7420,14 @@
         {
           "name": "warning",
           "description": "In the warning state."
+        },
+        {
+          "name": "mixed",
+          "description": "The things being edited disagree on this value (`mixed`)."
+        },
+        {
+          "name": "readonly",
+          "description": "Can't be changed (`readonly`, its own or a group's)."
         },
         {
           "name": "disabled",
@@ -7349,7 +7458,18 @@
           "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
         }
       ],
-      "texts": [],
+      "texts": [
+        {
+          "key": "info",
+          "text": "More about {label}",
+          "description": "The info icon's name;  `{label}` is the label."
+        },
+        {
+          "key": "mixed",
+          "text": "Mixed",
+          "description": "The placeholder of a control whose things disagree."
+        }
+      ],
       "mainTag": "ui-form",
       "main": false,
       "page": false,
@@ -8064,15 +8184,26 @@
           "description": "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
         },
         {
-          "name": "validate-on",
+          "name": "validate",
           "kind": "enum",
           "values": [
-            "submit",
-            "blur",
-            "change"
+            "immediately",
+            "on leave",
+            "on save"
           ],
-          "default": "submit",
-          "description": "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A field showing an error always re-validates as it changes."
+          "default": "on save",
+          "property": "validateOn",
+          "description": "When fields validate:  `immediately`, as each changes;  `on leave`, as the cursor leaves each;  or only `on save` (a submit, or `save()`).  A field showing an error always validates again as it changes."
+        },
+        {
+          "name": "apply",
+          "kind": "enum",
+          "values": [
+            "immediately",
+            "on save"
+          ],
+          "default": "immediately",
+          "description": "When edits land in the bound `value`:  `immediately`;  or `on save`, all together on `save()`, while `cancel()` drops them (`:state(changed)` while any are held).  Each field's own `apply` says when it takes an edit."
         },
         {
           "name": "rules",
@@ -8179,6 +8310,28 @@
           "name": "ui-failure",
           "detail": "{ values: Record<string, FieldValue>, errors: Record<string, string[]>, originalEvent?: Event }",
           "description": "A submit failed validation (the native submission is stopped);  `errors` by field."
+        },
+        {
+          "name": "ui-saving",
+          "detail": "{ changes: FormChange[], value: unknown }",
+          "cancelable": true,
+          "description": "`save()`, with `apply=\"on save\"`:  the held edits are about to land;  `preventDefault()` keeps them held."
+        },
+        {
+          "name": "ui-saved",
+          "detail": "{ changes: FormChange[], value: unknown }",
+          "description": "The held edits landed in the bound `value`."
+        },
+        {
+          "name": "ui-cancelling",
+          "detail": "{ changes: FormChange[] }",
+          "cancelable": true,
+          "description": "`cancel()`:  the held edits are about to be dropped;  `preventDefault()` keeps them."
+        },
+        {
+          "name": "ui-cancelled",
+          "detail": "{ changes: FormChange[] }",
+          "description": "The held edits were dropped:  every control shows the bound `value` again."
         }
       ],
       "parts": [
@@ -8211,6 +8364,10 @@
         {
           "name": "loading",
           "description": "Busy."
+        },
+        {
+          "name": "changed",
+          "description": "`apply=\"on save\"`:  edits are held, not saved yet."
         },
         {
           "name": "disabled",
@@ -28560,11 +28717,6 @@
           "type": "color"
         },
         {
-          "name": "--ui-form-prompt-inline-margin",
-          "default": "-0.25em 0 -0.5em 0.5em",
-          "type": "length"
-        },
-        {
           "name": "--ui-form-label-color",
           "default": "var(--ui-text-color)",
           "type": "color"
@@ -36666,6 +36818,7 @@
         "ui-checkbox",
         "ui-code",
         "ui-dimmer",
+        "ui-form",
         "ui-label",
         "ui-markdown",
         "ui-menu",

@@ -218,7 +218,7 @@ but the FORM itself has to be a real `<form>` in the light DOM:
   its `rules` (Fomantic's `fields` shape), plus each control's own constraint validation.
   - An invalid submit is stopped before the page's submit handlers run.
   - A valid one fires the cancelable `ui-success` first.
-- Without a native form, `<ui-form>` still validates (`validate()`, `validate-on="blur|change"`), but nothing submits.
+- Without a native form, `<ui-form>` still validates (`validate()`, `validate="on leave | immediately"`), but nothing submits.
 - Errors draw inside each `<ui-field>`'s shadow root:  plain lines under the control, `role="alert"`.
   - `<ui-form>` finds a control's field with `closest(":state(field)")`.
   - A form or field in a state shows the `<ui-message>`s of that state (`native.css`).

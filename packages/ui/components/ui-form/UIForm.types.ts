@@ -21,10 +21,26 @@ export const STATE_STATES = [
   { name: "warning", description: "In the warning state." }
 ] as const
 
-/** When `<ui-form>`'s fields validate (its `validate-on`):  `submit` only, or also as one loses focus / changes. */
-export const ValidationTriggers = ["submit", "blur", "change"] as const
-/** One of `ValidationTriggers`, e.g. `"blur"`. */
+/**
+ * When `<ui-form>`'s fields validate (its `validate`):  as each changes, as the cursor leaves each,
+ * or only on Save / submit.
+ */
+export const ValidationTriggers = ["immediately", "on leave", "on save"] as const
+/** One of `ValidationTriggers`, e.g. `"on leave"`. */
 export type ValidationTrigger = (typeof ValidationTriggers)[number]
+
+/** When `<ui-form>`'s edits land in the thing (its `apply`):  at once, or together on Save. */
+export const FormApplyModes = ["immediately", "on save"] as const
+/** One of `FormApplyModes`. */
+export type FormApplyMode = (typeof FormApplyModes)[number]
+
+/**
+ * When a field takes an edit (`<ui-field apply>`), read from its text by `FormBinding.applyOf()`.
+ * - `immediately`:  each change
+ * - `delayed`:  after a pause in typing of `delay` ms
+ * - `on leave`:  when the cursor leaves the field
+ */
+export type FieldApply = { mode: "immediately" } | { mode: "delayed"; delay: number } | { mode: "on leave" }
 
 ////////////////
 // ## Form states

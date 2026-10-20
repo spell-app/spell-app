@@ -1378,15 +1378,15 @@
                     `ui-failure` fires and the first invalid field is focused.
                   - A valid submit fires `ui-success`, which is cancelable: `preventDefault()` stops the native submission, e.g.
                     to send it with `fetch()` instead.
-                  - `validate-on="blur"` or `validate-on="change"` also validates each field as the user leaves or changes it, and a field showing a
-                    prompt always re-validates as it changes.
+                  - `validate="on leave"` or `validate="immediately"` also validates each field as the person leaves or changes it, and a field
+                    showing an error always validates again as it changes.  Each `<ui-field rules>` adds its own rules to the form&apos;s.
                 </script>
               </ui-markdown>
               <ui-section id="usage-validation-validation" header="Validation" sticky collapsible dividing>
                 <ui-docs-example
-                  description='No script:  the controls&apos; own `required` / `type="email"` constraints.  Submit it empty, or tab through the fields (`validate-on="blur"`).'
+                  description='No script:  the controls&apos; own `required` / `type="email"` constraints.  Submit it empty, or tab through the fields (`validate="on leave"`).'
                 >
-                  <ui-form validate-on="blur">
+                  <ui-form validate="on leave">
                     <form method="dialog">
                       <ui-fields widths="2">
                         <ui-field required>
@@ -1475,7 +1475,7 @@
                 <script type="text/markdown">
                   `error-focus="no"` keeps focus where it is after a failed submit, and `prevent-leaving` asks before the user
                   leaves the page with changed values. Without a native form, `<ui-form>` still validates (`validate()`,
-                  `validate-on="blur"`), but nothing submits.
+                  `validate="on leave"`), but nothing submits.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -1516,6 +1516,53 @@
                       <ui-field>
                         <ui-checkbox name="newsletter">Send me the newsletter</ui-checkbox>
                       </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="usage-binding-when-a-field-writes" header="When a field writes" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Each field says when it takes an edit:  `apply=&quot;delayed&quot;` after a pause in typing (300ms;  `delayed 100` for 100ms), `apply=&quot;on leave&quot;` once the cursor leaves it.  Type, and watch the Bound object box."
+                >
+                  <ui-form debug value='{"title": "Spell", "slug": "spell"}'>
+                    <form method="dialog">
+                      <ui-field label="Title" hint="Written after a pause in typing." apply="delayed">
+                        <ui-input name="title"></ui-input>
+                      </ui-field>
+                      <ui-field label="Slug" hint="Written when you leave the field." apply="on leave">
+                        <ui-input name="slug"></ui-input>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="usage-binding-save-and-cancel" header="Save and Cancel" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`apply=&quot;on save&quot;` holds every edit until `save()`;  `cancel()` drops them.  The form has `:state(changed)` while it holds any, and sends `ui-saving` / `ui-saved`, `ui-cancelling` / `ui-cancelled`."
+                >
+                  <ui-form debug apply="on save" value='{"name": "Ada", "role": "Engineer"}'>
+                    <form method="dialog">
+                      <ui-field label="Name"><ui-input name="name"></ui-input></ui-field>
+                      <ui-field label="Role"><ui-input name="role"></ui-input></ui-field>
+                      <ui-button primary type="button" onclick="this.closest('ui-form').save()">Save</ui-button>
+                      <ui-button type="button" onclick="this.closest('ui-form').cancel()">Cancel</ui-button>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="usage-binding-many-things" header="Many things" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A list as `value` edits every thing in it:  a field shows the value they agree on;  where they don't, it shows blank and `Mixed`.  Typing sets it on all of them."
+                >
+                  <ui-form
+                    debug
+                    value='[{"size": "md", "font": "Inter"}, {"size": "md", "font": "Lora"}, {"size": "md", "font": "Inter"}]'
+                  >
+                    <form method="dialog">
+                      <ui-fields widths="2">
+                        <ui-field label="Size"><ui-input name="size"></ui-input></ui-field>
+                        <ui-field label="Font"><ui-input name="font"></ui-input></ui-field>
+                      </ui-fields>
                     </form>
                   </ui-form>
                 </ui-docs-example>

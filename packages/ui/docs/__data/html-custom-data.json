@@ -8113,14 +8113,49 @@
       "name": "ui-field",
       "description": {
         "kind": "markdown",
-        "value": "A field is a form element containing a label and an input.\n\nAlso known as:  form field, form group, form control, label and input.\n\n**Slots:**  default"
+        "value": "A field is a form element containing a label and an input, with a hint, a tip and its errors.\n\nAlso known as:  form field, form group, form control, label and input, property, inspector row.\n\n**Slots:**  default, `label`, `description`, `hint`, `output`, `actions`"
       },
       "attributes": [
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "The label, in the label row;  `slot=\"label\"` is the rich version.  Names the control for screen readers.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip behind an info icon at the end of the label row, shown on hover and focus;  `slot=\"description\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Text under the control;  `slot=\"hint\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "output",
+          "description": {
+            "kind": "markdown",
+            "value": "A value shown at the end of the label row (`100%`, `+8°`);  `slot=\"output\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "error",
+          "description": {
+            "kind": "markdown",
+            "value": "An error, as a line under the control, and the `error` state.  `<ui-form>`'s validation shows its own there.\n\nTakes:  text"
+          }
+        },
         {
           "name": "state",
           "description": {
             "kind": "markdown",
-            "value": "Field state:  tints its label and controls.  Failed validation shows `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
+            "value": "Field state:  tints its label and controls.  An error shows `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
           },
           "values": [
             {
@@ -8138,6 +8173,20 @@
           ]
         },
         {
+          "name": "apply",
+          "description": {
+            "kind": "markdown",
+            "value": "When a change to the control is written to the bound value:  `immediately`;  `delayed`, after a pause in typing (300ms;  `delayed 100` for 100ms);  or `on leave`, when the cursor leaves the field.\n\nTakes:  text\nDefault:  `immediately`"
+          }
+        },
+        {
+          "name": "mixed",
+          "description": {
+            "kind": "markdown",
+            "value": "The things being edited disagree on this value:  the control shows blank, with a `Mixed` placeholder.  Set by the form;  writing a value clears it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "inline",
           "description": {
             "kind": "markdown",
@@ -8149,6 +8198,13 @@
           "description": {
             "kind": "markdown",
             "value": "Marks the label with an asterisk (validation is `rules` / `required`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "readonly",
+          "description": {
+            "kind": "markdown",
+            "value": "Shows the value;  it can't be changed.  Nests like `disabled`:  set on a group, it reaches each field.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -9045,7 +9101,7 @@
       "name": "ui-form",
       "description": {
         "kind": "markdown",
-        "value": "A form displays a set of related input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`"
+        "value": "A form displays a set of related input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`, `ui-saving`, `ui-saved`, `ui-cancelling`, `ui-cancelled`"
       },
       "attributes": [
         {
@@ -9153,20 +9209,35 @@
           ]
         },
         {
-          "name": "validate-on",
+          "name": "validate",
           "description": {
             "kind": "markdown",
-            "value": "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A field showing an error always re-validates as it changes.\n\nTakes:  `submit` · `blur` · `change`\nDefault:  `submit`"
+            "value": "When fields validate:  `immediately`, as each changes;  `on leave`, as the cursor leaves each;  or only `on save` (a submit, or `save()`).  A field showing an error always validates again as it changes.\n\nTakes:  `immediately` · `on leave` · `on save`\nDefault:  `on save`"
           },
           "values": [
             {
-              "name": "submit"
+              "name": "immediately"
             },
             {
-              "name": "blur"
+              "name": "on leave"
             },
             {
-              "name": "change"
+              "name": "on save"
+            }
+          ]
+        },
+        {
+          "name": "apply",
+          "description": {
+            "kind": "markdown",
+            "value": "When edits land in the bound `value`:  `immediately`;  or `on save`, all together on `save()`, while `cancel()` drops them (`:state(changed)` while any are held).  Each field's own `apply` says when it takes an edit.\n\nTakes:  `immediately` · `on save`\nDefault:  `immediately`"
+          },
+          "values": [
+            {
+              "name": "immediately"
+            },
+            {
+              "name": "on save"
             }
           ]
         },

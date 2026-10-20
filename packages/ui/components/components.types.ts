@@ -519,6 +519,30 @@ export type FormFailureDetail = FormSuccessDetail & {
   errors: Record<string, string[]>
 }
 
+/** One edit `<ui-form apply="on save">` holds:  `target[name] = value`, once saved. */
+export type FormChange = {
+  /** the property */
+  name: string
+  /** its new value */
+  value: unknown
+  /** the thing it's written to:  the form's `value`, one of its things, or a `<ui-repeat>` row's item */
+  target: object
+}
+
+/** `detail` of `ui-saving` (cancelable:  the edits stay held) and `ui-saved`. */
+export type FormSaveDetail = {
+  /** the held edits, in the order they were made */
+  changes: readonly FormChange[]
+  /** the form's `value` */
+  value: unknown
+}
+
+/** `detail` of `ui-cancelling` (cancelable:  the edits stay held) and `ui-cancelled`. */
+export type FormCancelDetail = {
+  /** the held edits, dropped */
+  changes: readonly FormChange[]
+}
+
 /**
  * Custom state every `<ui-field>` carries, always:
  * `<ui-form>` finds a control's field with `control.closest(":state(field)")`,

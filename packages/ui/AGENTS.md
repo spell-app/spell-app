@@ -804,7 +804,7 @@ SHARED STATES:  states every element takes, though its vocabulary never names th
   - Replaces a constructor calling `this.on(type, this.handler)`.
   - `this.on(type, listener, { target })` itself, for a listener added later or under a condition.
     - So no vocabulary may name an attribute `on`.
-      Fomantic's `on` setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`.
+      Fomantic's `on` setting is `<ui-form validate>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`.
     - One stopped by an effect keeps its own `AbortController`, aborted in the cleanup.
 - `@E.untracked select(option)`:  an action or handler whose body runs inside `untrack()`.
   - It reads `this.x` plainly, where it used to read `untrack(() => this.x)`.

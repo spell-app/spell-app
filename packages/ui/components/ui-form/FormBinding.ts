@@ -1,34 +1,45 @@
 // oxlint-disable-next-line spell-ui/no-solid-effect -- a helper class, not a component:  one effect per bound control, in a root of its own
 import { createEffect, createRoot } from "solid-js"
 
-import { E } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { FormFields } from "./FormFields"
+import { FIELD_SELECTOR, type FieldApply } from "./UIForm.types"
 
 /****************
  * ### `FormBinding`
- * Ties a `<ui-form value>`'s named controls to an object, both ways:
+ * Ties a `<ui-form value>`'s named controls to an object (or to many), both ways:
  * each control shows its property of the object, and writes it back as the person changes it.
  *
  * - What a control binds to, its SCOPE:  the nearest scope holder at or above it.
  *   - a `<ui-repeat>` row's elements hold the row's item;  the `<ui-form>` holds its `value`
  *   - they say so through `FormBinding.hold()`;  `scopeAround()` finds one, so a nested `<ui-repeat>` reads its
  *     list from its own row's item
+ * - MANY THINGS:  a scope that's a list (an array) binds each control to every thing in it.
+ *   - a control shows the value they all agree on;  when they don't, it shows blank, its `<ui-field>` gets
+ *     `mixed`, and the control a "Mixed" placeholder
+ *   - a write sets the property on all of them
  * - Object => control:  one Solid effect per control, reading `scope[name]`.
  *   - So it follows whatever Solid can:  signals, Spell UI's reactive members,
  *     spell's objects (their page bridges spell cells into Solid)
  *   - a checkbox / toggle shows `!!value` (`selected`);  a radio is chosen while `value` is its own value;
  *     anything else shows `value` (`""` for nullish)
- * - Control => object:  a change from a bound control (`input`, `change`, `ui-change`) writes `scope[name]`
- *   a microtask later, once the control holds its new value.
+ * - Control => object:  a change from a bound control (`input`, `change`, `ui-change`) writes `scope[name]`,
+ *   when its `<ui-field apply>` says (`applyOf()`):
+ *   - `immediately` (the default):  a microtask later, once the control holds its new value
+ *   - `delayed [ms]`:  after a pause in typing (300ms);  a committed `change` writes at once
+ *   - `on leave`:  when the cursor leaves the field (`onLeave()`), or the control commits (`change`)
  *   - a checkbox writes its `selected`;  a chosen radio, its value;  anything else, its `value`
  *   - numbers:  a `type="number"` / `"range"` control writes a number (`null` while blank);
  *     any other control keeps a number property a number while what's typed reads as one
  *   - never when equal (`===`);  showing a value sends no event, so nothing loops
+ *   - never a value the form refuses (`canWrite`:  it fails validation)
+ * - HELD edits (`<ui-form apply="on save">`, `isHolding`):  a write is kept, not made, until `save()`;
+ *   `cancel()` drops them and shows the object again.
  * - Controls come and go (rows of a repeat, conditional fields):  `update()` binds the new ones
  *   and lets go of those gone.
  *   - a `ui-*` control whose family loads later (`<ui-root>` loads them on demand) is bound once its tag is defined
- * - Plain DOM plus Solid:  knows `<ui-form>` and `<ui-repeat>` only as scope holders,
- *   and reads controls the way `FormFields` does.
+ * - Plain DOM plus Solid:  knows `<ui-form>` and `<ui-repeat>` only as scope holders, `<ui-field>` by its
+ *   attributes, and reads controls the way `FormFields` does.
  ****************/
 export class FormBinding {
   /**
@@ -40,15 +51,22 @@ export class FormBinding {
   /** The form's controls, read from the DOM. */
   private readonly fields: FormFields
 
+  /** What the form says about writes:  hold them, and may this control's value be written. */
+  private readonly form: FormBindingProps["form"]
+
   /** Bound controls, each with its binding. */
   private readonly bindings = new Map<Element, Binding>()
 
   /** Controls changed, to write back on the next microtask. */
   private readonly changed = new Set<Element>()
 
-  constructor({ domElement, fields }: FormBindingProps) {
+  /** `delayed` controls waiting for a pause in typing, each with its timer. */
+  private readonly delayed = new Map<Element, { cancel(): void }>()
+
+  constructor({ domElement, fields, form }: FormBindingProps) {
     this.domElement = domElement
     this.fields = fields
+    this.form = form
   }
 
   ////////////////
@@ -73,6 +91,7 @@ export class FormBinding {
       if (controls.has(control)) continue
       binding.dispose()
       this.bindings.delete(control)
+      this.held.delete(control)
     }
     for (const control of controls) {
       if (this.bindings.has(control)) continue
@@ -95,27 +114,30 @@ export class FormBinding {
       .catch((error) => E.Warnings.warn("<ui-form value>", `can't wait for <${tag}>:`, error))
   }
 
-  /** Let go of every control. */
+  /** Let go of every control, and of held edits. */
   stop() {
     this.isBinding = false
     for (const binding of this.bindings.values()) binding.dispose()
+    for (const timer of this.delayed.values()) timer.cancel()
     this.bindings.clear()
     this.changed.clear()
+    this.delayed.clear()
+    this.dropHeld()
   }
 
   /**
    * One control:  an effect showing `scope()[name]` in it, in a root of its own (disposed when it goes).
+   * - Many things:  the value they agree on, else `MIXED`.
    * - STATIC:  needs only its arguments.
    */
   private static bind(control: Element, name: string, scope: () => unknown): Binding {
     return createRoot((dispose) => {
       createEffect(
-        () => {
-          const target = scope()
-          return FormBinding.isObject(target) ? target[name] : UNBOUND
-        },
+        () => FormBinding.valueIn(scope(), name),
         (value) => {
-          if (value !== UNBOUND) FormBinding.show(control, value)
+          if (value === UNBOUND) return
+          FormBinding.markMixed(control, value === MIXED)
+          FormBinding.show(control, value === MIXED ? undefined : value)
         }
       )
       return { name, scope, dispose }
@@ -126,16 +148,56 @@ export class FormBinding {
   // ## Writing back
   ////////////////
 
-  /** A control changed:  write it back on the next microtask, once it holds its new value. */
+  /**
+   * A control changed:  write it back when its field's `apply` says (see the class doc).
+   * - `change` is a COMMITTED change (a text field left, a choice made):  it writes a `delayed` or `on leave` one too.
+   */
   readonly onChange = (event: Event) => {
     if (!this.bindings.size) return
     const control = this.controlFor(event)
-    if (!control || this.changed.has(control)) return
+    if (!control) return
+    const apply = FormBinding.applyOf(control)
+    const isCommitted = event.type === "change"
+    if (apply.mode === "on leave" && !isCommitted) return
+    if (apply.mode === "delayed" && !isCommitted) return this.writeAfterPause(control, apply.delay)
+    this.delayed.get(control)?.cancel()
+    this.delayed.delete(control)
+    this.writeSoon(control)
+  }
+
+  /** The cursor left a control:  write it back if its field writes `on leave` (or has a `delayed` write waiting). */
+  readonly onLeave = (event: Event) => {
+    if (!this.bindings.size) return
+    const control = this.controlFor(event)
+    if (!control) return
+    const apply = FormBinding.applyOf(control)
+    if (apply.mode === "on leave" || this.delayed.has(control)) {
+      this.delayed.get(control)?.cancel()
+      this.delayed.delete(control)
+      this.writeSoon(control)
+    }
+  }
+
+  /** Write `control` back on the next microtask, once it holds its new value. */
+  private writeSoon(control: Element) {
+    if (this.changed.has(control)) return
     this.changed.add(control)
     E.afterSolidUpdate(() => {
       if (!this.changed.delete(control)) return
       this.writeBack(control)
     })
+  }
+
+  /** Write `control` back once typing pauses for `delay` ms;  each change starts the wait again. */
+  private writeAfterPause(control: Element, delay: number) {
+    this.delayed.get(control)?.cancel()
+    this.delayed.set(
+      control,
+      E.after(delay / 1000, () => {
+        this.delayed.delete(control)
+        this.writeBack(control)
+      })
+    )
   }
 
   /** Write every bound control back:  after a reset or a clear changed them all. */
@@ -144,7 +206,8 @@ export class FormBinding {
   }
 
   /**
-   * `scope[name] = ` what the control holds now, unless that's what it holds already.
+   * `scope[name] = ` what the control holds now (on every thing, for many), unless that's what it holds already;
+   * held instead while the form holds edits.
    * - NEVER throws:  a property that can't be set (a getter alone) warns.
    * - Untracked:  it reads the scope and the property to write them, never to follow them.
    */
@@ -152,15 +215,24 @@ export class FormBinding {
   private writeBack(control: Element) {
     const binding = this.bindings.get(control)
     if (!binding) return
-    const target = binding.scope()
-    if (!FormBinding.isObject(target)) return
-    const current = target[binding.name]
-    const next = FormBinding.valueFor(control, current)
-    if (next === UNBOUND || next === current) return
+    const targets = FormBinding.targetsOf(binding.scope())
+    if (!targets.length) return
+    const current = FormBinding.valueIn(binding.scope(), binding.name)
+    const next = FormBinding.valueFor(control, current === MIXED ? undefined : current)
+    if (next === UNBOUND || !this.form.canWrite(control)) return
+    if (this.form.isHolding()) return this.hold(control, binding, next)
+    if (next === current) return
+    FormBinding.markMixed(control, false)
+    for (const target of targets) FormBinding.write(target, binding.name, next)
+  }
+
+  /** `target[name] = value`, unless it's that already;  warns if it can't be set. */
+  private static write(target: Record<PropertyKey, unknown>, name: string, value: unknown) {
+    if (target[name] === value) return
     try {
-      target[binding.name] = next
+      target[name] = value
     } catch (error) {
-      E.Warnings.warn("<ui-form value>", `can't set \`${binding.name}\`:`, error)
+      E.Warnings.warn("<ui-form value>", `can't set \`${name}\`:`, error)
     }
   }
 
@@ -170,6 +242,59 @@ export class FormBinding {
       if (this.bindings.has(node)) return node
     }
     return undefined
+  }
+
+  ////////////////
+  // ## Held edits (`apply="on save"`)
+  ////////////////
+
+  /** Edits held until `save()`, by control:  the control keeps showing its new value meanwhile. */
+  private readonly held = new Map<Element, HeldEdit>()
+
+  /** Holds edits now. */
+  get hasHeld(): boolean {
+    return this.held.size > 0
+  }
+
+  /** The held edits, in the order they were made:  one per thing a control writes to. */
+  get changes(): UIT.FormChange[] {
+    const changes: UIT.FormChange[] = []
+    for (const { binding, value } of this.held.values()) {
+      for (const target of FormBinding.targetsOf(binding.scope())) changes.push({ name: binding.name, value, target })
+    }
+    return changes
+  }
+
+  /** Hold `control`'s new value;  an edit back to the object's own value is no longer held. */
+  private hold(control: Element, binding: Binding, value: unknown) {
+    this.held.delete(control)
+    if (value !== FormBinding.valueIn(binding.scope(), binding.name)) this.held.set(control, { binding, value })
+    this.form.onHeldChange()
+  }
+
+  /** Write every held edit, then hold none. */
+  @E.untracked
+  saveHeld() {
+    for (const [control, { binding, value }] of this.held) {
+      FormBinding.markMixed(control, false)
+      for (const target of FormBinding.targetsOf(binding.scope())) FormBinding.write(target, binding.name, value)
+    }
+    this.held.clear()
+    this.form.onHeldChange()
+  }
+
+  /** Drop every held edit:  each control shows the object's value again. */
+  @E.untracked
+  dropHeld() {
+    if (!this.held.size) return
+    for (const [control, { binding }] of this.held) {
+      const value = FormBinding.valueIn(binding.scope(), binding.name)
+      if (value === UNBOUND) continue
+      FormBinding.markMixed(control, value === MIXED)
+      FormBinding.show(control, value === MIXED ? undefined : value)
+    }
+    this.held.clear()
+    this.form.onHeldChange()
   }
 
   ////////////////
@@ -213,6 +338,58 @@ export class FormBinding {
   static isObject(value: unknown): value is Record<PropertyKey, unknown> {
     return value !== null && (typeof value === "object" || typeof value === "function")
   }
+
+  /** The things a scope binds to:  each of a list's (objects only), else the scope itself;  `[]` for none. */
+  private static targetsOf(scope: unknown): Record<PropertyKey, unknown>[] {
+    if (Array.isArray(scope)) return scope.filter(FormBinding.isObject)
+    return FormBinding.isObject(scope) ? [scope] : []
+  }
+
+  /**
+   * `scope[name]`:  for many things, the value they agree on, else `MIXED`;  `UNBOUND` for nothing to bind to.
+   * - Tracked inside a computation:  it reads each thing's property.
+   */
+  private static valueIn(scope: unknown, name: string): unknown {
+    const targets = FormBinding.targetsOf(scope)
+    if (!targets.length) return UNBOUND
+    const first = targets[0]![name]
+    return targets.every((target) => target[name] === first) ? first : MIXED
+  }
+
+  /**
+   * When `control`'s field takes an edit:  its `<ui-field apply>`, read from its text.
+   * - `delayed` alone is 300ms;  `delayed 100`, 100ms.  Anything unknown is `immediately`.
+   */
+  static applyOf(control: Element): FieldApply {
+    const text = control.closest(FIELD_SELECTOR)?.getAttribute("apply")?.trim() ?? ""
+    if (text === "on leave") return { mode: "on leave" }
+    const delayed = /^delayed(?:\s+(\d+)(?:\s*ms)?)?$/.exec(text)
+    if (delayed) return { mode: "delayed", delay: delayed[1] ? Number(delayed[1]) : DEFAULT_DELAY }
+    return { mode: "immediately" }
+  }
+
+  /**
+   * Show "mixed" on `control`, or stop:  its `<ui-field>`'s `mixed`, and a "Mixed" placeholder (its own kept).
+   * - SIDE EFFECT:  writes the field's `mixed` and the control's `placeholder`.
+   */
+  private static markMixed(control: Element, isMixed: boolean) {
+    const field = control.closest(FIELD_SELECTOR) as (Element & { mixedText?: string }) | null
+    if (field && field.hasAttribute("mixed") !== isMixed) field.toggleAttribute("mixed", isMixed)
+    const wasMixed = FormBinding.ownPlaceholders.has(control)
+    if (isMixed === wasMixed || FormFields.isCheckable(control)) return
+    if (isMixed) {
+      FormBinding.ownPlaceholders.set(control, control.getAttribute("placeholder"))
+      control.setAttribute("placeholder", field?.mixedText ?? MIXED_TEXT)
+    } else {
+      const own = FormBinding.ownPlaceholders.get(control)
+      FormBinding.ownPlaceholders.delete(control)
+      if (own == null) control.removeAttribute("placeholder")
+      else control.setAttribute("placeholder", own)
+    }
+  }
+
+  /** A mixed control's own placeholder (`null`:  none), to put back when it's no longer mixed. */
+  private static readonly ownPlaceholders = new WeakMap<Element, string | null>()
 
   /** Show `value` in `control`, see the class doc;  writes nothing that's already shown. */
   private static show(control: Element, value: unknown) {
@@ -268,20 +445,41 @@ export type FormBindingProps = {
   domElement: HTMLElement
   /** The form's controls. */
   fields: FormFields
+  /** What the form says about writes. */
+  form: {
+    /** Hold edits instead of writing them (`apply="on save"`). */
+    isHolding(): boolean
+    /** May `control`'s value be written:  it passes validation. */
+    canWrite(control: Element): boolean
+    /** The held edits changed:  some, none, or others. */
+    onHeldChange(): void
+  }
 }
 
 /** One bound control. */
 type Binding = {
   /** The property it shows and writes. */
   name: string
-  /** Its scope holder's `read`:  the object it binds to. */
+  /** Its scope holder's `read`:  the object (or list of things) it binds to. */
   scope: () => unknown
   /** Stop its effect. */
   dispose: () => void
 }
 
+/** One held edit:  the control's binding, and the value it will write. */
+type HeldEdit = { binding: Binding; value: unknown }
+
 /** "No value to show or write":  no object to bind to, or a radio that isn't chosen. */
 const UNBOUND = Symbol("unbound")
+
+/** "The things disagree":  the control shows blank, and mixed. */
+const MIXED = Symbol("mixed")
+
+/** A mixed control's placeholder, when its field doesn't say (`<ui-field>`'s `mixed` text). */
+const MIXED_TEXT = "Mixed"
+
+/** `apply="delayed"`'s pause, in ms, when it names none. */
+const DEFAULT_DELAY = 300
 
 /** Input `type`s whose value is a number:  they write a number (`null` while blank). */
 const NUMBER_TYPES = new Set(["number", "range"])
