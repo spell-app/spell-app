@@ -1493,6 +1493,27 @@
           }
         },
         {
+          "name": "unpadded",
+          "description": {
+            "kind": "markdown",
+            "value": "No padding at all, as `compact` taken to none:  hugs its content.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "wrapped",
+          "description": {
+            "kind": "markdown",
+            "value": "Lets a long text wrap onto more lines.  Without it, a button's text stays on one line.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "ellipsis",
+          "description": {
+            "kind": "markdown",
+            "value": "One line, cut off with `…` where it doesn't fit.  It needs a width to cut at:  `fluid`, a width of its own, or a narrow parent (it's never wider than that).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "labeled",
           "description": {
             "kind": "markdown",
@@ -26588,7 +26609,7 @@
           "name": "stack-by",
           "description": {
             "kind": "markdown",
-            "value": "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width (`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  `--ui-table-stack-by: container`;  the attribute wins.  Neither:  the page-wide `--ui-stack-with` (`<ui-root stack-with>`;  `page` ~== `viewport`).\n\nTakes:  `viewport` · `container`"
+            "value": "What `stackable` measures:  the `viewport` (Fomantic's way, the default), the table's own width (`container`:  a table in a narrow column of a wide screen), or nothing (`none`:  it never stacks, as `unstackable`).  Also a token for a whole region or page:  `--ui-table-stack-by: container` (or `none`);  the attribute wins.  Neither:  the page-wide `--ui-stack-with` (`<ui-root stack-with>`;  `page` ~== `viewport`).\n\nTakes:  `viewport` · `container` · `none`"
           },
           "values": [
             {
@@ -26596,6 +26617,9 @@
             },
             {
               "name": "container"
+            },
+            {
+              "name": "none"
             }
           ]
         },

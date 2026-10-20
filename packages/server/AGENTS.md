@@ -171,9 +171,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         - the brand's:  [brand's docs/](../brand/docs/), at `/components/brand/`
       - No dev server:  the pages are static, loading Spell UI's site bundle.
       - ONE overlay (`componentSetPath()`):
-        - `<prefix>/_assets/` is the set's site bundle (`assets`)
-          - for Spell UI:  its own, `SITE_BUNDLE`
-          - for the others:  the sets' build, `SETS_BUNDLE`, in Spell UI's bundle's `sets/`
+        - `<prefix>/_assets/` is the set's site bundle (`assets`):  Spell UI's, `SITE_BUNDLE`, for every set
+          - it loads the component packs a set's pages name (`SitePacks`):  the epics pack, for the comments, on all
+          - the other sets had their own build, `SETS_BUNDLE` (its `sets/`), until epic `epic-engine`
         - the rest is the set's own folder:  its pages, `__parts/`, `__data/`
       - The same at `/worktrees/<w>/components/<set>/`.
       - `<prefix>` redirects to `<prefix>/`:  the one redirect left.

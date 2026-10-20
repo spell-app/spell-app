@@ -6,8 +6,13 @@
  * - A page loads it as (paths relative to the page:  every page sits in its set's one folder):
  *     <link rel="stylesheet" href="_assets/site.css">
  *     <script type="module" src="_assets/site.js"></script>
+ * - Every component set's pages load it (`COMPONENT_SETS` in `$/server/page`):  Spell UI's own at `/components/ui/`,
+ *   Epic UI's, App UI's and the brand's, each taking its set's folder as the site's root.
  * - What it holds, in import order (ES modules evaluate top to bottom):
- *   1. `./snapshot`:  every `<ui-docs-example>`'s markup, kept before anything upgrades
+ *   1. `./snapshot`:  every `<ui-docs-example>`'s markup, kept before anything upgrades;  then `./SitePacks`:
+ *      `globalThis.SpellUI`, so a page's component packs (`<ui-components source="x.pack.js">`) share its Solid and
+ *      Spell UI:  every set's layout loads the epics pack, for the comments' threads and pane, and Epic UI's, App UI's
+ *      and the brand's their own for their live examples
  *   2. the page CSS:  `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup) +
  *      the site's layout glue (`./site.css`) -- extracted to `_assets/site.css`, which the page links
  *   3. `SiteData`, `BuiltInPacks`:  pointed at `__data/components.json5` and `_assets/icon-packs/` from THIS file's
@@ -21,9 +26,7 @@
  *      `display="when-ready"` shows the whole page at once, already themed;  every OTHER family, `<ui-docs-*>`
  *      included, is a lazy chunk it imports on first use
  *   8. `SiteRouter`:  links to other pages swap only the `main`, the layout stays
- * - The component sets' pages (Epic UI, App UI) load this through `sets.ts`, their own build, which sets
- *   `globalThis.SpellUI` first (`SitePacks`) for the component packs their examples use;  the root's module joins its
- *   `packModules` here, once imported
+ * - The root's module joins `SpellUI.packModules` here, once imported (`SitePacks`)
  * - Lazy, by `import()`:  families, the runtime, icon packs (`_assets/icon-packs/`), emoji names, `<ui-code>`'s and
  *   `<ui-markdown>`'s engines, spell's highlighter, the Temporal polyfill.
  * - `window.UI`:  the runtime (`UI.load()` works at once;  the rest after it), for poking in DevTools.
@@ -31,6 +34,7 @@
  *   the icon browser reads `__data/icons.json5` with `SiteData.json()` (JSON5, so a comment written into it reads too).
  */
 import "./snapshot"
+import "./SitePacks"
 
 import "$/ui/styles/ui.css"
 import "./site.css"
@@ -79,7 +83,7 @@ void SiteShell.mount(SITE_ROOT).then(async (content) => {
   // the theme's sheet in place BEFORE the root shows the page:  no restyle (and reflow) after first paint
   await theme
   const root = await import("$/ui/components/ui-root")
-  // a component set's page (`sets.ts`):  a pack's script may share the root's module too (`SitePacks`)
+  // a pack's script may share the root's module too (`SitePacks`)
   const packModules = (globalThis as { SpellUI?: { packModules?: Record<string, unknown> } }).SpellUI?.packModules
   if (packModules) packModules["$/ui/components/ui-root"] = root
   router?.start()

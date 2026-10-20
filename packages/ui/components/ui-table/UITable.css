@@ -31,7 +31,8 @@
  *   It picks between:
  *   - stackable:  by the viewport (`@media`), as in Fomantic, hosted or static.
  *     A hosted table opts in to stacking by the DOM element's width,
- *     with `stack-by="container"` or `--ui-table-stack-by: container`
+ *     with `stack-by="container"` or `--ui-table-stack-by: container`;
+ *     `stack-by="none"` / `--ui-table-stack-by: none` never stacks (a page that wants no stacked table)
  *     (`@container`, the DOM element's `container-type: inline-size`, unnamed -- container names are tree-scoped)
  *   - scrolling / overflowing:  hosted tables scroll in the shadow `.scroller`, the head (and foot) stuck;
  *     static tables keep Fomantic's `display: block` `tbody` (scrolling) and `table` (overflowing) scrollers
@@ -1075,12 +1076,16 @@
    * - Without either, the page-wide `--ui-stack-with` decides:
    *   `container` stacks by the DOM element's width, `page` by the viewport.
    *   (`<ui-root stack-with>` sets it:  the token every stacking element follows.)
+   * - NEVER, with `stack-by="none"` or `--ui-table-stack-by: none`:
+   *   `unstackable` for every table of a region or page, the public way (never the private `--_table-stack`).
    */
   /*
    * Order matters below (same layer, equal specificity:  the later rule wins):
-   *   1. the token's way:  by the DOM element's width when `--ui-table-stack-by: container`, else by the viewport
+   *   1. the token's way:  by the DOM element's width when `--ui-table-stack-by: container`, else by the viewport;
+   *      `--ui-table-stack-by: none` then undoes it
    *   2. `stack-by` (the element's attribute:  a private class on the table,
-   *      `stack-by-container` / `stack-by-viewport`, from the canonical value) undoes 1, then stacks its own way
+   *      `stack-by-container` / `stack-by-viewport` / `stack-by-none`, from the canonical value) undoes 1,
+   *      then stacks its own way (`none`:  not at all)
    * - A class in SELECTORS, not a state of the DOM element:
    *   a state that set `--_table-stack-by` left WebKit evaluating a later table's style queries wrongly,
    *   and `:state()` rules its viewport media queries.
@@ -1115,8 +1120,15 @@
       }
     }
   }
+  /* the token's `none`:  as specific as every rule above (0,3,0), and later */
+  @container style(--_table-stack-by: none) {
+    :is(.ui.table:not(.unstackable), .ui.stackable.table, .ui[class*="tablet stackable"].table) {
+      --_table-stack: 0;
+    }
+  }
   .ui.stack-by-container.table,
-  .ui.stack-by-viewport.table {
+  .ui.stack-by-viewport.table,
+  .ui.stack-by-none.table {
     --_table-stack: initial;
   }
   @container (width < 768px) {

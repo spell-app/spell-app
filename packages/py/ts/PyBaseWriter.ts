@@ -1058,6 +1058,18 @@ export class PyBaseWriter extends P.ProgramWriter {
     return pyText.call("h", [this.quoted(node.tagName), ...props, ...children])
   }
 
+  /**
+   * A fragment, `<>...</>`:  a list of its children, `[h("a"), h("b")]`.
+   * - `h()` opens a list up where it's a child, and so does a page drawing one (`drawn_children()`).
+   */
+  ASTJSXFragment(node: P.ASTJSXFragment): string {
+    return pyText.call(
+      "",
+      node.childValues.map((child) => this.bare(child)),
+      ["[", "]"]
+    )
+  }
+
   /** The value itself:  HTML text is made once -- see `ASTJSXElement()`. */
   ASTJSXLiveValue(node: P.ASTJSXLiveValue): string {
     return this.bare(node.expression)
@@ -1362,6 +1374,7 @@ export class PyBaseWriter extends P.ProgramWriter {
     if (initial) {
       const isValue = initial instanceof P.ASTLiteral || initial instanceof P.ASTConstantExpression
       args.push(isValue ? `default=${this.bare(initial)}` : `init=lambda: ${this.bare(initial)}`)
+      if (this.madeEarly(node)) args.push("early=True")
     }
     return args.join(", ")
   }

@@ -186,6 +186,233 @@ describe("outline style", () => {
     })
   })
 
+  test("`every pile`:  every pile the program made, sub-types too, in the order made (P16)", () => {
+    const run = runSpell(
+      [
+        "a card is a thing",
+        "a pile is a list of cards",
+        "a tableau is a pile",
+        'set a to a new pile with name = "a"',
+        'set b to a new tableau with name = "b"',
+        "set piles to every pile",
+        "set tableaus to every tableau"
+      ],
+      { registered: true }
+    )
+    const { piles, tableaus } = run("piles, tableaus") as {
+      piles: { items: { name: string }[] }
+      tableaus: { items: unknown[] }
+    }
+    expect(piles.items.map(({ name }) => name)).toEqual(["a", "b"])
+    expect(tableaus.items.length).toBe(1)
+  })
+
+  test("`the piles` is `every pile` (P23);  a variable called `piles` keeps its meaning", () => {
+    const lines = ["a pile is a thing", "a tableau is a pile", 'set a to a new pile with name = "a"']
+    const run = runSpell([...lines, "set found to the piles"], { registered: true })
+    const { found } = run("found") as { found: { items: { name: string }[] } }
+    expect(found.items.map(({ name }) => name)).toEqual(["a"])
+    expect(compile([...lines, "set count to the count of the tableaus"])).toContain("core.everyThing(Tableau)")
+    expect(compile([...lines, "set piles to 3", "set count to the piles"])).toMatch(/count = piles$/m)
+  })
+
+  test("`- can never take a card`:  a pile takes nothing unless its kind says;  `the first pile in the piles where ...`", () => {
+    const run = runSpell(
+      [
+        "a card is a thing",
+        "a pile is a list of cards where:",
+        "\t- can never take a card",
+        "a tableau is a pile where:",
+        "\t- can take a card if: it is empty",
+        "set card to a new card",
+        'set a to a new pile with name = "a"',
+        'set b to a new tableau with name = "b"',
+        "set taker to the first pile in the piles where it can take the card",
+        "set name to the name of taker"
+      ],
+      { registered: true }
+    )
+    expect(run("name")).toEqual({ name: "b" })
+  })
+
+  test("in a quoted phrase only `(...)` is a parameter:  `\"is a number card\"` is a getter, `isANumberCard`", () => {
+    const compiled = compile(["a card is a thing where:", '\t- it "is a number card" if yes', '\t- it "is (n as a number) away" if yes'])
+    expect(compiled).toContain("get isANumberCard()")
+    expect(compiled).toContain("isNAway(n) {")
+  })
+
+  test("`unicode 1F0A0` is the character, written in hex;  `unicode code` one worked out as the program runs", () => {
+    const run = runSpell([
+      "set back to unicode 1F0A0\t\t// a comment after it",
+      "set heart to unicode 2665",
+      "set base to 127137",
+      "set ace to unicode base",
+      "set next to unicode (base + 1)",
+      "set none to unicode 1.5"
+    ])
+    expect(run("back, heart, ace, next, none")).toEqual({ back: "🂠", heart: "♥", ace: "🂡", next: "🂢", none: "" })
+  })
+
+  describe("names of several words (P26)", () => {
+    test("a variable:  declared by `set start pile to ...`, read by its words, the same as `start-pile`", () => {
+      const run = runSpell([
+        "a pile is a list of things",
+        "set start pile to a new pile",
+        "set anything changed to no",
+        "if anything changed is no",
+        "\tadd 1 to start pile",
+        "add 2 to the start pile",
+        "add 3 to start-pile",
+        "set count to the number of items in start pile"
+      ])
+      expect(run("count")).toEqual({ count: 3 })
+    })
+
+    test("words a variable doesn't go by aren't a read;  a name can't hold `to`", () => {
+      expect(() => runSpell(["set start pile to 1", "set x to end pile"])).toThrow(/parse errors/)
+      expect(() => runSpell(["set cards to move to 1"])).toThrow(/parse errors/)
+    })
+
+    test("an event:  `on card click` hears `fire event card-click`, and the other way round", () => {
+      const lines = ["on card click with a card", "\tprint 1", "fire event card click with card = 1", "trigger card-click"]
+      const compiled = compile(lines)
+      expect(compiled).toContain('on("card-click"')
+      expect(compiled.match(/trigger\("card-click"/g)).toHaveLength(2)
+    })
+  })
+
+  describe("methods before their definitions (P22)", () => {
+    test("a call above its definition:  in a type's body, at the top, before a later method", () => {
+      const run = runSpell([
+        "game is an app where:",
+        "\t- its score is a number",
+        "\t- to reset:\n\t\tset its score to 0\n\t\tadd a point",
+        "\t- to add a point:\n\t\tset its score to its score + 1",
+        "reset",
+        "play the game",
+        "to play a game:\n\tadd a point\n\tadd a point",
+        "set score to the score of game"
+      ])
+      expect(run("score")).toEqual({ score: 3 })
+    })
+
+    test("from another file:  one loaded before the method's", () => {
+      const run = runSpellFiles([
+        { path: "/A.spell", contents: "set x to double 21" },
+        { path: "/B.spell", contents: "to double (n as a number):\n\treturn n * 2" }
+      ])
+      expect(run("x")).toEqual({ x: 42 })
+    })
+  })
+
+  describe("one-of-a-kind apps (P21):  `solitaire is an app where:`", () => {
+    test("the type and its one instance, made after every class, even one declared below", () => {
+      const run = runSpell([
+        "game is an app where:",
+        "\t- its score is a number",
+        '\t- its clubs is a new pile with name = "clubs"',
+        "\t- to add a point:\n\t\tset its score to its score + 1",
+        "a pile is a thing",
+        "\t- to play it:\n\t\tadd a point",
+        "set the score of game to 0",
+        "add a point",
+        "play the clubs of game",
+        "set score to the score of the game",
+        "set clubs to the name of the clubs of game"
+      ])
+      // bare calls anywhere:  at the top, and in another type's method
+      expect(run("score, clubs")).toEqual({ score: 2, clubs: "clubs" })
+    })
+
+    test("compiles to the class, then `export const game = new Game()`;  `a game is an app` makes none", () => {
+      expect(compile(["game is an app"])).toBe("export class Game extends App {}\nexport const game = new Game()")
+      expect(compile(["a game is an app"])).toBe("export class Game extends App {}")
+    })
+
+    test("only an app", () => {
+      expect(() => runSpell(["game is a thing"])).toThrow(/parse errors/)
+    })
+  })
+
+  describe("body methods (P20, I15):  a method in a type's body that names no type is the type's", () => {
+    test("`- to debug it:` is `to debug a game`;  `- to cheat at it:` keeps the type's name after `at`", () => {
+      const sentences = ["a game is an app", "to debug a game:\n\tprint 1", "to cheat at a game:\n\tprint 2"]
+      const outline = ["a game is an app where:", "\t- to debug it:\n\t\tprint 1", "\t- to cheat at it:\n\t\tprint 2"]
+      expect(compile(outline)).toBe(compile(sentences))
+    })
+
+    test("with no `it`:  bare inside its own methods, `of` (or after one word) from outside", () => {
+      const run = runSpell([
+        "a game is an app where:",
+        "\t- its score is a number",
+        "\t- to add a point:\n\t\tset its score to its score + 1",
+        "\t- to reset:\n\t\tset its score to 0\n\t\tadd a point\n\t\tfor each number from 1 to 2\n\t\t\tadd a point",
+        "a stock pile is a list",
+        "\t- to flip:\n\t\tprint 1",
+        "set game to a new game",
+        "reset the game",
+        "add a point of game",
+        "set score to the score of game"
+      ])
+      expect(run("score")).toEqual({ score: 4 })
+      expect(compile(["a stock pile is a list", "\t- to flip:\n\t\tprint 1"])).toContain("class StockPile extends List {\n  flip()")
+    })
+
+    test("one word, `- to reset:`, is bare inside too", () => {
+      const lines = ["a game is an app where:", "\t- to reset:\n\t\tprint 1", "\t- to restart:\n\t\treset"]
+      expect(compile(lines)).toContain("restart() {\n    this.reset()")
+    })
+
+    test("its words alone aren't a call outside the type's own methods", () => {
+      const lines = ["a game is an app where:", "\t- to add a point:\n\t\tprint 1", "a card is a thing"]
+      expect(() => runSpell([...lines, "add a point"])).toThrow(/parse errors/)
+      expect(() => runSpell([...lines, "to play a card:\n\tadd a point"])).toThrow(/parse errors/)
+    })
+  })
+
+  describe("starting values (P19):  `- its clubs is a new foundation with ...`", () => {
+    const types = ["a pile is a thing", "a foundation is a pile", "\t- its symbol is text"]
+
+    test("the same as the sentence `has ... as a new ...`", () => {
+      expect(
+        compile(["a game is an app where:", '\t- its clubs is a new foundation with name = "clubs"', ...types])
+      ).toBe(compile(["a game is an app", 'a game has a clubs as a new foundation with name = "clubs"', ...types]))
+    })
+
+    test("each thing gets its own, of the new thing's type;  `name T1` needs no `=`", () => {
+      const run = runSpell([
+        "a game is an app where:",
+        '\t- its clubs is a new foundation with name = "clubs", symbol = "♣️"',
+        "\t- its T1 is a new pile with name T1",
+        ...types,
+        "set a to a new game",
+        "set b to a new game",
+        "set clubs-a to the clubs of a",
+        "set clubs-b to the clubs of b",
+        "set t1 to the T1 of b"
+      ])
+      const { clubs_a, clubs_b, t1 } = run("clubs_a, clubs_b, t1") as Record<string, Record<string, unknown>>
+      expect(clubs_a).not.toBe(clubs_b)
+      expect(clubs_a).toMatchObject({ name: "clubs", symbol: "♣️" })
+      expect(t1).toMatchObject({ name: "T1" })
+    })
+
+    test("a thing's is made with it:  `every pile` finds them before anything reads them;  a list's isn't", () => {
+      const lines = [
+        "a game is an app where:",
+        '\t- its clubs is a new pile with name = "clubs"',
+        '\t- its hearts is a new pile with name = "hearts"',
+        "\t- its scores is a new list of numbers",
+        "a pile is a thing"
+      ]
+      const run = runSpell([...lines, "set game to a new game", "set piles to every pile"], { registered: true })
+      const { piles } = run("piles") as { piles: { items: { name: string }[] } }
+      expect(piles.items.map(({ name }) => name)).toEqual(["clubs", "hearts"])
+      expect(compile(lines)).toContain('init: () => new Pile({ name: "clubs" }), early: true')
+      expect(compile(lines)).not.toMatch(/new List\(.*early/)
+    })
+  })
+
   describe("re-opening a type (P11):  `a game:` adds to it", () => {
     test("in the same file:  its bullets go into the one class", () => {
       const sentences = [
@@ -719,7 +946,7 @@ describe("outline style", () => {
   })
 
   test("the outline Solitaire's cards pass their own tests, as today's cards do (P5)", () => {
-    // its deck, card, dealing and piles -- not the game itself, which starts an app
+    // its deck, card and piles -- not the game itself, which starts an app
     const files = loadFixtureProject("outline-solitaire").filter(({ path }) => !path.endsWith("Solitaire.spell"))
     const lines: string[] = []
     const console = core.console as unknown as Record<string, (...args: unknown[]) => void>
@@ -729,7 +956,8 @@ describe("outline style", () => {
     runSpellFiles(files)("")
     vi.restoreAllMocks()
     expect(lines.filter((line) => line.includes("❌"))).toEqual([])
-    expect(lines.filter((line) => line.includes("✅")).length).toBe(30)
+    // 29:  since its deck deals its cards as it's made (`- to create it:`), it checks 52 cards once, not twice
+    expect(lines.filter((line) => line.includes("✅")).length).toBe(29)
   })
 })
 
@@ -737,12 +965,18 @@ describe("outline style", () => {
  * `lines` compiled, then RUN on `core`'s source, as `membership.test.ts` does:  a function of the names to return.
  * - Throws on a parse error.
  */
-function runSpell(lines: string[]) {
-  return runSpellFiles([{ path: "/Test.spell", contents: lines.join("\n") }])
+function runSpell(lines: string[], options?: RunOptions) {
+  return runSpellFiles([{ path: "/Test.spell", contents: lines.join("\n") }], options)
+}
+
+/** How `runSpell()` runs a program. */
+type RunOptions = {
+  /** `true`:  its things register in `core.things`, as a running program's do, e.g. for `every pile`.  Default:  not. */
+  registered?: boolean
 }
 
 /** `files`, a project, compiled then RUN -- see `runSpell()`. */
-function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
+function runSpellFiles(sources: Array<{ path: string; contents: string }>, { registered = false }: RunOptions = {}) {
   const { files } = parseSpellProject(sources)
   const errors = files.flatMap((file) => file.errors)
   if (errors.length) throw new Error(`parse errors:\n${JSON.stringify(errors, null, 2)}`)
@@ -764,7 +998,9 @@ function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
     // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
     const fn = new Function("core", "Thing", "List", "App", ...Object.keys(imported), body)
     const run = () => fn(core, Thing, List, App, ...Object.values(imported))
-    return core.things.quietly(run) as Record<string, unknown>
+    if (!registered) return core.things.quietly(run) as Record<string, unknown>
+    core.things.clear()
+    return run() as Record<string, unknown>
   }
 }
 

@@ -6,17 +6,9 @@ core.heading("definition of a Card with nice english aliases for working with it
 ////////////////////////////////////////////////////////////////////////
 // ## definition of a Card with nice english aliases for working with it
 ////////////////////////////////////////////////////////////////////////
-/** card ranks */
-const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
-export type Rank = (typeof RANKS)[number]
-
-/** card suits */
-const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const
-export type Suit = (typeof SUITS)[number]
-
-/** card direction:  up or down */
-const DIRECTIONS = ["up", "down"] as const
-export type Direction = (typeof DIRECTIONS)[number]
+export type Rank = (typeof Card.Ranks)[number]
+export type Suit = (typeof Card.Suits)[number]
+export type Direction = (typeof Card.Directions)[number]
 
 /** a drawable thing:  each card draws in its own element, <solitaire-card>, with its own styles */
 export class Card extends Drawable {
@@ -59,14 +51,16 @@ export class Card extends Drawable {
   /////////////////////////
   // ## properties of cards
   /////////////////////////
+  /** card ranks */
   // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
-  static Ranks = RANKS
-  @prop({ oneOf: RANKS })
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
+  @prop({ oneOf: () => Card.Ranks })
   accessor rank!: Rank
 
+  /** card suits */
   // cards have a suit as one of clubs, diamonds, hearts or spades
-  static Suits = SUITS
-  @prop({ oneOf: SUITS })
+  static Suits = ["clubs", "diamonds", "hearts", "spades"] as const
+  @prop({ oneOf: () => Card.Suits })
   accessor suit!: Suit
 
   /** color as derivation of suit */
@@ -80,9 +74,10 @@ export class Card extends Drawable {
     return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
+  /** card direction:  up or down */
   // a card has a direction as either up or down
-  static Directions = DIRECTIONS
-  @prop({ oneOf: DIRECTIONS })
+  static Directions = ["up", "down"] as const
+  @prop({ oneOf: () => Card.Directions })
   accessor direction!: Direction
 
   /////////////
@@ -531,14 +526,6 @@ export class Game extends App {
     )
   }
 }
-export const game = new Game()
-core.console.log(game)
-
-core.heading("set up all piles")
-/** set up all piles */
-export const allPiles = new List<Pile>({ instanceType: "Pile" })
-export const foundations = new List<Pile>({ instanceType: "Pile" })
-export const tableaus = new List<Pile>({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class StockPile extends Pile {
@@ -572,8 +559,6 @@ export class StockPileElement extends SpellElement<StockPile> {
   }
 }
 core.useElement(StockPile, StockPileElement)
-export const stock = new StockPile({ name: "stock", droppable: false })
-allPiles.append(stock)
 
 /** set up discards: where played cards go when turning over stock */
 export class DiscardPile extends Pile {
@@ -606,8 +591,6 @@ export class DiscardPileElement extends SpellElement<DiscardPile> {
   }
 }
 core.useElement(DiscardPile, DiscardPileElement)
-export const discards = new DiscardPile({ name: "discards", droppable: false })
-allPiles.append(discards)
 
 /** set up foundation piles: where we build up from ace => king */
 export class Foundation extends Pile {
@@ -661,31 +644,6 @@ export class FoundationElement extends SpellElement<Foundation> {
   }
 }
 core.useElement(Foundation, FoundationElement)
-const it = new Foundation({
-  name: "clubs",
-  symbol: "♣️",
-  droppable: true
-})
-foundations.append(it)
-const it2 = new Foundation({
-  name: "diamonds",
-  symbol: "♦️",
-  droppable: true
-})
-foundations.append(it2)
-const it3 = new Foundation({
-  name: "hearts",
-  symbol: "♥️",
-  droppable: true
-})
-foundations.append(it3)
-const it4 = new Foundation({
-  name: "spades",
-  symbol: "♠️",
-  droppable: true
-})
-foundations.append(it4)
-foundations.forEach((pile) => allPiles.append(pile))
 
 /** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {
@@ -741,6 +699,48 @@ export class TableauElement extends SpellElement<Tableau> {
   }
 }
 core.useElement(Tableau, TableauElement)
+
+export const game = new Game()
+core.console.log(game)
+
+core.heading("set up all piles")
+/** set up all piles */
+export const allPiles = new List<Pile>({ instanceType: "Pile" })
+export const foundations = new List<Pile>({ instanceType: "Pile" })
+export const tableaus = new List<Pile>({ instanceType: "Pile" })
+
+export const stock = new StockPile({ name: "stock", droppable: false })
+allPiles.append(stock)
+
+export const discards = new DiscardPile({ name: "discards", droppable: false })
+allPiles.append(discards)
+
+const it = new Foundation({
+  name: "clubs",
+  symbol: "♣️",
+  droppable: true
+})
+foundations.append(it)
+const it2 = new Foundation({
+  name: "diamonds",
+  symbol: "♦️",
+  droppable: true
+})
+foundations.append(it2)
+const it3 = new Foundation({
+  name: "hearts",
+  symbol: "♥️",
+  droppable: true
+})
+foundations.append(it3)
+const it4 = new Foundation({
+  name: "spades",
+  symbol: "♠️",
+  droppable: true
+})
+foundations.append(it4)
+foundations.forEach((pile) => allPiles.append(pile))
+
 core.getRange(1, 7).forEach((number) => {
   const it5 = new Tableau({ name: `T${number}`, droppable: true })
   tableaus.append(it5)

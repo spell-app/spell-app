@@ -69,12 +69,15 @@
         { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "(a|an) {type:known_type} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (never:never) (verb:add|take) (a|an) {item:type}" },
         { name: "list_guard", syntax: "{type:subject_it} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "{type:subject_it} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "{type:subject_it} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" },
+        { name: "list_guard", syntax: "{type:subject_it} can (never:never) (verb:add|take) (a|an) {item:type}" },
         { name: "list_guard", syntax: "{type:subject_implied} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "{type:subject_implied} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
-        { name: "list_guard", syntax: "{type:subject_implied} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" }
+        { name: "list_guard", syntax: "{type:subject_implied} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" },
+        { name: "list_guard", syntax: "{type:subject_implied} can (never:never) (verb:add|take) (a|an) {item:type}" }
       ]
     },
     {
@@ -85,12 +88,15 @@
         { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "(a|an) {type:known_type} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "(a|an) {type:known_type} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" },
+        { name: "list_guard", syntax: "(a|an) {type:known_type} can (never:never) (verb:add|take) (a|an) {item:type}" },
         { name: "list_guard", syntax: "{type:subject_it} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "{type:subject_it} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "{type:subject_it} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" },
+        { name: "list_guard", syntax: "{type:subject_it} can (never:never) (verb:add|take) (a|an) {item:type}" },
         { name: "list_guard", syntax: "{type:subject_implied} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?" },
         { name: "list_guard", syntax: "{type:subject_implied} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?" },
-        { name: "list_guard", syntax: "{type:subject_implied} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" }
+        { name: "list_guard", syntax: "{type:subject_implied} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}" },
+        { name: "list_guard", syntax: "{type:subject_implied} can (never:never) (verb:add|take) (a|an) {item:type}" }
       ]
     },
     {

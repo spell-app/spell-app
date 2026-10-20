@@ -439,14 +439,6 @@ export class Game extends App {
     )
   }
 }
-export const game = new Game()
-core.console.log(game)
-
-core.heading("set up all piles")
-/** set up all piles */
-export const allPiles = new List({ instanceType: "Pile" })
-export const foundations = new List({ instanceType: "Pile" })
-export const tableaus = new List({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class StockPile extends Pile {
@@ -463,8 +455,6 @@ export class StockPile extends Pile {
     )
   }
 }
-export const stock = new StockPile({ name: "stock", droppable: false })
-allPiles.append(stock)
 
 /** set up discards: where played cards go when turning over stock */
 export class DiscardPile extends Pile {
@@ -478,8 +468,6 @@ export class DiscardPile extends Pile {
     return h("div", { class: "pile discards" }, h("slot"))
   }
 }
-export const discards = new DiscardPile({ name: "discards", droppable: false })
-allPiles.append(discards)
 
 /** set up foundation piles: where we build up from ace => king */
 export class Foundation extends Pile {
@@ -510,31 +498,6 @@ export class Foundation extends Pile {
     )
   }
 }
-const it = new Foundation({
-  name: "clubs",
-  symbol: "♣️",
-  droppable: true
-})
-foundations.append(it)
-const it2 = new Foundation({
-  name: "diamonds",
-  symbol: "♦️",
-  droppable: true
-})
-foundations.append(it2)
-const it3 = new Foundation({
-  name: "hearts",
-  symbol: "♥️",
-  droppable: true
-})
-foundations.append(it3)
-const it4 = new Foundation({
-  name: "spades",
-  symbol: "♠️",
-  droppable: true
-})
-foundations.append(it4)
-foundations.forEach((pile) => allPiles.append(pile))
 
 /** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {
@@ -564,6 +527,48 @@ export class Tableau extends Pile {
     return h("div", { class: "pile tableau" }, h("slot"))
   }
 }
+
+export const game = new Game()
+core.console.log(game)
+
+core.heading("set up all piles")
+/** set up all piles */
+export const allPiles = new List({ instanceType: "Pile" })
+export const foundations = new List({ instanceType: "Pile" })
+export const tableaus = new List({ instanceType: "Pile" })
+
+export const stock = new StockPile({ name: "stock", droppable: false })
+allPiles.append(stock)
+
+export const discards = new DiscardPile({ name: "discards", droppable: false })
+allPiles.append(discards)
+
+const it = new Foundation({
+  name: "clubs",
+  symbol: "♣️",
+  droppable: true
+})
+foundations.append(it)
+const it2 = new Foundation({
+  name: "diamonds",
+  symbol: "♦️",
+  droppable: true
+})
+foundations.append(it2)
+const it3 = new Foundation({
+  name: "hearts",
+  symbol: "♥️",
+  droppable: true
+})
+foundations.append(it3)
+const it4 = new Foundation({
+  name: "spades",
+  symbol: "♠️",
+  droppable: true
+})
+foundations.append(it4)
+foundations.forEach((pile) => allPiles.append(pile))
+
 core.getRange(1, 7).forEach((number) => {
   const it5 = new Tableau({ name: `T${number}`, droppable: true })
   tableaus.append(it5)

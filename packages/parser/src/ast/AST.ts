@@ -1978,6 +1978,21 @@ export class ASTJSXElement extends ASTExpression {
   }
 }
 
+/** JSXFragment -- several elements side by side, with no element around them:  `<><a/><b/></>`.
+ * - Drawn in javascript as a list of them, `[h("a"), h("b")]`, as Solid's `h()` takes a fragment;  TypeScript writes
+ *   `<>...</>` as is.
+ * - Also elements written one after another, `return <a/>` then `<b/>` on the next line:  an implicit fragment.
+ * - An element with no tag and no attributes, so whatever takes an element takes it:  `tagName` is `""`.
+ * - `children` is array of child nodes -- JSXElement/JSXEndTag/JSXText/JSXExpression.
+ */
+export type ASTJSXFragmentProps = Prettify<Omit<ASTJSXElementProps, "tagName" | "attrs">>
+
+export class ASTJSXFragment extends ASTJSXElement {
+  constructor(match: P.AnyMatch, props: ASTJSXFragmentProps) {
+    super(match, { tagName: "", ...props })
+  }
+}
+
 /** JSXAttribute -- e.g. `a={1}` or bare `d` (boolean shorthand).
  * - `name` is attribute name.
  * - `value` (optional) is attribute value Expression -- missing means boolean-shorthand attr, e.g. bare `d`.

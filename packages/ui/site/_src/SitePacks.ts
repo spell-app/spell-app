@@ -1,13 +1,16 @@
 /**
- * Lets a page of a COMPONENT SET load component packs (`<ui-components source="x.pack.js">`):  `globalThis.SpellUI`,
+ * Lets a page of ANY component set load component packs (`<ui-components source="x.pack.js">`):  `globalThis.SpellUI`,
  * what a pack's classic script calls `registerPack()` on and takes its shared modules from (`packModules`), as the
  * docs bundle gives them (`spell-epic/src/tools/_assets/spell-ui.entry.js`).
- * - Why:  the component sets' pages (Epic UI at `/components/epics/`, App UI at `/components/app/`, the
- *   brand's at `/components/brand/`:  `COMPONENT_SETS` in `$/server/page`) load Spell UI's site, and draw their live examples with a pack's elements (`epics.pack.js`'s
- *   `<epic-*>`, the app's `spell.pack.js`).
- * - ONLY in the sets' build of the site (`sets.ts`, `site/_assets/sets/`), never in Spell UI's own:  every module
- *   here stays WHOLE (a pack may use any export), and in one build with Spell UI's pages that cost them +118 KB
- *   (36 KB gzipped) as a static import, more as `import()`s (measured 2026-10-12, epic `epic-workflow` P10).
+ * - Why:  every set's pages (`COMPONENT_SETS` in `$/server/page`:  Spell UI's at `/components/ui/`, Epic UI's at
+ *   `/components/epics/`, App UI's at `/components/app/`, the brand's at `/components/brand/`) load the epics pack,
+ *   `epics.pack.js`, whose `<epic-thread>` and `<epic-comment-pane>` draw the comments (epic `epic-engine`);  and the
+ *   other sets draw their live examples with a pack's elements (`<epic-*>`, the app's `spell.pack.js`).
+ * - In the site's ONE build (`site.ts`), every set's, since epic `epic-engine`:  every module here stays WHOLE (a pack
+ *   may use any export), so a page's eager script grows:  Spell UI's 305 KB => 555 KB (79 => 155 KB gzipped,
+ *   2026-10-20).  Until then only the other sets' own build of the site had it (`sets.ts`, `site/_assets/sets/`, epic
+ *   `epic-workflow` P10), to spare Spell UI's pages that;  once they loaded the epics pack for the comments they needed
+ *   it too, and the two builds were the same.
  * - `import * as` the Solid packages, against "One Solid per page" in `packages/ui/AGENTS.md`, on purpose and ONLY
  *   here and in the docs bundle.
  * - SIDE EFFECT:  sets `globalThis.SpellUI`;  listed in `package.json`'s `sideEffects`, or the bundler drops it.

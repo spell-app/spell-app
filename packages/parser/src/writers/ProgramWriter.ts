@@ -378,6 +378,18 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
+   * Is property `node`'s starting value a THING, made with the thing that has it, not when first read?
+   * - e.g. `- its clubs is a new foundation with ...` (epic `outline-spell` P19):
+   *   so the solitaire's piles exist as soon as it does, and `every pile` finds them.
+   * - A new list (`as a new list of tasks`) is still made when first read:  a saved thing never gets an empty one.
+   * - Its class's schema says so:  `early: true` (`PropInfo.early`).
+   */
+  madeEarly(node: P.ASTReactiveProperty): boolean {
+    const initializer = node.initializer && unwrapped(node.initializer)
+    return initializer instanceof P.ASTNewInstanceExpression && initializer.type.name !== "List"
+  }
+
+  /**
    * What property `node` holds, as `kindOf()` says it -- `undefined` for a list, or what can't be told.
    * - From its `check`:
    *   - `{ type: 'text' }` => `"text"`

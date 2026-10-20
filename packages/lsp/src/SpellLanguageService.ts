@@ -167,7 +167,8 @@ export class SpellLanguageService {
       }
     })
     P.Tokenizer.forEachToken(file.match.tokens, (token) => {
-      if (token instanceof P.JSXElementToken) this.addFold(file, ranges, token.start, token.end)
+      if (token instanceof P.JSXElementToken || token instanceof P.JSXFragmentToken)
+        this.addFold(file, ranges, token.start, token.end)
     })
     for (const [startLine, endLine] of this.runsOf(commentLines))
       ranges.push({ startLine, endLine, kind: FoldingRangeKind.Comment })
@@ -523,12 +524,16 @@ export class SpellLanguageService {
     return !!record && !record.declaredBy
   }
 
-  /** Spans for a JSX token's names:  tag names (`<div`, `</div>`) as `type`s, attribute names as `property`s. */
+  /**
+   * Spans for a JSX token's names:  tag names (`<div`, `</div>`) as `type`s, attribute names as `property`s.
+   * - None for a fragment, `<>...</>`:  it has no name.
+   */
   private jsxSpans(token: P.JSXToken): LSP.HighlightSpan[] {
     if (token instanceof P.JSXElementToken) {
       return [{ start: token.start + 1, end: token.start + 1 + token.tagName.length, kind: "type" }]
     }
-    if (token instanceof P.JSXEndTagToken) {
+    // a fragment's `</>` has no name
+    if (token instanceof P.JSXEndTagToken && token.tagName) {
       return [{ start: token.start + 2, end: token.start + 2 + token.tagName.length, kind: "type" }]
     }
     if (token instanceof P.JSXAttributeToken) {

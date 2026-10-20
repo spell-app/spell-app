@@ -1,7 +1,7 @@
 /**
  * Base classes for spell.
  */
-import { Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
+import { Observable, runsCreate, schemaOf, typedJSON, type PropInfo } from "$/util"
 import { registerThing, core } from "$/core/core"
 import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"
@@ -53,6 +53,8 @@ export class Thing extends Eventful(Observable) {
   constructor(props?: Record<string, unknown>) {
     super(props)
     registerThing(this)
+    // make its early starting values now (`PropInfo.early`), e.g. a solitaire's piles -- unless `props` gave them
+    for (const name of schemaOf(new.target).earlyProps()) this.getProp(name)
     if (runsCreate(Thing, new.target)) this.create()
   }
 

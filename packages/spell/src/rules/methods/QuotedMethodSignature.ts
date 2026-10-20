@@ -6,7 +6,8 @@ import { methods } from "./methods.parser"
 
 /**
  * `quoted_method_signature` rule:  method signature surrounded by quotes.  A "good idea"???
- * - Re-parses the token's raw JSON string VALUE as a fresh `method_signature`, e.g. the `"nerds out with
+ * - Re-parses the token's raw JSON string VALUE as its words (`quoted_signature_words`:  only `(...)` is a
+ *   parameter, so `"is a number card"` is four words), e.g. the `"nerds out with
  *   (another as a thing)"` in `a thing "nerds out with (another as a thing)" if`.
  * - `parse()` swizzles `tokens`/`matched` back onto the outer text-token match, so it behaves
  *   indistinguishably from a normal `method_signature` match to callers (e.g. `quoted_type_expression`).
@@ -27,7 +28,8 @@ export class QuotedMethodSignature extends P.TokenType {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     const signature =
-      match && (scope.parse(JSON.parse(match.value), "method_signature") as P.MatchFor<MethodSignature> | undefined)
+      match &&
+      (scope.parse(JSON.parse(match.value), "quoted_signature_words") as P.MatchFor<MethodSignature> | undefined)
     if (!signature || !signature.data.foundKeyword) return undefined
     // its warnings are about words in the quotes, whose positions are the string's:  shown under the quotes
     for (const { message } of SP.SpellWarnings.in(signature)) SP.SpellWarnings.note(signature, message, match)

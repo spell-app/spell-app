@@ -331,6 +331,32 @@
           "aliases": ["expression"]
         },
         {
+          "className": "KnownWordsVariable",
+          "ruleNames": ["known_words_variable"],
+          "internal": false,
+          "file": "packages/spell/src/rules/variables/KnownWordsVariable.ts",
+          "line": 11,
+          "purpose": "A known variable of several words, read, e.g. `start pile`, `the test card` (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "the? {identifier:words_identifier}",
+              "example": "start pile",
+              "outputs": {
+                "js": {
+                  "code": "startPile"
+                },
+                "ts": {
+                  "code": "startPile"
+                },
+                "py": {
+                  "code": "start_pile"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
           "className": "SingularIdentifier",
           "ruleNames": ["singular_identifier"],
           "internal": false,
@@ -400,6 +426,57 @@
                 },
                 "py": {
                   "code": "thing"
+                }
+              }
+            }
+          ],
+          "aliases": []
+        },
+        {
+          "className": "WordsIdentifier",
+          "ruleNames": ["words_identifier"],
+          "internal": false,
+          "file": "packages/spell/src/rules/variables/WordsIdentifier.ts",
+          "line": 17,
+          "purpose": "A variable's name of several words, e.g. `start pile` (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "example": "start pile",
+              "outputs": {
+                "js": {
+                  "code": "startPile"
+                },
+                "ts": {
+                  "code": "startPile"
+                },
+                "py": {
+                  "code": "start_pile"
+                }
+              }
+            }
+          ],
+          "aliases": []
+        },
+        {
+          "className": "WordsVariable",
+          "ruleNames": ["words_variable"],
+          "internal": false,
+          "file": "packages/spell/src/rules/variables/WordsVariable.ts",
+          "line": 9,
+          "purpose": "A variable of several words, known or not, e.g. `the start pile` (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "the? {identifier:words_identifier}",
+              "example": "the start pile",
+              "outputs": {
+                "js": {
+                  "code": "startPile"
+                },
+                "ts": {
+                  "code": "startPile"
+                },
+                "py": {
+                  "code": "start_pile"
                 }
               }
             }
@@ -562,6 +639,58 @@
                 },
                 "py": {
                   "code": "thing is not None"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
+          "className": "UnicodeLiteral",
+          "ruleNames": ["unicode_literal"],
+          "internal": false,
+          "file": "packages/spell/src/rules/expressions/UnicodeLiteral.ts",
+          "line": 14,
+          "purpose": "`unicode 1F0A0` -- the character with that code point, written in hex (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "unicode {code:unicode_code}",
+              "example": "unicode 1F0A0",
+              "outputs": {
+                "js": {
+                  "code": "\"🂠\""
+                },
+                "ts": {
+                  "code": "\"🂠\""
+                },
+                "py": {
+                  "code": "\"🂠\""
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
+          "className": "UnicodeExpression",
+          "ruleNames": ["unicode_expression"],
+          "internal": false,
+          "file": "packages/spell/src/rules/expressions/UnicodeExpression.ts",
+          "line": 13,
+          "purpose": "`unicode code` -- the character with a code point worked out as the program runs (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "unicode {code:operand}",
+              "example": "unicode code",
+              "outputs": {
+                "js": {
+                  "code": "core.unicode(code)"
+                },
+                "ts": {
+                  "code": "core.unicode(code)"
+                },
+                "py": {
+                  "code": "core.unicode(code)"
                 }
               }
             }
@@ -1062,6 +1191,16 @@
             }
           ],
           "aliases": []
+        },
+        {
+          "className": "UnicodeCode",
+          "ruleNames": ["unicode_code"],
+          "internal": false,
+          "file": "packages/spell/src/rules/expressions/UnicodeCode.ts",
+          "line": 14,
+          "purpose": "A code point written in hex, e.g. `1F0A0`, `2665`, `A0` (epic page `outline-spell`, P26).",
+          "syntaxes": [],
+          "aliases": []
         }
       ]
     },
@@ -1527,7 +1666,7 @@
           "ruleNames": ["object_literal_property"],
           "internal": false,
           "file": "packages/spell/src/rules/properties/ObjectLiteralProperty.ts",
-          "line": 10,
+          "line": 11,
           "purpose": "Single object-literal property declaration: `{property} (=|is|of) {value:expression}`.",
           "syntaxes": [
             {
@@ -1547,6 +1686,58 @@
             }
           ],
           "aliases": []
+        },
+        {
+          "className": "NamedObjectLiteralProperty",
+          "ruleNames": ["named_object_literal_property"],
+          "internal": false,
+          "file": "packages/spell/src/rules/properties/ObjectLiteralProperty.ts",
+          "line": 50,
+          "purpose": "`name T1` -- a one-word property and a bare name, no `=` (epic `outline-spell` P19).",
+          "syntaxes": [
+            {
+              "syntax": "{property} {value:thing_name}",
+              "example": "name T1",
+              "outputs": {
+                "js": {
+                  "code": "name: \"T1\""
+                },
+                "ts": {
+                  "code": "name: \"T1\""
+                },
+                "py": {
+                  "code": "\"name\": \"T1\""
+                }
+              }
+            }
+          ],
+          "aliases": ["object_literal_property"]
+        },
+        {
+          "className": "FlagObjectLiteralProperty",
+          "ruleNames": ["flag_object_literal_property"],
+          "internal": false,
+          "file": "packages/spell/src/rules/properties/ObjectLiteralProperty.ts",
+          "line": 76,
+          "purpose": "`jokers` -- a property's name alone, meaning `jokers = yes` (epic `outline-spell` P26).",
+          "syntaxes": [
+            {
+              "syntax": "{property}",
+              "example": "jokers",
+              "outputs": {
+                "js": {
+                  "code": "jokers: true"
+                },
+                "ts": {
+                  "code": "jokers: true"
+                },
+                "py": {
+                  "code": "\"jokers\": True"
+                }
+              }
+            }
+          ],
+          "aliases": ["object_literal_property"]
         },
         {
           "className": "ObjectLiteralProperties",
@@ -1819,6 +2010,32 @@
                 },
                 "py": {
                   "code": "core.get_item_at(my_list, 0)"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
+          "className": "OrdinalWhereExpression",
+          "ruleNames": ["ordinal_where_expression"],
+          "internal": false,
+          "file": "packages/spell/src/rules/lists/OrdinalWhereExpression.ts",
+          "line": 17,
+          "purpose": "The first (second, last ...) item of a list that passes a test (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "the {ordinal} {arg:singular_identifier} (in|of) {list:expression} where {inline_expression}?",
+              "example": "the first item in my-list where its id > 1",
+              "outputs": {
+                "js": {
+                  "code": "core.getItemAt(core.filter(myList, (item) => item.id > 1), 0)"
+                },
+                "ts": {
+                  "code": "core.getItemAt(core.filter(myList, (item) => item.id > 1), 0)"
+                },
+                "py": {
+                  "code": "core.get_item_at(core.filter(my_list, lambda item: item.id > 1), 0)"
                 }
               }
             }
@@ -3068,6 +3285,58 @@
           "aliases": ["expression"]
         },
         {
+          "className": "EveryThing",
+          "ruleNames": ["every_thing"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/EveryThing.ts",
+          "line": 14,
+          "purpose": "Every thing of a type the program has made, in the order made (epic page `outline-spell`, P16).",
+          "syntaxes": [
+            {
+              "syntax": "every {type:known_type}",
+              "example": "every pile",
+              "outputs": {
+                "js": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "ts": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "py": {
+                  "code": "core.every_thing(Pile)"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
+          "className": "TheThings",
+          "ruleNames": ["the_things"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/TheThings.ts",
+          "line": 14,
+          "purpose": "`the foundations` -- every thing of a type, by its plural (epic page `outline-spell`, P23).",
+          "syntaxes": [
+            {
+              "syntax": "the {type:plural_type}",
+              "example": "the piles",
+              "outputs": {
+                "js": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "ts": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "py": {
+                  "code": "core.every_thing(Pile)"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
           "className": "WithNestedStatements",
           "ruleNames": ["with_nested_statements"],
           "internal": false,
@@ -3143,6 +3412,32 @@
                 },
                 "py": {
                   "code": "class Card(Thing):\n    pass"
+                }
+              }
+            }
+          ],
+          "aliases": ["statement"]
+        },
+        {
+          "className": "CreateOneOfAKind",
+          "ruleNames": ["create_one_of_a_kind"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/CreateOneOfAKind.ts",
+          "line": 20,
+          "purpose": "`solitaire is an app` -- declares an app AND its one instance (epic `outline-spell` P21).",
+          "syntaxes": [
+            {
+              "syntax": "{type:type_words} is (a|an) {superType:type} {with_nested_statements}?",
+              "example": "solitaire is an app",
+              "outputs": {
+                "js": {
+                  "code": "export class Solitaire extends App {}\nexport const solitaire = new Solitaire()"
+                },
+                "ts": {
+                  "code": "export class Solitaire extends App {}\nexport const solitaire = new Solitaire()"
+                },
+                "py": {
+                  "code": "class Solitaire(App):\n    pass\n\nsolitaire = Solitaire()"
                 }
               }
             }
@@ -3475,7 +3770,7 @@
           "ruleNames": ["list_guard"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/ListGuard.ts",
-          "line": 32,
+          "line": 35,
           "purpose": "What a list type takes, or gives up, when something MOVES (epic page Q23 - Q25).",
           "syntaxes": [
             {
@@ -3524,6 +3819,21 @@
               }
             },
             {
+              "syntax": "(a|an) {type:known_type} can (never:never) (verb:add|take) (a|an) {item:type}",
+              "example": "a pile can never take a card",
+              "outputs": {
+                "js": {
+                  "code": "Pile.prototype.canTake = function (card) {\n  return false\n}"
+                },
+                "ts": {
+                  "code": "export interface Pile { canTake(card: Card): boolean }\nPile.prototype.canTake = function (this: Pile, card: Card) {\n  return false\n}"
+                },
+                "py": {
+                  "code": "@Pile.add_method(\"can_take\")\ndef _pile_can_take(self, card: Card) -> bool:\n    return False"
+                }
+              }
+            },
+            {
               "syntax": "{type:subject_it} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?"
             },
             {
@@ -3533,6 +3843,9 @@
               "syntax": "{type:subject_it} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
             },
             {
+              "syntax": "{type:subject_it} can (never:never) (verb:add|take) (a|an) {item:type}"
+            },
+            {
               "syntax": "{type:subject_implied} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?"
             },
             {
@@ -3540,6 +3853,9 @@
             },
             {
               "syntax": "{type:subject_implied} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
+            },
+            {
+              "syntax": "{type:subject_implied} can (never:never) (verb:add|take) (a|an) {item:type}"
             }
           ],
           "aliases": ["statement"]
@@ -3856,6 +4172,32 @@
                 },
                 "py": {
                   "code": "List(item_type=\"Person\")"
+                }
+              }
+            }
+          ],
+          "aliases": ["outline_specifier"]
+        },
+        {
+          "className": "OutlineSpecifierInstance",
+          "ruleNames": ["outline_specifier_instance"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/OutlineSpecifierInstance.ts",
+          "line": 13,
+          "purpose": "`a new foundation with ...` -- a property's starting value, in a type's outline body (epic `outline-spell` P19).",
+          "syntaxes": [
+            {
+              "syntax": "({new_list}|{new_thing})",
+              "example": "a new thing",
+              "outputs": {
+                "js": {
+                  "code": "new Thing()"
+                },
+                "ts": {
+                  "code": "new Thing()"
+                },
+                "py": {
+                  "code": "Thing()"
                 }
               }
             }
@@ -4589,6 +4931,31 @@
           "aliases": ["jsxChild", "expression"]
         },
         {
+          "className": "SpellJSXFragment",
+          "ruleNames": ["jsxFragment"],
+          "internal": false,
+          "file": "packages/spell/src/rules/JSX/SpellJSXFragment.ts",
+          "line": 27,
+          "purpose": "Several elements drawn side by side, with no element around them, `<>...</>`.",
+          "syntaxes": [
+            {
+              "example": "<><a/><b/></>",
+              "outputs": {
+                "js": {
+                  "code": "[\n  h(\"a\"),\n  h(\"b\")\n]"
+                },
+                "ts": {
+                  "code": "<>\n  <a />\n  <b />\n</>"
+                },
+                "py": {
+                  "code": "[h(\"a\"), h(\"b\")]"
+                }
+              }
+            }
+          ],
+          "aliases": ["jsxChild", "expression"]
+        },
+        {
           "className": "SpellJSXText",
           "ruleNames": ["jsxText"],
           "internal": false,
@@ -4910,6 +5277,32 @@
           "aliases": ["statement"]
         },
         {
+          "className": "WordsAssignment",
+          "ruleNames": ["words_assignment"],
+          "internal": false,
+          "file": "packages/spell/src/rules/assignment/WordsAssignment.ts",
+          "line": 10,
+          "purpose": "`set start pile to ...` -- sets, or declares, a variable of several words (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "set {thing:words_variable} to {value:expression}",
+              "example": "set start pile to yes",
+              "outputs": {
+                "js": {
+                  "code": "export const startPile = true"
+                },
+                "ts": {
+                  "code": "export const startPile: boolean = true"
+                },
+                "py": {
+                  "code": "start_pile = True"
+                }
+              }
+            }
+          ],
+          "aliases": ["statement"]
+        },
+        {
           "className": "Get",
           "ruleNames": ["get"],
           "internal": false,
@@ -5019,6 +5412,21 @@
                   "code": "core.trigger(\"card-click\")"
                 }
               }
+            },
+            {
+              "syntax": "(trigger|fire|send) event? {eventName:event_words} (with {props:object_literal_properties})?",
+              "example": "fire event card click with card = 1",
+              "outputs": {
+                "js": {
+                  "code": "trigger(\"card-click\", { card: 1 })"
+                },
+                "ts": {
+                  "code": "trigger(\"card-click\", { card: 1 })"
+                },
+                "py": {
+                  "code": "core.trigger(\"card-click\", card=1)"
+                }
+              }
             }
           ],
           "aliases": ["statement"]
@@ -5045,9 +5453,34 @@
                   "code": "core.on(\"card-click\")"
                 }
               }
+            },
+            {
+              "syntax": "on event? {eventName:event_words} {props:with_props_arg}? :? {statement_body}?",
+              "example": "on card click",
+              "outputs": {
+                "js": {
+                  "code": "on(\"card-click\")"
+                },
+                "ts": {
+                  "code": "on(\"card-click\")"
+                },
+                "py": {
+                  "code": "core.on(\"card-click\")"
+                }
+              }
             }
           ],
           "aliases": ["statement"]
+        },
+        {
+          "className": "EventWords",
+          "ruleNames": ["event_words"],
+          "internal": false,
+          "file": "packages/spell/src/rules/events/EventWords.ts",
+          "line": 14,
+          "purpose": "An event's name of several words, e.g. `card click` (epic page `outline-spell`, P26).",
+          "syntaxes": [],
+          "aliases": []
         }
       ]
     },
@@ -5444,11 +5877,25 @@
           "aliases": []
         },
         {
+          "className": "QuotedSignatureWords",
+          "ruleNames": ["quoted_signature_words"],
+          "internal": false,
+          "file": "packages/spell/src/rules/methods/QuotedSignatureWords.ts",
+          "line": 12,
+          "purpose": "A QUOTED phrase's words, where only `(...)` is a parameter (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "({method_keyword}|\\( {method_arg} \\))+"
+            }
+          ],
+          "aliases": []
+        },
+        {
           "className": "QuotedMethodSignature",
           "ruleNames": ["quoted_method_signature"],
           "internal": false,
           "file": "packages/spell/src/rules/methods/QuotedMethodSignature.ts",
-          "line": 17,
+          "line": 18,
           "purpose": "Method signature surrounded by quotes.",
           "syntaxes": [],
           "aliases": []

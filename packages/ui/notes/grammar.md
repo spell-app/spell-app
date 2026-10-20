@@ -335,8 +335,9 @@ A table's meaning stays NATIVE and in the LIGHT DOM;  the element only adds the 
   E.g. `positive`, `red marked left`, `collapsing`, `four wide`.
 - `stackable` answers to the VIEWPORT, as in Fomantic, for elements and static markup alike.
   - An element opts in to its DOM element's width (a size container) with `stack-by="container"`.
-  - That's a state of the DOM element;
+  - That's a private class on the table (`stack-by-container`);
     or the region token `--ui-table-stack-by: container`, which the attribute beats.
+  - `stack-by="none"` / `--ui-table-stack-by: none`:  never stacks (`unstackable`, for a region or a page).
 - Sorting (`sortable`):  a header's `<button>` is its control (else the header becomes focusable).
   - The cancelable `ui-sort` (`{ column, key, direction }`) comes first,
     then `sort-column` / `sort-direction` and `aria-sort`.

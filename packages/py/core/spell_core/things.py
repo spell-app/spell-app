@@ -31,7 +31,8 @@ import reprlib
 import secrets
 import string
 import weakref
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, ClassVar, Protocol
 
 from spell_core.events import Eventful
@@ -80,6 +81,7 @@ def prop(
     default: object = None,
     init: Callable[[], object] | None = None,
     item_type: str | builtins.type | None = None,
+    early: bool = False,
     rules: Sequence[PropRule] | None = None,
 ) -> "Prop":
     """Declare a property of a thing or a list, in its class body:  `rank = prop(one_of=RANKS)`.
@@ -94,6 +96,9 @@ def prop(
       - stored, so `to_json()` writes it
     - `item_type`:  the class a LIST property holds, or its name, e.g. `"Task"` for `as a new list of tasks`.
       - for the saver (epic `people-and-orgs`), which needs each item's kind:  nothing checks it yet
+    - `early`:  `init` makes its value as the thing is made, not on first read (epic `outline-spell` P19).
+      - compiled spell, for a starting value that's a thing:
+        `init=lambda: Foundation(...), early=True`, so a solitaire's piles exist as soon as it does
     - `rules`:  what its value must be, beyond its type (epic `property-editor` P9)
       - e.g. `[{"type": "empty"}]` for `- its title must not be empty`
       - a value that breaks one warns, as a wrong type does (`prop_rules.py`)
@@ -103,7 +108,7 @@ def prop(
     if isinstance(default, SHARED_DEFAULTS):
         kind = builtins.type(default).__name__
         raise TypeError(f"prop():  a {kind} default would be shared by every instance;  pass init={kind} instead")
-    return Prop(_type_name(type), one_of, default, init, _type_name(item_type), rules)
+    return Prop(_type_name(type), one_of, default, init, _type_name(item_type), early, rules)
 
 
 def _type_name(type: str | builtins.type | None) -> str | None:
@@ -126,6 +131,7 @@ class Prop:
         default: object,
         init: Callable[[], object] | None,
         item_type: str | None = None,
+        early: bool = False,
         rules: Sequence[PropRule] | None = None,
     ) -> None:
         """A property with what `prop()` was told:  its name comes when its class is made (`__set_name__()`)."""
@@ -141,6 +147,8 @@ class Prop:
         self.init = init
         # the class name of what a list property holds, e.g. `Task`
         self.item_type = item_type
+        # makes its value as the thing is made, not on first read
+        self.early = early
         # what its value must be, beyond its type:  see `prop_rules.py`
         self.rules: list[PropRule] = list(rules or ())
 
@@ -190,6 +198,37 @@ class Prop:
         return f"prop({', '.join(parts)})"
 
 
+@contextmanager
+def without_create() -> Iterator[None]:
+    """Make things with NO `create()` run:  copies, not new ones (epic page `outline-spell`, P24).
+
+    - e.g. `filter()`'s result:
+      a deck whose `create()` deals 52 cards mustn't deal them into a filter's 4 queens.
+    - See `core.new_scratch()`.
+    - The twin of the JavaScript core's `withoutCreate()`.
+    """
+    global _copying
+    _copying += 1
+    try:
+        yield
+    finally:
+        _copying -= 1
+
+
+# How many `without_create()`s are running.
+_copying = 0
+
+
+def _early_props(cls: type) -> list[str]:
+    """Names of `cls`'s properties made with the thing (`prop(early=True)`), base classes' first."""
+    names: list[str] = []
+    for klass in reversed(cls.__mro__):
+        for name, value in vars(klass).items():
+            if isinstance(value, Prop) and value.early and name not in names:
+                names.append(name)
+    return names
+
+
 def _declared_parts(declared: Prop) -> list[tuple[str, object]]:
     """What `declared` was told, by `prop()`'s keyword names, for its `repr()`."""
     return [
@@ -198,6 +237,7 @@ def _declared_parts(declared: Prop) -> list[tuple[str, object]]:
         ("default", declared.default),
         ("init", declared.init),
         ("item_type", declared.item_type),
+        ("early", declared.early or None),
         ("rules", declared.rules or None),
     ]
 
@@ -287,12 +327,18 @@ class SpellObject:
         """Set `props`, each as `thing.name = value` would, then run `create()`.
 
         - Counted among the program's things, in the order made:  `core.things_made()`.
+        - Its starting values that are things (`prop(early=True)`), e.g. a solitaire's piles,
+          are made before `create()`, unless `props` gave them.
+        - No `create()` inside `without_create()`:  a copy, not a new thing.
         """
         program_core().note_made(self)
         self._props: dict[str, object] = {}
         for name, value in props.items():
             setattr(self, name, value)
-        self.create()
+        for name in _early_props(builtins.type(self)):
+            getattr(self, name)
+        if not _copying:
+            self.create()
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         """SIDE EFFECT:  every class of thing is known by name, for `core.from_json()`."""

@@ -74,6 +74,24 @@ def test_init_makes_a_value_once_per_thing_and_stores_it() -> None:
     assert one.to_json() == {"$type": "Player", "hand": ["ace"]}
 
 
+def test_an_early_starting_value_is_made_with_the_thing_unless_given() -> None:
+    made: list[str] = []
+
+    class EarlyPile(Thing):
+        pass
+
+    class EarlyGame(Thing):
+        clubs = prop(init=lambda: made.append("clubs") or EarlyPile(), early=True)
+        later = prop(init=lambda: made.append("later") or EarlyPile())
+
+    game = EarlyGame()
+    assert made == ["clubs"]
+    assert isinstance(game.clubs, EarlyPile)
+    given = EarlyPile()
+    assert EarlyGame(clubs=given).clubs is given
+    assert made == ["clubs"]
+
+
 def test_a_shared_list_default_is_refused() -> None:
     with pytest.raises(TypeError, match="pass init=list instead"):
         prop(default=[])

@@ -45,12 +45,16 @@ export class PropertyValueGetter extends SpellStatement<"property|type|body?", {
    * SIDE EFFECT:  warns when an outline body's getter is just a value, e.g. `- score is 0`:
    * always 0, never the score of the thing -- most likely meant as a type, `- score is a number`.
    * - Only in an outline body (`it` / `its` / no subject), where a property's line looks the same either way.
+   * - Not when a super-type declares it already:  `- droppable is no` in a stock pile's body is a stock pile's
+   *   value for a pile's `droppable` (epic page `outline-spell`, P26).
    */
   private warnIfAlwaysTheSame(match: P.MatchFor<this>): void {
     const body = this.getBody(match)
     const typeWords = LITERAL_TYPES[`${body?.rule.name}`]
     if (!body || !typeWords || !SpellStatement.subjectWords(match)) return
     const name = match.groups.property.raw
+    const { superType } = getKnownType(match.groups.type)
+    if (superType && match.scope.getType(superType)?.getMember(`${match.groups.property.value}`)) return
     SP.SpellWarnings.note(
       match,
       `${name} is always ${body.inputText.trim()}:  to give it a type, write "${name} is ${typeWords}"`

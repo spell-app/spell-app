@@ -14,12 +14,15 @@ const CAN_TAKE = "can (verb:add|take) (a|an) {item:type} if :? {expression_body}
 const CAN_GIVE_UP = "can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?"
 /** What a list never gives up:  `can never let go of a card`, after its subject. */
 const CAN_NEVER_GIVE_UP = "can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
+/** What a list never takes:  `can never take a card`, after its subject (epic page `outline-spell`, P26). */
+const CAN_NEVER_TAKE = "can (never:never) (verb:add|take) (a|an) {item:type}"
 
 /**
  * `list_guard` rule:  what a list type takes, or gives up, when something MOVES (epic page Q23 - Q25):
  * - `a tableau can (add|take) a card if: ...`
  * - `a stock-pile can (release|remove|give up|let go of) a card if: ...`
  * - `a foundation can never (release|remove|give up|let go of) a card` -- always no
+ * - `a pile can never (add|take) a card` -- always no:  a sub-type says what it does take, e.g. a tableau
  * - Its body answers yes or no:  an inline expression, or an indented block which `return`s.
  *   `the card` is the card moving;  `it`, `its` and `the tableau` are the list.
  * - Compiles to a method of the list type's class, overriding `List`'s yes:
@@ -179,11 +182,34 @@ classes.addRule(ListGuard, {
     }
   ]
 })
+classes.addRule(ListGuard, {
+  syntax: `(a|an) {type:known_type} ${CAN_NEVER_TAKE}`,
+  tests: [
+    {
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.parse(["a card is a thing", "a pile is a list of cards"].join("\n"), "block")
+      },
+      tests: [
+        [
+          "a pile can never take a card",
+          ["Pile.prototype.canTake = function (card) {", "  return false", "}"],
+          [
+            "export interface Pile { canTake(card: Card): boolean }",
+            "Pile.prototype.canTake = function (this: Pile, card: Card) {",
+            "  return false",
+            "}"
+          ]
+        ]
+      ]
+    }
+  ]
+})
 // in a list type's outline body -- tests in `parserTests/outline.test.ts`:
-// - `- it can take a card if: ...`, `- it can never let go of a card`
+// - `- it can take a card if: ...`, `- it can never let go of a card`, `- it can never take a card`
 // - and with the subject left out:  `- can take a card if: ...`
 for (const subject of ["subject_it", "subject_implied"]) {
-  for (const guard of [CAN_TAKE, CAN_GIVE_UP, CAN_NEVER_GIVE_UP]) {
+  for (const guard of [CAN_TAKE, CAN_GIVE_UP, CAN_NEVER_GIVE_UP, CAN_NEVER_TAKE]) {
     classes.addRule(ListGuard, { syntax: `{type:${subject}} ${guard}` })
   }
 }

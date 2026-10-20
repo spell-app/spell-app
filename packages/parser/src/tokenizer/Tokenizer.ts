@@ -114,7 +114,7 @@ export class Tokenizer {
    * Call `callback` for each of `tokens` and every token nested inside them, parents first:
    * - `LineToken` tokens + its `newline`
    * - `BlockToken` lines / blocks
-   * - JSX element attributes + children, attribute values, expression `contents` when it's a token
+   * - JSX element attributes + children, a fragment's children, attribute values, expression `contents` when it's a token
    * - JSX expression `innerTokens`, once a rule has parsed its `{...}` contents
    */
   static forEachToken(tokens: P.Token[], callback: (token: P.Token) => void) {
@@ -131,6 +131,8 @@ export class Tokenizer {
         token.tokens.forEach(visit)
       } else if (token instanceof P.JSXElementToken) {
         token.attributes?.forEach(visit)
+        token.children?.forEach(visit)
+      } else if (token instanceof P.JSXFragmentToken) {
         token.children?.forEach(visit)
       } else if (token instanceof P.JSXAttributeToken) {
         visit(token.value)
@@ -208,7 +210,7 @@ export class Tokenizer {
       this.matchWord(text, start, end) ||
       this.matchNumber(text, start, end) ||
       this.matchNewline(text, start, end) ||
-      this.matchJSXElement(text, start, end) ||
+      this.matchJSXElements(text, start, end) ||
       this.matchText(text, start, end) ||
       this.matchComment(text, start, end) ||
       this.matchSymbol(text, start, end)
@@ -398,12 +400,61 @@ export class Tokenizer {
   }
 
   /**
+   * Match a JSX element at `start` of `text`, as `matchJSXElement()` does -- and any elements right after it:
+   * then they're ONE implicit fragment, a `JSXFragmentToken` holding them all, as if written `<>...</>`.
+   * - e.g. `return <ui-container>...</ui-container>` with `<ui-grid>...</ui-grid>` on the line below:
+   *   the drawing is both, side by side.
+   * - "Right after":  on the same line, or the NEXT line, indented at least as far as the line the first one
+   *   starts on.  Not after a blank line, nor a less indented one:  that's the next statement's.
+   * - Only at the top level:  inside an element, elements side by side are its children anyway.
+   */
+  matchJSXElements = (text: string, start = 0, end?: number): P.JSXElementToken | P.JSXFragmentToken | undefined => {
+    if (typeof end !== "number" || end > text.length) end = text.length
+    const first = this.matchJSXElement(text, start, end)
+    if (!first) return undefined
+    const lineStart = text.lastIndexOf("\n", first.start - 1) + 1
+    const indent = this.eatWhitespace(text, lineStart, end) - lineStart
+    const elements: P.Token[] = [first]
+    while (true) {
+      const next = this.matchJSXElement(text, this.nextElementStart(text, elements.at(-1)!.end, end, indent), end)
+      if (!next) break
+      elements.push(next)
+    }
+    if (elements.length === 1) return first
+    const last = elements.at(-1)!
+    return new P.JSXFragmentToken({
+      start: first.start,
+      raw: text.slice(first.start, last.end),
+      children: elements,
+      isImplicit: true
+    })
+  }
+
+  /**
+   * Where an element right after one ending at `from` would start -- see `matchJSXElements()`:
+   * past spaces, and past ONE newline when the line after it is indented at least `indent`.
+   * - `end` when there's no room for one:  `matchJSXElement()` then matches nothing.
+   */
+  private nextElementStart(text: string, from: number, end: number, indent: number): number {
+    let at = this.eatWhitespace(text, from, end)
+    if (text[at] === "\r") at++
+    if (text[at] !== "\n") return text[at] === "<" ? at : end
+    const lineStart = at + 1
+    at = this.eatWhitespace(text, lineStart, end)
+    return text[at] === "<" && at - lineStart >= indent ? at : end
+  }
+
+  /**
    * Match a single JSX element, including its children, at `start` of `text`, as `JSXElementToken`.
+   * - Or an explicit fragment, `<>...</>`, as `JSXFragmentToken`:  see `matchJSXFragment()`.
    * - Ignores leading whitespace.
    */
-  matchJSXElement = (text: string, start = 0, end?: number): P.JSXElementToken | undefined => {
+  matchJSXElement = (text: string, start = 0, end?: number): P.JSXElementToken | P.JSXFragmentToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
+
+    const fragment = this.matchJSXFragment(text, start, end)
+    if (fragment) return fragment
 
     const jsxElement = this.matchJSXStartTag(text, start, end)
     if (!jsxElement) return undefined
@@ -419,6 +470,22 @@ export class Tokenizer {
     }
 
     return jsxElement
+  }
+
+  /**
+   * Match an explicit JSX fragment at `start` of `text`, `<>` children `</>`, as a `JSXFragmentToken`:
+   * several elements side by side, with no element around them.
+   * - Its children are matched as an element's are, up to its `</>` end tag, which is its last child.
+   * - Ignores leading whitespace.
+   */
+  matchJSXFragment(text: string, start = 0, end?: number): P.JSXFragmentToken | undefined {
+    if (typeof end !== "number" || end > text.length) end = text.length
+    const tagStart = this.eatWhitespace(text, start, end)
+    if (!this.matchStringAtHead("<>", text, tagStart, end)) return undefined
+    const children = this.matchJSXChildren("", text, tagStart + 2, end) ?? []
+    const last = children.at(-1)
+    const fragmentEnd = last ? last.end : tagStart + 2
+    return new P.JSXFragmentToken({ start, raw: text.slice(start, fragmentEnd), children })
   }
 
   /**

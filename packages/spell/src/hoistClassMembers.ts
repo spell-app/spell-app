@@ -153,3 +153,55 @@ function tidyBlankLines(statements: HoistableStatement[]): HoistableStatement[] 
   while (tidy.at(-1) instanceof P.ASTBlankLine) tidy.pop()
   return tidy
 }
+
+/**
+ * `statements` -- a FILE's top level -- with each class declared after its first running code moved up above it.
+ * - So the program can use a type declared further down as it loads:
+ *   `the stock is a new stock pile` above `a stock pile is a pile`.
+ * - Why:  spell lets a line name a type declared anywhere in the project (its types are stubbed first);
+ *   javascript and Python run a file top to bottom, and a class doesn't exist before its declaration.
+ * - Classes keep their order, each with its own docstring (in its line's group).
+ * - Everything else stays where it was:  banners, headings' calls and the code under them.
+ *   So a heading still names the things its code makes, for the Thing Explorer.
+ * - Running code:  any statement but a class declaration and the quiet ones (`isQuiet()`), e.g. comments.
+ * - NEVER mutates what it's given.
+ */
+export function hoistClassDeclarations(statements: HoistableStatement[]): HoistableStatement[] {
+  const firstCode = statements.findIndex((statement) => !isQuiet(statement) && !declaresClass(statement))
+  if (firstCode < 0) return statements
+  const rest = statements.slice(firstCode)
+  const moved = rest.filter(declaresClass)
+  if (!moved.length) return statements
+  const blank = (statement: HoistableStatement) => new P.ASTBlankLine(statement.match)
+  return tidyBlankLines([
+    ...statements.slice(0, firstCode),
+    blank(moved[0]!),
+    ...moved.flatMap((statement) => [statement, blank(statement)]),
+    ...rest.filter((statement) => !declaresClass(statement))
+  ])
+}
+
+/**
+ * Is `statement` QUIET:  does it run nothing that could need a class declared below it?
+ * - comments, blank lines, headings' calls
+ * - a member patched onto a class declared elsewhere, e.g. a property a `set` declared, at a file's top
+ *   (a member of a class declared further down this file has moved into it already:  `hoistClassMembers()`)
+ * - a group of only those
+ */
+function isQuiet(statement: HoistableStatement): boolean {
+  if (statement instanceof P.ASTStatementGroup) return (statement.statements ?? []).every(isQuiet)
+  return (
+    statement instanceof P.ASTComment ||
+    statement instanceof P.ASTBlankLine ||
+    statement instanceof P.ASTHeadingInvocation ||
+    statement instanceof P.ASTPatchedMember
+  )
+}
+
+/** Does `statement` declare a class, and nothing else that runs?  e.g. a type's line, its comments in a group. */
+function declaresClass(statement: HoistableStatement): boolean {
+  if (statement instanceof P.ASTClassDeclaration) return true
+  if (!(statement instanceof P.ASTStatementGroup)) return false
+  const items = statement.statements ?? []
+  return items.some(declaresClass) && items.every((item) => isQuiet(item) || declaresClass(item))
+}

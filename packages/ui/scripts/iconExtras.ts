@@ -9,5 +9,12 @@ export const ICON_EXTRAS = {
   /** brand icons copied into `fa7-free/brands/` */
   brands: ["discord", "github", "medium", "twitter"],
   /** Fomantic names added as `alias`es of the `fa7-free` icon they mean */
-  fomantic: ["help", "linkify", "mail", "setting"]
+  fomantic: ["help", "linkify", "mail", "setting"],
+  /**
+   * Our own extra names, by Font Awesome icon name:  `alias`es of its solid icon,
+   * and of its regular one with ` outline` added (`hearts outline`).
+   * - The playing-card suits, in the plural (Owen, 2026-10-20):  `<ui-icon name="hearts">`.
+   * - Font Awesome Free has no club or spade, so `clubs` and `spades` name nothing yet.
+   */
+  names: { heart: ["hearts"], diamond: ["diamonds"] }
 } as const

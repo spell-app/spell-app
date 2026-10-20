@@ -236,10 +236,12 @@ function drawOrStandIn(thing: object, draw: () => Drawing): Drawing | null {
  *     does whenever anything under it changes (a card added to a pile)
  *   - inside the boundary's `try`:  a tag or child that throws while it's made shows the stand-in
  *   - elements INSIDE it need nothing:  `h()` makes them as it makes their parent
+ * - A fragment, `<>...</>`, is a list of them (`[h("a"), h("b")]`):  each made once, the same way.
  * - ONLY `h()`'s thunks:  any other function is a live value, which Solid calls itself, again when it changes.
  *   `h()` marks its thunks with a symbol it keeps to itself, so it's read off a thunk of our own, `H_THUNK`.
  */
 function madeOnce(drawing: Drawing): Drawing {
+  if (Array.isArray(drawing)) return drawing.map(madeOnce)
   return isElementThunk(drawing) ? madeOnce(drawing()) : drawing
 }
 

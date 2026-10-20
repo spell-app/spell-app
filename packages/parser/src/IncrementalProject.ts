@@ -3,13 +3,14 @@ import { P } from "$/parser"
 /**
  * Files of one project, parsed in order into one `scope`, so an edit to one file re-parses as little as possible
  * -- see `P.IncrementalParse`.
- * - Every file shares the project scope's parser, and so its `journal` (`P.ParseJournal`):  what file 1 declares,
- *   file 2 can use, and rewinding file 1 takes back file 2 as well.
+ * - Every file shares the project scope's parser, and so its `journal` (`P.ParseJournal`):
+ *   what file 1 declares, file 2 can use, and rewinding file 1 takes back file 2 as well.
  * - Each file gets its own `P.FileScope` under `scope`.
- * - Before any file parses, every type the files declare is stubbed (`parser.stubDeclaredTypes()`),
- *   so a line can name a type declared further down.
- * - An edit which changes WHICH types a file declares re-parses everything:
- *   rare, and the only way a line above it learns of the change.
+ * - Before any file parses, every type and method the files declare is stubbed,
+ *   so a line can name a type, or call a method, declared further down:
+ *   `parser.stubDeclaredTypes()`, `parser.stubDeclaredMethods()`.
+ * - An edit which changes WHICH types or methods a file declares re-parses everything:
+ *   rare, and the only way a line above it learns of the change.  See `parser.changesMethods()`.
  */
 export class IncrementalProject {
   /** Project scope every file's scope is under. */
@@ -19,6 +20,8 @@ export class IncrementalProject {
    * - `types`:  names of the types it declares, joined -- see `parser.declaredTypes()`, `update()`.
    */
   declare files: Array<{ path: string; parse: P.IncrementalParse; types: string }>
+  /** Do broken lines keep their last working declarations?  See `IncrementalProjectProps.keepLastGood`. */
+  declare keepLastGood: boolean
   /** Journal mark before the types we stub -- rewinding to it takes back the whole project. */
   declare startMark: P.JournalMark
   /**
@@ -35,11 +38,9 @@ export class IncrementalProject {
     const parser = scope.parser!
     parser.journal = new P.ParseJournal()
     this.scope = scope
+    this.keepLastGood = !!keepLastGood
     this.startMark = parser.journal.mark()
-    parser.stubDeclaredTypes(
-      scope,
-      files.map((file) => file.text)
-    )
+    this.stub(files.map((file) => file.text))
     this.files = files.map(({ path, name = path, text }) => {
       const fileScope = new P.FileScope({ name, path, parentScope: scope })
       const types = parser.declaredTypes(text).join()
@@ -64,9 +65,11 @@ export class IncrementalProject {
       throw new P.ParserError({ message: `IncrementalProject.update(): unknown file '${path}'`, context: this })
 
     try {
-      // changed which types it declares:  every line above may read differently -- see `stubDeclaredTypes()`
-      const types = this.scope.parser!.declaredTypes(text).join()
+      // changed which types or methods it declares:  every line above may read differently
+      const parser = this.scope.parser!
+      const types = parser.declaredTypes(text).join()
       if (this.isBroken || types !== this.files[index]!.types) return this.parseAll(path, text)
+      if (parser.changesMethods(this.scope, file.text, text, this.keepLastGood)) return this.parseAll(path, text)
       const result = file.update(text)
       if (result === "same") return []
       if (result === "body" || result === "region") return [file]
@@ -83,20 +86,27 @@ export class IncrementalProject {
 
   /**
    * Re-parse every file from scratch, with file `path` now `text`.
-   * - When:  an `update()` threw, or changed which types a file declares.
-   * - Rewinds to our `startMark`, taking back everything, then stubs the types the files declare NOW.
+   * - When:  an `update()` threw, or changed which types or methods a file declares.
+   * - Rewinds to our `startMark`, taking back everything, then stubs what the files declare NOW.
    */
   private parseAll(path: string, text: string): P.IncrementalParse[] {
     const parser = this.scope.parser!
     if (parser.journal?.has(this.startMark)) parser.journal.rewindTo(this.startMark)
     const texts = this.files.map((file) => (file.path === path ? text : file.parse.text))
-    parser.stubDeclaredTypes(this.scope, texts)
+    this.stub(texts)
     this.files.forEach((file, index) => {
       file.types = parser.declaredTypes(texts[index]!).join()
       file.parse.parseAll(texts[index]!)
     })
     this.isBroken = false
     return this.files.map((file) => file.parse)
+  }
+
+  /** Stub what `texts` declare, before any file parses:  their types, then their methods. */
+  private stub(texts: string[]): void {
+    const parser = this.scope.parser!
+    parser.stubDeclaredTypes(this.scope, texts)
+    parser.stubDeclaredMethods(this.scope, texts)
   }
 }
 

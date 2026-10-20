@@ -25,6 +25,12 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - Some tokens span lines.
   Each is ONE token inside ONE `LineToken`:
   - a JSX element, e.g. a whole `return <div>...</div>` body
+  - a JSX FRAGMENT, `<>...</>`:  elements side by side, with no element around them (`P.JSXFragmentToken`)
+    - Elements one after another are ONE implicit fragment, as if wrapped in `<>...</>`:
+      on the same line, or the next, indented at least as far as the first one's line
+      ([`Tokenizer.matchJSXElements()`](../parser/src/tokenizer/Tokenizer.ts)).
+      So `return <ui-container>...</ui-container>` with `<ui-grid>...</ui-grid>` below it draws both.
+    - The `jsxFragment` rule;  javascript draws it as a list, `[h("a"), h("b")]`, TypeScript as `<>...</>`.
   - a string with `\n`
   - JSX `{...}` contents are re-tokenized later, from a collapsed copy.
 - Every token has an absolute `start`.
@@ -517,6 +523,14 @@ A kind that says so is saved in a file of its own.
     - compiles to `core.thingAtPlace(Tableau, 1)`
   - Both are core's thing references, `Tableau#T1` and `Tableau#1`:  [references.ts](../core/src/references.ts).
   - The writers read off either with `?.`:  the program may not have made it (`ProgramWriter.ITEM_READS`).
+- And EVERY one of a type (epic `outline-spell` P16):  [`every_thing`](src/rules/classes/EveryThing.ts).
+  - e.g. `every pile`:  every pile the program made, sub-types included, in the order made
+  - compiles to `core.everyThing(Pile)`, a scratch list:  it takes none of them from the lists holding them
+  - its datatype:  `list of piles`
+  - Only the program's things:  NOT a thing made in a test, nor a scratch list (made `quietly()`).
+  - By its plural too (P23):  `the foundations` is `every foundation`.
+    - Its rule:  [`the_things`](src/rules/classes/TheThings.ts).
+    - Unless a variable, a constant, or the method's own thing's member goes by that word.
 - `named_thing` has its own quick `test()`:  a name near its start.
   - Near:  within `SpellType.MAX_NAME_WORDS` words.
   - Without it, `{type}` is a subrule, so the plain test would pass any line with text in quotes on it.
@@ -957,8 +971,22 @@ A kind that says so is saved in a file of its own.
     - So a line can name a type declared further down, or in a later file.
     - The types come from `SpellParser.declaredTypes()`.
       It scans for lines starting `a card is`, `create a type called hand`.
+      - a name of several words too:  `a stock pile is a pile` (P15)
+        - only before `is a/an` or `aka`
+      - a one-of-a-kind app, with no article:  `solitaire is an app` (P21)
     - `P.IncrementalProject` and `parseSpellProject()` both do it.
     - An edit which changes WHICH types a file declares re-parses the whole project.
+  - Then every METHOD they define is made callable ahead of its definition (P22, `parser.stubDeclaredMethods()`).
+    - So a line can call a method defined further down, or in a later file:  `play test-card` above `to play a card`.
+    - `SpellParser.declaredMethods()` scans for their first lines, without parsing:
+      - at a file's top:  `to ...`, `animation ...`
+      - in a type's outline body:  `- to ...`, later parsed in a `P.SubjectScope` of that type
+    - Each first line, parsed alone, registers its call rule early, marked `ahead` (`MethodDefinition.callAhead()`).
+      It steps aside once the real definition has run (`DynamicMethodRule.test()`).
+    - Straight onto the parser, journaled:  not the scope's rules, so a project's declarations never export one.
+    - An edit which adds or deletes a method re-parses the whole project (`parser.changesMethods()`).
+      With `keepLastGood`, one whose first line is being edited keeps its early call until the next full parse.
+    - Not yet:  a quoted phrase, `a card "is the (rank) of (suits)"`, used above its definition.
   - `is a <type>` (`is_a`) names a KNOWN type:  built in, imported, declared or stubbed earlier.
     - Else it's a parse error, e.g. `is a crad`.
     - A type first mentioned in an `is a` above its own declaration is one too.
@@ -1017,6 +1045,14 @@ A kind that says so is saved in a file of its own.
     - its compiled NAME drops the receiver's type (`turn_over`), unless that leaves a little word dangling (Q44)
       - then it keeps the type's name:  `to update the total of (a calculator)` => `update_the_total_of_calculator`
       - `MethodDefinition.processSignature()`, `DANGLING_WORDS`
+    - in a type's outline body, a signature that names no type takes the body's subject (P20, I15)
+      - `- to debug it:` ~== `to debug a solitaire`
+        - `it` is where the receiver goes
+      - with no `it`, the receiver is optional:  `deal the cards (of {thisArg:expression})?`
+        - or straight after a one-word name:  `- to reset:`
+      - left out, the call is on `this`, and only inside the type's own methods:  `DynamicMethodRule.onThis()`
+        - or anywhere, on a one-of-a-kind app's one instance (P21)
+      - `MethodDefinition.takeSubject()`
     - [`MethodDefinition`](src/rules/methods/MethodDefinition.ts) adds a rule for its call site,
       AND a `P.ScopeMethod` record
       - by `addMethod()`
@@ -1051,6 +1087,15 @@ A kind that says so is saved in a file of its own.
 - Lookups record misses as `NONE` in `match.data`.
   - in `scopeVar`, `scopeType` or `scopeConstant`
   - `known_variable`, `known_type` and `known_constant` reject `NONE`.
+- A variable's name of several words (P26):  `set start pile to ...` declares it (`words_assignment`), and
+  `known_words_variable` reads it, `start pile`, `the start pile`.
+  - `words_identifier`:  2 to 4 plain words, up to a structural one (`to`, `of`, `with` ...);
+    the longest run a variable in scope goes by, else the whole run.
+  - The same variable as its dashed name:  `start pile` and `start-pile` are both `start_pile`.
+  - A name can't hold a structural word:  `cards-to-move` is written `moving cards`.
+  - Its quick test looks the words up first:  it's an expression, tried at almost every word.
+  - An event's name of several words too, `on card click`, `fire event card click` (`event_words`):
+    the same event as `card-click`.
 - `getAST()` NEVER changes scope or looks it up.
   - ASTs are built lazily, e.g. at compile, when scope may have moved on.
   - What an AST needs from scope is looked up WHILE PARSING, into `match.data`:
@@ -1393,6 +1438,22 @@ A kind that says so is saved in a file of its own.
   - `ASTNode.compile()` is `P.JSWriter.instance.write(node)`.
   - Each writer has one method per AST class, named for it:  `ASTIfStatement(node)`.
   - NEVER write output in an AST class.
+- A file's classes come before its running code (P15):  `SP.hoistClassDeclarations()`, from `Block.getAST()`.
+  - So a line can make a thing of a type declared further down:
+    `set the stock to a new stock pile` above `a stock pile is a pile`.
+  - Only a class declared below the file's first running code moves, up above it, keeping its order.
+  - Banners, headings' calls and the code under them stay where they are.
+  - A patch onto another file's class doesn't count as running code.
+  - A one-of-a-kind app IS running code (P21, `create_one_of_a_kind`), e.g. `solitaire is an app where:`.
+    Its line compiles to its class, then `export const solitaire = new Solitaire()`.
+    - So every class declared below it moves above it, and its properties' starting values can make them.
+    - Its variable is of kind `only` (`P.ScopeVariable.kind`).
+      So a call of its body's methods with no receiver works anywhere, on it:  `DynamicMethodRule.theOnlyOne()`.
+- A program runs its own tests the first time it loads (P17):
+  `SpellProject.combineCompiled()` ends with a call of each `to test ...` method its files declare.
+  - e.g. `if (!core.isCarryingOver) testCardSetup()`
+  - Never on a hot reload (`core.isCarryingOver`), and not one the program calls at its start already.
+  - `spell test` counts those runs, and doesn't run them again.
 - A block compiles as its statements joined with `\n`.
   - Nesting indents by re-joining with `\n` + 2 spaces (`P.jsText.INDENT`, NEVER a tab).
     Python's is 4 spaces (`P.pyText.INDENT`).

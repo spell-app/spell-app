@@ -29,6 +29,8 @@ import { untrackCells } from "$/util"
 
 import { programThings, core } from "./core"
 import { defineCoreModule } from "./core.types"
+// Import directly to avoid circular import
+import { List } from "./classes/List"
 
 /** `core`'s methods for thing references. */
 export const referencesMethods = defineCoreModule({
@@ -116,6 +118,20 @@ export const referencesMethods = defineCoreModule({
       .filter((thing) => thing.constructor === Class)
     if (!Number.isInteger(place) || place === 0) return undefined
     return things.at(place > 0 ? place - 1 : place) as T | undefined
+  },
+
+  /**
+   * Every thing of class `Class`, or of a sub-class, the program has made, in the order made:  a scratch list.
+   * - `every pile` in spell compiles to it, `everyThing(Pile)`:  e.g. the stock, the discards, the foundations ...
+   * - Only the program's things:  NOT a thing a test made (see `core.things`).
+   * - Scratch, so it takes none of them from the lists that hold them (see `List.asScratch()`).
+   * - Tracked, as `thingForReference()` is:  whatever reads it re-runs as things are made.
+   */
+  everyThing<T>(Class: abstract new (...args: never[]) => T): List<T> {
+    const things = thingsSearched()
+      .all()
+      .filter((thing): thing is T & object => thing instanceof Class)
+    return new List<T>({ instanceType: Class.name }).asScratch().append(...things)
   },
 
   /**

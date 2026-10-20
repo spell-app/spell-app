@@ -50,7 +50,9 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
     // `disabled`:  its `<button>` is disabled
     disabled: "its own",
     // `loading`:  its own spinner
-    loading: "its own"
+    loading: "its own",
+    // `ellipsis`:  the host is never wider than its parent, so the text has a width to cut at
+    cssStates: ["ellipsis"]
   } satisfies Partial<E.ElementSetup>
 
   ////////////////
