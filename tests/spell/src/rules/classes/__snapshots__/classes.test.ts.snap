@@ -30,6 +30,7 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "saved_in_file": "type",
   "saved_inline": "type",
   "the_property_of_a_thing": "property|type",
+  "the_things": "type",
   "thing_at_place": "ordinal|type",
   "type_specifier_datatype": "datatype",
   "type_specifier_enum": "enumeration",

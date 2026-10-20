@@ -519,6 +519,8 @@ A kind that says so is saved in a file of its own.
   - compiles to `core.everyThing(Pile)`, a scratch list:  it takes none of them from the lists holding them
   - its datatype:  `list of piles`
   - Only the program's things:  NOT a thing made in a test, nor a scratch list (made `quietly()`).
+  - By its plural too (P23):  `the foundations` is `every foundation` ([`the_things`](src/rules/classes/TheThings.ts)),
+    unless a variable, a constant, or the method's own thing's member goes by that word.
 - `named_thing` has its own quick `test()`:  a name near its start.
   - Near:  within `SpellType.MAX_NAME_WORDS` words.
   - Without it, `{type}` is a subrule, so the plain test would pass any line with text in quotes on it.

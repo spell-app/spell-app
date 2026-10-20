@@ -3120,6 +3120,32 @@
           "aliases": ["expression"]
         },
         {
+          "className": "TheThings",
+          "ruleNames": ["the_things"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/TheThings.ts",
+          "line": 13,
+          "purpose": "`the foundations` -- every thing of a type, by its plural (epic page `outline-spell`, P23).",
+          "syntaxes": [
+            {
+              "syntax": "the {type:plural_type}",
+              "example": "the piles",
+              "outputs": {
+                "js": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "ts": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "py": {
+                  "code": "core.every_thing(Pile)"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
           "className": "WithNestedStatements",
           "ruleNames": ["with_nested_statements"],
           "internal": false,

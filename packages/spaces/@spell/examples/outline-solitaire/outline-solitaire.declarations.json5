@@ -373,7 +373,7 @@
       "kind": "method",
       "name": "play a card",
       "waits": true,
-      "defined": "/Solitaire.spell:5573-6615"
+      "defined": "/Solitaire.spell:5568-6610"
     },
     {
       "syntax": "test card setup",
@@ -429,7 +429,7 @@
     {
       "type": "StockPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:6833-7099"
+      "defined": "/Solitaire.spell:6828-7094"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -442,12 +442,12 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Solitaire.spell:6913-7099"
+      "defined": "/Solitaire.spell:6908-7094"
     },
     {
       "type": "DiscardPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:7162-7339"
+      "defined": "/Solitaire.spell:7157-7334"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -460,18 +460,18 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Solitaire.spell:7244-7339"
+      "defined": "/Solitaire.spell:7239-7334"
     },
     {
       "type": "Foundation",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:7397-8042"
+      "defined": "/Solitaire.spell:7392-8037"
     },
     {
       "property": "symbol",
       "of": "Foundation",
       "datatype": "text",
-      "defined": "/Solitaire.spell:7423-7441"
+      "defined": "/Solitaire.spell:7418-7436"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -484,12 +484,12 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Solitaire.spell:7700-8042"
+      "defined": "/Solitaire.spell:7695-8037"
     },
     {
       "type": "Tableau",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:8120-8450"
+      "defined": "/Solitaire.spell:8115-8445"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -502,12 +502,12 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Solitaire.spell:8358-8450"
+      "defined": "/Solitaire.spell:8353-8445"
     },
     {
       "type": "Solitaire",
       "superType": "App",
-      "defined": "/Solitaire.spell:422-5532"
+      "defined": "/Solitaire.spell:422-5527"
     },
     {
       "property": "score",
@@ -664,7 +664,7 @@
       "kind": "method",
       "name": "deal the cards",
       "waits": true,
-      "defined": "/Solitaire.spell:2098-2732"
+      "defined": "/Solitaire.spell:2098-2731"
     },
     {
       "syntax": "reset {thisArg:expression}?",
@@ -677,7 +677,7 @@
       ],
       "kind": "method",
       "name": "reset",
-      "defined": "/Solitaire.spell:2737-2784"
+      "defined": "/Solitaire.spell:2736-2783"
     },
     {
       "syntax": "cheat {thisArg:expression}?",
@@ -692,7 +692,7 @@
       "name": "cheat",
       "returns": "nothing",
       "waits": true,
-      "defined": "/Solitaire.spell:2789-3196"
+      "defined": "/Solitaire.spell:2788-3194"
     },
     {
       "syntax": "auto-play {thisArg:expression}?",
@@ -706,7 +706,7 @@
       "kind": "method",
       "name": "auto-play",
       "waits": true,
-      "defined": "/Solitaire.spell:3201-4315"
+      "defined": "/Solitaire.spell:3199-4310"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -719,7 +719,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Solitaire.spell:4320-5532"
+      "defined": "/Solitaire.spell:4315-5527"
     }
   ],
   "codeLines": [

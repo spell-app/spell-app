@@ -69,7 +69,7 @@ solitaire is an app where:
 		for row from 1 to 7
 			turn the bottom card of its stock face up
 			for column from row to 7
-				add the bottom card of its stock to item column of every tableau
+				add the bottom card of its stock to item column of the tableaus
 				pause for 50 msec
 
 		wait for: play from the stock
@@ -79,7 +79,7 @@ solitaire is an app where:
 		deal the cards
 
 	- to cheat:
-		set remaining-piles to piles in every tableau where it is not empty and its first card is face down
+		set remaining-piles to piles in the tableaus where it is not empty and its first card is face down
 		if remaining-piles is empty return
 		set the pile to a random pile in remaining-piles
 		set unplaid-cards to cards in the pile where the card is face down
@@ -97,17 +97,17 @@ solitaire is an app where:
 				pause for 500 msec
 
 		// attempt to move bottom card of tableaus to foundations
-		for each pile in every tableau
+		for each pile in the tableaus
 			if the pile is empty return
 			set test-card to the last card in the pile
-			set foundation to the first pile in piles in every foundation where the name of the pile is the suit of test-card
+			set foundation to the first pile in piles in the foundations where the name of the pile is the suit of test-card
 			if the foundation can take test-card
 				set anything-changed to yes
 				await play test-card
 				pause for 100 msec
 
 		// attempt to move the entire pile of face-up cards
-		for each pile in every tableau
+		for each pile in the tableaus
 			set face-up-cards to the cards in the pile where the card is face up
 			if face-up-cards is empty return
 			set test-card to the first card in face-up-cards

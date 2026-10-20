@@ -207,6 +207,15 @@ describe("outline style", () => {
     expect(tableaus.items.length).toBe(1)
   })
 
+  test("`the piles` is `every pile` (P23);  a variable called `piles` keeps its meaning", () => {
+    const lines = ["a pile is a thing", "a tableau is a pile", 'set a to a new pile with name = "a"']
+    const run = runSpell([...lines, "set found to the piles"], { registered: true })
+    const { found } = run("found") as { found: { items: { name: string }[] } }
+    expect(found.items.map(({ name }) => name)).toEqual(["a"])
+    expect(compile([...lines, "set count to the count of the tableaus"])).toContain("core.everyThing(Tableau)")
+    expect(compile([...lines, "set piles to 3", "set count to the piles"])).toMatch(/count = piles$/m)
+  })
+
   describe("methods before their definitions (P22)", () => {
     test("a call above its definition:  in a type's body, at the top, before a later method", () => {
       const run = runSpell([
