@@ -78,9 +78,9 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
 
   /**
    * Is `match` a call on THIS thing, its receiver left out (epic page `outline-spell`, P20)?
-   * - e.g. `deal the cards` in the solitaire's `reset`, after `- animation deal the cards:` in its body,
-   *   whose receiver is optional:  see `MethodDefinition.takeSubject()`.
-   * - A method of a type with no `thisArg` matched.
+   * - e.g. `deal the cards` in the solitaire's `reset`,
+   *   after `- animation deal the cards:` in its body, whose receiver is optional (`MethodDefinition.takeSubject()`).
+   * - That is:  a method of a type, with no `thisArg` matched.
    */
   onThis(match: P.MatchFor<this>): boolean {
     return !!this.thisType && !match.groups.thisArg
@@ -106,6 +106,8 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
    * - Wrong type:  KNOWN, and can't be what the method takes (`scope.couldBeA()`),
    *   e.g. a `Chip` for Card's `put (a card) on (a pile)`, or a `Deck` for its pile.
    * - Unknown always fits, so untyped code parses as it did.
+   * - Its receiver left out (`onThis()`):  only inside our type's own methods,
+   *   or anywhere on a one-of-a-kind app's one instance (`theOnlyOne()`).
    */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -198,7 +200,7 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
 type DynamicMethodData = {
   /** Record of the method it calls, found while parsing -- `undefined` if none known. */
   method?: P.ScopeMethod
-  /** Its receiver, left out, when it's a one-of-a-kind app's:  that one's variable, e.g. `solitaire`.  See `parse()`. */
+  /** A call with its receiver left out, on a one-of-a-kind app:  that app's variable, e.g. `solitaire`.  See `parse()`. */
   onlyOne?: string
 }
 

@@ -234,11 +234,11 @@ export class SpellParser extends P.Parser {
   }
 
   /**
-   * First lines of the methods `text` defines, by a scan of its lines -- see `P.Parser.declaredMethods()`
-   * (epic page `outline-spell`, P22).
+   * First lines of the methods `text` defines, found by scanning its lines (epic page `outline-spell`, P22).
+   * - Each is `<type>\t<first line>`, its type empty at a file's top.  See `P.Parser.declaredMethods()`.
    * - At a file's top:  `to play a card`, `animation deal the cards`.
-   * - In a type's outline body, one tab in, with the type first:  `solitaire\tto debug it` for
-   *   `solitaire is an app where:` then `\t- to debug it:`.
+   * - In a type's outline body, one tab in:
+   *   `- to debug it:` under `solitaire is an app where:` is `solitaire\tto debug it`.
    *   - The type's line is any that declares one (`TYPE_DECLARATION`), or re-opens one, `a solitaire:`.
    * - Up to its `:`, so its body isn't parsed:  `to cheat at it:  print 1` is `to cheat at it`.
    */
@@ -282,8 +282,8 @@ export class SpellParser extends P.Parser {
   }
 
   /**
-   * A method's first line, as `declaredMethods()` found it, parsed alone in `scope` -- `undefined` unless it's
-   * a definition we can call ahead (`MethodDefinition.callAhead()`).
+   * A method's first line, as `declaredMethods()` found it, parsed alone in `scope`.
+   * - `undefined` unless it's a definition we can call ahead (`MethodDefinition.callAhead()`).
    * - A body's method is parsed in a `P.SubjectScope` of its type, as its body would be.
    */
   private parseFirstLine(scope: P.Scope, found: string): P.Match | undefined {
@@ -312,8 +312,11 @@ export class SpellParser extends P.Parser {
   /**
    * A line declaring a type, its name captured -- see `declaredTypes()`.
    * - The name may be quoted, `a "card" is a thing` (`quoted_type`), and the line bulleted, `- a card is a thing`.
-   * - Its groups:  a one-word name;  a name of several words, before `is a` / `is an` or `aka`;  `create a type ...`'s;
-   *   a one-of-a-kind app's, `solitaire is an app`.
+   * - Its groups, in order:
+   *   1. a one-word name
+   *   2. a name of several words, before `is a` / `is an` or `aka`
+   *   3. `create a type ...`'s name
+   *   4. a one-of-a-kind app's name, `solitaire is an app`
    */
   static TYPE_DECLARATION =
     /^[ \t]*(?:-[ \t]+)?(?:an?[ \t]+["']?([\w-]+)["']?[ \t]+is\b|an?[ \t]+((?:(?!(?:is|aka)\b)[\w-]+[ \t]+){1,3}(?!(?:is|aka)\b)[\w-]+)[ \t]+(?:is[ \t]+an?|aka)\b|create[ \t]+a[ \t]+type[ \t]+(?:named|called)[ \t]+([\w-]+)|(?!(?:an?|its?|the)\b)((?:(?!is\b)[\w-]+[ \t]+){0,3}(?!is\b)[\w-]+)[ \t]+is[ \t]+an[ \t]+app\b)/gim

@@ -42,8 +42,8 @@ properties.addRule(ObjectLiteralProperty, {
   ]
 })
 /**
- * `named_object_literal_property` rule:  `name T1` -- a one-word property and a bare name, no `=`
- * (epic `outline-spell` P19).
+ * `named_object_literal_property` rule:  `name T1` --
+ * a one-word property and a bare name, no `=` (epic `outline-spell` P19).
  * - e.g. `a new tableau with name T1`, as `tableau T1` names it
  * - The name starts with a capital letter (`thing_name`);  a lowercase one is written `name = "t1"`.
  */

@@ -4,11 +4,11 @@ import { classes } from "./classes.parser"
 import { TypeSpecifierInstance } from "./TypeSpecifierInstance"
 
 /**
- * `outline_specifier_instance` rule:  `a new foundation with ...` -- a property's starting value,
- * in a type's outline body (epic `outline-spell` P19).
+ * `outline_specifier_instance` rule:  `a new foundation with ...` --
+ * a property's starting value, in a type's outline body (epic `outline-spell` P19).
  * - e.g. `- its clubs is a new foundation with name = clubs, symbol = "♣️"`
- * - The outline twin of `has ... as a new ...` (`type_specifier_instance`):  the same starting value,
- *   made once per thing, and the property's type is the new thing's.
+ * - The outline twin of `has ... as a new ...` (`type_specifier_instance`):
+ *   the same starting value, made once per thing, and the property's type is the new thing's.
  */
 export class OutlineSpecifierInstance extends TypeSpecifierInstance {
   @proto static alias = "outline_specifier"

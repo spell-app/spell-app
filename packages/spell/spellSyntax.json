@@ -3124,7 +3124,7 @@
           "ruleNames": ["the_things"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/TheThings.ts",
-          "line": 13,
+          "line": 14,
           "purpose": "`the foundations` -- every thing of a type, by its plural (epic page `outline-spell`, P23).",
           "syntaxes": [
             {

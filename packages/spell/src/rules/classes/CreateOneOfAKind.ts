@@ -4,8 +4,8 @@ import { classes } from "./classes.parser"
 import { CreateType } from "./CreateType"
 
 /**
- * `create_one_of_a_kind` rule:  `solitaire is an app` -- declares an app AND its one instance
- * (epic `outline-spell` P21).
+ * `create_one_of_a_kind` rule:  `solitaire is an app` --
+ * declares an app AND its one instance (epic `outline-spell` P21).
  * - e.g. `solitaire is an app where:`, then its outline body, as `a solitaire is an app where:` has
  * - No article:  it names the thing, not a kind of thing.
  *   - The type is `Solitaire`, as for `a solitaire is an app`;  its one instance is the variable `solitaire`.
@@ -14,7 +14,7 @@ import { CreateType } from "./CreateType"
  * - The instance is made where the line is, right after its class:
  *   classes declared further down the file move up above it (`SP.hoistClassDeclarations()`),
  *   so its properties' starting values can make things of those types.
- * - Its body's methods that name no receiver (`- to reset:`) can be called with none anywhere, on it:
+ * - Its body's methods that name no receiver (`- to reset:`) can be called anywhere with none, and run on it:
  *   see `DynamicMethodRule.onThis()`.
  */
 export class CreateOneOfAKind extends CreateType {
@@ -22,7 +22,7 @@ export class CreateOneOfAKind extends CreateType {
 
   /**
    * Quick test:  no article first (`a solitaire is an app` is `create_type`'s), and `is a|an <app>` after it.
-   * - So an editor offers no `is a` after any words, e.g. `set y`:  only once they say an app.
+   * - So an editor doesn't offer `is a ...` after just any words, e.g. `set y`:  only on a line naming an app.
    */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (tokens[start]?.matchesLiteral(["a", "an"])) return false

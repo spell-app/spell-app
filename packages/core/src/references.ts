@@ -125,7 +125,7 @@ export const referencesMethods = defineCoreModule({
    * - `every pile` in spell compiles to it, `everyThing(Pile)`:  e.g. the stock, the discards, the foundations ...
    * - Only the program's things:  NOT a thing a test made (see `core.things`).
    * - Scratch, so it takes none of them from the lists that hold them (see `List.asScratch()`).
-   * - Tracked, as `thingForReference()`:  a reader re-runs as things are made.
+   * - Tracked, as `thingForReference()` is:  whatever reads it re-runs as things are made.
    */
   everyThing<T>(Class: abstract new (...args: never[]) => T): List<T> {
     const things = thingsSearched()

@@ -53,7 +53,7 @@ export class Thing extends Eventful(Observable) {
   constructor(props?: Record<string, unknown>) {
     super(props)
     registerThing(this)
-    // starting values made with it, e.g. a solitaire's piles -- unless `props` gave them (`PropInfo.early`)
+    // make its early starting values now (`PropInfo.early`), e.g. a solitaire's piles -- unless `props` gave them
     for (const name of schemaOf(new.target).earlyProps()) this.getProp(name)
     if (runsCreate(Thing, new.target)) this.create()
   }

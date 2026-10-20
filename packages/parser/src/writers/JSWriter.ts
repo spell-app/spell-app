@@ -1252,8 +1252,8 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * What its class's schema declares about `node`:  its `check`'s keys, plus `init` for its `initializer`
-   * (and `early` for a thing, `madeEarly()`).
+   * What its class's schema declares about `node`:
+   * its `check`'s keys, plus `init` for its `initializer`, and `early` for a thing made with it (`madeEarly()`).
    * - E.g. `{ type: "text" }`, `{ init: () => new List() }`.
    * - `undefined` if nothing:  then it's undeclared.
    */

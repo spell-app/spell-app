@@ -172,7 +172,8 @@ export class Parser extends Derivative {
   /**
    * First lines of the methods `text` defines, found WITHOUT parsing it, e.g. `to play a card`.
    * - Why:  so a line can call a method defined further down, or in a later file -- see `stubDeclaredMethods()`.
-   * - Each is what `stubDeclaredMethods()` parses, e.g. `Solitaire:to debug it` for a method in a type's body.
+   * - Each is what `stubDeclaredMethods()` parses, in the language's own form:
+   *   e.g. spell's `solitaire\tto debug it`, for a method in a type's body.
    * - Default:  none.  Languages override, e.g. `SpellParser`.
    */
   declaredMethods(_text: string): string[] {
@@ -190,9 +191,10 @@ export class Parser extends Derivative {
    * Does `after`, a new version of a file's `before`, change which methods can be called ahead of their definitions?
    * - A method whose first line is new, or gone, and parses alone -- see `stubDeclaredMethods()`.
    * - Then `P.IncrementalProject` re-parses everything, so every line sees the change, as a full parse would.
-   * - `keepEdited`:  a first line being edited (as many methods as before) doesn't count, only a method added
-   *   or deleted:  its early call stays until the next full parse, as a broken line keeps its last working
-   *   declarations (`keepLastGood`).
+   * - `keepEdited`:  only a method added or deleted counts,
+   *   not a first line being edited (as many methods as before).
+   *   The edited one's early call stays until the next full parse,
+   *   as a broken line keeps its last working declarations (`keepLastGood`).
    * - Default:  `false`.  Languages override, e.g. `SpellParser`.
    */
   changesMethods(_scope: P.Scope, _before: string, _after: string, _keepEdited = false): boolean {

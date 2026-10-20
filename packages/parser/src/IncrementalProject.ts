@@ -3,12 +3,12 @@ import { P } from "$/parser"
 /**
  * Files of one project, parsed in order into one `scope`, so an edit to one file re-parses as little as possible
  * -- see `P.IncrementalParse`.
- * - Every file shares the project scope's parser, and so its `journal` (`P.ParseJournal`):  what file 1 declares,
- *   file 2 can use, and rewinding file 1 takes back file 2 as well.
+ * - Every file shares the project scope's parser, and so its `journal` (`P.ParseJournal`):
+ *   what file 1 declares, file 2 can use, and rewinding file 1 takes back file 2 as well.
  * - Each file gets its own `P.FileScope` under `scope`.
- * - Before any file parses, every type and method the files declare is stubbed
- *   (`parser.stubDeclaredTypes()`, `parser.stubDeclaredMethods()`), so a line can name a type, or call a method,
- *   declared further down.
+ * - Before any file parses, every type and method the files declare is stubbed,
+ *   so a line can name a type, or call a method, declared further down:
+ *   `parser.stubDeclaredTypes()`, `parser.stubDeclaredMethods()`.
  * - An edit which changes WHICH types or methods a file declares re-parses everything:
  *   rare, and the only way a line above it learns of the change.  See `parser.changesMethods()`.
  */
@@ -65,7 +65,7 @@ export class IncrementalProject {
       throw new P.ParserError({ message: `IncrementalProject.update(): unknown file '${path}'`, context: this })
 
     try {
-      // changed which types it declares, or defines a new method:  every line above may read differently
+      // changed which types or methods it declares:  every line above may read differently
       const parser = this.scope.parser!
       const types = parser.declaredTypes(text).join()
       if (this.isBroken || types !== this.files[index]!.types) return this.parseAll(path, text)

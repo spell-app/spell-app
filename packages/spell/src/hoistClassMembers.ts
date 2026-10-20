@@ -155,15 +155,15 @@ function tidyBlankLines(statements: HoistableStatement[]): HoistableStatement[] 
 }
 
 /**
- * `statements` -- a FILE's top level -- with each class declared after its first running code moved up above it,
- * so the program can use a type declared further down as it loads, e.g. `the stock is a new stock pile`
- * above `a stock pile is a pile`.
+ * `statements` -- a FILE's top level -- with each class declared after its first running code moved up above it.
+ * - So the program can use a type declared further down as it loads:
+ *   `the stock is a new stock pile` above `a stock pile is a pile`.
  * - Why:  spell lets a line name a type declared anywhere in the project (its types are stubbed first);
  *   javascript and Python run a file top to bottom, and a class doesn't exist before its declaration.
  * - Classes keep their order, each with its own docstring (in its line's group).
  * - Everything else stays where it was:  banners, headings' calls and the code under them.
  *   So a heading still names the things its code makes, for the Thing Explorer.
- * - Running code:  anything but class declarations and what `isQuiet()` says runs nothing they'd be needed for.
+ * - Running code:  any statement but a class declaration and the quiet ones (`isQuiet()`), e.g. comments.
  * - NEVER mutates what it's given.
  */
 export function hoistClassDeclarations(statements: HoistableStatement[]): HoistableStatement[] {
@@ -182,10 +182,11 @@ export function hoistClassDeclarations(statements: HoistableStatement[]): Hoista
 }
 
 /**
- * Does `statement` make nothing a class declared below it could be needed for?  Or a group of only such?
+ * Is `statement` QUIET:  does it run nothing that could need a class declared below it?
  * - comments, blank lines, headings' calls
  * - a member patched onto a class declared elsewhere, e.g. a property a `set` declared, at a file's top
  *   (a member of a class declared further down this file has moved into it already:  `hoistClassMembers()`)
+ * - a group of only those
  */
 function isQuiet(statement: HoistableStatement): boolean {
   if (statement instanceof P.ASTStatementGroup) return (statement.statements ?? []).every(isQuiet)

@@ -7,8 +7,9 @@ import { EveryThing } from "./EveryThing"
  * `the_things` rule:  `the foundations` -- every thing of a type, by its plural (epic page `outline-spell`, P23).
  * - e.g. `for each pile in the tableaus`, `the first pile in the foundations where ...`
  * - The same as `every foundation` (`every_thing`):  `core.everyThing(Foundation)`.
- * - Only when nothing else goes by that word here:  a variable or constant called `foundations`,
- *   or a property or method of the thing a method is about, keeps its meaning.
+ * - Only when nothing else goes by that word here.  These keep their meaning:
+ *   - a variable or constant called `foundations`
+ *   - a property or method of the thing a method is about
  */
 export class TheThings extends EveryThing {
   /** Quick test:  `the`, then a known type's plural -- `the X` starts most lines' expressions. */

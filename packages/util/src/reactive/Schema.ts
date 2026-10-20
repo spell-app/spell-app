@@ -68,7 +68,7 @@ export class Schema {
     return undefined
   }
 
-  /** Names of the props whose value is made with the instance (`PropInfo.early`), here and up the chain, parents' first. */
+  /** Names of the props whose value is made with the instance (`PropInfo.early`), its parents' schemas' first. */
   earlyProps(): string[] {
     const own = [...this.declared].filter(([, info]) => info.early && info.init).map(([name]) => name)
     return [...(this.parent?.earlyProps() ?? []), ...own]
@@ -163,9 +163,10 @@ export type PropInfo = {
    */
   init?: (this: any) => unknown
   /**
-   * `true`:  `init` makes its value as the instance is made, not on first read -- see `Schema.earlyProps()`.
-   * - Compiled spell, for a starting value that's a thing:  `{ init: () => new Foundation(...), early: true }`,
-   *   so a solitaire's piles exist as soon as it does (epic `outline-spell` P19).
+   * `true`:  `init` makes its value as the instance is made, not on first read (epic `outline-spell` P19).
+   * - Compiled spell, for a starting value that's a thing:
+   *   `{ init: () => new Foundation(...), early: true }`, so a solitaire's piles exist as soon as it does.
+   * - See `Schema.earlyProps()`.
    */
   early?: boolean
   /**

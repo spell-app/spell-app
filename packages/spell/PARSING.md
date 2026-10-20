@@ -519,8 +519,9 @@ A kind that says so is saved in a file of its own.
   - compiles to `core.everyThing(Pile)`, a scratch list:  it takes none of them from the lists holding them
   - its datatype:  `list of piles`
   - Only the program's things:  NOT a thing made in a test, nor a scratch list (made `quietly()`).
-  - By its plural too (P23):  `the foundations` is `every foundation` ([`the_things`](src/rules/classes/TheThings.ts)),
-    unless a variable, a constant, or the method's own thing's member goes by that word.
+  - By its plural too (P23):  `the foundations` is `every foundation`.
+    - Its rule:  [`the_things`](src/rules/classes/TheThings.ts).
+    - Unless a variable, a constant, or the method's own thing's member goes by that word.
 - `named_thing` has its own quick `test()`:  a name near its start.
   - Near:  within `SpellType.MAX_NAME_WORDS` words.
   - Without it, `{type}` is a subrule, so the plain test would pass any line with text in quotes on it.
@@ -941,16 +942,18 @@ A kind that says so is saved in a file of its own.
     - So a line can name a type declared further down, or in a later file.
     - The types come from `SpellParser.declaredTypes()`.
       It scans for lines starting `a card is`, `create a type called hand`.
-      - a name of several words too, before `is a` / `is an` or `aka`:  `a stock pile is a pile` (P15)
+      - a name of several words too:  `a stock pile is a pile` (P15)
+        - only before `is a/an` or `aka`
       - a one-of-a-kind app, with no article:  `solitaire is an app` (P21)
     - `P.IncrementalProject` and `parseSpellProject()` both do it.
     - An edit which changes WHICH types a file declares re-parses the whole project.
   - Then every METHOD they define is made callable ahead of its definition (P22, `parser.stubDeclaredMethods()`).
     - So a line can call a method defined further down, or in a later file:  `play test-card` above `to play a card`.
-    - `SpellParser.declaredMethods()` scans for first lines:  `to ...`, `animation ...` at a file's top, and
-      `- to ...` in a type's outline body, which it parses in a `P.SubjectScope` of that type.
-    - Each first line, parsed alone, registers its call rule early (`MethodDefinition.callAhead()`), marked `ahead`:
-      it steps aside once the real definition has run (`DynamicMethodRule.test()`).
+    - `SpellParser.declaredMethods()` scans for their first lines, without parsing:
+      - at a file's top:  `to ...`, `animation ...`
+      - in a type's outline body:  `- to ...`, later parsed in a `P.SubjectScope` of that type
+    - Each first line, parsed alone, registers its call rule early, marked `ahead` (`MethodDefinition.callAhead()`).
+      It steps aside once the real definition has run (`DynamicMethodRule.test()`).
     - Straight onto the parser, journaled:  not the scope's rules, so a project's declarations never export one.
     - An edit which adds or deletes a method re-parses the whole project (`parser.changesMethods()`).
       With `keepLastGood`, one whose first line is being edited keeps its early call until the next full parse.
@@ -1014,10 +1017,12 @@ A kind that says so is saved in a file of its own.
       - then it keeps the type's name:  `to update the total of (a calculator)` => `update_the_total_of_calculator`
       - `MethodDefinition.processSignature()`, `DANGLING_WORDS`
     - in a type's outline body, a signature that names no type takes the body's subject (P20, I15)
-      - `- to debug it:` ~== `to debug a solitaire`:  `it` is where the receiver goes
-      - with no `it`, the receiver is optional, after `of` (or after the one word, `- to reset:`):
-        `deal the cards (of {thisArg:expression})?`
+      - `- to debug it:` ~== `to debug a solitaire`
+        - `it` is where the receiver goes
+      - with no `it`, the receiver is optional:  `deal the cards (of {thisArg:expression})?`
+        - or straight after a one-word name:  `- to reset:`
       - left out, the call is on `this`, and only inside the type's own methods:  `DynamicMethodRule.onThis()`
+        - or anywhere, on a one-of-a-kind app's one instance (P21)
       - `MethodDefinition.takeSubject()`
     - [`MethodDefinition`](src/rules/methods/MethodDefinition.ts) adds a rule for its call site,
       AND a `P.ScopeMethod` record
@@ -1395,18 +1400,19 @@ A kind that says so is saved in a file of its own.
   - Each writer has one method per AST class, named for it:  `ASTIfStatement(node)`.
   - NEVER write output in an AST class.
 - A file's classes come before its running code (P15):  `SP.hoistClassDeclarations()`, from `Block.getAST()`.
-  - So a line can make a thing of a type declared further down:  `set the stock to a new stock pile` above
-    `a stock pile is a pile`.
+  - So a line can make a thing of a type declared further down:
+    `set the stock to a new stock pile` above `a stock pile is a pile`.
   - Only a class declared below the file's first running code moves, up above it, keeping its order.
   - Banners, headings' calls and the code under them stay where they are.
   - A patch onto another file's class doesn't count as running code.
-  - A one-of-a-kind app (P21, `create_one_of_a_kind`), `solitaire is an app where:`, IS running code:
-    its line is its class, then `export const solitaire = new Solitaire()`.
+  - A one-of-a-kind app IS running code (P21, `create_one_of_a_kind`), e.g. `solitaire is an app where:`.
+    Its line compiles to its class, then `export const solitaire = new Solitaire()`.
     - So every class declared below it moves above it, and its properties' starting values can make them.
-    - Its variable is of kind `only` (`P.ScopeVariable.kind`):  a call of its body's methods with no receiver
-      works anywhere, on it (`DynamicMethodRule.theOnlyOne()`).
-- A program runs its own tests the first time it loads (P17):  `SpellProject.combineCompiled()`, last,
-  calls each `to test ...` method its files declare, `if (!core.isCarryingOver) testCardSetup()`.
+    - Its variable is of kind `only` (`P.ScopeVariable.kind`).
+      So a call of its body's methods with no receiver works anywhere, on it:  `DynamicMethodRule.theOnlyOne()`.
+- A program runs its own tests the first time it loads (P17):
+  `SpellProject.combineCompiled()` ends with a call of each `to test ...` method its files declare.
+  - e.g. `if (!core.isCarryingOver) testCardSetup()`
   - Never on a hot reload (`core.isCarryingOver`), and not one the program calls at its start already.
   - `spell test` counts those runs, and doesn't run them again.
 - A block compiles as its statements joined with `\n`.

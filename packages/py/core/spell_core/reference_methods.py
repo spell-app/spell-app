@@ -83,7 +83,7 @@ class ReferenceMethods:
 
         - A scratch list:  it takes none of them from the lists that hold them.
         """
-        from spell_core.lists import List  # here:  lists imports this module's package
+        from spell_core.lists import List  # imported here, not at the top:  lists imports this module's package
 
         things = [thing for thing in self.things_made() if isinstance(thing, cls)]
         return List(item_type=cls.__name__).as_scratch().append(*things)

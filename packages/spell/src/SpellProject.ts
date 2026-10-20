@@ -530,7 +530,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - `header`:  what the module starts with, e.g. `importHeaderFor()`'s imports.
    * - `scope`:  the project's, which the writer may read what it imports from (`P.ProgramWriter.forProject()`).
    * - `options`:  what its project file says that changes the code, e.g. where its lists start (`P.WriterOptions`).
-   * - Last, a call of each of its `to test ...` methods, as its first run starts (epic page `outline-spell`, P17):
+   * - Last, a call of each of its `to test ...` methods, the first time it loads (epic page `outline-spell`, P17):
    *   `if (!core.isCarryingOver) testCardSetup()` -- see `testRuns()`.
    */
   static combineCompiled(
@@ -554,10 +554,10 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * A call of each `to test ...` method the project's files declare at their top level, in order,
-   * each as its first run starts:  `if (!core.isCarryingOver) testCardSetup()` (epic page `outline-spell`, P17).
+   * A call of each `to test ...` method the project's files declare at their top level, in order:
+   * `if (!core.isCarryingOver) testCardSetup()` (epic page `outline-spell`, P17).
    * - So a program runs its own tests the first time it loads, never on a hot reload (`core.isCarryingOver`).
-   * - Not one the program calls already at its start, e.g. a `test card setup` line.
+   * - Not one the program already calls at its start, e.g. a `test card setup` line.
    * - `spell test` counts the ones a program runs itself, and doesn't run them again.
    * - `undefined` for none.
    */

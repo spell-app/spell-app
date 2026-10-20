@@ -979,8 +979,8 @@ function probe(...lines: string[]): string {
 }
 
 /**
- * The classes `compiled` declares above `setupStart`, its setup's first line:  a probe's own classes,
- * which a file's compiled code declares above its running code (`SP.hoistClassDeclarations()`).
+ * The classes `compiled` declares above `setupStart`, its setup's first line:  a probe's own classes.
+ * - A file's compiled code declares its classes above its running code (`SP.hoistClassDeclarations()`).
  */
 function classesAbove(compiled: string[], setupStart: string): string[] {
   const classes: string[] = []

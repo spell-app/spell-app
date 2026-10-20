@@ -77,7 +77,7 @@ function median(values: number[]) {
 }
 
 describe("a program's own tests", () => {
-  /** `files` combined as a project compiles them:  its lines that run as its first run starts. */
+  /** `files` combined as a project compiles them, then the lines that run the first time it loads. */
   function startLines(files: Array<{ path: string; contents: string }>): string[] {
     const parsed = parseSpellProject(files).files
     const parts = parsed.map(({ match, compiled }) =>

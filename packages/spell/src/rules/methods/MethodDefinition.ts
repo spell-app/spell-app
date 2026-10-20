@@ -54,6 +54,7 @@ export class MethodDefinition<
    *   - adds an alias variable when the arg's own name differs from the type name,
    *     e.g. `to show (thing as a card)` aliases `thing` to `this`
    * - Also promotes to a `test` method when `asTest`, prefixing `test` onto the method name and syntax.
+   * - In a type's outline body, a signature that names no type is the type's own:  see `takeSubject()`.
    */
   processSignature(groups: P.MatchGroups, signature: MethodSignatureData, scope: P.Scope): MethodSignatureData {
     const initialType = signature.types.find((type) => !type.isSimple)
@@ -88,8 +89,8 @@ export class MethodDefinition<
    * A method in a type's outline body that names no type is the type's own (epic page `outline-spell`, P20, I15).
    * - `- to debug it:` is `to debug a solitaire`:  `it` is where the receiver goes, `debug the solitaire`.
    *   - After a little word, the method's name keeps the type's:  `- to cheat at it:` => `cheat_at_solitaire`.
-   * - With no `it`, `- animation deal the cards:` takes it after `of`:  `deal the cards of the solitaire`.
-   *   - One word reads as a verb, so takes it straight after:  `- to reset:` is `reset the solitaire`.
+   * - With no `it`, `- animation deal the cards:` takes its receiver after `of`:  `deal the cards of the solitaire`.
+   *   - One word reads as a verb, so the receiver comes straight after:  `- to reset:` is `reset the solitaire`.
    *   - And inside the type's own methods, the words alone call it on this one:  `deal the cards`.
    *     So its receiver is optional:  `deal the cards (of {thisArg:expression})?`.
    * - SIDE EFFECT: mutates `signature` in place, as `processSignature()` does.
@@ -339,12 +340,14 @@ export class MethodDefinition<
   }
 
   /**
-   * Make the method `match` defines callable AHEAD of its definition, e.g. `play the card` above `to play a card`
-   * (epic page `outline-spell`, P22) -- see `SP.SpellParser.stubDeclaredMethods()`.
-   * - `match` is its first line alone, parsed before the project's files are.
+   * Make the method `match` defines callable AHEAD of its definition (epic page `outline-spell`, P22).
+   * - e.g. `play the card` above `to play a card`
+   * - `match` is its first line alone, parsed before the project's files are:
+   *   see `SP.SpellParser.stubDeclaredMethods()`.
    * - Registers the same call rule `getRule()` will, marked `ahead`:  it steps aside once the definition has run.
-   * - Straight onto the parser, journaled:  NOT the scope's rules, which a project's declarations export.
-   * - A quoted phrase (a postfix or infix expression) isn't:  only a call.
+   * - Added straight to the parser, journaled, so a rewind takes it back:
+   *   NOT to the scope's rules, which a project's declarations export.
+   * - Only a call:  not a quoted phrase (a postfix or infix expression).
    */
   callAhead(match: P.MatchFor<this>): void {
     const { asTest } = match.groups as { asTest?: P.Match }
