@@ -2,7 +2,7 @@ import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/spell-solid"
+import type { DOMElement } from "$/spell-element"
 
 import { TocIndex } from "$/ui/docs-components/ui-docs-toc/TocIndex"
 import type { TocEntry } from "$/ui/docs-components/ui-docs-toc/UIDocsToc.types"

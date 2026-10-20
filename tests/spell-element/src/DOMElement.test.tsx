@@ -2,11 +2,19 @@ import { createSignal, flush, onCleanup, resetErrorHalt } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
-import { E } from "$/ui/core"
-import { UIComponent, type DOMElement, type DOMElementClass, type ElementSetup } from "$/spell-solid"
-import type { AttributeKind, AttributeSpec, ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Fixture } from "$/ui/test/Fixture"
+import {
+  E,
+  UIComponent,
+  type AttributeKind,
+  type AttributeSpec,
+  type ComponentVocabulary,
+  type Dictionary,
+  type DOMElement,
+  type DOMElementClass,
+  type ElementSetup
+} from "$/spell-element"
+import { ElementFixture } from "$/spell-element/test/ElementFixture"
+import { Fixture } from "$/spell-element/test/Fixture"
 
 /**
  * The DOM element (`DOMElement`):  attributes and properties, the upgrade step, lifecycle, shadow root,
@@ -278,9 +286,9 @@ describe("DOMElement property values", () => {
     const { define } = testTag("translated", [attribute("label", "string")])
     const tag = `x-dom-traducido-${tagCount}`
     const Class = define(tag, { lang: "es", attributes: { label: "etiqueta" } })
-    // then the shared attributes (`SharedVocabulary`), under their Spanish names (`SharedVocabulary.es.ts`),
-    // and the platform's `hidden` (`visible` turned round)
-    expect(Class.observedAttributes).toEqual(["etiqueta", "desactivado", "cargando", "visible", "animacion", "hidden"])
+    // then the shared attributes;  their Spanish names are Spell UI's (`tests/ui/test/translate.test.tsx`)
+    expect(Class.observedAttributes[0]).toBe("etiqueta")
+    expect(Class.observedAttributes).not.toContain("label")
     const host = await renderTag(tag, `etiqueta="A"`)
     expect(host.etiqueta).toBe("A")
     expect("label" in host).toBe(false)

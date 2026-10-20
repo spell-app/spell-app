@@ -471,7 +471,7 @@ const FILES = {
   css: `${ROOT}components/ui-button/UIButton.css`,
   vocabulary: `${ROOT}components/ui-button/UIButton.en.ts`,
   orVocabulary: `${ROOT}components/ui-button/UIOr.en.ts`,
-  shared: `${ROOT}../spell-solid/src/UIComponent.tsx`
+  shared: `${ROOT}../spell-element/src/UIComponent.tsx`
 } as const
 
 /** Preferred dev server port (the next free one is taken if busy). */

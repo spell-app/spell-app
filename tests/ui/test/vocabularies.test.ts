@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { SkeletonText } from "$/ui/vocabulary/SkeletonText"
 import { ROOT_CATALOG } from "$/ui/components/ui-root/UIRoot.catalog"
+import { MemberClashes } from "$/ui/test/MemberClashes"
 
 /** Every family's English vocabulary module, by path:  the components' and the doc-only elements'. */
 const MODULES = import.meta.glob<Record<string, unknown>>(["/components/*/*.en.ts", "/src/docs-components/*/*.en.ts"], {
@@ -79,5 +80,14 @@ describe("UI<Name>.en.ts / UI<Name>.types.ts imports", () => {
       .map((match) => match[0])
       .filter((statement) => !/^import \{(\s*type \w+,?)+\s*\}/.test(statement))
     expect(valueImports).toEqual([])
+  })
+})
+
+describe("vocabulary getters vs base members", () => {
+  // the brand and the app run the same check over their own (`MemberClashes`)
+  it("no attribute is named like a member of UIComponent or FormComponent (the base would hide its getter)", async () => {
+    const { vocabularies, clashes } = await MemberClashes.find(MODULES)
+    expect(vocabularies).toBeGreaterThan(40)
+    expect(clashes).toEqual([])
   })
 })

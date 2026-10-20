@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vite-plus/test"
 
 import * as core from "$/ui/core"
 import { Fixture } from "$/ui/test/Fixture"
-import type { DOMElement } from "$/spell-solid"
+import type { DOMElement } from "$/spell-element"
 
 import { ComponentPacks, registerPack } from "$/ui/components/ui-components"
 import type { RootFailure, UIRoot } from "$/ui/components/ui-root"

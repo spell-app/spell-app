@@ -3,7 +3,7 @@ import { defineConfig } from "vite-plus"
 import { fmtConfig, packageLint } from "../../vite.lint.ts"
 
 /**
- * `spell-solid`'s Vite+ config:  only the `lint` / `fmt` blocks (`vp lint`, `vp fmt`).
+ * `spell-element`'s Vite+ config:  only the `lint` / `fmt` blocks (`vp lint`, `vp fmt`).
  * - Both from the repo root's `vite.lint.ts`.
  * - No build of its own:  it's source, bundled by whoever draws with it (Spell UI's `core` entry carries it).
  * - Not under Spell UI's lint guard (`spell-ui/*`):
@@ -12,5 +12,5 @@ import { fmtConfig, packageLint } from "../../vite.lint.ts"
  */
 export default defineConfig({
   fmt: fmtConfig,
-  lint: packageLint({ name: "spell-solid", ignorePatterns: ["dist", ".vitest"] })
+  lint: packageLint({ name: "spell-element", ignorePatterns: ["dist", ".vitest"] })
 })

@@ -1,5 +1,5 @@
 /*! Derived from `@solidjs/element` and `component-register`:  MIT licence, (c) Ryan Carniato. */
-import type { E } from "$/spell-solid"
+import type { E } from "$/spell-element"
 
 /**
  * `HTMLElement`, or a stand-in outside a browser, so modules that define DOM elements can be IMPORTED during SSR

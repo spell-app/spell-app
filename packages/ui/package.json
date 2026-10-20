@@ -357,7 +357,9 @@
       "types": "./dist/styles/index.d.ts",
       "import": "./dist/styles.js"
     },
-    "./icons/*": "./dist/icon-packs/*"
+    "./icons/*": "./dist/icon-packs/*",
+    "./vite.config.ts": "./vite.config.ts",
+    "./test/setup.ts": "./test/setup.ts"
   },
   "scripts": {
     "dev": "vp dev --open /tools/demo/index.html",

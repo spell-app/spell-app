@@ -1,4 +1,4 @@
-import { E } from "$/spell-solid"
+import { E } from "$/spell-element"
 
 /****************
  * ### `OwnerContext`

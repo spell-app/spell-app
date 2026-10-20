@@ -27,7 +27,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 - reading a vocabulary's tag and skeleton:  Spell UI's [`RootCatalog`](../ui/tools/RootCatalog.ts)
 - the docs data, in [site-data.ts](scripts/site-data.ts):  Spell UI's builders
   - `SiteDataBuilder`, `SiteSearchBuilder`, `ElementManifests`
-- the element authoring API:  `$/spell-solid`, and Spell UI's `$/ui/core`
+- the element authoring API:  `$/spell-element`, and Spell UI's `$/ui/core`
 - the brand's colour math:  [`Palette`](src/Palette.ts)
 
 ## Files

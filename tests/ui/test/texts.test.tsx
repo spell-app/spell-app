@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import type { UIComponent, DOMElement } from "$/spell-solid"
+import type { UIComponent, DOMElement } from "$/spell-element"
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 

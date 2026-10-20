@@ -2,7 +2,7 @@ import { resolve } from "node:path"
 import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
-import { baseConfig } from "../ui/vite.config.ts"
+import { baseConfig } from "@spell-app/ui/vite.config.ts"
 
 /**
  * vitest config for `@spell-app/__pack__`, a component pack (`spell dev pack`):  two projects.

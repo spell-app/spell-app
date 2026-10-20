@@ -154,6 +154,8 @@ const CORE_PACKAGES = [
   "server",
   "spaces",
   "spell",
+  "spell-element",
+  // REFACTOR: spell-element's old name, a stand-in folder for spell-epic until it follows the rename (`packages/spell-solid/`)
   "spell-solid",
   "ui",
   "util",

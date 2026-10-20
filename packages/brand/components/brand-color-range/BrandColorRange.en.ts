@@ -5,7 +5,7 @@
  *   The component adds `color brand` before the noun (`color brand range`).
  */
 
-import type { E } from "$/spell-solid"
+import type { E } from "$/spell-element"
 
 /****************
  * ### `<brand-color-range>`

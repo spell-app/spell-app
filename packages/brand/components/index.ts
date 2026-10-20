@@ -5,7 +5,7 @@
  *   - generic ones (colour chips), to move into Spell UI later
  *   - brand-only page art (flourishes, blobs, the logo)
  *   - Moved already:  the panel (Spell UI's `<ui-panel>`) and the field (`<ui-field>`, epic `property-editor` P1).
- * - Each is written as a Spell UI family (`packages/ui/AGENTS.md`, "Solid authoring"), on `$/spell-solid`.
+ * - Each is written as a Spell UI family (`packages/ui/AGENTS.md`, "Solid authoring"), on `$/spell-element`.
  *   Spell UI's shared code comes from `$/ui/core` (and `$/ui/forms`).
  * - A component pack (`spell dev pack`):
  *   - `__pack/`, beside the families, is GENERATED from them (`spell dev pack build brand`)

@@ -2,7 +2,7 @@ import { resolve } from "node:path"
 import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
-import { baseConfig } from "../ui/vite.config.ts"
+import { baseConfig } from "@spell-app/ui/vite.config.ts"
 
 /**
  * vitest config for `@spell-app/brand`, a component pack (`spell dev pack`):  two projects.
@@ -49,8 +49,8 @@ export function brandProjects({
         name: `${prefix}browser`,
         dir: TESTS,
         include: ["components/**/*.test.{ts,tsx}", BROWSER_SRC],
-        // Spell UI's core first, as a page has it:  its settings for `$/spell-solid` (`packages/ui/test/setup.ts`)
-        setupFiles: [resolve(import.meta.dirname, "../ui/test/setup.ts")],
+        // Spell UI's core first, as a page has it:  its settings for `$/spell-element` (`packages/ui/test/setup.ts`)
+        setupFiles: ["@spell-app/ui/test/setup.ts"],
         testTimeout: 10_000,
         browser: {
           enabled: true,

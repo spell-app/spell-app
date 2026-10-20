@@ -109,10 +109,10 @@ when working with code in this package, `@spell-app/brand`.
       the docs set loads Spell UI's site bundle and the pack instead.
 - `components/` (`$/brand/components`):  the `<brand-*>` elements, one folder per family.
   - Written exactly like a Spell UI family ([ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring").
-  - Written on `$/spell-solid`:  `import { E } from "$/spell-solid"`.
+  - Written on `$/spell-element`:  `import { E } from "$/spell-element"`.
     - Spell UI's shared code comes from `$/ui/core` / `$/ui/forms`.
     - A file using Spell UI's own pieces (`E.IconGlyph` ...) takes `E` from `$/ui/core` instead,
-      which carries spell-solid's names too ([spell-solid's AGENTS.md](../spell-solid/AGENTS.md), "Imports").
+      which carries spell-element's names too ([spell-element's AGENTS.md](../spell-element/AGENTS.md), "Imports").
   - `yarn lint` holds them to it:  the `spell-ui/*` rules (ui's "Solid authoring", "The lint guard").
   - Generic ones move into Spell UI later (epic decision D2).
   - `__pack/`:  GENERATED and committed, by `spell dev pack build brand` (or `yarn pack:build`).
@@ -121,7 +121,7 @@ when working with code in this package, `@spell-app/brand`.
       - its second line records the sources' hash
     - `brand.entry.ts`:  `SpellUI.registerPack({ name, prefix, catalog, define })`
     - `brand.pack.js`:  the CLASSIC script a page loads
-      - Solid, spell-solid and Spell UI's shared modules are NOT in it (`SpellUI.packModules`)
+      - Solid, spell-element and Spell UI's shared modules are NOT in it (`SpellUI.packModules`)
   - A pack's events keep their own names:
     - the composer's own:  `brand-cast`
     - the ones Spell UI's controls send too keep Spell UI's (`ui-change`, `ui-input`, `ui-copy`),
@@ -265,7 +265,7 @@ when working with code in this package, `@spell-app/brand`.
 
 As the root's, plus these reaches into `ui` past its barrel, each because the barrel can't give it
 (until the elements move into Spell UI, epic todo T2):
-- `$/ui/core` (and `$/ui/forms`):  Spell UI's half of the element authoring API, beside `$/spell-solid`'s.
+- `$/ui/core` (and `$/ui/forms`):  Spell UI's half of the element authoring API, beside `$/spell-element`'s.
   - Imported as a `ui` family imports it, through its namespaces:
 
     ```ts
@@ -274,8 +274,8 @@ As the root's, plus these reaches into `ui` past its barrel, each because the ba
     ```
 
   - then `E.IconGlyph`, `UI.browser`, `F.FormComponent` ...
-  - `E.UIComponent` and `@E.state` are spell-solid's:
-    a file that needs nothing more takes `E` from `$/spell-solid`
+  - `E.UIComponent` and `@E.state` are spell-element's:
+    a file that needs nothing more takes `E` from `$/spell-element`
 - the bundle entries (`src/`), as Spell UI's site entry does:
   - `$/ui/runtime`, `$/ui/icons`, `$/ui/styles`, `$/ui/styles/ui.css`
 - [site-data.ts](scripts/site-data.ts):  Spell UI's site-data tools, and the site data's types
@@ -288,7 +288,7 @@ As the root's, plus these reaches into `ui` past its barrel, each because the ba
   - Its design export (`DesignBrand`) READS the docs set's `components.json5` and its pages, as data.
 - The pack's script may import only what a page shares (`PACK_MODULES` in Spell UI's
   [pack tooling](../ui/tools/ComponentPack.ts)):
-  - `$/spell-solid`, `$/ui/core`, `$/ui/forms`, Solid
+  - `$/spell-element`, `$/ui/core`, `$/ui/forms`, Solid
   - `$/brand` (`src/`) is bundled into it
 
 ## Serving

@@ -90,7 +90,7 @@ export const BUNDLE_RECORD = ".bundle.json"
  * What both bundles read of Spell UI:
  * - its source (`Bundle.sourceFiles()` skips the icon packs, which each bundle LINKS, never bundles)
  * - its families (`components/`, outside `src/`)
- * - the element layer they're written on (`$/spell-solid`)
+ * - the element layer they're written on (`$/spell-element`)
  * - its Vite config (`baseConfig()`)
  * - the site header (`$/server/site`)
  * - the lock file
@@ -98,7 +98,7 @@ export const BUNDLE_RECORD = ".bundle.json"
 const SPELL_UI_SOURCES = [
   "packages/ui/src",
   "packages/ui/components",
-  "packages/spell-solid/src",
+  "packages/spell-element/src",
   "packages/ui/vite.config.ts",
   "packages/server/src/site",
   "yarn.lock"

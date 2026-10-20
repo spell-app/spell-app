@@ -1,7 +1,7 @@
 import * as UIT from "$/ui/components/components.types"
 
 import { sharedEs } from "./SharedVocabulary.es"
-import type { AttributeSpec, ComponentVocabulary, SharedDictionary, StateSpec } from "$/spell-solid/vocabulary.types"
+import type { AttributeSpec, ComponentVocabulary, SharedDictionary, StateSpec } from "$/spell-element/vocabulary.types"
 
 /****************
  * ### `SharedVocabulary`

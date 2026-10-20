@@ -38,12 +38,15 @@ import { registerPack } from "$/ui/components/ui-components/ComponentPacks"
 
 /**
  * What a pack imports, by the specifier its build leaves external => the page's copy of that module.
- * - `$/spell-solid`:  Spell UI's core module, which carries all of it (`$/ui/core` re-exports it):  one per page.
+ * - `$/spell-element`:  Spell UI's core module, which carries all of it (`$/ui/core` re-exports it):  one per page.
+ * - REFACTOR: `$/spell-solid` too, spell-element's name until epic `repo-split` P3:  the epics pack, which every set's
+ *   layout loads, reads it until spell-epic follows the rename (that epic's T6).  Delete it then.
  */
 const packModules: Record<string, unknown> = {
   "solid-js": solid,
   "@solidjs/web": solidWeb,
   "@solidjs/h": solidH,
+  "$/spell-element": uiCore,
   "$/spell-solid": uiCore,
   "$/ui/core": uiCore,
   "$/ui/forms": uiForms

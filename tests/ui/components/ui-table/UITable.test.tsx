@@ -3,7 +3,7 @@ import { page, userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 import type { TableColumn, TableRow, TableSortDetail } from "$/ui/components/components.types"
-import type { DOMElement } from "$/spell-solid"
+import type { DOMElement } from "$/spell-element"
 import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Viewport } from "$/ui/test/Viewport"

@@ -1,5 +1,5 @@
 // Import directly to avoid circular import:  everything here sits below the `core` entry, which imports this file
-import { SpellSolid, type SpellSolidSettings } from "$/spell-solid"
+import { SpellSolid, type SpellSolidSettings } from "$/spell-element"
 import { Warnings } from "$/ui/util"
 import { Converters, SharedVocabulary, ValueSets, Vocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"
@@ -9,7 +9,7 @@ import { ClassBuilder } from "./ClassBuilder"
 
 /****************
  * ### `SpellUISettings`
- * What Spell UI hands spell-solid as it loads (`SpellSolid.install()`), which every set's elements draw with:
+ * What Spell UI hands spell-element as it loads (`SpellSolid.install()`), which every set's elements draw with:
  * its runtime (`UI`), its vocabulary layer, its style sheets, focus and animations (`E.SpellSolidSettings`).
  * - Installed as `$/ui/core` loads (`core.ts` imports this file), so before any family's `define()`:
  *   a family imports `$/ui/core` first.
@@ -33,7 +33,7 @@ import { ClassBuilder } from "./ClassBuilder"
  *   - The app's `spell-solid.js` ran `<ui-components>`'s before its entry's body, where this file lands.
  ****************/
 export class SpellUISettings {
-  /** The settings, as spell-solid reads them. */
+  /** The settings, as spell-element reads them. */
   static readonly settings: SpellSolidSettings = {
     runtime: {
       get isLoaded() {

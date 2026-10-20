@@ -26,7 +26,7 @@ import {
  * - `<pack>.pack.js`:  the entry built by Vite as ONE classic script (an IIFE), minified,
  *   on Spell UI's `baseConfig()` (decorators BEFORE Solid, Solid's JSX, Lightning CSS),
  *   with every `PACK_MODULES` specifier left external and read from `globalThis.SpellUI.packModules[<specifier>]`:
- *   the page's one Solid, one spell-solid and one Spell UI core
+ *   the page's one Solid, one spell-element and one Spell UI core
  *   - its banner records the same hash
  * - then its set's docs data, `docs/__data/` (`buildSiteData()`)
  * - A pack is a package whose `package.json` has `"spellPack": { "prefix" }` (`read()`).
@@ -474,14 +474,17 @@ export type ComponentPackProps = {
  * The modules a pack SHARES with the page instead of bundling:  the exact import specifiers its build leaves external.
  * - Each is read from `globalThis.SpellUI.packModules[<specifier>]`:  spell-epic's docs bundle's
  *   (`spell-ui.entry.js`), and the component sets' site build's (`site/_src/SitePacks.ts`).
- * - `$/spell-solid`:  what the pack's elements are written on (`E.UIComponent` ...).
+ * - `$/spell-element`:  what the pack's elements are written on (`E.UIComponent` ...).
  *   The page's is Spell UI's core module, which carries all of it, so a page has one (`packModules`).
- * - Any other `$/ui...`, `$/spell-solid/...`, Solid or `@spell-app/...` import fails the build:
- *   a second copy of spell-solid, Spell UI's core or Solid on a page breaks them.
+ * - Any other `$/ui...`, `$/spell-element/...`, Solid or `@spell-app/...` import fails the build:
+ *   a second copy of spell-element, Spell UI's core or Solid on a page breaks them.
  * - Another one:  add it here AND to both `packModules`, AND to the guides' copy
  *   (spell-epic's `src/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
+ * - REFACTOR: `$/spell-solid`, spell-element's name until epic `repo-split` P3, is still shared:  spell-epic's
+ *   elements import it until spell-epic follows the rename (that epic's T6).  Delete it then, here and in both
+ *   `packModules`.
  */
-export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/spell-solid", "$/ui/core", "$/ui/forms"]
+export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/spell-element", "$/spell-solid", "$/ui/core", "$/ui/forms"]
 
 /** A pack's element families' folder. */
 const COMPONENTS_FOLDER = "components"
@@ -496,8 +499,9 @@ export const PACK_FOLDER = `${COMPONENTS_FOLDER}/__pack`
 /** `spell-ui-pack`'s usage line. */
 const USAGE = "usage:  spell-ui-pack build | check [<folder>]   (the pack's package;  default the current folder)"
 
-/** Imports the page must share, never bundled:  spell-solid, Spell UI, Solid, our other packages. */
-const SHARED_IMPORT = /^\$\/(ui|spell-solid)(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
+/** Imports the page must share, never bundled:  spell-element, Spell UI, Solid, our other packages. */
+// REFACTOR: `spell-solid` too, spell-element's old name, until spell-epic follows the rename (`PACK_MODULES`)
+const SHARED_IMPORT = /^\$\/(ui|spell-element|spell-solid)(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
 
 /** Version of what `build()` writes:  bump it when the generated files change shape, so every pack goes stale. */
 const PACK_FORMAT = "spell-pack 1"

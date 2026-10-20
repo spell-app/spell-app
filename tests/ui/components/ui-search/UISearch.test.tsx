@@ -6,7 +6,7 @@ import type { SearchResult } from "$/ui/components/components.types"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/spell-solid"
+import type { DOMElement } from "$/spell-element"
 
 import "$/ui/components/ui-search"
 

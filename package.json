@@ -18,7 +18,7 @@
     "packages/py",
     "packages/server",
     "packages/spaces",
-    "packages/spell-solid",
+    "packages/spell-element",
     "packages/ui",
     "packages/util"
   ],

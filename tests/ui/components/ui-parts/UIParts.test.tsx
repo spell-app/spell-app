@@ -5,7 +5,7 @@ import { expectAccessible } from "$/ui/test/A11y"
 import { PartNouns } from "$/ui/components/ui-parts/UIParts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
-import { UIComponent, type PartContext, type UIComponentClass, type DOMElement } from "$/spell-solid"
+import { UIComponent, type PartContext, type UIComponentClass, type DOMElement } from "$/spell-element"
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { StubOwner } from "$/ui/test/StubOwner"

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vite-plus/test"
+import type { JSX } from "@solidjs/web"
 
-import type { DOMElement } from "$/spell-solid"
+import type { DOMElement, DOMElementClass, UIComponentClass } from "$/spell-element"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
+import { E } from "$/ui/core"
 import { UIButton } from "$/ui/components/ui-button"
 import { UIDropdown } from "$/ui/components/ui-dropdown"
 import { es } from "$/ui/test/dictionary.es"
@@ -37,9 +40,35 @@ describe("UIComponent.define(tag, dictionary)", () => {
       english: "disabled" in host
     }).toEqual({ native: true, state: true, property: true, english: false })
     // the button and dropdown declare their own `disabled` / `loading`:  the same words name them
-    // (a tag that takes the shared ones:  `DOMElement.test.tsx`, "a translated tag renames ...")
+    // (a tag that takes the shared ones:  "names the shared attributes a tag takes in Spanish", below)
     const dropdown = await ElementFixture.render<DOMElement>(`<ie-desplegable cargando></ie-desplegable>`)
     expect(dropdown.matches(":state(loading)")).toBe(true)
+  })
+
+  it("names the shared attributes a tag takes in Spanish, after its own;  then the platform's `hidden`", () => {
+    /** A tag that declares only `label`, so it takes every shared attribute. */
+    class Labelled extends E.UIComponent<any> {
+      render(): JSX.Element {
+        return <span />
+      }
+    }
+    const vocabulary: ComponentVocabulary = {
+      tag: "x-labelled",
+      noun: "labelled",
+      attributes: [{ name: "label", kind: "string", description: "The label." }],
+      events: [],
+      slots: [],
+      parts: [],
+      states: [],
+      texts: []
+    }
+    Object.defineProperty(Labelled.prototype, "vocabulary", { value: vocabulary })
+    const Class = (Labelled as unknown as UIComponentClass & typeof E.UIComponent).define("x-etiquetado", {
+      lang: "es",
+      attributes: { label: "etiqueta" }
+    }) as DOMElementClass
+    // `SharedVocabulary.es.ts`;  `visible` turned round is the platform's `hidden`
+    expect(Class.observedAttributes).toEqual(["etiqueta", "desactivado", "cargando", "visible", "animacion", "hidden"])
   })
 
   it("dispatches translated events", async () => {

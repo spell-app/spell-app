@@ -1,4 +1,4 @@
-import type { SkeletonPart, SkeletonSpec } from "$/spell-solid/vocabulary.types"
+import type { SkeletonPart, SkeletonSpec } from "$/spell-element/vocabulary.types"
 
 /****************
  * ### `SkeletonText`

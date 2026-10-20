@@ -8,7 +8,7 @@
  *   the PROPERTY the live one.
  */
 
-import type { E } from "$/spell-solid"
+import type { E } from "$/spell-element"
 
 /****************
  * ### `<brand-composer>`

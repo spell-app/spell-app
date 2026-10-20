@@ -8,6 +8,7 @@
   // - Paths are fixed, never `${configDir}`:  `tsx` can't resolve it (4.20 throws, 4.23 ignores it).
   // - `$` means `packages/`:
   //   - `$/name` is a package's barrel, `$/name/...` a file in its `src/`, and `$/ui/test/...` `ui`'s test helpers
+  //     (`$/spell-element/test/...` likewise)
   //   - it can't collide with an npm name (`@spell-app/...`) the way a bare `name/...` could
   //   - a component set's elements live in its package's `components/`, outside `src/`:
   //     `$/<set>/components/...` (`ui`, `app`, `brand`), longer than `$/<set>/*`, so it wins
@@ -26,15 +27,15 @@
   //   `$/ui/tools/ComponentPack` (node-only:  a component pack's build and check, for `spell dev pack`),
   //   `$/ui/property` (no Solid:  property schemas, and checking an editor page on the DOM it's handed:  for
   //   `spell check`, and the app's New Property Editor),
-  //   `$/spell-solid/timing` (`ui`'s `src/util/index.ts`:  a leaf below `ui`'s core),
-  //   `$/spell-solid/elements.types` + `$/spell-solid/vocabulary.types` (where `ui` augments the names it adds),
-  //   `$/spell-solid/HotDefinitions` (dev-only, a side effect:  `ui`'s HMR plugin),
+  //   `$/spell-element/timing` (`ui`'s `src/util/index.ts`:  a leaf below `ui`'s core),
+  //   `$/spell-element/elements.types` + `$/spell-element/vocabulary.types` (where `ui` augments the names it adds),
+  //   `$/spell-element/HotDefinitions` (dev-only, a side effect:  `ui`'s HMR plugin),
   //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` and
-  //   `spell-solid`'s barrel only:  the `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
+  //   `spell-element`'s barrel only:  the `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
   //   - `cli` -> `app` -> `lsp` -> `spaces` -> `spell` -> `parser` / `core` -> `util`
   //   - `markdown` -> `parser`
-  //   - `ui` -> `spell-solid` -> `util`
+  //   - `ui` -> `spell-element` -> `util`
   //   - e.g. `ui` MUST NOT import `$/spell`, and `spell` MUST NOT import `$/spaces`.
   // - `server` is a LEAF (node built-ins only):  anything may import it.
   //   - Its opt-in entry points:  `$/server/page/...` (the generic page server) and `$/server/site/...` (the site header).
@@ -83,11 +84,13 @@
       "$/assembler": ["./packages/assembler/src/index.ts"],
       "$/assembler/*": ["./packages/assembler/src/*"],
 
-      // ## `spell-solid`:  what makes a custom element on Solid, for every component set;  it imports only `$/util`'s
-      // generic files.  `$/spell-solid/elements.types` and `$/spell-solid/vocabulary.types`:  where a set augments its
-      // names (animations, value sets, topics);  `$/spell-solid/timing` and `$/spell-solid/HotDefinitions`:  for `ui`
-      "$/spell-solid": ["./packages/spell-solid/src/index.ts"],
-      "$/spell-solid/*": ["./packages/spell-solid/src/*"],
+      // ## `spell-element`:  what makes a custom element on Solid, for every component set;  it imports only `$/util`'s
+      // generic files.  `$/spell-element/elements.types` and `$/spell-element/vocabulary.types`:  where a set augments its
+      // names (animations, value sets, topics);  `$/spell-element/timing` and `$/spell-element/HotDefinitions`:  for `ui`;
+      // `$/spell-element/test/*`:  its own tests' helpers, longer than `$/spell-element/*`, so it wins
+      "$/spell-element": ["./packages/spell-element/src/index.ts"],
+      "$/spell-element/*": ["./packages/spell-element/src/*"],
+      "$/spell-element/test/*": ["./packages/spell-element/test/*"],
 
       // ## `ui`:  barrel, files, elements, test helpers and node tools;  its `<ui-*>` families live in
       // `packages/ui/components/` (epic `people-and-orgs` P18), outside `src/`, as every component set's do;

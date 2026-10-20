@@ -167,14 +167,8 @@ describe("runner builds", () => {
     const names = SHARED_NAMES.exec(text)![1]!.split(", ")
     expect(names).toEqual(expect.arrayContaining(["createSignal", "render", "E", "UIComponent", "UIRoot", "h"]))
     const specifiers = JSON.parse(SHARED_SPECIFIERS.exec(text)![1]!) as string[]
-    expect(specifiers).toEqual([
-      "solid-js",
-      "@solidjs/web",
-      "@solidjs/h",
-      "$/spell-solid",
-      "$/ui/core",
-      "$/ui/components/ui-root"
-    ])
+    // REFACTOR: no `$/spell-element` until spell-epic's docs bundle names it (`SHARED_SPECIFIERS`, `vite.shared.ts`)
+    expect(specifiers).toEqual(["solid-js", "@solidjs/web", "@solidjs/h", "$/ui/core", "$/ui/components/ui-root"])
     // a page's modules (the docs bundle's `SpellUI.packModules`), each name a stand-in;
     // `@solidjs/h` as it is, a default export, which `spell-solid-shared.js` renames `h`
     const page = Object.fromEntries(names.map((name) => [name, `page's ${name}`]))
@@ -237,7 +231,9 @@ describe("runner builds", () => {
     // the page server adds it to every docs page:  nothing of Solid or Spell UI until it finds the page's
     const language = staticImports(element, "spell-language.js")
     expect(language.filter((file) => /^spell-(solid|ui)/.test(file))).toEqual([])
-    expect(readFileSync(join(element, "spell-language.js"), "utf8")).toContain("import(`./spell-code-SpellLanguage.js`)")
+    expect(readFileSync(join(element, "spell-language.js"), "utf8")).toContain(
+      "import(`./spell-code-SpellLanguage.js`)"
+    )
     // spell's parser only lazily, on first colouring
     for (const entry of ["spell-code.js", "spell-markdown.js", "spell-language.js"]) {
       for (const file of staticImports(element, entry)) {
@@ -256,14 +252,19 @@ describe("runner builds", () => {
     const copy = join(element, "spell-ui-shared.page.mjs")
     writeFileSync(copy, text)
     try {
-      const families = { "$/ui/components/ui-code": { UICode: "page's UICode" }, "$/ui/components/ui-markdown": { UIMarkdown: "page's UIMarkdown" } }
+      const families = {
+        "$/ui/components/ui-code": { UICode: "page's UICode" },
+        "$/ui/components/ui-markdown": { UIMarkdown: "page's UIMarkdown" }
+      }
       Object.assign(globalThis, { SpellUI: { packModules: { ...core, ...families } } })
       const shared = (await import(`${pathToFileURL(copy).href}?families`)) as Record<string, unknown>
       expect(shared.UICode).toBe("page's UICode")
       expect(shared.UIMarkdown).toBe("page's UIMarkdown")
       // its own core, but not the families:  an error naming them, never a second Spell UI
       Object.assign(globalThis, { SpellUI: { packModules: core } })
-      await expect(import(`${pathToFileURL(copy).href}?core-only`)).rejects.toThrow(/shares no \$\/ui\/components\/ui-code/)
+      await expect(import(`${pathToFileURL(copy).href}?core-only`)).rejects.toThrow(
+        /shares no \$\/ui\/components\/ui-code/
+      )
     } finally {
       Reflect.deleteProperty(globalThis, "SpellUI")
     }
@@ -297,8 +298,8 @@ const PACKAGES = {
   monaco: /\/node_modules\/monaco-editor\//
 }
 
-/** The component base class, every set's:  `$/spell-solid`'s, which Spell UI's core carries. */
-const UI_COMPONENT = /\/packages\/spell-solid\/src\/UIComponent\.tsx$/
+/** The component base class, every set's:  `$/spell-element`'s, which Spell UI's core carries. */
+const UI_COMPONENT = /\/packages\/spell-element\/src\/UIComponent\.tsx$/
 
 /** `ui`'s root component, which `<spell-app>` extends. */
 const UI_ROOT = /\/packages\/ui\/components\/ui-root\/UIRoot\.tsx$/

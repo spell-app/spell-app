@@ -1,10 +1,10 @@
-import { E } from "$/spell-solid"
+import { E } from "$/spell-element"
 
 /****************
  * ### `SpellSolid`
- * The settings a component set's runtime hands spell-solid as it loads:
+ * The settings a component set's runtime hands spell-element as it loads:
  * the services the element bases call (`E.SpellSolidSettings`).
- * - Why:  spell-solid makes custom elements for EVERY set (Spell UI's, the epics', the app's, a space's),
+ * - Why:  spell-element makes custom elements for EVERY set (Spell UI's, the epics', the app's, a space's),
  *   so it never imports one.
  *   What an element needs of the page's runtime (its words, style sheets, focus, animations) comes through here.
  * - Spell UI installs its own as `$/ui/core` loads (`packages/ui/src/elements/SpellUISettings.ts`):
@@ -13,11 +13,11 @@ import { E } from "$/spell-solid"
  *   - Why:  a code-split bundle may run a family's chunk before the chunk that installs them,
  *     whatever the source's order.
  *   - The app's `spell-solid.js` did:  `<ui-components>` before Spell UI's core.
- * - STATIC and instance-free on purpose:  ONE set of settings per page, as there is one spell-solid.
+ * - STATIC and instance-free on purpose:  ONE set of settings per page, as there is one spell-element.
  ****************/
 export class SpellSolid {
   /**
-   * Hand spell-solid the page's settings.
+   * Hand spell-element the page's settings.
    * - Called as the runtime loads:  `$/ui/core` installs Spell UI's.
    * - Tags defined before that are defined now.
    * - A second call replaces the first (tests, a page that swaps its runtime).
@@ -42,7 +42,7 @@ export class SpellSolid {
     void E.after(WAIT_WARNING_SECONDS, () => {
       if (!SpellSolid.waiting.length) return
       console.warn(
-        `[@spell-app/spell-solid] SpellSolid:  ${SpellSolid.waiting.length} element(s) wait to be defined, and no ` +
+        `[@spell-app/spell-element] SpellSolid:  ${SpellSolid.waiting.length} element(s) wait to be defined, and no ` +
           "settings are installed;  load a component set's runtime (Spell UI's `$/ui/core`)"
       )
     })

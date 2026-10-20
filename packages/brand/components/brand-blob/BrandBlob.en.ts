@@ -5,7 +5,7 @@
  * - `corner`, `shape` and `tone` are not class words:  the component places and colours its one shape.
  */
 
-import type { E } from "$/spell-solid"
+import type { E } from "$/spell-element"
 
 /****************
  * ### `brandBlobVocabulary`

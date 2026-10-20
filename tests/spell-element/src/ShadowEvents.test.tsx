@@ -1,17 +1,21 @@
-import { onTestFinished, beforeAll, describe, expect, test } from "vite-plus/test"
+import { onTestFinished, describe, expect, test } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 import { Dynamic, Portal, render, type JSX } from "@solidjs/web"
 
-import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
-import { UI } from "$/ui/runtime"
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UIComponent, type DOMElement, type UIComponentClass } from "$/spell-solid"
+import {
+  UIComponent,
+  type AttributeSpec,
+  type ComponentVocabulary,
+  type DOMElement,
+  type UIComponentClass
+} from "$/spell-element"
+import { ElementFixture } from "$/spell-element/test/ElementFixture"
 
 /**
  * `ShadowEvents`:  Solid's event delegation inside each element's shadow root leaves nothing behind on the event.
  * - Page listeners see the platform's retargeted event:  `target` === the host, `composedPath()[0]` the inner node.
  * - Solid handlers OUTSIDE the element (an app's `<x-el onClick>`, an enclosing element's) still run, once.
- * - Tried on tiny test elements;  `test/events.test.tsx` does the same for real `ui-*` elements,
+ * - Tried on tiny test elements;  Spell UI's `tests/ui/test/events.test.tsx` does the same for real `ui-*` elements,
  *   with typing and focus, and a Solid app elsewhere on the page.
  */
 
@@ -108,11 +112,6 @@ async function mount(tag: string): Promise<DOMElement> {
 function inside<T extends Element = HTMLElement>(host: Element, selector: string): T {
   return host.shadowRoot!.querySelector(selector) as T
 }
-
-beforeAll(async () => {
-  // loaded, so an element draws as it connects
-  await UI.load()
-})
 
 ////////////////
 // ## Page listeners

@@ -5,7 +5,7 @@
  * - Owner of its `<brand-check>`s (`ownsParts:  check`):  each asks it how to show (`ChecklistOwner`).
  */
 
-import type { E } from "$/spell-solid"
+import type { E } from "$/spell-element"
 
 /****************
  * ### `<brand-checklist>`

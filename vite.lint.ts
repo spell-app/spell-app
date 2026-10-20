@@ -38,9 +38,11 @@ export const lintBase = {
   // so every package gets its tools at the one version `vite-plus` pins.
   // `spell-ui/*`:  Spell UI's patterns in component files (`patternLint()`);
   // loaded everywhere, on in `PATTERN_FOLDERS`.
+  // `spell/*`:  the repo's own import rules (`vite.lint.imports.ts`), on everywhere (below).
   jsPlugins: [
     { name: "vite-plus", specifier: "vite-plus/oxlint-plugin" },
-    { name: "spell-ui", specifier: fileURLToPath(new URL("./vite.lint.patterns.ts", import.meta.url)) }
+    { name: "spell-ui", specifier: fileURLToPath(new URL("./vite.lint.patterns.ts", import.meta.url)) },
+    { name: "spell", specifier: fileURLToPath(new URL("./vite.lint.imports.ts", import.meta.url)) }
   ],
 
   // NOTE: only rules that DIFFER from the `correctness` defaults belong here.
@@ -80,7 +82,18 @@ export const lintBase = {
     // ## Vite+
     ////////////////
 
-    "vite-plus/prefer-vite-plus-imports": "error"
+    "vite-plus/prefer-vite-plus-imports": "error",
+
+    ////////////////
+    // ## Ours
+    ////////////////
+
+    // A relative import from one package (or its tests) into another's folder:  `$/server`, never
+    // `../../../../server/src/...` (WWOD §4).
+    // - HERE, not in an `overrides` entry:  it holds for every package and its tests, so the root's block and every
+    //   package's (`packageLint()`) get it with the rest of `lintBase`, and it's on in tests too (`testLint` leaves it).
+    // - It skips the repo root's own files itself:  they're in no package.
+    "spell/no-cross-package-import": "error"
   }
 } satisfies OxlintConfig
 
@@ -161,13 +174,13 @@ export const testLint = {
 /**
  * The folders of COMPONENT files, by package (its folder under `packages/`):
  * `patternLint()` turns the `spell-ui/*` rules on there.
- * - Every set's elements, all written on `$/spell-solid`, held to the same patterns, each in its package's
+ * - Every set's elements, all written on `$/spell-element`, held to the same patterns, each in its package's
  *   `components/`:  Spell UI's (and its docs site's widgets, `src/docs-components/`), the brand's, and
  *   the app's own (`<spell-app>`, `<spell-editor>`).
  *   - The epics' elements are spell-epic's (epic `epic-eject` I5), held to the same rules there.
  * - Not:
  *   - `app`'s `src/`:  WWOD §17's function components (Owen:  "other than app components")
- *   - the element core (`$/spell-solid`, and `ui`'s `src/elements/`):  the decorators and helpers themselves
+ *   - the element core (`$/spell-element`, and `ui`'s `src/elements/`):  the decorators and helpers themselves
  *   - tests (`testLint`)
  */
 export const PATTERN_FOLDERS: Record<string, string[]> = {

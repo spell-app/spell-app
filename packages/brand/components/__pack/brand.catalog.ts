@@ -1,5 +1,5 @@
 /* GENERATED -- do not edit:  `spell dev pack build brand`, from every vocabulary, `<Name>.en.ts` */
-// sources:  312251573a394f97
+// sources:  564412f70800d6d2
 
 import type { RootCatalogEntry } from "$/ui"
 

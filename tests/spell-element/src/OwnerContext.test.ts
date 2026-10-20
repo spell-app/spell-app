@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vite-plus/test"
 
-import { OwnerContext } from "$/spell-solid"
+import { OwnerContext } from "$/spell-element"
 
 /**
  * Real custom elements with shadow roots and slots, as components will have:

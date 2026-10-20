@@ -5,7 +5,7 @@ import { Keys } from "$/ui/test/Keys"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/spell-solid"
+import type { DOMElement } from "$/spell-element"
 
 import "$/ui/components/ui-comment"
 import "$/ui/components/ui-form"

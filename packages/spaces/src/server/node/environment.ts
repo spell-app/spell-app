@@ -2,8 +2,9 @@ import { fileURLToPath } from "url"
 import { dirname, resolve } from "path"
 
 // The server's checkout finder, node built-ins only:  the main checkout from any worktree.
-// By relative path, `.ts` and all:  app's `vite.config.ts` loads this file, bundled with no alias table.
-import { checkoutOf } from "../../../../server/src/checkout.ts"
+// By the server package's npm name, `.ts` and all, not `$/server`:  app's `vite.config.ts` loads this file, and Vite
+// loads a config with no alias table (WWOD §4, "Package aliases, never `../`").
+import { checkoutOf } from "@spell-app/server/src/checkout.ts"
 
 /** spaces' `src/`:  this file is in `src/server/node/`. */
 const spacesSrcDir = resolve(fileURLToPath(import.meta.url), "..", "..", "..")

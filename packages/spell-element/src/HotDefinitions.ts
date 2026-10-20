@@ -1,5 +1,5 @@
 /*! Derived from `@solidjs/element` and `component-register`:  MIT licence, (c) Ryan Carniato. */
-import { E } from "$/spell-solid"
+import { E } from "$/spell-element"
 
 /****************
  * ### `HotDefinitions`
@@ -31,8 +31,8 @@ import { E } from "$/spell-solid"
  * - NOTE: a vocabulary whose tag was renamed defines the NEW tag;  instances of the old one keep the old class.
  * - A changed vocabulary is swapped into the runtime, which re-resolves its translated names from it
  *   (Spell UI's `UI.vocabulary.replace()`).
- * - Imports the package through `$/spell-solid`, as a component file does:  it's loaded into component barrels,
- *   and NOTHING in the package imports it (it's not in the `$/spell-solid` barrel).
+ * - Imports the package through `$/spell-element`, as a component file does:  it's loaded into component barrels,
+ *   and NOTHING in the package imports it (it's not in the `$/spell-element` barrel).
  * - STATIC and instance-free on purpose:  ONE record of definitions per page, as `customElements` is.
  * - Began as `@spell-app/solid-element`'s hot reload, merged into its one user (epic `spell-element`, Q11).
  ****************/

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
+import * as spellElement from "$/spell-element"
 import * as core from "$/ui/core"
 import * as forms from "$/ui/forms"
 import * as elements from "$/ui/elements"
@@ -61,6 +62,23 @@ describe("$/ui/core and $/ui/forms load order", () => {
       (name) => (elements as Record<string, unknown>)[name] !== entries[name]
     )
     expect(different).toEqual([])
+  })
+})
+
+/**
+ * `$/spell-element`, what every set's elements are written on, through Spell UI's core.
+ * - `$/ui/core` re-exports every name, so its `E` holds them too.
+ * - A component pack that imports `$/spell-element` reads Spell UI's core module from the page (`SpellUI.packModules`):
+ *   ONE copy on a page.
+ */
+describe("$/ui/core and $/spell-element", () => {
+  it("Spell UI's core carries every name, the same objects:  its E is a superset", () => {
+    const fromCore = core as Record<string, unknown>
+    const missing = Object.keys(spellElement).filter((name) => name !== "E" && !(name in core))
+    const different = Object.entries(spellElement).filter(([name, value]) => name !== "E" && fromCore[name] !== value)
+    expect(missing).toEqual([])
+    expect(different.map(([name]) => name)).toEqual([])
+    expect(core.E.UIComponent).toBe(spellElement.E.UIComponent)
   })
 })
 

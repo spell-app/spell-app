@@ -66,8 +66,8 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
 | [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, in `docs/` (at `/components/app/`) |
 | `packages/vscode/` | | | | the VS Code extension (below) |
-| [spell-solid](packages/spell-solid/AGENTS.md) | `@spell-app/spell-solid` | `$/spell-solid` | `E` | what makes a custom element on Solid, for EVERY set's elements (Spell UI's, the epics', the app's, the brand's):  the component and DOM element bases, the reactive members' decorators, shadow events, hot reloading;  Spell UI's `core` carries it (below) |
-| [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2, written on `$/spell-solid` |
+| [spell-element](packages/spell-element/AGENTS.md) | `@spell-app/spell-element` | `$/spell-element` | `E` | what makes a custom element on Solid, for EVERY set's elements (Spell UI's, the epics', the app's, the brand's):  the component and DOM element bases, the reactive members' decorators, shadow events, hot reloading;  Spell UI's `core` carries it (below) |
+| [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2, written on `$/spell-element` |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
 | [spell-epic](spell-epic/src/AGENTS.md) (NOT a package here) | `@spell-app/epics` | `$/epics` | `EP` | the epic engine, its own repo (below, "spell-epic"):  epic pages' `<epic-*>` elements (a component pack), Epic UI (at `/components/epics/`), the `epic` command, the hooks and epic skills;  AND every docs page's tooling:  the docs tools and the `_assets` every page loads (`/_epic/assets/`) |
 | [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally, and the generic page server (below) |
@@ -149,7 +149,7 @@ More on some of them:
 One change may touch several packages, but dependencies flow ONE way:
 
 ```text
-spell-epic -> ui / server / assembler / util / spell-solid   (the engine, its own repo:  NO package here imports it)
+spell-epic -> ui / server / assembler / util / spell-element   (the engine, its own repo:  NO package here imports it)
 cli -> app -> lsp -> spaces -> spell -> parser / core -> util
 app / cli -> spaces       (the app:  spaces' models only, never server/node)
 lsp -> spaces             (its node files:  projects on disk, in `SpellDiskWorkspace`)
@@ -160,15 +160,15 @@ spell -> py -> parser     (Python's writers;  `py/core`'s Python imports no pack
 app / lsp -> markdown -> parser
 brand -> ui / server
 page-server -> server     (spell-app's own:  its route module runs on the generic page server)
-ui / epics / app / brand -> spell-solid -> util   (every set's elements are written on it;  a space's too)
+ui / epics / app / brand -> spell-element -> util   (every set's elements are written on it;  a space's too)
 ui -> util
 ```
 
 - NEVER make `ui` import `spell` or any package above it:  Spell UI lives on its own.
-- `spell-solid` (epic `people-and-orgs` P17):  what makes a custom element on Solid, out of Spell UI.
+- `spell-element` (epic `people-and-orgs` P17):  what makes a custom element on Solid, out of Spell UI.
   - NEVER make it import `ui`, or any package but util's generic files (`$/util/class` ...):
     what an element needs of the page's runtime (words, styles, animations) Spell UI hands it as it loads
-    ([spell-solid's AGENTS.md](packages/spell-solid/AGENTS.md), "Settings").
+    ([spell-element's AGENTS.md](packages/spell-element/AGENTS.md), "Settings").
   - ONE copy per page:  Spell UI's `core` entry re-exports all of it, and a component pack reads it from the page
     (`SpellUI.packModules`), as it reads Solid.
 - `spaces` (epic `people-and-orgs`):  where projects and people live, and the servers that serve them.
@@ -543,8 +543,10 @@ ui -> util
       command (`bin/epic`)
     - the hooks (`hooks/hooks.json`) and the window script (`src/window.mjs`)
     - the epic skills (`/epic`, `/isolate`, `/details`, `/bg`, `/send` ... 17 of them) and every template
-  - It takes `ui`, `server`, `assembler`, `util` and `spell-solid` from spell-app's main checkout (`portal:`,
+  - It takes `ui`, `server`, `assembler`, `util` and `spell-element` from spell-app's main checkout (`portal:`,
     through its own `.spell-app` link).
+    - REFACTOR: `spell-element` still by its old name, `spell-solid`:  a stand-in folder re-exporting it,
+      until spell-epic follows epic `repo-split` P3's rename (that epic's T6).
   - Its README says how it's laid out and installed;  its [AGENTS.md](spell-epic/AGENTS.md) and
     [src/AGENTS.md](spell-epic/src/AGENTS.md) hold its rules.
 - LIVE since the switch (epic `epic-eject` I5, 2026-10-18):  this repo carries no copy of the engine.
@@ -634,9 +636,12 @@ ui -> util
   - No `.oxlintrc.json` / `.oxfmtrc.json` any more.
   - The editor and `vp check` read the ROOT block only.
     So a rule for some packages goes in `rootLint()`'s `overrides` too.
-  - Our own rules:  `vite.lint.patterns.ts` beside it, a JS plugin.
-    - Its rules, `spell-ui/*`, guard Spell UI's patterns in component files:
+  - Our own rules, two JS plugins beside it:
+    - `vite.lint.patterns.ts`:  its rules, `spell-ui/*`, guard Spell UI's patterns in component files:
       "The lint guard" in [ui's AGENTS.md](packages/ui/AGENTS.md).
+    - `vite.lint.imports.ts`:  its rule, `spell/no-cross-package-import`, fails a `../` import from one package
+      (or its tests) into another's folder, everywhere (WWOD §4 › "Package aliases, never `../`").
+    - Their tests:  `tests/ui/tools/LintPatterns.test.ts`, `LintImports.test.ts`.
 - Three of the root's scripts run over every `@spell-app/*` package, with `vp run`:
   - `ts` and `test:packages`, 4 at a time
   - `review`, one at a time:  its tests flake under load

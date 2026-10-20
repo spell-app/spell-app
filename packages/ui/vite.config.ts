@@ -222,15 +222,15 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * `vite-plugin-dts` options for the published declarations:
  * `dist/index.d.ts`, `dist/core.d.ts`, `dist/components/ui-<name>/index.d.ts` ... --
  * the paths `package.json` `exports` names.
- * - `src/` imports `$/util` (`../util/src`) and `$/spell-solid` (`../spell-solid/src`), OUTSIDE this package.
+ * - `src/` imports `$/util` (`../util/src`) and `$/spell-element` (`../spell-element/src`), OUTSIDE this package.
  *   - So the program's root is `packages/` (`compilerOptions.rootDir`, else TS6059).
  *   - All three `src/` trees are included, with ui's `components/`.
  * - Then `beforeWriteFile` moves what the plugin wrote:
  *   - `dist/ui/src/**` up to `dist/**`
  *   - `dist/ui/components/**` to `dist/components/**` (where it was while the families lived in `src/components/`)
  *   - `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s)
- *   - `dist/spell-solid/src/**` to `dist/_spell-solid/**`
- * - It also rewrites `$/util`, `$/spell-solid` and `$/ui` specifiers to relative ones
+ *   - `dist/spell-element/src/**` to `dist/_spell-element/**`
+ * - It also rewrites `$/util`, `$/spell-element` and `$/ui` specifiers to relative ones
  *   (a `declare module` augmentation's too).
  *   - `pathsToAliases: false`:
  *     the plugin's own rewrite measures from the layout BEFORE the move, and gets `../packages/ui/src/...`.
@@ -238,7 +238,7 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIComponent` is copied into every entry
  *   that reaches it, and a class with private members is a DIFFERENT type in each copy.
  *   Per-file declarations keep one `UIComponent` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
- * - `util` and `spell-solid` are not published on their own, so their declarations ship inside `@spell-app/ui`
+ * - `util` and `spell-element` are not published on their own, so their declarations ship inside `@spell-app/ui`
  *   (`util`'s GENERIC ones only).
  *   NOT `util/src/spell/` or `util`'s barrel (which flattens it in):
  *   `exclude` lists them, and `src/util/index.ts` imports file by file.
@@ -246,14 +246,14 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  */
 export function declarations(): PluginOptions {
   return {
-    include: ["src", "components", "../util/src", "../spell-solid/src"],
+    include: ["src", "components", "../util/src", "../spell-element/src"],
     exclude: [
       // visual-test hooks:  they import `test/test.types.ts`, whose `vitest` augmentations this program can't resolve
       "components/**/*.visual.ts",
       "../util/src/spell/**",
       "../util/src/index.ts",
       // dev-only, never in a build
-      "../spell-solid/src/HotDefinitions.ts"
+      "../spell-element/src/HotDefinitions.ts"
     ],
     entryRoot: "..",
     compilerOptions: { rootDir: ".." },
@@ -264,7 +264,7 @@ export function declarations(): PluginOptions {
 
 /**
  * `declarations()`'s `beforeWriteFile`:  where a `.d.ts` goes in `dist/`, and its imports made to match.
- * - Returns `false` (skip) for anything outside `ui/src`, `ui/components`, `util/src` and `spell-solid/src`.
+ * - Returns `false` (skip) for anything outside `ui/src`, `ui/components`, `util/src` and `spell-element/src`.
  * - Only import / export STATEMENTS are rewritten (`from "..."`, `import("...")`, `declare module "..."`):
  *   doc comments may mention aliases.
  * - A specifier is resolved against the SOURCE tree, then expressed in `dist/` terms.
@@ -323,17 +323,17 @@ const OUTSIDE = [
   { alias: "$/ui/components", src: path.resolve("components"), written: "ui/components/", folder: "components" },
   { alias: "$/util", src: path.resolve("../util/src"), written: "util/src/", folder: "_util" },
   {
-    alias: "$/spell-solid",
-    src: path.resolve("../spell-solid/src"),
-    written: "spell-solid/src/",
-    folder: "_spell-solid"
+    alias: "$/spell-element",
+    src: path.resolve("../spell-element/src"),
+    written: "spell-element/src/",
+    folder: "_spell-element"
   }
 ]
 
 /**
  * Hot module replacement for the components in `yarn dev` (`tools/HotElements.ts`;
  * `apply: "serve"`, so builds are untouched, and NOT in `vitest.config.ts`).
- * - `HotDefinitions` (`$/spell-solid`'s) is injected by FILE PATH, not `$/spell-solid/HotDefinitions`:
+ * - `HotDefinitions` (`$/spell-element`'s) is injected by FILE PATH, not `$/spell-element/HotDefinitions`:
  *   `resolve.tsconfigPaths` only resolves aliases for TS / JS importers, and the sheets' handler import lives in a
  *   `.css?inline` module.
  */
@@ -341,7 +341,7 @@ function hotElementsPlugin(): Plugin {
   // HACK: `HotElements.ts` types its plugin with `vite`'s `Plugin`, this config with `vite-plus`'s:
   // the same version, but a second declaration TypeScript won't unify
   return hotElements(
-    fileURLToPath(new URL("../spell-solid/src/HotDefinitions.ts", import.meta.url))
+    fileURLToPath(new URL("../spell-element/src/HotDefinitions.ts", import.meta.url))
   ) as unknown as Plugin
 }
 

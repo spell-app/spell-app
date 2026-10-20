@@ -3,14 +3,21 @@ import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { resetErrorHalt } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UI } from "$/ui/core"
-import { DOMElement, UIComponent, type DOMElementClass, type ElementSetup, type UIComponentClass } from "$/spell-solid"
-import { HotDefinitions } from "$/spell-solid/HotDefinitions"
+import {
+  DOMElement,
+  SpellSolid,
+  UIComponent,
+  type ComponentVocabulary,
+  type Dictionary,
+  type DOMElementClass,
+  type ElementSetup,
+  type UIComponentClass
+} from "$/spell-element"
+import { HotDefinitions } from "$/spell-element/HotDefinitions"
+import { ElementFixture } from "$/spell-element/test/ElementFixture"
 
 /**
- * Hot reload of `ui`'s elements (`HotDefinitions`):
+ * Hot reload of elements (`HotDefinitions`):
  * a NEW version of a component class defined for a known tag swaps in place;  `update()` re-renders.
  * - A new version:  a second class of the same name, as re-running its module makes.
  * - Importing `HotDefinitions` wraps `UIComponent.define` for this file's page only:
@@ -33,7 +40,7 @@ type HotElement = DOMElement & Record<string, any> & { shadowRoot: ShadowRoot }
 /** The attribute every test tag has, unless a test says otherwise. */
 const LABEL = { name: "label", kind: "string", description: "A label." } as const
 
-/** What every element starts with for the shared attributes (`SharedVocabulary`), never written in these tests. */
+/** What every element starts with for the shared attributes (as Spell UI's `SharedVocabulary`), never written here. */
 const SHARED_STARTING_VALUES = { disabled: false, loading: false, visible: true, animation: undefined } as const
 
 /** The Spanish names of a test tag:  `<x-hot-1-es etiqueta="...">`. */
@@ -313,9 +320,8 @@ describe("HotDefinitions.updateStyle()", () => {
     ["UIDimmer.page.css", undefined],
     ["/components/ui-button/button.css", undefined]
   ])("re-registers %s's sheet as %s", async (id, name) => {
-    // loaded, so the re-registration runs at once
-    await UI.load()
-    const register = vi.spyOn(UI.styles, "register").mockImplementation(() => new CSSStyleSheet())
+    // the test settings' runtime is always loaded, so the re-registration runs at once
+    const register = vi.spyOn(SpellSolid.settings.styles, "register").mockImplementation(() => {})
     HotDefinitions.updateStyle(id, ".x {}")
     if (name) expect(register).toHaveBeenCalledWith(name, ".x {}")
     else expect(register).not.toHaveBeenCalled()

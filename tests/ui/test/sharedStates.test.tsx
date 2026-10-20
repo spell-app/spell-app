@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { A11y } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI } from "$/ui/core"
-import type { DOMElement, UIComponent } from "$/spell-solid"
+import type { DOMElement, UIComponent } from "$/spell-element"
 import type { UISearch } from "$/ui/components/ui-search/UISearch"
 
 import "$/ui/index"

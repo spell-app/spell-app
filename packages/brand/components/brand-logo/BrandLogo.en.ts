@@ -5,7 +5,7 @@
  * - `variant` and `tone` are not class words:  the component draws the outline and sets its colour.
  */
 
-import type { E } from "$/spell-solid"
+import type { E } from "$/spell-element"
 
 /****************
  * ### `brandLogoVocabulary`

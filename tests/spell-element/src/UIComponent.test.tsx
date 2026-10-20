@@ -1,16 +1,21 @@
-import { onTestFinished, beforeAll, describe, expect, test } from "vite-plus/test"
+import { onTestFinished, describe, expect, test } from "vite-plus/test"
 import { createContext, createSignal, flush, Show, useContext } from "solid-js"
 import { Dynamic, render, type JSX } from "@solidjs/web"
 
-import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
-import { UI } from "$/ui/runtime"
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UIComponent, type DOMElement, type UIComponentClass } from "$/spell-solid"
+import {
+  UIComponent,
+  type AttributeSpec,
+  type ComponentVocabulary,
+  type DOMElement,
+  type UIComponentClass
+} from "$/spell-element"
+import { ElementFixture } from "$/spell-element/test/ElementFixture"
 
 /**
- * `UIComponent`:  each element draws in a Solid root of its OWN, and an app reaches inside through `appContext`.
+ * `UIComponent`:  each element draws in a Solid root of its OWN.
  * - A slotted element's root never belongs to the `<slot>` it lands in:  a host may re-create its slots freely.
- * - A Solid context never reaches inside an element (epic `spell-element`, Q9):  `<ui-root>`'s `appContext` does.
+ * - A Solid context never reaches inside an element (epic `spell-element`, Q9):  `<ui-root>`'s `appContext` does,
+ *   tested with Spell UI's root (`tests/ui/components/ui-root/UIRoot.appContext.test.tsx`).
  */
 
 /** A test element's component, its attributes read by name (`register()` puts a getter on the class for each). */
@@ -98,16 +103,6 @@ function container(): HTMLElement {
 function text(element: Element): string | null | undefined {
   return element.shadowRoot?.textContent
 }
-
-/** The `appContext` `element`'s component saw. */
-function appContextOf(element: Element | null): unknown {
-  return (element as DOMElement).component?.appContext
-}
-
-beforeAll(async () => {
-  // loaded, so an element draws as it connects
-  await UI.load()
-})
 
 ////////////////
 // ## Solid roots
@@ -242,100 +237,5 @@ describe("UIComponent.mount() Solid roots", () => {
     const readerTag = defineElement("slot-reader", () => <span>{useContext(Context)}</span>)
     const host = await ElementFixture.render(`<${providerTag}><${readerTag}></${readerTag}></${providerTag}>`)
     expect(text(host.querySelector(readerTag)!)).toBe("missing")
-  })
-})
-
-////////////////
-// ## AppContext
-////////////////
-
-describe("UIComponent.appContext", () => {
-  /** What the app hands its elements. */
-  const APP = { theme: "dark" }
-
-  // FIRST in the file to touch `<ui-root>`:  it must still be undefined here
-  test("set on `<ui-root>` BEFORE its tag is defined:  the value survives the upgrade and reaches inside", async () => {
-    expect(customElements.get("ui-root")).toBeUndefined()
-    const tag = defineElement("early", () => <span />)
-    const root = document.createElement("ui-root") as HTMLElement & { appContext?: unknown }
-    root.appContext = APP
-    root.innerHTML = `<${tag}></${tag}>`
-    container().append(root)
-    const before = appContextOf(root.querySelector(tag))
-    await import("$/ui/components/ui-root")
-    await customElements.whenDefined("ui-root")
-    root.insertAdjacentHTML("beforeend", `<${tag}></${tag}>`)
-    await ElementFixture.settle(root)
-    expect({
-      upgraded: root instanceof (customElements.get("ui-root") as CustomElementConstructor),
-      value: root.appContext,
-      before,
-      after: appContextOf(root.lastElementChild)
-    }).toEqual({ upgraded: true, value: APP, before: APP, after: APP })
-  })
-
-  test("an element inside `<ui-root>` sees the root's `appContext`", async () => {
-    await import("$/ui/components/ui-root")
-    const tag = defineElement("reader", () => <span />)
-    const root = document.createElement("ui-root") as HTMLElement & { appContext?: unknown }
-    root.appContext = APP
-    container().append(root)
-    root.innerHTML = `<div><${tag}></${tag}></div>`
-    expect(appContextOf(root.querySelector(tag))).toBe(APP)
-  })
-
-  test("through a shadow root:  an element another element draws sees it too", async () => {
-    await import("$/ui/components/ui-root")
-    const inner = defineElement("inner", () => <span />)
-    const outer = defineElement("outer", () => <Dynamic component={inner} />)
-    const root = document.createElement("ui-root") as HTMLElement & { appContext?: unknown }
-    root.appContext = APP
-    container().append(root)
-    root.innerHTML = `<${outer}></${outer}>`
-    const host = root.querySelector(outer) as DOMElement
-    await host.ready
-    expect(appContextOf(host.shadowRoot!.querySelector(inner))).toBe(APP)
-  })
-
-  test("the NEAREST `<ui-root>` wins", async () => {
-    await import("$/ui/components/ui-root")
-    const tag = defineElement("reader", () => <span />)
-    const NEAR = { theme: "light" }
-    const outer = document.createElement("ui-root") as HTMLElement & { appContext?: unknown }
-    const near = document.createElement("ui-root") as HTMLElement & { appContext?: unknown }
-    outer.appContext = APP
-    near.appContext = NEAR
-    outer.append(near)
-    container().append(outer)
-    near.innerHTML = `<${tag}></${tag}>`
-    expect(appContextOf(near.querySelector(tag))).toBe(NEAR)
-  })
-
-  test("a translated `<ui-root>` counts too", async () => {
-    const { UIRoot } = await import("$/ui/components/ui-root")
-    UIRoot.define("x-raiz")
-    const tag = defineElement("reader", () => <span />)
-    const root = document.createElement("x-raiz") as HTMLElement & { appContext?: unknown }
-    root.appContext = APP
-    container().append(root)
-    root.innerHTML = `<${tag}></${tag}>`
-    expect(appContextOf(root.querySelector(tag))).toBe(APP)
-  })
-
-  test("outside any `<ui-root>`, or inside one that holds no value:  `null`", async () => {
-    await import("$/ui/components/ui-root")
-    const tag = defineElement("reader", () => <span />)
-    const outside = container()
-    outside.innerHTML = `<${tag}></${tag}>`
-    const empty = document.createElement("ui-root")
-    container().append(empty)
-    empty.innerHTML = `<${tag}></${tag}>`
-    expect({
-      outside: appContextOf(outside.querySelector(tag)),
-      empty: appContextOf(empty.querySelector(tag))
-    }).toEqual({
-      outside: null,
-      empty: null
-    })
   })
 })

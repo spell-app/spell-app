@@ -4,8 +4,8 @@ import { isServer, type JSX } from "@solidjs/web"
 // Import directly to avoid circular import
 import { lazy, proto, protoMerged } from "$/ui/util"
 import { E, UI, type UIT } from "$/ui/core"
-// Import directly to avoid circular import:  spell-solid imports nothing of Spell UI, so it has always loaded first
-import { UIComponent, cssState, watches, onChange, state, untracked } from "$/spell-solid"
+// Import directly to avoid circular import:  spell-element imports nothing of Spell UI, so it has always loaded first
+import { UIComponent, cssState, watches, onChange, state, untracked } from "$/spell-element"
 // Import directly to avoid circular import
 import { DOMLoadableElement } from "./DOMLoadableElement"
 import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"

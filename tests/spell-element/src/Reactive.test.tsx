@@ -2,12 +2,8 @@ import { createEffect, createRoot, flush } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
 import { describe, expect, it } from "vite-plus/test"
 
-import { E } from "$/ui/core"
-import { F } from "$/ui/forms"
-import type { UIComponentClass, DOMElement } from "$/spell-solid"
-import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
-
-import { ElementFixture } from "$/ui/test/ElementFixture"
+import { E, type ComponentVocabulary, type Dictionary, type DOMElement, type UIComponentClass } from "$/spell-element"
+import { ElementFixture } from "$/spell-element/test/ElementFixture"
 
 /**
  * The reactive members (`Reactive`):  `@state` and `@derived` on any class, then the component side --
@@ -769,52 +765,6 @@ describe("Reactive:  elementSetup.cssStates, @aria and elementSetup.aria", () =>
     const define = () => (Misspelt as unknown as UIComponentClass & typeof E.UIComponent).define("x-aria-misspelt")
     expect(define).toThrow(/<x-aria-misspelt>'s elementSetup.cssStates names nope,/)
   })
-})
-
-describe("Reactive:  vocabulary getters vs base members", () => {
-  /**
-   * Every set's English vocabularies:  Spell UI's components and docs elements, the brand's, the app's, all written on
-   * `UIComponent` (the epics' are spell-epic's, epic `epic-eject` I5).
-   */
-  const vocabularies = Object.values(
-    import.meta.glob<Record<string, unknown>>(
-      [
-        "../../../packages/ui/components/*/*.en.ts",
-        "../../../packages/ui/src/docs-components/*/*.en.ts",
-        "../../../packages/brand/components/*/*.en.ts",
-        "../../../packages/app/components/*/*.en.ts"
-      ],
-      { eager: true }
-    )
-  ).flatMap((module) =>
-    Object.values(module).filter(
-      (value): value is ComponentVocabulary =>
-        typeof value === "object" && value !== null && "tag" in value && "attributes" in value
-    )
-  )
-
-  it("no attribute is named like a member of UIComponent or FormComponent (the base would hide its getter)", async () => {
-    const { component } = await reactive(`<x-reactive></x-reactive>`)
-    const standIn = new Set(["computes", "opens", "pings", "heard"])
-    const fields = Object.keys(component).filter((key) => !standIn.has(key))
-    const taken = new Set([...fields, ...namesOf(E.UIComponent.prototype), ...namesOf(F.FormComponent.prototype)])
-    const clashes = vocabularies.flatMap(({ tag, attributes }) =>
-      attributes
-        .map(({ name }) => name.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()))
-        .filter((key) => taken.has(key))
-        .map((key) => `<${tag}> ${key}`)
-    )
-    expect(vocabularies.length).toBeGreaterThan(40)
-    expect(clashes).toEqual([])
-  })
-
-  /** Every member name on `prototype` and the prototypes above it, up to `Object`. */
-  function namesOf(prototype: object): string[] {
-    const names: string[] = []
-    for (let current = prototype; current !== Object.prototype; current = Object.getPrototypeOf(current))
-      names.push(...Object.getOwnPropertyNames(current))
-    return names
-  }
 })
 
 /** The `@watches` / `@whileConnected` stand-in's vocabulary:  nothing of its own. */

@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vite-
 
 import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/spell-solid"
+import type { DOMElement } from "$/spell-element"
 import { SiteData, type SiteDataFile, type SiteTag } from "$/ui/docs-components"
 
 import type { UIDocsApi } from "$/ui/docs-components/ui-docs-api/UIDocsApi"

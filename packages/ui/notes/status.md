@@ -170,7 +170,7 @@ NOTE:  links are relative, so they work on GitHub and in VS Code.
 
 | Piece | Status | Notes |
 |---|:-:|---|
-| custom-element layer (`DOMElement`, `UIComponent`, `ShadowEvents`, `HotDefinitions`) | ✅ | `@solidjs/element` + `component-register` folded into `src/elements/` (epic `spell-element`, 2026-10-09):  upgrade, forms, lifecycle, error boundary, HMR, event-target and slot-owner fixes;  `packages/solid-element/` gone.  Moved on into `$/spell-solid`, what every set's elements are written on (epic `people-and-orgs` P17) |
+| custom-element layer (`DOMElement`, `UIComponent`, `ShadowEvents`, `HotDefinitions`) | ✅ | `@solidjs/element` + `component-register` folded into `src/elements/` (epic `spell-element`, 2026-10-09):  upgrade, forms, lifecycle, error boundary, HMR, event-target and slot-owner fixes;  `packages/solid-element/` gone.  Moved on into `$/spell-element`, what every set's elements are written on (epic `people-and-orgs` P17) |
 | upstream PRs for those fixes | — | dropped with the package (epic `spell-element`, Q12):  the outline (`UPSTREAM.md`) is in git history only |
 | element core (`core`, `forms` entries) | ✅ | 16.2 kB + 7.5 kB |
 | `UI` runtime (lazy) | ✅ | 30.9 kB (with `UI.icons`), budget < 50 kB;  [`notes/runtime.md`](runtime.md) |

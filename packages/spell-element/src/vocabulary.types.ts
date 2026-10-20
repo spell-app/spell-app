@@ -1,0 +1,525 @@
+/**
+ * The VOCABULARY's types:  the schema every set's `<Name>.en.ts` follows (Spell UI's, the epics', the app's ...),
+ * and the translation `Dictionary` contract.
+ * - Why a schema:  vocabulary files own EVERY name a component uses
+ *   (tag, attributes, values, events, slots, parts, states, texts),
+ *   so templates and Spell UI's `ClassBuilder` never hold string literals,
+ *   and a translation can rename all of them in one place.
+ * - Canonical names are English and never change;  CSS, `ClassBuilder` output and `:state()`s always use them.
+ *   - A `Dictionary` only renames what AUTHORS type:  tags, attribute names, attribute values, events, slots, parts.
+ * - The types live here, in spell-element, since every set's elements are declared by one.
+ *   - The code that reads them is Spell UI's, `$/ui/vocabulary`:
+ *     the registry, value sets, converters, class words.
+ *   - spell-element reaches it through its settings (`SpellSolidSettings.words`).
+ *   - The shared value sets and topics are Spell UI's too (`$/ui/vocabulary`'s `ValueSets`):
+ *     it names them by augmenting `ValueSetNames` and `TopicNames`.
+ * - Types only, importing nothing:  it erases completely.
+ *   - Node reads it with every vocabulary (`yarn site:data`, `yarn gen:root`):  it MUST NOT reach the element layer.
+ */
+
+////////////////
+// ## Attributes
+////////////////
+
+/**
+ * How an attribute turns into Fomantic classes (see Spell UI's `ClassBuilder`, `packages/ui/notes/grammar.md`)
+ * or, for the last six, into a plain property with no class.
+ * - `keyOnly` -- `basic` => `basic`
+ * - `valueAndKey` -- `floated="left"` => `left floated`;  bare `floated` => nothing
+ * - `keyOrValueAndKey` -- `pointing` => `pointing`;  `pointing="left"` => `left pointing`
+ * - `width` -- `width="4"` / `"1/4"` / `"25%"` => `four wide`
+ * - `multiple` -- `only="mobile tablet"` => `mobile only tablet only`
+ * - `textAlign` -- `text-align="left"` => `left aligned`;  `"justified"` => `justified`
+ * - `verticalAlign` -- `vertical-align="middle"` => `middle aligned`
+ * - `size` -- `size="small"` => `small`;  `medium` => nothing
+ * - `color` -- `color="red"` => `red`
+ * - `valueOnly` -- `position="left"` => `left`:
+ *   a value emitted alone, placed as `color` is, that isn't a colour (states, positions, speeds ...);
+ *   always with its own `values`
+ * - `boolean` / `enum` / `string` / `number` / `json` / `icon` -- no class;  typed property only
+ * - `icon` -- an icon name:
+ *   - bare / `"true"` / `"yes"` => `spec.default`, else `""` ("the element's own icon", none if it has none)
+ *   - `"false"` / `"no"` => none (`undefined`), even over a default
+ * - NOTE: camelCase, not WWOD §9's English values, on purpose (epic `wwod-spell-ui`, P4 judgement):
+ *   they're PUBLISHED data, which these read (all Spell UI's, in `packages/ui/`):
+ *   - the docs data, `docs/__data/components.json5`
+ *   - `<ui-docs-api>`'s Kind column (`KIND_LABELS`)
+ *   - `tools/ElementManifests.ts`
+ *   - `notes/grammar.md`, and the docs page `docs/grammar.html`
+ */
+export type AttributeKind =
+  | "keyOnly"
+  | "valueAndKey"
+  | "keyOrValueAndKey"
+  | "width"
+  | "multiple"
+  | "textAlign"
+  | "verticalAlign"
+  | "size"
+  | "color"
+  | "valueOnly"
+  | "boolean"
+  | "enum"
+  | "string"
+  | "number"
+  | "json"
+  | "icon"
+
+/** Kinds `ClassBuilder` turns into classes;  the rest are property-only. */
+export type ClassAttributeKind = Exclude<AttributeKind, "boolean" | "enum" | "string" | "number" | "json" | "icon">
+
+/**
+ * One attribute of a component, as declared in its vocabulary.
+ * - Primitive attributes reflect;  rich data (`kind: "json"`) is a property only, see Spell UI's `AGENTS.md`.
+ */
+export type AttributeSpec = {
+  /** Canonical English attribute name, kebab-case, e.g. `text-align`, `allow-additions`. */
+  name: string
+  /** How the attribute becomes a class / property. */
+  kind: AttributeKind
+  /**
+   * Allowed values:  a shared set by key (`"hues"`, `"sizes"` ...) or an inline list for component-specific enums.
+   * - `color` / `size` default to `"hues"` / `"sizes"` when omitted.
+   * - NOTE: translations map shared sets once (`Dictionary.values`), inline lists per component.
+   */
+  values?: ValueSetName | readonly string[]
+  /**
+   * CSS word for `keyOnly` / `valueAndKey` / `keyOrValueAndKey` / `multiple`, e.g. `pointing`, `only`.
+   * - Defaults to `name` with `-` => space, so `very-basic` emits `very basic`.
+   */
+  key?: string
+  /**
+   * Word(s) after the number for `kind: "width"`, e.g. `"wide"` (default), `"column"`, `"wide computer"`.
+   * - Mirrors SUI React's `useWidthProp(val, widthClass)`.
+   */
+  widthClass?: string
+  /** `kind: "width"` only:  accept `"equal"` => `equal width`. */
+  canEqual?: boolean
+  /** Reflect property changes back to the attribute.  Default:  true for primitives, never for `json`. */
+  reflect?: boolean
+  /** JS property name, when it isn't `camelCase(name)`. */
+  property?: string
+  /** Value when the attribute is absent. */
+  default?: string | number | boolean
+  /**
+   * Other canonical attribute names accepted for this one, e.g. `checked` for `selected` on checkbox / radio.
+   * - NOTE: aliases are English muscle memory;  translations don't rename them.
+   * - NOTE: DECLARATIVE only:  `Vocabulary` keeps them reachable by name (translation, docs),
+   *   but `ElementDefinition` makes no observed attribute or property for an alias.
+   *   - The family reads it itself, raw, through the component's `attributes`
+   *     (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`).
+   */
+  aliases?: readonly string[]
+  /** What it does, for docs and the custom-elements manifest:  written for developers. */
+  description: string
+
+  //////
+  // What a form needs to edit it (epic `property-editor` P2):  all optional, read by `<ui-property>`.
+  // How ONE form shows it (groups, order, which control, hints, presets) is never here:  that's the form's page.
+  //////
+
+  /** The value's own type, when its `kind` doesn't say it:  a `json` attribute holding a list, say. */
+  type?: ValueType
+  /** A list's item type (`type: "list"`). */
+  of?: ValueType
+  /** A nested thing's own attributes (`type: "thing"`):  edited by a nested editor. */
+  attributesOf?: readonly AttributeSpec[]
+  /** Its label, for people:  `Lists start at`;  none:  made from `name` (`lists-start-at` => `Lists start at`). */
+  label?: string
+  /** A tip for people, behind the field's info icon:  never the docs' `description`, written for developers. */
+  tip?: string
+  /** Lowest number. */
+  min?: number
+  /** Highest number. */
+  max?: number
+  /** Numbers snap to multiples of it, from `min`. */
+  step?: number
+  /** A regular expression text must match, as `<input pattern>` writes it (no slashes). */
+  pattern?: string
+  /** Its `values` are a SCALE, in order (`xs` ... `huge`):  a form may show them as a slider with named steps. */
+  ordered?: boolean
+  /** Its choices come from a source the page registers by this name (`fonts`), maybe async:  not `values`. */
+  choicesFrom?: string
+  /**
+   * Validation rules, in `<ui-form rules>`'s shape:  `"email"`, `["notEmpty", "minLength[6]"]`.
+   * - Or each a `RuleSpec`, with its own words, as a spell type's rules come:
+   *   `{ type: "empty", prompt: "Name it" }`.
+   */
+  rules?: string | readonly (string | RuleSpec)[]
+  /** Named "on change" rules the page registers, run after a write:  setting it changes another, or its choices. */
+  onChange?: readonly string[]
+}
+
+/**
+ * What a value IS, as a form edits it.
+ * - `text`, `number`, `boolean`, `date`:  one value of that type
+ * - `choice`:  one of `values` (or `choicesFrom`'s)
+ * - `list`:  many, each `of` a type
+ * - `thing`:  a nested thing, with its own `attributesOf`
+ * - `data`:  anything else (JSON), edited as text
+ */
+export type ValueType = "text" | "number" | "boolean" | "date" | "choice" | "list" | "thing" | "data"
+
+/**
+ * What a property editor reads (`<ui-property-editor schema>`):  a thing's name and its attributes.
+ * - A component's vocabulary is one already (its `tag` the name);
+ *   a JSON block or a spell class is read into one (Spell UI's `PropertySchemas`, the app's class reader).
+ */
+export type PropertySchema = {
+  /** What it describes:  a tag (`ui-button`), a class (`ProjectSettings`), a JSON block's name. */
+  name: string
+  /** Its label, for people:  the editor's own when it has none. */
+  label?: string
+  /** What it is, for developers. */
+  description?: string
+  /** Its properties, in order. */
+  attributes: readonly AttributeSpec[]
+}
+
+////////////////
+// ## Events, slots, parts, states, texts
+////////////////
+
+/** A `CustomEvent` the component dispatches (`bubbles: true, composed: true`). */
+export type EventSpec = {
+  /** Canonical lowercase kebab name, e.g. `ui-change`. */
+  name: string
+  /** Shape of `event.detail`, as a type description for docs, e.g. `"{ value: string, originalEvent?: Event }"`. */
+  detail: string
+  /** `preventDefault()` vetoes the transition, e.g. `ui-close`. */
+  cancelable?: boolean
+  /** When it fires and what it means, for docs and the custom-elements manifest. */
+  description: string
+}
+
+/** A named slot;  `""` is the default slot, which has no name to translate. */
+export type SlotSpec = {
+  /** Canonical slot name, e.g. `header`;  `""` for the default slot. */
+  name: string
+  /** What goes in it, for docs and the custom-elements manifest. */
+  description: string
+}
+
+/**
+ * A `::part()` exposed for styling.
+ * - NOTE: a translated part is ADDED next to the canonical one (`part="header encabezado"`),
+ *   so a canonical app stylesheet keeps working under any translation.
+ */
+export type PartSpec = {
+  /** Canonical part name, e.g. `header`. */
+  name: string
+  /** Which box it is, for docs and the custom-elements manifest. */
+  description: string
+}
+
+/** A custom state, `:state(open)`.  NEVER translated:  states are a CSS contract. */
+export type StateSpec = {
+  /** State name, as CSS writes it in `:state()`, e.g. `open`. */
+  name: string
+  /** When the element has it, for docs and the custom-elements manifest. */
+  description: string
+}
+
+/**
+ * Text people read, e.g. `{ key: "noResults", text: "No results found." }`.
+ * - Looked up through the runtime's texts:  Spell UI's `UI.i18n`.
+ */
+export type TextSpec = {
+  /** Lookup key, camelCase, unique within the component. */
+  key: string
+  /** English text;  may contain `{placeholders}`. */
+  text: string
+  /** Where it shows, for translators and docs. */
+  description?: string
+}
+
+////////////////
+// ## Component vocabulary
+////////////////
+
+/**
+ * Everything a component names -- the contents of `UI<Name>.en.ts`.
+ * - Write it as `export const cardVocabulary = { ... } as const satisfies ComponentVocabulary`,
+ *   so templates get literal types.
+ */
+export type ComponentVocabulary = {
+  /** Canonical tag, e.g. `ui-card`. */
+  tag: string
+  /** Class-grammar noun, emitted last by `ClassBuilder`, e.g. `card` (`ui red card`). */
+  noun: string
+  /** Group noun, e.g. `cards` for `<ui-cards>`. */
+  plural?: string
+  /**
+   * Emit the leading `ui` class.  Default true.
+   * - `false` for parts which Fomantic styles by context only, e.g. `column` (`four wide column`, no `ui`).
+   */
+  ui?: boolean
+  /** Its attributes, in docs order. */
+  attributes: readonly AttributeSpec[]
+  /** The events it dispatches. */
+  events: readonly EventSpec[]
+  /** Its slots;  `""` is the default one. */
+  slots: readonly SlotSpec[]
+  /** The `::part()`s it exposes. */
+  parts: readonly PartSpec[]
+  /** The custom states it sets. */
+  states: readonly StateSpec[]
+  /** Text it shows people (`UI.i18n`). */
+  texts: readonly TextSpec[]
+  /**
+   * Nouns of the generic content parts this component styles by context, e.g. card:
+   * `header`, `meta`, `description`, `content`, `extra`.
+   * - `OwnerContext` uses this to find a part's owner:  `<ui-header>` inside a card gets `:state(in-card)`.
+   */
+  ownsParts?: readonly string[]
+  /** One-line summary for docs. */
+  description?: string
+  /**
+   * What the tag is filed under, so people find it however they look:
+   * `ValueSets.topics` ids, several per tag (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).
+   * - Rolled up in Spell UI's `ComponentDefinitions` (`packages/ui/components/ComponentDefinitions.ts`).
+   * - A translation maps them (`Dictionary.values.topics`).
+   */
+  topics?: readonly ComponentTopic[]
+  /**
+   * Other names people search for:  other libraries' and everyday words
+   * (`ui-modal`:  `dialog`, `lightbox`;  `ui-label`:  `badge`, `chip`, `tag`).
+   * - Searched like the tag's own name.
+   * - A translation replaces them (`ComponentDictionary.aka`).
+   */
+  aka?: readonly string[]
+  /**
+   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads, as skeleton text
+   * (`SkeletonText`):  `"inline 6 x 2.5"`, `"18 wide: square image, header, 3 line paragraph"`.
+   * - Left OUT for none of its own:
+   *   a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a list),
+   *   or a tag with nothing to show (`ui-popup`).
+   * - Text, not a `SkeletonSpec`:  one form for Spell UI's vocabularies and a component pack's.
+   *   - `yarn gen:root` (and `spell dev pack build`) parse it into a catalog.
+   *   - Spell UI's vocabularies test (`tests/ui/test/vocabularies.test.ts`) parses every one.
+   * - NEVER translated:  drawing data, like `states`.
+   */
+  skeleton?: string
+}
+
+/**
+ * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads
+ * (`ComponentVocabulary.skeleton`, written as text and parsed by `SkeletonText`).
+ * - Sizes are CSS lengths in `em`, so the element's `size` still scales them;  `fluid` on the element fills the width.
+ * - No `parts`:  one block, `width` x `height` (a button, an input).
+ */
+export type SkeletonSpec = {
+  /** `inline`:  sits beside the next inline skeleton (buttons, labels);  default `block`. */
+  readonly display?: "block" | "inline"
+  /** Width, e.g. `"18em"`;  default the placeholder's own (up to 30em). */
+  readonly width?: string
+  /** Height of a part-less block, e.g. `"2.5em"`;  default the placeholder image's (6.25em). */
+  readonly height?: string
+  /** Shapes, top to bottom. */
+  readonly parts?: readonly SkeletonPart[]
+}
+
+/** One shape of a skeleton, as `ui-placeholder` draws it. */
+export type SkeletonPart =
+  /** An image block:  `square` (1:1), `rectangular` (4:3), else 6.25em tall. */
+  | { readonly shape: "image"; readonly ratio?: "square" | "rectangular" }
+  /** A header:  two short bars, with a square `image` beside them. */
+  | { readonly shape: "header"; readonly image?: boolean }
+  /** A paragraph of `lines` bars (default 3). */
+  | { readonly shape: "paragraph"; readonly lines?: number }
+  /** One bar, `length` as `<ui-placeholder-line>`'s (default full). */
+  | {
+      readonly shape: "line"
+      readonly length?: "full" | "very long" | "long" | "medium" | "short" | "very short"
+    }
+
+/**
+ * The topics a component may be filed under:  a set's runtime adds them by augmenting this interface,
+ * so a vocabulary's `topics` are checked against them.
+ * - Spell UI's are `ValueSets.topics` (`$/ui/vocabulary`):
+ *   `declare module "$/spell-element/vocabulary.types" { interface TopicNames extends Record<..., true> {} }`
+ */
+export interface TopicNames {}
+
+/**
+ * A topic id (Spell UI's `ValueSets.topics`):  `"forms"`, `"notifications"`, `"date & time"` ...
+ * - Any text until a set names them (`NamesOf`).
+ */
+export type ComponentTopic = NamesOf<TopicNames>
+
+////////////////
+// ## Value sets
+////////////////
+
+/**
+ * Names of the shared English value sets in Spell UI's `ValueSets`.
+ * - The sets its instances declare, so the class is the ONE list.
+ * - `hues` -- Fomantic's `@variationAllColors`;  extensible
+ * - `sizes` -- `mini` ... `massive`;  `medium` is the no-op default
+ * - `positions` -- popup / tooltip positions (`top left` ... `right center`)
+ * - `attachments` -- `attached` positions (`top`, `bottom left` ...)
+ * - `alignments` -- text alignment (`left`, `center`, `right`, `justified`)
+ * - `verticalAlignments` -- `top`, `middle`, `bottom`
+ * - `floats` -- `left`, `right`
+ * - `widths` -- columns `1`..`16`;  `ValueSets.has()` also accepts words, fractions and percentages
+ * - `devices` -- responsive targets for `only` / `reversed` (`mobile`, `large screen` ...)
+ * - `booleans` -- spellings the boolean converter understands, so a translation can map `sí` => `yes`
+ * - `topics` -- what a component is filed under (a vocabulary's `topics`), so a translation maps them once
+ * - The names are the RUNTIME's:  Spell UI adds its sets by augmenting this interface,
+ *   `declare module "$/spell-element/vocabulary.types" { interface ValueSetNames extends Record<keyof ValueSets, true> {} }`,
+ *   so a vocabulary's `values: "hues"` is checked against them.
+ */
+export interface ValueSetNames {}
+
+/**
+ * The name of a shared value set (`ValueSetNames`):  `"hues"`, `"sizes"` ...
+ * - Any text until a set names them (`NamesOf`).
+ */
+export type ValueSetName = NamesOf<ValueSetNames>
+
+/**
+ * The keys of a registry of names (`ValueSetNames`, `TopicNames`), or any text while it has none:
+ * spell-element alone checks no name, a program with Spell UI checks every one.
+ */
+export type NamesOf<Registry> = [keyof Registry] extends [never] ? string : Extract<keyof Registry, string>
+
+////////////////
+// ## Translation
+////////////////
+
+/** Canonical name => localized name. */
+export type NameMap = Readonly<Record<string, string>>
+
+/**
+ * A translation of the vocabulary, e.g. Spanish, so `<ie-tarjeta color="rojo">` ~== `<ui-card color="red">`.
+ * - Keys are ALWAYS canonical English names;  values are the localized names.
+ * - Anything missing falls back to canonical, so the English identity dictionary is just `{ lang: "en" }`.
+ * - Tags and events are keyed by their full canonical name (`ui-card`, `ui-change`)
+ *   and map to a localized STEM (`tarjeta`, `cambio`):
+ *   `Vocabulary.define(prefix, dictionary)` adds the prefix (`ie-tarjeta`).
+ * - Attribute, slot and part names map name to name (`header` => `encabezado`).
+ * - NOT here:  states (a CSS contract), CSS classes, text strings (owned by Spell UI's `UI.i18n`).
+ * - See Spell UI's `packages/ui/notes/translation.md`.
+ */
+export type Dictionary = {
+  /** BCP 47 language tag, e.g. `es`. */
+  lang: string
+  /** Canonical tag => localized stem, e.g. `{ "ui-card": "tarjeta" }`. */
+  tags?: NameMap
+  /** Canonical attribute name => localized, for every component, e.g. `{ size: "tamano" }`. */
+  attributes?: NameMap
+  /** Per shared value set, canonical value => localized, e.g. `{ hues: { red: "rojo" } }`. */
+  values?: Readonly<Partial<Record<ValueSetName, NameMap>>>
+  /** Canonical event name => localized stem, e.g. `{ "ui-change": "cambio" }`. */
+  events?: NameMap
+  /** Canonical slot name => localized. */
+  slots?: NameMap
+  /** Canonical part name => localized (added alongside the canonical part). */
+  parts?: NameMap
+  /** Per-component overrides and inline enum values, keyed by canonical tag. */
+  components?: Readonly<Record<string, ComponentDictionary>>
+}
+
+/**
+ * One language's names for the attributes every element shares (`SharedVocabulary`),
+ * in a file of its own:  `SharedVocabulary.es.ts`.
+ * - A dictionary of the same `lang` reads them for every tag;  its own `attributes` (or `components[tag]`) win.
+ */
+export type SharedDictionary = {
+  /** BCP 47 language tag, e.g. `es`:  the dictionaries it serves. */
+  lang: string
+  /** Shared attribute name => localized, e.g. `{ disabled: "desactivado" }`. */
+  attributes: Readonly<Partial<Record<"disabled" | "loading" | "visible" | "animation", string>>>
+}
+
+/** Per-component part of a `Dictionary`:  wins over the dictionary-wide maps for that component only. */
+export type ComponentDictionary = {
+  /** Canonical attribute name => localized, for this component only. */
+  attributes?: NameMap
+  /** Canonical attribute name => (canonical value => localized), for inline enums or to override a shared set. */
+  values?: Readonly<Record<string, NameMap>>
+  /** Canonical event name => localized stem, for this component only. */
+  events?: NameMap
+  /** Canonical slot name => localized, for this component only. */
+  slots?: NameMap
+  /** Canonical part name => localized, for this component only. */
+  parts?: NameMap
+  /** The tag's other names in this language (replacing the English `aka`), e.g. `["diálogo", "ventana"]`. */
+  aka?: readonly string[]
+}
+
+/**
+ * One component's names after `Vocabulary.define(prefix, dictionary)` -- what a translated element class reads.
+ * - Forward maps (localized => canonical spec) serve attribute parsing.
+ * - `names` holds the inverse (canonical => localized), for rendering and `Vocabulary.localize()`.
+ */
+export type LocalizedVocabulary = {
+  /** Language of the dictionary it came from. */
+  lang: string
+  /** Prefix it was defined with, e.g. `ie`. */
+  prefix: string
+  /** The canonical vocabulary. */
+  vocabulary: ComponentVocabulary
+  /** Localized tag, e.g. `ie-tarjeta`. */
+  tag: string
+  /** Localized attribute name (and canonical aliases) => spec. */
+  attributes: Map<string, AttributeSpec>
+  /** Canonical attribute name => (localized value => canonical value).  Only attributes with values. */
+  values: Map<string, Map<string, string>>
+  /** Localized event name => spec. */
+  events: Map<string, EventSpec>
+  /** Localized slot name => spec. */
+  slots: Map<string, SlotSpec>
+  /** Localized part name => spec. */
+  parts: Map<string, PartSpec>
+  /** Inverse maps, canonical => localized. */
+  names: LocalizedNames
+}
+
+/** Canonical => localized name maps for one component. */
+export type LocalizedNames = {
+  /** Canonical attribute name => localized. */
+  attributes: Map<string, string>
+  /** Canonical attribute name => (canonical value => localized value). */
+  values: Map<string, Map<string, string>>
+  /** Canonical event name => localized, prefix included (`ie-cambio`). */
+  events: Map<string, string>
+  /** Canonical slot name => localized. */
+  slots: Map<string, string>
+  /** Canonical part name => localized. */
+  parts: Map<string, string>
+}
+
+/** Result of `Vocabulary.canonicalize()` / `localize()`. */
+export type NamePair = {
+  /** The attribute's name, in the language asked for. */
+  attribute: string
+  /** Its value in that language;  `undefined` when no value was passed. */
+  value: string | undefined
+}
+
+////////////////
+// ## Converters
+////////////////
+
+/** Options for `Converters.enumValue()`. */
+export type EnumOptions = {
+  /** Attribute name, for the dev-time warning. */
+  attribute?: string
+  /** Tag, for the dev-time warning. */
+  tag?: string
+}
+
+/**
+ * One validation rule in its object form:  Fomantic's, as `<ui-form>` checks it (`ValidationRule`).
+ * - `type`:  the rule, `"minLength"`
+ * - `value`:  its setting as text, `"3"`, `"1..5"`, `"/^\d+$/"`
+ * - `prompt`:  what to say when it's broken, in place of the rule's own words
+ * - What a spell type's rules compile to, e.g. `- its title must not be empty` (epic `property-editor` P9):
+ *   `$/util`'s `PropRule` has the same shape.
+ */
+export type RuleSpec = {
+  type: string
+  value?: string
+  prompt?: string
+}

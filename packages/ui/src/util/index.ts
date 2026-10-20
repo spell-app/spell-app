@@ -16,7 +16,7 @@
  *   - Only what sits BELOW `core` imports it by name (`import { proto, suggest } from "$/ui/util"`):
  *     `$/ui/vocabulary`, `$/ui/icons`, the runtime, types files.
  * - Also:
- *   - spell-solid's timing helpers (`$/spell-solid/timing`), to run a function later:
+ *   - spell-element's timing helpers (`$/spell-element/timing`), to run a function later:
  *     `afterSolidUpdate()`, `beforeNextPaint()`, `soon()`, `after()`, `every()`
  *   - `Warnings` -- `ui`'s console warnings, its own
  */
@@ -27,5 +27,5 @@ export * from "$/util/dom"
 export * from "$/util/string"
 export * from "$/util/util.types"
 
-export * from "$/spell-solid/timing"
+export * from "$/spell-element/timing"
 export * from "./Warnings"

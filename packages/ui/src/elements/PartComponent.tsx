@@ -3,8 +3,8 @@ import { Dynamic, type JSX } from "@solidjs/web"
 // Import directly to avoid circular import
 import { protoMerged } from "$/ui/util"
 import { E } from "$/ui/core"
-// Import directly to avoid circular import:  spell-solid imports nothing of Spell UI, so it has always loaded first
-import { UIComponent } from "$/spell-solid"
+// Import directly to avoid circular import:  spell-element imports nothing of Spell UI, so it has always loaded first
+import { UIComponent } from "$/spell-element"
 
 import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
 

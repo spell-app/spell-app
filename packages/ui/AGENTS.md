@@ -21,7 +21,7 @@ READ [the custom elements guide](../../../spell-app.epics/guides/custom-elements
   - accessibility built in
   - usable from any framework or plain HTML
 - Built on **Solid 2**:  `solid-js` / `@solidjs/web` `2.0.0-rc.13`, pinned exactly.
-- The custom-element layer is [`$/spell-solid`](../spell-solid/AGENTS.md), what EVERY set's elements are written on
+- The custom-element layer is [`$/spell-element`](../spell-element/AGENTS.md), what EVERY set's elements are written on
   (epic `people-and-orgs` P17;  it was this package's element core until then):
   - `DOMElement`, `UIComponent`, `ElementDefinition`, the reactive members' decorators, `ShadowEvents`,
     `HotDefinitions`, `Cell`, the part, slot and owner contexts, the vocabulary's types
@@ -66,7 +66,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
   - Everything in `$/ui/util` lands in the `core` bundle (`core.ts` re-exports it), so keep it small.
 - [`src/vocabulary/`](src/vocabulary/) (`V`, through the `api` entry):  the naming layer.
   - the vocabulary schema's types, which every set's vocabularies follow:
-    `$/spell-solid`'s [vocabulary.types.ts](../spell-solid/src/vocabulary.types.ts)
+    `$/spell-element`'s [vocabulary.types.ts](../spell-element/src/vocabulary.types.ts)
     - This folder re-exports them.
     - It names Spell UI's value sets and topics into them:  `ValueSets`, a `declare module` augmentation.
   - value sets
@@ -90,8 +90,8 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
   - Packs are built by [the icon pack builder](tools/IconPackBuilder.ts), `yarn icons:pack`.
   - More:  [the icons doc](notes/icons.md).
 - [`src/elements/`](src/elements/) (`E`):  Spell UI's own half of the element core,
-  on `$/spell-solid`'s half ([spell-solid's AGENTS.md](../spell-solid/AGENTS.md)).
-  - spell-solid's:  `UIComponent`, `DOMElement`, `ElementDefinition`, `Reactive`, `Cell`, `SlotContent`,
+  on `$/spell-element`'s half ([spell-element's AGENTS.md](../spell-element/AGENTS.md)).
+  - spell-element's:  `UIComponent`, `DOMElement`, `ElementDefinition`, `Reactive`, `Cell`, `SlotContent`,
     `PartContext`, `OwnerContext`, `HotDefinitions`
   - library-neutral:  `ClassBuilder`, `Validator`, `MenuOptions`, `Shorthand`, `NativeFallback`
   - on Solid:
@@ -101,7 +101,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
     - `LoadableComponent` + `DOMLoadableElement`:  the base of the elements that show a text file
       (`source`, inline text, loading / error look, `save()`)
     - `LoadableBody` + `DOMLoadableBodyElement`:  a section's body, loaded from `source` the first time it opens
-  - [SpellUISettings](src/elements/SpellUISettings.ts):  what Spell UI hands spell-solid as `$/ui/core` loads
+  - [SpellUISettings](src/elements/SpellUISettings.ts):  what Spell UI hands spell-element as `$/ui/core` loads
     (`SpellSolid.install()`), a side effect
   - The DOM element bases keep their own files (`DOMElement.ts`, `DOMFormControl.ts` ...).
     - Many families and the static render import them.
@@ -176,6 +176,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
   - `Fixture.render(html)` (`Fixture.ts`);  `A11y.check(el)` / `expectAccessible(el)` (`A11y.ts`)
   - `ElementFixture`:  render, wait for `ready`, `flush()`;  `breakRender()`
   - `StubOwner`:  stand-in owners (card, feed ...)
+  - `MemberClashes`:  a set's vocabulary attributes named like a base's member;  every set's tests run it over their own
   - `PerfRun` (the dropdown benchmark), `fallback.cases.ts`, `dictionary.es.ts`
   - `VisualOpen` + `test.types.ts`:  the visual tests' hooks
   - `visual/baselines/`:  the screenshots (`yarn test:visual`)
@@ -668,7 +669,7 @@ SHARED STATES:  states every element takes, though its vocabulary never names th
 ### Reactive members
 
 **Reactive members** (WWOD §12 › "Reactive members"):  decorators over ONE record per instance.
-- They're `$/spell-solid`'s:  [`Reactive`](../spell-solid/src/Reactive.ts).
+- They're `$/spell-element`'s:  [`Reactive`](../spell-element/src/Reactive.ts).
 - So `this.x` reads fresh right after `this.x = v` (no flush), and Solid follows the reads in JSX and effects.
 - The decorator says how the member works.
 
@@ -834,7 +835,7 @@ SHARED STATES:  states every element takes, though its vocabulary never names th
   - `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `"disabled"` in `elementSetup.cssStates`.
   - ARIA of its own, if any, on a getter:  `@E.aria("disabled") get looksDisabled()`.
   - Never an `isDisabled` override:  the DOM element swallows clicks while `isDisabled`.
-- Element-core files import the decorators directly (`import { state } from "$/spell-solid"`):
+- Element-core files import the decorators directly (`import { state } from "$/spell-element"`):
   their class definitions read them.
   - Component files use `@E.state` (and `@E.proto`).
 - Measured (P14 step 1):
@@ -878,7 +879,8 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
   - The `forms` files are the exception's exception:  `extends E.UIComponent` / `@E.proto` are fine there.
     - Why:  the core never imports `forms`, and has always finished loading first.
     - A `forms` peer a class definition reads is still direct:  `FormComponent`'s `DOMFormControl`, `Validator`.
-  - [The barrel test](../../tests/ui/src/elements/barrel.test.ts) checks every export of both entries is live.
+  - [The barrel test](../../tests/ui/src/elements/barrel.test.ts) checks every export of both entries is live,
+    and that `$/ui/core` carries every name of `$/spell-element`.
   - NEVER import an element-core leaf by path (`$/ui/elements/PartComponent`):  entering the cycle there breaks it.
 
 ### Writing reactive code
@@ -900,7 +902,7 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
   - Tests `await ElementFixture.settle()` / `tick()` (which `flush()`) before checking the DOM.
     Never sleep.
 - **Running something later:**  through the timing helpers, never the platform's calls, so the code says WHEN.
-  - They're `$/spell-solid`'s ([`timing`](../spell-solid/src/timing.ts)), re-exported by `$/ui/util`.
+  - They're `$/spell-element`'s ([`timing`](../spell-element/src/timing.ts)), re-exported by `$/ui/util`.
   - `E.afterSolidUpdate(fn)`:  as soon as the current code finishes (a microtask:  `queueMicrotask()`)
   - `E.beforeNextPaint(fn)`:  just before the next paint (`requestAnimationFrame()`)
   - `E.soon(fn)`:  the next task (`setTimeout(fn, 0)`)
@@ -949,8 +951,8 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
   - Internal state (a query, an open menu) resets.
   - These reload the page:
     - changes the platform reads once:  observed attributes, `formAssociated`, the DOM element's class, shadow options
-    - edits to shared code:  `core`, `forms`, `src/elements/`, `$/spell-solid`, the runtime
-  - `yarn test:hmr` MUST pass after touching `HotDefinitions`, `UIComponent.define()` (`$/spell-solid`'s)
+    - edits to shared code:  `core`, `forms`, `src/elements/`, `$/spell-element`, the runtime
+  - `yarn test:hmr` MUST pass after touching `HotDefinitions`, `UIComponent.define()` (`$/spell-element`'s)
     or [the Vite plugin](tools/HotElements.ts).
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`).
   - NEVER `import * as` a Solid package in shipped code:  it pins every export into bundles and vendored copies.
@@ -970,13 +972,13 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
 
 THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to the rules above.
 - Its rules are named `spell-ui/*`.
-- Where:  EVERY set's component folders (all written on `$/spell-solid`),
+- Where:  EVERY set's component folders (all written on `$/spell-element`),
   as `PATTERN_FOLDERS` in [the root lint settings](../../vite.lint.ts) lists them.
   - `ui`:  `components/`, `src/docs-components/`
   - `epics`:  `components/`
   - `brand`:  `components/`
   - `app`:  `components/` (`<spell-app>`, `<spell-editor>`;  since epic `people-and-orgs` P17)
-  - NOT `app`'s `src/` (WWOD §17's function components), NOT the element core (`$/spell-solid`, `src/elements/`),
+  - NOT `app`'s `src/` (WWOD §17's function components), NOT the element core (`$/spell-element`, `src/elements/`),
     NOT tests.
 - What it flags ([the rules](../../vite.lint.patterns.ts)).
   Each message names the decorator or helper to use instead.
@@ -1057,8 +1059,9 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
     - The root still gets ready.
 - Modules a pack shares with the page are `SpellUI.packModules`:
   the EXACT specifier its build leaves external => the page's module.
-  - `solid-js`, `@solidjs/web`, `$/spell-solid`, `$/ui/core`, `$/ui/forms`
-  - `$/spell-solid`, what a pack's elements are written on, is Spell UI's core module:  it carries all of it.
+  - `solid-js`, `@solidjs/web`, `$/spell-element`, `$/ui/core`, `$/ui/forms`
+  - `$/spell-element`, what a pack's elements are written on, is Spell UI's core module:  it carries all of it.
+    - REFACTOR: `$/spell-solid` too, its name until epic `repo-split` P3, until spell-epic follows the rename (T6).
   - Built in two places, never in the library:
     - [the docs bundle's entry](../../spell-epic/src/tools/_assets/spell-ui.entry.js), spell-epic's
     - the site's bundle, every component set's ([SitePacks.ts](site/_src/SitePacks.ts))
@@ -1087,7 +1090,7 @@ As WWOD §8, plus our self-namespaces:  one per lib entry, since each entry is i
 
 | Name | Is | What's in it |
 | --- | --- | --- |
-| `E` | `$/ui/core` | the element core and the foundation:  `E.UIComponent`, `E.proto`, `E.Cell`, `E.Converters`;  `$/spell-solid`'s `E` is the element half of it, the same objects |
+| `E` | `$/ui/core` | the element core and the foundation:  `E.UIComponent`, `E.proto`, `E.Cell`, `E.Converters`;  `$/spell-element`'s `E` is the element half of it, the same objects |
 | `F` | `$/ui/forms` | what only form controls need:  `F.FormComponent`, `F.MenuOptions` |
 | `UI` | the runtime singleton, from `$/ui/runtime` | an instance, read like an app singleton;  never through `E` |
 | `UIT` | `$/ui/components/components.types` | the constants, types and `ToggleCommands` several families share:  `UIT.FLUID`, `UIT.Key.enter`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue` |
@@ -1127,6 +1130,10 @@ As WWOD §4, with `$/ui` / `$/ui/*` as our alias, plus these deliberate EXCEPTIO
 - `scripts/` likewise:  relative imports with `.ts` extensions, no aliases.
   - [`Terminal`](tools/Terminal.ts), [`StyleGenerator`](src/styles/StyleGenerator.ts):  a leaf file, never a barrel with `?inline` CSS
   - peers after a blank line (`./generatedFiles.ts`)
+- `package.json`'s `exports` names two SOURCE files beside the built ones, for other packages' Vite configs,
+  which Vite loads with no alias table (WWOD §4 › "Package aliases, never `../`"):
+  - `@spell-app/ui/vite.config.ts`:  `baseConfig()`, `CSS_TARGETS`, `SOLID_DEDUPE` ... (the brand's, the app's)
+  - `@spell-app/ui/test/setup.ts`:  a browser test project's `setupFiles`, Spell UI's core first
 
 ## Comments & docs
 
