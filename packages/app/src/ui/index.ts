@@ -4,6 +4,8 @@
  * - NOT the app's own UI:  that's Solid, on `@spell-app/ui`, in `$/app/solid`.  Spell PROGRAMS draw with Spell UI's
  *   `<ui-*>` elements (epic `output-targets` P11 retired the React kit that lived here).
  * - NOTE: deliberately left out:
+ *   - `./ClassSchemas`:  a spell class as a property editor's schema, imported by path (`$/app/ui/ClassSchemas`) where
+ *     the editor is drawn, so this barrel stays types only
  *   - `./monaco`:  Monaco's plumbing (no UI), loaded on first use through `$/app/solid`'s `LazyMonaco`
  *   - `syntax.css`:  the syntax colours, imported by the Solid viewers that use them
  */
