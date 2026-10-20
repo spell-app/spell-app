@@ -69,7 +69,7 @@ class Card(Thing):
     """Definition of a card -- in the outline style:  a heading, then what's true of it"""
 
     # suit and rank
-    # - its "suit" is a suit of its deck
+    # suit is a suit of its deck
     suit = prop(one_of=lambda: Deck.SUITS)
 
     @property
@@ -220,6 +220,7 @@ class Card(Thing):
         cards_to_move = start_pile.starting_with(self)
         cards_to_move.name = start_pile.name
         print(f"moving ({cards_to_move.state}) to ({end_pile.state})")
+
         for card in cards_to_move:
             core.move(card, end_pile)
 
@@ -354,6 +355,12 @@ class Pile(List):
 
     item_type = Card
 
+    # name is text
+    name = prop(type="text")
+
+    # droppable is yes or no
+    droppable = prop(type="choice")
+
     @property
     def color(self) -> Any:
         if not self:
@@ -375,9 +382,6 @@ class Pile(List):
 
     exclusive = True
 
-    # set the name of cards-to-move to the name of the start-pile
-    name = prop()
-
 
 # a card is in one pile at a time:  putting it on another pile takes it off this one
 
@@ -389,15 +393,21 @@ class Pile(List):
 # ## Klondike Solitaire Card Game
 #################################
 # See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
+# What's where, top to bottom:  each part uses only what's above it.
+#   the game:  what it has
+#   the piles:  each kind, and what it may take or give up  (could be its own file, before this one)
+#   the table:  one of each pile, laid out as the game loads
+#   what the game knows:  its state, which reads the table
+#   playing:  the moves
+#   drawing
+#   start
 
 
 class Game(App):
-    """Game bits"""
+    """The game:  what it has"""
 
-    # a game has a score as a number
+    # score is a number
     score = prop(type="number")
-
-    # actions
 
     @property
     def state(self) -> list:
@@ -481,17 +491,11 @@ class Game(App):
         )
 
 
-game = Game()
-core.console.log(game)
-
-# set up all piles
-all_piles = List(item_type="Pile")
-foundations = List(item_type="Pile")
-tableaus = List(item_type="Pile")
+# The piles:  each kind, and what it may take or give up
 
 
 class StockPile(Pile):
-    """set up stock pile: unplayed cards"""
+    """the stock:  cards not played yet"""
 
     def can_give_up(self, card: Card) -> bool:
         return card == self.last_item
@@ -508,12 +512,8 @@ class StockPile(Pile):
         )
 
 
-stock = StockPile(name="stock", droppable=False)
-all_piles.append(stock)
-
-
 class DiscardPile(Pile):
-    """set up discards: where played cards go when turning over stock"""
+    """the discards:  where cards go as the stock is turned over"""
 
     def can_give_up(self, card: Card) -> bool:
         return card == self.last_item
@@ -522,12 +522,11 @@ class DiscardPile(Pile):
         return h("div", {"class": "Pile Discards stacked"}, core.draw_thing(self.last_item))
 
 
-discards = DiscardPile(name="discards", droppable=False)
-all_piles.append(discards)
-
-
 class Foundation(Pile):
-    """set up foundation piles: where we build up from ace => king"""
+    """a foundation:  where a suit is built up, ace to king"""
+
+    # symbol is text
+    symbol = prop(type="text")
 
     def can_give_up(self, card: Card) -> bool:
         return False
@@ -539,10 +538,10 @@ class Foundation(Pile):
             return False
         return self.name == card.suit and self.value + 1 == card.value
 
-    #
-    # rendering the bits
-
-    # note: tableaus just draw as a (vertical) list of cards
+    ######################################################################
+    # ## Drawing:  after playing, as the stock's placeholder plays from it
+    ######################################################################
+    # a tableau just draws as a (vertical) list of cards
 
     def draw(self) -> Any:
         color = "red" if self.name == "diamonds" or self.name == "hearts" else "black"
@@ -558,20 +557,8 @@ class Foundation(Pile):
         )
 
 
-it = Foundation(name="clubs", symbol="♣️", droppable=True)
-foundations.append(it)
-it_2 = Foundation(name="diamonds", symbol="♦️", droppable=True)
-foundations.append(it_2)
-it_3 = Foundation(name="hearts", symbol="♥️", droppable=True)
-foundations.append(it_3)
-it_4 = Foundation(name="spades", symbol="♠️", droppable=True)
-foundations.append(it_4)
-for pile in foundations:
-    all_piles.append(pile)
-
-
 class Tableau(Pile):
-    """set up tableau piles: vertical piles where we arrange from king to ace"""
+    """a tableau:  a column, built down from king to ace, red and black in turn"""
 
     def can_give_up(self, card: Card) -> bool:
         return card.is_face_up
@@ -585,20 +572,47 @@ class Tableau(Pile):
         return h("div", {"class": "Pile Tableau staggered"}, core.draw_items(self))
 
 
+# The table:  one of each pile, laid out as the game loads
+game = Game()
+core.console.log(game)
+
+all_piles = List(item_type="Pile")
+
+stock = StockPile(name="stock", droppable=False)
+all_piles.append(stock)
+
+discards = DiscardPile(name="discards", droppable=False)
+all_piles.append(discards)
+
+foundations = List(item_type="Pile")
+it = Foundation(name="clubs", symbol="♣️", droppable=True)
+foundations.append(it)
+it_2 = Foundation(name="diamonds", symbol="♦️", droppable=True)
+foundations.append(it_2)
+it_3 = Foundation(name="hearts", symbol="♥️", droppable=True)
+foundations.append(it_3)
+it_4 = Foundation(name="spades", symbol="♠️", droppable=True)
+foundations.append(it_4)
+for pile in foundations:
+    all_piles.append(pile)
+
+tableaus = List(item_type="Pile")
 for number in range(1, 8):
     it_5 = Tableau(name=f"T{number}", droppable=True)
     tableaus.append(it_5)
     all_piles.append(it_5)
 
-# set up deck of cards
+# the deck:  every card starts in the stock
 deck = Deck()
 deck.set_up()
-# start with cards in the stock pile
 for card in deck:
     stock.append(card)
 
+# What the game knows:  read from the table, so after it
+
 
 def debug_the_game() -> None:
+    """Playing"""
     for line in game.state:
         core.console.log(line)
 
@@ -714,6 +728,7 @@ async def cheat() -> None:
     core.move(card, discards)
 
 
+# Start
 asyncio.run(reset_the_game())
 game.start()
 

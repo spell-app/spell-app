@@ -292,8 +292,8 @@ export type ProjectRootSpec = {
 
 /** What a `SpellStatement` takes as its body -- decoded from the body keyword ending its `syntax`. */
 export type StatementBodySpec = {
-  /** Rule to parse rest of the line as, if we take an inline body. */
-  inlineAs?: "statement" | "expression"
+  /** Rule to parse rest of the line as, if we take an inline body, e.g. `value_if` for `property_value_either`. */
+  inlineAs?: "statement" | "expression" | "value_if"
   /** How to parse the indented block after us, if we take one:  every line as a `"block"`, or ONE line. */
   nestedAs?: "block" | "expression"
   /** Body keyword rule from `syntax`, e.g. `{statement_body}?`, echoed back by `toRulexSyntax()`. */
@@ -333,6 +333,11 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   expression_body: { inlineAs: "expression", nestedAs: "block" },
   /** Rest of the line, as an expression. */
   inline_expression: { inlineAs: "expression" },
+  /**
+   * Rest of the line, as ONE line of a getter's body (`value_if`), e.g. `property_value_either`'s:
+   * `red if ... otherwise it is black`
+   */
+  inline_value_if: { inlineAs: "value_if" },
   /**
    * ONE indented line after the line, as an expression, e.g. `return` + indented JSX.
    * - TODO: review -- only `return` uses it, and only because a line can't see the indented lines under it.

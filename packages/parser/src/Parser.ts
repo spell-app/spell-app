@@ -359,6 +359,14 @@ export class Parser extends Derivative {
     }
     // Add to our list of rules
     else {
+      if (rule.zeroWidth && !P.Subrule.zeroWidthRules.has(ruleName)) {
+        if (P.Subrule.namesInUse.has(ruleName)) {
+          throw new TypeError(
+            `Parser.addRule():  zero-width rule '${ruleName}' is named by a syntax made before it;  register it first`
+          )
+        }
+        P.Subrule.zeroWidthRules.set(ruleName, rule)
+      }
       const previous = this.#ownRules[ruleName]
       this.mergeRule(this.#ownRules, ruleName, rule)
       const next = this.#ownRules[ruleName]

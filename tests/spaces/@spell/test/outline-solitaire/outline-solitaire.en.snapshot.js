@@ -40,10 +40,11 @@ export const words = {
       pile: "pile"
     },
     Pile: {
+      name: "name",
+      droppable: "droppable",
       color: "color",
       value: "value",
-      state: "state",
-      name: "name"
+      state: "state"
     },
     Game: {
       score: "score",
@@ -57,6 +58,7 @@ export const words = {
       draw: "draw a discard-pile"
     },
     Foundation: {
+      symbol: "symbol",
       draw: "draw a foundation"
     },
     Tableau: {

@@ -55,7 +55,7 @@ export class Rank {
 /** Definition of a card -- in the outline style:  a heading, then what's true of it */
 export class Card extends Thing {
   /** suit and rank */
-  // - its "suit" is a suit of its deck
+  // suit is a suit of its deck
   static { this.declareProp("suit", { oneOf: () => Deck.Suits }) }
   get suit() { return this.getProp("suit") }
   set suit(value) { this.setProp("suit", value) }
@@ -234,6 +234,16 @@ export function testDeckCreation(...args) {
 export class Pile extends List {
   static instanceType = Card
 
+  // name is text
+  static { this.declareProp("name", { type: "text" }) }
+  get name() { return this.getProp("name") }
+  set name(value) { this.setProp("name", value) }
+
+  // droppable is yes or no
+  static { this.declareProp("droppable", { type: "choice" }) }
+  get droppable() { return this.getProp("droppable") }
+  set droppable(value) { this.setProp("droppable", value) }
+
   get color() {
     if (this.isEmpty) return "none"
     return this.lastItem.color
@@ -251,26 +261,29 @@ export class Pile extends List {
   }
 
   static exclusive = true
-
-  // set the name of cards-to-move to the name of the start-pile
-  get name() { return this.getProp("name") }
-  set name(value) { this.setProp("name", value) }
 }
+
 /** a card is in one pile at a time:  putting it on another pile takes it off this one */
 // -----------
 //////////////////////////////////
 // ## Klondike Solitaire Card Game
 //////////////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
+// What's where, top to bottom:  each part uses only what's above it.
+//   the game:  what it has
+//   the piles:  each kind, and what it may take or give up  (could be its own file, before this one)
+//   the table:  one of each pile, laid out as the game loads
+//   what the game knows:  its state, which reads the table
+//   playing:  the moves
+//   drawing
+//   start
 
-/** Game bits */
+/** The game:  what it has */
 export class Game extends App {
-  // a game has a score as a number
+  // score is a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }
-
-  //## actions
 
   get state() {
     let state = []
@@ -317,14 +330,10 @@ export class Game extends App {
     )
   }
 }
-export let game
 
-/** set up all piles */
-export let allPiles
-export let foundations
-export let tableaus
+//## The piles:  each kind, and what it may take or give up
 
-/** set up stock pile: unplayed cards */
+/** the stock:  cards not played yet */
 export class StockPile extends Pile {
   canGiveUp(card) {
     return card === this.lastItem
@@ -337,9 +346,8 @@ export class StockPile extends Pile {
     )
   }
 }
-export let stock
 
-/** set up discards: where played cards go when turning over stock */
+/** the discards:  where cards go as the stock is turned over */
 export class DiscardPile extends Pile {
   canGiveUp(card) {
     return card === this.lastItem
@@ -349,10 +357,14 @@ export class DiscardPile extends Pile {
     return h("div", { class: "Pile Discards stacked" }, () => core.drawThing(this.lastItem))
   }
 }
-export let discards
 
-/** set up foundation piles: where we build up from ace => king */
+/** a foundation:  where a suit is built up, ace to king */
 export class Foundation extends Pile {
+  // symbol is text
+  static { this.declareProp("symbol", { type: "text" }) }
+  get symbol() { return this.getProp("symbol") }
+  set symbol(value) { this.setProp("symbol", value) }
+
   canGiveUp(card) {
     return false
   }
@@ -363,10 +375,10 @@ export class Foundation extends Pile {
     return this.name == card.suit && this.value + 1 === card.value
   }
 
-  //##############
-  //## rendering the bits
-
-  // note: tableaus just draw as a (vertical) list of cards
+  ///////////////////////////////////////////////////////////////////////
+  // ## Drawing:  after playing, as the stock's placeholder plays from it
+  ///////////////////////////////////////////////////////////////////////
+  // a tableau just draws as a (vertical) list of cards
 
   draw() {
     const color = this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
@@ -378,12 +390,8 @@ export class Foundation extends Pile {
     )
   }
 }
-export let it
-export let it2
-export let it3
-export let it4
 
-/** set up tableau piles: vertical piles where we arrange from king to ace */
+/** a tableau:  a column, built down from king to ace, red and black in turn */
 export class Tableau extends Pile {
   canGiveUp(card) {
     return card.isFaceUp
@@ -399,10 +407,29 @@ export class Tableau extends Pile {
   }
 }
 
-/** set up deck of cards */
-export let deck
-// start with cards in the stock pile
+/** The table:  one of each pile, laid out as the game loads */
+export let game
 
+export let allPiles
+
+export let stock
+
+export let discards
+
+export let foundations
+export let it
+export let it2
+export let it3
+export let it4
+
+export let tableaus
+
+/** the deck:  every card starts in the stock */
+export let deck
+
+//## What the game knows:  read from the table, so after it
+
+/** Playing */
 export function debugTheGame(...args) {
   return sendCall("debug_the_game", args)
 }
@@ -431,6 +458,7 @@ export function cheat(...args) {
   return sendCall("cheat", args)
 }
 
+//## Start
 // -----------
 core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
 
@@ -438,14 +466,14 @@ core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relati
 export function adopt(state) {
   game = state["game"]
   allPiles = state["all_piles"]
-  foundations = state["foundations"]
-  tableaus = state["tableaus"]
   stock = state["stock"]
   discards = state["discards"]
+  foundations = state["foundations"]
   it = state["it"]
   it2 = state["it_2"]
   it3 = state["it_3"]
   it4 = state["it_4"]
+  tableaus = state["tableaus"]
   deck = state["deck"]
 }
 

@@ -14,7 +14,7 @@ import { TypeSpecifierEnum } from "./TypeSpecifierEnum"
  *   `the "color" of a suit is: ...` -- see `property_value_getter`.
  * - SIDE EFFECT:  declares
  *   - on the body's type, e.g. `Deck`, the class variable `Suits` and its instance twin,
- *     as `define_property_has` gives an enumerated property's
+ *     as `define_property_has` gives an enumerated property's -- a `list of suits`
  *   - each value, as a project constant
  *   - the kind's `P.TypeScope`, e.g. `Suit`, with `valueKind`:
  *     claiming a stub of it, e.g. from `its "suit" is a suit` above
@@ -50,6 +50,8 @@ export class ValueKind extends SpellStatement<"values|specifier", ValueKindData>
     const listName = ValueKind.listName(match)
     const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
       name: listName,
+      // a list of the kind, e.g. `list of suits`:  so a loop over it knows its item is a suit (issue I14)
+      datatype: P.listOf(kind!),
       enumeration: values,
       initializer: P.enumerationInitializer(values),
       declaredBy: match

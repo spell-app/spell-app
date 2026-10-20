@@ -57,6 +57,13 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - how tightly an operator binds is spell's `precedence` (see "Expressions")
 - [`Sequence.parse()`](../parser/src/rules/Sequence.ts) first runs `Sequence.test()`:
   - fixed words, symbols and patterns are checked where they must fall;  subrules are skipped
+    - except a ZERO-WIDTH rule's (`Rule.zeroWidth`), which takes no tokens:
+      the test stays where it is, if the rule's own `test()` says it could match here at all
+    - e.g. spell's `subject_implied`, the subject an outline line leaves out (see "Outline bodies")
+    - a subrule knows the rule it names is zero-width as soon as it's made (`Subrule.zeroWidthRule`)
+      - so a zero-width rule is registered BEFORE any syntax naming it:  `Parser.addRule()` throws otherwise
+    - a sequence STARTING with one asks it first (`Sequence.leadingZeroWidth`):
+      a line it can't be fails at once
   - it rejects ~92% of attempts before any child parses
   - then each child is parsed at the head of the remaining tokens
   - GIVE-BACK:  a required word failing right after a required `{slot}` re-parses the slot shorter.
@@ -660,14 +667,24 @@ A kind that says so is saved in a file of its own.
   - [outline.test.ts](../../tests/spell/src/parserTests/outline.test.ts) pins it.
 - `create_type` / `create_list_type` share [`TypeDeclaration`](src/rules/classes/TypeDeclaration.ts).
   - A syntax ending `{with_nested_statements}?` takes the body.
-    - That's `where:`, `with:` or `:`.
-  - Without it, the same syntax declares the type alone.
+    - That's `where:`, `with:`, `:`, or `where` alone.
+    - Or nothing at all (P10):  the indented block under a type's heading is its body anyway.
+      - e.g. `a stock-pile is a pile`, then `- can give up a card if: ...` under it
+      - `TypeDeclaration.takesNestedBody()`
+  - With nothing indented under it, the same syntax declares the type alone.
   - The body's scope is a [`P.SubjectScope`](../parser/src/scope/SubjectScope.ts):
     - it owns nothing, so what its lines declare lands where the same lines at the top level would
     - `subject` names the type
   - `flatBody` (`SpellStatement`):  the body is NOT `enclose`d.
     - `Block.getAST()` splices its statements in after the type's.
     - So `SP.hoistClassMembers()` moves its members into the class as usual.
+- Re-opening a type (P11):  `a game:`, then a body, adds to a type declared elsewhere, in the same file or a later one.
+  - Its rule:  [`reopen_type`](src/rules/classes/ReopenType.ts), a `TypeDeclaration` with no class of its own.
+    Its body's lines compile beside it, as the sentence style's would.
+  - The colon stays required:  a lone `a game` is a fragment.
+  - A type nobody declares is refused, saying how to declare it.
+  - A type declared a SECOND time is refused, naming the first and saying to write `a game:` (issue I13).
+    That's `TypeDeclaration.refuseTakenNames()`.
 - `subject_it` / `subject_its`:  `it` / `its` as a line's SUBJECT.
   - Their class:  `SubjectRule`, in `types/`.
   - Each is a `SpellType` match for the type:
@@ -680,6 +697,29 @@ A kind that says so is saved in a file of its own.
     - `define_property_has`, `property_value_getter`, `belongs_to_one`
     - `quoted_type_expression`, `quoted_property_formula`
     - `its_quoted_property` (a `type_property` for `property_value_either`)
+    - `saved_inline`, `saved_in_file`, and `list_guard`'s three (`- it can take a card if: ...`)
+- `subject_implied`:  the subject LEFT OUT (P8).
+  - e.g. `- has a name as text`, `- "suit" is a suit`
+  - A `SubjectRule` taking NO tokens (`zeroWidth`, see "Rules and matching").
+    Its match is the same as `it`'s, so the rule using it can't tell the difference.
+  - Each syntax above with `it` or `its` has a twin with the subject left out, `{type:subject_implied}`.
+  - Only where the line then starts with a quoted name, or a verb:
+    - `has`, `belongs`, `is saved`, `can`
+  - Or a BARE name (P9):  `- rank is a number`, `- color is red if ...`
+    - Its rule:  [`body_member_words`](src/rules/properties/BodyMemberWords.ts).
+      That's `member_words`, but never starting with `it` / `its`, or any word a statement starts with.
+    - So `- return x is 1` stays a `return`.
+    - Those words come from the `statement` rules themselves:  each one's first fixed word.
+    - A property named so keeps its quotes:  `- "type" is ...`
+  - `is` or `are`:  `- piles are a list of piles`
+  - A subject-less getter is a declaration (`Priority.declaration`), once its body parsed:
+    so `- score is 0` is the card's getter, not a variable (it warns:  "score is always 0 ...").
+    Inside a getter or method there, `total is 0` still sets a local.
+  - Without a subject, `- "x" is ...` is a property, as `its "x" is ...` is.
+    - The phrase's twin has no `is`.
+    - `QuotedTypeExpression.isPropertyWithoutSubject()` steps aside for it:
+      the phrase's higher priority would otherwise take the quoted name alone.
+  - Outside a type's body, nothing changes:  `"rank" is a number` at the top level is an error.
 - Quoted names:  "quotes teach a new word".
   - `quoted_type`:  `a "card" is a thing`, in any type declaration
   - `quoted_member`:  `its "short rank" is ...`, in a body
@@ -736,13 +776,28 @@ A kind that says so is saved in a file of its own.
     `MemberReadExpression` does it, with `SP.parseReadAsTemplate()`'s static form.
 - A value-per-line body ([ValueIf.ts](src/rules/if/ValueIf.ts), at `Priority.overridable`):
   - `value_if`:  `red if it is diamonds or hearts` => `if (...) { return 'red' }`
+    - it may name the other value too:  `... otherwise it is black` => then `return 'black'`
   - `value_otherwise`:  `black otherwise` => `return 'black'`
+  - Only in a getter's or method's body:  anywhere else, an error saying where it belongs (epic page I9).
+    Outside a function, its `return` would make a program that won't load.
+  - `property_value_either` is a getter whose inline body is ONE line like these (T6).
+    - e.g. `the color of a card is red if ... otherwise it is black`
+    - Its body keyword:  `{inline_value_if}` (`BODY_KEYWORDS`).
+    - Its own quick `test()` looks for the `if`:
+      `Sequence.test()` can't, as the body is parsed apart.
 - A choice of values is `is_in` with [`value_choices`](src/rules/lists/ValueChoices.ts).
   - e.g. `it is diamonds or hearts`, `is jack, queen or king`
   - two or more KNOWN constants or numbers joined by `or` => `core.includes([...], it)`
   - It was `(it == 'diamonds') || 'hearts'`.
 - Ranges in a list of values:  `2 ... 10`.
   - Its rule:  `number_range`, spread by `identifier_list`.
+- A kind's list is a `list of suits` (its class variable and instance twin, issue I14):
+  so `for each rank in its ranks` knows each is a rank, and a member a rank doesn't have warns.
+  - A member read of an enumeration reports that datatype, else a plain `list` (`MemberReadExpression.getDatatype()`).
+- `the position of` a kind's value finds it in the kind's own list (P12), with no `in ...`.
+  - e.g. `the position of its rank` => `spellPosition(positionOf(Deck.Ranks, this.rank))`
+  - `list_position`'s second syntax keeps the kind's record (`data.kindType`), and reads its list when compiling.
+  - A stub which never becomes a kind warns once the project has parsed, and compiles to an empty list.
 - A value kind may be used ABOVE its declaration, e.g. the card above the deck (issue I3):
   - `SpellParser.declaredTypes()` finds `"suits" as one of ...` lines too.
     - Its pattern for them:  `VALUE_KIND_DECLARATION`

@@ -345,6 +345,13 @@ classes.addRule(QuotedPropertyFormula, {
 classes.addRule(QuotedPropertyFormula, {
   syntax: "{type:subject_it} {alias:text}"
 })
+// ... and with the subject left out (P8):  `- "is a (suit)"`, `- "is a (suit)" for its suits`
+classes.addRule(QuotedPropertyFormula, {
+  syntax: "{type:subject_implied} {alias:text} for [sources:(its {property:member_words}) and]"
+})
+classes.addRule(QuotedPropertyFormula, {
+  syntax: "{type:subject_implied} {alias:text}"
+})
 
 /** What `quoted_property_formula` stashes in `match.data`. */
 type QuotedPropertyFormulaMatchData = {

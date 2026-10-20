@@ -13,10 +13,31 @@ export class Subrule<
   /** Name of the rule to match. */
   declare rule: string
 
+  /**
+   * The rule we point at, if its matches take no tokens (`Rule.zeroWidth`), e.g. spell's `subject_implied`.
+   * - Set as we're made, from `zeroWidthRules`:  a `Sequence`'s quick test reads it, see `Sequence.test()`.
+   */
+  declare zeroWidthRule: P.Rule | undefined
+
+  /**
+   * The rules whose matches take no tokens (`Rule.zeroWidth`), by name, in any parser -- filled by `addRule()`.
+   * - Read as each subrule is made, into its `zeroWidthRule`:  the quick test is the hottest path in parsing,
+   *   too hot to look a rule up in.
+   * - NOTE: keyed by name across every parser:  a zero-width rule's `test()` must read only the scope.
+   * - MUST be registered before any syntax naming it:  `addRule()` throws if one was made first.
+   */
+  static zeroWidthRules = new Map<string, P.Rule>()
+  /** Every rule name a subrule has pointed at so far -- see `zeroWidthRules`. */
+  static namesInUse = new Set<string>()
+
   /** Bare string shorthand sets `rule` directly, otherwise pass a full `SubruleProps` bag. */
   constructor(props: SubruleProps | string) {
     if (typeof props === "string") super({ rule: props })
     else super(props)
+    // only when there is one:  instances stay small (`RuleClass.test.ts`)
+    const zeroWidthRule = Subrule.zeroWidthRules.get(this.rule)
+    if (zeroWidthRule) this.zeroWidthRule = zeroWidthRule
+    Subrule.namesInUse.add(this.rule)
   }
 
   /** Ask the rule we point at whether it could match at `start`. */

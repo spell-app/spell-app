@@ -33,15 +33,21 @@ export class Sequence<
     if (!this.rules) {
       throw new TypeError(`Sequence '${this.name}' created without specifying 'rules'!`)
     }
+    // only when there is one:  instances stay small (`RuleClass.test.ts`)
+    const first = this.rules[0]
+    if (first instanceof P.Subrule && first.zeroWidthRule) this.leadingZeroWidth = first.zeroWidthRule
   }
+
+  /** Our first rule's, if it takes no tokens (`Rule.zeroWidth`):  `test()` asks it first. */
+  declare leadingZeroWidth: P.Rule | undefined
 
   /**
    * Match each rule in `this.rules` in order against `tokens`, bailing unless every non-optional rule matches.
    * - In expecting mode (see `P.Expectations`):
-   *   - out of tokens before a child, records it -- and each optional one after it, up to the first we can't
-   *     do without
-   *   - failing on a child after one ran out of tokens INSIDE it, records that one as `within`:  we're partway
-   *     through it, e.g. an argument of a method call being typed -- for signature help
+   *   - out of tokens before a child, records it
+   *     -- and each optional one after it, up to the first we can't do without
+   *   - failing on a child after one ran out of tokens INSIDE it, records that one as `within`:
+   *     we're partway through it, e.g. an argument of a method call being typed -- for signature help
    *   - children parse one level deeper
    * - A required word failing right after a `{slot}` may make the slot GIVE BACK what it took -- see `giveBack()`.
    * - NOTE: HOT -- normal parsing reads `P.Expectations.current` once, and only after `test()` passes.
@@ -201,6 +207,9 @@ export class Sequence<
    */
   test(scope: P.Scope, tokens: P.Token[], start = 0): boolean | undefined {
     if (start >= tokens.length) return false
+    // a leading zero-width rule which can't match here:  no, at once -- e.g. spell's subject left out,
+    // outside a type's outline body, where it's tried on every line
+    if (this.leadingZeroWidth?.test(scope, tokens, start) === false) return false
     allowRunOut = P.Expectations.current !== undefined
     return testPlacesAfterRules(this.rules, scope, tokens, [{ start, skipped: false }]).length > 0
   }
@@ -257,6 +266,9 @@ function testPlacesAfterRule(rule: P.Rule, scope: P.Scope, tokens: P.Token[], pl
     }
   } else if (rule instanceof P.Literal || rule instanceof P.Pattern || rule instanceof P.TokenType) {
     after = testPlacesAfterToken((index) => rule.test(scope, tokens, index) !== false, tokens, places)
+  } else if (rule instanceof P.Subrule && rule.zeroWidthRule) {
+    // Takes no tokens, e.g. a subject a line leaves out:  stay where we are, if it could match here at all.
+    after = rule.zeroWidthRule.test(scope, tokens) === false ? [] : places
   } else {
     // Can't test cheaply, e.g. a subrule:  skip 1+ tokens.
     after = places.map(({ start }) => ({ start: start + 1, skipped: true }))

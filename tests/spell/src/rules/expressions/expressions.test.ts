@@ -83,6 +83,7 @@ describe("priority and precedence", () => {
         "property_expression:  Priority.preferred",
         "quoted_property_formula:  Priority.declaration",
         "quoted_type_expression:  Priority.belowDeclaration",
+        "reopen_type:  Priority.declaration",
         "round_number:  Priority.preferred",
         "saved_in_file:  Priority.declaration",
         "saved_inline:  Priority.declaration",

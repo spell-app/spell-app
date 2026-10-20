@@ -1,11 +1,15 @@
 import { instanceCase, proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
+import { Priority } from "$/spell/rules/rules.types"
 import { getKnownType } from "$/spell/rules/types"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 import { type MethodBody } from "./classes.shared"
+
+/** The words for a literal's type, by its rule, e.g. `a number` for `0` -- see `warnIfAlwaysTheSame()`. */
+const LITERAL_TYPES: Record<string, string> = { number: "a number", text: "text", boolean: "yes or no" }
 
 /**
  * `property_value_getter` rule:  `the value of a card is:` -- defines a property getter whose body is an inline
@@ -22,12 +26,35 @@ export class PropertyValueGetter extends SpellStatement<"property|type|body?", {
   /**
    * Refused on a built-in type -- see `SpellStatement.refuseBuiltInType()`.
    * - Notes whether its type is a VALUE kind, e.g. `the "color" of a suit is: ...` -- see `value_kind`.
+   * - With its subject left out, in a type's outline body (`- score is its rank * 2`), it's a declaration:
+   *   it outranks setting a variable, `score is ...` (epic page `outline-spell`, P9).
+   * - In an outline body, a body that's just a value warns -- see `warnIfAlwaysTheSame()`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     if (getKnownType(match.groups.type).valueKind) match.data.valueKind = true
+    // ... once its body parsed:  `- color is red if ... otherwise it is black` is `property_value_either`'s
+    const bodyParsed = !!this.getBody(match) || match.length === tokens.length
+    if (!match.groups.type.length && bodyParsed) match.priority = Priority.declaration
+    this.warnIfAlwaysTheSame(match)
     return SpellStatement.refuseBuiltInType(match, match.groups.type, match.groups.property)
+  }
+
+  /**
+   * SIDE EFFECT:  warns when an outline body's getter is just a value, e.g. `- score is 0`:
+   * always 0, never the score of the thing -- most likely meant as a type, `- score is a number`.
+   * - Only in an outline body (`it` / `its` / no subject), where a property's line looks the same either way.
+   */
+  private warnIfAlwaysTheSame(match: P.MatchFor<this>): void {
+    const body = this.getBody(match)
+    const typeWords = LITERAL_TYPES[`${body?.rule.name}`]
+    if (!body || !typeWords || !SpellStatement.subjectWords(match)) return
+    const name = match.groups.property.raw
+    SP.SpellWarnings.note(
+      match,
+      `${name} is always ${body.inputText.trim()}:  to give it a type, write "${name} is ${typeWords}"`
+    )
   }
 
   /**
@@ -202,6 +229,14 @@ classes.addRule(PropertyValueGetter, {
 })
 classes.addRule(PropertyValueGetter, {
   syntax: "{type:subject_its} {property:member_words} is :? {expression_body}?"
+})
+// ... and with the subject left out (P8):  `- "color" is the color of its suit`
+classes.addRule(PropertyValueGetter, {
+  syntax: "{type:subject_implied} {property:quoted_member} (is|are) :? {expression_body}?"
+})
+// ... and a bare name (P9):  `- state is:` + a block, `- name is: its rank + " of " + its suit`
+classes.addRule(PropertyValueGetter, {
+  syntax: "{type:subject_implied} {property:body_member_words} (is|are) :? {expression_body}?"
 })
 // a quoted name in the sentence style (epic page J3, option C):  `the "short name" of a card is: ...`
 classes.addRule(PropertyValueGetter, {

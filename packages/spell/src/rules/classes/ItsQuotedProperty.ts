@@ -16,3 +16,11 @@ classes.addRule(ItsQuotedProperty, {
 classes.addRule(ItsQuotedProperty, {
   syntax: "{type:subject_its} {property:member_words}"
 })
+// ... and with the subject left out (P8):  `- "color" is red if ...`
+classes.addRule(ItsQuotedProperty, {
+  syntax: "{type:subject_implied} {property:quoted_member}"
+})
+// ... and a bare name (P9):  `- color is red if ...`
+classes.addRule(ItsQuotedProperty, {
+  syntax: "{type:subject_implied} {property:body_member_words}"
+})

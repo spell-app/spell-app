@@ -12,11 +12,14 @@ export class MemberReadExpression<
   Groups extends string | P.AnyGroups = P.AnyGroups,
   MatchData extends P.AnyMatchData = P.AnyMatchData
 > extends SpellExpression<Groups, MatchData & MemberData> {
-  /** What the member we read holds:  a property's datatype, an enumeration's values (`list`), a method's return. */
+  /**
+   * What the member we read holds:  a property's datatype, a method's return,
+   * an enumeration's values -- a `list`, or a kind's list, e.g. `list of ranks` (`value_kind`, issue I14).
+   */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
     const { member } = match.data as MemberData
     if (member instanceof P.ScopeMethod) return member.returns
-    return member?.enumeration ? "list" : member?.datatype
+    return member?.enumeration ? (member.datatype ?? "list") : member?.datatype
   }
 
   /**

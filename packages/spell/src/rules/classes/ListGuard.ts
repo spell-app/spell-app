@@ -8,6 +8,13 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 import { type MethodBody } from "./classes.shared"
 
+/** What a list takes:  `can take a card if: ...`, after its subject. */
+const CAN_TAKE = "can (verb:add|take) (a|an) {item:type} if :? {expression_body}?"
+/** What a list gives up:  `can give up a card if: ...`, after its subject. */
+const CAN_GIVE_UP = "can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?"
+/** What a list never gives up:  `can never let go of a card`, after its subject. */
+const CAN_NEVER_GIVE_UP = "can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
+
 /**
  * `list_guard` rule:  what a list type takes, or gives up, when something MOVES (epic page Q23 - Q25):
  * - `a tableau can (add|take) a card if: ...`
@@ -20,6 +27,7 @@ import { type MethodBody } from "./classes.shared"
  *   A sub-type inherits it, unless it says its own.
  * - Only a move asks, e.g. `move the card to the tableau` -- see `list_move`.
  *   `add`, `remove` and `clear` never do:  dealing, gathering cards back.
+ * - In a list type's outline body, `it` or no subject at all:  `- can take a card if: ...` (epic page `outline-spell`, P8).
  */
 export class ListGuard extends SpellStatement<"type|verb|item|body?|never?"> {
   @proto static priority = Priority.declaration
@@ -72,7 +80,7 @@ export class ListGuard extends SpellStatement<"type|verb|item|body?|never?"> {
   }
 }
 classes.addRule(ListGuard, {
-  syntax: "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?",
+  syntax: `(a|an) {type:known_type} ${CAN_TAKE}`,
   tests: [
     {
       compileAs: "block",
@@ -116,8 +124,7 @@ classes.addRule(ListGuard, {
   ]
 })
 classes.addRule(ListGuard, {
-  syntax:
-    "(a|an) {type:known_type} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?",
+  syntax: `(a|an) {type:known_type} ${CAN_GIVE_UP}`,
   tests: [
     {
       compileAs: "block",
@@ -150,7 +157,7 @@ classes.addRule(ListGuard, {
   ]
 })
 classes.addRule(ListGuard, {
-  syntax: "(a|an) {type:known_type} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}",
+  syntax: `(a|an) {type:known_type} ${CAN_NEVER_GIVE_UP}`,
   tests: [
     {
       compileAs: "block",
@@ -172,3 +179,11 @@ classes.addRule(ListGuard, {
     }
   ]
 })
+// in a list type's outline body -- tests in `parserTests/outline.test.ts`:
+// - `- it can take a card if: ...`, `- it can never let go of a card`
+// - and with the subject left out:  `- can take a card if: ...`
+for (const subject of ["subject_it", "subject_implied"]) {
+  for (const guard of [CAN_TAKE, CAN_GIVE_UP, CAN_NEVER_GIVE_UP]) {
+    classes.addRule(ListGuard, { syntax: `{type:${subject}} ${guard}` })
+  }
+}

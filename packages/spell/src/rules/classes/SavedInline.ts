@@ -67,3 +67,4 @@ classes.addRule(SavedInline, {
 })
 // in an outline body:  `- it is saved inline` -- tests in `parserTests/outline.test.ts`
 classes.addRule(SavedInline, { syntax: "{type:subject_it} is saved inline" })
+classes.addRule(SavedInline, { syntax: "{type:subject_implied} is saved inline" })

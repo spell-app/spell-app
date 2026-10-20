@@ -8,8 +8,8 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 
 /**
- * `belongs_to_one` rule:  `a card belongs to one pile` -- a card is in at most ONE pile at a time (epic page D7, D8,
- * Q22):
+ * `belongs_to_one` rule:  `a card belongs to one pile` -- a card is in at most ONE pile at a time
+ * (epic page D7, D8, Q22):
  * - "pile" means the pile FAMILY:  `Pile` and every sub-type of it, e.g. `a tableau is a pile`.
  *   Adding a card to one takes it out of the other.
  * - A list outside the family, e.g. `a deck is a list of cards`, stays outside:
@@ -170,3 +170,5 @@ classes.addRule(BelongsToOne, {
 })
 // in an outline body:  `- it belongs to a deck` -- tests in `parserTests/outline.test.ts`
 classes.addRule(BelongsToOne, { syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" })
+// ... and with the subject left out (P8):  `- belongs to a pile`
+classes.addRule(BelongsToOne, { syntax: "{type:subject_implied} belongs to (one|a|an) {list:type}" })

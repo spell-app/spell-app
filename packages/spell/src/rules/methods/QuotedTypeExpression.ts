@@ -3,6 +3,7 @@ import { isNode } from "browser-or-node"
 import { proto } from "$/util"
 import { P } from "$/parser"
 import { Negatable } from "$/spell/rules/expressions"
+import { SubjectImplied } from "$/spell/rules/types"
 import { Priority } from "$/spell/rules/rules.types"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
@@ -55,6 +56,7 @@ export class QuotedTypeExpression extends MethodDefinition<"type|signature|body?
         }
         return undefined
       }
+      if (QuotedTypeExpression.isPropertyWithoutSubject(match, tokens)) return undefined
       const refused = SpellStatement.refuseUnknownType(match, match.groups.type)
       if (refused !== match) return refused
       if (QuotedTypeExpression.isPropertySlip(scope, tokens)) {
@@ -80,6 +82,19 @@ export class QuotedTypeExpression extends MethodDefinition<"type|signature|body?
     const lastOfSignature = match.groups.signature.tokens.at(-1)
     const after = tokens.slice(tokens.indexOf(lastOfSignature!) + 1)
     return !after.join("").trim()
+  }
+
+  /**
+   * Is `match` a property, not a phrase:  its subject left out, then `is` or `are` after the quoted name?
+   * - e.g. `- "color" is red if ...` or `- "short name" is: ...` in an outline body (epic page `outline-spell`, P8)
+   * - Not ours:  the property rules take it, as they take `its "color" is ...`.
+   *   We'd outrank them (`Priority.belowDeclaration`), and take the quoted name alone.
+   */
+  private static isPropertyWithoutSubject(match: P.MatchFor<QuotedTypeExpression>, tokens: P.Token[]): boolean {
+    if (!match.groups.type.is(SubjectImplied)) return false
+    const lastOfSignature = match.groups.signature.tokens.at(-1)
+    const next = tokens[tokens.indexOf(lastOfSignature!) + 1]
+    return /^(is|are)$/i.test(`${next?.value}`)
   }
 
   /**
@@ -459,4 +474,9 @@ methods.addRule(QuotedTypeExpression, {
 // in an outline body:  `- it "is face up" if its direction is up` -- tests in `parserTests/outline.test.ts`
 methods.addRule(QuotedTypeExpression, {
   syntax: "{type:subject_it} {signature:quoted_method_signature} (if|is)? :? {expression_body}?"
+})
+// ... and with the subject left out (P8):  `- "is face up" if its direction is up`
+// - NOT `is`:  `- "suit" is ...` is a property, as `its "suit" is ...` -- see `isPropertyWithoutSubject()`
+methods.addRule(QuotedTypeExpression, {
+  syntax: "{type:subject_implied} {signature:quoted_method_signature} if? :? {expression_body}?"
 })

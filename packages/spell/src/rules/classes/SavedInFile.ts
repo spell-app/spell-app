@@ -64,3 +64,4 @@ classes.addRule(SavedInFile, {
 })
 // in an outline body:  `- it is saved in its own file` -- tests in `parserTests/outline.test.ts`
 classes.addRule(SavedInFile, { syntax: "{type:subject_it} is saved in its own file" })
+classes.addRule(SavedInFile, { syntax: "{type:subject_implied} is saved in its own file" })

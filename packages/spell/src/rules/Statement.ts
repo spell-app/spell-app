@@ -264,6 +264,8 @@ export class SpellStatement<
    * - Default:  a line whose subject (its `type` group) is the body's `it` / `its`, with the subject spelled out:
    *   - `it has a deck` => `a card has a deck`
    *   - `its "color" is red if ...` => `the "color" of a card is red if ...`
+   *   - the same with the subject left out (`subject_implied`, epic page `outline-spell` P8):
+   *     `has a deck`, `"color" is red if ...`
    * - Override where the sentence style says it differently, e.g. `define_property_has`'s `has ... as ...`.
    * - Its FIRST line only:  a body stays as written.
    */
@@ -272,6 +274,7 @@ export class SpellStatement<
     const typeWords = SpellStatement.subjectWords(match)
     if (!subject || !typeWords) return undefined
     const text = SpellStatement.firstLineOf(match)
+    if (!subject.length) return SpellStatement.longFormWithoutSubject(text, typeWords, property)
     const at = subject.start! - match.start!
     const after = text.slice(at + subject.inputText.trimEnd().length).trimStart()
     if (/^it$/i.test(subject.inputText.trim())) return `${text.slice(0, at)}a ${typeWords} ${after}`
@@ -282,12 +285,25 @@ export class SpellStatement<
   }
 
   /**
-   * The words for the type an outline body is about, e.g. `card`, if `match`'s subject is that body's `it` / `its`
-   * -- else `undefined`.  See `getLongForm()`.
+   * `text`, a line which left its subject out, with it put back -- see `getLongForm()`:
+   * - starting with its `property`:  `"color" is red if ...` => `the "color" of a card is red if ...`
+   * - else:  `has a deck` => `a card has a deck`
+   */
+  private static longFormWithoutSubject(text: string, typeWords: string, property: P.Match | undefined): string {
+    const propertyText = property?.inputText.trimEnd()
+    if (propertyText && text.startsWith(propertyText)) {
+      return `the ${propertyText} of a ${typeWords}${text.slice(propertyText.length)}`
+    }
+    return `a ${typeWords} ${text}`
+  }
+
+  /**
+   * The words for the type an outline body is about, e.g. `card`, if `match`'s subject is that body's `it` / `its`,
+   * or left out (`subject_implied`) -- else `undefined`.  See `getLongForm()`.
    */
   static subjectWords(match: P.Match): string | undefined {
     const { subject } = SpellStatement.subjectOf(match)
-    if (!subject || !P.SubjectScope.of(match.scope) || !/^its?$/i.test(subject.inputText.trim())) return undefined
+    if (!subject || !P.SubjectScope.of(match.scope) || !/^(its?)?$/i.test(subject.inputText.trim())) return undefined
     return `${subject.raw}`
   }
 

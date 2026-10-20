@@ -65,7 +65,7 @@ export type Direction = (typeof DIRECTIONS)[number]
 /** Definition of a card -- in the outline style:  a heading, then what's true of it */
 export class Card extends Thing {
   /** suit and rank */
-  // - its "suit" is a suit of its deck
+  // suit is a suit of its deck
   @prop({ oneOf: () => SUITS })
   accessor suit!: (typeof SUITS)[number]
 
@@ -305,6 +305,14 @@ core.heading("Pile of playing cards")
 export class Pile extends List<Card> {
   static instanceType = Card
 
+  // name is text
+  @prop({ type: "text" })
+  accessor name!: string
+
+  // droppable is yes or no
+  @prop({ type: "choice" })
+  accessor droppable!: boolean
+
   get color() {
     if (this.isEmpty) return "none"
     return this.lastItem!.color
@@ -322,16 +330,12 @@ export class Pile extends List<Card> {
   }
 
   static exclusive = true
-
-  // set the name of cards-to-move to the name of the start-pile
-  @prop() accessor name!: string
-
-  declare droppable: boolean
 }
 export interface Pile {
   canGiveUp(card: Card): boolean
   canTake(card: Card): boolean
 }
+
 /** a card is in one pile at a time:  putting it on another pile takes it off this one */
 // -----------
 core.heading("Klondike Solitaire Card Game")
@@ -339,15 +343,21 @@ core.heading("Klondike Solitaire Card Game")
 // ## Klondike Solitaire Card Game
 //////////////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
+// What's where, top to bottom:  each part uses only what's above it.
+//   the game:  what it has
+//   the piles:  each kind, and what it may take or give up  (could be its own file, before this one)
+//   the table:  one of each pile, laid out as the game loads
+//   what the game knows:  its state, which reads the table
+//   playing:  the moves
+//   drawing
+//   start
 
-core.heading("Game bits")
-/** Game bits */
+core.heading("The game:  what it has")
+/** The game:  what it has */
 export class Game extends App {
-  // a game has a score as a number
+  // score is a number
   @prop({ type: "number" })
   accessor score!: number
-
-  //## actions
 
   @derived get state() {
     let state: any /* spell: list */ = []
@@ -404,16 +414,11 @@ export class Game extends App {
     )
   }
 }
-export const game = new Game()
-core.console.log(game)
 
-core.heading("set up all piles")
-/** set up all piles */
-export const allPiles = new List<Pile>({ instanceType: "Pile" })
-export const foundations = new List<Pile>({ instanceType: "Pile" })
-export const tableaus = new List<Pile>({ instanceType: "Pile" })
+core.heading("The piles:  each kind, and what it may take or give up")
+//## The piles:  each kind, and what it may take or give up
 
-/** set up stock pile: unplayed cards */
+/** the stock:  cards not played yet */
 export class StockPile extends Pile {
   canGiveUp(card: Card) {
     return card === this.lastItem
@@ -428,10 +433,8 @@ export class StockPile extends Pile {
     )
   }
 }
-export const stock = new StockPile({ name: "stock", droppable: false })
-allPiles.append(stock)
 
-/** set up discards: where played cards go when turning over stock */
+/** the discards:  where cards go as the stock is turned over */
 export class DiscardPile extends Pile {
   canGiveUp(card: Card) {
     return card === this.lastItem
@@ -441,11 +444,13 @@ export class DiscardPile extends Pile {
     return <div class="Pile Discards stacked">{this.lastItem?.draw()}</div>
   }
 }
-export const discards = new DiscardPile({ name: "discards", droppable: false })
-allPiles.append(discards)
 
-/** set up foundation piles: where we build up from ace => king */
+/** a foundation:  where a suit is built up, ace to king */
 export class Foundation extends Pile {
+  // symbol is text
+  @prop({ type: "text" })
+  accessor symbol!: string
+
   canGiveUp(card: Card) {
     return false
   }
@@ -456,10 +461,10 @@ export class Foundation extends Pile {
     return this.name == card.suit && this.value + 1 === card.value
   }
 
-  //##############
-  //## rendering the bits
-
-  // note: tableaus just draw as a (vertical) list of cards
+  ///////////////////////////////////////////////////////////////////////
+  // ## Drawing:  after playing, as the stock's placeholder plays from it
+  ///////////////////////////////////////////////////////////////////////
+  // a tableau just draws as a (vertical) list of cards
 
   @drawn draw() {
     const color = () => this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
@@ -472,9 +477,42 @@ export class Foundation extends Pile {
       </div>
     )
   }
-
-  declare symbol: string
 }
+
+/** a tableau:  a column, built down from king to ace, red and black in turn */
+export class Tableau extends Pile {
+  canGiveUp(card: Card) {
+    return card.isFaceUp
+  }
+
+  canTake(card: Card) {
+    if (this.isEmpty) return card.isARank("king")
+    return this.color != card.color && this.value === card.value + 1
+  }
+
+  @drawn draw() {
+    return (
+      <div class="Pile Tableau staggered">
+        <For each={this.items}>{(card) => card.draw()}</For>
+      </div>
+    )
+  }
+}
+
+core.heading("The table:  one of each pile, laid out as the game loads")
+/** The table:  one of each pile, laid out as the game loads */
+export const game = new Game()
+core.console.log(game)
+
+export const allPiles = new List<Pile>({ instanceType: "Pile" })
+
+export const stock = new StockPile({ name: "stock", droppable: false })
+allPiles.append(stock)
+
+export const discards = new DiscardPile({ name: "discards", droppable: false })
+allPiles.append(discards)
+
+export const foundations = new List<Pile>({ instanceType: "Pile" })
 const it = new Foundation({
   name: "clubs",
   symbol: "♣️",
@@ -501,38 +539,23 @@ const it4 = new Foundation({
 foundations.append(it4)
 foundations.forEach((pile) => allPiles.append(pile))
 
-/** set up tableau piles: vertical piles where we arrange from king to ace */
-export class Tableau extends Pile {
-  canGiveUp(card: Card) {
-    return card.isFaceUp
-  }
-
-  canTake(card: Card) {
-    if (this.isEmpty) return card.isARank("king")
-    return this.color != card.color && this.value === card.value + 1
-  }
-
-  @drawn draw() {
-    return (
-      <div class="Pile Tableau staggered">
-        <For each={this.items}>{(card) => card.draw()}</For>
-      </div>
-    )
-  }
-}
+export const tableaus = new List<Pile>({ instanceType: "Pile" })
 core.getRange(1, 7).forEach((number) => {
   const it5 = new Tableau({ name: `T${number}`, droppable: true })
   tableaus.append(it5)
   allPiles.append(it5)
 })
 
-/** set up deck of cards */
+/** the deck:  every card starts in the stock */
 export const deck = new Deck()
 deck.setUp()
-// start with cards in the stock pile
 deck.forEach((card) => stock.append(card))
 
-core.heading("actions")
+core.heading("What the game knows:  read from the table, so after it")
+//## What the game knows:  read from the table, so after it
+
+core.heading("Playing")
+/** Playing */
 export function debugTheGame() {
   core.map(game.state, (line) => core.console.log(line))
 }
@@ -651,7 +674,8 @@ export async function cheat() {
   core.move(card!, discards)
 }
 
-core.heading("rendering the bits")
+core.heading("Start")
+//## Start
 resetTheGame()
 if (!core.isCarryingOver) game.start()
 // -----------

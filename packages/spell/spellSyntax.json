@@ -1473,6 +1473,31 @@
           "aliases": []
         },
         {
+          "className": "BodyMemberWords",
+          "ruleNames": ["body_member_words"],
+          "internal": false,
+          "file": "packages/spell/src/rules/properties/BodyMemberWords.ts",
+          "line": 18,
+          "purpose": "A member's bare name starting a line of a type's outline body, e.g. `suit` in `- suit is a suit of its deck` (epic page `outline-spell`, P9).",
+          "syntaxes": [
+            {
+              "example": "short rank",
+              "outputs": {
+                "js": {
+                  "code": "shortRank"
+                },
+                "ts": {
+                  "code": "shortRank"
+                },
+                "py": {
+                  "code": "short_rank"
+                }
+              }
+            }
+          ],
+          "aliases": []
+        },
+        {
           "className": "QuotedMember",
           "ruleNames": ["quoted_member"],
           "internal": false,
@@ -1724,7 +1749,7 @@
           "ruleNames": ["list_position"],
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListPosition.ts",
-          "line": 16,
+          "line": 21,
           "purpose": "Return position of an item in a list, e.g. `position of thing in my-list` => `spellPosition(positionOf(myList, thing))`, imported from `@spell/core`.",
           "syntaxes": [
             {
@@ -1741,6 +1766,9 @@
                   "code": "spell_position(core.position_of(my_list, thing))"
                 }
               }
+            },
+            {
+              "syntax": "the? position of {thing:expression}"
             }
           ],
           "aliases": ["expression"]
@@ -2863,7 +2891,7 @@
           "ruleNames": [],
           "internal": true,
           "file": "packages/spell/src/rules/classes/TypeDeclaration.ts",
-          "line": 23,
+          "line": 26,
           "purpose": "A statement declaring a type -- which may take an OUTLINE body: `a card is a thing where:`, then indented lines all about cards, e.g. `- it has a deck` (epic page `outline-spell`).",
           "syntaxes": [],
           "aliases": ["statement"]
@@ -3044,7 +3072,7 @@
           "ruleNames": ["with_nested_statements"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/WithNestedStatements.ts",
-          "line": 11,
+          "line": 13,
           "purpose": "`where:`, `with:` or a bare `:` ending a line -- then the indented block under it is the statement's body, e.g. a type's outline body (epic page `outline-spell` Q7).",
           "syntaxes": [
             {
@@ -3056,6 +3084,21 @@
                 },
                 "ts": {
                   "code": "where :"
+                },
+                "py": {
+                  "error": "writes itself, in javascript:  no Python writer"
+                }
+              }
+            },
+            {
+              "syntax": "where",
+              "example": "where",
+              "outputs": {
+                "js": {
+                  "code": "where"
+                },
+                "ts": {
+                  "code": "where"
                 },
                 "py": {
                   "error": "writes itself, in javascript:  no Python writer"
@@ -3263,6 +3306,9 @@
             },
             {
               "syntax": "{type:subject_it} belongs to (one|a|an) {list:type}"
+            },
+            {
+              "syntax": "{type:subject_implied} belongs to (one|a|an) {list:type}"
             }
           ],
           "aliases": ["statement"]
@@ -3318,6 +3364,9 @@
             },
             {
               "syntax": "{type:subject_it} is saved inline"
+            },
+            {
+              "syntax": "{type:subject_implied} is saved inline"
             }
           ],
           "aliases": ["statement"]
@@ -3347,6 +3396,9 @@
             },
             {
               "syntax": "{type:subject_it} is saved in its own file"
+            },
+            {
+              "syntax": "{type:subject_implied} is saved in its own file"
             }
           ],
           "aliases": ["statement"]
@@ -3423,7 +3475,7 @@
           "ruleNames": ["list_guard"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/ListGuard.ts",
-          "line": 24,
+          "line": 32,
           "purpose": "What a list type takes, or gives up, when something MOVES (epic page Q23 - Q25).",
           "syntaxes": [
             {
@@ -3470,6 +3522,24 @@
                   "code": "@Pile.add_method(\"can_give_up\")\ndef _pile_can_give_up(self, card: Card) -> bool:\n    return False"
                 }
               }
+            },
+            {
+              "syntax": "{type:subject_it} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?"
+            },
+            {
+              "syntax": "{type:subject_it} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?"
+            },
+            {
+              "syntax": "{type:subject_it} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
+            },
+            {
+              "syntax": "{type:subject_implied} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?"
+            },
+            {
+              "syntax": "{type:subject_implied} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?"
+            },
+            {
+              "syntax": "{type:subject_implied} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
             }
           ],
           "aliases": ["statement"]
@@ -3627,6 +3697,15 @@
             },
             {
               "syntax": "{type:subject_its} {property:quoted_member} is {specifier:outline_specifier}"
+            },
+            {
+              "syntax": "{type:subject_implied} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?"
+            },
+            {
+              "syntax": "{type:subject_implied} {property:quoted_member} (is|are) {specifier:outline_specifier}"
+            },
+            {
+              "syntax": "{type:subject_implied} {property:body_member_words} (is|are) {specifier:outline_specifier}"
             },
             {
               "syntax": "{type:subject_its} {property:member_words} is {specifier:outline_specifier}"
@@ -3788,11 +3867,11 @@
           "ruleNames": ["property_value_either"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/PropertyValueEither.ts",
-          "line": 17,
-          "purpose": "`the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?` -- defines a property getter whose value is conditional on `condition`.",
+          "line": 21,
+          "purpose": "Defines a property getter whose value depends on a condition, e.g. `the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?`",
           "syntaxes": [
             {
-              "syntax": "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
+              "syntax": "{type_property} is {inline_value_if}",
               "example": "the color of a card is red if its suit is either diamonds or hearts",
               "outputs": {
                 "js": {
@@ -3814,7 +3893,7 @@
           "ruleNames": ["property_value_getter"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/PropertyValueGetter.ts",
-          "line": 18,
+          "line": 22,
           "purpose": "`the value of a card is:` -- defines a property getter whose body is an inline EXPRESSION or nested block (`{expression_body}?`), with `its`/`it` mapped to `this` inside.",
           "syntaxes": [
             {
@@ -3837,6 +3916,12 @@
             },
             {
               "syntax": "{type:subject_its} {property:member_words} is :? {expression_body}?"
+            },
+            {
+              "syntax": "{type:subject_implied} {property:quoted_member} (is|are) :? {expression_body}?"
+            },
+            {
+              "syntax": "{type:subject_implied} {property:body_member_words} (is|are) :? {expression_body}?"
             },
             {
               "syntax": "the {property:quoted_member} of (a|an) {type:known_type} is :? {expression_body}?"
@@ -3872,6 +3957,12 @@
             },
             {
               "syntax": "{type:subject_it} {alias:text}"
+            },
+            {
+              "syntax": "{type:subject_implied} {alias:text} for [sources:(its {property:member_words}) and]"
+            },
+            {
+              "syntax": "{type:subject_implied} {alias:text}"
             }
           ],
           "aliases": ["statement"]
@@ -3900,6 +3991,20 @@
             }
           ],
           "aliases": []
+        },
+        {
+          "className": "ReopenType",
+          "ruleNames": ["reopen_type"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/ReopenType.ts",
+          "line": 26,
+          "purpose": "Adds to a type declared elsewhere, in the outline style -- `a game:`, then bullets about games (epic page `outline-spell`, P11).",
+          "syntaxes": [
+            {
+              "syntax": "(a|an) {type} {with_nested_statements}"
+            }
+          ],
+          "aliases": ["statement"]
         },
         {
           "className": "ValueKind",
@@ -3973,6 +4078,12 @@
             },
             {
               "syntax": "{type:subject_its} {property:member_words}"
+            },
+            {
+              "syntax": "{type:subject_implied} {property:quoted_member}"
+            },
+            {
+              "syntax": "{type:subject_implied} {property:body_member_words}"
             }
           ],
           "aliases": ["type_property"]
@@ -4473,6 +4584,16 @@
           "purpose": "`its`, as the subject of an outline body's line, e.g. `- its \"suit\" is ...` -- see `SubjectRule`.",
           "syntaxes": [],
           "aliases": []
+        },
+        {
+          "className": "SubjectImplied",
+          "ruleNames": ["subject_implied"],
+          "internal": false,
+          "file": "packages/spell/src/rules/types/SubjectImplied.ts",
+          "line": 15,
+          "purpose": "The subject an outline body's line leaves out (epic page `outline-spell`, P8).",
+          "syntaxes": [],
+          "aliases": []
         }
       ]
     },
@@ -4804,21 +4925,21 @@
           "ruleNames": ["value_if"],
           "internal": false,
           "file": "packages/spell/src/rules/if/ValueIf.ts",
-          "line": 23,
+          "line": 26,
           "purpose": "`red if it is diamonds or hearts` -- one line of a getter's body: a VALUE, then when it's the answer; `value_otherwise` (`black otherwise`) is the last line (epic page `outline-spell`, P2): ```spell",
           "syntaxes": [
             {
-              "syntax": "(value:{expression}|{constant}) if {condition:expression}",
-              "example": "red if suit is \"hearts\"",
+              "syntax": "(value:{expression}|{constant}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
+              "example": "to pick a color:\n\tred if suit is \"hearts\"",
               "outputs": {
                 "js": {
-                  "code": "if (suit == \"hearts\") return \"red\""
+                  "code": "export function pickAColor() {\n  if (suit == \"hearts\") return \"red\"\n}"
                 },
                 "ts": {
-                  "code": "if (suit == \"hearts\") return \"red\""
+                  "code": "export function pickAColor() {\n  if (suit == \"hearts\") return \"red\"\n}"
                 },
                 "py": {
-                  "code": "if suit == \"hearts\":\n    return \"red\""
+                  "code": "def pick_a_color() -> Any:\n    if suit == \"hearts\":\n        return \"red\""
                 }
               }
             }
@@ -4830,21 +4951,21 @@
           "ruleNames": ["value_otherwise"],
           "internal": false,
           "file": "packages/spell/src/rules/if/ValueOtherwise.ts",
-          "line": 14,
+          "line": 15,
           "purpose": "`black otherwise` -- the value when no `value_if` line above was the answer: `return 'black'`.",
           "syntaxes": [
             {
               "syntax": "(value:{expression}|{constant}) (otherwise|else)",
-              "example": "black otherwise",
+              "example": "to pick a color:\n\tblack otherwise",
               "outputs": {
                 "js": {
-                  "code": "return \"black\""
+                  "code": "export function pickAColor() {\n  return \"black\"\n}"
                 },
                 "ts": {
-                  "code": "return \"black\""
+                  "code": "export function pickAColor() {\n  return \"black\"\n}"
                 },
                 "py": {
-                  "code": "return \"black\""
+                  "code": "def pick_a_color() -> str:\n    return \"black\""
                 }
               }
             }
@@ -4953,7 +5074,7 @@
           "ruleNames": ["quoted_type_expression"],
           "internal": false,
           "file": "packages/spell/src/rules/methods/QuotedTypeExpression.ts",
-          "line": 34,
+          "line": 35,
           "purpose": "Defines an ad-hoc expression on a type from a QUOTED signature, e.g. `a thing \"nerds out\" if`, `a thing \"is a bug\" if`, `a thing \"nerds out with (another as a thing)\" if`.",
           "syntaxes": [
             {
@@ -4973,6 +5094,9 @@
             },
             {
               "syntax": "{type:subject_it} {signature:quoted_method_signature} (if|is)? :? {expression_body}?"
+            },
+            {
+              "syntax": "{type:subject_implied} {signature:quoted_method_signature} if? :? {expression_body}?"
             }
           ],
           "aliases": ["statement"]
