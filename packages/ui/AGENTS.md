@@ -301,7 +301,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
 ### The docs site
 
 - Modelled on Fomantic's docs, served at `/components/ui/` by the page server
-  (static, live-reloading;  `COMPONENT_SETS` in `packages/server`).
+  (static, live-reloading;  the page server's `componentSets` setting).
   - Plain `.html` pages on `<ui-*>` widgets:  no build step to view one.
   - From epic `spell-ui-pages`, which replaced the old Astro site.
   - A COMPONENT SET, laid out as every set is (epic `people-and-orgs` P18;  the root's `AGENTS.md`):
@@ -350,7 +350,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     - Its entry:  [sets.ts](site/_src/sets.ts).
     - `yarn site:bundle` builds both;  mode `sets` in `vite.site.config.ts`.
     - For the other sets:  pages in Spell UI's shape, in their own packages' `docs/`,
-      which the page server serves with this build as their `_assets/` (`COMPONENT_SETS` in `$/server/page`).
+      which the page server serves with this build as their `_assets/` (the page server's `componentSets` setting).
       - Epic UI at `/components/epics/`, App UI at `/components/app/`, the brand's at `/components/brand/`
     - It adds `SitePacks.ts`:  `globalThis.SpellUI` (`registerPack`, `packModules`).
       - So a component pack's script shares the page's Solid and Spell UI.

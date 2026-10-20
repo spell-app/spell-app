@@ -65,7 +65,7 @@ export class Bundle {
   /**
    * The bundles of the checkout at `root`:  for each folder its `package.json` names in
    * `"pageServer": { "bundles": [...] }`, in that order, the one of `AS.BUNDLES` that builds into it.
-   * - ONE list, which the page server reads too (its `BundleBuild` waits on those folders)
+   * - ONE list, which the page server reads too (page-server's `BundleBuild` waits on those folders)
    * - none without a list, as the page server
    * - throws a `TypeError` for a folder no bundle builds into
    */

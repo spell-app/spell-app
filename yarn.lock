@@ -1920,6 +1920,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@spell-app/page-server@workspace:packages/page-server":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/page-server@workspace:packages/page-server"
+  dependencies:
+    "@spell-app/server": "workspace:*"
+    "@types/node": "npm:^22.20.4"
+    tsx: "npm:4.20.3"
+    typescript: "npm:^7.0.2"
+    vite: "catalog:"
+    vite-plus: "catalog:"
+  languageName: unknown
+  linkType: soft
+
 "@spell-app/parser@workspace:*, @spell-app/parser@workspace:packages/parser":
   version: 0.0.0-use.local
   resolution: "@spell-app/parser@workspace:packages/parser"

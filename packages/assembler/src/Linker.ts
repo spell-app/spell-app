@@ -79,7 +79,7 @@ export class Linker {
   /**
    * - `served`:  the address folder => the folder it serves, both relative to `root`,
    *   e.g. `{ "components/ui": "packages/ui/docs" }`
-   *   (`COMPONENT_SETS` in `$/server/page`, which this package can't import)
+   *   (the page server's `componentSets` setting, in the root `package.json`)
    * - `content`:  the shared content folder, absolute;  default the repo's (`contentFolderOf()`)
    */
   constructor(

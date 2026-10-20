@@ -1,18 +1,13 @@
 /**
- * Showing a URL to a person:  the default browser, a new browser window, a reused Chrome tab, or VS Code.
+ * Showing a URL to a person:  the default browser, a new browser window, or a reused Chrome tab.
  * - macOS first:  `open` / `osascript`.  Elsewhere:  `xdg-open`, or `start` on Windows.
  * - `SPELL_NO_BROWSER=1`:  nothing opens (tests, CI, a remote shell);  each says so by returning `false` / `"none"`.
- * - Gathered from `cli`'s `serve.ts` (`openBrowser`), goals' `launch.js` (`openInBrowser`, `openInVSCode`)
+ * - VS Code's doc preview is spell-epic's own opener (its `pages.js` `openInVSCode()`):  the extension is its
+ *   (the copy here, which nothing read, went in epic `repo-split` P4).
+ * - Gathered from `cli`'s `serve.ts` (`openBrowser`), goals' `launch.js` (`openInBrowser`)
  *   and the docs' `pages.js` (`openInChrome`).
  */
 import { spawn, spawnSync } from "node:child_process"
-
-/**
- * The URI that opens a page in VS Code's doc preview:
- * spell-epic's extension's URI handler (spell-epic's `vscode/src/DocPreview.ts`;  the spell language extension's,
- * `spell-app.spell-language`, until epic `epic-eject` I7).
- */
-export const VSCODE_PREVIEW = "vscode://spell-app.spell-epic/doc-preview"
 
 /** Whether opening is turned off:  `SPELL_NO_BROWSER` set. */
 export function noBrowser(): boolean {
@@ -99,19 +94,6 @@ end tell`
   if (run.status === 0 && how && how !== "launch") return how
   spawnSync("open", ["-g", "-a", "Google Chrome", url])
   return "launched"
-}
-
-/**
- * Show a page in VS Code's doc preview (the "Epic Docs" tab), through spell-epic's extension.
- * - `url`:  a page a local server serves (preferred:  it live-reloads)
- * - `file`:  a file the extension serves itself
- * - returns whether `open` handed the URI over;  without the extension, VS Code says it can't handle it
- */
-export function openInVSCode({ url, file }: { url?: string; file?: string }): boolean {
-  if (noBrowser()) return false
-  const query = new URLSearchParams({ ...(url && { url }), ...(file && { file }) }).toString()
-  const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open"
-  return spawnSync(opener, [`${VSCODE_PREVIEW}?${query}`], { encoding: "utf8" }).status === 0
 }
 
 /** `text` as an AppleScript string literal. */

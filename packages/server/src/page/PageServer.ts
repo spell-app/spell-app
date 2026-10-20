@@ -5,11 +5,13 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServedFile, type ServerInfo } from "$/server"
 import {
-  BundleBuild,
   COMPONENT_SETS,
-  HIGHLIGHT_JS,
   PageEditor,
+  componentSets,
+  engineRoutes,
   pageServerSettings,
+  type ComponentSet,
+  type EngineRoute,
   type PageConfig,
   type PageScript,
   type PageServerSettings,
@@ -34,10 +36,10 @@ import {
  * - `/<x>` -> the checkout's file `<x>`, else the shared content folder's (epic `epic-eject` P12)
  *   - once a route module says where that folder is (`serveContent()`):  epics', from the repo's `.epic/config.json5`
  *   - so `/epics/...`, `/guides/...`, `/pages/...`, `/sagas/...`, `/brand/...` need no link at the checkout's root
- *   - the checkout first:  the brand pages load `../packages/brand/_assets/...`
+ *   - the checkout first:  a page of the content folder may load the checkout's files (`../packages/<x>/...`)
  *   - the same under `/worktrees/<w>/`, after the worktree's own files
- * - `/components/<set>/` -> the component sets' docs (`COMPONENT_SETS`):  Spell UI's, Epic UI's, App UI's, the brand's
- *   - each its package's `docs/` folder, with Spell UI's site bundle laid over it at `_assets/` (`componentSetPath()`)
+ * - `/components/<set>/` -> the component sets' docs:  the settings' `"componentSets"` (`componentSets`)
+ *   - each its pages' folder, with its site bundle laid over it at `_assets/` (`componentSetPath()`)
  *   - live-reloading like every page;  the same at `/worktrees/<w>/components/<set>/`
  * - `/worktrees/<w>/...` -> worktree `<w>`'s checkout, with the same URLs inside (dot files still refused)
  *   - once a route module says where the worktrees are (`serveWorktrees()`):
@@ -46,22 +48,15 @@ import {
  *     the worktrees beside the repo, and those left in the old `.claude/worktrees` (epic `epic-eject` J28)
  * - what pages are told (`window.SPELL_SERVER`):  the checkout, its branch, the edit API ... and what route modules
  *   add (`addPageConfig()`), e.g. epics' airplane mode
- * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
- *   `start()` builds the stale ones in the background (`BundleBuild`),
- *   and a request for one of their files waits while that runs
- * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics
- * - the page scripts there (`"pageScripts"`) go on every page, before `</body>` (`withPageScripts()`):
- *   the app's `spell-language.js`, so the docs pages colour spell
- * - `/_epic/assets/...`, `/_epic/pack/...` -> the engine's files (`engineRoutePath()`, epic `epic-eject` P7)
- *   - at the routes spell-epic's server serves them at, which the pages load
- *   - from spell-epic, through the checkout's `spell-epic` link (epic `epic-eject` I5)
- *   - and `/templates/...` -> spell-epic's `templates/` (epic `epic-eject` T11):  every template is the engine's;
- *     at `/worktrees/<w>/templates/...` too, where a worktree's pages' `../templates/` leads
+ * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics,
+ *   and what only one repo's page server does (spell-app's `$/page-server`:  building its bundles ...)
+ * - the page scripts there (`"pageScripts"`) go on every page, before `</body>` (`withPageScripts()`)
+ * - the ENGINE ROUTES there (`"engineRoutes"`):  URL prefixes served from a folder of the checkout
+ *   (`engineRoutePath()`, epic `epic-eject` P7), e.g. `/_epic/assets/...`, from the epic engine through a link
+ *   - under every worktree's address too (`/worktrees/<w>/templates/...`):  ONE copy, this checkout's
  * - NO redirects for old URLs (epic `people-and-orgs`, Q30):  an old address answers "not found"
- *   - two bridges for the SHARED pages, which every checkout shows:
- *     - the engine's old folders still serve from spell-epic (`movedFolderPath()`):  a safety net
- *     - folders moved out of the shared content answer "not found" here,
- *       though the shared repo still holds them (`MOVED_OUT`)
+ * - The server knows nothing of what the sets, routes and scripts are:  the folders come from the settings
+ *   (epic `repo-split` P4).
  * - port:  `DEFAULT_PORT` (4747) if free, else any
  *   - the real one goes in `<root>/.spell-server.json`, where `spell dev server ensure` and the openers find it
  * - Run it with `spell dev server` (`page/cli.ts`), never by hand.
@@ -79,8 +74,11 @@ export class PageServer {
   /** what `/api/server` answers;  `port` is set by `start()` */
   readonly info: ServerInfo
 
-  /** the startup build of the bundles it serves */
-  readonly bundles: BundleBuild
+  /** the component sets it serves, from the settings as it starts (`componentSets()`) */
+  readonly componentSets: readonly ComponentSet[]
+
+  /** the engine routes it serves, from the settings as it starts (`engineRoutes()`) */
+  readonly engineRoutes: readonly EngineRoute[]
 
   /** run once listening, from route modules */
   private listenings: (() => unknown)[] = []
@@ -116,14 +114,19 @@ export class PageServer {
       started: new Date().toISOString(),
       ...checkoutInfo(this.root)
     }
-    const { writable, pageScripts = [] } = this.settings()
+    const settings = this.settings()
+    const { writable, pageScripts = [] } = settings
     this.pageScripts = pageScripts
+    // REFACTOR (epic `repo-split` P4):  settings naming no sets serve this checkout's (`COMPONENT_SETS`), as before;
+    // only for spell-epic's route-module tests, whose scratch checkouts have none.  `[]` once spell-epic writes them.
+    this.componentSets = settings.componentSets ? componentSets(settings) : COMPONENT_SETS
+    this.engineRoutes = engineRoutes(settings)
     this.web = new SRV.WebServer({
       root: this.root,
       token,
       live: true,
       mounts: [{ prefix: "/", dir: this.root }],
-      html: [localHighlight, (page, served) => this.withPageScripts(page, served)],
+      html: [(page, served) => this.withPageScripts(page, served)],
       configure: (served) => ({
         root: this.root,
         branch: this.info.branch,
@@ -139,22 +142,19 @@ export class PageServer {
         ...Object.assign({}, ...this.pageConfigs.map((add) => add(served)))
       })
     })
-    this.web.files.overlays.push(componentSetPath, movedFolderPath, engineRoutePath)
+    this.web.files.overlays.push(
+      (path) => componentSetPath(path, this.componentSets),
+      (path) => engineRoutePath(path, this.engineRoutes)
+    )
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
-    // TEMPORARY (until the merge):  what this branch moved out of the shared folders, though they still hold it
-    for (const path of MOVED_OUT) {
-      router.use(path, (_request, reply) => reply.status(404).send(`${path}/ moved:  see ${COMPONENTS_HOME}`))
-    }
     // a component set's address without its slash:  with it, so its pages' relative links resolve
     // - the router takes a trailing `/` as optional, so the address WITH it passes on
-    for (const set of COMPONENT_SETS)
+    for (const set of this.componentSets)
       router.get(set.prefix, (request, reply, next) =>
         request.path.endsWith("/") ? next() : reply.redirect(`${set.prefix}/`)
       )
     router.get(SERVER_API, (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
-    this.bundles = new BundleBuild({ root: this.root })
-    router.use(this.bundles.wait)
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams.
 
     // `/api/pages` and `/api/files`:  saving, making, moving and deleting files, only inside the `"writable"` folders
@@ -164,30 +164,22 @@ export class PageServer {
   }
 
   /**
-   * Start the bundles' build, load the route modules, start watching, listen, write the pid file,
-   * then run route modules' `onListening`s.
+   * Start watching, load the route modules, listen, write the pid file, then run route modules' `onListening`s.
    * - `port`:  wanted port (default `DEFAULT_PORT`);  taken:  any free one
    * - `routes`:  load route modules (default `true`;  tests turn it off)
    * - `pidFile`:  write `.spell-server.json` (default `true`)
-   * - `bundles`:  build the stale bundles in the background (default `true`;  a checkout without the CLI has none)
    */
-  async start({
-    port = DEFAULT_PORT,
-    routes = true,
-    pidFile = true,
-    bundles = true
-  }: StartOptions = {}): Promise<this> {
-    if (bundles) this.bundles.start()
+  async start({ port = DEFAULT_PORT, routes = true, pidFile = true }: StartOptions = {}): Promise<this> {
     const settings = this.settings()
     for (const dir of settings.watch ?? DEFAULT_WATCH) this.web.live!.watch(join(this.root, dir), { ignore: UNWATCHED })
     // the component sets' pages, parts and data, and their site bundle (rebuilt by `yarn site:dev`),
     // as their pages load them:  `/components/ui/_assets/site.js`, so a rebuilt bundle reloads them
-    for (const set of COMPONENT_SETS) {
+    for (const set of this.componentSets) {
       this.web.live!.watch(join(this.root, set.dir), { servedAt: set.prefix })
       this.web.live!.watch(join(this.root, set.assets), { servedAt: `${set.prefix}/${SET_ASSETS}` })
     }
-    // the engine's files at their routes too, so a page loading `/_epic/...` hot-reloads them (`engineRoutePath()`)
-    for (const [route, folder] of ENGINE_ROUTES)
+    // the engine routes' files at their routes too, so a page loading `/_epic/...` hot-reloads them
+    for (const [route, folder] of this.engineRoutes)
       this.web.live!.watch(join(this.root, folder.slice(1)), { servedAt: route })
     if (routes) for (const path of settings.routes ?? []) await this.loadRoutes(path)
     const { port: actual } = await this.web.listen({ port })
@@ -200,9 +192,8 @@ export class PageServer {
     return this
   }
 
-  /** stop:  the bundles' build, route modules' stops, the pid file (if ours), the server */
+  /** stop:  route modules' stops, the pid file (if ours), the server */
   async stop(): Promise<void> {
-    this.bundles.stop()
     for (const stop of this.stops) await Promise.resolve(stop()).catch(() => {})
     this.pidFile.removeIfOurs()
     await this.web.close()
@@ -257,7 +248,7 @@ export class PageServer {
    * Serve the shared content folder `dir` at `/`, after the checkout's own files;  returns `this`
    * (epic `epic-eject` P12).
    * - so `/epics/x/x.plan.html` is `<dir>/epics/x/x.plan.html`, with no `epics` link at the checkout's root
-   *   - the checkout FIRST:  a path it has is its own (the brand pages load `../packages/brand/_assets/...`)
+   *   - the checkout FIRST:  a path it has is its own (a content page may load `../packages/<x>/...`)
    * - called by epics' running-epics route module, in every checkout:
    *   the folder is the repo's `.epic/config.json5`'s `contentFolder`, which this package can't read
    * - under every worktree's address too, `/worktrees/<w>/...`, after that worktree's own files
@@ -389,11 +380,6 @@ export class PageServer {
   }
 }
 
-/** `html`, its cdnjs highlight.js tag (`HIGHLIGHT_JS.cdn`) pointing at the repo's copy:  pages load offline. */
-export function localHighlight(html: string): string {
-  return html.replaceAll(HIGHLIGHT_JS.cdn, HIGHLIGHT_JS.local)
-}
-
 /**
  * Folder `dir` as a URL path from `root`, ending `/`:  `/.claude/worktrees/` for `<root>/.claude/worktrees`.
  * - outside `root` (worktrees beside the repo):  its `../` path, as `LiveReload` reports a file there
@@ -429,7 +415,9 @@ const SERVER_API = SRV.SERVER_API
  * - `port`:  wanted
  * - `routes`:  load route modules
  * - `pidFile`:  write the pid file
- * - `bundles`:  build the stale bundles
+ * - `bundles`:  REFACTOR (epic `repo-split` P4):  read by nothing since the bundles' build moved into
+ *   `$/page-server`'s route module (which `routes: false` leaves out);  kept so spell-epic's tests, which pass it,
+ *   still compile.  Delete it once spell-epic stops passing it.
  */
 export type StartOptions = { port?: number; routes?: boolean; pidFile?: boolean; bundles?: boolean }
 
@@ -484,9 +472,6 @@ const SET_ASSETS = "_assets"
 /** The home page's URL. */
 export const DOCS_HOME = "/pages/index.html"
 
-/** Spell UI's docs site:  every set is a tab of the top bar from there. */
-const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
-
 /**
  * Paths in the watched folders that live reload never reports:
  * a guide's `scripts/` and `experiments/` (their sources, their own tools' output).
@@ -501,20 +486,20 @@ const UNWATCHED = /(^|\/)scripts\/|(^|\/)experiments\/(?!(.*\/)?[^/]+\.bundle\.j
  * - the content folder's (`epics` ...) are the content folder's once it's served, which is watched whole
  *   (`serveContent()`):  named here for a checkout that still links them in
  */
-const DEFAULT_WATCH = ["epics", "guides", "pages", "brand", "spell-epic/src/tools/_assets"]
+const DEFAULT_WATCH = ["epics", "guides", "pages", "brand"]
 
 /**
- * The URL path a component set's address serves (`COMPONENT_SETS`, epic `people-and-orgs` P18);  else `undefined`.
+ * The URL path a component set's address serves, of the component sets `sets` (epic `people-and-orgs` P18);
+ * else `undefined`.
  * - `/components/<set>/_assets/<x>` -> the set's site bundle (`assets`)
- *   - Spell UI's own for `/components/ui/`, the sets' build for the others (`SETS_BUNDLE`)
  *   - the bundle then takes `/components/<set>/` as its site's root (the folder above its `_assets/`)
- * - `/components/<set>/<x>` -> its `docs/` folder:  the set's pages, `__parts/` and `__data/`
+ * - `/components/<set>/<x>` -> its pages' folder (`dir`):  the set's pages, `__parts/` and `__data/`
  * - the same under `/worktrees/<w>/` (that worktree's set and bundle)
  * - a `StaticHandler` overlay:  served only when the file is there, else the path as asked (a 404)
  */
-export function componentSetPath(path: string): string | undefined {
+export function componentSetPath(path: string, sets: readonly ComponentSet[]): string | undefined {
   const match = /^((?:\/worktrees\/[^/]+)?)(\/[^/]+\/[^/]+)(\/.*)$/.exec(path)
-  const set = match && COMPONENT_SETS.find((each) => each.prefix === match[2])
+  const set = match && sets.find((each) => each.prefix === match[2])
   if (!match || !set) return undefined
   const [, base = "", , rest = "/"] = match
   return rest.startsWith(`/${SET_ASSETS}/`)
@@ -523,71 +508,20 @@ export function componentSetPath(path: string): string | undefined {
 }
 
 /**
- * The URL path a folder that MOVED serves from its new place;  else `undefined`.
- * - the folders:  `MOVED_FOLDERS`, and the same under `/worktrees/<w>/`
- * - the engine's old checkout paths (epic `people-and-orgs` P16 J49, P18;  `epic-eject` I5):  a safety net for a page
- *   that still links them
+ * The URL path an ENGINE ROUTE of `routes` serves from in this checkout;  else `undefined`.
+ * - e.g. `/_epic/assets/<x>` => `/engine/assets/<x>`, for the route `["/_epic/assets/", "/engine/assets/"]`
+ * - from a worktree's address too (`/worktrees/<w>/templates/<x>`):  ONE copy, this checkout's
+ *   - a worktree's pages' `../templates/` leads there
+ * - the routes:  the settings' `"engineRoutes"` (`engineRoutes()`);  e.g. the epic engine's, at the routes its own
+ *   server serves it at too (epic `epic-eject` P7)
  * - a `StaticHandler` overlay:  served only when the file is there
  */
-export function movedFolderPath(path: string): string | undefined {
-  const match = /^((?:\/worktrees\/[^/]+)?)(\/.*)$/.exec(path)
-  if (!match) return undefined
-  const [, base = "", rest = "/"] = match
-  const moved = MOVED_FOLDERS.find(([from]) => rest.startsWith(`${from}/`))
-  return moved && `${base}${moved[1]}${rest.slice(moved[0].length)}`
-}
-
-/**
- * Folders the engine's files were in before, as URL paths:  old => where they are now.
- * - a safety net for a page that still loads the engine from a checkout path, not its routes (`/_epic/...`):
- *   the shared pages were migrated (`epic migrate --step engine-asset-routes`, epic `epic-eject` T13),
- *   but a page made or restored from an older copy may not be
- * - the docs assets:  `packages/docs/tools/_assets` (until `people-and-orgs` P16), `packages/epics/tools/_assets`
- *   (until the switch to spell-epic, `epic-eject` I5), now spell-epic's `src/tools/_assets`
- * - the epics pack:  `packages/epics/pack` (until `people-and-orgs` P18), `packages/epics/components/__pack`,
- *   now spell-epic's `src/components/__pack`
- * - through the checkout's `spell-epic` link (`engineFolder` in `.epic/config.json5`)
- */
-const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
-  ["/packages/docs/tools/_assets", "/spell-epic/src/tools/_assets"],
-  ["/packages/epics/tools/_assets", "/spell-epic/src/tools/_assets"],
-  ["/packages/epics/pack", "/spell-epic/src/components/__pack"],
-  ["/packages/epics/components/__pack", "/spell-epic/src/components/__pack"]
-]
-
-/**
- * The URL path an ENGINE ROUTE serves from in this checkout;  else `undefined`.
- * - `/_epic/assets/<x>` => `/spell-epic/src/tools/_assets/<x>`
- * - `/_epic/pack/<x>` => `/spell-epic/src/components/__pack/<x>`
- * - `/templates/<x>` => `/spell-epic/templates/<x>` (epic `epic-eject` T11), from a worktree's address too
- *   (`/worktrees/<w>/templates/<x>`):  ONE engine, the main checkout's link's
- * - the engine is spell-epic, through the checkout's `spell-epic` link (epic `epic-eject` I5)
- * - the routes spell-epic's one page server per machine serves the engine at (epic `epic-eject` P7):
- *   the shared pages load the engine from them (`engine-asset-routes`), and this server draws them too
- * - a `StaticHandler` overlay:  served only when the file is there
- */
-export function engineRoutePath(path: string): string | undefined {
-  const route = ENGINE_ROUTES.find(([prefix]) => path.startsWith(prefix))
+export function engineRoutePath(path: string, routes: readonly EngineRoute[]): string | undefined {
+  const route = routes.find(([prefix]) => path.startsWith(prefix))
   if (route) return `${route[1]}${path.slice(route[0].length)}`
-  const inWorktree = /^\/worktrees\/[^/]+(\/templates\/.*)$/.exec(path)?.[1]
-  return inWorktree && engineRoutePath(inWorktree)
+  const inWorktree = /^\/worktrees\/[^/]+(\/.*)$/.exec(path)?.[1]
+  return inWorktree && engineRoutePath(inWorktree, routes)
 }
-
-/** The engine's routes (`engineRoutePath()`):  each URL prefix, and the folder it is in this checkout, as a URL path. */
-const ENGINE_ROUTES: readonly (readonly [route: string, folder: string])[] = [
-  ["/_epic/assets/", "/spell-epic/src/tools/_assets/"],
-  ["/_epic/pack/", "/spell-epic/src/components/__pack/"],
-  ["/templates/", "/spell-epic/templates/"]
-]
-
-/**
- * TEMPORARY (until the merge, T3):  what this branch moved OUT of the shared folders into its packages, as URL paths.
- * The shared repo still holds them for `main` and every other checkout, so the root mount would serve them:
- * here they answer "not found", as they will everywhere once this branch merges (Q30).
- * - `/ui`:  Spell UI's docs, now `/components/ui/` (`packages/ui/docs/`)
- * - `/brand/components`:  the brand elements' docs, now `/components/brand/` (`packages/brand/docs/`)
- */
-const MOVED_OUT = ["/ui", "/brand/components"]
 
 /**
  * Branch and worktree name of the checkout at `root`, when git knows.

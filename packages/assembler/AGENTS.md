@@ -35,7 +35,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `check()`:  stale when never built, its entry missing or rewritten, or its sources' hash changed.
     - `build()`:  runs its package's script, then records the hash in its output folder (`.bundle.json`).
     - Its command line:  `spell dev bundles build [<name>...] [--stale]` / `check`.
-    - The page server runs `build --stale` when it starts:  `BundleBuild`, in the server package.
+    - The page server runs `build --stale` when it starts:  `BundleBuild`, in the page-server package (`$/page-server`).
     - Why (Owen, 2026-10-07):  their chunk names carry content hashes,
       so every Spell UI change deleted and re-added most of their files, in every diff and merge.
     - A new bundle:

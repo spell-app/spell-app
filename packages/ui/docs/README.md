@@ -13,7 +13,7 @@ More:
 - No build step to VIEW a page:  pages are static files loading ONE bundle.
   - The page server builds it when it starts, if it's stale (not committed since 2026-10-07).
 - Served at `/components/ui/` by the repo's page server, live-reloading
-  ([`packages/server`](../../server/), `COMPONENT_SETS`).
+  ([`packages/server`](../../server/), its `componentSets` setting in the root `package.json`).
 
 ## A component set
 

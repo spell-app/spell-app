@@ -5,7 +5,7 @@
   - App UI is the docs set of the spell app's own components (epic `epic-workflow` P11):  the `<spell-app>` and
     `<spell-editor>` web components, and the app's Solid components.  Its pages live here, in `packages/app/docs/`,
     beside the two web components' code (`packages/app/components/`).
-  - Served at `/components/app/` by the page server (`COMPONENT_SETS`, `packages/server/src/page/page.types.ts`), with
+  - Served at `/components/app/` by the page server (its `componentSets` setting, in the root `package.json`), with
     Spell UI's site bundle laid over it at `_assets/`:  so the bundle takes `/components/app/` as its site's root, and
     mounts THIS layout around each page's `main` (`packages/ui/site/_src/SiteShell.ts`), then swaps only the `main`
     (`SiteRouter.ts`).

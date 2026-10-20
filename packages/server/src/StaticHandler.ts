@@ -41,7 +41,7 @@ export class StaticHandler {
   /**
    * OVERLAYS:  each maps a URL path to another one, served in its place WHEN a file is there,
    * so one folder lays over another.
-   * - e.g. the page server's `/components/ui/_assets/...` from `packages/ui/site/_assets/` (`COMPONENT_SETS`)
+   * - e.g. the page server's `/components/ui/_assets/...` from a component set's site bundle (its `componentSets` setting)
    * - the first overlay that finds a file wins;  none:  the path as asked
    * - `undefined`:  not this overlay's path
    */

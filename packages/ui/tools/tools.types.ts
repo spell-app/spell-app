@@ -309,7 +309,7 @@ export type ImportMap = {
  *   - the files examples load (`examples/`), Fomantic's images (`images/`), the site's `README.md`
  * - Tracked with the branch, so a page changes in the same commit as its element.
  * - The page server serves it at `/components/ui/`, with the site bundle (`SITE_BUILD`'s `_assets/`) laid over it,
- *   so a page's `_assets/site.js` resolves (`COMPONENT_SETS` in `packages/server`).
+ *   so a page's `_assets/site.js` resolves (the page server's `componentSets` setting).
  */
 export const SITE_PAGES = "docs"
 

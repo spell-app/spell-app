@@ -3,10 +3,10 @@ import { relative, resolve, sep } from "node:path"
 
 import JSON5 from "json5"
 
-// By file name, `.ts` and all:  plain `node` loads this file (spell-epic's docs tools, `details.js` ...), and
-// resolves nothing else.  The JSON5 editor beside it (`$/util/node/json5`), the one every JSON5 edit goes through
-// (epic `people-and-orgs` P8;  the assembler's since `epic-workflow` P20)
-import { json5Edited } from "$/util/node/json5"
+// By package path, `.ts` and all:  plain `node` loads this file (spell-epic's docs tools, `details.js` ...), and
+// resolves no `$/` alias (epic `repo-split` I3).  The JSON5 editor, util's since `repo-split` P1, the one every
+// JSON5 edit goes through (epic `people-and-orgs` P8)
+import { json5Edited } from "@spell-app/util/src/node/json5.ts"
 
 /****************
  * ### `DataFile`

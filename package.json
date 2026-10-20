@@ -10,6 +10,7 @@
     "packages/cli",
     "packages/lsp",
     "packages/markdown",
+    "packages/page-server",
     "packages/parser",
     "packages/spell",
     "packages/app",
@@ -70,6 +71,7 @@
   "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
+      "packages/page-server/src/pageServerRoutes.ts",
       "spell-epic/src/tools/detailsRoutes.ts",
       "spell-epic/src/tools/choicesRoutes.ts",
       "spell-epic/src/tools/commentsRoutes.ts",
@@ -110,7 +112,34 @@
           "/components/"
         ]
       }
-    ]
+    ],
+    "componentSets": {
+      "ui": {
+        "name": "Spell UI",
+        "dir": "packages/ui/docs",
+        "assets": "packages/ui/site/_assets"
+      },
+      "epics": {
+        "name": "Epic UI",
+        "dir": "spell-epic/src/docs",
+        "assets": "packages/ui/site/_assets/sets"
+      },
+      "app": {
+        "name": "App UI",
+        "dir": "packages/app/docs",
+        "assets": "packages/ui/site/_assets/sets"
+      },
+      "brand": {
+        "name": "Brand",
+        "dir": "packages/brand/docs",
+        "assets": "packages/ui/site/_assets/sets"
+      }
+    },
+    "engineRoutes": {
+      "/_epic/assets/": "spell-epic/src/tools/_assets",
+      "/_epic/pack/": "spell-epic/src/components/__pack",
+      "/templates/": "spell-epic/templates"
+    }
   },
   "shared": {
     "links": [

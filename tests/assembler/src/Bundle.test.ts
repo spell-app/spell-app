@@ -125,7 +125,7 @@ describe("Bundle.specs()", () => {
     expect(() => AS.Bundle.specs(odd)).toThrow("Bundle.specs():  no bundle builds into 'packages/nope/_assets'")
   })
 
-  // the ONE list:  the page server waits on these folders (`BundleBuild`), the CLI builds their bundles
+  // the ONE list:  the page server waits on these folders (page-server's `BundleBuild`), the CLI builds their bundles
   test("the repo's list names every bundle, each once", () => {
     const repoRoot = join(import.meta.dirname, "../../..")
     const outputs = AS.Bundle.specs(repoRoot).map((spec) => spec.output)

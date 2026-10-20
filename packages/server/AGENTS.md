@@ -31,7 +31,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     isFree    freePort    listenPreferred
     ```
 
-  - [open.ts](src/open.ts) -- browser, new window, reused Chrome tab, VS Code's Simple Browser
+  - [open.ts](src/open.ts) -- browser, new window, reused Chrome tab (VS Code's doc preview is spell-epic's own opener)
   - `FileLock` -- `<file>.lock`, so tools writing the same file take turns
   - `FileOperations` -- files and folders saved, created, renamed, duplicated and deleted.
     - each under the `FileLock`
@@ -106,15 +106,23 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - [untilInterrupted.ts](src/untilInterrupted.ts) -- run until `Ctrl-C`
 - It's a LEAF:  node built-ins only (json5 / esbuild come in as hooks), and it imports NO other package.
   - So anything may import it:
-    ui's tools and site, spaces' node server, cli, app, epics, goals, the VS Code extension.
+    ui's tools and site, spaces' node server, cli, app, page-server, epics, goals, the VS Code extension.
+- It's GENERIC (epic `repo-split` P4):  its code names nothing of spell-app's or spell-epic's folders.
+  - What the page server serves beyond the checkout comes from its settings (below):
+    the component sets, the engine routes, the page scripts, the route modules.
+  - What only spell-app's page server does is [page-server](../page-server/AGENTS.md)'s route module.
+  - It goes to the bottom repo, spell-server, when the repos split (P8);  page-server goes to spell-app.
 - NOT in the barrel, opt-in by path (WWOD §8 › "Barrels"):
   - `$/server/page/...` -- the page server (one per checkout):
     - its CLI, `spell dev server`
     - page edits:  `PageEditor`, `/api/pages`
     - its info:  `/api/server`
     - Its settings:  the `"pageServer"` block of the root `package.json`.
-      - Read by `pageServerSettings()`, in [settings.ts](src/page/settings.ts).
-      - route modules, watched folders, writable folders, bundles, page scripts
+      - Read by `pageServerSettings()`, in [settings.ts](src/page/settings.ts);
+        `componentSets()` and `engineRoutes()` read their two lists out of them.
+      - route modules, watched folders, writable folders, bundles, page scripts, component sets, engine routes
+      - Plain `node` loads `settings.ts` and `page.types.ts` by path (spell-epic's tools):
+        node built-ins and type imports only, and `./settings.ts` with its extension.
     - PAGE SCRIPTS (`"pageScripts"`, epic `repo-split` P2):  module scripts it adds to every HTML page it serves,
       before `</body>` (`PageServer.withPageScripts()`).
       - Each says its URL (`src`), the file it is (`file`, from the root) and the pages it skips (`skip`, URL prefixes).
@@ -135,11 +143,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - It then tells the folder:
         - to `/api/server` and pages:  `worktrees`
         - to pages, its URL path too:  `worktreesPath`
-    - It serves the ENGINE ROUTES too (`engineRoutePath()`, epic `epic-eject` P7):
-      - the routes:  `/_epic/assets/` and `/_epic/pack/`
-      - from spell-epic, through the checkout's `spell-epic` link (`ENGINE_ROUTES`, epic `epic-eject` I5)
-      - where spell-epic's one server per machine serves the engine too, and where the pages load it from
-      - a checkout without the link answers "not found" there, and loads no epic route module
+    - It serves the ENGINE ROUTES too (`engineRoutePath()`, epic `epic-eject` P7):  URL prefixes served from a folder
+      of the checkout, under every worktree's address too (`/worktrees/<w>/templates/...`).
+      - The list:  the settings' `"engineRoutes"`, each a route and its folder (epic `repo-split` P4).
+      - Today spell-app's:  `/_epic/assets/`, `/_epic/pack/` and `/templates/`, from spell-epic through the checkout's
+        `spell-epic` link:  where spell-epic's one server per machine serves the engine too, and the pages load it from.
+      - A checkout without the link answers "not found" there, and loads no epic route module.
+      - Live reload reports a change in one at its route.
     - Route modules add to every page's `window.SPELL_SERVER`:  `addPageConfig()`.
       - e.g. epics' airplane mode ([airplaneRoutes.ts](../../spell-epic/src/tools/airplaneRoutes.ts)),
         whose switch, `AirplaneMode`, moved to epics in `epic-eject` P4.
@@ -162,49 +172,27 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         - `/api/files` and `/api/pages` write in it:  the `"writable"` names are its folders.
         - `/api/server` reports it (`contentFolder`);  `spell dev server url <file>` gives a file of it its path there
           (`contentPathOf()`).
-      - For the SHARED pages every checkout shows:
-        - the engine's old folders still serve from spell-epic (`movedFolderPath()`), a safety net for a page that
-          still links them (the shared pages load `/_epic/...` since `epic-eject` T13):
-          - the docs assets' old folders, `/packages/docs/tools/_assets/<x>` (J49), `/packages/epics/tools/_assets/<x>`
-          - the epics pack's, `/packages/epics/pack/<x>` (P18), `/packages/epics/components/__pack/<x>`
-        - what it moved OUT of the shared folders answers "not found" (`MOVED_OUT`),
-          though the shared repo still holds it for the other checkouts
-          - `/ui/` and `/brand/components/`
-        - Once every page and checkout is past them, both go.
+      - The shared pages' bridges (the engine's old folders, `/ui/` answering "not found"):  page-server's route
+        module ([page-server's AGENTS.md](../page-server/AGENTS.md)).
     - And the COMPONENT SETS:  the docs of each set of elements, in Spell UI's page shape, in its package's `docs/`.
-      - The list:  `COMPONENT_SETS`, in [page.types.ts](src/page/page.types.ts).
+      - The list:  the settings' `"componentSets"`, by id, in the top bar's order (`componentSets()`, epic `repo-split`
+        P4;  `ComponentSet`, in [page.types.ts](src/page/page.types.ts)).
+        - Each:  its `name`, its pages' folder (`dir`) and the site bundle laid over it (`assets`).
+        - Today spell-app's four:  Spell UI, Epic UI (spell-epic's, through the link), App UI, the brand's.
       - Since epic `epic-workflow` P10 / P11;  one layout since `people-and-orgs` P18.
-      - Each at `/components/<set>/`.  A new set is one more entry.
-        - Spell UI:  [ui's docs/](../ui/docs/), at `/components/ui/`
-        - Epic UI:  [spell-epic's docs/](../../spell-epic/src/docs/), at `/components/epics/`, through the link
-        - App UI:  [app's docs/](../app/docs/), at `/components/app/`
-        - the brand's:  [brand's docs/](../brand/docs/), at `/components/brand/`
-      - No dev server:  the pages are static, loading Spell UI's site bundle.
+      - Each at `/components/<id>/`.  A new set is one more entry in the settings.
+      - No dev server:  the pages are static, loading their site bundle.
       - ONE overlay (`componentSetPath()`):
         - `<prefix>/_assets/` is the set's site bundle (`assets`)
-          - for Spell UI:  its own, `SITE_BUNDLE`
-          - for the others:  the sets' build, `SETS_BUNDLE`, in Spell UI's bundle's `sets/`
         - the rest is the set's own folder:  its pages, `__parts/`, `__data/`
       - The same at `/worktrees/<w>/components/<set>/`.
       - `<prefix>` redirects to `<prefix>/`:  the one redirect left.
       - Live reload watches each set's folder and its bundle, reporting their changes at the set's address.
-    - `BundleBuild` -- the bundles it serves are NOT committed, so it builds them.
-      - They're the bundle list in the root `package.json`, read through `pageServerSettings()`;
-        the assembler reads the same list:
-
-        ```json
-        "pageServer": { "bundles": [...] }
-        ```
-
-        - Spell UI's site:  [ui's site/_assets/](../ui/site/), with the component sets' build in its `sets/`
-        - the brand pages':  [brand's _assets/ui/](../brand/)
-      - On `start()`, it runs the checkout's own `spell dev bundles build --stale`, as a child.
-        `$/assembler`'s `Bundle` does the work;  the server only spawns it.
-      - It logs that child's output (`bundles:  ...`).
-      - A request for a MISSING file in one of those folders waits for it (`BUNDLE_WAIT_MS`).
-      - Live reload reloads the pages when it ends.
-      - Only this checkout's:  a worktree's pages, served at `/worktrees/<w>/`,
-        use the bundles that worktree's own page server built.
+      - Settings that name no sets:  the sets of the checkout this package is in (`COMPONENT_SETS`).
+        - REFACTOR:  only for spell-epic's route-module tests, whose scratch checkouts name none;
+          with `COMPONENT_SETS`, `SITE_BUNDLE` and `SETS_BUNDLE` (spell-epic imports them), it goes once spell-epic
+          reads `componentSets()` (epic `repo-split` P4's T entry).
+    - The bundles it serves are NOT committed:  page-server's route module builds them (`BundleBuild`).
     - Spell projects' compiled output (`build/`, never committed) is built the same way,
       but by the app's route module, not here.
       - [ProjectBuild](../spaces/src/server/node/routes/ProjectBuild.ts), in spaces' routes,

@@ -7,8 +7,9 @@ import { PassThrough } from "node:stream"
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import { BundleBuild, componentSetPath } from "$/server/page"
+import { componentSetPath, componentSets } from "$/server/page"
 import { ask } from "$/server/test/serve"
+import { BundleBuild } from "$/page-server"
 
 ////////////////
 // ## Fakes
@@ -41,15 +42,21 @@ function put(root: string, path: string, text: string): void {
 /** The bundles' folders, as the repo root's `package.json` names them (`"pageServer": { "bundles": [...] }`). */
 const BUNDLES = ["packages/ui/site/_assets", "packages/brand/_assets/ui"]
 
-/** A checkout's `package.json` naming `BUNDLES`. */
-const SETTINGS = JSON.stringify({ pageServer: { bundles: BUNDLES } })
+/** Two component sets, whose `_assets/` are Spell UI's bundle's folder, as the repo root's `package.json` names them. */
+const SETS = {
+  ui: { name: "Spell UI", dir: "packages/ui/docs", assets: "packages/ui/site/_assets" },
+  epics: { name: "Epic UI", dir: "spell-epic/src/docs", assets: "packages/ui/site/_assets/sets" }
+}
+
+/** A checkout's `package.json` naming `BUNDLES` and `SETS`. */
+const SETTINGS = JSON.stringify({ pageServer: { bundles: BUNDLES, componentSets: SETS } })
 
 ////////////////
 // ## Tests
 ////////////////
 
 describe("BundleBuild", () => {
-  const root = mkdtempSync(join(tmpdir(), "srv-bundles-"))
+  const root = mkdtempSync(join(tmpdir(), "page-server-bundles-"))
   let web: SRV.WebServer | undefined
   let build: BundleBuild
   let child: FakeChild
@@ -66,7 +73,7 @@ describe("BundleBuild", () => {
     child = new FakeChild()
     build = new BundleBuild({ root, timeout, spawn: spawnOf(child) })
     web = new SRV.WebServer({ root, mounts: [{ prefix: "/", dir: root }] })
-    web.files.overlays.push(componentSetPath)
+    web.files.overlays.push((path) => componentSetPath(path, componentSets({ componentSets: SETS })))
     web.router.use(build.wait)
     return (await web.listen({ port: 0 })).port
   }
@@ -151,7 +158,7 @@ describe("BundleBuild", () => {
 })
 
 describe("BundleBuild.bundleFileFor()", () => {
-  const repo = mkdtempSync(join(tmpdir(), "srv-bundles-files-"))
+  const repo = mkdtempSync(join(tmpdir(), "page-server-bundles-files-"))
   put(repo, "package.json", SETTINGS)
   const build = new BundleBuild({ root: repo })
 

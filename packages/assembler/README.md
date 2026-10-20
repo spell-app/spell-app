@@ -39,7 +39,7 @@ for (const bundle of AS.Bundle.all(root)) if (bundle.isStale) bundle.build()
 
 - The page server runs `spell dev bundles build --stale` when it starts.
   - A request for a bundle's file waits while it runs.
-  - That's [BundleBuild.ts](../server/src/page/BundleBuild.ts), in the page server.
+  - That's [BundleBuild.ts](../page-server/src/BundleBuild.ts), in the page-server package.
 
 | Bundle | Built by | Into |
 | --- | --- | --- |

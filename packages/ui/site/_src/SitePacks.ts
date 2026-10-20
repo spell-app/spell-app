@@ -3,7 +3,7 @@
  * what a pack's classic script calls `registerPack()` on and takes its shared modules from (`packModules`), as the
  * docs bundle gives them (`spell-epic/src/tools/_assets/spell-ui.entry.js`).
  * - Why:  the component sets' pages (Epic UI at `/components/epics/`, App UI at `/components/app/`, the
- *   brand's at `/components/brand/`:  `COMPONENT_SETS` in `$/server/page`) load Spell UI's site, and draw their live examples with a pack's elements (`epics.pack.js`'s
+ *   brand's at `/components/brand/`:  the page server's `componentSets` setting) load Spell UI's site, and draw their live examples with a pack's elements (`epics.pack.js`'s
  *   `<epic-*>`, the app's `spell.pack.js`).
  * - ONLY in the sets' build of the site (`sets.ts`, `site/_assets/sets/`), never in Spell UI's own:  every module
  *   here stays WHOLE (a pack may use any export), and in one build with Spell UI's pages that cost them +118 KB

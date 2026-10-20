@@ -98,7 +98,7 @@ export type SiteDataFile = {
 /**
  * A site's own links in `<ui-docs-nav>`, around its component list:  the start pages above, the "Foundation" ones
  * below, and the bands' titles.
- * - For a site other than Spell UI's that loads this site's bundle (`COMPONENT_SETS` in `$/server/page`).
+ * - For a site other than Spell UI's that loads this site's bundle (the page server's `componentSets` setting).
  */
 export type SiteNav = {
   /** the links above the components (Spell UI:  Overview, Getting started ...) */

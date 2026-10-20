@@ -675,7 +675,7 @@ const PACKAGE = fileURLToPath(new URL("..", import.meta.url))
 /** The site's pages, `docs/` (`SITE_PAGES`):  what the page server serves at `SITE_ADDRESS`. */
 const SITE = join(PACKAGE, SITE_PAGES)
 
-/** Where the page server serves Spell UI's docs (`COMPONENT_SETS` in `$/server/page`). */
+/** Where the page server serves Spell UI's docs (the page server's `componentSets` setting). */
 const SITE_ADDRESS = "/components/ui"
 
 /** Repo root (of this worktree):  where `spell dev server ensure` runs. */

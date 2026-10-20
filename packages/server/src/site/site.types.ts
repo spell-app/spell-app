@@ -8,7 +8,7 @@
  * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/components/ui/`)
  * - `serverOnly`:  only exists when served by the page server
  *   - `/components/<set>/`:  a component set's `docs/` folder,
- *     with Spell UI's site bundle laid over it (`COMPONENT_SETS`)
+ *     with Spell UI's site bundle laid over it (the page server's `componentSets` setting)
  *   - `/editor/`:  the app
  * - `ownTab`:  always opens in its own browser tab (`target`), never in place
  *   - the app is a whole program, too big for VS Code's side bar
@@ -47,7 +47,7 @@ export const SITE_HOME = "pages/index.html"
  *   - the home and the scratch details pages:  none
  * - each area's list page is its tab's home (`<area>/index.html`)
  * - the component sets light on their address and on their `docs/` folder's long one (`componentSet()`)
- *   - `COMPONENT_SETS` in `$/server/page`, served at `/components/<set>/` (epic `people-and-orgs` P18)
+ *   - the page server's `componentSets` setting, served at `/components/<set>/` (epic `people-and-orgs` P18)
  *   - the brand's set has no tab of its own:  it lights Brand, beside the Brand tab's own pages
  * - App means the editor, opened in its own browser tab
  */
@@ -84,7 +84,7 @@ export const PROPERTIES: SiteProperty[] = [
  * - by its served address, `/components/<set>/` (a worktree's too, `/worktrees/<w>/components/<set>/`)
  * - or by its folder's long one, `packages/<package>/docs/` (a `file://` page too);  Epic UI's,
  *   `spell-epic/src/docs/` (epic `epic-eject` I5)
- * - the sets:  `ui`, `epics`, `app`, `brand`, as `COMPONENT_SETS` in `$/server/page` names them
+ * - the sets:  `ui`, `epics`, `app`, `brand`, as the page server's `componentSets` setting names them
  *   (its prefixes' tails, and their folders:  `docs/` of `packages/ui`, `packages/app` ..., `spell-epic/src/docs/`)
  */
 export function componentSet(path: string): string | undefined {

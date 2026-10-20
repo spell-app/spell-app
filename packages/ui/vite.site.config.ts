@@ -14,7 +14,7 @@ export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
 
 /**
  * The component sets' build (mode `sets`):  `site/_src/sets.ts` => `site/_assets/sets/`, the same site plus
- * `SitePacks` for the packs their examples use (epic `epic-workflow` P10;  `COMPONENT_SETS` in `$/server/page`).
+ * `SitePacks` for the packs their examples use (epic `epic-workflow` P10;  the page server's `componentSets` setting).
  * - Its own build, so Spell UI's pages never load the whole modules a pack may need.
  */
 export const SETS_MODE = "sets"

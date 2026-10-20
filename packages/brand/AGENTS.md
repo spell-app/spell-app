@@ -282,7 +282,7 @@ As the root's, plus these reaches into `ui` past its barrel, each because the ba
   - So the Brand tab's pages are at `/brand/...`, and this package's files at `/packages/brand/...`.
   - The site header's Brand tab opens `/brand/index.html`, and lights on every page under `/brand/`.
     - Its entry:  `PROPERTIES`, in [site.types.ts](../server/src/site/site.types.ts).
-  - The docs set, `docs/`, at `/components/brand/` (`COMPONENT_SETS` in `$/server/page`).
+  - The docs set, `docs/`, at `/components/brand/` (the page server's `componentSets` setting).
     - Spell UI's sets bundle is laid over it at `_assets/`.
     - `/brand/components/` (the old element pages) answers "not found".
 - Live reload:  the root `package.json`'s `pageServer.watch` lists them:

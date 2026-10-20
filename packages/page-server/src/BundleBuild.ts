@@ -4,10 +4,11 @@ import { join } from "node:path"
 import { createInterface } from "node:readline"
 
 import type { Handler } from "$/server"
-import { BUNDLE_WAIT_MS, componentSetPath, pageServerSettings } from "$/server/page"
+import { componentSetPath, componentSets, pageServerSettings, type ComponentSet } from "$/server/page"
+import { BUNDLE_WAIT_MS } from "$/page-server"
 
 /**
- * Builds the bundles the page server serves, when the server starts.
+ * Builds the bundles spell-app's page server serves, when the server starts (`pageRoutes`, its route module).
  * - the bundles:  the Spell UI docs site's, the brand pages';  built on demand, never committed
  *   - `folders`:  the root `package.json`'s `"pageServer": { "bundles": [...] }`
  * - `start()`:  runs `spell dev bundles build --stale` in the background, with the checkout's OWN CLI
@@ -17,7 +18,8 @@ import { BUNDLE_WAIT_MS, componentSetPath, pageServerSettings } from "$/server/p
  * - `wait`:  while it runs, a request for a MISSING file in a bundle's folder waits for it to end,
  *   at most `timeout` ms, then is served as usual;  a file that's there is served at once
  * - when it ends, live reload reloads the open pages that load a bundle:  the page server watches both folders
- * - A leaf like the rest of the server:  it runs the CLI as a child process, never imports it.
+ * - It runs spell's CLI as a child process, never imports it.
+ * - Moved out of the server package (epic `repo-split` P4):  the server is generic, and this runs spell's own CLI.
  */
 export class BundleBuild {
   /** the checkout served */
@@ -28,6 +30,9 @@ export class BundleBuild {
 
   /** the bundles' folders, relative to `root`:  its settings' `bundles` (`pageServerSettings()`), read once */
   readonly folders: readonly string[]
+
+  /** the component sets, whose `_assets/` are a bundle's folder:  its settings' `componentSets`, read once */
+  readonly sets: readonly ComponentSet[]
 
   /** starts the child:  `node:child_process`'s `spawn`, or a test's stub */
   private spawn: SpawnBuild
@@ -42,7 +47,9 @@ export class BundleBuild {
     this.root = root
     this.timeout = timeout
     this.spawn = spawn
-    this.folders = pageServerSettings(root).bundles ?? []
+    const settings = pageServerSettings(root)
+    this.folders = settings.bundles ?? []
+    this.sets = componentSets(settings)
   }
 
   /** Is the build running? */
@@ -138,7 +145,7 @@ export class BundleBuild {
   bundleFileFor(path: string): string | undefined {
     let served: string
     try {
-      served = decodeURIComponent(componentSetPath(path) ?? path)
+      served = decodeURIComponent(componentSetPath(path, this.sets) ?? path)
     } catch {
       return undefined
     }

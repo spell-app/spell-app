@@ -1,6 +1,7 @@
 /**
- * Types of the page server:  route modules and what they get.
- * - MUST stay runtime-light:  `import type` only.
+ * Types of the page server:  route modules and what they get, its settings, component sets and engine routes.
+ * - MUST stay runtime-light:  `import type` only, and re-exports of `settings.ts` (node built-ins).
+ * - Plain `node` loads this file by path (spell-epic's tools):  so its re-exports name `./settings.ts` in full.
  */
 import type { SRV, ServedFile, ServerInfo } from "$/server"
 
@@ -88,6 +89,20 @@ export type PageServerSettings = {
    * - the server knows nothing of what they are:  the paths come from here
    */
   pageScripts?: PageScript[]
+  /**
+   * the COMPONENT SETS it serves, by id, in the top bar's order (`ComponentSet`, `componentSets()`):
+   * each at `/components/<id>/`, its pages' folder with its site bundle laid over it at `_assets/`;  none by default
+   * - e.g. `"ui": { "name": "Spell UI", "dir": "packages/ui/docs", "assets": "packages/ui/site/_assets" }`
+   * - the server knows nothing of what they are:  the folders come from here (epic `repo-split` P4, Q3)
+   */
+  componentSets?: Record<string, ComponentSetSetting>
+  /**
+   * ENGINE ROUTES:  URL prefixes served from a folder of the checkout, under every worktree's address too
+   * (`EngineRoute`, `engineRoutes()`);  none by default
+   * - e.g. `"/_epic/assets/": "spell-epic/src/tools/_assets"`:  the epic engine, through the checkout's link
+   * - live reload reports a change in one at its route
+   */
+  engineRoutes?: Record<string, string>
 }
 
 /** One of the page server's `pageScripts`:  a module script added to the pages it serves. */
@@ -108,84 +123,73 @@ export type PageScript = {
 }
 
 /**
- * Where the component sets are served:  `/components/<set>/` (epic `people-and-orgs` P18, Q25).
- * - One home for every set, so the top bar lists them all from one place.
- * - A repo set's name never has an `@`;  a space's always will, so they can't clash.
- */
-export const COMPONENTS_PREFIX = "/components"
-
-/**
- * Spell UI's site bundle, relative to the checkout:
- * `site.js` + `site.css` and their lazy chunks, which Spell UI's own docs pages load.
- * - built by `yarn site:bundle`, in `packages/ui`
- * - NOT committed:  the page server builds it when it starts, if stale (`BundleBuild`, the settings' `bundles`)
- */
-export const SITE_BUNDLE = "packages/ui/site/_assets"
-
-/**
- * The OTHER sets' bundle, relative to the checkout:  Spell UI's site built again from `site/_src/sets.ts`,
- * with `globalThis.SpellUI` for the component packs their examples use (`SitePacks`).
- * - a folder of Spell UI's bundle, so built, ignored and waited for with it
- */
-export const SETS_BUNDLE = `${SITE_BUNDLE}/sets`
-
-/**
- * A COMPONENT SET:  one set of elements' docs pages, in Spell UI's page shape,
- * kept in its package's `docs/` folder beside the elements' code, versioned with its branch
- * (epic `people-and-orgs` P18;  before it, epic `epic-workflow` P10 / P11).
+ * One component set, as the settings name it (`"componentSets"`, under its id).
  * - `name`:  what prose calls it, e.g. `Epic UI`
- * - `prefix`:  the address it's served at, `/components/<set>`
- *   (and `/worktrees/<w>/components/<set>` for a worktree's)
  * - `dir`:  its pages' folder, relative to the checkout, e.g. `packages/ui/docs`
- *   - Epic UI's is spell-epic's, through the checkout's `spell-epic` link (epic `epic-eject` I5)
- * - `assets`:  the site bundle its pages load as `_assets/`, relative to the checkout:
- *   `SITE_BUNDLE` for Spell UI's own, `SETS_BUNDLE` for every other set
+ * - `assets`:  the site bundle its pages load as `_assets/`, relative to the checkout
  */
-export type ComponentSet = {
+export type ComponentSetSetting = {
   readonly name: string
-  readonly prefix: string
   readonly dir: string
   readonly assets: string
 }
 
 /**
- * Every component set, in the top bar's order;  Spell UI's first.
- * - Each the same layout:  its package's `docs/`, one flat folder of pages
+ * A COMPONENT SET:  one set of elements' docs pages, in Spell UI's page shape,
+ * kept in its package's `docs/` folder beside the elements' code, versioned with its branch
+ * (epic `people-and-orgs` P18;  before it, epic `epic-workflow` P10 / P11).
+ * - what the settings say of it (`ComponentSetSetting`), and `prefix`:  the address it's served at,
+ *   `/components/<id>` (and `/worktrees/<w>/components/<id>` for a worktree's)
+ * - every set the same layout:  one flat folder of pages
  *   - an element's page is its tag, `ui-button.html`
  *   - `__parts/`:  the layout and footer every page shares
- *   - `__data/`:  its side column's, search's and API tables' data (`spell dev pack build` writes a pack's)
- * - Served by the page server through ONE overlay (`componentSetPath()`):
+ *   - `__data/`:  its side column's, search's and API tables' data
+ * - served through ONE overlay (`componentSetPath()`):
  *   - `<prefix>/_assets/...`:  the set's site bundle (`assets`), so its pages load `site.js` and `site.css`,
- *     and the site's shell (`SiteShell`, `SiteRouter`) takes `<prefix>/` as its root (the folder above its `_assets/`)
+ *     and the site's shell takes `<prefix>/` as its root (the folder above its `_assets/`)
  *   - `<prefix>/...`:  the set's own folder
- * - Its pages' links are written as from their SERVED address (`/components/epics/epic-page.html`),
- *   so they hold at `/worktrees/<w>/components/epics/` too;  `doc-links.js` checks them that way (`Linker`'s `served`)
- * - Comments:  the comment route takes its pages, kept in `<page>.inbox.json5` beside each (git-ignored)
- * - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found":  no redirects (Q30)
+ * - Its pages' links are written as from their SERVED address (`/components/<id>/<page>.html`),
+ *   so they hold at `/worktrees/<w>/components/<id>/` too
+ * - The list:  the settings' `"componentSets"`, in the top bar's order (`componentSets()`).
  */
-export const COMPONENT_SETS = [
-  { name: "Spell UI", prefix: `${COMPONENTS_PREFIX}/ui`, dir: "packages/ui/docs", assets: SITE_BUNDLE },
-  { name: "Epic UI", prefix: `${COMPONENTS_PREFIX}/epics`, dir: "spell-epic/src/docs", assets: SETS_BUNDLE },
-  { name: "App UI", prefix: `${COMPONENTS_PREFIX}/app`, dir: "packages/app/docs", assets: SETS_BUNDLE },
-  { name: "Brand", prefix: `${COMPONENTS_PREFIX}/brand`, dir: "packages/brand/docs", assets: SETS_BUNDLE }
-] as const satisfies readonly ComponentSet[]
+export type ComponentSet = ComponentSetSetting & {
+  readonly prefix: string
+}
 
 /**
- * How long a request for a bundle's file waits for the startup build, in ms,
- * before it's answered as it stands (a 404, while the file is still missing).
- * - each build takes a few seconds (2 s for both on an M-series Mac, 2026-10-07);  a cold `tsx` and vite add some
+ * An ENGINE ROUTE:  a URL prefix served from a folder of the checkout, the same under every worktree's address
+ * (`engineRoutePath()`).
+ * - `route`:  the URL prefix, ending `/`, e.g. `/templates/`
+ * - `folder`:  the folder it serves, as a URL path from the checkout, ending `/`
+ * - The list:  the settings' `"engineRoutes"` (`engineRoutes()`).
  */
-export const BUNDLE_WAIT_MS = 120_000
+export type EngineRoute = readonly [route: string, folder: string]
 
 /**
  * Code colours (highlight.js) for every docs page, from the repo instead of cdnjs (epic `airplane` P1).
  * - `cdn`:  the tag older pages still carry;  a plain, blocking `<script>`
- *   - so a hanging network (plane wifi asking to pay first) held up `spell-ui.js` behind it,
+ *   - so a hanging network (plane wifi asking to pay first) held up the page's own scripts behind it,
  *     and the page showed raw markup for tens of seconds
- * - `local`:  the same file (11.9.0), committed in spell-epic, at its engine route (`/_epic/assets/`)
- *   - the page server serves pages with `cdn` swapped for it (`localHighlight()`), so they load with no network at all
+ * - `local`:  the same file (11.9.0), at the docs pages' engine route
+ * - REFACTOR:  the epic engine's fact, kept here only because spell-epic imports it from `$/server/page`
+ *   (epic `repo-split` P4);  move it to spell-epic once spell-epic switches.
+ *   The page server itself no longer uses it:  page-server's route module swaps the tag (`$/page-server`).
  */
 export const HIGHLIGHT_JS = {
   cdn: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
   local: "/_epic/assets/highlight.min.js"
 } as const
+
+/**
+ * Where the component sets are served (`COMPONENTS_PREFIX`), from `settings.ts`, which plain `node` loads.
+ * - `./settings.ts` with its extension:  plain `node` loads this file by path (spell-epic's tools)
+ */
+export { COMPONENTS_PREFIX } from "./settings.ts"
+
+/**
+ * The component sets of the checkout this package is in, and their site bundles, read from its settings.
+ * - REFACTOR:  kept only for spell-epic, which reads spell-app's MAIN checkout through its link and imports these
+ *   (some by path, under plain `node`:  so `./settings.ts` with its extension) until it switches, once epic
+ *   `repo-split` P4 is on `main`.  Delete them when spell-epic reads `componentSets()` of its checkout's settings.
+ */
+export { COMPONENT_SETS, SETS_BUNDLE, SITE_BUNDLE } from "./settings.ts"

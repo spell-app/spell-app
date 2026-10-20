@@ -1,6 +1,6 @@
 /**
  * Entry of the COMPONENT SETS' build of the site, `site/_assets/sets/site.js` (+ `site.css`):  the one script a page of
- * Epic UI, App UI or the brand's set loads (`COMPONENT_SETS` in `$/server/page`, epic `epic-workflow` P10;  served at
+ * Epic UI, App UI or the brand's set loads (the page server's `componentSets` setting, epic `epic-workflow` P10;  served at
  * `/components/<set>/` since epic `people-and-orgs` P18).
  * - The page server serves this folder as a set's `_assets/` (`/components/epics/_assets/site.js`), so a set's page links
  *   `_assets/site.js` as a page of Spell UI's docs site does, and the site takes the set's folder as its root.

@@ -252,7 +252,7 @@ when working with code in this package, `@spell-app/app`.
     - `_images/` (the pictures) and `_examples/` (snippets a page shows):
       they aren't frame or data, so they keep one `_`
   - Spell UI's page shape, on Spell UI's site bundle:  the page server lays its `_assets/` over the folder.
-    - `COMPONENT_SETS`, in [the page server's types](../server/src/page/page.types.ts)
+    - the page server's `componentSets` setting, in the root [package.json](../../package.json)
   - Links are written as from the page's SERVED address (`/components/app/x.html`):
     - `../../` is the checkout's root
     - `../ui/ui-button.html` is a Spell UI page

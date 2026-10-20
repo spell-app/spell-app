@@ -48,7 +48,7 @@ const ASSETS = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 
 /**
  * The site's root (`/components/ui/`):  the folder above `_assets/`.
- * - Every set served with this bundle laid over it (`/components/epics/`:  `COMPONENT_SETS` in `$/server/page`) is its
+ * - Every set served with this bundle laid over it (`/components/epics/`:  the page server's `componentSets` setting) is its
  *   own root:  its layout (`__parts/`), its data (`__data/`), its routable pages
  */
 const SITE_ROOT = new URL("../", ASSETS)

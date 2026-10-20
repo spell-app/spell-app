@@ -70,7 +70,8 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2, written on `$/spell-solid` |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
 | [spell-epic](spell-epic/src/AGENTS.md) (NOT a package here) | `@spell-app/epics` | `$/epics` | `EP` | the epic engine, its own repo (below, "spell-epic"):  epic pages' `<epic-*>` elements (a component pack), Epic UI (at `/components/epics/`), the `epic` command, the hooks and epic skills;  AND every docs page's tooling:  the docs tools and the `_assets` every page loads (`/_epic/assets/`) |
-| [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally (below) |
+| [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally, and the generic page server (below) |
+| [page-server](packages/page-server/AGENTS.md) | `@spell-app/page-server` | `$/page-server` | `PS` | what only spell-app's page server does, as a route module on server's:  building its bundles, the shared pages' bridges (below) |
 | [assembler](packages/assembler/AGENTS.md) | `@spell-app/assembler` | `$/assembler` | `AS` | assembling pages, for every tool that writes them (below) |
 | [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below);  its `<brand-*>` elements (a component pack) and their docs pages (Brand UI, `docs/`, at `/components/brand/`) |
 
@@ -85,7 +86,7 @@ More on some of them:
       - `__data/`:  the side column's data
   - Served at `/components/<set>/` by the page server,
     which lays a build of Spell UI's site over the folder at `_assets/`.
-    - The list:  `COMPONENT_SETS` ([server's AGENTS.md](packages/server/AGENTS.md)).
+    - The list:  `componentSets`, in the root `package.json`'s `"pageServer"` ([server's AGENTS.md](packages/server/AGENTS.md)).
   - The sets:
     - Spell UI:  [ui's docs/](packages/ui/docs/), at `/components/ui/`
     - Epic UI:  [spell-epic's docs/](spell-epic/src/docs/), at `/components/epics/`:  spell-epic's, through the
@@ -113,6 +114,9 @@ More on some of them:
 - server:  static folders, an Express-shaped router, live reload, ports, openers, a file lock.
   - And the ONE page server per checkout (`spell dev server`),
     which serves docs, epics, the parked saga pages and Spell UI's docs site.
+  - GENERIC (epic `repo-split` P4):  it names nothing of spell-app or spell-epic.
+    - What it serves beyond the checkout comes from its settings (below).
+    - What only spell-app's page server does is page-server's route module, listed first in them (below).
   - Every call is under `/api/`, one prefix per package that answers it.
     - The server's own:  `/api/server` and `/api/files`.
     - Its page editor's:  `/api/pages`.
@@ -121,6 +125,12 @@ More on some of them:
     - route modules
     - watched and writable folders
     - the ONE list of bundles (`bundles`), which the assembler reads too
+    - page scripts (`pageScripts`)
+    - the component sets (`componentSets`) and the engine routes (`engineRoutes`, `/_epic/...`, `/templates/`)
+- page-server (epic `repo-split` P4):  spell-app's own part of its page server, a route module on server's.
+  - building the bundles it serves (`BundleBuild`, with spell's own CLI)
+  - the offline highlight.js swap, and the shared pages' bridges (the engine's old folders, `/ui/`)
+  - It goes to spell-app when the repos split;  server goes to spell-server.
 - assembler:
   - link targets (`Linker`)
   - in-memory formatting (`formatHTML()`)
@@ -148,6 +158,7 @@ spaces' server/py -> py's spell_core   (Python, by path in its pyproject.toml)
 spell -> py -> parser     (Python's writers;  `py/core`'s Python imports no package)
 app / lsp -> markdown -> parser
 brand -> ui / server
+page-server -> server     (spell-app's own:  its route module runs on the generic page server)
 ui / epics / app / brand -> spell-solid -> util   (every set's elements are written on it;  a space's too)
 ui -> util
 ```
@@ -170,6 +181,8 @@ ui -> util
     one folder for main and every worktree (`SPELL_SPACES_DIR` sets it).
 - `server` is a LEAF (node built-ins only, imports no package).
   - ANY package may import it, `ui`'s tools too.
+  - NEVER make it name spell-app's or spell-epic's folders:  they're its settings (epic `repo-split` P4).
+- `page-server`:  NO package imports it;  the page server loads its route module by PATH, from its settings.
 - `assembler` is node-only and imports no package (it uses linkedom, oxfmt and json5-writer).
   - epics (its docs tools and its `epic` tool) imports it.
   - So do spaces and ui's tools (the site data writers), for `$/assembler/json5`.
@@ -548,7 +561,7 @@ ui -> util
     - the `$/epics` aliases ([tsconfig.base.json](tsconfig.base.json));  NO spell-app source imports them
     - the page server's epic route modules and the folders it watches (the root `package.json`'s `"pageServer"`)
     - the engine's routes, `/_epic/assets/` and `/_epic/pack/`, and Epic UI at `/components/epics/`
-      (`ENGINE_ROUTES`, `COMPONENT_SETS`, [server's AGENTS.md](packages/server/AGENTS.md))
+      (`engineRoutes`, `componentSets` in the root `package.json`'s `"pageServer"`;  [server's AGENTS.md](packages/server/AGENTS.md))
     - the commands page's check (`spell dev commands`):  `epic`'s verbs and the plugin's skills
   - A checkout without the link (CI) loads no epic routes;  the tests that need the engine skip themselves.
 - `spell dev` keeps the old spellings, hidden, each handed on to `epic` (`runEpic()` in the CLI's `passThrough.ts`):
