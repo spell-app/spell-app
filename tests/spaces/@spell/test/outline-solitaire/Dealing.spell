@@ -28,4 +28,3 @@ to test deck creation
 	echo "the deck before shuffling:"
 	display the deck
 	expect the first card of the deck is the ace of clubs to be yes
-test deck creation

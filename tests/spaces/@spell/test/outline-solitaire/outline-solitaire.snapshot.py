@@ -344,9 +344,6 @@ def test_deck_creation() -> Any:
         )
 
 
-test_deck_creation()
-
-
 # -----------
 
 
@@ -784,3 +781,9 @@ core.install_styles(None, """/* File styles.css */
 	font-size: 1.75rem;
 	top: -0.1rem;
 }""")
+
+
+# -----------
+
+
+test_deck_creation()
