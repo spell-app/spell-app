@@ -91,18 +91,15 @@ export const COMPONENTS_PREFIX = "/components"
 
 /**
  * Spell UI's site bundle, relative to the checkout:
- * `site.js` + `site.css` and their lazy chunks, which Spell UI's own docs pages load.
+ * `site.js` + `site.css` and their lazy chunks, which EVERY component set's pages load (`COMPONENT_SETS`).
  * - built by `yarn site:bundle`, in `packages/ui`
  * - NOT committed:  the page server builds it when it starts, if stale (`BundleBuild`, the settings' `bundles`)
+ * - with `globalThis.SpellUI` for the component packs a set's pages load (`SitePacks`):  the epics pack, for the
+ *   comments, on every set's;  the other sets' own packs for their examples
+ * - the other sets had a build of their own, `SETS_BUNDLE` (its `sets/`), from epic `epic-workflow` P10 until epic
+ *   `epic-engine` gave Spell UI's pages the packs too
  */
 export const SITE_BUNDLE = "packages/ui/site/_assets"
-
-/**
- * The OTHER sets' bundle, relative to the checkout:  Spell UI's site built again from `site/_src/sets.ts`,
- * with `globalThis.SpellUI` for the component packs their examples use (`SitePacks`).
- * - a folder of Spell UI's bundle, so built, ignored and waited for with it
- */
-export const SETS_BUNDLE = `${SITE_BUNDLE}/sets`
 
 /**
  * A COMPONENT SET:  one set of elements' docs pages, in Spell UI's page shape,
@@ -113,8 +110,7 @@ export const SETS_BUNDLE = `${SITE_BUNDLE}/sets`
  *   (and `/worktrees/<w>/components/<set>` for a worktree's)
  * - `dir`:  its pages' folder, relative to the checkout, e.g. `packages/ui/docs`
  *   - Epic UI's is spell-epic's, through the checkout's `spell-epic` link (epic `epic-eject` I5)
- * - `assets`:  the site bundle its pages load as `_assets/`, relative to the checkout:
- *   `SITE_BUNDLE` for Spell UI's own, `SETS_BUNDLE` for every other set
+ * - `assets`:  the site bundle its pages load as `_assets/`, relative to the checkout:  `SITE_BUNDLE`, for every set
  */
 export type ComponentSet = {
   readonly name: string
@@ -140,9 +136,9 @@ export type ComponentSet = {
  */
 export const COMPONENT_SETS = [
   { name: "Spell UI", prefix: `${COMPONENTS_PREFIX}/ui`, dir: "packages/ui/docs", assets: SITE_BUNDLE },
-  { name: "Epic UI", prefix: `${COMPONENTS_PREFIX}/epics`, dir: "spell-epic/src/docs", assets: SETS_BUNDLE },
-  { name: "App UI", prefix: `${COMPONENTS_PREFIX}/app`, dir: "packages/app/docs", assets: SETS_BUNDLE },
-  { name: "Brand", prefix: `${COMPONENTS_PREFIX}/brand`, dir: "packages/brand/docs", assets: SETS_BUNDLE }
+  { name: "Epic UI", prefix: `${COMPONENTS_PREFIX}/epics`, dir: "spell-epic/src/docs", assets: SITE_BUNDLE },
+  { name: "App UI", prefix: `${COMPONENTS_PREFIX}/app`, dir: "packages/app/docs", assets: SITE_BUNDLE },
+  { name: "Brand", prefix: `${COMPONENTS_PREFIX}/brand`, dir: "packages/brand/docs", assets: SITE_BUNDLE }
 ] as const satisfies readonly ComponentSet[]
 
 /**
