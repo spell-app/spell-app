@@ -3,9 +3,8 @@ export const words = {
   lang: "en",
   types: {
     Deck: {
-      setUp: "set up a deck",
-      display: "display a deck",
-      isSetUp: "is-set-up"
+      create: "create it",
+      display: "display it"
     },
     Suit: {
       color: "color"
@@ -33,9 +32,9 @@ export const words = {
       state: "state",
       front: "front",
       back: "back",
-      turnFaceUp: "turn a card face up",
-      turnFaceDown: "turn a card face down",
-      turnOver: "turn a card over",
+      turnFaceUp: "turn it face up",
+      turnFaceDown: "turn it face down",
+      turnOver: "turn it over",
       play: "play a card",
       pile: "pile"
     },

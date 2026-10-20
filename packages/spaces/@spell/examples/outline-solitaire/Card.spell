@@ -36,35 +36,36 @@ a "card" is a thing where:
 
 	## drawing
 	- to "draw its front":
-		<div onClick={fire event card-click with card = it} className="Card face-up [rank] [suit] ui button compact fluid [color]">
+		<ui-button onClick={fire event card-click with card = it} className="Card face-up [rank] [suit]" color={its color} compact fluid>
 			{its short rank + " "}
 			<span className="suit">{its short suit}</span>
-		</div>
+		</ui-button>
 	- to "draw its back":
-		<div onClick={fire event card-click with card = it} className="Card face-down [rank] [suit] ui button compact fluid"><i className="fitted bicycle icon"/></div>
+		<ui-button onClick={fire event card-click with card = it} className="Card face-down [rank] [suit]" compact fluid>
+			<ui-icon name="bicycle" fitted/>
+		</ui-button>
 
-## actions -- the sentence style, beside the outline
+	## actions -- the sentence style, beside the outline
 
-// Turn card face up or face down
-// Note that this will animate if you `wait for turn the card face up`
-to turn a card face up:
-	set its direction to up
-	pause for 50 msec
-to turn a card face down:
-	set its direction to down
-	pause for 50 msec
+	// Turn card face up or face down
+	// Note that this will animate if you `wait for turn the card face up`
+	- to turn it face up:
+		set its direction to up
+		pause for 50 msec
+	to turn it face down:
+		set its direction to down
+		pause for 50 msec
 
-// Flip card to opposite direction
-// Note that this will animate if you `wait for turn the card face up`
-to turn a card over:
-	if its direction is up: turn it face down
-	otherwise: turn it face up
-	pause for 50 msec
+	// Flip card to opposite direction
+	// Note that this will animate if you `wait for turn the card face up`
+	to turn it over:
+		if its direction is up: turn it face down
+		otherwise: turn it face up
+		pause for 50 msec
 
 ## create a card instance with default properties
 to test card setup
 	get a new card whose rank is queen, suit is spades and direction is up
-	echo it
 	its rank should be queen
 	its suit should be spades
 	its name should be "queen-of-spades"

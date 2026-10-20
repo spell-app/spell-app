@@ -119,42 +119,38 @@ solitaire is an app where:
 		if anything-changed await auto-play
 
 	- to draw it:
-		return <div className="ui container">
-			<div className="board">
-				<table className="ui table fixed">
-					<thead>
-						<tr>
-							<th colSpan="2" className="left aligned">Klondike Solitaire</th>
-							<th className="right aligned">{"Score: " + its score}</th>
-							<th><div className="tiny fluid ui button compact" onClick={auto-play}>AutoPlay</div></th>
-							<th><div className="tiny fluid ui button compact" onClick={cheat}>Cheat</div></th>
-							<th><div className="tiny fluid ui button compact" onClick={debug it}>Debug</div></th>
-							<th><div className="tiny fluid ui button compact" onClick={reset}>Restart</div></th>
-						</tr>
-					</thead>
-					<tbody>
-					<tr>
-							<td>{draw its stock}</td>
-							<td>{draw its discards}</td>
-							<td></td>
-							<td>{draw its clubs}</td>
-							<td>{draw its diamonds}</td>
-							<td>{draw its hearts}</td>
-							<td>{draw its spades}</td>
-					</tr>
-					<tr>
-							<td>{draw its T1}</td>
-							<td>{draw its T2}</td>
-							<td>{draw its T3}</td>
-							<td>{draw its T4}</td>
-							<td>{draw its T5}</td>
-							<td>{draw its T6}</td>
-							<td>{draw its T7}</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-		</div>
+		return <ui-container>
+			<ui-menu>
+				<ui-item type="header">Klondike Solitaire</ui-item>
+				<ui-item>{"Score: " + its score}</ui-item>
+				<ui-menu position="right">
+					<ui-item onClick={auto-play}>AutoPlay</ui-item>
+					<ui-item onClick={cheat}>Cheat</ui-item>
+					<ui-item onClick={debug it}>Debug</ui-item>
+					<ui-item onClick={reset}>Restart</ui-item>
+				</ui-menu>
+			</ui-menu>
+			<ui-grid columns="7">
+				<ui-row>
+					<ui-column>{draw its stock}</ui-column>
+					<ui-column>{draw its discards}</ui-column>
+					<ui-column/>
+					<ui-column>{draw its clubs}</ui-column>
+					<ui-column>{draw its diamonds}</ui-column>
+					<ui-column>{draw its hearts}</ui-column>
+					<ui-column>{draw its spades}</ui-column>
+				</ui-row>
+				<ui-row>
+					<ui-column>{draw its T1}</ui-column>
+					<ui-column>{draw its T2}</ui-column>
+					<ui-column>{draw its T3}</ui-column>
+					<ui-column>{draw its T4}</ui-column>
+					<ui-column>{draw its T5}</ui-column>
+					<ui-column>{draw its T6}</ui-column>
+					<ui-column>{draw its T7}</ui-column>
+				</ui-row>
+			</ui-grid>
+		</ui-container>
 
 
 ## Playing a card:  what a click does
@@ -204,7 +200,7 @@ a stock pile is a pile
 	- can give up a card if: the card is its bottom card
 	- to draw it:
 		return <div className="Pile Stock stacked">
-			<div className="Placeholder ui button basic compact fluid" onClick={play from the stock}/>
+			<ui-button className="Placeholder" basic compact fluid onClick={play from the stock}/>
 			{draw its bottom card}
 		</div>
 
@@ -227,9 +223,9 @@ a foundation is a pile
 	- to draw it:
 		set color to "red" if its name is diamonds or its name is hearts otherwise "black"
 		return <div className="Pile Foundation stacked">
-			<div className={"Placeholder ui button basic compact fluid " + color + " " + its name}>
-				<div className={"suit " + its name}>{its symbol}</div>
-			</div>
+			<ui-button className={"Placeholder " + its name} color={color} basic compact fluid>
+				<span className={"suit " + its name}>{its symbol}</span>
+			</ui-button>
 			{draw its bottom card}
 		</div>
 
