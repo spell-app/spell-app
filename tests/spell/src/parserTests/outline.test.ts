@@ -235,8 +235,12 @@ describe("outline style", () => {
     expect(run("name")).toEqual({ name: "b" })
   })
 
-  test("in a quoted phrase only `(...)` is a parameter:  `\"is a number card\"` is a getter, `isANumberCard`", () => {
-    const compiled = compile(["a card is a thing where:", '\t- it "is a number card" if yes', '\t- it "is (n as a number) away" if yes'])
+  test('in a quoted phrase only `(...)` is a parameter:  `"is a number card"` is a getter, `isANumberCard`', () => {
+    const compiled = compile([
+      "a card is a thing where:",
+      '\t- it "is a number card" if yes',
+      '\t- it "is (n as a number) away" if yes'
+    ])
     expect(compiled).toContain("get isANumberCard()")
     expect(compiled).toContain("isNAway(n) {")
   })
@@ -274,7 +278,12 @@ describe("outline style", () => {
     })
 
     test("an event:  `on card click` hears `fire event card-click`, and the other way round", () => {
-      const lines = ["on card click with a card", "\tprint 1", "fire event card click with card = 1", "trigger card-click"]
+      const lines = [
+        "on card click with a card",
+        "\tprint 1",
+        "fire event card click with card = 1",
+        "trigger card-click"
+      ]
       const compiled = compile(lines)
       expect(compiled).toContain('on("card-click"')
       expect(compiled.match(/trigger\("card-click"/g)).toHaveLength(2)
@@ -355,7 +364,9 @@ describe("outline style", () => {
         "set score to the score of game"
       ])
       expect(run("score")).toEqual({ score: 4 })
-      expect(compile(["a stock pile is a list", "\t- to flip:\n\t\tprint 1"])).toContain("class StockPile extends List {\n  flip()")
+      expect(compile(["a stock pile is a list", "\t- to flip:\n\t\tprint 1"])).toContain(
+        "class StockPile extends List {\n  flip()"
+      )
     })
 
     test("one word, `- to reset:`, is bare inside too", () => {

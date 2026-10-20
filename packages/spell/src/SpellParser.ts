@@ -298,7 +298,14 @@ export class SpellParser extends P.Parser {
     const declared = new RegExp(SpellParser.TYPE_DECLARATION.source, "i").exec(line)
     if (declared) {
       const [, type, words, created, onlyOne] = declared
-      return type ?? (words ?? onlyOne)?.trim().split(/[ \t]+/).join("-") ?? created
+      return (
+        type ??
+        (words ?? onlyOne)
+          ?.trim()
+          .split(/[ \t]+/)
+          .join("-") ??
+        created
+      )
     }
     return /^an?[ \t]+([\w-]+(?:[ \t]+[\w-]+){0,3})[ \t]*(?:where[ \t]*)?:[ \t]*$/i
       .exec(line)?.[1]

@@ -112,8 +112,7 @@ export class Org extends Thing {
   accessor members!: List<Membership>
 }
 
-const ROLES = ["guest", "member", "admin", "spell-admin"] as const
-export type Role = (typeof ROLES)[number]
+export type Role = (typeof Membership.Roles)[number]
 
 export class Membership extends Thing {
   // - it has a person as a person
@@ -121,7 +120,7 @@ export class Membership extends Thing {
   accessor person!: Person
 
   // - its "role" is one of guest, member, admin, spell-admin
-  static Roles = ROLES
-  @prop({ oneOf: ROLES })
+  static Roles = ["guest", "member", "admin", "spell-admin"] as const
+  @prop({ oneOf: () => Membership.Roles })
   accessor role!: Role
 }
