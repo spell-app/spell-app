@@ -12,9 +12,9 @@ describe("SiteSearchBuilder.page()", () => {
     <body><main id="main" data-toc-header="Divider">
       <ui-tabs id="site-tabs">
         <ui-tab value="examples" label="Examples">
-          <ui-section id="examples-types" header="Types">
-            <ui-section id="examples-types-vertical-divider" header="Vertical   Divider">
-              <ui-docs-example><ui-section id="demo" header="Demo"></ui-section></ui-docs-example>
+          <ui-section id="examples-types" label="Types">
+            <ui-section id="examples-types-vertical-divider" label="Vertical   Divider">
+              <ui-docs-example><ui-section id="demo" label="Demo"></ui-section></ui-docs-example>
             </ui-section>
           </ui-section>
         </ui-tab>
@@ -22,7 +22,7 @@ describe("SiteSearchBuilder.page()", () => {
           <ui-section id="usage-slots"><span slot="header">The <code>header</code> slot</span></ui-section>
         </ui-tab>
       </ui-tabs>
-      <template><ui-section id="templated" header="Never"></ui-section></template>
+      <template><ui-section id="templated" label="Never"></ui-section></template>
     </main></body></html>`
 
   it("reads the title, summary, tabs and every section with its parent and tab;  never a demo's", () => {

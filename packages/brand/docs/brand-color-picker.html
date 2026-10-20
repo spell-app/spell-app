@@ -102,8 +102,8 @@
       <ui-container class="site-body">
         <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
           <ui-tab value="examples" label="Examples">
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-picker" header="Picker" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-picker" label="Picker" sticky collapsible dividing>
                 <ui-docs-example
                   description="The HSL square shows every saturation (right) and lightness (up) of the current hue.  Drag the marker, slide the hue, or type HSL, a hex or OKLCH;  each row's button copies that format."
                 >
@@ -111,7 +111,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-in-a-popup" header="In a popup" sticky collapsible dividing>
+              <ui-section id="examples-types-in-a-popup" label="In a popup" sticky collapsible dividing>
                 <ui-docs-example
                   description='Not a popover itself:  put it in a `<ui-popup on="click">` (or a `<dialog>`).  `slot="header"` takes the title, `slot="actions"` a close button;  the default slot, family chips.'
                 >
@@ -140,11 +140,11 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-in-a-panel" header="In a panel" sticky collapsible dividing>
+              <ui-section id="examples-types-in-a-panel" label="In a panel" sticky collapsible dividing>
                 <ui-docs-example
                   description="In the brand's inspector:  a `<ui-field>` labels it (and names it for screen readers), inside a `<ui-panel>`."
                 >
-                  <ui-panel header="Color Set" color="accent" class="brand-docs-panel">
+                  <ui-panel label="Color Set" color="accent" class="brand-docs-panel">
                     <ui-field
                       label="Base color"
                       description="The colour you're starting from.  Drag in the square, or type HSL, RGB or OKLCH."
@@ -156,8 +156,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-families" header="Families" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-families" label="Families" sticky collapsible dividing>
                 <ui-docs-example
                   description="The default slot sits under the rows:  here, chips that set `value` when clicked."
                 >
@@ -182,8 +182,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-copy-any-format" header="Copy any format" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-copy-any-format" label="Copy any format" sticky collapsible dividing>
                 <ui-docs-example
                   description="Each row's button copies its format:  `hsl(250 54% 55%)` (as the row shows it), `#6550CA`, or `oklch(52.0% 0.181 286)`.  It shows a check for a moment (`:state(copied)`), announces what it copied, and dispatches `ui-copy` `{ value, format }`:  the line under the picker listens."
                 >
@@ -192,7 +192,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-out-of-gamut" header="Out of gamut" sticky collapsible dividing>
+              <ui-section id="examples-states-out-of-gamut" label="Out of gamut" sticky collapsible dividing>
                 <ui-docs-example
                   description="The square is HSL, so every point is a real screen colour.  OKLCH can ask for more:  `oklch(70% 0.37 150)` (or a bigger C typed in its row) becomes the nearest colour a screen shows, at the same lightness and hue."
                 >
@@ -200,7 +200,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example description="`disabled`:  faded, and nothing in it reacts.">
                   <brand-color-picker value="#F1E7D4" disabled class="brand-docs-panel"></brand-color-picker>
                 </ui-docs-example>
@@ -209,7 +209,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   An inline picker: put it where it should show, or in a `<ui-popup on="click">` / `<dialog>`.
@@ -236,7 +236,7 @@
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The square is one tab stop. On it:
@@ -251,7 +251,7 @@
                 </script>
               </ui-markdown>
             </ui-section>
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The picker is a group, named by `label`, else by what names the element (a `<ui-field>`'s
@@ -273,7 +273,7 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set a `--brand-color-picker-*` token on the picker, any ancestor or `:root`. The defaults come

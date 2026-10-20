@@ -57,8 +57,8 @@
               - An example:  `<ui-docs-example header="..." description="...">` around the live markup;  the markup
                 IS the code shown.  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-button" header="Button" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-button" label="Button" sticky collapsible dividing>
                 <ui-docs-example description="A standard button.">
                   <ui-button>Follow</ui-button>
                 </ui-docs-example>
@@ -69,7 +69,7 @@
                 so it is always keyboard focusable.</ui-message
               >
 
-              <ui-section id="examples-types-emphasis" header="Emphasis" sticky collapsible dividing>
+              <ui-section id="examples-types-emphasis" label="Emphasis" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A button can be formatted to show different levels of emphasis.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -87,7 +87,7 @@
               </ui-section>
 
               <!-- GAP I23:  Fomantic's `right arrow` / `left chevron` draw nothing;  use the canonical `arrow right`, `chevron left`. -->
-              <ui-section id="examples-types-animated" header="Animated" sticky collapsible dividing>
+              <ui-section id="examples-types-animated" label="Animated" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A button can animate to show hidden content. The <code>icon</code> slot (or the
@@ -105,7 +105,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-labeled" header="Labeled" sticky collapsible dividing>
+              <ui-section id="examples-types-labeled" label="Labeled" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A button can appear alongside a label: <code>label</code> (or the <code>label</code> slot) joins
@@ -126,13 +126,13 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-icon" header="Icon" sticky collapsible dividing>
+              <ui-section id="examples-types-icon" label="Icon" sticky collapsible dividing>
                 <ui-docs-example description="A button can have only an icon.  Give it a name with `aria-label`.">
                   <ui-button icon="cloud" aria-label="Cloud"></ui-button>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-labeled-icon" header="Labeled Icon" sticky collapsible dividing>
+              <ui-section id="examples-types-labeled-icon" label="Labeled Icon" sticky collapsible dividing>
                 <ui-docs-example
                   description='A button can use an icon as a label:  `labeled` with an `icon`, `labeled="right"` for the end.'
                 >
@@ -142,7 +142,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-basic" header="Basic" sticky collapsible dividing>
+              <ui-section id="examples-types-basic" label="Basic" sticky collapsible dividing>
                 <ui-docs-example description="A basic button is less pronounced.">
                   <ui-button basic icon="user">Add Friend</ui-button>
                 </ui-docs-example>
@@ -169,7 +169,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-tertiary" header="Tertiary" sticky collapsible dividing>
+              <ui-section id="examples-types-tertiary" label="Tertiary" sticky collapsible dividing>
                 <ui-docs-example description="A borderless, less important button.">
                   <ui-button tertiary>Cancel Action</ui-button>
                 </ui-docs-example>
@@ -192,7 +192,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-types-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A button can be formatted to appear on dark backgrounds.">
                   <ui-segment inverted>
                     <ui-button inverted>Standard</ui-button>
@@ -237,8 +237,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-groups" header="Groups" sticky collapsible dividing>
-              <ui-section id="examples-groups-buttons" header="Buttons" sticky collapsible dividing>
+            <ui-section id="examples-groups" label="Groups" sticky collapsible dividing>
+              <ui-section id="examples-groups-buttons" label="Buttons" sticky collapsible dividing>
                 <ui-docs-example description="Buttons can exist together as a group:  `<ui-buttons>`.">
                   <ui-buttons>
                     <ui-button>One</ui-button>
@@ -248,7 +248,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-groups-icon-buttons" header="Icon Buttons" sticky collapsible dividing>
+              <ui-section id="examples-groups-icon-buttons" label="Icon Buttons" sticky collapsible dividing>
                 <ui-docs-example description="Button groups can show groups of icons.">
                   <ui-buttons icon>
                     <ui-button icon="align left" aria-label="Align left"></ui-button>
@@ -265,8 +265,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-conditionals" header="Conditionals" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-conditionals" label="Conditionals" sticky collapsible dividing>
                 <ui-docs-example description="Button groups can contain conditionals:  `<ui-or>`.">
                   <ui-buttons>
                     <ui-button>Cancel</ui-button>
@@ -287,7 +287,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-icon-and-text" header="Icon and text" sticky collapsible dividing>
+              <ui-section id="examples-content-icon-and-text" label="Icon and text" sticky collapsible dividing>
                 <ui-docs-example description="The `icon` attribute takes a name;  the `icon` slot takes any markup.">
                   <ui-button icon="cloud upload">Upload</ui-button>
                   <ui-button primary icon="download">Download</ui-button>
@@ -301,7 +301,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-link" header="Link" sticky collapsible dividing>
+              <ui-section id="examples-content-link" label="Link" sticky collapsible dividing>
                 <ui-docs-example
                   description="With `href` the button renders a real link, so it navigates and opens in a new tab."
                 >
@@ -315,21 +315,21 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-active" label="Active" sticky collapsible dividing>
                 <ui-docs-example description="A button can show it is currently the active user selection.">
                   <ui-button active icon="user">Follow</ui-button>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example description="A button can show it is currently unable to be interacted with.">
                   <ui-button disabled icon="user">Followed</ui-button>
                 </ui-docs-example>
               </ui-section>
 
               <!-- GAP I22:  Fomantic's second and third rows (`double` / `elastic` loading) have no attribute value. -->
-              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
+              <ui-section id="examples-states-loading" label="Loading" sticky collapsible dividing>
                 <ui-docs-example description="A button can show a loading indicator.">
                   <ui-button loading>Loading</ui-button>
                   <ui-button basic loading>Loading</ui-button>
@@ -338,7 +338,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-state-texts" header="State texts" sticky collapsible dividing>
+              <ui-section id="examples-states-state-texts" label="State texts" sticky collapsible dividing>
                 <ui-docs-example
                   description="A `toggle` button's label can say its state:  `inactive-text` while off, `active-text` while on.  Click to follow, again to unfollow."
                 >
@@ -356,14 +356,14 @@
               >
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
               <ui-message size="small" class="site-not-ported"
                 >Not ported: Social buttons (<code>facebook</code>, <code>twitter</code> ...) -- brand colours age
                 fast; colour a button with <code>color</code> or <code>--ui-color</code> and a brand
                 <code>icon</code> instead.</ui-message
               >
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A button can have different sizes.">
                   <ui-button size="mini">Mini</ui-button>
                   <ui-button size="tiny">Tiny</ui-button>
@@ -376,14 +376,14 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-floated" header="Floated" sticky collapsible dividing>
+              <ui-section id="examples-variations-floated" label="Floated" sticky collapsible dividing>
                 <ui-docs-example description="A button can be aligned to the left or right of its container.">
                   <ui-button floated="right">Right Floated</ui-button>
                   <ui-button floated="left">Left Floated</ui-button>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example description="A button can have different colors.">
                   <ui-button color="red">Red</ui-button>
                   <ui-button color="orange">Orange</ui-button>
@@ -401,7 +401,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+              <ui-section id="examples-variations-compact" label="Compact" sticky collapsible dividing>
                 <ui-docs-example description="A button can reduce its padding to fit into tighter spaces.">
                   <ui-button compact>Hold</ui-button>
                   <ui-button compact icon="pause" aria-label="Pause"></ui-button>
@@ -409,7 +409,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-toggle" header="Toggle" sticky collapsible dividing>
+              <ui-section id="examples-variations-toggle" label="Toggle" sticky collapsible dividing>
                 <ui-docs-example
                   description="A button can be formatted to toggle on and off:  a click flips `active` and fires `ui-toggle`."
                 >
@@ -417,25 +417,25 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-positive" header="Positive" sticky collapsible dividing>
+              <ui-section id="examples-variations-positive" label="Positive" sticky collapsible dividing>
                 <ui-docs-example description="A button can hint towards a positive consequence.">
                   <ui-button positive>Positive Button</ui-button>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-negative" header="Negative" sticky collapsible dividing>
+              <ui-section id="examples-variations-negative" label="Negative" sticky collapsible dividing>
                 <ui-docs-example description="A button can hint towards a negative consequence.">
                   <ui-button negative>Negative Button</ui-button>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+              <ui-section id="examples-variations-fluid" label="Fluid" sticky collapsible dividing>
                 <ui-docs-example description="A button can take the width of its container.">
                   <ui-button fluid>Fits container</ui-button>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-circular" header="Circular" sticky collapsible dividing>
+              <ui-section id="examples-variations-circular" label="Circular" sticky collapsible dividing>
                 <ui-docs-example description="A button can be circular.">
                   <ui-button circular icon="settings" aria-label="Settings"></ui-button>
                 </ui-docs-example>
@@ -450,7 +450,7 @@
               <!-- GAP I20:  `attached="top|bottom"` buttons stay content-wide. -->
               <ui-section
                 id="examples-variations-vertically-attached"
-                header="Vertically Attached"
+                label="Vertically Attached"
                 sticky
                 collapsible
                 dividing
@@ -479,7 +479,7 @@
 
               <ui-section
                 id="examples-variations-horizontally-attached"
-                header="Horizontally Attached"
+                label="Horizontally Attached"
                 sticky
                 collapsible
                 dividing
@@ -491,10 +491,10 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-group-variations" header="Group Variations" sticky collapsible dividing>
+            <ui-section id="examples-group-variations" label="Group Variations" sticky collapsible dividing>
               <ui-section
                 id="examples-group-variations-vertical-buttons"
-                header="Vertical Buttons"
+                label="Vertical Buttons"
                 sticky
                 collapsible
                 dividing
@@ -511,7 +511,7 @@
 
               <ui-section
                 id="examples-group-variations-stackable-buttons"
-                header="Stackable Buttons"
+                label="Stackable Buttons"
                 sticky
                 collapsible
                 dividing
@@ -526,7 +526,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-group-variations-icon-buttons" header="Icon Buttons" sticky collapsible dividing>
+              <ui-section id="examples-group-variations-icon-buttons" label="Icon Buttons" sticky collapsible dividing>
                 <ui-docs-example description="Groups can be formatted as icons.">
                   <ui-buttons icon>
                     <ui-button icon="play" aria-label="Play"></ui-button>
@@ -538,7 +538,7 @@
 
               <ui-section
                 id="examples-group-variations-labeled-icon-buttons"
-                header="Labeled Icon Buttons"
+                label="Labeled Icon Buttons"
                 sticky
                 collapsible
                 dividing
@@ -552,7 +552,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-group-variations-mixed-group" header="Mixed Group" sticky collapsible dividing>
+              <ui-section id="examples-group-variations-mixed-group" label="Mixed Group" sticky collapsible dividing>
                 <ui-docs-example description="Groups can be formatted to use multiple button types together.">
                   <ui-buttons>
                     <ui-button labeled icon="chevron left">Back</ui-button>
@@ -562,7 +562,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-group-variations-equal-width" header="Equal Width" sticky collapsible dividing>
+              <ui-section id="examples-group-variations-equal-width" label="Equal Width" sticky collapsible dividing>
                 <ui-docs-example
                   description="Groups can have their widths divided evenly:  `width` is the number of buttons."
                 >
@@ -582,7 +582,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-group-variations-equal" header="Equal" sticky collapsible dividing>
+              <ui-section id="examples-group-variations-equal" label="Equal" sticky collapsible dividing>
                 <ui-docs-example
                   description='`equal` makes every button the same width, counted from the buttons themselves:  each as wide as the widest, the group hugging them;  with `fluid`, an equal share of the row each.  `width="3"` above is the older, count-based spelling of `equal fluid`.'
                 >
@@ -602,7 +602,7 @@
 
               <ui-section
                 id="examples-group-variations-colored-buttons"
-                header="Colored Buttons"
+                label="Colored Buttons"
                 sticky
                 collapsible
                 dividing
@@ -618,7 +618,7 @@
 
               <ui-section
                 id="examples-group-variations-basic-buttons"
-                header="Basic Buttons"
+                label="Basic Buttons"
                 sticky
                 collapsible
                 dividing
@@ -645,7 +645,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-group-variations-group-sizes" header="Group Sizes" sticky collapsible dividing>
+              <ui-section id="examples-group-variations-group-sizes" label="Group Sizes" sticky collapsible dividing>
                 <ui-docs-example description="Groups can have a shared size.">
                   <ui-buttons size="large">
                     <ui-button>One</ui-button>
@@ -672,7 +672,7 @@
 
               <ui-section
                 id="examples-group-variations-wrapping-buttons"
-                header="Wrapping Buttons"
+                label="Wrapping Buttons"
                 sticky
                 collapsible
                 dividing
@@ -710,7 +710,7 @@
 
               <ui-section
                 id="examples-group-variations-spaced-buttons"
-                header="Spaced Buttons"
+                label="Spaced Buttons"
                 sticky
                 collapsible
                 dividing
@@ -751,7 +751,7 @@
 
               <ui-section
                 id="examples-group-variations-circular-buttons"
-                header="Circular Buttons"
+                label="Circular Buttons"
                 sticky
                 collapsible
                 dividing
@@ -770,7 +770,7 @@
 
               <ui-section
                 id="examples-group-variations-fluid-compact-and-toggle-groups"
-                header="Fluid, compact and toggle groups"
+                label="Fluid, compact and toggle groups"
                 sticky
                 collapsible
                 dividing
@@ -796,7 +796,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Write `<ui-button>` with text inside, and add attributes for the look. Most attributes become
@@ -815,7 +815,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A plain click is the native `click`. `ui-toggle` is the only custom event: a `toggle` button
@@ -830,7 +830,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-state-texts" header="State texts" sticky collapsible dividing>
+            <ui-section id="usage-state-texts" label="State texts" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Fomantic's `state` behaviour is two attributes on a `toggle` button, not a module of its own:
@@ -852,7 +852,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-invoker-commands" header="Invoker commands" sticky collapsible dividing>
+            <ui-section id="usage-invoker-commands" label="Invoker commands" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A `<ui-button>` drives other elements with no script, like a native `<button>`: `commandfor` is
@@ -870,7 +870,7 @@
               </ui-markdown>
               <ui-section
                 id="usage-invoker-commands-popup-and-modal"
-                header="Popup and modal"
+                label="Popup and modal"
                 sticky
                 collapsible
                 dividing
@@ -895,7 +895,7 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+            <ui-section id="usage-forms" label="Forms" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A `<ui-button>` is a form-associated element, so it works inside a `<form>` like a native button.
@@ -923,7 +923,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The shadow root holds a real `<button>` (or `<a>`), so the browser does the keyboard work.
@@ -938,7 +938,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - Focus, **Enter** and **Space**, form submission and the accessible name come from the browser's own
@@ -955,7 +955,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Define the elements first (load the bundle, or `<ui-root>`), then use the tag like any other. Events
@@ -998,7 +998,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-button-*` tokens: set one on the element, on any ancestor (a group, a
@@ -1037,7 +1037,7 @@
               <ui-docs-tokens family="ui-button" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header

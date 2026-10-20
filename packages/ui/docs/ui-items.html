@@ -61,8 +61,8 @@
               Fomantic's `.item` is the generic `<ui-item>`;  its `.image` + `<img>` the `image` shorthand (or a `<ui-image size>`);
               `.middle aligned content` is `<ui-content vertical-align="middle">`;  `ui wireframe image`s are plain `<ui-image>`s.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-items" header="Items" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-items" label="Items" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A group of items.</p>
                   <ui-message slot="description" state="positive" size="small"
@@ -96,8 +96,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-image" label="Image" sticky collapsible dividing>
                 <ui-docs-example
                   description="An item can contain an image:  `image` is the shorthand, at the item's image width."
                 >
@@ -109,7 +109,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-content" label="Content" sticky collapsible dividing>
                 <ui-docs-example description="An item can contain content.">
                   <ui-items divided>
                     <ui-item>
@@ -128,7 +128,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-header" header="Header" sticky collapsible dividing>
+              <ui-section id="examples-content-header" label="Header" sticky collapsible dividing>
                 <ui-docs-example description="An item can contain a header.">
                   <ui-items>
                     <ui-item>
@@ -149,7 +149,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-metadata" header="Metadata" sticky collapsible dividing>
+              <ui-section id="examples-content-metadata" label="Metadata" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">An item can contain content metadata.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -200,7 +200,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-link" header="Link" sticky collapsible dividing>
+              <ui-section id="examples-content-link" label="Link" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">An item can contain links as images, headers, or inside content.</p>
                   <ui-message slot="description" state="warning" size="small"
@@ -244,7 +244,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-description" header="Description" sticky collapsible dividing>
+              <ui-section id="examples-content-description" label="Description" sticky collapsible dividing>
                 <ui-docs-example description="An item can contain a description with a single or multiple paragraphs.">
                   <ui-items>
                     <ui-item>
@@ -264,7 +264,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-extra-content" header="Extra Content" sticky collapsible dividing>
+              <ui-section id="examples-content-extra-content" label="Extra Content" sticky collapsible dividing>
                 <ui-docs-example
                   description="An item can contain extra content meant to be formatted separately from the main content."
                 >
@@ -283,7 +283,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-rating" header="Rating" sticky collapsible dividing>
+              <ui-section id="examples-content-rating" label="Rating" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">An item can contain icons signifying a 'like' or 'favorite' action.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -307,8 +307,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example description="An item can be disabled.">
                   <ui-items>
                     <ui-item disabled>
@@ -328,8 +328,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-stacking" header="Stacking" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-stacking" label="Stacking" sticky collapsible dividing>
                 <ui-docs-example
                   description="A group of items can specify how it stacks responsively:  `unstackable` keeps the image beside the content in a narrow group."
                 >
@@ -358,7 +358,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-divided" header="Divided" sticky collapsible dividing>
+              <ui-section id="examples-variations-divided" label="Divided" sticky collapsible dividing>
                 <ui-docs-example description="Items can be divided to better distinguish between grouped content.">
                   <ui-items divided>
                     <ui-item image="../images/wireframe/image.png">
@@ -407,7 +407,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-relaxed" header="Relaxed" sticky collapsible dividing>
+              <ui-section id="examples-variations-relaxed" label="Relaxed" sticky collapsible dividing>
                 <ui-docs-example description="A group of items can relax its padding to provide more negative space.">
                   <ui-items relaxed>
                     <ui-item>
@@ -447,7 +447,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-link-item" header="Link Item" sticky collapsible dividing>
+              <ui-section id="examples-variations-link-item" label="Link Item" sticky collapsible dividing>
                 <ui-docs-example
                   description="An item can be formatted so that the entire contents link to another page:  `link` on the group is the hover look, `href` on an item the link."
                 >
@@ -485,7 +485,7 @@
 
               <ui-section
                 id="examples-variations-vertical-alignment"
-                header="Vertical Alignment"
+                label="Vertical Alignment"
                 sticky
                 collapsible
                 dividing
@@ -510,7 +510,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-floated-content" header="Floated Content" sticky collapsible dividing>
+              <ui-section id="examples-variations-floated-content" label="Floated Content" sticky collapsible dividing>
                 <ui-docs-example description="Any content element can be floated left or right.">
                   <ui-items>
                     <ui-item>
@@ -547,7 +547,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">An item can be inverted to appear on a dark background.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -587,7 +587,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="Items can have different text sizes, `mini` ... `massive`.">
                   <ui-items size="small">
                     <ui-item>
@@ -611,7 +611,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  from the old Astro page (Behaviour, Accessibility), tightened. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   An item here is the same `<ui-item>` that dropdowns, lists and menus use: there is no separate "items item".
@@ -645,7 +645,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A group has no events of its own. A link item is a normal link (`click`, then navigation); buttons and links
@@ -654,7 +654,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The group is never a tab stop. **Tab** reaches each link item (one stop per item) or the links and buttons inside
@@ -663,7 +663,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The group is a `role="list"` and each item a `listitem`, so a screen reader hears how many there are.
@@ -687,7 +687,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-items-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
@@ -715,7 +715,7 @@
               <ui-docs-tokens family="ui-items" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

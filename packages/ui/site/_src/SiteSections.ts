@@ -14,13 +14,13 @@ import { FOLDS_KEY } from "./site.types"
  *   stack below their parents' (the element does that).  The same line goes on `main` as `--site-sections-top`, for
  *   the browser's own anchor scrolling (`scroll-margin-top`).  A page's own sticky bar (`PAGE_BAR`) stacks between.
  * - Folds:  remembered per page (`localStorage`, `FOLDS_KEY` + the path:  `{ [section id]: folded }`):  the reader's
- *   (`ui-open` / `ui-close` that can be cancelled) are saved, and restored on every visit;  everything else starts
+ *   (`ui-opening` / `ui-closing` that can be cancelled) are saved, and restored on every visit;  everything else starts
  *   OPEN.  An unfold made by a landing, or by find-in-page, is never saved.
  * - Landing (`land()`):  the target's pane selected (the first word of a section id IS its tab:  `#usage-keyboard`),
  *   every section around it (and itself) unfolded without animation, then scrolled so its title sits just below the
  *   stuck ones;  once more after `SETTLE_MS` (late layout, the toc's own first scroll), unless the reader scrolled,
  *   clicked or typed meanwhile.  Old hashes still land (`resolve()`).
- * - SIDE EFFECTS:  document `ui-open` / `ui-close` and window `hashchange` / `resize` listeners, a `ResizeObserver`,
+ * - SIDE EFFECTS:  document `ui-opening` / `ui-closing` and window `hashchange` / `resize` listeners, a `ResizeObserver`,
  *   the probe `<div>` in `<body>`;  `offset` attributes on the sections, an inline `--site-sections-top` on `main`,
  *   `history.replaceState()` of an old hash to the id it found.
  ****************/
@@ -54,8 +54,8 @@ export class SiteSections {
     this.probe.className = "site-sections-probe"
     this.probe.setAttribute("aria-hidden", "true")
     document.body.append(this.probe)
-    document.addEventListener("ui-open", (event) => this.onToggle(event as CustomEvent<{ open: boolean }>))
-    document.addEventListener("ui-close", (event) => this.onToggle(event as CustomEvent<{ open: boolean }>))
+    document.addEventListener("ui-opening", (event) => this.onToggle(event as CustomEvent<{ open: boolean }>))
+    document.addEventListener("ui-closing", (event) => this.onToggle(event as CustomEvent<{ open: boolean }>))
     window.addEventListener("hashchange", () => this.onHash())
     // the reader moving on:  a landing's second try must not pull the page back
     for (const type of ["wheel", "touchstart", "keydown", "pointerdown"])
@@ -130,7 +130,7 @@ export class SiteSections {
 
   /**
    * The reader folded or unfolded a section:  remember it.
-   * - Not ours:  accordions' `ui-open` / `ui-close`, demo sections inside examples, a vetoed toggle, a `ui-open` that
+   * - Not ours:  another element's, demo sections inside examples, a vetoed toggle, a `ui-opening` that
    *   can't be cancelled (find-in-page's reveal:  never saved, as a landing's unfold isn't).
    */
   private onToggle(event: CustomEvent<{ open: boolean }>): void {

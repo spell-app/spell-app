@@ -60,8 +60,8 @@
               EXAMPLES:  Fomantic's embed page, section by section, in its order (Types, Variations), plus our extra (Placeholder
               content).  Nothing third-party loads on this page until a reader clicks a play button.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-youtube" header="YouTube" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-youtube" label="YouTube" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     An embed can be used to display YouTube content. Only a click loads the video, from
@@ -76,7 +76,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-vimeo" header="Vimeo" sticky collapsible dividing>
+              <ui-section id="examples-types-vimeo" label="Vimeo" sticky collapsible dividing>
                 <ui-docs-example
                   description='An embed can be used to display Vimeo content:  `source="vimeo"` with the video&apos;s id.'
                 >
@@ -89,7 +89,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-custom-content" header="Custom Content" sticky collapsible dividing>
+              <ui-section id="examples-types-custom-content" label="Custom Content" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     An embed can display any web content: <code>url</code> frames any <code>http(s)</code> address.
@@ -109,7 +109,7 @@
 
               <ui-section
                 id="examples-types-placeholder-content"
-                header="Placeholder content"
+                label="Placeholder content"
                 sticky
                 collapsible
                 dividing
@@ -129,8 +129,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-aspect-ratio" header="Aspect Ratio" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-aspect-ratio" label="Aspect Ratio" sticky collapsible dividing>
                 <ui-docs-example
                   description="An embed can specify an alternative aspect ratio out of `square`, `4:3`, `16:9` (the default) or `21:9`."
                 >
@@ -166,7 +166,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  sources, privacy, events, script API, keyboard, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Write `<ui-embed>` with what to show; there is no `.embed()` call to make. The content comes from:
@@ -183,7 +183,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-privacy" header="Privacy" sticky collapsible dividing>
+            <ui-section id="usage-privacy" label="Privacy" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Until it's activated, an embed makes no request to the other site, not even a preconnect. Fomantic loaded the
@@ -198,7 +198,7 @@
               >
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `ui-activate` -- about to load the frame from `url` (a click, **Enter** / **Space**, `host.activate()`);
@@ -224,7 +224,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-behaviors" header="Behaviors" sticky collapsible dividing>
+            <ui-section id="usage-behaviors" label="Behaviors" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Fomantic's behaviors are methods and properties on the host:
@@ -238,7 +238,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Tab** reaches the play button.
@@ -247,7 +247,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The placeholder is a real `<button>` named "Play" plus the `label` ("Play Fomantic UI intro"; translated).
@@ -262,7 +262,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set `parameters` as a property, and listen for `ui-activate` to gate loading.
@@ -304,7 +304,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-embed-*` tokens on the embed or any ancestor; `::part(embed)` works too. They
@@ -338,7 +338,7 @@
               <ui-docs-tokens family="ui-embed" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

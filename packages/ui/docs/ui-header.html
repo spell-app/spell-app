@@ -79,8 +79,8 @@
               - Fomantic's `img.ui.wireframe.image` => `<ui-image src>`.
               - Fomantic's `images/icons/school.png` / `plugin.png` aren't in `site/images/`:  `book.png` / `lab.png` instead.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-page-headers" header="Page Headers" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-page-headers" label="Page Headers" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     Headers may be oriented to give the hierarchy of a section in the context of the page:
@@ -103,7 +103,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-content-headers" header="Content Headers" sticky collapsible dividing>
+              <ui-section id="examples-types-content-headers" label="Content Headers" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     Headers may be oriented to give the importance of a section in the context of the content that
@@ -133,7 +133,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-icon-headers" header="Icon Headers" sticky collapsible dividing>
+              <ui-section id="examples-types-icon-headers" label="Icon Headers" sticky collapsible dividing>
                 <ui-docs-example description="A header can be formatted to emphasize an icon.">
                   <ui-header level="2" icon>
                     <ui-icon name="settings"></ui-icon>
@@ -152,7 +152,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-sub-headers" header="Sub Headers" sticky collapsible dividing>
+              <ui-section id="examples-types-sub-headers" label="Sub Headers" sticky collapsible dividing>
                 <ui-docs-example
                   description="Headers may be formatted to label smaller or de-emphasized content:  `sub`."
                 >
@@ -184,8 +184,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-image" label="Image" sticky collapsible dividing>
                 <ui-docs-example description="A header may contain an image.">
                   <ui-header level="2">
                     <img src="images/icons/book.png" alt="" />
@@ -213,7 +213,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-icon" header="Icon" sticky collapsible dividing>
+              <ui-section id="examples-content-icon" label="Icon" sticky collapsible dividing>
                 <ui-docs-example description="A header may contain an icon, with the text in a `<ui-content>`.">
                   <ui-header level="2">
                     <ui-icon name="plug"></ui-icon>
@@ -233,7 +233,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-subheader" header="Subheader" sticky collapsible dividing>
+              <ui-section id="examples-content-subheader" label="Subheader" sticky collapsible dividing>
                 <ui-docs-example description="Headers may contain subheaders:  a nested `<ui-header sub>`.">
                   <ui-header level="2">
                     Account Settings
@@ -266,8 +266,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example description="A header can show that it is inactive.">
                   <ui-header disabled>Disabled Header</ui-header>
                   <ui-image src="images/wireframe/short-paragraph.png" alt=""></ui-image>
@@ -275,8 +275,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-dividing" header="Dividing" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-dividing" label="Dividing" sticky collapsible dividing>
                 <ui-docs-example description="A header can be formatted to divide itself from the content below it.">
                   <ui-image src="images/wireframe/short-paragraph.png" alt=""></ui-image>
                   <ui-header level="3" dividing>Dividing Header</ui-header>
@@ -284,14 +284,14 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-block" header="Block" sticky collapsible dividing>
+              <ui-section id="examples-variations-block" label="Block" sticky collapsible dividing>
                 <ui-docs-example description="A header can be formatted to appear inside a content block.">
                   <ui-header level="3" block>Block Header</ui-header>
                   <ui-image src="images/wireframe/media-paragraph.png" alt=""></ui-image>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-attached" header="Attached" sticky collapsible dividing>
+              <ui-section id="examples-variations-attached" label="Attached" sticky collapsible dividing>
                 <ui-docs-example description="A header can be attached to other content, like a segment.">
                   <ui-header level="3" attached="top">Top Attached</ui-header>
                   <ui-segment attached>
@@ -307,7 +307,7 @@
 
               <ui-section
                 id="examples-variations-seamless-attached"
-                header="Seamless attached"
+                label="Seamless attached"
                 sticky
                 collapsible
                 dividing
@@ -336,7 +336,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-floating" header="Floating" sticky collapsible dividing>
+              <ui-section id="examples-variations-floating" label="Floating" sticky collapsible dividing>
                 <ui-docs-example description="A header can sit to the left or right of other content.">
                   <ui-segment clearing>
                     <ui-header level="3" floated="right">Go Forward</ui-header>
@@ -345,7 +345,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-text-alignment" header="Text Alignment" sticky collapsible dividing>
+              <ui-section id="examples-variations-text-alignment" label="Text Alignment" sticky collapsible dividing>
                 <ui-docs-example description="A header can have its text aligned to a side.">
                   <ui-segment>
                     <ui-header level="3" text-align="right">Right</ui-header>
@@ -358,7 +358,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example description="A header can be formatted with different colors.">
                   <ui-header level="4" color="primary">Primary</ui-header>
                   <ui-header level="4" color="secondary">Secondary</ui-header>
@@ -377,7 +377,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A header can have its colors inverted for contrast.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -401,21 +401,21 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+              <ui-section id="examples-variations-fitted" label="Fitted" sticky collapsible dividing>
                 <ui-docs-example description="A header can drop its padding.">
                   <ui-header level="3" fitted block>Fitted block header</ui-header>
                   <ui-header level="3" block>Block header</ui-header>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-link" header="Link" sticky collapsible dividing>
+              <ui-section id="examples-variations-link" label="Link" sticky collapsible dividing>
                 <ui-docs-example description="With `href` a header renders a link styled as a header.">
                   <ui-header href="#link">Link header</ui-header>
                 </ui-docs-example>
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-parts" header="Parts" sticky collapsible dividing>
+            <ui-section id="examples-parts" label="Parts" sticky collapsible dividing>
               <ui-message size="small" state="info"
                 >The other content parts style themselves by their OWNER: the same <code>&lt;ui-meta&gt;</code> reads
                 differently in a card, an item, a feed and a comment. Outside any owner they are unstyled blocks.
@@ -423,7 +423,7 @@
                 (card, items, comment, feed, statistic, step, label) show every owner in full.</ui-message
               >
 
-              <ui-section id="examples-parts-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-parts-content" label="Content" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-content>` is the main content block of a card, item, event, comment, modal, message, list item or step."
                 >
@@ -450,7 +450,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-header" header="Header" sticky collapsible dividing>
+              <ui-section id="examples-parts-header" label="Header" sticky collapsible dividing>
                 <ui-docs-example
                   description="Inside an owner, `<ui-header>` is the owner's header:  here a card's, an item's and a list item's."
                 >
@@ -473,7 +473,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-meta" header="Meta" sticky collapsible dividing>
+              <ui-section id="examples-parts-meta" label="Meta" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-meta>` holds metadata about the content, e.g. a date or a category:  the same markup in a card, an item, a feed event and a comment."
                 >
@@ -510,7 +510,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-description" header="Description" sticky collapsible dividing>
+              <ui-section id="examples-parts-description" label="Description" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-description>` describes the content:  a card's or item's text, a comment's text (Fomantic's comment `text`), a step's line."
                 >
@@ -533,7 +533,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-extra" header="Extra" sticky collapsible dividing>
+              <ui-section id="examples-parts-extra" label="Extra" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-extra>` is extra content, set apart from the main content:  a card's footer, an item's extra line, a feed event's extra text."
                 >
@@ -555,7 +555,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-actions" header="Actions" sticky collapsible dividing>
+              <ui-section id="examples-parts-actions" label="Actions" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-actions>` holds the actions a user can take:  a comment's reply links, a modal's or toast's buttons."
                 >
@@ -573,7 +573,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-avatar-and-author" header="Avatar and Author" sticky collapsible dividing>
+              <ui-section id="examples-parts-avatar-and-author" label="Avatar and Author" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-avatar>` is a small picture of a person, `<ui-author>` who wrote a comment or did a feed event (Fomantic's feed `user`)."
                 >
@@ -597,7 +597,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-summary-and-date" header="Summary and Date" sticky collapsible dividing>
+              <ui-section id="examples-parts-summary-and-date" label="Summary and Date" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-summary>` is a feed event's summary line;  `<ui-date>` says when, inline and small inside it (`datetime` makes it a real `<time>`)."
                 >
@@ -620,7 +620,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-title" header="Title" sticky collapsible dividing>
+              <ui-section id="examples-parts-title" label="Title" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-title>` is a step's, an accordion panel's or a search result's title."
                 >
@@ -635,7 +635,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-value" header="Value" sticky collapsible dividing>
+              <ui-section id="examples-parts-value" label="Value" sticky collapsible dividing>
                 <ui-docs-example
                   description="`<ui-value>` is a statistic's value (a number, a word, an icon or image), with `<ui-label>` naming it."
                 >
@@ -656,7 +656,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-parts-detail" header="Detail" sticky collapsible dividing>
+              <ui-section id="examples-parts-detail" label="Detail" sticky collapsible dividing>
                 <ui-docs-example description="`<ui-detail>` is a label's dimmer second value, e.g. a count.">
                   <ui-label>Dogs<ui-detail>214</ui-detail></ui-label>
                   <ui-label color="blue">Veronika<ui-detail>Friend</ui-detail></ui-label>
@@ -667,7 +667,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   One family, thirteen tags: `<ui-header>`, `<ui-content>`, `<ui-description>`, `<ui-meta>`, `<ui-extra>`,
@@ -697,7 +697,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+            <ui-section id="usage-owners" label="Owners" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A generic part styles itself by its OWNER, not by a per-owner tag: there is no `ui-card-header`. The part finds
@@ -715,7 +715,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Parts take no keys of their own. A header, title, author or detail with `href` renders a real `<a>`: **Tab**
@@ -724,7 +724,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A `<ui-header>` with `level` renders a real `<h1>` ... `<h6>`, so it belongs in the document outline. Without
@@ -751,7 +751,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A standalone header's tokens are public (`--ui-header-*`): set one on the element, on any ancestor or `:root`, or
@@ -782,7 +782,7 @@
               <ui-docs-tokens family="ui-parts" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle these parts; the one in the header applies a theme

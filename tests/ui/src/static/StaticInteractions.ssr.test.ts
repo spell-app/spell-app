@@ -28,8 +28,8 @@ describe("StaticInteractions.wire() with JavaScript off", { timeout: 30_000 }, (
         <ui-title id="q1">First</ui-title><ui-content>One</ui-content>
         <ui-title id="q2">Second</ui-title><ui-content>Two</ui-content>
       </ui-accordion>
-      <ui-section header="A" collapsible><p>a</p></ui-section>
-      <ui-section header="B" collapsible><p>b</p></ui-section>
+      <ui-section label="A" collapsible><p>a</p></ui-section>
+      <ui-section label="B" collapsible><p>b</p></ui-section>
     `
     const html = `<!doctype html><html><head><title>t</title></head><body>${body}</body></html>`
     await StaticRender.prepare(html)

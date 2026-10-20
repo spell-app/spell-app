@@ -84,7 +84,7 @@
             >
           </ui-list>
 
-          <ui-section id="1-loading-them" header="1. Loading them" sticky collapsible dividing collapsed>
+          <ui-section id="1-loading-them" label="1. Loading them" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="box open"></ui-icon>
             <ul>
               <li>
@@ -126,7 +126,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="2-colour" header="2. Colour" sticky collapsible dividing collapsed>
+          <ui-section id="2-colour" label="2. Colour" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -158,7 +158,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="3-casting" header="3. Casting" sticky collapsible dividing collapsed>
+          <ui-section id="3-casting" label="3. Casting" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="wand magic sparkles"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -181,7 +181,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="4-the-apps-pieces" header="4. The app's pieces" sticky collapsible dividing collapsed>
+          <ui-section id="4-the-apps-pieces" label="4. The app's pieces" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="mobile screen"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -208,7 +208,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="5-page-art" header="5. Page art" sticky collapsible dividing collapsed>
+          <ui-section id="5-page-art" label="5. Page art" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="feather"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -236,7 +236,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="6-specimen" header="6. Specimen" sticky collapsible dividing collapsed>
+          <ui-section id="6-specimen" label="6. Specimen" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
               Spell UI's fields in its panels, as the Theme Creator's inspector has them: an info tip, an output,
@@ -244,7 +244,7 @@
               shows Spell UI's own.
             </p>
             <div class="brand-home-row">
-              <ui-panel header="Color Set" collapsible style="width: 380px">
+              <ui-panel label="Color Set" collapsible style="width: 380px">
                 <ui-input placeholder="Name, e.g. brand" aria-label="Name"></ui-input>
                 <ui-field
                   label="Base color"
@@ -253,7 +253,7 @@
                 >
                   <ui-input value="#8E96B5"></ui-input>
                 </ui-field>
-                <ui-panel header="Tweak" collapsible>
+                <ui-panel label="Tweak" collapsible>
                   <ui-field
                     label="Base color sits at"
                     output="400"
@@ -268,7 +268,7 @@
                   </ui-field>
                 </ui-panel>
               </ui-panel>
-              <ui-panel header="A form" style="width: 320px">
+              <ui-panel label="A form" style="width: 320px">
                 <ui-field label="Email" required error="That doesn't look like an email.">
                   <ui-input value="owen@" type="email"></ui-input>
                 </ui-field>

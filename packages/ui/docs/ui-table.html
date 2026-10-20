@@ -55,8 +55,8 @@
               extras (Content, Attached, Table alignment, Overflowing).  `<ui-table>` wraps a NATIVE `<table>`:  rows and cells
               keep Fomantic's class words (`positive`, `right aligned`, `collapsing`);  only the table's own words are attributes.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-table" header="Table" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-table" label="Table" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A standard table: <code>&lt;ui-table&gt;</code> around a native <code>&lt;table&gt;</code>. Rows,
@@ -276,7 +276,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-types-definition" header="Definition" sticky collapsible dividing>
+              <ui-section id="examples-types-definition" label="Definition" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A table may be formatted to emphasize a first column that defines a rows content.
@@ -379,7 +379,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-types-structured" header="Structured" sticky collapsible dividing>
+              <ui-section id="examples-types-structured" label="Structured" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A table can be formatted to display complex structured data</p>
                   <ui-message slot="description" state="info" size="small"
@@ -455,10 +455,10 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
               <ui-section
                 id="examples-content-caption-and-row-headers"
-                header="Caption and row headers"
+                label="Caption and row headers"
                 sticky
                 collapsible
                 dividing
@@ -503,7 +503,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-row-spanned" header="Row spanned" sticky collapsible dividing>
+              <ui-section id="examples-content-row-spanned" label="Row spanned" sticky collapsible dividing>
                 <ui-docs-example
                   description="A `rowspanned` cell is a hidden stand-in for a cell spanning down from the row above, so every row keeps a full set of cells (and stacks right on phones)."
                 >
@@ -534,10 +534,10 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
               <ui-section
                 id="examples-states-positive-negative"
-                header="Positive / Negative"
+                label="Positive / Negative"
                 sticky
                 collapsible
                 dividing
@@ -578,7 +578,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-error" header="Error" sticky collapsible dividing>
+              <ui-section id="examples-states-error" label="Error" sticky collapsible dividing>
                 <ui-docs-example description="A cell or row may call attention to an error or a negative value.">
                   <ui-table celled>
                     <table>
@@ -615,7 +615,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-warning" header="Warning" sticky collapsible dividing>
+              <ui-section id="examples-states-warning" label="Warning" sticky collapsible dividing>
                 <ui-docs-example description="A cell or row may warn a user.">
                   <ui-table celled>
                     <table>
@@ -652,7 +652,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+              <ui-section id="examples-states-active" label="Active" sticky collapsible dividing>
                 <ui-docs-example description="A cell or row can be active or selected by a user.">
                   <ui-table celled>
                     <table>
@@ -689,7 +689,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example description="A cell can be disabled.">
                   <ui-table celled>
                     <table>
@@ -726,7 +726,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-colored-cells" header="Colored Cells" sticky collapsible dividing>
+              <ui-section id="examples-states-colored-cells" label="Colored Cells" sticky collapsible dividing>
                 <ui-docs-example description="A cell can be styled by the central color palette colors.">
                   <ui-table celled>
                     <table>
@@ -763,7 +763,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-marked" header="Marked" sticky collapsible dividing>
+              <ui-section id="examples-states-marked" label="Marked" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A cell or row can be marked by a colored left or right border.</p>
                   <ui-message slot="description" state="warning" size="small"
@@ -807,7 +807,7 @@
               </ui-section>
               <ui-section
                 id="examples-states-colored-and-marked"
-                header="Colored and Marked"
+                label="Colored and Marked"
                 sticky
                 collapsible
                 dividing
@@ -840,8 +840,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-single-line" header="Single Line" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-single-line" label="Single Line" sticky collapsible dividing>
                 <ui-docs-example
                   description="A table can specify that its cell contents should remain on a single line, and not wrap."
                 >
@@ -879,7 +879,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-fixed" header="Fixed" sticky collapsible dividing>
+              <ui-section id="examples-variations-fixed" label="Fixed" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A table can use
@@ -962,7 +962,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-stacking" header="Stacking" sticky collapsible dividing>
+              <ui-section id="examples-variations-stacking" label="Stacking" sticky collapsible dividing>
                 <ui-docs-example description="A table can specify how it stacks table content responsively.">
                   <ui-table unstackable>
                     <table>
@@ -1022,7 +1022,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-selectable-row" header="Selectable Row" sticky collapsible dividing>
+              <ui-section id="examples-variations-selectable-row" label="Selectable Row" sticky collapsible dividing>
                 <ui-docs-example description="A table can have its rows appear selectable.">
                   <ui-table selectable celled>
                     <table>
@@ -1099,7 +1099,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-selectable-cell" header="Selectable Cell" sticky collapsible dividing>
+              <ui-section id="examples-variations-selectable-cell" label="Selectable Cell" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A table cell can be selectable.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -1165,7 +1165,7 @@
               </ui-section>
               <ui-section
                 id="examples-variations-vertical-alignment"
-                header="Vertical Alignment"
+                label="Vertical Alignment"
                 sticky
                 collapsible
                 dividing
@@ -1204,7 +1204,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-text-alignment" header="Text Alignment" sticky collapsible dividing>
+              <ui-section id="examples-variations-text-alignment" label="Text Alignment" sticky collapsible dividing>
                 <ui-docs-example description="A table header, row, or cell can adjust its text alignment.">
                   <ui-table striped>
                     <table>
@@ -1236,7 +1236,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-striped" header="Striped" sticky collapsible dividing>
+              <ui-section id="examples-variations-striped" label="Striped" sticky collapsible dividing>
                 <ui-docs-example
                   description="A table can stripe alternate rows of content with a darker color to increase contrast."
                 >
@@ -1304,7 +1304,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-celled" header="Celled" sticky collapsible dividing>
+              <ui-section id="examples-variations-celled" label="Celled" sticky collapsible dividing>
                 <ui-docs-example description="A table may be divided each row into separate cells.">
                   <ui-table celled>
                     <table>
@@ -1343,7 +1343,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-basic" header="Basic" sticky collapsible dividing>
+              <ui-section id="examples-variations-basic" label="Basic" sticky collapsible dividing>
                 <ui-docs-example description="A table can reduce its complexity to increase readability.">
                   <ui-table basic>
                     <table>
@@ -1410,7 +1410,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-collapsing-cell" header="Collapsing Cell" sticky collapsible dividing>
+              <ui-section id="examples-variations-collapsing-cell" label="Collapsing Cell" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A cell can be collapsing so that it only uses as much space as required.</p>
                   <ui-message slot="description" state="warning" size="small" icon="warning"
@@ -1440,7 +1440,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-column-count" header="Column Count" sticky collapsible dividing>
+              <ui-section id="examples-variations-column-count" label="Column Count" sticky collapsible dividing>
                 <ui-docs-example
                   description='A table can specify its column count to divide its content evenly:  `columns="5"`.'
                 >
@@ -1491,7 +1491,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-column-width" header="Column Width" sticky collapsible dividing>
+              <ui-section id="examples-variations-column-width" label="Column Width" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A table can specify the width of individual columns independently.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -1530,7 +1530,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-collapsing" header="Collapsing" sticky collapsible dividing>
+              <ui-section id="examples-variations-collapsing" label="Collapsing" sticky collapsible dividing>
                 <ui-docs-example description="A table can be collapsing, taking up only as much space as its rows.">
                   <ui-table collapsing>
                     <table>
@@ -1569,7 +1569,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example description="A table can be given a color to distinguish it from other tables.">
                   <ui-table color="red">
                     <table>
@@ -1849,7 +1849,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A table's colors can be inverted.">
                   <ui-table inverted>
                     <table>
@@ -2166,7 +2166,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-sortable" header="Sortable" sticky collapsible dividing>
+              <ui-section id="examples-variations-sortable" label="Sortable" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A table may allow a user to sort contents by clicking on a table header.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -2213,7 +2213,7 @@
               </ui-section>
               <ui-section
                 id="examples-variations-full-width-header-footer"
-                header="Full-Width Header / Footer"
+                label="Full-Width Header / Footer"
                 sticky
                 collapsible
                 dividing
@@ -2275,7 +2275,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-padded" header="Padded" sticky collapsible dividing>
+              <ui-section id="examples-variations-padded" label="Padded" sticky collapsible dividing>
                 <ui-docs-example description="A table may sometimes need to be more padded for legibility.">
                   <ui-table padded>
                     <table>
@@ -2333,7 +2333,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+              <ui-section id="examples-variations-compact" label="Compact" sticky collapsible dividing>
                 <ui-docs-example
                   description="A table may sometimes need to be more compact to make more rows visible at a time."
                 >
@@ -2456,7 +2456,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-attached" header="Attached" sticky collapsible dividing>
+              <ui-section id="examples-variations-attached" label="Attached" sticky collapsible dividing>
                 <ui-docs-example
                   description='A table can be attached to other content on a page:  `attached="top"`, `attached` (the middle) or `attached="bottom"`.'
                 >
@@ -2496,7 +2496,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-table-alignment" header="Table alignment" sticky collapsible dividing>
+              <ui-section id="examples-variations-table-alignment" label="Table alignment" sticky collapsible dividing>
                 <ui-docs-example
                   description="A table's cells can all share one text alignment (`text-align`);  `vertical-align` does the same vertically."
                 >
@@ -2526,7 +2526,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A table can also be small or large.">
                   <ui-table size="small">
                     <table>
@@ -2602,7 +2602,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-scrolling" header="Scrolling" sticky collapsible dividing>
+              <ui-section id="examples-variations-scrolling" label="Scrolling" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A table body can scroll vertically: <code>scrolling</code>, with the head and foot stuck.
@@ -2844,7 +2844,7 @@
                   </ui-table>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-overflowing" header="Overflowing" sticky collapsible dividing>
+              <ui-section id="examples-variations-overflowing" label="Overflowing" sticky collapsible dividing>
                 <ui-docs-example
                   description="A table can scroll both ways when its content is too wide or too tall, with nothing stuck.  It takes the same height steps as `scrolling`."
                 >
@@ -2967,7 +2967,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-stuck" header="Stuck" sticky collapsible dividing>
+              <ui-section id="examples-variations-stuck" label="Stuck" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A table can scroll horizontally having its <code>head</code>, <code>foot</code>,
@@ -3123,7 +3123,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  the native table, stacking, sorting, data mode, keyboard, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-table>` holds ONE native `<table>`, and the table stays in the page (the light DOM): its semantics,
@@ -3141,7 +3141,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-stacking" header="Stacking" sticky collapsible dividing>
+            <ui-section id="usage-stacking" label="Stacking" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `stackable` answers to the VIEWPORT, as in Fomantic: below 768px every table stacks unless it is `unstackable`;
@@ -3154,7 +3154,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-sorting" header="Sorting" sticky collapsible dividing>
+            <ui-section id="usage-sorting" label="Sorting" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   With `sortable`, every header in the `thead` sorts, unless it has `data-sortable="false"` (or Fomantic's
@@ -3168,7 +3168,7 @@
                     sorted column's text (numbers in number order); otherwise sort the rows yourself.
                 </script>
               </ui-markdown>
-              <ui-section id="usage-sorting-client-sort" header="Client sort" sticky collapsible dividing>
+              <ui-section id="usage-sorting-client-sort" label="Client sort" sticky collapsible dividing>
                 <ui-docs-example
                   description="`client-sort` reorders the rows by cell text on each `ui-sort`.  Click a header."
                 >
@@ -3209,7 +3209,7 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `ui-sort` is the only event: `detail` is `{ column, key, direction, originalEvent }`. `preventDefault()` keeps
@@ -3228,7 +3228,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-data-mode" header="Data mode" sticky collapsible dividing>
+            <ui-section id="usage-data-mode" label="Data mode" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   With NO slotted `<table>`, set the `rows` property (and optionally `columnDefs`: `key`, `header`, `textAlign`,
@@ -3266,7 +3266,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Tab** moves to each sort button (or focusable header), and to a scrolling region.
@@ -3276,7 +3276,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The table is a real `<table>` in the document, so screen readers read its rows, columns and headers natively.
@@ -3295,7 +3295,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Render the `<table>` inside `<ui-table>` as usual. For data mode, set `rows` / `columnDefs` as properties, not
@@ -3338,7 +3338,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-table-*` tokens: set one on the element, on any ancestor (`:root` included), on the
@@ -3371,7 +3371,7 @@
               <ui-docs-tokens family="ui-table" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

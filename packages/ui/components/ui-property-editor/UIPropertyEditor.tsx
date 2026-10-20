@@ -35,7 +35,8 @@ export class DOMPropertyEditorElement extends DOMFormElement {
  * - It IS a `<ui-form>` (it extends `UIForm`):  bound to `value` (a thing, or a list of things), validation,
  *   `apply="on save"` with `save()` / `cancel()`, `validate`.
  *   Its `<ui-property>`s are fields of it, in its light DOM.
- * - It DRAWS a `<ui-section>` in its shadow root, around them, when it has a title (`header`, `slot="header"`):
+ * - It DRAWS a `<ui-section>` in its shadow root, around them, when it has a title (`label`, `slot="label"`;  or their old
+ *   name, `header`):
  *   every section attribute it's given is passed on to it, and the section's named slots too.
  *   The section's events (`ui-open` / `ui-close`) come out of it, from the editor.
  * - The SCHEMA (`schema`):  what its properties are.
@@ -222,12 +223,13 @@ export class UIPropertyEditor extends UIForm {
   // ## The section around it
   ////////////////
 
-  /** Light-DOM slot occupancy:  `slot="header"`, `slot="output"` ... */
+  /** Light-DOM slot occupancy:  `slot="label"`, `slot="output"` ... */
   readonly slots = new E.SlotContent(this.domElement)
 
-  /** It has a title, so it draws a section:  `header`, or `slot="header"`. */
+  /** It has a title, so it draws a section:  `label` or `slot="label"`, or their old name, `header`. */
   get hasTitle(): boolean {
-    return !!this.attributes.header || this.slots.hasContent(this.slotForName(OWN.header))
+    const { label, header } = this.attributes
+    return !!label || !!header || [OWN.label, OWN.header].some((name) => this.slots.hasContent(this.slotForName(name)))
   }
 
   /** The section attributes it was given, raw, to pass on. */
@@ -282,7 +284,7 @@ export class UIPropertyEditor extends UIForm {
 
   /**
    * The section's named slots it has content for, passed on:  only those, so an empty one never hides the
-   * section's own text (`header`) or draws an empty box (`actions`).
+   * section's own text (`label`) or draws an empty box (`actions`).
    */
   private get forwardedSlots(): string[] {
     return FORWARDED_SLOTS.filter((name) => this.slots.hasContent(name))
@@ -393,8 +395,9 @@ export class UIPropertyEditor extends UIForm {
 
 /** The section's attributes the editor passes on (all but those the editor has of its own). */
 const SECTION_ATTRIBUTES = new Set(
+  // with their old names, which the section reads too (`header` for `label` ...)
   sectionVocabulary.attributes
-    .map((spec) => spec.name as string)
+    .flatMap((spec) => [spec.name as string, ...((spec as { aliases?: readonly string[] }).aliases ?? [])])
     .filter((name) => !["source", "select", "size", "inverted", "loading", "disabled"].includes(name))
 )
 
@@ -423,6 +426,7 @@ const OWN = {
   footer: "footer",
   output: "output",
   errorLine: "error-line",
+  label: "label",
   header: "header",
   save: "save",
   cancel: "cancel",

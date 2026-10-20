@@ -26,7 +26,7 @@ export function ProjectSettings(props: ProjectSettingsProps) {
       class="ProjectSettings"
       size="small"
       closedby="closerequest"
-      header={`${props.project.title} settings`}
+      label={`${props.project.title} settings`}
       visible=""
       ref={(element: HTMLElement) => {
         modal = element

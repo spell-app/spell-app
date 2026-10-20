@@ -75,15 +75,15 @@ export const PAGE = `
   <main id="test-page">
     <ui-tabs id="site-tabs">
       <ui-tab value="examples" label="Examples">
-        <ui-section id="examples-types" header="Types">
-          <ui-section id="examples-types-divider" header="Divider"></ui-section>
-          <ui-section id="examples-types-vertical-divider" header="Vertical Divider">
-            <ui-docs-example><ui-section id="demo" header="Vertical demo"></ui-section></ui-docs-example>
+        <ui-section id="examples-types" label="Types">
+          <ui-section id="examples-types-divider" label="Divider"></ui-section>
+          <ui-section id="examples-types-vertical-divider" label="Vertical Divider">
+            <ui-docs-example><ui-section id="demo" label="Vertical demo"></ui-section></ui-docs-example>
           </ui-section>
         </ui-section>
       </ui-tab>
       <ui-tab value="usage" label="Usage">
-        <ui-section id="usage-keyboard" header="Keyboard"></ui-section>
+        <ui-section id="usage-keyboard" label="Keyboard"></ui-section>
       </ui-tab>
     </ui-tabs>
   </main>`

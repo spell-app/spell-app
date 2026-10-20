@@ -83,7 +83,7 @@ describe("<ui-property-editor> schema", () => {
 
   it("keeps the author's layout:  only the properties written, in groups;  `as` picks the control", async () => {
     const host = await editor(
-      `<ui-property-group header="Look">
+      `<ui-property-group label="Look">
          <ui-property name="size" as="buttons"></ui-property>
        </ui-property-group>
        <ui-property name="font.family"></ui-property>`,
@@ -143,7 +143,7 @@ describe("<ui-property-editor> schema", () => {
 describe("<ui-property-editor> groups and readonly", () => {
   it("a `readonly` group makes every control in it readonly", async () => {
     const host = await editor(
-      `<ui-property-group header="Locked" readonly><ui-property name="title"></ui-property></ui-property-group>`,
+      `<ui-property-group label="Locked" readonly><ui-property name="title"></ui-property></ui-property-group>`,
       { title: "Spell" }
     )
     expect(control(host, "title").hasAttribute("readonly")).toBe(true)
@@ -152,7 +152,7 @@ describe("<ui-property-editor> groups and readonly", () => {
 
   it("a group shows the error state, and hears `ui-invalid`, while a property in it fails", async () => {
     const host = await editor(
-      `<ui-property-group header="Name"><ui-property name="title" rules='["empty"]'></ui-property></ui-property-group>`,
+      `<ui-property-group label="Name"><ui-property name="title" rules='["empty"]'></ui-property></ui-property-group>`,
       { title: "" }
     )
     const group = host.querySelector("ui-property-group")!
@@ -257,16 +257,16 @@ describe("<ui-property-editor source>", () => {
     await expect.poll(() => host.querySelectorAll("ui-property").length, { timeout: 5000 }).toBeGreaterThan(1)
     await settle(host)
     expect(loaded).toBe(true)
-    expect(host.getAttribute("header")).toBe("Theme")
+    expect(host.getAttribute("label")).toBe("Theme")
     expect(host.querySelector("ui-property[name=title]")!.getAttribute("hint")).toBe("Used for the file name.")
     await expect.poll(() => host.querySelectorAll("ui-property[name=size] ui-radio").length).toBe(3)
-    expect(host.querySelector("ui-property-group[header=More] ui-property[name=dark]")).not.toBeNull()
+    expect(host.querySelector("ui-property-group[label=More] ui-property[name=dark]")).not.toBeNull()
     expect(control(host, "title").value).toBe("Spell")
   })
 
   it("`select`:  only that part of the page", async () => {
     const host = await ElementFixture.render<Editor>(
-      `<ui-property-editor source="${PAGE}" select="ui-property-group[header=Look]"></ui-property-editor>`
+      `<ui-property-editor source="${PAGE}" select="ui-property-group[label=Look]"></ui-property-editor>`
     )
     host.schema = THEME
     host.value = { size: "lg" }

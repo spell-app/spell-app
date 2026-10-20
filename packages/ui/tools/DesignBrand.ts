@@ -63,7 +63,8 @@ export class DesignBrand {
     const result: DesignExample[] = []
     for (const match of tab.matchAll(/<ui-docs-example\b[^>]*>([\s\S]*?)<\/ui-docs-example>/g)) {
       const before = tab.slice(0, match.index)
-      const headers = [...before.matchAll(/<ui-section\b[^>]*\sheader="([^"]*)"/g)]
+      // its title:  `label`, or its old name, `header`
+      const headers = [...before.matchAll(/<ui-section\b[^>]*\s(?:label|header)="([^"]*)"/g)]
       const title = headers.at(-1)?.[1] ?? "Example"
       const markup = DesignComponents.dedent(match[1]!)
       if (markup.trim()) result.push({ title, markup, source: `${PAGES}/${folder}.html` })

@@ -5,7 +5,7 @@
       "name": "ui-accordion",
       "description": {
         "kind": "markdown",
-        "value": "An accordion lets people show and hide sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "An accordion lets people show and hide sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-load`, `ui-error`"
       },
       "attributes": [
         {
@@ -15903,21 +15903,35 @@
       "name": "ui-panel",
       "description": {
         "kind": "markdown",
-        "value": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.\n\nAlso known as:  inspector, property panel, properties, settings panel, fieldset, property sheet.\n\n**Slots:**  default, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.\n\nAlso known as:  inspector, property panel, properties, settings panel, fieldset, property sheet.\n\n**Slots:**  default, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-load`, `ui-error`"
       },
       "attributes": [
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
         {
           "name": "header",
           "description": {
             "kind": "markdown",
-            "value": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).\n\nTakes:  text"
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
           "name": "subhead",
           "description": {
             "kind": "markdown",
-            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.\n\nTakes:  text"
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
@@ -15962,10 +15976,17 @@
           }
         },
         {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "info",
           "description": {
             "kind": "markdown",
-            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
           }
         },
         {
@@ -18252,7 +18273,7 @@
       "name": "ui-property-editor",
       "description": {
         "kind": "markdown",
-        "value": "A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.\n\nAlso known as:  inspector, property sheet, properties panel, settings form, object editor.\n\n**Slots:**  default, `output`, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-change`, `ui-loading`, `ui-loaded`, `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`, `ui-saving`, `ui-saved`, `ui-cancelling`, `ui-cancelled`, `ui-open`, `ui-close`, `ui-error`"
+        "value": "A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.\n\nAlso known as:  inspector, property sheet, properties panel, settings form, object editor.\n\n**Slots:**  default, `output`, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-change`, `ui-loading`, `ui-loaded`, `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`, `ui-saving`, `ui-saved`, `ui-cancelling`, `ui-cancelled`, `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-error`"
       },
       "attributes": [
         {
@@ -18449,17 +18470,31 @@
           }
         },
         {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "header",
           "description": {
             "kind": "markdown",
-            "value": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).\n\nTakes:  text"
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
           "name": "subhead",
           "description": {
             "kind": "markdown",
-            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.\n\nTakes:  text"
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
@@ -18504,10 +18539,17 @@
           }
         },
         {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "info",
           "description": {
             "kind": "markdown",
-            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
           }
         },
         {
@@ -18856,7 +18898,7 @@
       "name": "ui-property-group",
       "description": {
         "kind": "markdown",
-        "value": "A property group is a folding band of properties in a property editor.  It takes `<ui-section>`'s attributes.\n\nAlso known as:  property group, fieldset, settings group, inspector section.\n\n**Slots:**  `output`, default, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-invalid`, `ui-success`, `ui-open`, `ui-close`, `ui-error`"
+        "value": "A property group is a folding band of properties in a property editor.  It takes `<ui-section>`'s attributes.\n\nAlso known as:  property group, fieldset, settings group, inspector section.\n\n**Slots:**  `output`, default, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-invalid`, `ui-success`, `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-error`"
       },
       "attributes": [
         {
@@ -18909,17 +18951,31 @@
           }
         },
         {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "header",
           "description": {
             "kind": "markdown",
-            "value": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).\n\nTakes:  text"
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
           "name": "subhead",
           "description": {
             "kind": "markdown",
-            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.\n\nTakes:  text"
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
@@ -18964,10 +19020,17 @@
           }
         },
         {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "info",
           "description": {
             "kind": "markdown",
-            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
           }
         },
         {
@@ -21942,21 +22005,35 @@
       "name": "ui-section",
       "description": {
         "kind": "markdown",
-        "value": "A section is a titled block of content that can fold away and keep its title in view.\n\nAlso known as:  section, panel, collapsible, disclosure, fieldset, expander.\n\n**Slots:**  default, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "A section is a titled block of content that can fold away and keep its title in view.\n\nAlso known as:  section, panel, collapsible, disclosure, fieldset, expander.\n\n**Slots:**  default, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-load`, `ui-error`"
       },
       "attributes": [
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
         {
           "name": "header",
           "description": {
             "kind": "markdown",
-            "value": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).\n\nTakes:  text"
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
           "name": "subhead",
           "description": {
             "kind": "markdown",
-            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.\n\nTakes:  text"
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
@@ -22001,10 +22078,17 @@
           }
         },
         {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "info",
           "description": {
             "kind": "markdown",
-            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
           }
         },
         {

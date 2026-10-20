@@ -54,8 +54,8 @@
               EXAMPLES:  Fomantic's label page, section by section, in its order (Types, Content, States, Variations, Groups),
               plus our Active state and Prompt content.  `<ui-labels>` (the group) lives on this page too.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-label" header="Label" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-label" label="Label" sticky collapsible dividing>
                 <ui-docs-example description="A label.">
                   <ui-label icon="mail">23</ui-label>
                 </ui-docs-example>
@@ -71,7 +71,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-image" header="Image" sticky collapsible dividing>
+              <ui-section id="examples-types-image" label="Image" sticky collapsible dividing>
                 <ui-docs-example
                   description="A label can be formatted to emphasize an image:  `image` is the photo's URL."
                 >
@@ -97,7 +97,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-pointing" header="Pointing" sticky collapsible dividing>
+              <ui-section id="examples-types-pointing" label="Pointing" sticky collapsible dividing>
                 <ui-docs-example
                   description="A label can point to content next to it:  `pointing` (above), `below`, `left` or `right`."
                 >
@@ -154,7 +154,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-corner" header="Corner" sticky collapsible dividing>
+              <ui-section id="examples-types-corner" label="Corner" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A label can position itself in the corner of an element.</p>
                   <ui-message slot="description" state="warning" size="small"
@@ -178,7 +178,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-tag" header="Tag" sticky collapsible dividing>
+              <ui-section id="examples-types-tag" label="Tag" sticky collapsible dividing>
                 <ui-docs-example description="A label can appear as a tag.">
                   <ui-label href="#label" tag>New</ui-label>
                   <ui-label href="#label" color="red" tag>Upcoming</ui-label>
@@ -186,7 +186,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-ribbon" header="Ribbon" sticky collapsible dividing>
+              <ui-section id="examples-types-ribbon" label="Ribbon" sticky collapsible dividing>
                 <ui-docs-example
                   description='A label can appear as a ribbon attaching itself to an element:  `ribbon`, or `ribbon="right"`.'
                 >
@@ -246,7 +246,7 @@
 
               <!-- GAP I75:  no `bottom` / `center` ribbon, so Fomantic's Bottom and Center Ribbon example (2.9.3) is left out. -->
               <!-- GAP I77:  attached labels overlay the paragraph:  the segment doesn't pad the content after them. -->
-              <ui-section id="examples-types-attached" header="Attached" sticky collapsible dividing>
+              <ui-section id="examples-types-attached" label="Attached" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A label can attach to a content segment.</p>
                   <ui-message slot="description" state="warning" size="small"
@@ -294,7 +294,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-horizontal" header="Horizontal" sticky collapsible dividing>
+              <ui-section id="examples-types-horizontal" label="Horizontal" sticky collapsible dividing>
                 <ui-docs-example
                   description="A horizontal label is formatted to label content along-side it horizontally."
                 >
@@ -307,7 +307,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-floating" header="Floating" sticky collapsible dividing>
+              <ui-section id="examples-types-floating" label="Floating" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A label can float above or below another element.</p>
                   <ui-message slot="description" state="warning" size="small"
@@ -348,7 +348,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-floating-left" header="Floating left" sticky collapsible dividing>
+              <ui-section id="examples-types-floating-left" label="Floating left" sticky collapsible dividing>
                 <ui-docs-example description="Floating labels can be positioned to the left also.">
                   <ui-menu compact>
                     <ui-item href="#label" icon="mail"
@@ -371,7 +371,7 @@
               </ui-section>
 
               <!-- GAP I76:  no `left aligned` / `right aligned` floating label;  shown with plain `floating`. -->
-              <ui-section id="examples-types-floating-aligned" header="Floating aligned" sticky collapsible dividing>
+              <ui-section id="examples-types-floating-aligned" label="Floating aligned" sticky collapsible dividing>
                 <ui-docs-example
                   description="Floating labels containing large text can be aligned to the left or right."
                 >
@@ -388,7 +388,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-types-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="All variants of label can be inverted.">
                   <ui-segment inverted>
                     <ui-label color="primary" inverted>Primary</ui-label>
@@ -444,8 +444,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-detail" header="Detail" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-detail" label="Detail" sticky collapsible dividing>
                 <ui-docs-example
                   description="A label can contain a detail:  the `detail` shorthand, or a `<ui-detail>` child."
                 >
@@ -453,7 +453,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-icon" header="Icon" sticky collapsible dividing>
+              <ui-section id="examples-content-icon" label="Icon" sticky collapsible dividing>
                 <ui-docs-example description="A label can include an icon.">
                   <ui-label icon="mail">Mail</ui-label>
                   <ui-label icon="checkmark">Test Passed</ui-label>
@@ -478,7 +478,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+              <ui-section id="examples-content-image" label="Image" sticky collapsible dividing>
                 <ui-docs-example description="A label can include an image.">
                   <ui-label href="#label"
                     ><ui-image avatar spaced="right" src="images/avatar/small/elliot.jpg" alt=""></ui-image
@@ -490,7 +490,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-link" header="Link" sticky collapsible dividing>
+              <ui-section id="examples-content-link" label="Link" sticky collapsible dividing>
                 <ui-docs-example description="A label can be a link (`href`) or contain an item that links.">
                   <ui-label href="#label" icon="mail">23</ui-label>
                 </ui-docs-example>
@@ -500,7 +500,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-prompt" header="Prompt" sticky collapsible dividing>
+              <ui-section id="examples-content-prompt" label="Prompt" sticky collapsible dividing>
                 <ui-docs-example
                   description='A prompt label points at an invalid field.  Give it `role="alert"` and tie it to the field with `aria-describedby`.'
                 >
@@ -514,35 +514,35 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-active" label="Active" sticky collapsible dividing>
                 <ui-docs-example description="A label can show it is the current selection.">
                   <ui-label href="#label" active>Active</ui-label>
                   <ui-label href="#label">Inactive</ui-label>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example description="A label can show it is currently unable to be interacted with.">
                   <ui-label href="#label" disabled>Disabled Label</ui-label>
                 </ui-docs-example>
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-fluid" label="Fluid" sticky collapsible dividing>
                 <ui-docs-example description="A label can take the width of its container.">
                   <ui-label fluid>Fits container</ui-label>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-centered" header="Centered" sticky collapsible dividing>
+              <ui-section id="examples-variations-centered" label="Centered" sticky collapsible dividing>
                 <ui-docs-example description="Text can be shown centered.">
                   <ui-label fluid centered>Fits container</ui-label>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-circular" header="Circular" sticky collapsible dividing>
+              <ui-section id="examples-variations-circular" label="Circular" sticky collapsible dividing>
                 <ui-docs-example description="A label can be circular.">
                   <ui-label color="red" href="#label" circular>2</ui-label>
                   <ui-label color="orange" href="#label" circular>2</ui-label>
@@ -575,7 +575,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-basic" header="Basic" sticky collapsible dividing>
+              <ui-section id="examples-variations-basic" label="Basic" sticky collapsible dividing>
                 <ui-docs-example description="A label can reduce its complexity.">
                   <ui-label href="#label" basic>Basic</ui-label>
                   <ui-label href="#label" basic pointing>Pointing</ui-label>
@@ -585,7 +585,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-tinted" header="Tinted" sticky collapsible dividing>
+              <ui-section id="examples-variations-tinted" label="Tinted" sticky collapsible dividing>
                 <ui-docs-example
                   description="Ours, not Fomantic's:  a tinted label is soft, the colour's tint as the fill and its text colour as the text (a pill or badge)."
                 >
@@ -596,7 +596,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example description="A label can have different colors.">
                   <ui-label color="primary" href="#label">Primary</ui-label>
                   <ui-label color="secondary" href="#label">Secondary</ui-label>
@@ -618,7 +618,7 @@
 
               <ui-section
                 id="examples-variations-basic-tag-labels"
-                header="Basic Tag Labels"
+                label="Basic Tag Labels"
                 sticky
                 collapsible
                 dividing
@@ -643,7 +643,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A label can be small or large.">
                   <ui-label size="mini">Mini</ui-label>
                   <ui-label size="tiny">Tiny</ui-label>
@@ -657,8 +657,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-groups" header="Groups" sticky collapsible dividing>
-              <ui-section id="examples-groups-labels" header="Labels" sticky collapsible dividing>
+            <ui-section id="examples-groups" label="Groups" sticky collapsible dividing>
+              <ui-section id="examples-groups-labels" label="Labels" sticky collapsible dividing>
                 <ui-docs-example
                   description="Label groups also have a vertical margin to make sure labels don't appear attached together when wrapped:  `<ui-labels>`."
                 >
@@ -697,7 +697,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-groups-group-size" header="Group Size" sticky collapsible dividing>
+              <ui-section id="examples-groups-group-size" label="Group Size" sticky collapsible dividing>
                 <ui-docs-example description="Labels can share sizes together.">
                   <ui-labels size="huge">
                     <ui-label>Fun</ui-label>
@@ -708,7 +708,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-groups-colored-group" header="Colored Group" sticky collapsible dividing>
+              <ui-section id="examples-groups-colored-group" label="Colored Group" sticky collapsible dividing>
                 <ui-docs-example description="Labels can share colors together.">
                   <ui-labels color="blue">
                     <ui-label href="#label" removable>Fun</ui-label>
@@ -720,7 +720,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-groups-basic-group" header="Basic Group" sticky collapsible dividing>
+              <ui-section id="examples-groups-basic-group" label="Basic Group" sticky collapsible dividing>
                 <ui-docs-example description="Labels can share their style together.">
                   <ui-labels basic>
                     <ui-label href="#label" removable>Fun</ui-label>
@@ -732,7 +732,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-groups-tag-group" header="Tag Group" sticky collapsible dividing>
+              <ui-section id="examples-groups-tag-group" label="Tag Group" sticky collapsible dividing>
                 <ui-docs-example description="Labels can share tag formatting.">
                   <ui-labels tag>
                     <ui-label href="#label">$10.00</ui-label>
@@ -744,7 +744,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-groups-circular-group" header="Circular Group" sticky collapsible dividing>
+              <ui-section id="examples-groups-circular-group" label="Circular Group" sticky collapsible dividing>
                 <ui-docs-example description="Labels can share shapes.">
                   <ui-labels circular>
                     <ui-label href="#label">11</ui-label>
@@ -760,7 +760,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it, events, positioned labels, keyboard, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Write `<ui-label>` with text inside, and add attributes for the look: `<ui-label color="red" basic tag>`.
@@ -776,7 +776,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-positioned-labels" header="Positioned labels" sticky collapsible dividing>
+            <ui-section id="usage-positioned-labels" label="Positioned labels" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `corner`, `ribbon`, `attached` and `floating` labels place themselves against their OWNER: the nearest positioned
@@ -790,7 +790,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A plain click is the native `click`. `ui-remove` is the only custom event: a `removable` label fires it when its
@@ -806,7 +806,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A label with `href` is a real link: **Tab** reaches it, **Enter** follows it.
@@ -816,7 +816,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - An icon-only label (`icon` with no text) needs an `aria-label`.
@@ -831,7 +831,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Events are `ui-*`, so use your framework's custom-event syntax.
@@ -867,7 +867,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-label-*` tokens: set one on the element, on any ancestor (a `<ui-labels>` group,
@@ -901,7 +901,7 @@
               <ui-docs-tokens family="ui-label" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

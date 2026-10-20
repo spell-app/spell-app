@@ -4,12 +4,16 @@
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The attributes become Fomantic's class words, in Fomantic's order (`ClassBuilder`):
  *   `<ui-section color="teal" dividing sticky>` => `ui teal dividing sticky section`.
- * - Not class words:  the strings and numbers (`header`, `subhead`, `info`, `level`, `badge`, `offset`, `height`),
+ * - Not class words:  the strings and numbers (`label`, `hint`, `description`, `level`, `badge`, `offset`, `height`),
  *   the booleans (`collapsible`, `collapsed`) and `fold-icon`.  The component draws or reads them.
  * - `source` (`UIT.LoadableBody*`):  the content comes from a file the first time the section unfolds.
  *   Spread in here, so a subclass reusing this vocabulary (`<ui-panel>`) has it too.
  * - `collapsed` is CONTROLLED, like the accordion's `open`:  set it to fold or unfold;
- *   `ui-open` / `ui-close` can veto a person's change.
+ *   `ui-opening` / `ui-closing` can veto a person's change.
+ * - Its words match `<ui-field>`'s (epic `property-editor` P10, decision Q12):  `label`, `hint`, `description`;  events in
+ *   pairs, `ui-closing` then `ui-closed`;  states `nested` and `in-group`.
+ *   - Its old words still work, until every page says the new ones:  the attributes as `aliases`, and the old slots,
+ *     events and states beside the new (each says "old name of ...").
  */
 
 import type { E } from "$/ui/core"
@@ -19,7 +23,7 @@ import * as UIT from "$/ui/components/components.types"
  * ### `sectionVocabulary`
  * The names of `<ui-section>`, a titled block of content that can fold:
  * `<section class="ui … section" part="section">` holding its title bar
- * (`<hN>` with the icon, header and a fold button, then the badge and actions), an optional subhead, then the content.
+ * (`<hN>` with the icon, label and a fold button, then the badge and actions), an optional hint, then the content.
  ****************/
 export const sectionVocabulary = {
   tag: "ui-section",
@@ -31,14 +35,18 @@ export const sectionVocabulary = {
   description: "A section is a titled block of content that can fold away and keep its title in view.",
   attributes: [
     {
-      name: "header",
+      name: "label",
       kind: "string",
-      description: 'Title text;  a slotted `slot="header"` is the rich version (code, links).'
+      aliases: ["header"],
+      description: 'Title text;  a slotted `slot="label"` is the rich version (code, links).  Old name:  `header`.'
     },
     {
-      name: "subhead",
+      name: "hint",
       kind: "string",
-      description: 'Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot="subhead"`.'
+      aliases: ["subhead"],
+      description:
+        'Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot="hint"`.  ' +
+        "Old name:  `subhead`."
     },
     {
       name: "level",
@@ -59,11 +67,13 @@ export const sectionVocabulary = {
       description: 'A small pill after the title, e.g. a count (`3/7`);  `slot="badge"` is the rich version.'
     },
     {
-      name: "info",
+      name: "description",
       kind: "string",
+      aliases: ["info"],
       description:
         "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button " +
-        'has keyboard focus);  it describes the title.  `slot="info"` is the rich version (bold words, line breaks).'
+        'has keyboard focus);  it describes the title.  `slot="description"` is the rich version (bold words, line ' +
+        "breaks).  Old name:  `info`."
     },
     {
       name: "collapsible",
@@ -156,7 +166,7 @@ export const sectionVocabulary = {
   ],
   events: [
     {
-      name: "ui-open",
+      name: "ui-opening",
       detail: "{ open: boolean, section: Element, originalEvent?: Event }",
       cancelable: true,
       description:
@@ -164,21 +174,46 @@ export const sectionVocabulary = {
         "`cancelable: false`).  Cancel to stay folded."
     },
     {
-      name: "ui-close",
+      name: "ui-opened",
+      detail: "{ open: boolean, section: Element }",
+      description: "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+    },
+    {
+      name: "ui-closing",
       detail: "{ open: boolean, section: Element, originalEvent?: Event }",
       cancelable: true,
       description: "About to fold:  the title was activated.  Cancel to stay open."
+    },
+    {
+      name: "ui-closed",
+      detail: "{ open: boolean, section: Element }",
+      description: "Folded, by any route:  the title, or the page setting `collapsed`."
+    },
+    {
+      name: "ui-open",
+      detail: "{ open: boolean, section: Element, originalEvent?: Event }",
+      cancelable: true,
+      description: "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+    },
+    {
+      name: "ui-close",
+      detail: "{ open: boolean, section: Element, originalEvent?: Event }",
+      cancelable: true,
+      description: "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
     },
     ...UIT.SourceBodyEvents
   ],
   slots: [
     { name: "", description: "The content:  anything, nested `<ui-section>`s included." },
-    { name: "header", description: "Rich title, instead of the `header` attribute." },
-    { name: "subhead", description: "Rich subhead, instead of the `subhead` attribute." },
+    { name: "label", description: "Rich title, instead of the `label` attribute." },
+    { name: "hint", description: "Rich hint, instead of the `hint` attribute." },
     { name: "icon", description: "Icon before the title, instead of the `icon` attribute (a `<ui-icon>`, an image)." },
     { name: "badge", description: "Rich badge, instead of the `badge` attribute (e.g. a `<ui-label>`)." },
     { name: "actions", description: "Controls at the right of the title bar (buttons, a menu);  never fold it." },
-    { name: "info", description: "Rich tip, instead of the `info` attribute (bold words, line breaks)." }
+    { name: "description", description: "Rich tip, instead of the `description` attribute (bold words, line breaks)." },
+    { name: "header", description: "Old name of the `label` slot." },
+    { name: "subhead", description: "Old name of the `hint` slot." },
+    { name: "info", description: "Old name of the `description` slot." }
   ],
   parts: [
     { name: "section", description: "The section box." },
@@ -194,8 +229,11 @@ export const sectionVocabulary = {
     { name: "header", description: "The title text box." },
     { name: "badge", description: "The badge pill." },
     { name: "actions", description: "The actions box, at the right of the title bar." },
-    { name: "tip", description: "With `info`:  the tip, under the title bar, shown on hover and keyboard focus." },
-    { name: "subhead", description: "The subhead under the title." },
+    {
+      name: "tip",
+      description: "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
+    },
+    { name: "subhead", description: "The hint under the title." },
     { name: "content", description: "The content box:  `size`, `scrolling` and `height` apply here." },
     ...UIT.SourceBodyParts
   ],
@@ -203,8 +241,10 @@ export const sectionVocabulary = {
     { name: "collapsed", description: "Folded." },
     { name: "stuck", description: "With `sticky`:  the title bar is stuck to the top." },
     { name: "animated", description: "Folds with a height transition (`interpolate-size`)." },
-    { name: "in-section", description: "Nested in another section." },
-    { name: "in-sections", description: "Directly in a `<ui-sections>` group (no section between)." },
+    { name: "nested", description: "Nested in another section." },
+    { name: "in-group", description: "Directly in a `<ui-sections>` group (no section between)." },
+    { name: "in-section", description: "Old name of `nested`." },
+    { name: "in-sections", description: "Old name of `in-group`." },
     { name: "inverted", description: "In the dark scheme." },
     { name: "loading", description: "Busy:  `loading`, or a `source` body that is slow to arrive." },
     { name: "disabled", description: "Dimmed and inert." },

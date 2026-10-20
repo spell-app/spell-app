@@ -53,8 +53,8 @@
             <!--
               EXAMPLES:  Fomantic's divider page, in its order (Types, Variations), plus our own extra (Colored).
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-divider" header="Divider" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-divider" label="Divider" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A standard divider.</p>
                   <ui-message slot="description" state="warning" size="small"
@@ -68,7 +68,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-vertical-divider" header="Vertical Divider" sticky collapsible dividing>
+              <ui-section id="examples-types-vertical-divider" label="Vertical Divider" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A divider can segment content vertically.</p>
                   <ui-message slot="description" size="small"
@@ -135,7 +135,7 @@
 
               <ui-section
                 id="examples-types-horizontal-divider"
-                header="Horizontal Divider"
+                label="Horizontal Divider"
                 sticky
                 collapsible
                 dividing
@@ -193,7 +193,7 @@
               <!-- GAP I93:  no `header` divider look (see above). -->
               <ui-section
                 id="examples-types-horizontal-alignment"
-                header="Horizontal Alignment"
+                label="Horizontal Alignment"
                 sticky
                 collapsible
                 dividing
@@ -208,8 +208,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A divider can have its colors inverted.">
                   <ui-segment inverted>
                     <ui-image src="images/wireframe/short-paragraph.png" alt=""></ui-image>
@@ -220,7 +220,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+              <ui-section id="examples-variations-fitted" label="Fitted" sticky collapsible dividing>
                 <ui-docs-example description="A divider can be fitted, without any space above or below it.">
                   <ui-segment>
                     Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
@@ -232,7 +232,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-spacer" header="Spacer" sticky collapsible dividing>
+              <ui-section id="examples-variations-spacer" label="Spacer" sticky collapsible dividing>
                 <ui-docs-example description="A spacer divider divides content without drawing a line (Fomantic calls it a hidden divider).">
                   <ui-header level="3">Section One</ui-header>
                   <ui-image src="images/wireframe/short-paragraph.png" alt=""></ui-image>
@@ -242,7 +242,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-section" header="Section" sticky collapsible dividing>
+              <ui-section id="examples-variations-section" label="Section" sticky collapsible dividing>
                 <ui-docs-example description="A divider can provide greater margins to divide sections of content.">
                   <ui-header level="3">Section One</ui-header>
                   <ui-image src="images/wireframe/short-paragraph.png" alt=""></ui-image>
@@ -252,7 +252,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-clearing" header="Clearing" sticky collapsible dividing>
+              <ui-section id="examples-variations-clearing" label="Clearing" sticky collapsible dividing>
                 <ui-docs-example description="A divider can clear the contents above it.">
                   <ui-segment>
                     <ui-header level="2" floated="right">Floated Content</ui-header>
@@ -262,7 +262,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A divider text can vary in size.">
                   <ui-divider horizontal size="mini">Mini</ui-divider>
                   <ui-divider horizontal size="tiny">Tiny</ui-divider>
@@ -274,7 +274,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example description="A divider's rule and text can take a color.">
                   <ui-divider color="red"></ui-divider>
                   <ui-divider horizontal color="blue">Blue</ui-divider>
@@ -285,7 +285,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Put `<ui-divider>` between two blocks of content. With no words it draws a rule; `horizontal` puts its text
@@ -302,11 +302,11 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>A divider takes no focus and handles no keys.</ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A divider is `role="separator"`, not `<hr>`, because a horizontal or vertical divider carries text an `<hr>`
@@ -326,7 +326,7 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-divider-*` tokens: set one on the element, on any ancestor (a region, `:root`), or
@@ -354,7 +354,7 @@
               <ui-docs-tokens family="ui-divider" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   No Fomantic theme restyles dividers (Fomantic's own page lists only the default theme); a site theme still

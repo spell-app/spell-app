@@ -6,12 +6,13 @@
  *   demo are content, never sections.
  * - Within a root:
  *   - a level 2 `<ui-header>` and everything after it (until the next one) becomes
- *     `<ui-section id="<tab>-<slug>" header="<text>" sticky collapsible dividing>`
+ *     `<ui-section id="<tab>-<slug>" label="<text>" sticky collapsible dividing>`
  *   - a level 3 `<ui-header>` becomes a section nested in the level 2 one, the same way
  *   - a `<ui-docs-example header="X">` becomes a section nested in the innermost one, `id="<parent id>-<slug(X)>"`,
  *     holding the example WITHOUT its `header`;  the header-less examples right after it (Fomantic's
  *     `.another.example`) go in with it
- *   - a header holding markup (`<code>` ...) keeps it as the section's `<span slot="header">`
+ *   - a header holding markup (`<code>` ...) keeps it as the section's `<span slot="label">`
+ *   - a section's title is `label`;  one by its old name, `header` (epic `property-editor` P10), is read the same
  *   - ids:  the pane's value, then each level's slug (lowercase kebab of its header, `TocIndex.slug()`);  a page
  *     without tabs starts at the slug (`#general-usage`, `#general-usage-descriptive-attributes`).  Made unique in
  *     the page with `-2`, `-3` ...
@@ -52,8 +53,11 @@ export class SiteSections {
   /** oxfmt's line width (`.oxfmtrc.json`):  a longer start tag breaks one attribute per line. */
   static readonly WIDTH = 120
 
-  /** Attributes every page section gets after `id` and `header`. */
+  /** Attributes every page section gets after `id` and `label`. */
   static readonly FLAGS = ["sticky", "collapsible", "dividing"]
+
+  /** A section's title attribute and slot:  `label`, then its old name, `header` (epic `property-editor` P10). */
+  static readonly SECTION_TITLE = ["label", "header"]
 
   /** A generator's marker comment:  `<!-- kitchen:start -->`, `<!-- site:page:end -->`. */
   static readonly MARKER = /^<!--\s*[\w:-]+:(start|end)\s*-->$/
@@ -253,7 +257,7 @@ export class SiteSections {
     }
     const pad = " ".repeat(column)
     lines.push(this.startTag(column, "ui-section", SiteSections.sectionAttributes(item.id, item.header)))
-    if (item.header.slot) lines.push(`${pad}  <span slot="header">${item.header.slot}</span>`)
+    if (item.header.slot) lines.push(`${pad}  <span slot="label">${item.header.slot}</span>`)
     item.children.forEach((child, index) => {
       if (child.blankBefore && index > 0) lines.push("")
       lines.push(this.renderItem(child, column + 2))
@@ -339,9 +343,9 @@ export class SiteSections {
       .join("\n")
   }
 
-  /** A page section's attributes:  `id`, `header` (unless slotted), then the flags. */
+  /** A page section's attributes:  `id`, `label` (unless slotted), then the flags. */
   private static sectionAttributes(id: string, header: Header): string[] {
-    return [`id="${id}"`, ...(header.slot ? [] : [`header="${header.attribute}"`]), ...SiteSections.FLAGS]
+    return [`id="${id}"`, ...(header.slot ? [] : [`label="${header.attribute}"`]), ...SiteSections.FLAGS]
   }
 
   /** 2 or 3 for a section header (`<ui-header level="2|3">`), else 0. */
@@ -359,9 +363,11 @@ export class SiteSections {
   /** A header's text (for the slug), its attribute form, and its markup when it holds any. */
   private static headerOf(node: HtmlNode): Header {
     if (node.tag === "ui-docs-example" || node.tag === "ui-section") {
-      const raw = node.rawAttr("header")
+      // a section's title:  `label`, or its old name;  an example's:  `header`
+      const names = node.tag === "ui-section" ? SiteSections.SECTION_TITLE : ["header"]
+      const raw = names.map((name) => node.rawAttr(name)).find((value) => value !== undefined)
       if (raw !== undefined) return { text: HtmlParser.decode(raw), attribute: raw }
-      const slot = node.children.find((child) => child.attr("slot") === "header")
+      const slot = node.children.find((child) => names.includes(child.attr("slot") ?? ""))
       const inner = slot ? slot.innerText() : ""
       return { text: HtmlParser.decode(HtmlParser.stripTags(inner)), attribute: "", slot: inner.trim() }
     }

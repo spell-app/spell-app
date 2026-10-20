@@ -67,9 +67,9 @@
               smaller screens.</ui-message
             >
 
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
               <!-- GAP I33:  a rail is a fixed 300px with no attribute to narrow it, so Fomantic's two-rail examples don't fit the docs column:  one rail per example. -->
-              <ui-section id="examples-types-rail" header="Rail" sticky collapsible dividing>
+              <ui-section id="examples-types-rail" label="Rail" sticky collapsible dividing>
                 <ui-docs-example description="A rail can be presented on the left or right side of a container.">
                   <ui-grid>
                     <ui-column width="8" floated="right">
@@ -92,7 +92,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-internal" header="Internal" sticky collapsible dividing>
+              <ui-section id="examples-types-internal" label="Internal" sticky collapsible dividing>
                 <ui-docs-example description="A rail can attach itself to the inside of a container.">
                   <ui-segment padded="very">
                     <ui-rail position="left" internal><ui-segment>Left Rail Content</ui-segment></ui-rail>
@@ -101,7 +101,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-dividing" header="Dividing" sticky collapsible dividing>
+              <ui-section id="examples-types-dividing" label="Dividing" sticky collapsible dividing>
                 <ui-docs-example description="A rail can create a division between itself and a container.">
                   <ui-grid>
                     <ui-column width="8" floated="right">
@@ -125,8 +125,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-attached" header="Attached" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-attached" label="Attached" sticky collapsible dividing>
                 <ui-docs-example description="A rail can appear attached to the main viewport.">
                   <ui-grid>
                     <ui-column width="8" floated="right">
@@ -155,7 +155,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-close" header="Close" sticky collapsible dividing>
+              <ui-section id="examples-variations-close" label="Close" sticky collapsible dividing>
                 <ui-docs-example
                   description='A rail can appear closer to the main viewport:  `close`, or `close="very"`.'
                 >
@@ -180,7 +180,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A rail can have different sizes:  `size` scales its text.">
                   <ui-grid>
                     <ui-column width="8">
@@ -221,7 +221,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  when to use a rail, how it's positioned, accessibility. -->
-            <ui-section id="usage-when-to-use" header="When to use" sticky collapsible dividing>
+            <ui-section id="usage-when-to-use" label="When to use" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Rails display optional accompanying content outside of the main viewport of your site. Sites often use rails with
@@ -235,7 +235,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-adjusting-sizes" header="Adjusting sizes" sticky collapsible dividing>
+            <ui-section id="usage-adjusting-sizes" label="Adjusting sizes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Railed content will most likely need breakpoints of your own, specific to your site's content, so it never runs
@@ -251,7 +251,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Put a `<ui-rail>` inside the box it rails, and pick a side with `position="left"` or `position="right"`.
@@ -277,7 +277,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A rail has no keys of its own: **Tab** reaches what's inside it in source order, wherever it is drawn.
@@ -285,7 +285,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A rail is a plain block with no role: its content carries the meaning. If the rail is a region of its own (a
@@ -308,7 +308,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-rail-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on the
@@ -344,7 +344,7 @@
               <ui-docs-tokens family="ui-rail" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   No Fomantic theme restyles rails: every theme keeps the default look, as on Fomantic's own rail page.

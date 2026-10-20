@@ -540,7 +540,7 @@ describe("spell compile:  editor pages (epic property-editor P7, Q19)", () => {
 })
 
 /** An editor page for the `Card` of the editor-page tests, as written by hand. */
-const CARD_PAGE = `<ui-property-editor schema="Card" header="Card">
+const CARD_PAGE = `<ui-property-editor schema="Card" label="Card">
   <ui-property name="rank"></ui-property>
   <ui-property name="label" as="select"></ui-property>
   <ui-property name="suit"></ui-property>

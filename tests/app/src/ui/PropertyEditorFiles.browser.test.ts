@@ -132,7 +132,7 @@ describe("editor.createPropertyEditor()", () => {
       [
         "Card2.editor.html",
         [
-          '<ui-property-editor schema="Card" header="Card">',
+          '<ui-property-editor schema="Card" label="Card">',
           '  <ui-property name="rank"></ui-property>',
           '  <ui-property name="is_face_up"></ui-property>',
           '  <ui-property name="short_rank"></ui-property>',

@@ -19,7 +19,7 @@ function part(host: Element, name: string): HTMLElement {
 /** Render `fields` in an inspector panel `width` px wide;  the first `<ui-field>`. */
 async function inspectorField(fields: string, width = 300): Promise<HTMLElement> {
   const panel = await ElementFixture.render(
-    `<ui-panel header="Inspector" style="width: ${width}px">${fields}</ui-panel>`
+    `<ui-panel label="Inspector" style="width: ${width}px">${fields}</ui-panel>`
   )
   await ElementFixture.settle()
   return panel.querySelector<HTMLElement>("ui-field")!

@@ -9,9 +9,9 @@ import { PropertySchemas } from "./PropertySchemas"
  * (epic `property-editor` P6), which `<ui-property-editor source>` loads as it is.
  *
  * ```html
- * <ui-property-editor schema="Card" header="Card">
+ * <ui-property-editor schema="Card" label="Card">
  *   <ui-property name="rank" as="buttons"></ui-property>
- *   <ui-property-group header="Other">
+ *   <ui-property-group label="Other">
  *     <ui-property name="direction"></ui-property>
  *   </ui-property-group>
  * </ui-property-editor>
@@ -35,7 +35,7 @@ export class PropertyEditorPages {
   static write(schema: V.PropertySchema, document: Document): string {
     const editor = document.createElement(EDITOR_TAG)
     editor.setAttribute("schema", schema.name)
-    editor.setAttribute("header", schema.label ?? schema.name)
+    editor.setAttribute("label", schema.label ?? schema.name)
     for (const spec of schema.attributes) editor.append(PropertyEditorPages.property(document, spec.name))
     return PropertyEditorPages.text(editor)
   }
@@ -191,7 +191,7 @@ export class PropertyEditorPages {
     const found = editor.querySelector(`${GROUP_TAG}[${OTHER_ATTRIBUTE}]`)
     if (found) return found
     const group = editor.ownerDocument.createElement(GROUP_TAG)
-    group.setAttribute("header", OTHER)
+    group.setAttribute("label", OTHER)
     group.setAttribute(OTHER_ATTRIBUTE, "")
     editor.append(group)
     return group

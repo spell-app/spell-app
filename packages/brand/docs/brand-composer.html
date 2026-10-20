@@ -81,8 +81,8 @@
       <ui-container class="site-body">
         <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
           <ui-tab value="examples" label="Examples">
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-composer" header="Composer" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-composer" label="Composer" sticky collapsible dividing>
                 <ui-docs-example
                   description="The Spell App's Build box:  a card with a serif text box, a row of tools (here the spell's language, a `<ui-label>` in `slot=&quot;tools&quot;`), the keyboard hint and the round Cast button.  Cast with the button or Cmd / Ctrl+Enter;  plain Enter types a new line."
                 >
@@ -96,8 +96,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-eyebrow" header="Eyebrow" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-eyebrow" label="Eyebrow" sticky collapsible dividing>
                 <ui-docs-example
                   description='`eyebrow`:  a small mono caps line above the text box;  it also names the box for screen readers.  `slot="eyebrow"` takes richer content.'
                 >
@@ -109,7 +109,7 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-content-placeholder-hint" header="Placeholder and hint" sticky collapsible dividing>
+              <ui-section id="examples-content-placeholder-hint" label="Placeholder and hint" sticky collapsible dividing>
                 <ui-docs-example
                   description='`placeholder`:  shown while the box is empty (the Cast button dims:  nothing to cast).  `hint`:  your own keyboard hint;  `hint=""` hides it.  `rows`:  how many lines tall the box starts;  it grows as you write.'
                 >
@@ -122,8 +122,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-casting" header="Casting" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-casting" label="Casting" sticky collapsible dividing>
                 <ui-docs-example
                   description='`casting`:  the page sets it while it builds, and clears it;  the element never does.  The Cast button spins and won&apos;t cast again, the text stays editable, and screen readers hear "Casting your spell…".  Here each cast sets `casting` for 2 seconds.'
                 >
@@ -133,7 +133,7 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example
                   description="`disabled`:  faded;  can't be typed in or cast, and left out of its form."
                 >
@@ -146,8 +146,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-large" header="Large" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-large" label="Large" sticky collapsible dividing>
                 <ui-docs-example
                   description='`size="large"`:  the marketing hero&apos;s box, 19px text, a larger radius and shadow.  Here with an eyebrow, two rows, no hint, and idea chips in `slot="tools"`:  a chip sets the box&apos;s `value` and calls `cast()`.'
                 >
@@ -188,8 +188,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-usage" header="Usage" sticky collapsible dividing>
-              <ui-section id="examples-usage-form" header="In a form" sticky collapsible dividing>
+            <ui-section id="examples-usage" label="Usage" sticky collapsible dividing>
+              <ui-section id="examples-usage-form" label="In a form" sticky collapsible dividing>
                 <ui-docs-example
                   description="A form element:  its text goes to the form under `name`.  Casting submits the form (`requestSubmit()`), unless a `brand-cast` handler calls `preventDefault()`:  handle the form's `submit` OR veto the cast, not both.  Here the form's `submit` shows what it got."
                 >
@@ -209,7 +209,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Where someone writes a spell: a sentence or two describing the app they want. Listen for `brand-cast`,
@@ -241,7 +241,7 @@
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The text box is named by `label`, else whatever names the host (`aria-label`, `<label for>`), else
@@ -262,7 +262,7 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set a `--brand-composer-*` token on the composer, any ancestor or `:root`. The defaults come from

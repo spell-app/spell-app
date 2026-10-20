@@ -1,4 +1,5 @@
 import type { SiteSearchSection } from "$/ui/docs-components/docs-components.types"
+import * as UIT from "$/ui/components/components.types"
 import { SearchIndex } from "./SearchIndex"
 import { TRAIL, type SearchEntry } from "./UIDocsSearch.types"
 
@@ -10,7 +11,7 @@ import { TRAIL, type SearchEntry } from "./UIDocsSearch.types"
  * - a section:  a `<ui-section id>`, or a level 2-4 header with an id (`<ui-header level id>`, `<h2 id>` ...),
  *   so a page not nested into sections yet (the overview) still lists its headings;  never one inside an example,
  *   a `<template>` or a `<script>`
- * - its title:  the section's `header`, else its `slot="header"` child's text;  a header's own text,
+ * - its title:  the section's `label`, else its `slot="label"` child's text (or their old name, `header`);  a header's own text,
  *   without its sub header or icon
  * - its `parent`:  the section around it;  a top-level one in a `<ui-tabs id="site-tabs">` pane names its `tab`
  * - every tab's sections, the hidden panes' too:  landing on one selects its tab (the site's router)
@@ -66,9 +67,7 @@ export class PageOutline {
   /** A section's or header's title (see the class). */
   static titleOf(element: Element): string {
     if (element.localName === SECTION_TAG) {
-      const header = element.getAttribute(HEADER)
-      const slotted = [...element.children].find((child) => child.getAttribute("slot") === HEADER)
-      return PageOutline.clean(header ?? slotted?.textContent ?? "")
+      return PageOutline.clean(UIT.SectionTitle.textOf(element) ?? "")
     }
     const copy = element.cloneNode(true) as Element
     for (const inner of copy.querySelectorAll(NOT_TITLE)) inner.remove()
@@ -106,9 +105,6 @@ const SECTION_TAG = "ui-section"
 
 /** A section that can be a parent:  one with an id. */
 const SECTION_WITH_ID = "ui-section[id]"
-
-/** A section's title attribute, and the slot of its rich title. */
-const HEADER = "header"
 
 /** What a header's title leaves out:  its sub header, its icon, anything slotted. */
 const NOT_TITLE = "ui-header, ui-icon, [slot]"

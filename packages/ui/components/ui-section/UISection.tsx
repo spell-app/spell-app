@@ -16,10 +16,10 @@ import sectionCSS from "./UISection.css?inline"
  * - Its shadow DOM:  `<section class="ui … section" part="section">` holding
  *   - a 1px sentinel, which tells when the title has stuck
  *   - the title bar, `<header class="title">`:
- *     the heading (`<hN>`) around the toggle (fold chevron, icon, header text),
- *     then the badge, the actions, a chevron at the end, and the info tip
- *   - the subhead, then `<div class="content">` around the default slot.
- * - A wrapper that would be empty (icon, badge, actions, subhead, tip) isn't drawn:
+ *     the heading (`<hN>`) around the toggle (fold chevron, icon, label),
+ *     then the badge, the actions, a chevron at the end, and the description's tip
+ *   - the hint, then `<div class="content">` around the default slot.
+ * - A wrapper that would be empty (icon, badge, actions, hint, tip) isn't drawn:
  *   `SlotContent` watches the light children.
  *
  * - *Level*:  `level`, else the enclosing section's level + 1 (at most `h6`), else 2.
@@ -29,11 +29,12 @@ import sectionCSS from "./UISection.css?inline"
  *     so they follow its attributes, and a move to another section.
  *
  * - *Folding* (`collapsible`):  the toggle becomes a `<button>`.
- *   - Its accessible name is the header;  its `title` (the `fold` / `unfold` text) is only a tooltip.
- *   - Click, Enter and Space send the cancelable `ui-open` / `ui-close`,
+ *   - Its accessible name is the label;  its `title` (the `fold` / `unfold` text) is only a tooltip.
+ *   - Click, Enter and Space send the cancelable `ui-opening` / `ui-closing`,
  *     then flip `collapsed` (controlled, like the accordion's `open`).
+ *   - Once it has folded or unfolded, by any route:  `ui-closed` / `ui-opened`.
  *   - Folded content is `hidden="until-found"`, so find-in-page can reveal a match:
- *     `beforematch` unfolds it, and announces `ui-open` after the fact (not cancelable).
+ *     `beforematch` unfolds it, and announces `ui-opening` after the fact (not cancelable).
  *   - Not collapsible:  `collapsed` is ignored.
  * - `fold-icon="end"` moves the chevron out of the button, to the far end of the title bar.
  *   - It stays `aria-hidden` (the button is still the control), and a click on it folds as the button does.
@@ -42,7 +43,7 @@ import sectionCSS from "./UISection.css?inline"
  *   a section folds when its nearest `<ui-sections>` (around it, or around an enclosing section) is `collapsing`.
  *   The group owns `section` parts too, so `parent` climbs through it.
  *
- * - `info` / `slot="info"`:  a CSS tooltip under the title bar (`role="tooltip"`),
+ * - `description` / `slot="description"`:  a CSS tooltip under the title bar (`role="tooltip"`),
  *   shown while the pointer is on the heading or the end chevron, or the fold button has keyboard focus.
  *   It describes the fold button (`aria-describedby`), else the heading.
  *
@@ -67,6 +68,11 @@ import sectionCSS from "./UISection.css?inline"
  *   - with `sticky`:  a `ResizeObserver` keeps the title's height (`titleHeight`) for the stack,
  *     and `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck
  *   - with `source`:  replaces its own light children (the placeholder) with the file's body.
+ *
+ * - Its OLD WORDS still work (epic `property-editor` P10, decision Q12), until every page says the new:
+ *   - `header` / `subhead` / `info`, attributes and slots, for `label` / `hint` / `description` (`titleText` ...)
+ *   - `ui-open` / `ui-close` / `ui-load`:  sent just after `ui-opening` / `ui-closing` / `ui-loaded`
+ *   - `:state(in-section)` / `:state(in-sections)`, beside `nested` / `in-group`
  ****************/
 export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.proto static vocabulary = sectionVocabulary
@@ -88,7 +94,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   // ## Nesting
   ////////////////
 
-  /** Enclosing section, when nested (`:state(in-section)`);  climbs through any other component. */
+  /** Enclosing section, when nested (`:state(nested)`);  climbs through any other component. */
   readonly context = new E.PartContext({
     domElement: this.domElement,
     noun: this.vocabulary.noun,
@@ -112,6 +118,18 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     const owner = this.context.ownerComponent<UISection | UISections>()
     if (owner instanceof UISections) return owner
     return owner instanceof UISection ? owner.group : undefined
+  }
+
+  /** Inside another section, through any group (`:state(nested)`;  its old name, `in-section`, comes from the part). */
+  @E.cssState("nested")
+  get isNested(): boolean {
+    return !!this.parent
+  }
+
+  /** Directly in a `<ui-sections>` group (`:state(in-group)`;  its old name, `in-sections`, comes from the part). */
+  @E.cssState("in-group")
+  get isInGroup(): boolean {
+    return this.context.ownerComponent<UISection | UISections>() instanceof UISections
   }
 
   /** Heading level, 1 ... 6. */
@@ -167,7 +185,8 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   }
 
   /**
-   * Fold or unfold as a person would:  the cancelable `ui-open` / `ui-close` first, then `collapsed`.
+   * Fold or unfold as a person would:  the cancelable `ui-opening` / `ui-closing` first (and their old names), then
+   * `collapsed`.
    * - True when applied.
    * - Does nothing unless `collapsible`, or while `disabled`.
    */
@@ -176,12 +195,13 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     if (!this.isCollapsible || this.isDisabled) return false
     const opening = this.isFolded
     const detail: UIT.SectionToggleDetail = { open: opening, section: this.domElement, originalEvent }
-    return this.requestChange("isCollapsed", !opening, () => this.send(opening ? "ui-open" : "ui-close", detail))
+    const [event, oldName] = opening ? (["ui-opening", "ui-open"] as const) : (["ui-closing", "ui-close"] as const)
+    return this.requestChange("isCollapsed", !opening, () => this.send(event, detail) && this.send(oldName, detail))
   }
 
   /** A click on the toggle (Enter / Space on the button click it too). */
   private readonly onToggleClick = (event: MouseEvent) => {
-    // a link or control inside a rich `slot="header"` title acts on its own, as in an accordion's title
+    // a link or control inside a rich `slot="label"` title acts on its own, as in an accordion's title
     if (UIT.TitleControls.isClicked(event, TOGGLE_BUTTON)) return
     this.toggle(event)
   }
@@ -193,15 +213,22 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
 
   /**
    * Find-in-page matched inside the folded content:  the browser has already revealed it,
-   * so announce `ui-open` after the fact (not cancelable) and adopt it.
+   * so announce `ui-opening` (and its old name) after the fact, not cancelable, and adopt it.
    */
   @E.untracked
   private readonly onBeforeMatch = () => {
     if (!this.isFolded) return
     const detail: UIT.SectionToggleDetail = { open: true, section: this.domElement }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
-    this.domElement.dispatchEvent(new CustomEvent(this.elementDefinition.event("ui-open"), init))
+    for (const name of ["ui-opening", "ui-open"] as const)
+      this.domElement.dispatchEvent(new CustomEvent(this.elementDefinition.event(name), init))
     this.isCollapsed = false
+  }
+
+  /** Folded or unfolded, by any route:  `ui-closed` / `ui-opened` -- not at the start. */
+  @E.onChange("isFolded", { defer: true })
+  protected onFoldedChanged(isFolded: boolean) {
+    this.send(isFolded ? "ui-closed" : "ui-opened", { open: !isFolded, section: this.domElement })
   }
 
   ////////////////
@@ -285,7 +312,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   // ## Title bar pieces
   ////////////////
 
-  /** Light-DOM slot occupancy:  icon, badge, subhead, actions. */
+  /** Light-DOM slot occupancy:  icon, badge, hint, actions. */
   readonly slots = new E.SlotContent(this.domElement)
 
   /** Glyph of the `icon` shorthand. */
@@ -301,9 +328,24 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     return !!this.badge || this.slots.hasContent(this.slotForName("badge"))
   }
 
-  /** Has a subhead (shorthand or `subhead` slot)? */
-  get hasSubhead(): boolean {
-    return !!this.subhead || this.slots.hasContent(this.slotForName("subhead"))
+  /** Title text:  `label`, else its old name, `header`. */
+  get titleText(): string | undefined {
+    return this.label ?? this.attributes.header ?? undefined
+  }
+
+  /** Hint text:  `hint`, else its old name, `subhead`. */
+  get hintText(): string | undefined {
+    return this.hint ?? this.attributes.subhead ?? undefined
+  }
+
+  /** Tip text:  `description`, else its old name, `info`. */
+  get descriptionText(): string | undefined {
+    return this.description ?? this.attributes.info ?? undefined
+  }
+
+  /** Has a hint (shorthand, or the `hint` slot or its old name)? */
+  get hasHint(): boolean {
+    return !!this.hintText || this.hasSlotted("hint", "subhead")
   }
 
   /** Has actions (`actions` slot)? */
@@ -311,9 +353,14 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     return this.slots.hasContent(this.slotForName("actions"))
   }
 
-  /** Has an info tip (`info`, or `slot="info"`)? */
-  get hasInfo(): boolean {
-    return !!this.info || this.slots.hasContent(this.slotForName("info"))
+  /** Has a description's tip (`description`, or `slot="description"` or its old name)? */
+  get hasDescription(): boolean {
+    return !!this.descriptionText || this.hasSlotted("description", "info")
+  }
+
+  /** Is anything in slot `name`, or its old name? */
+  private hasSlotted(name: "label" | "hint" | "description", oldName: "header" | "subhead" | "info"): boolean {
+    return this.slots.hasContent(this.slotForName(name)) || this.slots.hasContent(this.slotForName(oldName))
   }
 
   ////////////////
@@ -419,9 +466,11 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
       >
         <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden="true" />
         {this.titleBar()}
-        <Show when={this.hasSubhead}>
+        <Show when={this.hasHint}>
           <div class={SUBHEAD} part={this.partForName("subhead")}>
-            <slot name={this.slotForName("subhead")}>{this.subhead}</slot>
+            <slot name={this.slotForName("hint")}>
+              <slot name={this.slotForName("subhead")}>{this.hintText}</slot>
+            </slot>
           </div>
         </Show>
         <div
@@ -473,7 +522,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
           component={`h${this.headingLevel}`}
           class={HEADING}
           part={this.partForName("heading")}
-          aria-describedby={this.hasInfo && !this.isCollapsible ? TIP_ID : undefined}
+          aria-describedby={this.hasDescription && !this.isCollapsible ? TIP_ID : undefined}
         >
           <Dynamic
             component={this.isCollapsible ? "button" : "span"}
@@ -484,7 +533,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
             aria-controls={this.isCollapsible ? CONTENT_ID : undefined}
             title={this.isCollapsible ? this.translationForKey(this.isFolded ? "unfold" : "fold") : undefined}
             disabled={this.isCollapsible && this.disabled ? true : undefined}
-            aria-describedby={this.hasInfo && this.isCollapsible ? TIP_ID : undefined}
+            aria-describedby={this.hasDescription && this.isCollapsible ? TIP_ID : undefined}
             onClick={this.onToggleClick}
           >
             <Show when={this.isCollapsible && !this.foldIconIsAtEnd}>{this.foldChevron()}</Show>
@@ -494,7 +543,9 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
               </span>
             </Show>
             <span class={UIT.HEADER} part={this.partForName("header")}>
-              <slot name={this.slotForName("header")}>{this.header}</slot>
+              <slot name={this.slotForName("label")}>
+                <slot name={this.slotForName("header")}>{this.titleText}</slot>
+              </slot>
             </span>
           </Dynamic>
         </Dynamic>
@@ -510,9 +561,11 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
         </Show>
         {this.titleBarEnd()}
         <Show when={this.isCollapsible && this.foldIconIsAtEnd}>{this.foldChevron(this.onFoldIconClick)}</Show>
-        <Show when={this.hasInfo}>
+        <Show when={this.hasDescription}>
           <span id={TIP_ID} class={TIP} part={this.partForName("tip")} role="tooltip">
-            <slot name={this.slotForName("info")}>{this.info}</slot>
+            <slot name={this.slotForName("description")}>
+              <slot name={this.slotForName("info")}>{this.descriptionText}</slot>
+            </slot>
           </span>
         </Show>
       </header>
@@ -580,16 +633,16 @@ const BADGE = "badge"
 /** Class word and part of the actions box. */
 const ACTIONS = "actions"
 
-/** Class word and part of the subhead. */
+/** Class word and part of the hint (its old name, kept as the CSS hook). */
 const SUBHEAD = "subhead"
 
-/** Class word and part of the info tip. */
+/** Class word and part of the description's tip. */
 const TIP = "tip"
 
 /** Class word `height` adds before the noun when `scrolling` isn't set:  `height` implies scrolling. */
 const SCROLLING = "scrolling"
 
-/** `id` of the info tip, which the fold button (else the heading) is described by. */
+/** `id` of the description's tip, which the fold button (else the heading) is described by. */
 const TIP_ID = "tip"
 
 /** `id` of the content box, which the fold button's `aria-controls` names. */

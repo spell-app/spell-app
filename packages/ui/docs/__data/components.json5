@@ -315,9 +315,19 @@
           "description": "A panel is about to close -- its title was activated, or another panel is opening in an `exclusive` accordion;  `preventDefault()` keeps it open (and then the other one closed)."
         },
         {
-          "name": "ui-load",
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
           "detail": "{ source: string, content: string }",
           "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "Old name of `ui-loaded`:  sent just after it, until every page listens for the new."
         },
         {
           "name": "ui-error",
@@ -13706,14 +13716,20 @@
       "noun": "section",
       "attributes": [
         {
-          "name": "header",
+          "name": "label",
           "kind": "string",
-          "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links)."
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
         },
         {
-          "name": "subhead",
+          "name": "hint",
           "kind": "string",
-          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`."
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
         },
         {
           "name": "level",
@@ -13739,9 +13755,12 @@
           "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
         },
         {
-          "name": "info",
+          "name": "description",
           "kind": "string",
-          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
         },
         {
           "name": "collapsible",
@@ -13971,12 +13990,12 @@
           "description": "The content:  anything, nested `<ui-section>`s included."
         },
         {
-          "name": "header",
-          "description": "Rich title, instead of the `header` attribute."
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
         },
         {
-          "name": "subhead",
-          "description": "Rich subhead, instead of the `subhead` attribute."
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
         },
         {
           "name": "icon",
@@ -13991,27 +14010,71 @@
           "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
         },
         {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
           "name": "info",
-          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+          "description": "Old name of the `description` slot."
         }
       ],
       "events": [
         {
-          "name": "ui-open",
+          "name": "ui-opening",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
         },
         {
-          "name": "ui-close",
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to fold:  the title was activated.  Cancel to stay open."
         },
         {
-          "name": "ui-load",
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
           "detail": "{ source: string, content: string }",
           "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "Old name of `ui-loaded`:  sent just after it, until every page listens for the new."
         },
         {
           "name": "ui-error",
@@ -14059,11 +14122,11 @@
         },
         {
           "name": "tip",
-          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
         },
         {
           "name": "subhead",
-          "description": "The subhead under the title."
+          "description": "The hint under the title."
         },
         {
           "name": "content",
@@ -14088,12 +14151,20 @@
           "description": "Folds with a height transition (`interpolate-size`)."
         },
         {
-          "name": "in-section",
+          "name": "nested",
           "description": "Nested in another section."
         },
         {
-          "name": "in-sections",
+          "name": "in-group",
           "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
         },
         {
           "name": "inverted",
@@ -15969,14 +16040,20 @@
           "description": "Show the bound `value` (else `values`) as JSON below the form, live."
         },
         {
-          "name": "header",
+          "name": "label",
           "kind": "string",
-          "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links)."
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
         },
         {
-          "name": "subhead",
+          "name": "hint",
           "kind": "string",
-          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`."
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
         },
         {
           "name": "level",
@@ -16002,9 +16079,12 @@
           "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
         },
         {
-          "name": "info",
+          "name": "description",
           "kind": "string",
-          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
         },
         {
           "name": "collapsible",
@@ -16197,12 +16277,12 @@
           "description": "Rich output (instead of `output`)."
         },
         {
-          "name": "header",
-          "description": "Rich title, instead of the `header` attribute."
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
         },
         {
-          "name": "subhead",
-          "description": "Rich subhead, instead of the `subhead` attribute."
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
         },
         {
           "name": "icon",
@@ -16217,8 +16297,20 @@
           "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
         },
         {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
           "name": "info",
-          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+          "description": "Old name of the `description` slot."
         }
       ],
       "events": [
@@ -16281,16 +16373,38 @@
           "description": "The held edits were dropped:  every control shows the bound `value` again."
         },
         {
-          "name": "ui-open",
+          "name": "ui-opening",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
         },
         {
-          "name": "ui-close",
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to fold:  the title was activated.  Cancel to stay open."
+        },
+        {
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
         },
         {
           "name": "ui-error",
@@ -16362,11 +16476,11 @@
         },
         {
           "name": "tip",
-          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
         },
         {
           "name": "subhead",
-          "description": "The subhead under the title."
+          "description": "The hint under the title."
         },
         {
           "name": "content",
@@ -16427,12 +16541,20 @@
           "description": "Folds with a height transition (`interpolate-size`)."
         },
         {
-          "name": "in-section",
+          "name": "nested",
           "description": "Nested in another section."
         },
         {
-          "name": "in-sections",
+          "name": "in-group",
           "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
         },
         {
           "name": "inverted",
@@ -16579,14 +16701,20 @@
           "description": "An error under the title, and the `error` state."
         },
         {
-          "name": "header",
+          "name": "label",
           "kind": "string",
-          "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links)."
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
         },
         {
-          "name": "subhead",
+          "name": "hint",
           "kind": "string",
-          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`."
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
         },
         {
           "name": "level",
@@ -16612,9 +16740,12 @@
           "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
         },
         {
-          "name": "info",
+          "name": "description",
           "kind": "string",
-          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
         },
         {
           "name": "collapsible",
@@ -16838,12 +16969,12 @@
           "description": "The content:  anything, nested `<ui-section>`s included."
         },
         {
-          "name": "header",
-          "description": "Rich title, instead of the `header` attribute."
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
         },
         {
-          "name": "subhead",
-          "description": "Rich subhead, instead of the `subhead` attribute."
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
         },
         {
           "name": "icon",
@@ -16858,8 +16989,20 @@
           "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
         },
         {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
           "name": "info",
-          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+          "description": "Old name of the `description` slot."
         }
       ],
       "events": [
@@ -16874,16 +17017,48 @@
           "description": "The editor's submit or Save passed validation (sent on each group too)."
         },
         {
-          "name": "ui-open",
+          "name": "ui-opening",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
         },
         {
-          "name": "ui-close",
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to fold:  the title was activated.  Cancel to stay open."
+        },
+        {
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
+          "detail": "{ source: string, content: string }",
+          "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
         },
         {
           "name": "ui-error",
@@ -16939,11 +17114,11 @@
         },
         {
           "name": "tip",
-          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
         },
         {
           "name": "subhead",
-          "description": "The subhead under the title."
+          "description": "The hint under the title."
         },
         {
           "name": "content",
@@ -16980,12 +17155,20 @@
           "description": "Folds with a height transition (`interpolate-size`)."
         },
         {
-          "name": "in-section",
+          "name": "nested",
           "description": "Nested in another section."
         },
         {
-          "name": "in-sections",
+          "name": "in-group",
           "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
         },
         {
           "name": "inverted",
@@ -19269,14 +19452,20 @@
       "noun": "section",
       "attributes": [
         {
-          "name": "header",
+          "name": "label",
           "kind": "string",
-          "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links)."
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
         },
         {
-          "name": "subhead",
+          "name": "hint",
           "kind": "string",
-          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`."
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
         },
         {
           "name": "level",
@@ -19302,9 +19491,12 @@
           "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
         },
         {
-          "name": "info",
+          "name": "description",
           "kind": "string",
-          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
         },
         {
           "name": "collapsible",
@@ -19534,12 +19726,12 @@
           "description": "The content:  anything, nested `<ui-section>`s included."
         },
         {
-          "name": "header",
-          "description": "Rich title, instead of the `header` attribute."
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
         },
         {
-          "name": "subhead",
-          "description": "Rich subhead, instead of the `subhead` attribute."
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
         },
         {
           "name": "icon",
@@ -19554,27 +19746,71 @@
           "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
         },
         {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
           "name": "info",
-          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+          "description": "Old name of the `description` slot."
         }
       ],
       "events": [
         {
-          "name": "ui-open",
+          "name": "ui-opening",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
         },
         {
-          "name": "ui-close",
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to fold:  the title was activated.  Cancel to stay open."
         },
         {
-          "name": "ui-load",
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
           "detail": "{ source: string, content: string }",
           "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "Old name of `ui-loaded`:  sent just after it, until every page listens for the new."
         },
         {
           "name": "ui-error",
@@ -19622,11 +19858,11 @@
         },
         {
           "name": "tip",
-          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
         },
         {
           "name": "subhead",
-          "description": "The subhead under the title."
+          "description": "The hint under the title."
         },
         {
           "name": "content",
@@ -19651,12 +19887,20 @@
           "description": "Folds with a height transition (`interpolate-size`)."
         },
         {
-          "name": "in-section",
+          "name": "nested",
           "description": "Nested in another section."
         },
         {
-          "name": "in-sections",
+          "name": "in-group",
           "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
         },
         {
           "name": "inverted",

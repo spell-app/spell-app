@@ -52,8 +52,8 @@
               `src/components/ui-parts/examples/elements/`), then its attributes.  The Content parts page
               (`ui-header.html`) shows every part together.
             -->
-            <ui-section id="examples-owners" header="Owners" sticky collapsible dividing>
-              <ui-section id="examples-owners-label" header="Label" sticky collapsible dividing>
+            <ui-section id="examples-owners" label="Owners" sticky collapsible dividing>
+              <ui-section id="examples-owners-label" label="Label" sticky collapsible dividing>
                 <ui-docs-example description="A label's detail:  a dimmer second value after its text.">
                   <ui-label icon="mail">Mail<ui-detail>23</ui-detail></ui-label>
                   <ui-label>Dogs<ui-detail>214</ui-detail></ui-label>
@@ -62,8 +62,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-link" header="Link" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-link" label="Link" sticky collapsible dividing>
                 <ui-docs-example description="With `href`, the detail is a link of its own.">
                   <ui-label color="teal">Tag<ui-detail href="#tags">See all</ui-detail></ui-label>
                 </ui-docs-example>
@@ -72,7 +72,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-detail>` is a label's dimmer second value, such as a count: Fomantic's `.detail` inside a `ui label`.
@@ -83,7 +83,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+            <ui-section id="usage-owners" label="Owners" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-detail>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `UIParts.css` styles it by that
@@ -96,7 +96,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - Read together with the label's text ("Dogs 214"): make the pair make sense out loud, or give the label an

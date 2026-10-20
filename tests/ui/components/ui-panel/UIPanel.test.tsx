@@ -48,8 +48,8 @@ function part(host: Element, name: string): HTMLElement {
 
 describe("<ui-panel> structure", () => {
   it("is a section under its own tag:  `panel section`, and `sub` inside another panel", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Color Set">
-      <ui-panel header="Tweak"><p>Vibrancy</p></ui-panel>
+    const host = await ElementFixture.render(`<ui-panel label="Color Set">
+      <ui-panel label="Tweak"><p>Vibrancy</p></ui-panel>
     </ui-panel>`)
     const inner = host.querySelector("ui-panel")!
     await ElementFixture.settle()
@@ -70,8 +70,8 @@ describe("<ui-panel> structure", () => {
   })
 
   it("nests in a `<ui-section>`:  its heading is one level below", async () => {
-    const host = await ElementFixture.render(`<ui-section header="Settings">
-      <ui-panel header="Theme"><p>fields</p></ui-panel>
+    const host = await ElementFixture.render(`<ui-section label="Settings">
+      <ui-panel label="Theme"><p>fields</p></ui-panel>
     </ui-section>`)
     await ElementFixture.settle()
     const panel = host.querySelector("ui-panel")!
@@ -85,10 +85,10 @@ describe("<ui-panel> structure", () => {
 ////////////////
 
 describe("<ui-panel> folding", () => {
-  it("folds from its band:  the content hides, `:state(collapsed)`, `ui-close`", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Presets" collapsible><p>chips</p></ui-panel>`)
+  it("folds from its band:  the content hides, `:state(collapsed)`, `ui-closing`", async () => {
+    const host = await ElementFixture.render(`<ui-panel label="Presets" collapsible><p>chips</p></ui-panel>`)
     const closes: Event[] = []
-    host.addEventListener("ui-close", (event) => closes.push(event))
+    host.addEventListener("ui-closing", (event) => closes.push(event))
     part(host, "toggle").click()
     await ElementFixture.tick()
     expect(closes).toHaveLength(1)
@@ -97,9 +97,9 @@ describe("<ui-panel> folding", () => {
   })
 
   it('puts each band\'s chevron at its far end, after the actions;  `fold-icon="start"` puts it back', async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Theme" collapsible style="width: 320px">
+    const host = await ElementFixture.render(`<ui-panel label="Theme" collapsible style="width: 320px">
       <button slot="actions">Copy</button>
-      <ui-panel header="Color" collapsible><p>fields</p></ui-panel>
+      <ui-panel label="Color" collapsible><p>fields</p></ui-panel>
     </ui-panel>`)
     const inner = host.querySelector("ui-panel")!
     await ElementFixture.settle()
@@ -116,14 +116,14 @@ describe("<ui-panel> folding", () => {
     await ElementFixture.tick()
     expect(host.matches(":state(collapsed)")).toBe(true)
     const start = await ElementFixture.render(
-      `<ui-panel header="Shape" collapsible fold-icon="start"><p>fields</p></ui-panel>`
+      `<ui-panel label="Shape" collapsible fold-icon="start"><p>fields</p></ui-panel>`
     )
     expect(part(start, "fold-icon").parentElement).toBe(part(start, "toggle"))
   })
 
-  it("`info` shows the section's tip under a band", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Theme" collapsible>
-      <span slot="info">A <b>theme</b> is the look of an app.</span><p>fields</p>
+  it("`description` shows the section's tip under a band", async () => {
+    const host = await ElementFixture.render(`<ui-panel label="Theme" collapsible>
+      <span slot="description">A <b>theme</b> is the look of an app.</span><p>fields</p>
     </ui-panel>`)
     await ElementFixture.settle()
     const tip = part(host, "tip")
@@ -139,10 +139,10 @@ describe("<ui-panel> folding", () => {
 
 describe("<ui-panel> tokens and colour", () => {
   it("draws the box and the bands from its tokens", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Theme"
+    const host = await ElementFixture.render(`<ui-panel label="Theme"
       style="--ui-panel-background: rgb(1, 2, 3); --ui-panel-header-background: rgb(4, 5, 6);
              --ui-panel-subhead-background: rgb(7, 8, 9)">
-      <ui-panel header="Color"><p>sets</p></ui-panel>
+      <ui-panel label="Color"><p>sets</p></ui-panel>
     </ui-panel>`)
     await ElementFixture.settle()
     const inner = host.querySelector("ui-panel")!
@@ -156,8 +156,8 @@ describe("<ui-panel> tokens and colour", () => {
   })
 
   it("`color` paints the panel from the hue:  header band, box, sub-head bands;  a sub-panel follows", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Tweak" color="violet">
-      <ui-panel header="Presets"><p>chips</p></ui-panel>
+    const host = await ElementFixture.render(`<ui-panel label="Tweak" color="violet">
+      <ui-panel label="Presets"><p>chips</p></ui-panel>
     </ui-panel>`)
     await ElementFixture.settle()
     const inner = host.querySelector("ui-panel")!
@@ -171,8 +171,8 @@ describe("<ui-panel> tokens and colour", () => {
   })
 
   it("no `color` is `primary`, with no brand theme:  plain `--ui-*` tokens;  a sub-panel follows", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Theme">
-      <ui-panel header="Color"><p>sets</p></ui-panel>
+    const host = await ElementFixture.render(`<ui-panel label="Theme">
+      <ui-panel label="Color"><p>sets</p></ui-panel>
     </ui-panel>`)
     await ElementFixture.settle()
     const inner = host.querySelector("ui-panel")!
@@ -189,7 +189,7 @@ describe("<ui-panel> tokens and colour", () => {
     ValueSets.add("hues", "accent")
     await (await UI.load()).themes.apply("spell-brand")
     try {
-      const host = await ElementFixture.render(`<ui-panel header="Theme" color="accent"><p>x</p></ui-panel>`)
+      const host = await ElementFixture.render(`<ui-panel label="Theme" color="accent"><p>x</p></ui-panel>`)
       await ElementFixture.settle()
       expect(root(host).classList.contains("accent")).toBe(true)
       // accent-100
@@ -206,9 +206,9 @@ describe("<ui-panel> tokens and colour", () => {
 
 describe("<ui-panel> spacing", () => {
   it("closes the box with a folded LAST sub-panel's band:  no padding left under it", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Color Set">
+    const host = await ElementFixture.render(`<ui-panel label="Color Set">
       <p>name</p>
-      <ui-panel header="Presets" collapsible collapsed><p>chips</p></ui-panel>
+      <ui-panel label="Presets" collapsible collapsed><p>chips</p></ui-panel>
     </ui-panel>`)
     await ElementFixture.settle()
     const inner = host.querySelector("ui-panel")!
@@ -219,11 +219,11 @@ describe("<ui-panel> spacing", () => {
   })
 
   it("puts each sub-panel band 20px under what's above it, flush under a folded band;  padding in px", async () => {
-    const host = await ElementFixture.render(`<ui-panel header="Theme" style="--ui-font-size: 16px">
+    const host = await ElementFixture.render(`<ui-panel label="Theme" style="--ui-font-size: 16px">
       <p style="margin: 0">name</p>
-      <ui-panel header="Color" collapsible collapsed><p>chips</p></ui-panel>
-      <ui-panel header="Type" collapsible><p style="margin: 0">fonts</p></ui-panel>
-      <ui-panel header="Shape" collapsible><p>corners</p></ui-panel>
+      <ui-panel label="Color" collapsible collapsed><p>chips</p></ui-panel>
+      <ui-panel label="Type" collapsible><p style="margin: 0">fonts</p></ui-panel>
+      <ui-panel label="Shape" collapsible><p>corners</p></ui-panel>
     </ui-panel>`)
     await ElementFixture.settle()
     const [color, type, shape] = [...host.querySelectorAll("ui-panel")]

@@ -602,7 +602,7 @@ export type PageCounts = {
 type SectionState = {
   /** its id, `""` for none */
   id: string
-  /** its title:  `header`, else its `slot="header"` child's text */
+  /** its title:  `label`, else its `slot="label"` child's text (or their old name, `header`) */
   text: string
   /** the id of the section it's in;  `undefined` at the top */
   parent?: string
@@ -840,12 +840,14 @@ function sectionsState(): { sections: SectionState[]; flat: string[] } {
   const page = (element: Element) => !element.parentElement?.closest("ui-docs-example, template")
   const sections = [...(main?.querySelectorAll("ui-section") ?? [])].filter(page).map((section) => {
     const pane = section.closest("ui-tab")
-    const slotted = section.querySelector(':scope > [slot="header"]')
+    const slotted = section.querySelector(':scope > [slot="label"], :scope > [slot="header"]')
     // `getAttribute()` is the platform's:  `null` when absent
     const paneValue = tabs && pane?.parentElement === tabs ? pane.getAttribute("value") : undefined
     return {
       id: section.id,
-      text: (section.getAttribute("header") || slotted?.textContent || "").replace(/\s+/g, " ").trim(),
+      text: (section.getAttribute("label") || section.getAttribute("header") || slotted?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim(),
       parent: section.parentElement?.closest("ui-section")?.id,
       pane: paneValue ?? undefined
     }

@@ -52,8 +52,8 @@
               `src/components/ui-parts/examples/elements/`), then its attributes.  The Content parts page
               (`ui-header.html`) shows every part together.
             -->
-            <ui-section id="examples-owners" header="Owners" sticky collapsible dividing>
-              <ui-section id="examples-owners-comment" header="Comment" sticky collapsible dividing>
+            <ui-section id="examples-owners" label="Owners" sticky collapsible dividing>
+              <ui-section id="examples-owners-comment" label="Comment" sticky collapsible dividing>
                 <ui-docs-example description="A comment's avatar sits beside its content.">
                   <ui-comments>
                     <ui-comment>
@@ -68,7 +68,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-owners-card" header="Card" sticky collapsible dividing>
+              <ui-section id="examples-owners-card" label="Card" sticky collapsible dividing>
                 <ui-docs-example description="In a card, an avatar is a small round image before a name.">
                   <ui-card>
                     <ui-content>
@@ -79,7 +79,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-owners-item" header="Item" sticky collapsible dividing>
+              <ui-section id="examples-owners-item" label="Item" sticky collapsible dividing>
                 <ui-docs-example description="In an item, a round image before a name.">
                   <ui-items>
                     <ui-item>
@@ -93,8 +93,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-image" header="Image" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-image" label="Image" sticky collapsible dividing>
                 <ui-docs-example description="`src` renders the image;  or slot your own `<img>`.">
                   <ui-comments>
                     <ui-comment>
@@ -110,7 +110,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-avatar>` is a small picture of a person: a comment's, an item's or a card's.
@@ -122,7 +122,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+            <ui-section id="usage-owners" label="Owners" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-avatar>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `UIParts.css` styles it by that
@@ -137,7 +137,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `alt` defaults to `""`, so the image is decorative: the name next to it already says who it is. Set `alt` (or

@@ -22,7 +22,7 @@ describe("PropertyEditorPages", () => {
   it("write():  the schema's default page, a property per attribute, two spaces in", () => {
     expect(PropertyEditorPages.write(THEME, document)).toBe(
       [
-        `<ui-property-editor schema="Theme" header="Theme">`,
+        `<ui-property-editor schema="Theme" label="Theme">`,
         `  <ui-property name="title"></ui-property>`,
         `  <ui-property name="size"></ui-property>`,
         `  <ui-property name="dark"></ui-property>`,
@@ -54,7 +54,7 @@ describe("PropertyEditorPages", () => {
     expect(PropertyEditorPages.check(editor, THEME)).toEqual([])
     const text = PropertyEditorPages.text(editor)
     expect(text).toContain(
-      `\n  <ui-property-group header="Other" data-other="">\n    <ui-property name="size"></ui-property>\n` +
+      `\n  <ui-property-group label="Other" data-other="">\n    <ui-property name="size"></ui-property>\n` +
         `    <ui-property name="dark"></ui-property>\n  </ui-property-group>\n`
     )
     expect(text).not.toContain(`name="font"`)
@@ -66,9 +66,9 @@ describe("PropertyEditorPages.compile()", () => {
   it("makes a module defining <theme-editor>:  its layout and schema inlined, no page loading", async () => {
     // the elements are on the page already:  the module imports nothing more
     await import("$/ui")
-    const editor = editorOf(`<ui-property-editor schema="Theme" header="Theme" source="nope.html">
+    const editor = editorOf(`<ui-property-editor schema="Theme" label="Theme" source="nope.html">
       <ui-property name="title" hint="Used for the file name."></ui-property>
-      <ui-property-group header="Look"><ui-property name="size" as="buttons"></ui-property></ui-property-group>
+      <ui-property-group label="Look"><ui-property name="size" as="buttons"></ui-property></ui-property-group>
     </ui-property-editor>`)
     const compiled = PropertyEditorPages.compile(editor, THEME, { uiModule: "data:text/javascript," })
     expect([compiled.tag, compiled.className]).toEqual(["theme-editor", "ThemeEditor"])
@@ -82,7 +82,7 @@ describe("PropertyEditorPages.compile()", () => {
     document.body.append(host)
     try {
       const inner = host.querySelector("ui-property-editor")!
-      expect(inner.getAttribute("header")).toBe("Theme")
+      expect(inner.getAttribute("label")).toBe("Theme")
       expect(inner.hasAttribute("source")).toBe(false)
       await expect.poll(() => host.querySelectorAll("ui-property[name=size] ui-radio").length).toBe(2)
       const title = host.querySelector("ui-property[name=title] ui-input") as HTMLElement & { value: unknown }

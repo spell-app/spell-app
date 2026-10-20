@@ -59,8 +59,8 @@
               - In browsers with the customizable select (Chrome 135+) the open picker is styled too, with icons;  elsewhere it's
                 the browser's own list.  A search, additions, labels or rich content:  `<ui-dropdown>`.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-select" header="Select" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-select" label="Select" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A select lets the user choose one option, in the closed look of a selection dropdown. Options are
@@ -90,7 +90,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-chosen-value" header="Chosen value" sticky collapsible dividing>
+              <ui-section id="examples-types-chosen-value" label="Chosen value" sticky collapsible dividing>
                 <ui-docs-example description="`value` picks the starting option.">
                   <ui-select aria-label="Fruit" value="banana">
                     <ui-item value="apple">Apple</ui-item>
@@ -102,7 +102,7 @@
 
               <ui-section
                 id="examples-types-multiple-selection"
-                header="Multiple Selection"
+                label="Multiple Selection"
                 sticky
                 collapsible
                 dividing
@@ -130,10 +130,10 @@
               >
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
               <ui-section
                 id="examples-content-groups-and-dividers"
-                header="Groups and dividers"
+                label="Groups and dividers"
                 sticky
                 collapsible
                 dividing
@@ -155,7 +155,7 @@
 
               <ui-section
                 id="examples-content-flags-icons-and-descriptions"
-                header="Flags, icons and descriptions"
+                label="Flags, icons and descriptions"
                 sticky
                 collapsible
                 dividing
@@ -174,8 +174,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-error" header="Error" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-error" label="Error" sticky collapsible dividing>
                 <ui-docs-example description='An errored select can alert a user to a problem:  `state="error"`.'>
                   <ui-select state="error" placeholder="Gender">
                     <ui-item value="male">Male</ui-item>
@@ -193,7 +193,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example
                   description="A disabled select does not allow user interaction, and isn't submitted.  A disabled item can't be chosen."
                 >
@@ -211,8 +211,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A select can have different sizes.">
                   <ui-select size="mini" name="gender" placeholder="Mini">
                     <ui-item value="1">Male</ui-item>
@@ -251,7 +251,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A select can be inverted.">
                   <ui-segment inverted>
                     <ui-select inverted name="choices" placeholder="Select choice">
@@ -263,7 +263,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+              <ui-section id="examples-variations-compact" label="Compact" sticky collapsible dividing>
                 <ui-docs-example
                   description="A compact select has no minimum width:  it is as wide as its longest option."
                 >
@@ -274,7 +274,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+              <ui-section id="examples-variations-fluid" label="Fluid" sticky collapsible dividing>
                 <ui-docs-example description="A select can take the full width of its parent.">
                   <ui-select fluid placeholder="Fills its container">
                     <ui-item value="a">A</ui-item>
@@ -284,8 +284,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
-              <ui-section id="examples-examples-form" header="Form" sticky collapsible dividing>
+            <ui-section id="examples-examples" label="Examples" sticky collapsible dividing>
+              <ui-section id="examples-examples-form" label="Form" sticky collapsible dividing>
                 <ui-docs-example description="A select is a form control:  in a field, with a label.">
                   <ui-form>
                     <form>
@@ -307,7 +307,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  native select, options, forms, events, select vs dropdown, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The element is a real `<select>` in Fomantic's look, so the keyboard, type-ahead, the phone's picker wheel or
@@ -322,7 +322,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+            <ui-section id="usage-forms" label="Forms" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   It is a form control: `name` and `value` submit with the form (`multiple` sends one entry per value), `required`
@@ -331,7 +331,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `ui-change` fires when the user picks, with `{ value }` (a `string[]` with `multiple`). Setting `value` from code
@@ -347,7 +347,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-select-or-dropdown" header="Select or dropdown?" sticky collapsible dividing>
+            <ui-section id="usage-select-or-dropdown" label="Select or dropdown?" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Use `<ui-select>` when:
@@ -366,7 +366,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The browser's own select keyboard: **Space** / **Enter** / **Alt+Arrow Down** open the picker, the arrows move,
@@ -377,7 +377,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The shadow root holds one native `<select>`: its role, keyboard and announcements are the browser's.
@@ -393,7 +393,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set `options` as a property, not an attribute, and listen for `ui-change`.
@@ -434,7 +434,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-select-*` tokens: set one on the element, on any ancestor (a form, `:root`), or on
@@ -466,7 +466,7 @@
               <ui-docs-tokens family="ui-select" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
