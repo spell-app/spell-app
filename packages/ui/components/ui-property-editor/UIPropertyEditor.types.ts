@@ -43,6 +43,9 @@ export const PROPERTY_TAG = "ui-property"
 /** Marks what an editor or a property added to its own light DOM, so it can take it away again. */
 export const MADE_ATTRIBUTE = "data-ui-made"
 
+/** `MADE_ATTRIBUTE`'s values on what an editor added:  from its schema (empty, `""`), or from its source page. */
+export const MADE_FROM = { schema: "", source: "source" } as const
+
 /**
  * On a nested editor a property made (`as="editor"`):  the property, whose value (a thing) it edits.
  * - Read from the editor or row around it, as the outer form's binding would.

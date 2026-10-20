@@ -886,6 +886,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         ".css": SP.SpellCSSFile,
         ".js": SP.SpellJSFile,
         ".jsx": SP.SpellJSFile,
+        // a property editor page:  any text file, never compiled
+        [SP.EDITOR_PAGE_SUFFIX]: SP.SpellJSFile,
         default: SP.SpellFile
       }
     }

@@ -554,6 +554,41 @@ export class EditorStore extends Observable {
     }
   }
 
+  /**
+   * Make a property editor PAGE for one of current `project`'s types, e.g. `Card.editor.html`, and show it
+   * (epic `property-editor` P6).
+   * - No `type`:  asks which (`choose()`), of the types its declarations list;  cancelled:  nothing happens.
+   * - What it writes, and from what:  `PropertyEditorFiles` (`$/app/ui/PropertyEditorFiles`).
+   *   - the type's schema:  the running program's class when it runs this project, else its declarations
+   *   - a name that's taken:  `Card2.editor.html`, never the page that's there
+   * - Through a DYNAMIC `import()`:  `editor.ts` stays free of `$/ui`.
+   * - NEVER throws:  an error shows, e.g. a project never compiled has no types yet.
+   */
+  async createPropertyEditor(type?: string): Promise<void> {
+    const { project } = editor
+    if (!project) return
+    try {
+      const { PropertyEditorFiles } = await import("$/app/ui/PropertyEditorFiles")
+      if (!type) {
+        const types = await PropertyEditorFiles.typesOf(project)
+        if (!types.length) throw new UIError(`${project.Type} ${project.title} has no types yet:  compile it first.`)
+        type = (await editor.choose({
+          header: "New Property Editor",
+          message: "Make a property editor for which type?",
+          options: types,
+          defaultValue: types[0],
+          ok: "Create"
+        })) as string | undefined
+        if (!type) return
+      }
+      const schema = await PropertyEditorFiles.schemaForType(project, type)
+      if (!schema) throw new UIError(`${project.Type} ${project.title} has no type \`${type}\`.`)
+      await editor.createFile(PropertyEditorFiles.fileNameFor(project, type), PropertyEditorFiles.pageFor(schema))
+    } catch (e) {
+      editor.showError(e)
+    }
+  }
+
   ////////////////
   // ## Dialogs
   ////////////////

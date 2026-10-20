@@ -72,9 +72,11 @@ export type DescribeOptions = GlobalOptions & {
 /**
  * `spell check` flags.
  * - `json`:  print problems as a JSON array of `Problem`s, rather than lines
+ * - `fix`:  put each editor page right, and write it back -- see `EditorPages`
  */
 export type CheckOptions = GlobalOptions & {
   json?: boolean
+  fix?: boolean
 }
 
 /**

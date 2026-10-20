@@ -2051,9 +2051,11 @@
         {"id":"examples-types","title":"Types","tab":"examples"},
         {"id":"examples-types-from-a-schema","title":"From a schema","parent":0},
         {"id":"examples-types-laid-out","title":"Laid out","parent":0},
+        {"id":"examples-pages","title":"Pages","tab":"examples"},
+        {"id":"examples-pages-from-a-page","title":"From a page","parent":3},
         {"id":"examples-binding","title":"Binding","tab":"examples"},
-        {"id":"examples-binding-save-and-cancel","title":"Save and Cancel","parent":3},
-        {"id":"examples-binding-many-things","title":"Many things","parent":3},
+        {"id":"examples-binding-save-and-cancel","title":"Save and Cancel","parent":5},
+        {"id":"examples-binding-many-things","title":"Many things","parent":5},
         {"id":"usage-using-it","title":"Using it","tab":"usage"},
         {"id":"usage-controls-choices-and-rules","title":"Controls, choices and rules","tab":"usage"},
         {"id":"usage-accessibility","title":"Accessibility","tab":"usage"}

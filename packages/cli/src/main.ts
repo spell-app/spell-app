@@ -52,9 +52,13 @@ program
 
 program
   .command("check")
-  .description("list errors, one per line as path:line:col, exiting 1 if there are any")
+  .description(
+    "list errors, one per line as path:line:col, exiting 1 if there are any -- " +
+      "a project's editor pages (*.editor.html) too, against its types"
+  )
   .argument("[projects...]", PROJECTS_ARG)
   .option("--json", "print errors as JSON")
+  .option("--fix", "put the editor pages right:  drop gone properties, add new ones, fix controls that don't fit")
   .action((args: string[], _options, command) => run(CLI.checkCommand, args, command.optsWithGlobals()))
 
 program

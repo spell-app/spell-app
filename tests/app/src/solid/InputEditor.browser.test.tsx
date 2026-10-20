@@ -131,6 +131,7 @@ describe("<FileDropdown>", () => {
       "test-project/two.js",
       "divider",
       "New File",
+      "New Property Editor...",
       "Duplicate File",
       "Rename File",
       "Delete File"

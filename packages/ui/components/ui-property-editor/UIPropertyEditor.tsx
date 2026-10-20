@@ -1,5 +1,5 @@
 import { For, Show } from "solid-js"
-import { Dynamic, type JSX } from "@solidjs/web"
+import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
 // the family barrels, not the leaves:  the lib build then imports `ui-form.js` / `ui-section.js`
@@ -8,10 +8,10 @@ import { DOMFormElement, FormBinding, UIForm } from "$/ui/components/ui-form"
 import "$/ui/components/ui-section"
 import type { formVocabulary } from "$/ui/components/ui-form/UIForm.en"
 import { sectionVocabulary } from "$/ui/components/ui-section/UISection.en"
-import { PropertySchemas } from "$/ui/property"
+import { PropertyEditorPages, PropertySchemas } from "$/ui/property"
 import type { ComponentVocabulary, PropertySchema } from "$/ui/vocabulary"
 import { propertyEditorVocabulary } from "./UIPropertyEditor.en"
-import { GROUP_TAG, MADE_ATTRIBUTE, PROPERTY_TAG, VALUE_FROM_ATTRIBUTE } from "./UIPropertyEditor.types"
+import { GROUP_TAG, MADE_ATTRIBUTE, MADE_FROM, PROPERTY_TAG, VALUE_FROM_ATTRIBUTE } from "./UIPropertyEditor.types"
 
 import editorCSS from "./UIPropertyEditor.css?inline"
 
@@ -41,8 +41,16 @@ export class DOMPropertyEditorElement extends DOMFormElement {
  * - The SCHEMA (`schema`):  what its properties are.
  *   - A name:  one the page added (`UI.propertyControls.addSchema()`), else a tag's vocabulary (`ui-button`).
  *   - As a property:  a `PropertySchema`, or a component vocabulary.
- *   - Empty (no `<ui-property>` or group in it), it MAKES a `<ui-property>` per attribute, in the schema's order.
+ *   - Empty (no `<ui-property>` or group in it, and no `source`), it MAKES a `<ui-property>` per attribute,
+ *     in the schema's order.
  *     SIDE EFFECT:  writes its light DOM, the made ones marked `data-ui-made`.
+ * - Its LAYOUT from a saved page (`source`, epic `property-editor` P6):  an editor page's markup
+ *   (`PropertyEditorPages`), loaded through `UI.sources` (same-origin);  the spell editor hands it a `/spaces/` URL.
+ *   - Its groups and properties come into its light DOM;  the page's editor's attributes it doesn't have
+ *     (as an attribute, or a property a script set), too.
+ *   - `select`:  only the page's first match of that selector;  a group's `select`, its own part of the page.
+ *   - `ui-loading`, then `ui-loaded`;  a page that doesn't load warns, and nothing changes.
+ *   - SIDE EFFECT:  writes its light DOM (marked `data-ui-made="source"`) and its own missing attributes.
  * - When a property is written:  `ui-change` (from the editor and from the property), then the schema's
  *   "on change" rules for it (`UI.propertyControls.rule()`).
  * - Its groups hear about their properties:  `ui-invalid` and `:state(error)` when one fails,
@@ -85,12 +93,12 @@ export class UIPropertyEditor extends UIForm {
   /** Empty of the author's properties:  make one per attribute of the schema (see the class doc). */
   @E.onChange("currentSchema", "isConnected")
   protected onSchemaChanged(schema: PropertySchema | undefined, isConnected: boolean) {
-    if (!isConnected || this.holdsOwnProperties) return
-    this.removeMadeProperties()
+    if (!isConnected || this.holdsOwnProperties || this.attributes.source) return
+    this.removeMadeProperties(MADE_FROM.schema)
     for (const spec of schema?.attributes ?? []) {
       const property = document.createElement(PROPERTY_TAG)
       property.setAttribute("name", spec.name)
-      property.setAttribute(MADE_ATTRIBUTE, "")
+      property.setAttribute(MADE_ATTRIBUTE, MADE_FROM.schema)
       this.domElement.append(property)
     }
   }
@@ -100,10 +108,85 @@ export class UIPropertyEditor extends UIForm {
     return [...this.domElement.children].some((child) => !child.hasAttribute(MADE_ATTRIBUTE) && !child.slot)
   }
 
-  /** Take away every property it made.  SIDE EFFECT:  writes its light DOM. */
+  /** Take away every property it made from `from` (its schema, or its source page).  SIDE EFFECT:  writes its light DOM. */
   @E.untracked
-  private removeMadeProperties() {
-    for (const child of [...this.domElement.children]) if (child.hasAttribute(MADE_ATTRIBUTE)) child.remove()
+  private removeMadeProperties(from: string) {
+    for (const child of [...this.domElement.children]) if (child.getAttribute(MADE_ATTRIBUTE) === from) child.remove()
+  }
+
+  ////////////////
+  // ## Its layout from a page (`source`)
+  ////////////////
+
+  /** Load the layout page as `source` or `select` changes, while connected (see the class doc). */
+  @E.onChange("sourceUrl", "sourceSelector", "isConnected")
+  protected onSourceChanged(url: string | undefined, selector: string | undefined, isConnected: boolean) {
+    if (!url || !isConnected || isServer) return
+    let isCurrent = true
+    void this.loadLayout(url, selector, () => isCurrent)
+    return () => {
+      isCurrent = false
+    }
+  }
+
+  /** `source`. */
+  get sourceUrl(): string | undefined {
+    return this.attributes.source ?? undefined
+  }
+
+  /** `select`. */
+  get sourceSelector(): string | undefined {
+    return this.attributes.select ?? undefined
+  }
+
+  /**
+   * Fetch the page at `url` and take its layout, unless `isCurrent()` says it's no longer wanted.
+   * - NEVER throws:  a page that doesn't load warns.
+   */
+  @E.untracked
+  private async loadLayout(url: string, selector: string | undefined, isCurrent: () => boolean) {
+    this.send(OWN.loading, { source: url })
+    try {
+      await UI.load()
+      const { text } = await UI.sources.load(url)
+      if (!isCurrent()) return
+      const page = new DOMParser().parseFromString(text, "text/html")
+      const root = selector ? page.querySelector(selector) : (PropertyEditorPages.editorIn(page) ?? page.body)
+      if (!root) {
+        E.Warnings.warn("<ui-property-editor>", `${url} has nothing matching \`${selector}\``)
+        return
+      }
+      this.takeLayout(root, page)
+      this.send(OWN.loaded, { source: url, content: text })
+    } catch (error) {
+      E.Warnings.warn("<ui-property-editor>", `can't load its layout from ${url}:`, error)
+    }
+  }
+
+  /**
+   * Take `root`'s children as its layout (and, a page's editor, the attributes it doesn't have);
+   * then fill each group that has a `select` and nothing in it from `page`.
+   * - SIDE EFFECT:  writes its light DOM and its attributes.
+   */
+  private takeLayout(root: Element, page: Document) {
+    this.removeMadeProperties(MADE_FROM.source)
+    if (root.localName === this.domElement.localName) {
+      for (const { name, value } of root.attributes) {
+        // not over one it has, as an attribute or as a property (`schema` set by a script)
+        const own = (this.domElement as unknown as Record<string, unknown>)[E.camelCase(name)]
+        if (!this.domElement.hasAttribute(name) && own == null) this.domElement.setAttribute(name, value)
+      }
+    }
+    for (const child of root.children) {
+      const made = document.importNode(child, true)
+      made.setAttribute(MADE_ATTRIBUTE, MADE_FROM.source)
+      this.domElement.append(made)
+    }
+    for (const group of this.domElement.querySelectorAll(`${GROUP_TAG}[select]`)) {
+      if (group.children.length) continue
+      const part = page.querySelector(group.getAttribute("select")!)
+      for (const child of part?.children ?? []) group.append(document.importNode(child, true))
+    }
   }
 
   ////////////////
@@ -343,7 +426,9 @@ const OWN = {
   header: "header",
   save: "save",
   cancel: "cancel",
-  change: "ui-change"
+  change: "ui-change",
+  loading: "ui-loading",
+  loaded: "ui-loaded"
 } as unknown as Record<string, never>
 
 /** The section it draws, and its buttons. */

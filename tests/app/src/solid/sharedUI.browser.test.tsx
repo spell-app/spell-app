@@ -141,6 +141,7 @@ describe("chrome + Actions", () => {
     const dropdown = host.querySelector("ui-dropdown") as HTMLElement & { open: boolean; value: unknown }
     expect([...dropdown.querySelectorAll(":scope > ui-item")].map(text)).toEqual([
       "New File",
+      "New Property Editor...",
       "Duplicate File",
       "Rename File",
       "Delete File"

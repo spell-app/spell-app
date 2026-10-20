@@ -212,3 +212,37 @@ describe("<ui-property-editor> section and Save", () => {
     expect(things).toEqual([{ title: "C" }, { title: "C" }])
   })
 })
+
+////////////////
+// ## Its layout from a page (`source`)
+////////////////
+
+describe("<ui-property-editor source>", () => {
+  const PAGE = "/test/fixtures/sources/property-editor/Theme.editor.html"
+
+  it("takes its layout from the page:  its groups and properties, and the page's attributes it doesn't have", async () => {
+    const host = await ElementFixture.render<Editor>(`<ui-property-editor source="${PAGE}"></ui-property-editor>`)
+    host.schema = THEME
+    host.value = { title: "Spell", size: "md", dark: false }
+    let loaded = false
+    host.addEventListener("ui-loaded", () => (loaded = true))
+    await expect.poll(() => host.querySelectorAll("ui-property").length, { timeout: 5000 }).toBeGreaterThan(1)
+    await settle(host)
+    expect(loaded).toBe(true)
+    expect(host.getAttribute("header")).toBe("Theme")
+    expect(host.querySelector("ui-property[name=title]")!.getAttribute("hint")).toBe("Used for the file name.")
+    await expect.poll(() => host.querySelectorAll("ui-property[name=size] ui-radio").length).toBe(3)
+    expect(host.querySelector("ui-property-group[header=More] ui-property[name=dark]")).not.toBeNull()
+    expect(control(host, "title").value).toBe("Spell")
+  })
+
+  it("`select`:  only that part of the page", async () => {
+    const host = await ElementFixture.render<Editor>(
+      `<ui-property-editor source="${PAGE}" select="ui-property-group[header=Look]"></ui-property-editor>`
+    )
+    host.schema = THEME
+    host.value = { size: "lg" }
+    await expect.poll(() => host.querySelectorAll("ui-property").length, { timeout: 5000 }).toBe(1)
+    expect(host.querySelector("ui-property")!.getAttribute("name")).toBe("size")
+  })
+})

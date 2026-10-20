@@ -97,6 +97,25 @@
               </ui-section>
             </ui-section>
 
+            <ui-section id="examples-pages" header="Pages" sticky collapsible dividing>
+              <ui-section id="examples-pages-from-a-page" header="From a page" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`source` loads the layout from a saved page, `Theme.editor.html`:  plain markup, its groups and properties, which the page holds instead of the editor.  `select` would take only part of it."
+                >
+                  <ui-property-editor
+                    source="examples/Theme.editor.html"
+                    style="max-width: 360px"
+                    schema='{"name": "Theme", "attributes": [
+                      {"name": "title", "kind": "string", "type": "text", "description": ""},
+                      {"name": "size", "kind": "enum", "type": "choice", "values": ["sm", "md", "lg"], "description": ""},
+                      {"name": "dark", "kind": "boolean", "type": "boolean", "description": ""}
+                    ]}'
+                    value='{"title": "Sunrise", "size": "md", "dark": true}'
+                  ></ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
             <ui-section id="examples-binding" header="Binding" sticky collapsible dividing>
               <ui-section id="examples-binding-save-and-cancel" header="Save and Cancel" sticky collapsible dividing>
                 <ui-docs-example

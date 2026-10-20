@@ -226,8 +226,9 @@ const GENERATED_SUFFIXES = [
  *   They have:  this one also leaves out compiled output, snapshots, scope packs, page files and words files.
  * - Leaves out spaces' own names, by the list spaces keeps (`SPACES.isSpaceName()`, decision J52):
  *   `__init__.js` or `__helpers__.spell` still list.
+ * - Lists property editor pages (`SP.EDITOR_PAGE_SUFFIX`, `Card.editor.html`):  the editor opens them as text.
  */
-const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
+const manifestExtensions = [".spell", ".css", ".js", ".jsx", SP.EDITOR_PAGE_SUFFIX]
 export function isManifestFile(name: string, projectName = "") {
   if (SPACES.isSpaceName(name)) return false
   if (GENERATED_SUFFIXES.some((suffix) => name.endsWith(suffix))) return false

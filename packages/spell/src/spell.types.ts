@@ -75,9 +75,19 @@ export const COMPILED_PY_SUFFIX = ".spell.py"
  * - The file:  what it offers importers, committed beside its source.
  *   See `SpellProject.declarationsFile`.
  * - Its shape:  `SP.SpellDeclarationsData`.
- * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
+ * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js`, `.jsx`
+ *   and property editor pages (`EDITOR_PAGE_SUFFIX`).
  */
 export const DECLARATIONS_JSON_SUFFIX = ".declarations.json5"
+
+/**
+ * End of a property editor PAGE's name, e.g. `Card.editor.html` (epic `property-editor` P6):
+ * plain markup, which `<ui-property-editor source>` loads.
+ * - One of a project's own files:  the server lists it, and the editor opens it as text (a `SpellJSFile`).
+ * - NEVER compiled.
+ * - The spell editor's "New Property Editor..." writes one (`editor.createPropertyEditor()`, in the app).
+ */
+export const EDITOR_PAGE_SUFFIX = ".editor.html"
 
 /**
  * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js`:
