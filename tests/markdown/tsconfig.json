@@ -1,5 +1,0 @@
-{
-  // markdown's tests:  markdown's own settings (packages/markdown/tsconfig.json), over this folder
-  "extends": "../../packages/markdown/tsconfig.json",
-  "include": ["."]
-}

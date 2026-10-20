@@ -1,5 +1,0 @@
-{
-  // util's tests:  util's own settings (packages/util/tsconfig.json), over this folder
-  "extends": "../../packages/util/tsconfig.json",
-  "include": ["."]
-}

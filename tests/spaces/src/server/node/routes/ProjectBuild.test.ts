@@ -52,7 +52,7 @@ describe("ProjectBuild", () => {
   // its REAL path:  on macOS `tmpdir()` is a symlink, and a project's location is worked out from real paths
   const root = realpathSync(mkdtempSync(join(tmpdir(), "app-project-build-")))
   const projectFolder = join(root, "projects", "Built")
-  put(join(root, "packages/cli/bin/spell.mjs"))
+  put(join(root, "cli/bin/spell.mjs"))
   put(join(projectFolder, SP.PROJECT_FILE), JSON.stringify({ imports: [{ path: "/Built.spell", active: true }] }))
   put(join(projectFolder, "Built.spell"), 'print "built"\n')
   // outside `packages/`:  its built files sit beside its source (`buildFolderFor()`)
@@ -71,7 +71,7 @@ describe("ProjectBuild", () => {
     new ProjectBuild({ root, spawn }).start()
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
-      [join(root, "packages/cli/bin/spell.mjs"), "compile", "--stale", "--all", "@spell/examples", "@spell/library"],
+      [join(root, "cli/bin/spell.mjs"), "compile", "--stale", "--all", "@spell/examples", "@spell/library"],
       expect.objectContaining({ cwd: root, detached: true })
     )
   })

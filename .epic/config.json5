@@ -12,13 +12,16 @@
   //   and the tools read it from here, with no link at the checkout's root.
   // - Each turn's end commits it.
   // - Renamed from spell-app-dev by `epic shared rename spell-app.epics`, which left a spell-app-dev link behind.
-  "contentFolder": "../spell-app.epics",
+  // - Moved into the top repo `spell` as `spell.epics`, beside this repo (epic `repo-split` P8 / P9).
+  "contentFolder": "../spell.epics",
 
   // The branch worktrees start from and merge into.
   "baseBranch": "main",
 
   // Where NEW worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`, beside the repo.
   // The old ones in .claude/worktrees are still found, until they move (`epic worktree move`) or end.
+  // - The top repo's worktrees (`~/www/spell.worktrees/<epic>/`, each holding a worktree of every child repo) are
+  //   epic `repo-split` P9's:  until then a spell-app worktree goes beside the repo, as before.
   "worktreesFolder": "../spell-app.worktrees",
 
   // What makes a new worktree ready to run, from its root (`/isolate`, `/epic`).
@@ -34,7 +37,7 @@
     // The repo root's folder name in every window.
     "repoName": "spell-app",
     // The content repo's folder name in every window.
-    "contentName": "spell-app.epics"
+    "contentName": "spell.epics"
     // And (P8):  "worktreeOnly": true gives EVERY worktree a window of just two folders,
     // its own and the content folder.
     // - A worktree beside the repo gets that window anyway.
@@ -51,7 +54,9 @@
 
   // The epic engine:  the spell-epic checkout, which every checkout links in at its root as `spell-epic`
   // (`epic shared link`, and the worktree hook through it;  only where `.gitignore` ignores `spell-epic`).
-  // - The `$/epics` aliases (tsconfig.base.json) and the page server's epic route modules go through that link.
+  // - Since epic `repo-split` P8 it's beside this repo in the top repo `spell`:  the page server's settings name its
+  //   route modules and folders there (`../spell-epic/...`, the root `package.json`'s `"pageServer"`), not through
+  //   the link.
   // - `""`:  no link.
   "engineFolder": "../spell-epic",
 
@@ -59,7 +64,7 @@
   // package windows here, worktree windows in its `ongoing/`;  git-ignored in the content repo.
   // - Before P13:  `workspaces/` in this repo, tracked and marked `skip-worktree`;
   //   `epic window move` carried them over once, each folder path rewritten for the new place.
-  "windowsFolder": "../spell-app.epics/windows",
+  "windowsFolder": "../spell.epics/windows",
 
   // The app, the editor:  what the docs' top bar's App tab opens on the epic server (spell-epic's `RepoApp`,
   // epic `epic-engine` I49), at `/editor/` as on this repo's page server (spaces' `appRoutes.ts`).
@@ -71,6 +76,6 @@
   "app": {
     "path": "/editor/",
     "urlFile": ".spell-server.editor.json",
-    "start": "node packages/cli/bin/spell.mjs dev server ensure"
+    "start": "node cli/bin/spell.mjs dev server ensure"
   }
 }

@@ -11,20 +11,13 @@ import { checkEntry, Loader, Saver } from "@spell-app/core/model"
  *   its committed library must be what its spell compiles to now (J23).
  */
 const REPO = resolve(import.meta.dirname, "../../../..")
-const LIBRARY = resolve(REPO, "packages/spaces/@spell/library/people/people.lib.ts")
+const LIBRARY = resolve(REPO, "spaces/@spell/library/people/people.lib.ts")
 
 describe("the people library", () => {
   test("its committed people.lib.ts is what its spell compiles to now:  else `spell compile @spell/library/people`", () => {
     const compiled = execFileSync(
       process.execPath,
-      [
-        resolve(REPO, "packages/cli/bin/spell.mjs"),
-        "compile",
-        "@spell/library/people",
-        "--target",
-        "ts/lib",
-        "--stdout"
-      ],
+      [resolve(REPO, "cli/bin/spell.mjs"), "compile", "@spell/library/people", "--target", "ts/lib", "--stdout"],
       { cwd: REPO, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
     )
     expect(compiled.trim()).toBe(readFileSync(LIBRARY, "utf8").trim())

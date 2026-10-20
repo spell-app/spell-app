@@ -1,7 +1,0 @@
-{
-  // spell-element's tests:  the package's own settings (packages/spell-element/tsconfig.json) over this folder, with
-  // no Spell UI:  they draw on the package's stand-in settings and helpers, in its `test/`
-  "extends": "../../packages/spell-element/tsconfig.json",
-  // and the package's own folders, so its source and helpers are compiled with the tests
-  "include": [".", "../../packages/spell-element/src", "../../packages/spell-element/test"]
-}

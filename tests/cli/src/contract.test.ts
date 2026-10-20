@@ -207,9 +207,9 @@ function boardAt(lines: string[]): number {
 }
 
 /** `spell_core`'s uv project, which runs the player. */
-const SPELL_CORE = resolve(import.meta.dirname, "../../../packages/py/core")
+const SPELL_CORE = resolve(import.meta.dirname, "../../../../spell-lang/py/core")
 /** The player:  `spell_core`'s test script, in the repo's `tests/py/core/tests/`. */
-const PLAYER = resolve(import.meta.dirname, "../../py/core/tests/patches_in_a_game.py")
+const PLAYER = resolve(import.meta.dirname, "../../../../spell-lang/tests/py/core/tests/patches_in_a_game.py")
 
 /**
  * Only what changed, sent click by click, gives the same state as sending it whole (epic `python-target` P18):

@@ -813,7 +813,11 @@ let testCore: (typeof import("$/app/runner/spellRuntime"))["core"] | undefined
  *   examples.
  */
 async function fixtureCompiled(name: string): Promise<string> {
-  const file = new URL(`../../../spaces/@spell/test/${name}/${name}.snapshot.js`, import.meta.url).pathname
+  // spell's frozen test projects are spell-lang's (epic `repo-split` C11), beside this repo in the top repo `spell`
+  const file = new URL(
+    `../../../../../spell-lang/tests/spaces/@spell/test/${name}/${name}.snapshot.js`,
+    import.meta.url
+  ).pathname
   const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
   return compiled
 }

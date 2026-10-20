@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 import { CLI } from "$/cli"
 
 /** The real `spell` command:  `spell static` renders in a child process, through Vite. */
-const SPELL = resolve(import.meta.dirname, "../../../../packages/cli/bin/spell.mjs")
+const SPELL = resolve(import.meta.dirname, "../../../../cli/bin/spell.mjs")
 /** `ui-segment`, `ui-card` with parts, `ui-button` with an icon, `ui-modal`;  two element scripts and a plain one. */
 const FIXTURE = resolve(import.meta.dirname, "staticCommand.fixture.html")
 /** Temp folder for pages and what's written:  its REAL path, as on macOS `tmpdir()` is a symlink. */

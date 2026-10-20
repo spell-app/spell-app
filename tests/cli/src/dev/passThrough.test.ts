@@ -39,11 +39,13 @@ describe("toolArgs()", () => {
   test("plain node:  just the script, in the tool's checkout", () => {
     expect(CLI.toolArgs(CLI.TOOLS.serve, "/wt")).toEqual(["/wt/scripts/serve.mjs"])
   })
-  test("tsx:  the CLI checkout's loader first", () => {
+  test("tsx:  the CLI's loader first, then the run-time alias hook;  a tool beside the checkout", () => {
     expect(CLI.toolArgs(CLI.TOOLS.server, "/wt")).toEqual([
       "--import",
       CLI.TSX_LOADER,
-      "/wt/packages/server/src/page/cli.ts"
+      "--import",
+      CLI.ALIASES,
+      "/spell-server/server/src/page/cli.ts"
     ])
   })
   test("the engine's design tools:  spell-epic's, through the checkout's link", () => {

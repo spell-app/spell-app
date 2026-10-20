@@ -1,0 +1,115 @@
+{
+  // ONE import-alias table for the whole monorepo.
+  // Every package's `tsconfig.json` extends this,
+  // so an alias means the same thing wherever a file is compiled from -- e.g. `cli` compiling `spell`'s source.
+  // - `tsc` and `tsx` read it through each package's `tsconfig.json`;
+  //   vite / vitest through `resolve.tsconfigPaths`, which finds the tsconfig nearest the IMPORTING file.
+  // - MUST stay the only `paths` in the repo:  a package that sets its own `paths` REPLACES this table, never adds to it.
+  // - Paths are fixed, never `${configDir}`:  `tsx` can't resolve it (4.20 throws, 4.23 ignores it).
+  // - `$` means `packages/`:
+  //   - `$/name` is a package's barrel, `$/name/...` a file in its `src/`, and `$/ui/test/...` `ui`'s test helpers
+  //     (`$/spell-element/test/...` likewise)
+  //   - it can't collide with an npm name (`@spell-app/...`) the way a bare `name/...` could
+  //   - a component set's elements live in its package's `components/`, outside `src/`:
+  //     `$/<set>/components/...` (`ui`, `app`, `brand`), longer than `$/<set>/*`, so it wins
+  //   - EXCEPT `$/epics`:  spell-epic's, through the checkout's `spell-epic` link (below)
+  // - These aliases are for INSIDE one future repo (epic `repo-split` P6, Q8):  a package of ANOTHER repo is imported by
+  //   its npm name, `@spell-app/ui/core`, an entry its `package.json` `exports` names (each package's list of what
+  //   other repos may import, pointing at SOURCE files);  lint fails a `$/` alias into another repo (`spell/no-cross-repo-alias`,
+  //   whose `REPO_OF` lists the repos).  P8 cuts this table into one per repo.
+  // - From ANOTHER package of the same repo, import the barrel only, except these entry points:  `$/parser/rulex`
+  //   (opt-in), `$/parser/test` / `$/spell/test` (test helpers), `$/spell/node/...` (node-only),
+  //   `$/spaces/models/projectGroups` (light:  registers spell's project groups, for `<spell-app>`),
+  //   `$/spaces/server/node/...` (node-only:  `environment`, projects on disk in `projects/`, and the routes),
+  //   `$/assembler/DataFile` and `$/assembler/contentFolder` (from `server`'s repo-mate).
+  // - The other repos' entry points are their `exports`:  `@spell-app/util/class` etc. (util's GENERIC files, for Spell
+  //   UI and spell-element:  the barrel also holds spell's heavy utilities), `@spell-app/util/node/json5`,
+  //   `@spell-app/spell-element/elements.types` + `/vocabulary.types` (where a set augments the names it adds),
+  //   `@spell-app/ui/tools/...` (node-only), `@spell-app/ui/property`, `@spell-app/server/page` ...
+  // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
+  //   - `cli` -> `app` -> `lsp` -> `spaces` -> `spell` -> `parser` / `core` -> `util`
+  //   - `markdown` -> `parser`
+  //   - `ui` -> `spell-element` -> `util`
+  //   - e.g. `ui` MUST NOT import `$/spell`, and `spell` MUST NOT import `$/spaces`.
+  // - `server` is a LEAF (node built-ins only):  anything may import it.
+  //   - Its opt-in entry points:  `$/server/page/...` (the generic page server) and `$/server/site/...` (the site header).
+  //   - `$/server/test/...` are its test helpers.
+  // - `page-server` is what only spell-app's page server does (its route module, the bundles' build), on `server`.
+  // - `assembler` (assembling pages:  link targets, formatting) is node-only and imports only util's json5 and the
+  //   toolchain's format settings:  spell-epic's tooling imports it.
+  //   - Its opt-in entry points:  `$/assembler/DataFile`, the tooling's JSON5 data files (the CLI's commands page,
+  //     spell-epic's tools);
+  //     `$/assembler/contentFolder`, the repo's shared content folder (the CLI's commands page and WWOD check).
+  "compilerOptions": {
+    "paths": {
+      // ## Shared packages:  from another package, import the barrel only
+      "$/util": ["./packages/util/src/index.ts"],
+      "$/util/*": ["./packages/util/src/*"],
+      "$/parser": ["./packages/parser/src/index.ts"],
+      "$/parser/*": ["./packages/parser/src/*"],
+      "$/markdown": ["./packages/markdown/src/index.ts"],
+      "$/markdown/*": ["./packages/markdown/src/*"],
+      "$/core": ["./packages/core/src/index.ts"],
+      "$/core/*": ["./packages/core/src/*"],
+      // Python's writers, in `py/ts/` (its Python is `py/core/`, a uv project beside it)
+      "$/py": ["./packages/py/ts/index.ts"],
+      "$/py/*": ["./packages/py/ts/*"],
+      "$/spell": ["./packages/spell/src/index.ts"],
+      "$/spell/*": ["./packages/spell/src/*"],
+      // where projects and people live:  `$/spaces` is its models, safe in a browser;  `$/spaces/server/node/...` is
+      // node only (its Python web server, `src/server/py/`, is a uv project)
+      "$/spaces": ["./packages/spaces/src/index.ts"],
+      "$/spaces/*": ["./packages/spaces/src/*"],
+      "$/lsp": ["./packages/lsp/src/index.ts"],
+      "$/lsp/*": ["./packages/lsp/src/*"],
+      "$/app": ["./packages/app/src/index.tsx"],
+      "$/app/*": ["./packages/app/src/*"],
+      // `<spell-app>` / `<spell-editor>` live in `packages/app/components/`, outside `src/`, as a component pack's
+      // families do (`brand` below):  `$/app/components/*` is longer than `$/app/*`, so it wins
+      "$/app/components/*": ["./packages/app/components/*"],
+      "$/cli": ["./packages/cli/src/index.ts"],
+      "$/cli/*": ["./packages/cli/src/*"],
+      "$/server": ["./packages/server/src/index.ts"],
+      "$/server/*": ["./packages/server/src/*"],
+      "$/server/test/*": ["./packages/server/test/*"],
+      "$/page-server": ["./packages/page-server/src/index.ts"],
+      "$/page-server/*": ["./packages/page-server/src/*"],
+      "$/assembler": ["./packages/assembler/src/index.ts"],
+      "$/assembler/*": ["./packages/assembler/src/*"],
+
+      // ## `spell-element`:  what makes a custom element on Solid, for every component set;  it imports only `$/util`'s
+      // generic files.  `$/spell-element/elements.types` and `$/spell-element/vocabulary.types`:  where a set augments its
+      // names (animations, value sets, topics);  `$/spell-element/timing` and `$/spell-element/HotDefinitions`:  for `ui`;
+      // `$/spell-element/test/*`:  its own tests' helpers, longer than `$/spell-element/*`, so it wins
+      "$/spell-element": ["./packages/spell-element/src/index.ts"],
+      "$/spell-element/*": ["./packages/spell-element/src/*"],
+      "$/spell-element/test/*": ["./packages/spell-element/test/*"],
+
+      // ## `ui`:  barrel, files, elements, test helpers and node tools;  its `<ui-*>` families live in
+      // `packages/ui/components/` (epic `people-and-orgs` P18), outside `src/`, as every component set's do;
+      // `$/ui/components/*`, `$/ui/test/*` and `$/ui/tools/*` are longer than `$/ui/*`, so they win.  No
+      // `$/ui/components` barrel:  `$/ui` is the one that registers every family
+      "$/ui": ["./packages/ui/src/index.ts"],
+      "$/ui/*": ["./packages/ui/src/*"],
+      "$/ui/components/*": ["./packages/ui/components/*"],
+      "$/ui/test/*": ["./packages/ui/test/*"],
+      "$/ui/tools/*": ["./packages/ui/tools/*"],
+
+      // ## `brand`:  a component pack (`spell dev pack`);  barrel and files;  its `<brand-*>` elements live in
+      // `packages/brand/components/` (Owen, 2026-10-04), outside `src/`, so `$/brand/components` is longer than
+      // `$/brand/*` and wins
+      "$/brand": ["./packages/brand/src/index.ts"],
+      "$/brand/*": ["./packages/brand/src/*"],
+      "$/brand/components": ["./packages/brand/components/index.ts"],
+      "$/brand/components/*": ["./packages/brand/components/*"],
+
+      // ## `epics`:  the epic engine, NOT a package here:  spell-epic, through the checkout's `spell-epic` link
+      // (`engineFolder` in `.epic/config.json5`, made by `epic shared link`;  epic `epic-eject` I5).  ONE package laid
+      // out as a repo, its elements in `src/components/`.  No spell-app source imports it:  the page server's epic
+      // route modules do (the root `package.json`'s `"pageServer"`), run under `tsx` with this table, so their
+      // `$/server`, `$/ui` ... are THIS checkout's.  A checkout without the link loads no epic routes
+      "$/epics": ["./spell-epic/src/index.ts"],
+      "$/epics/*": ["./spell-epic/src/*"]
+    }
+  }
+}

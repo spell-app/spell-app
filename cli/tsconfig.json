@@ -1,0 +1,14 @@
+{
+  // spell-app's alias table (and through it the toolchain's settings), with the compiler options spell-lang's `spell`
+  // uses, which the CLI runs:  the global types its source needs too (`Prettify`, `__PACKAGE_VERSION__`:
+  // `@spell-app/toolchain/types`).  Until epic `repo-split` P8 it extended spell's own tsconfig, beside it
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "@spell-app/toolchain/types"],
+    "allowJs": true,
+    "target": "ES2020",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}

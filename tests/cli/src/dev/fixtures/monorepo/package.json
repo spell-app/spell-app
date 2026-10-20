@@ -1,0 +1,151 @@
+{
+  "name": "spell-app",
+  "private": true,
+  "description": "Spell:  the parser, the spell language and its tools, and @spell-app/ui",
+  "license": "MIT",
+  "repository": "https://github.com/spell-app/spell-app",
+  "workspaces": [
+    "packages/assembler",
+    "packages/brand",
+    "packages/cli",
+    "packages/lsp",
+    "packages/markdown",
+    "packages/page-server",
+    "packages/parser",
+    "packages/spell",
+    "packages/app",
+    "packages/core",
+    "packages/py",
+    "packages/server",
+    "packages/spaces",
+    "packages/spell-element",
+    "packages/ui",
+    "packages/util",
+    "packages/toolchain"
+  ],
+  "type": "module",
+  "scripts": {
+    "ts": "vp run --fail-if-no-match -F '@spell-app/*' ts",
+    "test": "vp test run",
+    "test:watch": "vp test",
+    "test:packages": "vp run --fail-if-no-match -F '@spell-app/*' test",
+    "review": "vp run --fail-if-no-match --concurrency-limit 1 -F '@spell-app/*' review",
+    "vscode": "node packages/cli/bin/spell.mjs dev vscode",
+    "vscode:build": "node packages/cli/bin/spell.mjs dev vscode build",
+    "vscode:install": "node packages/cli/bin/spell.mjs dev vscode install",
+    "docs:update": "node packages/cli/bin/spell.mjs dev docs update",
+    "docs:index": "node packages/cli/bin/spell.mjs dev docs index",
+    "docs:new": "node packages/cli/bin/spell.mjs dev docs new",
+    "docs:open": "node packages/cli/bin/spell.mjs dev docs open",
+    "epic": "epic",
+    "ask": "epic ask",
+    "plan-doc": "node packages/cli/bin/spell.mjs dev plan-doc",
+    "details": "node packages/cli/bin/spell.mjs dev details",
+    "docs:link": "node packages/cli/bin/spell.mjs dev docs link",
+    "window": "node packages/cli/bin/spell.mjs dev window",
+    "server": "node packages/cli/bin/spell.mjs dev server",
+    "serve": "node packages/cli/bin/spell.mjs dev server start --all",
+    "dev": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run",
+    "dev:ts": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target ts",
+    "dev:py": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target py",
+    "commands:check": "node packages/cli/bin/spell.mjs dev commands check"
+  },
+  "devDependencies": {
+    "@spell-app/toolchain": "workspace:*",
+    "@vitest/browser-playwright": "catalog:",
+    "playwright": "1.63.0",
+    "pyright": "1.1.414",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "resolutions": {
+    "@solidjs/h": "2.0.0-rc.13",
+    "@solidjs/signals": "2.0.0-rc.13",
+    "@solidjs/web": "2.0.0-rc.13",
+    "solid-js": "2.0.0-rc.13",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0",
+    "vitest": "5.0.1"
+  },
+  "engines": {
+    "node": ">=24.11"
+  },
+  "packageManager": "yarn@4.18.0",
+  "pageServer": {
+    "routes": [
+      "packages/page-server/src/pageServerRoutes.ts",
+      "spell-epic/src/tools/detailsRoutes.ts",
+      "spell-epic/src/tools/choicesRoutes.ts",
+      "spell-epic/src/tools/commentsRoutes.ts",
+      "spell-epic/src/tool/reviewRoutes.ts",
+      "spell-epic/src/tool/epicRoutes.ts",
+      "spell-epic/src/tool/linkRoutes.ts",
+      "spell-epic/src/list/runningRoutes.ts",
+      "spell-epic/src/tools/agentRoutes.ts",
+      "spell-epic/src/tools/showRoutes.ts",
+      "spell-epic/src/tools/airplaneRoutes.ts",
+      "packages/spaces/src/server/node/routes/appRoutes.ts"
+    ],
+    "watch": [
+      "epics",
+      "guides",
+      "pages",
+      "brand",
+      "spell-epic/src/tools/_assets",
+      "packages/brand",
+      "spell-epic/src/components/__pack",
+      "packages/brand/components/__pack"
+    ],
+    "writable": [
+      "epics",
+      "guides",
+      "pages",
+      "brand"
+    ],
+    "bundles": [
+      "packages/ui/site/_assets",
+      "packages/brand/_assets/ui"
+    ],
+    "pageScripts": [
+      {
+        "src": "/element/spell-language.js",
+        "file": "packages/app/dist-element/spell-language.js",
+        "skip": [
+          "/components/"
+        ]
+      }
+    ],
+    "componentSets": {
+      "ui": {
+        "name": "Spell UI",
+        "dir": "packages/ui/docs",
+        "assets": "packages/ui/site/_assets"
+      },
+      "epics": {
+        "name": "Epic UI",
+        "dir": "spell-epic/src/docs",
+        "assets": "packages/ui/site/_assets"
+      },
+      "app": {
+        "name": "App UI",
+        "dir": "packages/app/docs",
+        "assets": "packages/ui/site/_assets"
+      },
+      "brand": {
+        "name": "Brand",
+        "dir": "packages/brand/docs",
+        "assets": "packages/ui/site/_assets"
+      }
+    },
+    "engineRoutes": {
+      "/_epic/assets/": "spell-epic/src/tools/_assets",
+      "/_epic/pack/": "spell-epic/src/components/__pack",
+      "/templates/": "spell-epic/templates"
+    }
+  },
+  "shared": {
+    "links": [
+      "agents"
+    ]
+  }
+}

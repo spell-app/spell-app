@@ -14,9 +14,11 @@ import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
  * - Seeded (`$SPELL_SEED`), so its deal is the javascript run's, the core contract's snapshot.
  * - The page side, `packages/app/dist-page/`, is built first (`yarn build:page`, a few seconds):  never a stale one.
  */
-const PACKAGES = resolve(import.meta.dirname, "../../../packages")
-const SPELL = resolve(PACKAGES, "cli/bin/spell.mjs")
-const SPELL_QUART = resolve(PACKAGES, "spaces/src/server/py")
+const REPO = resolve(import.meta.dirname, "../../..")
+const SPELL = resolve(REPO, "cli/bin/spell.mjs")
+const SPELL_QUART = resolve(REPO, "spaces/src/server/py")
+/** spell's frozen test projects:  spell-lang's (epic `repo-split` C11), beside this repo in the top repo `spell`. */
+const FIXTURES = resolve(import.meta.dirname, "../../../../spell-lang/tests/spaces/@spell/test")
 
 let folder: string
 let server: ChildProcess
@@ -24,10 +26,10 @@ let browser: Browser
 let url: string
 
 beforeAll(async () => {
-  const built = spawnSync("yarn", ["build:page"], { cwd: resolve(PACKAGES, "app"), encoding: "utf8" })
+  const built = spawnSync("yarn", ["build:page"], { cwd: resolve(REPO, "app"), encoding: "utf8" })
   expect(built.status, built.stderr).toBe(0)
   folder = mkdtempSync(join(tmpdir(), "spell-quart-"))
-  cpSync(resolve(PACKAGES, "../tests/spaces/@spell/test/solitaire"), join(folder, "Solitaire"), {
+  cpSync(resolve(FIXTURES, "solitaire"), join(folder, "Solitaire"), {
     recursive: true,
     filter: (file) => !file.includes(".snapshot.") && !file.endsWith(".snapshot.js")
   })
@@ -209,7 +211,7 @@ describe("a Python spell app, in a real browser", () => {
 
   test("a drawable program draws its own elements, <solitaire-card>, and a click on one plays in Python", async () => {
     const drawable = join(folder, "DrawableSolitaire")
-    cpSync(resolve(PACKAGES, "../tests/spaces/@spell/test/drawable-solitaire"), drawable, {
+    cpSync(resolve(FIXTURES, "drawable-solitaire"), drawable, {
       recursive: true,
       filter: (file) => !file.includes(".snapshot.")
     })

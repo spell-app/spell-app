@@ -11,7 +11,9 @@ import { CLI } from "$/cli"
  * People's, the frozen test project's library, written into a temp folder -- never its build folder.
  */
 describe("writeSchemas()", () => {
-  const library = fileURLToPath(new URL("../../spaces/@spell/test/people/people.lib.snapshot.ts", import.meta.url))
+  // spell's frozen test projects are spell-lang's (epic `repo-split` C11), beside this repo in the top repo `spell`
+  const people = "../../../../spell-lang/tests/spaces/@spell/test/people/people.lib.snapshot.ts"
+  const library = fileURLToPath(new URL(people, import.meta.url))
   const folder = mkdtempSync(resolve(tmpdir(), "spell-schemas-"))
   afterAll(() => rmSync(folder, { recursive: true, force: true }))
 

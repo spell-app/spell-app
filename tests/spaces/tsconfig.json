@@ -1,6 +1,6 @@
 {
   // spaces' tests:  spaces' own settings (packages/spaces/tsconfig.json), over this folder
-  "extends": "../../packages/spaces/tsconfig.json",
+  "extends": "../../spaces/tsconfig.json",
   "include": ["."],
   // Python's web server's tests are pytest's;  the test projects (`@spell/`) are spell's, their snapshots checked by
   // spell's own tests

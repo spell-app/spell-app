@@ -22,11 +22,15 @@ import { tsxBinary } from "@spell-app/spell/test"
  */
 describe("spell language server over stdio", () => {
   // this package's folder:  `tsx` reads the `tsconfig.json` (aliases) where it runs
-  const packageDir = resolve(import.meta.dirname, "../../../packages/lsp")
-  const child = spawn(tsxBinary(), [resolve(packageDir, "src/server.ts"), "--stdio"], {
-    cwd: packageDir,
-    stdio: ["pipe", "pipe", "pipe"]
-  })
+  const packageDir = resolve(import.meta.dirname, "../../../lsp")
+  const child = spawn(
+    tsxBinary(),
+    ["--import", "@spell-app/toolchain/aliases", resolve(packageDir, "src/server.ts"), "--stdio"],
+    {
+      cwd: packageDir,
+      stdio: ["pipe", "pipe", "pipe"]
+    }
+  )
   const connection = createMessageConnection(
     new StreamMessageReader(child.stdout),
     new StreamMessageWriter(child.stdin)

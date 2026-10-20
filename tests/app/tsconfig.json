@@ -1,6 +1,6 @@
 {
   // app's tests:  app's own settings (packages/app/tsconfig.json), over this folder
-  "extends": "../../packages/app/tsconfig.json",
+  "extends": "../../app/tsconfig.json",
   // app's own ambient types too (monaco's internal modules)
-  "include": [".", "../../packages/app/src/types"]
+  "include": [".", "../../app/src/types"]
 }

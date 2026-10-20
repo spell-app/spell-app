@@ -1,0 +1,66 @@
+// This repo's GENERATED files, and the command that rebuilds each from the merged source (epic `epic-eject` T4).
+// - Read by `epic worktree merge-main` (`MainMerge.generatorsOf()`), from the checkout being merged:
+//   a branch that adds a generated file adds its line here, and its merge already knows it.
+// - IN ORDER:  a later one may read an earlier one's output.
+// - Each line's keys:
+//   - `outputs`:  globs, from the checkout's root
+//   - `cwd`:  where `run` runs, from the checkout's root
+// - Snapshots aren't here:  the merge makes one update per package, after these.
+// - The same paths are `merge=binary` in the root `.gitattributes`:  keep the two in step.
+// - NOT here:
+//   - `pages.json5` (hand-kept)
+//   - emoji data (`gen:emoji` needs a reference clone)
+//   - the bundles the page server builds on demand, which aren't committed:
+//     Spell UI's site and the brand pages (`spell dev bundles`)
+//   - the epic engine's (the docs bundle, the epics pack, Epic UI's data):  spell-epic's own, built there
+//     (epic `epic-eject` I5)
+//   - spell's highlighter and markdown engine:  no committed bundle since epic `repo-split` P2;  the app builds them
+//     from source (`<spell-code>`, `<spell-markdown>`)
+// - A new component pack's line is added by `spell dev pack new`.
+{
+  "generators": [
+    { "name": "yarn.lock", "outputs": ["yarn.lock"], "cwd": ".", "run": ["yarn", "install"] },
+    {
+      "name": "Spell UI site data",
+      "outputs": [
+        "packages/ui/docs/__data/{components,icons,search}.json5",
+        "packages/ui/docs/__data/{custom-elements,html-custom-data}.json"
+      ],
+      "cwd": "packages/ui",
+      "run": ["yarn", "site:data"]
+    },
+    {
+      "name": "brand data",
+      "outputs": [
+        "packages/brand/docs/__data/{components,search}.json5",
+        "packages/brand/docs/__data/{custom-elements,html-custom-data}.json"
+      ],
+      "cwd": "packages/brand",
+      "run": ["yarn", "site:data"]
+    },
+    {
+      "name": "spell libraries",
+      "outputs": ["packages/spaces/@spell/library/**/*.lib.ts"],
+      "cwd": ".",
+      "run": ["node", "packages/cli/bin/spell.mjs", "compile", "@spell/library"]
+    },
+    {
+      "name": "App UI data",
+      "outputs": ["packages/app/docs/__data/{components,search}.json5"],
+      "cwd": "packages/app",
+      "run": ["yarn", "site:data"]
+    },
+    {
+      "name": "spell syntax table",
+      "outputs": ["packages/spell/spellSyntax.json"],
+      "cwd": "packages/spell",
+      "run": ["yarn", "gen:syntax"]
+    },
+    {
+      "name": "brand pack",
+      "outputs": ["packages/brand/components/__pack/**"],
+      "cwd": "packages/brand",
+      "run": ["yarn", "pack:build"]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import { ComponentSource } from "../../../packages/app/tools/ComponentSource.ts"
+import { ComponentSource } from "../../../app/tools/ComponentSource.ts"
 
 /** A file with a documented component, a helper and a component with no banner. */
 const PANEL = `

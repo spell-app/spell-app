@@ -27,7 +27,7 @@ import { fixturePath } from "@spell-app/spell/test"
  * - NEVER writes into a fixture:  compiles use `--stdout`.
  *   Projects to break live in a temp folder -- see `tempProject()`.
  */
-const SPELL = resolve(import.meta.dirname, "../../../packages/cli/bin/spell.mjs")
+const SPELL = resolve(import.meta.dirname, "../../../cli/bin/spell.mjs")
 
 // each `spell` run starts node and loads spell's source through `tsx`, ~2s;
 // a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
@@ -186,12 +186,19 @@ describe("spell dev pass-throughs", () => {
   /** A fake checkout, each tool a script reporting what it got:  `{ tool, args, cwd, tsconfig }`, exiting 3. */
   const CHECKOUT = resolve(TEMP, "checkout")
   /** A folder inside it, to run from:  the tools must still be found. */
-  const INSIDE = resolve(CHECKOUT, "packages", "app")
+  const INSIDE = resolve(CHECKOUT, "app")
   beforeAll(() => {
-    const report = `console.log(JSON.stringify({ tool: import.meta.url.split("/checkout/")[1], args: process.argv.slice(2), cwd: process.cwd(), tsconfig: process.env.TSX_TSCONFIG_PATH }))
+    // a tool's path from the checkout:  inside it, or beside it (`../spell-server/...`, epic `repo-split` P8)
+    const report = `const url = import.meta.url
+const tool = url.includes("/checkout/") ? url.split("/checkout/")[1] : "../" + url.split("/${basename(TEMP)}/")[1]
+console.log(JSON.stringify({ tool, args: process.argv.slice(2), cwd: process.cwd(), tsconfig: process.env.TSX_TSCONFIG_PATH }))
 process.exit(3)
 `
-    for (const tool of ["scripts/serve.mjs", "packages/server/src/page/cli.ts", "spell-epic/src/tools/design.js"]) {
+    for (const tool of [
+      "scripts/serve.mjs",
+      "../spell-server/server/src/page/cli.ts",
+      "spell-epic/src/tools/design.js"
+    ]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
       writeFileSync(resolve(CHECKOUT, tool), report)
     }
@@ -203,7 +210,9 @@ process.exit(3)
 process.exit(3)
 `
     )
-    writeFileSync(resolve(CHECKOUT, "packages/server/tsconfig.json"), "{}")
+    writeFileSync(resolve(CHECKOUT, "../spell-server/server/tsconfig.json"), "{}")
+    // a repo beside the checkout is ES modules, as every repo's package is ("type": "module")
+    writeFileSync(resolve(CHECKOUT, "../spell-server/server/package.json"), `{ "type": "module" }`)
     mkdirSync(INSIDE, { recursive: true })
   })
 
@@ -248,11 +257,14 @@ process.exit(3)
     const status = passThrough(["server", "status", "--root", "."])
     expect(status).toMatchObject({
       status: 3,
-      tool: "packages/server/src/page/cli.ts",
+      tool: "../spell-server/server/src/page/cli.ts",
       args: ["status", "--root", "."]
     })
-    expect(status.tsconfig).toBe(resolve(CHECKOUT, "packages/server/tsconfig.json"))
-    expect(passThrough(["server", "start"])).toMatchObject({ tool: "packages/server/src/page/cli.ts", args: ["start"] })
+    expect(status.tsconfig).toBe(resolve(CHECKOUT, "../spell-server/server/tsconfig.json"))
+    expect(passThrough(["server", "start"])).toMatchObject({
+      tool: "../spell-server/server/src/page/cli.ts",
+      args: ["start"]
+    })
     expect(passThrough(["server", "start", "--all"])).toMatchObject({ status: 3, tool: "scripts/serve.mjs", args: [] })
   })
 })

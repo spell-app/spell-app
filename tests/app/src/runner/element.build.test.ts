@@ -300,18 +300,18 @@ describe("runner builds", () => {
 /** Modules of each package a test asks about, as they appear in a sourcemap's `sources`. */
 const PACKAGES = {
   solid: /\/node_modules\/(solid-js|@solidjs\/(web|signals))\//,
-  ui: /\/packages\/ui\/src\//,
+  ui: /\/spell-ui\/src\//,
   monaco: /\/node_modules\/monaco-editor\//
 }
 
 /** The component base class, every set's:  `$/spell-element`'s, which Spell UI's core carries. */
-const UI_COMPONENT = /\/packages\/spell-element\/src\/UIComponent\.tsx$/
+const UI_COMPONENT = /\/spell-element\/src\/UIComponent\.tsx$/
 
 /** `ui`'s root component, which `<spell-app>` extends. */
-const UI_ROOT = /\/packages\/ui\/components\/ui-root\/UIRoot\.tsx$/
+const UI_ROOT = /\/spell-ui\/components\/ui-root\/UIRoot\.tsx$/
 
 /** Spell's highlighter, which colours spell for `<spell-code>`. */
-const SPELL_HIGHLIGHTER = /\/packages\/spell\/src\/highlight\/SpellHighlighter\.ts$/
+const SPELL_HIGHLIGHTER = /\/spell-lang\/spell\/src\/highlight\/SpellHighlighter\.ts$/
 
 /** `<spell-editor>`'s component. */
 const SPELL_EDITOR = /\/components\/spell-editor\/SpellEditor\.tsx$/
@@ -323,7 +323,7 @@ const SHARED_NAMES = /^export const \{ (.+) \} = from$/m
 const SHARED_SPECIFIERS = /^const specifiers = (.+)$/m
 
 /** `ui`'s `BuiltInPacks`, which looks for the packs beside its own chunk. */
-const BUILT_IN_PACKS = /\/packages\/ui\/src\/icons\/BuiltInPacks\.ts$/
+const BUILT_IN_PACKS = /\/spell-ui\/src\/icons\/BuiltInPacks\.ts$/
 
 /**
  * Does chunk `file` export `name` just as it imports it from `spell-solid-shared.js`:  the page's copy, passed on?
@@ -346,7 +346,7 @@ function build(outDir: string, ...configs: string[]) {
     const args = ["vite", "build", "-c", config, "--outDir", outDir, "--logLevel", "silent"]
     execFileSync("npx", index === 0 ? [...args, "--emptyOutDir"] : args, {
       // the package folder:  a root run has another working directory
-      cwd: join(import.meta.dirname, "../../../../packages/app"),
+      cwd: join(import.meta.dirname, "../../../../app"),
       stdio: "pipe"
     })
   }

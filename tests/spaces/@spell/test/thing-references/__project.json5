@@ -1,8 +1,0 @@
-{
-  "imports": [
-    {
-      "path": "/ThingReferences.spell",
-      "active": true
-    }
-  ]
-}

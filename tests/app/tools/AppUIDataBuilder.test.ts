@@ -6,7 +6,7 @@ import { describe, expect, test } from "vite-plus/test"
 import { keepingCommentsIn } from "@spell-app/util/node/json5"
 import { SiteDataBuilder } from "@spell-app/ui/tools/SiteDataBuilder"
 
-import { AppUIDataBuilder } from "../../../packages/app/tools/AppUIDataBuilder.ts"
+import { AppUIDataBuilder } from "../../../app/tools/AppUIDataBuilder.ts"
 
 /** The pages read from a vocabulary, not a `file`:  the component file whose banner names the page. */
 const VOCABULARY_FAMILY_FILES = {
@@ -22,7 +22,7 @@ const BUILDER = new AppUIDataBuilder()
 const DATA = await BUILDER.build()
 
 describe("AppUIDataBuilder.build()", () => {
-  test("components.json5 is up to date:  run `yarn site:data` in packages/app after changing what it reads", () => {
+  test("components.json5 is up to date:  run `yarn site:data` in app/ after changing what it reads", () => {
     expect(readFileSync(BUILDER.dataFile, "utf8")).toBe(
       keepingCommentsIn(BUILDER.dataFile, SiteDataBuilder.stringify(DATA))
     )
@@ -73,7 +73,7 @@ describe("AppUIDataBuilder.build()", () => {
 
   test("says where the app draws a component", () => {
     expect(DATA.components.find((tag) => tag.tag === "Notice")?.usedIn).toEqual([
-      { name: "index", file: "packages/app/src/index.tsx" }
+      { name: "index", file: "app/src/index.tsx" }
     ])
   })
 })

@@ -3,7 +3,7 @@ import { dirname, join, relative, resolve } from "path"
 import { describe, expect, test } from "vite-plus/test"
 
 /** This package's `src/`, where `$/cli/...` points. */
-const SRC = resolve(import.meta.dirname, "../../../packages/cli/src")
+const SRC = resolve(import.meta.dirname, "../../../cli/src")
 
 /**
  * Packages whose loading means spell is loaded:  the language and what it stands on.

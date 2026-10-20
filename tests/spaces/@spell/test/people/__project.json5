@@ -1,8 +1,0 @@
-{
-  "imports": [
-    {
-      "path": "/People.spell",
-      "active": true
-    }
-  ]
-}

@@ -6,7 +6,7 @@
       "label": "Build Spell Extension",
       "type": "shell",
       "command": "yarn install && yarn build",
-      "options": { "cwd": "${workspaceFolder}/packages/vscode" },
+      "options": { "cwd": "${workspaceFolder}/vscode" },
       "problemMatcher": []
     }
   ]

@@ -1,6 +1,0 @@
-{
-  // We compile the parser's SOURCE, from `../spell` -- so we take its compiler options, whatever they become:
-  // the global types its source needs too (`Prettify`, `__PACKAGE_VERSION__`:  `@spell-app/toolchain/types`)
-  "extends": "../spell/tsconfig.json",
-  "include": ["src"]
-}

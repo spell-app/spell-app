@@ -34,7 +34,7 @@ const FILES = `/spaces/${PLACE}/`
 /** Where its files are saved:  `/api/projects/file/<project>/<file>`. */
 const SAVE = `/api/projects/file/${PLACE}/`
 /** `spaces`' folder:  where the server is launched from (its `tsconfig.json` gives `tsx` the aliases). */
-const spacesDir = path.resolve(import.meta.dirname, "../../../../../../packages/spaces")
+const spacesDir = path.resolve(import.meta.dirname, "../../../../../../spaces")
 
 let server: ChildProcess
 let baseUrl: string
@@ -128,11 +128,15 @@ beforeAll(async () => {
 
   const port = await freePort()
   baseUrl = `http://localhost:${port}`
-  server = spawn(process.execPath, ["--import", "tsx", "src/server/node/routes/cli.ts"], {
-    cwd: spacesDir,
-    env: { ...process.env, PORT: String(port), ...folders },
-    stdio: "ignore"
-  })
+  server = spawn(
+    process.execPath,
+    ["--import", "tsx", "--import", "@spell-app/toolchain/aliases", "src/server/node/routes/cli.ts"],
+    {
+      cwd: spacesDir,
+      env: { ...process.env, PORT: String(port), ...folders },
+      stdio: "ignore"
+    }
+  )
   for (let tries = 0; tries < 200; tries++) {
     try {
       await fetch(`${baseUrl}/hello`)

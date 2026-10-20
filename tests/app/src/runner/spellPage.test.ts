@@ -9,7 +9,7 @@ import { describe, test, expect } from "vite-plus/test"
  * - drawable-thing added `css` to the runtime and not here, and a drawable program's page failed to load:
  *   "The requested module '@spell/core' does not provide an export named 'css'" (epic `python-target` P28).
  */
-const RUNNER = resolve(import.meta.dirname, "../../../../packages/app/src/runner")
+const RUNNER = resolve(import.meta.dirname, "../../../../app/src/runner")
 
 /** What only a runner, or compiled TypeScript, takes from the runtime:  never the drawing half of a Python app. */
 const RUNNER_ONLY = ["appIsMounted", "unmountApp", "E", "SpellElement"]

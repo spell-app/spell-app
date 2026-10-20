@@ -8,10 +8,7 @@ import { SPACES } from "$/spaces"
 /** Solitaire's compiled declarations, as committed. */
 const SOLITAIRE = JSON5.parse(
   fs.readFileSync(
-    path.resolve(
-      import.meta.dirname,
-      "../../../../packages/spaces/@spell/examples/solitaire/solitaire.declarations.json5"
-    ),
+    path.resolve(import.meta.dirname, "../../../../spaces/@spell/examples/solitaire/solitaire.declarations.json5"),
     "utf8"
   )
 )

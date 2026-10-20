@@ -1,2 +1,0 @@
-# Visual regression baselines (`yarn test:visual`):  images, never diffed or merged as text
-test/visual/baselines/**/*.png binary

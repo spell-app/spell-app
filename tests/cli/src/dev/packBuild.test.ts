@@ -2,6 +2,7 @@ import { spawnSync } from "child_process"
 import {
   appendFileSync,
   cpSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -11,15 +12,16 @@ import {
   writeFileSync
 } from "fs"
 import { tmpdir } from "os"
-import { join } from "path"
+import { dirname, join } from "path"
 import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 
 /**
- * ONE throwaway checkout, with a tiny pack in it:  `pack new` + `pack element` (unbuilt), on copies of the root files.
- * - `packages/ui` is a link to this checkout's (the build needs Spell UI's `baseConfig()`), and so is
- *   `node_modules`:  the pack's `tsconfig.json` extends `@spell-app/toolchain/tsconfig.base.json`, and its elements
+ * ONE throwaway checkout, with a tiny pack in it:  `pack new` + `pack element` (unbuilt), on copies of a monorepo's
+ *   root files (`fixtures/monorepo/`).
+ * - `packages/ui` is a link to Spell UI (the build needs its `baseConfig()`), and `node_modules` to the install's:
+ *   the pack's `tsconfig.json` extends `@spell-app/toolchain/tsconfig.base.json`, and its elements
  *   import Spell UI by its npm name (`@spell-app/ui/core`)
  * - the tests run in order
  */
@@ -31,13 +33,25 @@ const PACK = join(ROOT, "packages", "demo")
 const CARD = join(PACK, "components", "demo-card")
 
 /** `spell`, from this checkout's source. */
-const SPELL = join(CLI.REPO_ROOT, "packages", "cli", "bin", "spell.mjs")
+const SPELL = join(CLI.REPO_ROOT, "cli", "bin", "spell.mjs")
+
+/** A monorepo checkout's root files, frozen (`fixtures/monorepo/README.md`):  what `pack new` wires a pack into. */
+const MONOREPO = join(import.meta.dirname, "fixtures", "monorepo")
+
+/** The install `node_modules` this checkout runs on:  the nearest one above it (the top repo `spell`'s). */
+function installedModules(): string {
+  for (let dir = CLI.REPO_ROOT; ; dir = dirname(dir)) {
+    if (existsSync(join(dir, "node_modules", "@spell-app"))) return join(dir, "node_modules")
+    if (dirname(dir) === dir) throw new Error(`no node_modules above ${CLI.REPO_ROOT}`)
+  }
+}
 
 beforeAll(async () => {
-  for (const file of ["package.json", "tsconfig.base.json"]) cpSync(join(CLI.REPO_ROOT, file), join(ROOT, file))
+  for (const file of ["package.json", "tsconfig.base.json"]) cpSync(join(MONOREPO, file), join(ROOT, file))
   mkdirSync(join(ROOT, "packages"))
-  symlinkSync(join(CLI.REPO_ROOT, "packages", "ui"), join(ROOT, "packages", "ui"))
-  symlinkSync(join(CLI.REPO_ROOT, "node_modules"), join(ROOT, "node_modules"))
+  // Spell UI's folder, as the install has it (spell-ui, beside spell-app in the top repo)
+  symlinkSync(realpathSync(join(installedModules(), "@spell-app", "ui")), join(ROOT, "packages", "ui"))
+  symlinkSync(installedModules(), join(ROOT, "node_modules"))
   await CLI.newPack(ROOT, "demo", { prefix: "demo-", build: false })
   await CLI.newElement(ROOT, "demo", "demo-card", { build: false })
 })

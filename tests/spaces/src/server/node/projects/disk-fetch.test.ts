@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from "vite-plus/test"
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "fs"
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
 
@@ -75,7 +75,9 @@ describe("diskFetch", () => {
       expect(serverPathForRoot("owen@spell")).toBe(environment.userFilesRoot)
       expect(serverPathForRoot("@spell/test")).toBe(environment.testFilesRoot)
       expect(environment.systemFilesRoot).toBe(resolve(environment.packagesDir, "spaces", "@spell"))
-      expect(environment.testFilesRoot).toBe(resolve(environment.repoDir, "tests", "spaces", "@spell", "test"))
+      // spell's frozen test projects:  spell-lang's (epic `repo-split` C11), found through `@spell-app/spell`
+      expect(environment.testFilesRoot).toMatch(/[/\\]spell-lang[/\\]tests[/\\]spaces[/\\]@spell[/\\]test$/)
+      expect(existsSync(resolve(environment.testFilesRoot, "solitaire", "__project.json5"))).toBe(true)
     })
 
     test("spell's test helpers and spaces agree where the test projects are, and whose space is yours", () => {

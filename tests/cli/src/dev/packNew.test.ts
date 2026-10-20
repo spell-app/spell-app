@@ -15,6 +15,9 @@ const TEMP = realpathSync(mkdtempSync(join(tmpdir(), "pack-new-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 
 /** Root files `wirePack()` edits, copied from this checkout. */
+/** A monorepo checkout's root files, frozen (`fixtures/monorepo/README.md`):  what `pack new` wires a pack into. */
+const MONOREPO = join(import.meta.dirname, "fixtures", "monorepo")
+
 const ROOT_FILES = [
   "package.json",
   "tsconfig.base.json",
@@ -50,7 +53,7 @@ beforeEach(() => {
   root = join(TEMP, `checkout-${++count}`)
   for (const file of ROOT_FILES) {
     mkdirSync(dirname(join(root, file)), { recursive: true })
-    cpSync(join(CLI.REPO_ROOT, file), join(root, file))
+    cpSync(join(MONOREPO, file), join(root, file))
   }
   mkdirSync(dirname(join(root, COMMANDS_JSON)), { recursive: true })
   writeFileSync(join(root, OLD_COMMANDS_JSON), `${JSON.stringify(COMMANDS, null, 2)}\n`)

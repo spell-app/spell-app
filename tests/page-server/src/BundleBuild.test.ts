@@ -63,7 +63,7 @@ describe("BundleBuild", () => {
 
   beforeAll(() => {
     put(root, "package.json", SETTINGS)
-    put(root, "packages/cli/bin/spell.mjs", "")
+    put(root, "cli/bin/spell.mjs", "")
     put(root, "packages/brand/_assets/ui/brand-ui.js", "export const OLD = 1")
     put(root, "guides/page.html", "<p>page</p>")
   })
@@ -92,7 +92,7 @@ describe("BundleBuild", () => {
     new BundleBuild({ root, spawn }).start()
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
-      [join(root, "packages/cli/bin/spell.mjs"), "dev", "bundles", "build", "--stale"],
+      [join(root, "cli/bin/spell.mjs"), "dev", "bundles", "build", "--stale"],
       expect.objectContaining({ cwd: root, detached: true })
     )
   })
@@ -183,6 +183,25 @@ describe("BundleBuild.bundleFileFor()", () => {
     expect(build.bundleFileFor("/worktrees/seo/components/ui/_assets/site.js")).toBeUndefined()
     expect(build.bundleFileFor("/packages/brand/_assets/ui/../../../x")).toBeUndefined()
     expect(build.bundleFileFor("/packages/brand/_assets/ui/%E0%A4%A")).toBeUndefined()
+  })
+
+  // epic `repo-split` P8:  spell-app names Spell UI's and the brand's bundles in their repos, beside it
+  test("a bundle folder beside the checkout, at /_beside/ (folderUrl()), and through the sets' overlay", () => {
+    const beside = mkdtempSync(join(tmpdir(), "page-server-bundles-beside-"))
+    const app = join(beside, "spell-app")
+    const sets = { ui: { name: "Spell UI", dir: "../spell-ui/docs", assets: "../spell-ui/site/_assets" } }
+    put(
+      app,
+      "package.json",
+      JSON.stringify({ pageServer: { bundles: ["../spell-ui/site/_assets"], componentSets: sets } })
+    )
+    const there = new BundleBuild({ root: app })
+    expect(there.bundleFileFor("/_beside/spell-ui/site/_assets/site.js")).toBe(
+      join(beside, "spell-ui/site/_assets/site.js")
+    )
+    expect(there.bundleFileFor("/components/ui/_assets/site.js")).toBe(join(beside, "spell-ui/site/_assets/site.js"))
+    expect(there.bundleFileFor("/_beside/spell-ui/docs/ui-button.html")).toBeUndefined()
+    rmSync(beside, { recursive: true, force: true })
   })
 
   test("a checkout whose settings name no bundles has none", () => {

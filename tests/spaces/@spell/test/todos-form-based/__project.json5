@@ -1,8 +1,0 @@
-{
-  "imports": [
-    {
-      "path": "/todo.spell",
-      "active": true
-    }
-  ]
-}

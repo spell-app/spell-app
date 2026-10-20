@@ -1,5 +1,0 @@
-{
-  // assembler's tests:  assembler's own settings (packages/assembler/tsconfig.json), over this folder
-  "extends": "../../packages/assembler/tsconfig.json",
-  "include": ["."]
-}
