@@ -207,6 +207,30 @@ describe("outline style", () => {
     expect(tableaus.items.length).toBe(1)
   })
 
+  describe("methods before their definitions (P22)", () => {
+    test("a call above its definition:  in a type's body, at the top, before a later method", () => {
+      const run = runSpell([
+        "game is an app where:",
+        "\t- its score is a number",
+        "\t- to reset:\n\t\tset its score to 0\n\t\tadd a point",
+        "\t- to add a point:\n\t\tset its score to its score + 1",
+        "reset",
+        "play the game",
+        "to play a game:\n\tadd a point\n\tadd a point",
+        "set score to the score of game"
+      ])
+      expect(run("score")).toEqual({ score: 3 })
+    })
+
+    test("from another file:  one loaded before the method's", () => {
+      const run = runSpellFiles([
+        { path: "/A.spell", contents: "set x to double 21" },
+        { path: "/B.spell", contents: "to double (n as a number):\n\treturn n * 2" }
+      ])
+      expect(run("x")).toEqual({ x: 42 })
+    })
+  })
+
   describe("one-of-a-kind apps (P21):  `solitaire is an app where:`", () => {
     test("the type and its one instance, made after every class, even one declared below", () => {
       const run = runSpell([

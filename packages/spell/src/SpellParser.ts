@@ -233,6 +233,79 @@ export class SpellParser extends P.Parser {
     return [...types, ...kinds]
   }
 
+  /**
+   * First lines of the methods `text` defines, by a scan of its lines -- see `P.Parser.declaredMethods()`
+   * (epic page `outline-spell`, P22).
+   * - At a file's top:  `to play a card`, `animation deal the cards`.
+   * - In a type's outline body, one tab in, with the type first:  `solitaire\tto debug it` for
+   *   `solitaire is an app where:` then `\t- to debug it:`.
+   *   - The type's line is any that declares one (`TYPE_DECLARATION`), or re-opens one, `a solitaire:`.
+   * - Up to its `:`, so its body isn't parsed:  `to cheat at it:  print 1` is `to cheat at it`.
+   */
+  declaredMethods(text: string): string[] {
+    const found: string[] = []
+    let subject = ""
+    for (const line of text.split("\n")) {
+      if (!/^\s/.test(line)) {
+        subject = SpellParser.subjectOf(line) ?? ""
+        if (METHOD_LINE.test(line)) found.push(`\t${firstLineOf(line)}`)
+        continue
+      }
+      const bullet = /^(?:\t| {2,4})-[ \t]+(.*)$/.exec(line)?.[1]
+      if (subject && bullet && METHOD_LINE.test(bullet)) found.push(`${subject}\t${firstLineOf(bullet)}`)
+    }
+    return found
+  }
+
+  /**
+   * Make each method `texts` define callable ahead of its definition (epic page `outline-spell`, P22):
+   * parse its first line alone, then register its call -- see `MethodDefinition.callAhead()`.
+   * - A body's method is parsed in a `P.SubjectScope` of its type, as its body would be.
+   * - One that doesn't parse alone, e.g. naming a type nobody declares, is left out:  its definition says why.
+   */
+  stubDeclaredMethods(scope: P.Scope, texts: string[]): void {
+    for (const found of texts.flatMap((text) => this.declaredMethods(text))) {
+      const match = this.parseFirstLine(scope, found)
+      if (match) (match.rule as CallsAhead).callAhead!(match)
+    }
+  }
+
+  /** Does `after` define a method `before` didn't, or the other way round?  See `P.Parser.changesMethods()`. */
+  changesMethods(scope: P.Scope, before: string, after: string, keepEdited = false): boolean {
+    const was = this.declaredMethods(before)
+    const now = this.declaredMethods(after)
+    const changed = (from: string[], to: string[]) =>
+      to.some((found) => !from.includes(found) && this.parseFirstLine(scope, found))
+    // keeping what's broken:  a first line being edited doesn't count, only a method added or deleted
+    if (keepEdited && now.length === was.length) return false
+    return changed(was, now) || changed(now, was)
+  }
+
+  /**
+   * A method's first line, as `declaredMethods()` found it, parsed alone in `scope` -- `undefined` unless it's
+   * a definition we can call ahead (`MethodDefinition.callAhead()`).
+   * - A body's method is parsed in a `P.SubjectScope` of its type, as its body would be.
+   */
+  private parseFirstLine(scope: P.Scope, found: string): P.Match | undefined {
+    const [subject = "", line = ""] = found.split("\t")
+    const at = subject ? new P.SubjectScope({ subject, parentScope: scope }) : scope
+    const match = this.parse(line, "statement", at)
+    return (match?.rule as CallsAhead | undefined)?.callAhead ? match : undefined
+  }
+
+  /** Type a top-level `line` declares or re-opens, e.g. `solitaire` for `a solitaire:` -- `undefined` if none. */
+  static subjectOf(line: string): string | undefined {
+    const declared = new RegExp(SpellParser.TYPE_DECLARATION.source, "i").exec(line)
+    if (declared) {
+      const [, type, words, created, onlyOne] = declared
+      return type ?? (words ?? onlyOne)?.trim().split(/[ \t]+/).join("-") ?? created
+    }
+    return /^an?[ \t]+([\w-]+(?:[ \t]+[\w-]+){0,3})[ \t]*(?:where[ \t]*)?:[ \t]*$/i
+      .exec(line)?.[1]
+      ?.split(/[ \t]+/)
+      .join("-")
+  }
+
   /** A line declaring a value kind, its PLURAL name captured, e.g. `suits` -- see `declaredTypes()`. */
   static VALUE_KIND_DECLARATION = /^[ \t]*(?:-[ \t]+)?["']([\w-]+)["'][ \t]+as[ \t]+(?:one[ \t]+of|either)\b/gim
 
@@ -319,3 +392,14 @@ export class SpellParser extends P.Parser {
  * - See `SP.SpellStatement.operandInExpressions`.
  */
 type OperandTwinned = { operandInExpressions?: boolean }
+
+/** A method definition's first line:  `to ...`, `animation ...`, `create animation ...` -- see `declaredMethods()`. */
+const METHOD_LINE = /^(?:to|(?:create[ \t]+)?animation)[ \t]/i
+
+/** `line` up to its first `:`, trimmed:  a method's first line without its body. */
+function firstLineOf(line: string): string {
+  return line.split(":")[0]!.trim()
+}
+
+/** A rule which can make its method callable ahead of its definition:  `MethodDefinition`'s. */
+type CallsAhead = { callAhead?: (match: P.Match) => void }

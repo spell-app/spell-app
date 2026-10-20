@@ -338,6 +338,25 @@ export class MethodDefinition<
     scope.addRule(DynamicMethodRule.specialize({ output, alias, of, params }), { syntax }, declaredBy)
   }
 
+  /**
+   * Make the method `match` defines callable AHEAD of its definition, e.g. `play the card` above `to play a card`
+   * (epic page `outline-spell`, P22) -- see `SP.SpellParser.stubDeclaredMethods()`.
+   * - `match` is its first line alone, parsed before the project's files are.
+   * - Registers the same call rule `getRule()` will, marked `ahead`:  it steps aside once the definition has run.
+   * - Straight onto the parser, journaled:  NOT the scope's rules, which a project's declarations export.
+   * - A quoted phrase (a postfix or infix expression) isn't:  only a call.
+   */
+  callAhead(match: P.MatchFor<this>): void {
+    const { asTest } = match.groups as { asTest?: P.Match }
+    const signature = this.getSignature(match)
+    if (!signature?.methodName || !signature.syntax) return
+    if (signature.asPostfixExpression || signature.asInfixExpression) return
+    const { of, params } = this.getOwnerAndParams(match)
+    const alias = asTest ? "statement" : ["statement", "expression"]
+    const rule = DynamicMethodRule.specialize({ output: signature.methodName, alias, of, params, ahead: true })
+    match.scope.parser?.addRule(rule, { syntax: signature.syntax })
+  }
+
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
   getPropsAssignment(match: P.MatchFor<this>): P.ASTDestructuredAssignment | undefined {
     const { props } = this.getSignature(match)!

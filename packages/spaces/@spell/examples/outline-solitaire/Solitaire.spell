@@ -1,14 +1,13 @@
 ## Klondike Solitaire Card Game
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
-// What's where, top to bottom:  each part uses only what's above it
-//   the solitaire:  its piles, and its moves
+// What's where, top to bottom:
+//   the solitaire:  its piles, its moves, auto-play and drawing
 //   playing a card:  what a click does
-//   what the solitaire does, once it can play a card:  auto-play and drawing
 //   start
 //   the piles:  each kind, what it may take or give up, and how it draws
 
 
-## The solitaire:  its piles, and its moves
+## The solitaire:  its piles, its moves, auto-play and drawing
 solitaire is an app where:
 	- its score is a number
 	- its deck is a new deck
@@ -89,42 +88,6 @@ solitaire is an app where:
 		pause for 30 ticks
 		move the card to the discards of the solitaire
 
-
-## Playing a card:  what a click does
-to play a card
-	set start-pile to the pile of the card
-	if start-pile cannot give up the card return no
-
-	if start-pile is the stock of the solitaire
-		play from the stock
-		return
-
-	set end-pile to the first pile in piles in every pile where its droppable is yes and it can take the card
-	if there is not an end-pile return no
-
-	set cards-to-move to cards in start-pile starting with the card
-	set the name of cards-to-move to the name of the start-pile
-	print "moving (" + the state of cards-to-move + ") to (" + the state of end-pile + ")"
-
-	for each card in cards-to-move
-		move it to end-pile
-
-	if the start-pile is a tableau and the start-pile is not empty
-		pause for 200 msec
-		get the last card of the start-pile
-		print "turning over (" + the name of start-pile + ": " + its state + ")"
-		turn it face up
-
-	if end-pile is a foundation: set the score of the solitaire to the score of the solitaire + 10
-	else if start-pile is the discards of the solitaire: set the score of the solitaire to the score of the solitaire + 5
-	return yes
-
-on card-click with a card
-	play the card
-
-
-## What the solitaire does, once it can play a card
-a solitaire:
 	- to auto-play:
 		set anything-changed to no
 		if its discards is not empty
@@ -193,6 +156,39 @@ a solitaire:
 				</table>
 			</div>
 		</div>
+
+
+## Playing a card:  what a click does
+to play a card
+	set start-pile to the pile of the card
+	if start-pile cannot give up the card return no
+
+	if start-pile is the stock of the solitaire
+		play from the stock
+		return
+
+	set end-pile to the first pile in piles in every pile where its droppable is yes and it can take the card
+	if there is not an end-pile return no
+
+	set cards-to-move to cards in start-pile starting with the card
+	set the name of cards-to-move to the name of the start-pile
+	print "moving (" + the state of cards-to-move + ") to (" + the state of end-pile + ")"
+
+	for each card in cards-to-move
+		move it to end-pile
+
+	if the start-pile is a tableau and the start-pile is not empty
+		pause for 200 msec
+		get the last card of the start-pile
+		print "turning over (" + the name of start-pile + ": " + its state + ")"
+		turn it face up
+
+	if end-pile is a foundation: set the score of the solitaire to the score of the solitaire + 10
+	else if start-pile is the discards of the solitaire: set the score of the solitaire to the score of the solitaire + 5
+	return yes
+
+on card-click with a card
+	play the card
 
 
 ## Start

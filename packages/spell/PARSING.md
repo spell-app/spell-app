@@ -943,6 +943,16 @@ A kind that says so is saved in a file of its own.
       - a one-of-a-kind app, with no article:  `solitaire is an app` (P21)
     - `P.IncrementalProject` and `parseSpellProject()` both do it.
     - An edit which changes WHICH types a file declares re-parses the whole project.
+  - Then every METHOD they define is made callable ahead of its definition (P22, `parser.stubDeclaredMethods()`).
+    - So a line can call a method defined further down, or in a later file:  `play test-card` above `to play a card`.
+    - `SpellParser.declaredMethods()` scans for first lines:  `to ...`, `animation ...` at a file's top, and
+      `- to ...` in a type's outline body, which it parses in a `P.SubjectScope` of that type.
+    - Each first line, parsed alone, registers its call rule early (`MethodDefinition.callAhead()`), marked `ahead`:
+      it steps aside once the real definition has run (`DynamicMethodRule.test()`).
+    - Straight onto the parser, journaled:  not the scope's rules, so a project's declarations never export one.
+    - An edit which adds or deletes a method re-parses the whole project (`parser.changesMethods()`).
+      With `keepLastGood`, one whose first line is being edited keeps its early call until the next full parse.
+    - Not yet:  a quoted phrase, `a card "is the (rank) of (suits)"`, used above its definition.
   - `is a <type>` (`is_a`) names a KNOWN type:  built in, imported, declared or stubbed earlier.
     - Else it's a parse error, e.g. `is a crad`.
     - A type first mentioned in an `is a` above its own declaration is one too.

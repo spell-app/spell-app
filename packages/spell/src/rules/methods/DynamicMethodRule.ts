@@ -31,13 +31,20 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   @proto static methodName?: string
   /** Type the method is ON, e.g. `Card` -- `undefined` for a free function.  See `parse()`. */
   declare thisType: P.Datatype | undefined
+  /**
+   * `true`:  registered AHEAD of its method's definition, so a line above it can call it (epic page `outline-spell`, P22).
+   * - Steps aside once the definition has run:  its own rule, registered then, takes over.  See `test()`.
+   * - See `MethodDefinition.callAhead()`.
+   */
+  declare ahead: boolean
+  @proto static ahead = false
   /** Datatype of each `callArgs` slot, in order -- `undefined` where the signature doesn't say.  See `parse()`. */
   declare paramTypes: Array<P.Datatype | undefined> | undefined
   /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
   declare readonly Props: DynamicMethodRuleProps
 
   /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
-  declare static readonly SpecializeWith: MethodRuleDeclared & { alias?: string | string[] }
+  declare static readonly SpecializeWith: MethodRuleDeclared & { alias?: string | string[]; ahead?: boolean }
   /**
    * Call to generated method `output`, e.g. `play_fizzbuzz` -- also our `ruleName`.
    * - `of` / `params`:  the method's owner and parameters, as its `P.ScopeMethod` record says --
@@ -46,13 +53,14 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
    *   `of` / `params` are the method record's, in the same comment:  loading hands us the whole of it.
    */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output, alias, of, params } = declared as (typeof DynamicMethodRule)["SpecializeWith"]
+    const { output, alias, of, params, ahead } = declared as (typeof DynamicMethodRule)["SpecializeWith"]
     const statics: P.RuleStatics<DynamicMethodRule> = {
       ruleName: output,
       methodName: output,
       alias,
       thisType: of,
-      paramTypes: params?.map((param) => param.datatype)
+      paramTypes: params?.map((param) => param.datatype),
+      ...(ahead && { ahead })
     }
     return super.specialize(statics, declared) as unknown as T
   }
@@ -60,6 +68,12 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
   static declarationProps({ output, alias }: (typeof DynamicMethodRule)["SpecializeWith"], syntax: string | undefined) {
     return { syntax, output, alias }
+  }
+
+  /** Quick test:  one registered `ahead` of its method steps aside once the method's defined. */
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
+    if (super.test(scope, tokens, start) === false) return false
+    return !(this.ahead && MethodDefinition.findMethod(scope, this.methodName, this.thisType))
   }
 
   /**
