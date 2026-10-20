@@ -440,7 +440,7 @@ Ours are CONTAINER-based by default.
   - `<ui-form>`:  its rows of fields;  `<ui-fields>` follow it
   - `<ui-items>`:  stacking, the tablet image width
   - `<ui-statistics>`:  `stackable`
-- `<ui-table>` keeps its own `stack-by="viewport | container"` and `--ui-table-stack-by`.
+- `<ui-table>` keeps its own `stack-by="viewport | container | none"` and `--ui-table-stack-by`.
   - Viewport by default, as Fomantic.
   - Without either, it follows `--ui-stack-with` (`page` ~== `viewport`).
 - Already screen-based, nothing to switch:

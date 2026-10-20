@@ -262,6 +262,24 @@ describe("<ui-table> shadow markup", () => {
     await Viewport.frame()
     expect(getComputedStyle(stacking!.querySelector("td")!).display).toBe("table-cell")
   })
+
+  it('never stacks with `stack-by="none"` or `--ui-table-stack-by: none`;  `stack-by` still beats the token', async () => {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div style="width: 300px"><ui-table stack-by="none" stackable="tablet"><table>${HEAD}${BODY}</table></ui-table>` +
+        `<div style="--ui-table-stack-by: none"><ui-table><table>${HEAD}${BODY}</table></ui-table>` +
+        `<ui-table stackable="tablet"><table>${HEAD}${BODY}</table></ui-table>` +
+        `<ui-table stack-by="container"><table>${HEAD}${BODY}</table></ui-table>` +
+        `<ui-table stack-by="viewport"><table>${HEAD}${BODY}</table></ui-table></div></div>`
+    )
+    await settle()
+    await page.viewport(500, 900)
+    await Viewport.frame()
+    const [attribute, token, tablet, container, viewport] = [...wrapper.querySelectorAll("table")].map(
+      (element) => getComputedStyle(element.querySelector("td")!).display
+    )
+    expect({ attribute, token, tablet }).toEqual({ attribute: "table-cell", token: "table-cell", tablet: "table-cell" })
+    expect({ container, viewport }).toEqual({ container: "block", viewport: "block" })
+  })
 })
 
 describe("<ui-table> outer margin", () => {
