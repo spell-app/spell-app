@@ -88,11 +88,12 @@ export const tableVocabulary = {
     {
       name: "stack-by",
       kind: "enum",
-      values: ["viewport", "container"],
+      values: ["viewport", "container", "none"],
       description:
-        "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width " +
-        "(`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  " +
-        "`--ui-table-stack-by: container`;  the attribute wins.  Neither:  the page-wide `--ui-stack-with` " +
+        "What `stackable` measures:  the `viewport` (Fomantic's way, the default), the table's own width " +
+        "(`container`:  a table in a narrow column of a wide screen), or nothing (`none`:  it never stacks, " +
+        "as `unstackable`).  Also a token for a whole region or page:  `--ui-table-stack-by: container` " +
+        "(or `none`);  the attribute wins.  Neither:  the page-wide `--ui-stack-with` " +
         "(`<ui-root stack-with>`;  `page` ~== `viewport`)."
     },
     {
