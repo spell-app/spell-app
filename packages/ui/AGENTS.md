@@ -307,10 +307,11 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - A COMPONENT SET, laid out as every set is (epic `people-and-orgs` P18;  the root's `AGENTS.md`):
     - its pages in this package's `docs/`, served at `/components/ui/`
     - the site bundle laid over them, at `_assets/`
-    - From 2026-10-05 (claude-design P6) until then, the pages were SHARED content, the checkout's `ui/`.
+    - From 2026-10-05 (claude-design P6) until P18, the pages were SHARED content, the checkout's `ui/`.
 - In two halves, one constant each in [the tools' types](tools/tools.types.ts).
-- `SITE_PAGES`, the PAGES:  [`docs/`](docs/index.html), tracked here, so a page changes in the same commit as its
-  element ([its README](docs/README.md):  how pages are made).
+- `SITE_PAGES`, the PAGES:  [`docs/`](docs/index.html), tracked here.
+  - So a page changes in the same commit as its element.
+  - How pages are made:  [its README](docs/README.md).
   - ONE flat folder:
     - the pages:  `*.html`, an element's named for its tag (`ui-button.html`)
     - the component index:  `components.html`
@@ -346,17 +347,19 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     - It takes the folder above its `_assets/` as the site's root:
       - its layout is `__parts/layout.html` there
       - its data is `__data/components.json5` there
-  - The COMPONENT SETS' build (epic `epic-workflow` P10):  the same site again, into `site/_assets/sets/`.
-    - Its entry:  [sets.ts](site/_src/sets.ts).
-    - `yarn site:bundle` builds both;  mode `sets` in `vite.site.config.ts`.
-    - For the other sets:  pages in Spell UI's shape, in their own packages' `docs/`,
-      which the page server serves with this build as their `_assets/` (the page server's `componentSets` setting).
-      - Epic UI at `/components/epics/`, App UI at `/components/app/`, the brand's at `/components/brand/`
-    - It adds `SitePacks.ts`:  `globalThis.SpellUI` (`registerPack`, `packModules`).
+  - EVERY component set's pages load it (the page server's `componentSets` setting):  pages in Spell UI's shape, in
+    their own packages' `docs/`, which the page server serves with this bundle as their `_assets/`.
+    - Epic UI at `/components/epics/`, App UI at `/components/app/`, the brand's at `/components/brand/`
+    - It holds `SitePacks.ts`:  `globalThis.SpellUI` (`registerPack`, `packModules`).
       - So a component pack's script shares the page's Solid and Spell UI.
       - A pack's `define()` waits for every family first, as its elements draw Spell UI's in their shadow roots.
-    - Its own build, NOT a lazy chunk of Spell UI's:
-      the pack modules stay whole, which cost Spell UI's pages +118 KB (36 KB gzipped) when shared.
+      - Every set's layout loads the epics pack (`<ui-components source="/_epic/pack/epics.pack.js">`):  its
+        `<epic-thread>` and `<epic-comment-pane>` draw the comments, which every page loads in its `<head>`
+        (`/_epic/assets/spell-comments.js`, spell-epic's;  epic `epic-engine`).
+    - The pack modules stay whole:  Spell UI's pages' eager script 305 KB => 555 KB (79 => 155 KB gzipped, measured
+      2026-10-20).  So from epic `epic-workflow` P10 the other sets had a build of their own, `sets.ts` into
+      `site/_assets/sets/`, until Spell UI's pages loaded the epics pack for the comments too (epic `epic-engine`):
+      one build since.
     - Each set's side column reads its own `__data/`:
       `SiteDataFile.nav` gives `<ui-docs-nav>` its own start and Foundation links and band titles (absent:  Spell UI's).
 - The DATA, `docs/__data/`:  GENERATED, committed.
@@ -805,7 +808,8 @@ SHARED STATES:  states every element takes, though its vocabulary never names th
   - Replaces a constructor calling `this.on(type, this.handler)`.
   - `this.on(type, listener, { target })` itself, for a listener added later or under a condition.
     - So no vocabulary may name an attribute `on`.
-      Fomantic's `on` setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`.
+      Fomantic's `on` settings take other names here:
+      `<ui-form validate>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`.
     - One stopped by an effect keeps its own `AbortController`, aborted in the cleanup.
 - `@E.untracked select(option)`:  an action or handler whose body runs inside `untrack()`.
   - It reads `this.x` plainly, where it used to read `untrack(() => this.x)`.
@@ -1018,7 +1022,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
     - Read from the pack's `<Name>.en.ts` vocabularies by [the root catalog](tools/RootCatalog.ts),
       as `yarn gen:root` reads ours (skeleton text, "Overview").
   - `prefix` ends in `-`, is never `ui-`, and starts every catalog tag.
-  - A pack's families are written like ours ([the epics package's AGENTS.md](../epics/AGENTS.md)).
+  - A pack's families are written like ours ([spell-epic's AGENTS.md](../../spell-epic/src/AGENTS.md)).
 - The `ui-components` family ([its folder](components/ui-components/)) holds the runtime side:
   - `<ui-components source>` (`UIComponents`):  invisible, no logic, no fallback.
     - The root reads its `source`.
@@ -1039,7 +1043,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
       (`Vocabulary`;  [the translation doc](notes/translation.md)).
   - `registerPack()`:  exported from `$/ui` (`@spell-app/ui`) and the family's barrel.
     - The docs bundle puts it on `window.SpellUI`.
-    - So does the site's component sets' build ([SitePacks.ts](site/_src/SitePacks.ts)).
+    - So does the site's bundle ([SitePacks.ts](site/_src/SitePacks.ts)).
   - A `define()` still running (it loads its families first):
     a root that finds one of the pack's tags undefined meanwhile waits for it, rather than calling it failed
     (`ComponentPacks.whileDefining()`).
@@ -1055,9 +1059,9 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
   the EXACT specifier its build leaves external => the page's module.
   - `solid-js`, `@solidjs/web`, `$/spell-solid`, `$/ui/core`, `$/ui/forms`
   - `$/spell-solid`, what a pack's elements are written on, is Spell UI's core module:  it carries all of it.
-  - Built in two places, never in the library or Spell UI's own site:
-    - [the docs bundle's entry](../epics/tools/_assets/spell-ui.entry.js)
-    - the site's component sets' build ([SitePacks.ts](site/_src/SitePacks.ts))
+  - Built in two places, never in the library:
+    - [the docs bundle's entry](../../spell-epic/src/tools/_assets/spell-ui.entry.js), spell-epic's
+    - the site's bundle, every component set's ([SitePacks.ts](site/_src/SitePacks.ts))
   - Those are the two places a Solid package is `import * as`'d, on purpose:
     a pack may use any export, so they must all stay ("One Solid per page" above).
   - A new specifier goes there AND in the pack build's externals (`PACK_MODULES`, [ComponentPack](tools/ComponentPack.ts)).

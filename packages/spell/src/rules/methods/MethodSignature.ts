@@ -77,7 +77,8 @@ export class MethodSignature extends P.Repeat<never, MethodSignatureData> {
         // `type` is always a `SpellType`/`Pattern` match, which always sets `.raw`.
         const typeRaw = type.raw!
         data.types.push({
-          name: typeRaw,
+          // a name of several words, dashed:  `stock-pile` for `a stock pile`, as `typeCase()` reads it
+          name: typeRaw.trim().replace(/\s+/g, "-"),
           varName,
           isSimple: SpellType.isSimpleType(typeRaw),
           argIndex: data.args.length,

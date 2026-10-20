@@ -110,8 +110,70 @@ export type AttributeSpec = {
    *     (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`).
    */
   aliases?: readonly string[]
-  /** What it does, for docs and the custom-elements manifest. */
+  /** What it does, for docs and the custom-elements manifest:  written for developers. */
   description: string
+
+  //////
+  // What a form needs to edit it (epic `property-editor` P2):  all optional, read by `<ui-property>`.
+  // How ONE form shows it (groups, order, which control, hints, presets) is never here:  that's the form's page.
+  //////
+
+  /** The value's own type, when its `kind` doesn't say it:  a `json` attribute holding a list, say. */
+  type?: ValueType
+  /** A list's item type (`type: "list"`). */
+  of?: ValueType
+  /** A nested thing's own attributes (`type: "thing"`):  edited by a nested editor. */
+  attributesOf?: readonly AttributeSpec[]
+  /** Its label, for people:  `Lists start at`;  none:  made from `name` (`lists-start-at` => `Lists start at`). */
+  label?: string
+  /** A tip for people, behind the field's info icon:  never the docs' `description`, written for developers. */
+  tip?: string
+  /** Lowest number. */
+  min?: number
+  /** Highest number. */
+  max?: number
+  /** Numbers snap to multiples of it, from `min`. */
+  step?: number
+  /** A regular expression text must match, as `<input pattern>` writes it (no slashes). */
+  pattern?: string
+  /** Its `values` are a SCALE, in order (`xs` ... `huge`):  a form may show them as a slider with named steps. */
+  ordered?: boolean
+  /** Its choices come from a source the page registers by this name (`fonts`), maybe async:  not `values`. */
+  choicesFrom?: string
+  /**
+   * Validation rules, in `<ui-form rules>`'s shape:  `"email"`, `["notEmpty", "minLength[6]"]`.
+   * - Or each a `RuleSpec`, with its own words, as a spell type's rules come:
+   *   `{ type: "empty", prompt: "Name it" }`.
+   */
+  rules?: string | readonly (string | RuleSpec)[]
+  /** Named "on change" rules the page registers, run after a write:  setting it changes another, or its choices. */
+  onChange?: readonly string[]
+}
+
+/**
+ * What a value IS, as a form edits it.
+ * - `text`, `number`, `boolean`, `date`:  one value of that type
+ * - `choice`:  one of `values` (or `choicesFrom`'s)
+ * - `list`:  many, each `of` a type
+ * - `thing`:  a nested thing, with its own `attributesOf`
+ * - `data`:  anything else (JSON), edited as text
+ */
+export type ValueType = "text" | "number" | "boolean" | "date" | "choice" | "list" | "thing" | "data"
+
+/**
+ * What a property editor reads (`<ui-property-editor schema>`):  a thing's name and its attributes.
+ * - A component's vocabulary is one already (its `tag` the name);
+ *   a JSON block or a spell class is read into one (Spell UI's `PropertySchemas`, the app's class reader).
+ */
+export type PropertySchema = {
+  /** What it describes:  a tag (`ui-button`), a class (`ProjectSettings`), a JSON block's name. */
+  name: string
+  /** Its label, for people:  the editor's own when it has none. */
+  label?: string
+  /** What it is, for developers. */
+  description?: string
+  /** Its properties, in order. */
+  attributes: readonly AttributeSpec[]
 }
 
 ////////////////
@@ -446,4 +508,18 @@ export type EnumOptions = {
   attribute?: string
   /** Tag, for the dev-time warning. */
   tag?: string
+}
+
+/**
+ * One validation rule in its object form:  Fomantic's, as `<ui-form>` checks it (`ValidationRule`).
+ * - `type`:  the rule, `"minLength"`
+ * - `value`:  its setting as text, `"3"`, `"1..5"`, `"/^\d+$/"`
+ * - `prompt`:  what to say when it's broken, in place of the rule's own words
+ * - What a spell type's rules compile to, e.g. `- its title must not be empty` (epic `property-editor` P9):
+ *   `$/util`'s `PropRule` has the same shape.
+ */
+export type RuleSpec = {
+  type: string
+  value?: string
+  prompt?: string
 }

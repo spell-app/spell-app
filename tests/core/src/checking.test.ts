@@ -169,3 +169,21 @@ describe("jsonSchemaFor()", () => {
     expect(JSON.stringify(schema)).not.toMatch(/"\$ref":"[A-Z]\w*#/)
   })
 })
+
+describe("jsonSchemaFor():  a property's rules (epic `property-editor` P9)", () => {
+  /** `- it has a version as text, which must match "^\d+$"` ... */
+  class Release extends Thing {}
+  Release.declareProp("version", {
+    type: "text",
+    rules: [{ type: "empty" }, { type: "regExp", value: "/^\\d+$/", prompt: "Digits only" }]
+  })
+  Release.declareProp("stars", { type: "number", rules: [{ type: "range", value: "1..5" }] })
+  Release.declareProp("site", { type: "text", rules: [{ type: "url" }, { type: "maxLength", value: "80" }] })
+
+  test("become JSON Schema's own keywords, for VS Code", () => {
+    const { properties } = jsonSchemaFor(Release) as { properties: Record<string, Record<string, unknown>> }
+    expect(properties.version).toMatchObject({ minLength: 1, pattern: "^\\d+$", patternErrorMessage: "Digits only" })
+    expect(properties.stars).toMatchObject({ minimum: 1, maximum: 5 })
+    expect(properties.site).toMatchObject({ format: "uri", maxLength: 80 })
+  })
+})

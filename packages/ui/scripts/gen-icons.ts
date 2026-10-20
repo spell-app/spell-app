@@ -132,8 +132,9 @@ class IconGenerator {
   /**
    * `fa7-free`:  solid, regular (named `… outline`), and the brand extras.
    * - Solid first, so a name solid and regular share (`bell`) is the solid icon's.
-   * - Aliases:  FA's own (`cog` -> `gear`), with ` outline` on regular icons, plus the Fomantic extras.
-   * - throws if a Fomantic extra isn't an `fa7-free` icon
+   * - Aliases:  FA's own (`cog` -> `gear`) and our own names (`hearts` -> `heart`),
+   *   with ` outline` on regular icons, plus the Fomantic extras.
+   * - throws if one of our own names or a Fomantic extra isn't for an `fa7-free` icon
    */
   private async freePack(
     byStyle: Record<IconStyle, Set<string>>,
@@ -146,10 +147,21 @@ class IconGenerator {
     this.copySvgs(folder, "regular", byStyle.regular)
     this.copySvgs(folder, "brands", extras)
 
+    const ownNames: Record<string, readonly string[]> = ICON_EXTRAS.names
+    for (const name of Object.keys(ownNames)) {
+      if (!byStyle.solid.has(name)) {
+        throw new Error(
+          `IconGenerator.freePack():  "${name}" isn't a solid fa7-free icon;  ` +
+            `take it out of ICON_EXTRAS.names (scripts/iconExtras.ts)`
+        )
+      }
+    }
+    const namesOf = (name: string) => [...(faAliases.get(name) ?? []), ...(ownNames[name] ?? [])]
+
     const aliases = new Map<string, string[]>()
-    for (const name of byStyle.solid) aliases.set(`solid/${name}`, faAliases.get(name) ?? [])
+    for (const name of byStyle.solid) aliases.set(`solid/${name}`, namesOf(name))
     for (const name of byStyle.regular) {
-      const words = [name, ...(faAliases.get(name) ?? [])].map((word) => `${IconName.normalize(word)} outline`)
+      const words = [name, ...namesOf(name)].map((word) => `${IconName.normalize(word)} outline`)
       aliases.set(`regular/${name}`, words)
     }
     for (const name of extras) aliases.set(`brands/${name}`, faAliases.get(name) ?? [])

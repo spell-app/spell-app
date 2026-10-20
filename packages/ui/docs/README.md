@@ -25,6 +25,16 @@ More:
   - `_assets/`, the bundle
 - The page server lays the build's `_assets/` over this folder at `/components/ui/`, so a page's `_assets/site.js` resolves.
   - A worktree's pages, at `/worktrees/<w>/components/ui/`, get THAT worktree's build.
+- Owen COMMENTS on these pages as on every set's (epic `epic-engine`):  the bullhorns, threads, Send and the page's
+  toolbar, the docs runtime's comments ALONE (spell-epic's `spell-comments.js`), drawn with the site's own Spell UI.
+  - Every page loads them in its `<head>`, after the site's bundle:
+    `<script defer src="/_epic/assets/spell-comments.js"></script>`.
+    - `yarn site:new` writes the line (spell-epic's `templates/spell-ui-docs.html`);  a page written by hand needs it.
+  - The layout loads the epics pack, `<ui-components source="/_epic/pack/epics.pack.js">`:  its `<epic-thread>` and
+    `<epic-comment-pane>` draw the threads and the pane.  The site's bundle shares its Solid and Spell UI with it
+    (`SitePacks.ts`).
+  - Both are the epic server's engine routes (`/_epic/...`), which spell-app's page server serves too.
+  - Kept in `<page>.inbox.json5` beside the page, git-ignored;  Send hands them to the standing epic `feedback`.
 
 ## Viewing
 
@@ -55,7 +65,7 @@ packages/ui/docs/       (this folder, served at /components/ui/)
   images/               Fomantic's docs images, same paths as fomantic-ui.com's `/images/...`
 
 packages/ui/site/       (the build)
-  _src/                 site.ts (the bundle's entry:  what's in it and why), sets.ts (the other sets' build),
+  _src/                 site.ts (the bundle's entry:  what's in it and why), SitePacks.ts (component packs),
                         snapshot.ts, SiteShell.ts (mounts the layout), SiteRouter.ts (swaps pages), SiteSections.ts
                         (sticky offsets, folds, landing on a hash), site.types.ts (their shared constants, which
                         `tools/SiteCheck.ts` reads too), site.css (layout glue only)

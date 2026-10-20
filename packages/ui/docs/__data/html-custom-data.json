@@ -5,7 +5,7 @@
       "name": "ui-accordion",
       "description": {
         "kind": "markdown",
-        "value": "An accordion lets people show and hide sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "An accordion lets people show and hide sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-load`, `ui-error`"
       },
       "attributes": [
         {
@@ -1490,6 +1490,27 @@
           "description": {
             "kind": "markdown",
             "value": "Reduced padding.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "unpadded",
+          "description": {
+            "kind": "markdown",
+            "value": "No padding at all, as `compact` taken to none:  hugs its content.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "wrapped",
+          "description": {
+            "kind": "markdown",
+            "value": "Lets a long text wrap onto more lines.  Without it, a button's text stays on one line.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "ellipsis",
+          "description": {
+            "kind": "markdown",
+            "value": "One line, cut off with `…` where it doesn't fit.  It needs a width to cut at:  `fluid`, a width of its own, or a narrow parent (it's never wider than that).\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -8113,14 +8134,49 @@
       "name": "ui-field",
       "description": {
         "kind": "markdown",
-        "value": "A field is a form element containing a label and an input.\n\nAlso known as:  form field, form group, form control, label and input.\n\n**Slots:**  default"
+        "value": "A field is a form element containing a label and an input, with a hint, a tip and its errors.\n\nAlso known as:  form field, form group, form control, label and input, property, inspector row.\n\n**Slots:**  default, `label`, `description`, `hint`, `output`, `actions`"
       },
       "attributes": [
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "The label, in the label row;  `slot=\"label\"` is the rich version.  Names the control for screen readers.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip behind an info icon at the end of the label row, shown on hover and focus;  `slot=\"description\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Text under the control;  `slot=\"hint\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "output",
+          "description": {
+            "kind": "markdown",
+            "value": "A value shown at the end of the label row (`100%`, `+8°`);  `slot=\"output\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "error",
+          "description": {
+            "kind": "markdown",
+            "value": "An error, as a line under the control, and the `error` state.  `<ui-form>`'s validation shows its own there.\n\nTakes:  text"
+          }
+        },
         {
           "name": "state",
           "description": {
             "kind": "markdown",
-            "value": "Field state:  tints its label and controls.  Failed validation shows `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
+            "value": "Field state:  tints its label and controls.  An error shows `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
           },
           "values": [
             {
@@ -8138,6 +8194,20 @@
           ]
         },
         {
+          "name": "apply",
+          "description": {
+            "kind": "markdown",
+            "value": "When a change to the control is written to the bound value:  `immediately`;  `delayed`, after a pause in typing (300ms;  `delayed 100` for 100ms);  or `on leave`, when the cursor leaves the field.\n\nTakes:  text\nDefault:  `immediately`"
+          }
+        },
+        {
+          "name": "mixed",
+          "description": {
+            "kind": "markdown",
+            "value": "The things being edited disagree on this value:  the control shows blank, with a `Mixed` placeholder.  Set by the form;  writing a value clears it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "inline",
           "description": {
             "kind": "markdown",
@@ -8149,6 +8219,13 @@
           "description": {
             "kind": "markdown",
             "value": "Marks the label with an asterisk (validation is `rules` / `required`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "readonly",
+          "description": {
+            "kind": "markdown",
+            "value": "Shows the value;  it can't be changed.  Nests like `disabled`:  set on a group, it reaches each field.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -9045,7 +9122,7 @@
       "name": "ui-form",
       "description": {
         "kind": "markdown",
-        "value": "A form displays a set of related input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`"
+        "value": "A form displays a set of related input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`, `ui-saving`, `ui-saved`, `ui-cancelling`, `ui-cancelled`"
       },
       "attributes": [
         {
@@ -9153,20 +9230,35 @@
           ]
         },
         {
-          "name": "validate-on",
+          "name": "validate",
           "description": {
             "kind": "markdown",
-            "value": "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A field showing an error always re-validates as it changes.\n\nTakes:  `submit` · `blur` · `change`\nDefault:  `submit`"
+            "value": "When fields validate:  `immediately`, as each changes;  `on leave`, as the cursor leaves each;  or only `on save` (a submit, or `save()`).  A field showing an error always validates again as it changes.\n\nTakes:  `immediately` · `on leave` · `on save`\nDefault:  `on save`"
           },
           "values": [
             {
-              "name": "submit"
+              "name": "immediately"
             },
             {
-              "name": "blur"
+              "name": "on leave"
             },
             {
-              "name": "change"
+              "name": "on save"
+            }
+          ]
+        },
+        {
+          "name": "apply",
+          "description": {
+            "kind": "markdown",
+            "value": "When edits land in the bound `value`:  `immediately`;  or `on save`, all together on `save()`, while `cancel()` drops them (`:state(changed)` while any are held).  Each field's own `apply` says when it takes an edit.\n\nTakes:  `immediately` · `on save`\nDefault:  `immediately`"
+          },
+          "values": [
+            {
+              "name": "immediately"
+            },
+            {
+              "name": "on save"
             }
           ]
         },
@@ -15832,21 +15924,35 @@
       "name": "ui-panel",
       "description": {
         "kind": "markdown",
-        "value": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.\n\nAlso known as:  inspector, property panel, properties, settings panel, fieldset, property sheet.\n\n**Slots:**  default, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.\n\nAlso known as:  inspector, property panel, properties, settings panel, fieldset, property sheet.\n\n**Slots:**  default, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-load`, `ui-error`"
       },
       "attributes": [
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
         {
           "name": "header",
           "description": {
             "kind": "markdown",
-            "value": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).\n\nTakes:  text"
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
           "name": "subhead",
           "description": {
             "kind": "markdown",
-            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.\n\nTakes:  text"
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
@@ -15891,10 +15997,17 @@
           }
         },
         {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "info",
           "description": {
             "kind": "markdown",
-            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
           }
         },
         {
@@ -17739,6 +17852,1479 @@
           "description": {
             "kind": "markdown",
             "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "animation",
+          "description": {
+            "kind": "markdown",
+            "value": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on.\n\nTakes:  `fade` · `fade up` · `fade down` · `fade left` · `fade right` · `scale` · `zoom` · `drop` · `browse` · `browse right` · `fly` · `fly up` · `fly down` · `fly left` · `fly right` · `slide` · `slide up` · `slide down` · `slide left` · `slide right` · `swing` · `swing up` · `swing down` · `swing left` · `swing right` · `horizontal flip` · `vertical flip` · `flash` · `shake` · `bounce` · `tada` · `pulse` · `jiggle` · `glow` · `none`"
+          },
+          "values": [
+            {
+              "name": "fade"
+            },
+            {
+              "name": "fade up"
+            },
+            {
+              "name": "fade down"
+            },
+            {
+              "name": "fade left"
+            },
+            {
+              "name": "fade right"
+            },
+            {
+              "name": "scale"
+            },
+            {
+              "name": "zoom"
+            },
+            {
+              "name": "drop"
+            },
+            {
+              "name": "browse"
+            },
+            {
+              "name": "browse right"
+            },
+            {
+              "name": "fly"
+            },
+            {
+              "name": "fly up"
+            },
+            {
+              "name": "fly down"
+            },
+            {
+              "name": "fly left"
+            },
+            {
+              "name": "fly right"
+            },
+            {
+              "name": "slide"
+            },
+            {
+              "name": "slide up"
+            },
+            {
+              "name": "slide down"
+            },
+            {
+              "name": "slide left"
+            },
+            {
+              "name": "slide right"
+            },
+            {
+              "name": "swing"
+            },
+            {
+              "name": "swing up"
+            },
+            {
+              "name": "swing down"
+            },
+            {
+              "name": "swing left"
+            },
+            {
+              "name": "swing right"
+            },
+            {
+              "name": "horizontal flip"
+            },
+            {
+              "name": "vertical flip"
+            },
+            {
+              "name": "flash"
+            },
+            {
+              "name": "shake"
+            },
+            {
+              "name": "bounce"
+            },
+            {
+              "name": "tada"
+            },
+            {
+              "name": "pulse"
+            },
+            {
+              "name": "jiggle"
+            },
+            {
+              "name": "glow"
+            },
+            {
+              "name": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-property",
+      "description": {
+        "kind": "markdown",
+        "value": "A property is one field of a property editor:  its label, tip, choices and rules come from the editor's schema.\n\nAlso known as:  property, inspector row, setting, schema field.\n\n**Slots:**  default, `label`, `description`, `hint`, `output`, `actions`\n\n**Events:**  `ui-change`"
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "description": {
+            "kind": "markdown",
+            "value": "The property it edits;  a dotted path reaches into a nested thing (`font.size`).  Required.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "as",
+          "description": {
+            "kind": "markdown",
+            "value": "Which control (a kind `UI.propertyControls` knows):  `input`, `text`, `number`, `date`, `select`, `buttons`, `range`, `checkbox`, `toggle`, `color`, `editor`, or one a page added.  None:  the default for its type.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "options",
+          "description": {
+            "kind": "markdown",
+            "value": "Where its choices come from, when not the schema's:  a source the page added (`UI.propertyControls.addChoices()`), or a list, `a, b, c`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "The label, in the label row;  `slot=\"label\"` is the rich version.  Names the control for screen readers.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip behind an info icon at the end of the label row, shown on hover and focus;  `slot=\"description\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Text under the control;  `slot=\"hint\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "output",
+          "description": {
+            "kind": "markdown",
+            "value": "A value shown at the end of the label row (`100%`, `+8°`);  `slot=\"output\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "error",
+          "description": {
+            "kind": "markdown",
+            "value": "An error, as a line under the control, and the `error` state.  `<ui-form>`'s validation shows its own there.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "state",
+          "description": {
+            "kind": "markdown",
+            "value": "Field state:  tints its label and controls.  An error shows `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
+          },
+          "values": [
+            {
+              "name": "error"
+            },
+            {
+              "name": "info"
+            },
+            {
+              "name": "success"
+            },
+            {
+              "name": "warning"
+            }
+          ]
+        },
+        {
+          "name": "apply",
+          "description": {
+            "kind": "markdown",
+            "value": "When a change to the control is written to the bound value:  `immediately`;  `delayed`, after a pause in typing (300ms;  `delayed 100` for 100ms);  or `on leave`, when the cursor leaves the field.\n\nTakes:  text\nDefault:  `immediately`"
+          }
+        },
+        {
+          "name": "mixed",
+          "description": {
+            "kind": "markdown",
+            "value": "The things being edited disagree on this value:  the control shows blank, with a `Mixed` placeholder.  Set by the form;  writing a value clears it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "inline",
+          "description": {
+            "kind": "markdown",
+            "value": "Label beside the control, not above it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "required",
+          "description": {
+            "kind": "markdown",
+            "value": "Marks the label with an asterisk (validation is `rules` / `required`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "readonly",
+          "description": {
+            "kind": "markdown",
+            "value": "Shows the value;  it can't be changed.  Nests like `disabled`:  set on a group, it reaches each field.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Dimmed and not usable (`inert`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "width",
+          "description": {
+            "kind": "markdown",
+            "value": "Width in a row of fields:  columns (`4` of 16), fractions (`1/4`) or percentages (`25%`).\n\nTakes:  `1`-`16`, a fraction (`1/4`) or a percentage"
+          },
+          "values": [
+            {
+              "name": "1"
+            },
+            {
+              "name": "2"
+            },
+            {
+              "name": "3"
+            },
+            {
+              "name": "4"
+            },
+            {
+              "name": "5"
+            },
+            {
+              "name": "6"
+            },
+            {
+              "name": "7"
+            },
+            {
+              "name": "8"
+            },
+            {
+              "name": "9"
+            },
+            {
+              "name": "10"
+            },
+            {
+              "name": "11"
+            },
+            {
+              "name": "12"
+            },
+            {
+              "name": "13"
+            },
+            {
+              "name": "14"
+            },
+            {
+              "name": "15"
+            },
+            {
+              "name": "16"
+            }
+          ]
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "animation",
+          "description": {
+            "kind": "markdown",
+            "value": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on.\n\nTakes:  `fade` · `fade up` · `fade down` · `fade left` · `fade right` · `scale` · `zoom` · `drop` · `browse` · `browse right` · `fly` · `fly up` · `fly down` · `fly left` · `fly right` · `slide` · `slide up` · `slide down` · `slide left` · `slide right` · `swing` · `swing up` · `swing down` · `swing left` · `swing right` · `horizontal flip` · `vertical flip` · `flash` · `shake` · `bounce` · `tada` · `pulse` · `jiggle` · `glow` · `none`"
+          },
+          "values": [
+            {
+              "name": "fade"
+            },
+            {
+              "name": "fade up"
+            },
+            {
+              "name": "fade down"
+            },
+            {
+              "name": "fade left"
+            },
+            {
+              "name": "fade right"
+            },
+            {
+              "name": "scale"
+            },
+            {
+              "name": "zoom"
+            },
+            {
+              "name": "drop"
+            },
+            {
+              "name": "browse"
+            },
+            {
+              "name": "browse right"
+            },
+            {
+              "name": "fly"
+            },
+            {
+              "name": "fly up"
+            },
+            {
+              "name": "fly down"
+            },
+            {
+              "name": "fly left"
+            },
+            {
+              "name": "fly right"
+            },
+            {
+              "name": "slide"
+            },
+            {
+              "name": "slide up"
+            },
+            {
+              "name": "slide down"
+            },
+            {
+              "name": "slide left"
+            },
+            {
+              "name": "slide right"
+            },
+            {
+              "name": "swing"
+            },
+            {
+              "name": "swing up"
+            },
+            {
+              "name": "swing down"
+            },
+            {
+              "name": "swing left"
+            },
+            {
+              "name": "swing right"
+            },
+            {
+              "name": "horizontal flip"
+            },
+            {
+              "name": "vertical flip"
+            },
+            {
+              "name": "flash"
+            },
+            {
+              "name": "shake"
+            },
+            {
+              "name": "bounce"
+            },
+            {
+              "name": "tada"
+            },
+            {
+              "name": "pulse"
+            },
+            {
+              "name": "jiggle"
+            },
+            {
+              "name": "glow"
+            },
+            {
+              "name": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-property-editor",
+      "description": {
+        "kind": "markdown",
+        "value": "A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.\n\nAlso known as:  inspector, property sheet, properties panel, settings form, object editor.\n\n**Slots:**  default, `output`, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-change`, `ui-loading`, `ui-loaded`, `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`, `ui-saving`, `ui-saved`, `ui-cancelling`, `ui-cancelled`, `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-error`"
+      },
+      "attributes": [
+        {
+          "name": "source",
+          "description": {
+            "kind": "markdown",
+            "value": "Its layout page:  a spell path inside the spell editor, else a full URL (epic `property-editor` P6).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "select",
+          "description": {
+            "kind": "markdown",
+            "value": "With `source`:  a CSS selector;  only its first match in the layout page is used.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "readonly",
+          "description": {
+            "kind": "markdown",
+            "value": "Shows every value;  nothing can be changed.  Reaches every property in it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "output",
+          "description": {
+            "kind": "markdown",
+            "value": "A value at the end of the title bar;  `slot=\"output\"`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "error",
+          "description": {
+            "kind": "markdown",
+            "value": "An error under the title, and the `error` state.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "size",
+          "description": {
+            "kind": "markdown",
+            "value": "Size of everything inside, `mini` ... `massive`.\n\nTakes:  `mini` · `tiny` · `small` · `medium` · `large` · `big` · `huge` · `massive`"
+          },
+          "values": [
+            {
+              "name": "mini"
+            },
+            {
+              "name": "tiny"
+            },
+            {
+              "name": "small"
+            },
+            {
+              "name": "medium"
+            },
+            {
+              "name": "large"
+            },
+            {
+              "name": "big"
+            },
+            {
+              "name": "huge"
+            },
+            {
+              "name": "massive"
+            }
+          ]
+        },
+        {
+          "name": "state",
+          "description": {
+            "kind": "markdown",
+            "value": "Form state:  shows the `<ui-message>`s of that state inside.  Failed validation sets `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
+          },
+          "values": [
+            {
+              "name": "error"
+            },
+            {
+              "name": "info"
+            },
+            {
+              "name": "success"
+            },
+            {
+              "name": "warning"
+            }
+          ]
+        },
+        {
+          "name": "equal-width",
+          "description": {
+            "kind": "markdown",
+            "value": "Every row of fields shares its width equally.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "inverted",
+          "description": {
+            "kind": "markdown",
+            "value": "For dark backgrounds:  light labels.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed behind a spinner, not usable.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Nothing inside can be used (`inert`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "unstackable",
+          "description": {
+            "kind": "markdown",
+            "value": "Rows of fields never stack on narrow forms.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "stack-with",
+          "description": {
+            "kind": "markdown",
+            "value": "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`).\n\nTakes:  `container` · `page`"
+          },
+          "values": [
+            {
+              "name": "container"
+            },
+            {
+              "name": "page"
+            }
+          ]
+        },
+        {
+          "name": "validate",
+          "description": {
+            "kind": "markdown",
+            "value": "When fields validate:  `immediately`, as each changes;  `on leave`, as the cursor leaves each;  or only `on save` (a submit, or `save()`).  A field showing an error always validates again as it changes.\n\nTakes:  `immediately` · `on leave` · `on save`\nDefault:  `on save`"
+          },
+          "values": [
+            {
+              "name": "immediately"
+            },
+            {
+              "name": "on leave"
+            },
+            {
+              "name": "on save"
+            }
+          ]
+        },
+        {
+          "name": "apply",
+          "description": {
+            "kind": "markdown",
+            "value": "When edits land in the bound `value`:  `immediately`;  or `on save`, all together on `save()`, while `cancel()` drops them (`:state(changed)` while any are held).  Each field's own `apply` says when it takes an edit.\n\nTakes:  `immediately` · `on save`\nDefault:  `immediately`"
+          },
+          "values": [
+            {
+              "name": "immediately"
+            },
+            {
+              "name": "on save"
+            }
+          ]
+        },
+        {
+          "name": "error-focus",
+          "description": {
+            "kind": "markdown",
+            "value": "Focus the first invalid field when a submit fails;  `error-focus=\"no\"` to keep focus.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
+        },
+        {
+          "name": "prevent-leaving",
+          "description": {
+            "kind": "markdown",
+            "value": "Ask before leaving the page while fields differ from their starting values.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "debug",
+          "description": {
+            "kind": "markdown",
+            "value": "Show the bound `value` (else `values`) as JSON below the form, live.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "header",
+          "description": {
+            "kind": "markdown",
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "subhead",
+          "description": {
+            "kind": "markdown",
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "level",
+          "description": {
+            "kind": "markdown",
+            "value": "Heading level of the title (`<h1>` ... `<h6>`);  default:  the enclosing section's level + 1, else 2 (under the page's `h1`).\n\nTakes:  `1` · `2` · `3` · `4` · `5` · `6`"
+          },
+          "values": [
+            {
+              "name": "1"
+            },
+            {
+              "name": "2"
+            },
+            {
+              "name": "3"
+            },
+            {
+              "name": "4"
+            },
+            {
+              "name": "5"
+            },
+            {
+              "name": "6"
+            }
+          ]
+        },
+        {
+          "name": "icon",
+          "description": {
+            "kind": "markdown",
+            "value": "Icon name, before the title;  a slotted `slot=\"icon\"` (a `<ui-icon>`, anything) replaces it.\n\nTakes:  icon name"
+          }
+        },
+        {
+          "name": "badge",
+          "description": {
+            "kind": "markdown",
+            "value": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "info",
+          "description": {
+            "kind": "markdown",
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "collapsible",
+          "description": {
+            "kind": "markdown",
+            "value": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "collapsed",
+          "description": {
+            "kind": "markdown",
+            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "fold-icon",
+          "description": {
+            "kind": "markdown",
+            "value": "With `collapsible`:  where the fold chevron sits:  `start`, before the title (the default), or `end`, at the far end of the title bar, after the badge and actions (a click on it folds too).\n\nTakes:  `start` · `end`"
+          },
+          "values": [
+            {
+              "name": "start"
+            },
+            {
+              "name": "end"
+            }
+          ]
+        },
+        {
+          "name": "sticky",
+          "description": {
+            "kind": "markdown",
+            "value": "The title bar sticks while the section is on screen;  a sticky section inside another sticks just below its title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "offset",
+          "description": {
+            "kind": "markdown",
+            "value": "With `sticky`:  pixels between the top edge and a TOP-LEVEL section's stuck title (e.g. a page header's height);  nested sections work theirs out.\n\nTakes:  number\nDefault:  `0`"
+          }
+        },
+        {
+          "name": "color",
+          "description": {
+            "kind": "markdown",
+            "value": "Hue of the title (and of the rule or box edge).\n\nTakes:  `primary` · `secondary` · `red` · `orange` · `yellow` · `olive` · `green` · `teal` · `blue` · `violet` · `purple` · `pink` · `brown` · `grey` · `black`"
+          },
+          "values": [
+            {
+              "name": "primary"
+            },
+            {
+              "name": "secondary"
+            },
+            {
+              "name": "red"
+            },
+            {
+              "name": "orange"
+            },
+            {
+              "name": "yellow"
+            },
+            {
+              "name": "olive"
+            },
+            {
+              "name": "green"
+            },
+            {
+              "name": "teal"
+            },
+            {
+              "name": "blue"
+            },
+            {
+              "name": "violet"
+            },
+            {
+              "name": "purple"
+            },
+            {
+              "name": "pink"
+            },
+            {
+              "name": "brown"
+            },
+            {
+              "name": "grey"
+            },
+            {
+              "name": "black"
+            }
+          ]
+        },
+        {
+          "name": "dividing",
+          "description": {
+            "kind": "markdown",
+            "value": "A rule under the title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "block",
+          "description": {
+            "kind": "markdown",
+            "value": "The title bar in a tinted box.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "bordered",
+          "description": {
+            "kind": "markdown",
+            "value": "A box around the section, as a segment.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "styled",
+          "description": {
+            "kind": "markdown",
+            "value": "Boxed as a styled accordion:  a tinted title bar over padded content.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "raised",
+          "description": {
+            "kind": "markdown",
+            "value": "With a box:  lifted with a shadow.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "basic",
+          "description": {
+            "kind": "markdown",
+            "value": "No box, rule or tint, whatever else is set.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "compact",
+          "description": {
+            "kind": "markdown",
+            "value": "Less padding and space around the title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "padded",
+          "description": {
+            "kind": "markdown",
+            "value": "More padding in the content;  `padded=\"very\"` for even more.\n\nTakes:  flag, or `very`"
+          },
+          "values": [
+            {
+              "name": "very"
+            }
+          ]
+        },
+        {
+          "name": "attached",
+          "description": {
+            "kind": "markdown",
+            "value": "With a box:  joined edge to edge with the box above / below;  bare `attached` sits between two.\n\nTakes:  flag, or `top` · `bottom`"
+          },
+          "values": [
+            {
+              "name": "top"
+            },
+            {
+              "name": "bottom"
+            }
+          ]
+        },
+        {
+          "name": "scrolling",
+          "description": {
+            "kind": "markdown",
+            "value": "The content has a capped height and scrolls;  `short` ... `very long` scale the cap.\n\nTakes:  flag, or `short` · `very short` · `long` · `very long`"
+          },
+          "values": [
+            {
+              "name": "short"
+            },
+            {
+              "name": "very short"
+            },
+            {
+              "name": "long"
+            },
+            {
+              "name": "very long"
+            }
+          ]
+        },
+        {
+          "name": "height",
+          "description": {
+            "kind": "markdown",
+            "value": "The content's cap, any CSS length (`20em`, `300px`):  above it the content scrolls (implies `scrolling`).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "text-align",
+          "description": {
+            "kind": "markdown",
+            "value": "Aligns the TITLE `left`, `center` or `right`.\n\nTakes:  `left` · `center` · `right`"
+          },
+          "values": [
+            {
+              "name": "left"
+            },
+            {
+              "name": "center"
+            },
+            {
+              "name": "right"
+            }
+          ]
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "animation",
+          "description": {
+            "kind": "markdown",
+            "value": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on.\n\nTakes:  `fade` · `fade up` · `fade down` · `fade left` · `fade right` · `scale` · `zoom` · `drop` · `browse` · `browse right` · `fly` · `fly up` · `fly down` · `fly left` · `fly right` · `slide` · `slide up` · `slide down` · `slide left` · `slide right` · `swing` · `swing up` · `swing down` · `swing left` · `swing right` · `horizontal flip` · `vertical flip` · `flash` · `shake` · `bounce` · `tada` · `pulse` · `jiggle` · `glow` · `none`"
+          },
+          "values": [
+            {
+              "name": "fade"
+            },
+            {
+              "name": "fade up"
+            },
+            {
+              "name": "fade down"
+            },
+            {
+              "name": "fade left"
+            },
+            {
+              "name": "fade right"
+            },
+            {
+              "name": "scale"
+            },
+            {
+              "name": "zoom"
+            },
+            {
+              "name": "drop"
+            },
+            {
+              "name": "browse"
+            },
+            {
+              "name": "browse right"
+            },
+            {
+              "name": "fly"
+            },
+            {
+              "name": "fly up"
+            },
+            {
+              "name": "fly down"
+            },
+            {
+              "name": "fly left"
+            },
+            {
+              "name": "fly right"
+            },
+            {
+              "name": "slide"
+            },
+            {
+              "name": "slide up"
+            },
+            {
+              "name": "slide down"
+            },
+            {
+              "name": "slide left"
+            },
+            {
+              "name": "slide right"
+            },
+            {
+              "name": "swing"
+            },
+            {
+              "name": "swing up"
+            },
+            {
+              "name": "swing down"
+            },
+            {
+              "name": "swing left"
+            },
+            {
+              "name": "swing right"
+            },
+            {
+              "name": "horizontal flip"
+            },
+            {
+              "name": "vertical flip"
+            },
+            {
+              "name": "flash"
+            },
+            {
+              "name": "shake"
+            },
+            {
+              "name": "bounce"
+            },
+            {
+              "name": "tada"
+            },
+            {
+              "name": "pulse"
+            },
+            {
+              "name": "jiggle"
+            },
+            {
+              "name": "glow"
+            },
+            {
+              "name": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-property-group",
+      "description": {
+        "kind": "markdown",
+        "value": "A property group is a folding band of properties in a property editor.  It takes `<ui-section>`'s attributes.\n\nAlso known as:  property group, fieldset, settings group, inspector section.\n\n**Slots:**  `output`, default, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-invalid`, `ui-success`, `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-error`"
+      },
+      "attributes": [
+        {
+          "name": "select",
+          "description": {
+            "kind": "markdown",
+            "value": "A CSS selector:  the group's properties are its first match in the editor's `source` page (P6).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "readonly",
+          "description": {
+            "kind": "markdown",
+            "value": "Shows every value;  nothing can be changed.  Reaches every property in it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "state",
+          "description": {
+            "kind": "markdown",
+            "value": "Its state:  tints its title.  A property in it failing validation shows `error` on top.\n\nTakes:  `error` · `info` · `success` · `warning`"
+          },
+          "values": [
+            {
+              "name": "error"
+            },
+            {
+              "name": "info"
+            },
+            {
+              "name": "success"
+            },
+            {
+              "name": "warning"
+            }
+          ]
+        },
+        {
+          "name": "output",
+          "description": {
+            "kind": "markdown",
+            "value": "A value at the end of the title bar;  `slot=\"output\"`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "error",
+          "description": {
+            "kind": "markdown",
+            "value": "An error under the title, and the `error` state.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "header",
+          "description": {
+            "kind": "markdown",
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "subhead",
+          "description": {
+            "kind": "markdown",
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "level",
+          "description": {
+            "kind": "markdown",
+            "value": "Heading level of the title (`<h1>` ... `<h6>`);  default:  the enclosing section's level + 1, else 2 (under the page's `h1`).\n\nTakes:  `1` · `2` · `3` · `4` · `5` · `6`"
+          },
+          "values": [
+            {
+              "name": "1"
+            },
+            {
+              "name": "2"
+            },
+            {
+              "name": "3"
+            },
+            {
+              "name": "4"
+            },
+            {
+              "name": "5"
+            },
+            {
+              "name": "6"
+            }
+          ]
+        },
+        {
+          "name": "icon",
+          "description": {
+            "kind": "markdown",
+            "value": "Icon name, before the title;  a slotted `slot=\"icon\"` (a `<ui-icon>`, anything) replaces it.\n\nTakes:  icon name"
+          }
+        },
+        {
+          "name": "badge",
+          "description": {
+            "kind": "markdown",
+            "value": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "info",
+          "description": {
+            "kind": "markdown",
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "collapsible",
+          "description": {
+            "kind": "markdown",
+            "value": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "collapsed",
+          "description": {
+            "kind": "markdown",
+            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "fold-icon",
+          "description": {
+            "kind": "markdown",
+            "value": "With `collapsible`:  where the fold chevron sits:  `start`, before the title (the default), or `end`, at the far end of the title bar, after the badge and actions (a click on it folds too).\n\nTakes:  `start` · `end`"
+          },
+          "values": [
+            {
+              "name": "start"
+            },
+            {
+              "name": "end"
+            }
+          ]
+        },
+        {
+          "name": "sticky",
+          "description": {
+            "kind": "markdown",
+            "value": "The title bar sticks while the section is on screen;  a sticky section inside another sticks just below its title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "offset",
+          "description": {
+            "kind": "markdown",
+            "value": "With `sticky`:  pixels between the top edge and a TOP-LEVEL section's stuck title (e.g. a page header's height);  nested sections work theirs out.\n\nTakes:  number\nDefault:  `0`"
+          }
+        },
+        {
+          "name": "color",
+          "description": {
+            "kind": "markdown",
+            "value": "Hue of the title (and of the rule or box edge).\n\nTakes:  `primary` · `secondary` · `red` · `orange` · `yellow` · `olive` · `green` · `teal` · `blue` · `violet` · `purple` · `pink` · `brown` · `grey` · `black`"
+          },
+          "values": [
+            {
+              "name": "primary"
+            },
+            {
+              "name": "secondary"
+            },
+            {
+              "name": "red"
+            },
+            {
+              "name": "orange"
+            },
+            {
+              "name": "yellow"
+            },
+            {
+              "name": "olive"
+            },
+            {
+              "name": "green"
+            },
+            {
+              "name": "teal"
+            },
+            {
+              "name": "blue"
+            },
+            {
+              "name": "violet"
+            },
+            {
+              "name": "purple"
+            },
+            {
+              "name": "pink"
+            },
+            {
+              "name": "brown"
+            },
+            {
+              "name": "grey"
+            },
+            {
+              "name": "black"
+            }
+          ]
+        },
+        {
+          "name": "size",
+          "description": {
+            "kind": "markdown",
+            "value": "Text size of the CONTENT, `mini` ... `massive`;  the title keeps its level's size.\n\nTakes:  `mini` · `tiny` · `small` · `medium` · `large` · `big` · `huge` · `massive`"
+          },
+          "values": [
+            {
+              "name": "mini"
+            },
+            {
+              "name": "tiny"
+            },
+            {
+              "name": "small"
+            },
+            {
+              "name": "medium"
+            },
+            {
+              "name": "large"
+            },
+            {
+              "name": "big"
+            },
+            {
+              "name": "huge"
+            },
+            {
+              "name": "massive"
+            }
+          ]
+        },
+        {
+          "name": "dividing",
+          "description": {
+            "kind": "markdown",
+            "value": "A rule under the title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "block",
+          "description": {
+            "kind": "markdown",
+            "value": "The title bar in a tinted box.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "bordered",
+          "description": {
+            "kind": "markdown",
+            "value": "A box around the section, as a segment.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "styled",
+          "description": {
+            "kind": "markdown",
+            "value": "Boxed as a styled accordion:  a tinted title bar over padded content.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "raised",
+          "description": {
+            "kind": "markdown",
+            "value": "With a box:  lifted with a shadow.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "basic",
+          "description": {
+            "kind": "markdown",
+            "value": "No box, rule or tint, whatever else is set.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "compact",
+          "description": {
+            "kind": "markdown",
+            "value": "Less padding and space around the title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "padded",
+          "description": {
+            "kind": "markdown",
+            "value": "More padding in the content;  `padded=\"very\"` for even more.\n\nTakes:  flag, or `very`"
+          },
+          "values": [
+            {
+              "name": "very"
+            }
+          ]
+        },
+        {
+          "name": "attached",
+          "description": {
+            "kind": "markdown",
+            "value": "With a box:  joined edge to edge with the box above / below;  bare `attached` sits between two.\n\nTakes:  flag, or `top` · `bottom`"
+          },
+          "values": [
+            {
+              "name": "top"
+            },
+            {
+              "name": "bottom"
+            }
+          ]
+        },
+        {
+          "name": "scrolling",
+          "description": {
+            "kind": "markdown",
+            "value": "The content has a capped height and scrolls;  `short` ... `very long` scale the cap.\n\nTakes:  flag, or `short` · `very short` · `long` · `very long`"
+          },
+          "values": [
+            {
+              "name": "short"
+            },
+            {
+              "name": "very short"
+            },
+            {
+              "name": "long"
+            },
+            {
+              "name": "very long"
+            }
+          ]
+        },
+        {
+          "name": "height",
+          "description": {
+            "kind": "markdown",
+            "value": "The content's cap, any CSS length (`20em`, `300px`):  above it the content scrolls (implies `scrolling`).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "text-align",
+          "description": {
+            "kind": "markdown",
+            "value": "Aligns the TITLE `left`, `center` or `right`.\n\nTakes:  `left` · `center` · `right`"
+          },
+          "values": [
+            {
+              "name": "left"
+            },
+            {
+              "name": "center"
+            },
+            {
+              "name": "right"
+            }
+          ]
+        },
+        {
+          "name": "inverted",
+          "description": {
+            "kind": "markdown",
+            "value": "For dark backgrounds:  the dark scheme.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Dims the content under a spinner;  `aria-busy`.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Dimmed and inert;  can't be folded.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -20440,21 +22026,35 @@
       "name": "ui-section",
       "description": {
         "kind": "markdown",
-        "value": "A section is a titled block of content that can fold away and keep its title in view.\n\nAlso known as:  section, panel, collapsible, disclosure, fieldset, expander.\n\n**Slots:**  default, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "A section is a titled block of content that can fold away and keep its title in view.\n\nAlso known as:  section, panel, collapsible, disclosure, fieldset, expander.\n\n**Slots:**  default, `label`, `hint`, `icon`, `badge`, `actions`, `description`, `header`, `subhead`, `info`\n\n**Events:**  `ui-opening`, `ui-opened`, `ui-closing`, `ui-closed`, `ui-open`, `ui-close`, `ui-loading`, `ui-loaded`, `ui-load`, `ui-error`"
       },
       "attributes": [
+        {
+          "name": "label",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
         {
           "name": "header",
           "description": {
             "kind": "markdown",
-            "value": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).\n\nTakes:  text"
+            "value": "Alias of `label`.  Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "hint",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
           "name": "subhead",
           "description": {
             "kind": "markdown",
-            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.\n\nTakes:  text"
+            "value": "Alias of `hint`.  Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`.\n\nTakes:  text"
           }
         },
         {
@@ -20499,10 +22099,17 @@
           }
         },
         {
+          "name": "description",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
+          }
+        },
+        {
           "name": "info",
           "description": {
             "kind": "markdown",
-            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+            "value": "Alias of `description`.  A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`.\n\nTakes:  text"
           }
         },
         {
@@ -25002,7 +26609,7 @@
           "name": "stack-by",
           "description": {
             "kind": "markdown",
-            "value": "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width (`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  `--ui-table-stack-by: container`;  the attribute wins.  Neither:  the page-wide `--ui-stack-with` (`<ui-root stack-with>`;  `page` ~== `viewport`).\n\nTakes:  `viewport` · `container`"
+            "value": "What `stackable` measures:  the `viewport` (Fomantic's way, the default), the table's own width (`container`:  a table in a narrow column of a wide screen), or nothing (`none`:  it never stacks, as `unstackable`).  Also a token for a whole region or page:  `--ui-table-stack-by: container` (or `none`);  the attribute wins.  Neither:  the page-wide `--ui-stack-with` (`<ui-root stack-with>`;  `page` ~== `viewport`).\n\nTakes:  `viewport` · `container` · `none`"
           },
           "values": [
             {
@@ -25010,6 +26617,9 @@
             },
             {
               "name": "container"
+            },
+            {
+              "name": "none"
             }
           ]
         },

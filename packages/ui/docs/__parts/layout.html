@@ -10,6 +10,10 @@
   - `<ui-root display="when-ready">`:  the page stays hidden until the layout is in and every element in it is
     ready, then shows at once:  no flash of unstyled markup (plan doc ui-docs-rework, D2).
   - `.site-content`:  the shell puts the page's `main` in here.
+  - The COMMENTS (epic `epic-engine`, as every set's):  every page loads `/_epic/assets/spell-comments.js` in its
+    `<head>`, after the site's bundle:  the bullhorns, threads, Send and the page's toolbar;  its threads and pane are
+    the epics pack's elements, so this loads that pack (`/_epic/pack/epics.pack.js`, the epic server's engine route,
+    which spell-app's page server serves as well), sharing the site bundle's Solid and Spell UI (`SitePacks.ts`)
   - Only `<body>` is used.
 -->
 <html lang="en">
@@ -19,6 +23,9 @@
   </head>
   <body>
     <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="when-ready">
+      <!-- the epics pack, for the comments' threads and pane (`<epic-thread>`, `<epic-comment-pane>`):  every page loads
+        the comments, `/_epic/assets/spell-comments.js`, which draws them with this pack's elements -->
+      <ui-components source="/_epic/pack/epics.pack.js"></ui-components>
       <!--
         Top bar:  ONLY while the right column is hidden (narrower than 1200px);  wide screens have none (Owen:  "lose the
         top bar entirely").  The menu button and the brand only below 992px, where the nav panel moves into the flyout.

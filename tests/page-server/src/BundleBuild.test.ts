@@ -45,7 +45,7 @@ const BUNDLES = ["packages/ui/site/_assets", "packages/brand/_assets/ui"]
 /** Two component sets, whose `_assets/` are Spell UI's bundle's folder, as the repo root's `package.json` names them. */
 const SETS = {
   ui: { name: "Spell UI", dir: "packages/ui/docs", assets: "packages/ui/site/_assets" },
-  epics: { name: "Epic UI", dir: "spell-epic/src/docs", assets: "packages/ui/site/_assets/sets" }
+  epics: { name: "Epic UI", dir: "spell-epic/src/docs", assets: "packages/ui/site/_assets" }
 }
 
 /** A checkout's `package.json` naming `BUNDLES` and `SETS`. */
@@ -177,7 +177,7 @@ describe("BundleBuild.bundleFileFor()", () => {
     )
     expect(build.bundleFileFor("/components/ui/__data/components.json5")).toBeUndefined()
     expect(build.bundleFileFor("/components/epics/_assets/site.js")).toBe(
-      join(repo, "packages/ui/site/_assets/sets/site.js")
+      join(repo, "packages/ui/site/_assets/site.js")
     )
     expect(build.bundleFileFor("/packages/brand/_assets/brand-pages.js")).toBeUndefined()
     expect(build.bundleFileFor("/worktrees/seo/components/ui/_assets/site.js")).toBeUndefined()

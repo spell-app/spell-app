@@ -42,7 +42,9 @@ const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpTe
 
 program
   .command("compile")
-  .description("compile projects to <Project>.spell.js, or print a file's compiled javascript")
+  .description(
+    "compile projects to <Project>.spell.js (and each *.editor.html to its <type-editor> module), or print a file's compiled javascript"
+  )
   .argument("[projects...]", PROJECTS_ARG)
   .option("--stdout", "print a project's compiled output instead of writing it")
   .option("--target <name>", 'compile to this target too, e.g. ts/solid -- default the project file\'s "targets"')
@@ -52,9 +54,13 @@ program
 
 program
   .command("check")
-  .description("list errors, one per line as path:line:col, exiting 1 if there are any")
+  .description(
+    "list errors, one per line as path:line:col, exiting 1 if there are any -- " +
+      "a project's editor pages (*.editor.html) too, against its types"
+  )
   .argument("[projects...]", PROJECTS_ARG)
   .option("--json", "print errors as JSON")
+  .option("--fix", "put the editor pages right:  drop gone properties, add new ones, fix controls that don't fit")
   .action((args: string[], _options, command) => run(CLI.checkCommand, args, command.optsWithGlobals()))
 
 program
@@ -213,6 +219,7 @@ program
   .command("pony")
   .description("a pony in Spell's wizard hat, saying something -- yours, or one of its own")
   .argument("[words...]", "what the pony says")
+  .option("--gallop", "her legs gallop:  in place in a terminal, else one stride's frames")
   .action((words: string[], _options, command) => run(CLI.ponyCommand, words, command.optsWithGlobals()))
 
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 from spell_core.js_text import js_string
 from spell_core.kinds import is_same
+from spell_core.prop_rules import broken_rule, rule_warning
 from spell_core.state import StateMirror
 from spell_core.things import Prop, ThingRegistry, things
 
@@ -39,7 +40,7 @@ class ThingMethods:
     def check_prop(self, property_name: str, value: object, check: Prop | Mapping[str, Any] | None = None) -> bool:
         """Is `value` what `check` declares for property `property_name`?  Else warn on `core.console`.
 
-        - `check`:  a `prop()`'s declaration, or a dict with its `type` and `one_of`.
+        - `check`:  a `prop()`'s declaration, or a dict with its `type`, `one_of` and `rules`.
         - Returns whether it passed:  a thing sets the value either way, as in JavaScript.
         - The warnings are the JavaScript core's, word for word:
           `Expected rank to be one of 'ace,2,3', got: 7`.
@@ -52,6 +53,10 @@ class ThingMethods:
             one_of = one_of()
         if one_of is not None and not any(is_same(value, legal) for legal in one_of):
             self.console.warn(f"Expected {property_name} to be one of '{js_string(list(one_of))}', got:", value)
+            return False
+        broken = broken_rule(value, _rules_of(check))
+        if broken is not None:
+            self.console.warn(f"{rule_warning(property_name, broken)}, got:", value)
             return False
         return True
 
@@ -84,3 +89,12 @@ def _check_of(check: Prop | Mapping[str, Any] | None) -> tuple[str | None, Any]:
     if isinstance(check, Prop):
         return check.type, check.one_of
     return check.get("type"), check.get("one_of", check.get("oneOf"))
+
+
+def _rules_of(check: Prop | Mapping[str, Any] | None) -> Any:
+    """`check`'s rules, what its value must be beyond its type (epic `property-editor` P9):  see `prop_rules.py`."""
+    if check is None:
+        return None
+    if isinstance(check, Prop):
+        return check.rules
+    return check.get("rules")

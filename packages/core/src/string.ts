@@ -33,6 +33,17 @@ export const stringMethods = defineCoreModule({
   lowerCase(string: unknown): string {
     if (string == null) return ""
     return `${string as string}`.toLowerCase()
+  },
+  /**
+   * The character with unicode code point `code`, e.g. `"🂠"` for `0x1F0A0`.
+   * - Compiles from spell `unicode {number}`, a number worked out as the program runs (see `rules/expressions/Unicode.ts`).
+   *   `unicode 1F0A0`, written out, compiles straight to the character.
+   * - `""` for nothing, or what's no code point (not a whole number, or past `0x10FFFF`).
+   */
+  unicode(code: unknown): string {
+    const point = Number(code)
+    if (code == null || !Number.isInteger(point) || point < 0 || point > 0x10ffff) return ""
+    return String.fromCodePoint(point)
   }
 })
 Object.assign(core, stringMethods)

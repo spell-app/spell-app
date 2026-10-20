@@ -7,23 +7,27 @@ import { FIELD_SELECTOR, type Field, type FieldSpec } from "./UIForm.types"
  * What `<ui-form>` validates, read from the DOM:  its controls grouped by name (else id),
  * their values and labels, and one field's errors.
  * - Plain DOM, no Solid, so it reads light-DOM natives and `ui-*` elements alike.
- * - Controls:  the native form's `elements` (which include form-associated `ui-*` elements),
- *   those inside the `<ui-form>` when the form is outside it;  without a form, every control inside.
- *   Buttons are skipped;  a `ui-*` element counts when it has the form-control API (`validity`),
- *   so `<ui-button>` doesn't.
+ * - Controls:
+ *   - the native form's `elements` (which include form-associated `ui-*` elements),
+ *     those inside the `<ui-form>` when the form is outside it
+ *   - without a form, every control inside
+ *   - Buttons are skipped.
+ *     A `ui-*` element counts when it has the form-control API (`validity`), so `<ui-button>` doesn't.
  * - Values, Fomantic's `get.values()` shape:
- *   - checkboxes (`ui-checkbox` / native):  one => its value (`true` for the native default, `on`,
- *     with no `value` attribute) when chosen, else its `off-value` or `false`;  several of one name => what each
- *     submits, the chosen values and the unchosen ones' off-values
+ *   - one checkbox (`ui-checkbox` / native):  its value when chosen, else its `off-value` or `false`
+ *     - `true` for the native default, `on`, with no `value` attribute
+ *   - several checkboxes of one name:
+ *     what each submits, the chosen values and the unchosen ones' off-values
  *   - a `ui-*` element's values come from the element (`chosenValue` / `unchosenValue`),
  *     so its class's defaults count
  *   - radios:  the chosen one's value, else `null` (Fomantic's, kept:  pages read it, and JSON keeps it)
  *   - anything else:  its `value` (`string`, or `string[]` for a multiple dropdown / select);  several => a list
- * - Errors of a field:  its `rules` through `Validator` (with every value for `match` / `different`,
- *   and every label for their prompts), THEN each control's own constraint validation (`validationMessage`),
- *   de-duplicated.
- * - Its readings of ONE control (`nameOf()`, `isCheckable()`, `isRadio()`, `isChosen()`, `chosenValueFor()`)
- *   are public:  `FormBinding` reads controls the same way.
+ * - Errors of a field, de-duplicated:
+ *   - its `rules` through `Validator`, with every value for `match` / `different`,
+ *     and every label for their prompts
+ *   - THEN each control's own constraint validation (`validationMessage`)
+ * - Its readings of ONE control are public, as `FormBinding` reads controls the same way:
+ *   `nameOf()`, `isCheckable()`, `isRadio()`, `isChosen()`, `chosenValueFor()`.
  ****************/
 export class FormFields {
   /**
@@ -80,7 +84,12 @@ export class FormFields {
     return values
   }
 
-  /** Human label of a field:  its controls' `<label>`s, else its `<ui-field>`'s label, else the identifier. */
+  /**
+   * Human label of a field, the first there is:
+   * - its controls' `<label>`s
+   * - its `<ui-field>`'s label:  a `<label>` in it, else the one it draws
+   * - the identifier
+   */
   label({ identifier, controls }: Field): string {
     for (const control of controls) {
       const labels = (control as { labels?: NodeList | null }).labels
@@ -88,7 +97,9 @@ export class FormFields {
       if (text) return text
     }
     const field = controls[0]?.closest(FIELD_SELECTOR)
-    const fieldLabel = field?.querySelector(":scope > label")?.textContent?.trim()
+    const fieldLabel =
+      field?.querySelector(":scope > label")?.textContent?.trim() ||
+      (field as { shownLabel?: string } | null)?.shownLabel
     if (fieldLabel) return fieldLabel
     const own =
       controls.length === 1 && FormFields.isCheckable(controls[0]!) ? controls[0]!.textContent?.trim() : undefined
@@ -109,8 +120,9 @@ export class FormFields {
   /**
    * Prompts of one field, `[]` when it passes.
    * - `rules` for it (by identifier, or a spec whose `identifier` names it), then the controls' own validity.
-   * - Controls that don't validate (`willValidate` false:  disabled, readonly, fieldset-disabled) and fields in a
-   *   disabled `<ui-field>` are skipped.
+   * - Skipped:
+   *   - controls that don't validate (`willValidate` false:  disabled, readonly, fieldset-disabled)
+   *   - fields in a disabled `<ui-field>`
    */
   errors({ field, rules, values, labels }: FieldErrorsParams): string[] {
     const live = field.controls.filter((control) => FormFields.willValidate(control))
@@ -294,8 +306,8 @@ export type FormFieldsProps = {
 }
 
 /**
- * What a checkable `ui-*` element says it submits (`DOMCheckElement`);  structural,
- * so this file never imports that family.
+ * What a checkable `ui-*` element says it submits (`DOMCheckElement`).
+ * - Structural, so this file never imports that family.
  */
 type CheckableElement = Element & {
   /** submitted while chosen;  none before its component exists */

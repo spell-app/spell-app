@@ -23,6 +23,8 @@
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
+    <!-- the comments (bullhorns, threads, Send):  the docs runtime's, alone, beside the site's Spell UI -->
+    <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="Radio">
@@ -59,8 +61,8 @@
               `<ui-radio>` are still one family (`ui-checkbox`).
               - Radios group by `name` across the whole page when there is no form, so every example's group has its own name.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-radio" header="Radio" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-radio" label="Radio" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A radio is an exclusive option: <code>&lt;ui-radio&gt;</code>s with the same <code>name</code> form a
@@ -96,7 +98,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-slider" header="Slider" sticky collapsible dividing>
+              <ui-section id="examples-types-slider" label="Slider" sticky collapsible dividing>
                 <ui-docs-example
                   description='Radios can be sliders, to emphasize the current selection:  `type="slider"`.'
                 >
@@ -116,7 +118,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-toggle" header="Toggle" sticky collapsible dividing>
+              <ui-section id="examples-types-toggle" label="Toggle" sticky collapsible dividing>
                 <ui-docs-example description='Radios can be toggles, an on or off look:  `type="toggle"`.'>
                   <ui-form>
                     <form>
@@ -132,7 +134,7 @@
               </ui-section>
 
               <!-- GAP:  Fomantic styles an invisible checkbox's LABEL as any component (button, message, segment);  ours is a bordered label tinted when chosen. -->
-              <ui-section id="examples-types-invisible" header="Invisible" sticky collapsible dividing>
+              <ui-section id="examples-types-invisible" label="Invisible" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     An invisible radio has no box: the label itself is the control, bordered while unchosen and tinted when
@@ -140,9 +142,8 @@
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
                     >Not ported: styling the label as another component (Fomantic's
-                    <code>label class="ui purple button"</code>, <code>ui orange message</code>,
-                    <code>ui teal segment</code>) -- the label is in the shadow root, so it can't take another component's
-                    classes.</ui-message
+                    <code>label class="ui purple button"</code>, or an orange message or teal segment label). The label
+                    is in the shadow root, so it can't take another component's classes.</ui-message
                   >
                   <ui-form>
                     <form>
@@ -163,8 +164,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-checked" header="Checked" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-checked" label="Checked" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A radio can be chosen. <code>selected</code> is the canonical name; <code>checked</code> is accepted as an
@@ -174,7 +175,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+              <ui-section id="examples-states-read-only" label="Read-only" sticky collapsible dividing>
                 <ui-docs-example
                   description="A radio can be read-only and unable to change states.  It is still submitted."
                 >
@@ -182,7 +183,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A radio can show it is currently unable to be interacted with. It is left out of the form.
@@ -197,8 +198,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-fitted" label="Fitted" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A fitted radio does not leave padding for a label. Give it an <code>aria-label</code>.
@@ -215,7 +216,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A radio can be formatted to appear on dark backgrounds.">
                   <ui-segment compact inverted>
                     <ui-radio inverted name="inverted" selected>Inverted</ui-radio>
@@ -229,7 +230,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-right-aligned" header="Right aligned" sticky collapsible dividing>
+              <ui-section id="examples-variations-right-aligned" label="Right aligned" sticky collapsible dividing>
                 <ui-docs-example description="A radio can be aligned to the right of its label:  `right-aligned`.">
                   <ui-form>
                     <form>
@@ -247,7 +248,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example
                   description="A radio can have different colors:  `color` tints the chosen bullet, lane or line."
                 >
@@ -257,7 +258,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A radio can have different sizes.">
                   <ui-radio size="mini" name="size">Mini</ui-radio>
                   <ui-radio size="tiny" name="size">Tiny</ui-radio>
@@ -274,7 +275,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  groups, forms, `selected` / `checked`, events, keyboard, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Write one `<ui-radio>` per option, its label inside, and give the options of one question the same `name`. No
@@ -290,7 +291,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-radio-groups" header="Radio groups" sticky collapsible dividing>
+            <ui-section id="usage-radio-groups" label="Radio groups" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Radios group by `name` within their form, or the whole page when there is none, even though each `<ui-radio>`
@@ -300,7 +301,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+            <ui-section id="usage-forms" label="Forms" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Radios are real form controls.
@@ -314,7 +315,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `ui-change` fires on the newly chosen radio only, when the user chooses it, with `{ selected, value,
@@ -334,7 +335,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Space** chooses the focused radio.
@@ -345,7 +346,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The shadow root holds a real `<input type="radio">` tied to a `<label>`, so clicking the label, Space, and the
@@ -365,7 +366,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Bind `selected` as a property on each radio, and listen for `ui-change` on the group.
@@ -418,7 +419,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the checkbox family's tokens a radio reads, live. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A radio reads the checkbox family's `--ui-checkbox-*` tokens: the shared box, label and focus tokens, plus its
@@ -447,7 +448,7 @@
               </ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle radios (the checkbox family's): Colored. The one

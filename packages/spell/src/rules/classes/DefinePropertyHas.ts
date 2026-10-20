@@ -1,14 +1,27 @@
-import { pluralize, proto, upperFirst } from "$/util"
+import { pluralize, proto, upperFirst, type PropRule } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { Priority } from "$/spell/rules/rules.types"
 // Through the folder, not its own file:  importing its file would load it first,
 // but `outline_specifier_enum` registers AFTER us, and the registration order must not change.
 // Read only when called, once the folder has loaded.
-import { OutlineSpecifierEnum, OutlineSpecifierList } from "$/spell/rules/classes"
+import {
+  MustRule,
+  OutlineSpecifierEnum,
+  OutlineSpecifierList,
+  PropertyBodyMust,
+  TypeSpecifierTextKind
+} from "$/spell/rules/classes"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
+
+/**
+ * What may follow a property's declaration:  its RULES -- see `DefinePropertyHas.rulesOf()` (epic `property-editor` P9).
+ * - one on its line:  `, which must not be empty`
+ * - an indented body of them:  `- it must not be empty`
+ */
+const RULES = "(,? which must {rule:must_rule})? {nested_statements}?"
 
 /**
  * `define_property_has` rule:  declares an instance property on `type`,
@@ -30,8 +43,18 @@ import { classes } from "./classes.parser"
  *     - `get name() { return this.getProp("name") }`
  *     - `set name(value) { this.setProp("name", value) }`
  * - An enumeration's values also go on the class, e.g. `static Suits = ["clubs", ...]` -- see `class_member`.
+ * - Its RULES, what its value must be (epic `property-editor` P9):
+ *   - on its line:  `, which must ...`
+ *   - indented under it:  `- it must ...` (`property_body_must`)
+ *   - Both say a `must_rule`;  and `as a url` / `as an email` brings one.
+ *   - They go in its declaration, `{ type: "text", rules: [{ type: "empty" }] }`,
+ *     and on its record, for its declarations (`P.TypeScope.addPropertyRules()`).
+ *   - A rule on a line of its own, `- its title must ...`, is `property_must`'s.
  */
-export class DefinePropertyHas extends SpellStatement<"type|property|specifier?", { valueType?: P.TypeScope }> {
+export class DefinePropertyHas extends SpellStatement<
+  "type|property|specifier?|rule?|body?",
+  { valueType?: P.TypeScope }
+> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
@@ -84,6 +107,8 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
     const typeScope = P.TypeScope.getOrStub(scope, typeName, match)
     // what its specifier says it holds, e.g. `text`, `choice`, `thing` for `as a new thing`
     typeScope.declareProperty(`${property.value}`, match, { asWritten: property.raw, datatype: specifier?.datatype })
+    const rule = match.groups.rule as P.MatchFor<MustRule> | undefined
+    if (rule) typeScope.addPropertyRules(`${property.value}`, [MustRule.ruleOf(rule)], match)
 
     // If there is a specifier as enumerated values, add rules to match it
     if (specifierAST instanceof P.ASTEnumeration) {
@@ -105,6 +130,43 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
         if (typeof value === "string") scope.constants?.add({ name: value, declaredBy: match })
       })
     }
+  }
+
+  /**
+   * The scope of our body, the rules indented under us:  a `P.SubjectScope` declared by us, so its lines find us.
+   * - `it` there is our property, not the type (`property_body_must`).
+   */
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.SubjectScope {
+    return new P.SubjectScope({ parentScope: match.scope, subject: `${match.groups.type.value}`, declaredBy: match })
+  }
+
+  /**
+   * SIDE EFFECT:  once our body has parsed, our property records every rule we say, its own line's and its body's.
+   * - Returns them, as text, so an edit changing them re-parses what follows.
+   */
+  mutateScopeFromBody(match: P.Match): string | undefined {
+    const rules = DefinePropertyHas.rulesOf(match as P.MatchFor<DefinePropertyHas>)
+    if (!rules.length) return undefined
+    const { type, property } = (match as P.MatchFor<DefinePropertyHas>).groups
+    P.TypeScope.getOrStub(match.scope, `${type.value}`, match).addPropertyRules(`${property.value}`, rules, match)
+    return JSON.stringify(rules)
+  }
+
+  /**
+   * Every rule `match` says, in order:  its line's (`, which must ...`), then its body's (`- it must ...`).
+   * - Reads ONLY matches:  pure, for `getAST()` too.
+   */
+  static rulesOf(match: P.MatchFor<DefinePropertyHas>): PropRule[] {
+    const rules: PropRule[] = []
+    const { rule, specifier } = match.groups
+    // `as a url` / `as an email`:  text that must be one
+    if (specifier?.is(TypeSpecifierTextKind)) rules.push(TypeSpecifierTextKind.ruleOf(specifier))
+    if (rule) rules.push(MustRule.ruleOf(rule as P.MatchFor<MustRule>))
+    for (const line of (match.rule as DefinePropertyHas).getBody(match)?.matched ?? []) {
+      const statement = line instanceof P.Match ? (line.data as { statement?: P.Match }).statement : undefined
+      if (statement?.is(PropertyBodyMust)) rules.push(MustRule.ruleOf(statement.groups.rule as P.MatchFor<MustRule>))
+    }
+    return rules
   }
 
   /**
@@ -172,6 +234,12 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       // Checked at runtime by its class's name:  see `P.ASTTypeExpression.runtimeName`.
       check.addProp("type", new P.ASTTypeNameLiteral(match, { value: typeExpression.runtimeName, quote: "'" }))
     }
+    // its rules, what its value must be (epic `property-editor` P9)
+    const rules = DefinePropertyHas.rulesOf(match)
+    if (rules.length) {
+      const items = rules.map((rule) => MustRule.astOf(match, rule))
+      check.addProp("rules", new P.ASTArrayLiteral(match, { items }))
+    }
 
     statements.push(
       new P.ASTReactiveProperty(match, {
@@ -200,7 +268,7 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
   }
 }
 classes.addRule(DefinePropertyHas, {
-  syntax: "(a|an) {type:singular_type} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?",
+  syntax: `(a|an) {type:singular_type} has (a|an|a property)? {property:member_words} {specifier:type_specifier}? ${RULES}`,
   tests: [
     {
       compileAs: "block",
@@ -366,7 +434,7 @@ classes.addRule(DefinePropertyHas, {
   ]
 })
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:plural_type} have (a|an|a property)? {property:member_words} {specifier:type_specifier}?",
+  syntax: `{type:plural_type} have (a|an|a property)? {property:member_words} {specifier:type_specifier}? ${RULES}`,
   tests: [
     {
       compileAs: "block",
@@ -468,32 +536,32 @@ classes.addRule(DefinePropertyHas, {
 // a quoted name in the sentence style (epic page J3, option C) -- tests in `parserTests/outline.test.ts`:
 // `a card has a "suit" as one of ...`, `cards have a "direction" as either up or down`
 classes.addRule(DefinePropertyHas, {
-  syntax: "(a|an) {type:singular_type} has (a|an|a property)? {property:quoted_member} {specifier:type_specifier}?"
+  syntax: `(a|an) {type:singular_type} has (a|an|a property)? {property:quoted_member} {specifier:type_specifier}? ${RULES}`
 })
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:plural_type} have (a|an|a property)? {property:quoted_member} {specifier:type_specifier}?"
+  syntax: `{type:plural_type} have (a|an|a property)? {property:quoted_member} {specifier:type_specifier}? ${RULES}`
 })
 // in an outline body -- tests in `parserTests/outline.test.ts`:
 // - `- it has a deck`
 // - `- its "suit" is one of clubs, diamonds, hearts or spades`, `- its "rank" is a number`
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:subject_it} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?"
+  syntax: `{type:subject_it} has (a|an|a property)? {property:member_words} {specifier:type_specifier}? ${RULES}`
 })
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:subject_its} {property:quoted_member} is {specifier:outline_specifier}"
+  syntax: `{type:subject_its} {property:quoted_member} is {specifier:outline_specifier} ${RULES}`
 })
 // ... and with the subject left out (P8):  `- has a deck`, `- "suit" is one of clubs, diamonds, hearts or spades`
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:subject_implied} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?"
+  syntax: `{type:subject_implied} has (a|an|a property)? {property:member_words} {specifier:type_specifier}? ${RULES}`
 })
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:subject_implied} {property:quoted_member} (is|are) {specifier:outline_specifier}"
+  syntax: `{type:subject_implied} {property:quoted_member} (is|are) {specifier:outline_specifier} ${RULES}`
 })
 // ... and a bare name (P9):  `- suit is a suit of its deck`, `- foundations are a list of piles`
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:subject_implied} {property:body_member_words} (is|are) {specifier:outline_specifier}"
+  syntax: `{type:subject_implied} {property:body_member_words} (is|are) {specifier:outline_specifier} ${RULES}`
 })
 // ... and the quotes are optional (epic page Q4):  `- its rank is a number`
 classes.addRule(DefinePropertyHas, {
-  syntax: "{type:subject_its} {property:member_words} is {specifier:outline_specifier}"
+  syntax: `{type:subject_its} {property:member_words} is {specifier:outline_specifier} ${RULES}`
 })

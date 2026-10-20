@@ -8,6 +8,8 @@
  *   an object counts by its class, compared with `instanceof` (a `UIError` where an `Error` was is no widening).
  */
 
+import type { PropRule } from "./PropRules"
+
 ////////////////
 // ## `Symbol.metadata`
 ////////////////
@@ -68,6 +70,12 @@ export class Schema {
     return undefined
   }
 
+  /** Names of the props whose value is made with the instance (`PropInfo.early`), its parents' schemas' first. */
+  earlyProps(): string[] {
+    const own = [...this.declared].filter(([, info]) => info.early && info.init).map(([name]) => name)
+    return [...(this.parent?.earlyProps() ?? []), ...own]
+  }
+
   /** `name`'s type as a person would say it, e.g. `text`, `number | text` -- `unknown` if never set. */
   typeOf(name: string): string {
     const declared = this.info(name)?.type
@@ -103,7 +111,22 @@ export function schemaOf(Class: Function): Schema {
  * - Same runtime shape as `@prop(info)`:  both end up in `schemaOf(Class)`.
  */
 export function declareProp(Class: Function, name: string, info: PropInfo): void {
-  schemaOf(Class).declared.set(name, info)
+  const { declared } = schemaOf(Class)
+  // keep rules declared before it, from a line of their own:  see `declareRules()`
+  const rules = declared.get(name)?.rules
+  declared.set(name, rules ? { ...info, rules: [...(info.rules ?? []), ...rules] } : info)
+}
+
+/**
+ * Add `rules` to prop `name` of `Class`:  what its value must be, beyond its type -- see `PropRule`.
+ * - What compiled spell calls for a rule on a line of its own, after the class:
+ *   `Card.declareRules("title", [{ type: "empty" }])` for `- its title must not be empty`.
+ * - Call it before or after the prop's own declaration:  `declareProp()` keeps the rules either way.
+ */
+export function declareRules(Class: Function, name: string, rules: readonly PropRule[]): void {
+  const { declared } = schemaOf(Class)
+  const info = declared.get(name) ?? {}
+  declared.set(name, { ...info, rules: [...(info.rules ?? []), ...rules] })
 }
 
 /**
@@ -157,12 +180,25 @@ export type PropInfo = {
    */
   init?: (this: any) => unknown
   /**
+   * `true`:  `init` makes its value as the instance is made, not on first read (epic `outline-spell` P19).
+   * - Compiled spell, for a starting value that's a thing:
+   *   `{ init: () => new Foundation(...), early: true }`, so a solitaire's piles exist as soon as it does.
+   * - See `Schema.earlyProps()`.
+   */
+  early?: boolean
+  /**
    * What a LIST prop holds, as the runtime names it:  a class name, e.g. `"Task"` for
    *   `a project has tasks as a new list of tasks`, or a value's type, e.g. `"text"`.
    * - Compiled spell:  `this.declareProp("tasks", { itemType: "Task", init: () => new List() })`.
    * - For the saver (epic `people-and-orgs`), which needs each item's kind:  nothing checks it yet.
    */
   itemType?: string
+  /**
+   * What its value must be, beyond its type -- see `PropRule`.
+   * - e.g. `[{ type: "empty" }]` for `- its title must not be empty`
+   * - A setter WARNS when a value breaks one (epic `property-editor` P9).
+   */
+  rules?: readonly PropRule[]
 }
 
 ////////////////

@@ -2,31 +2,25 @@ import { Show } from "solid-js"
 import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, spellPosition, trigger } from "@spell/core"
 
 core.heading("definition of a Card with nice english aliases for working with it")
-/** card ranks */
-const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
-export type Rank = (typeof RANKS)[number]
-
-/** card suits */
-const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const
-export type Suit = (typeof SUITS)[number]
-
-/** card direction:  up or down */
-const DIRECTIONS = ["up", "down"] as const
-export type Direction = (typeof DIRECTIONS)[number]
+export type Rank = (typeof Card.Ranks)[number]
+export type Suit = (typeof Card.Suits)[number]
+export type Direction = (typeof Card.Directions)[number]
 
 /** definition of a Card with nice english aliases for working with it */
 export class Card extends Thing {
   /////////////////////////
   // ## properties of cards
   /////////////////////////
+  /** card ranks */
   // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
-  static Ranks = RANKS
-  @prop({ oneOf: RANKS })
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
+  @prop({ oneOf: () => Card.Ranks })
   accessor rank!: Rank
 
+  /** card suits */
   // cards have a suit as one of clubs, diamonds, hearts or spades
-  static Suits = SUITS
-  @prop({ oneOf: SUITS })
+  static Suits = ["clubs", "diamonds", "hearts", "spades"] as const
+  @prop({ oneOf: () => Card.Suits })
   accessor suit!: Suit
 
   /** color as derivation of suit */
@@ -40,9 +34,10 @@ export class Card extends Thing {
     return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
+  /** card direction:  up or down */
   // a card has a direction as either up or down
-  static Directions = DIRECTIONS
-  @prop({ oneOf: DIRECTIONS })
+  static Directions = ["up", "down"] as const
+  @prop({ oneOf: () => Card.Directions })
   accessor direction!: Direction
 
   /////////////

@@ -35,7 +35,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       "pageServer": { "bundles": [...] }
       ```
 
-      - Spell UI's site:  [ui's site/_assets/](../ui/site/), with the component sets' build in its `sets/`
+      - Spell UI's site:  [ui's site/_assets/](../ui/site/), every component set's (one build since epic `epic-engine`)
       - the brand pages':  [brand's _assets/ui/](../brand/)
     - As the server starts, it runs the checkout's own `spell dev bundles build --stale`, as a child.
       `$/assembler`'s `Bundle` does the work;  this only spawns it.

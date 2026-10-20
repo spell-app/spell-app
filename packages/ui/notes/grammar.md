@@ -218,8 +218,9 @@ but the FORM itself has to be a real `<form>` in the light DOM:
   its `rules` (Fomantic's `fields` shape), plus each control's own constraint validation.
   - An invalid submit is stopped before the page's submit handlers run.
   - A valid one fires the cancelable `ui-success` first.
-- Without a native form, `<ui-form>` still validates (`validate()`, `validate-on="blur|change"`), but nothing submits.
-- Prompts draw inside each `<ui-field>`'s shadow root:  a basic pointing `prompt` label, `role="alert"`.
+- Without a native form, `<ui-form>` still validates, but nothing submits.
+  - It validates on `validate()`, or as `validate="on leave | immediately"` says.
+- Errors draw inside each `<ui-field>`'s shadow root:  plain lines under the control, `role="alert"`.
   - `<ui-form>` finds a control's field with `closest(":state(field)")`.
   - A form or field in a state shows the `<ui-message>`s of that state (`native.css`).
 
@@ -334,8 +335,9 @@ A table's meaning stays NATIVE and in the LIGHT DOM;  the element only adds the 
   E.g. `positive`, `red marked left`, `collapsing`, `four wide`.
 - `stackable` answers to the VIEWPORT, as in Fomantic, for elements and static markup alike.
   - An element opts in to its DOM element's width (a size container) with `stack-by="container"`.
-  - That's a state of the DOM element;
+  - That's a private class on the table (`stack-by-container`);
     or the region token `--ui-table-stack-by: container`, which the attribute beats.
+  - `stack-by="none"` / `--ui-table-stack-by: none`:  never stacks (`unstackable`, for a region or a page).
 - Sorting (`sortable`):  a header's `<button>` is its control (else the header becomes focusable).
   - The cancelable `ui-sort` (`{ column, key, direction }`) comes first,
     then `sort-column` / `sort-direction` and `aria-sort`.
@@ -1045,8 +1047,8 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
 </script>
 ```
 
-- Shadow root:  `<div class="ui [category fluid ...] search">`, around Fomantic's `ui icon input`
-  and a `.results` popover anchored by CSS, as the dropdown's menu.
+- Shadow root:  `<div class="ui [category fluid ...] search">`, around two boxes:
+  Fomantic's `ui icon input`, and a `.results` popover anchored by CSS, as the dropdown's menu.
   - The text `<input class="prompt">` is an APG combobox, `aria-autocomplete="list"`.
   - The popover is a `listbox` of `role=option` results, or the no-results / error message.
     A `category` search has one named `role=group` per category.

@@ -118,3 +118,8 @@ events.addRule(On, {
     }
   ]
 })
+// `on card click with a card`:  an event's name of several words, the same event as `card-click` -- see `event_words`
+events.addRule(On, {
+  syntax: "on event? {eventName:event_words} {props:with_props_arg}? :? {statement_body}?",
+  tests: [{ compileAs: "block", tests: [["on card click", 'on("card-click")']] }]
+})

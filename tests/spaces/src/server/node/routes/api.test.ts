@@ -1,7 +1,7 @@
 /**
  * HTTP-level CONTRACT tests for the app's server (`cli.ts` + `api.ts`, in spaces' `src/server/node/routes/`).
- * - Talk HTTP only:  spawn the server as a child process, never import the server framework, so the same
- *   file passes unchanged when the framework is swapped.
+ * - Talk HTTP only:  spawn the server as a child process, never import the server framework,
+ *   so the same file passes unchanged when the framework is swapped.
  * - Pins the behaviour, quirks and all (marked `QUIRK`);  a deliberate change fails here on purpose.
  * - Written against Express, kept for `$/server`'s `SRV.Router` (unified-server P6).
  * - What changed ON PURPOSE is marked `CHANGED`:
@@ -60,8 +60,8 @@ function freePort(): Promise<number> {
 
 /**
  * Send one request to the server.
- * - Uses `node:http`, not `fetch`:  `fetch` (WHATWG URL) resolves `%2e%2e` segments before sending, which would
- *   hide the path-traversal cases.  `path` goes on the wire exactly as given.
+ * - Uses `node:http`, not `fetch`:  `path` goes on the wire exactly as given.
+ *   `fetch` (WHATWG URL) resolves `%2e%2e` segments before sending, which would hide the path-traversal cases.
  */
 function request(method: string, path: string, body?: string, contentType?: string): Promise<Reply> {
   const { port } = new URL(baseUrl)
@@ -90,8 +90,9 @@ function request(method: string, path: string, body?: string, contentType?: stri
 }
 
 /**
- * Where `file` is in the temp folder:  `user/...` is your space's projects (`spaces/@spell/owen@/...`),
- * `built/...` their build folders (`build/spell-spaces/@spell/owen@/...`).
+ * Where `file` is in the temp folder:
+ * - `user/...`:  your space's projects (`spaces/@spell/owen@/...`)
+ * - `built/...`:  their build folders (`build/spell-spaces/@spell/owen@/...`)
  */
 function fixturePath(file: string): string {
   const inside = file.replace(/^user\//, "spaces/@spell/owen@/").replace(/^built\//, "build/spell-spaces/@spell/owen@/")
@@ -441,6 +442,31 @@ describe("request body parsing on POST /api/projects/create/file", () => {
 ////////////////
 // ## DELETE with a body
 ////////////////
+
+describe("POST /api/projects/settings/project", () => {
+  it("writes the settings into the project file, keeping its imports;  an empty one is removed", async () => {
+    const body = (settings: object) => JSON.stringify({ projectId: PROJECT, settings })
+    const saved = await request(
+      "POST",
+      "/api/projects/settings/project",
+      body({ title: "My Project", version: "1.2.0", targets: ["ts/solid"], listsStartAt: 0 }),
+      "application/json"
+    )
+    expect(saved.status).toBe(200)
+    expect(saved.json()).toEqual({ title: "My Project", version: "1.2.0", targets: ["ts/solid"], listsStartAt: 0 })
+    const file = readFixture("user/Proj/__project.json5")!
+    expect(file).toContain('"listsStartAt": 0')
+    expect(file).toContain("/top.spell")
+
+    const cleared = await request(
+      "POST",
+      "/api/projects/settings/project",
+      body({ title: "", targets: [] }),
+      "application/json"
+    )
+    expect(cleared.json()).toEqual({ version: "1.2.0", listsStartAt: 0 })
+  })
+})
 
 describe("DELETE /api/projects/remove/file", () => {
   it("JSON body is parsed on DELETE => 200 ProjectIndexJSON, file gone", async () => {

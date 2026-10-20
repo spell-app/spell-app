@@ -13,15 +13,6 @@ export const SITE_ASSETS = `${ROOT}site/_assets`
 export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
 
 /**
- * The component sets' build (mode `sets`):  `site/_src/sets.ts` => `site/_assets/sets/`, the same site plus
- * `SitePacks` for the packs their examples use (epic `epic-workflow` P10;  the page server's `componentSets` setting).
- * - Its own build, so Spell UI's pages never load the whole modules a pack may need.
- */
-export const SETS_MODE = "sets"
-export const SETS_ASSETS = `${SITE_ASSETS}/sets`
-export const SETS_ENTRY = `${ROOT}site/_src/sets.ts`
-
-/**
  * The Spell UI site's bundle (`yarn site:bundle`, run by `scripts/site-bundle.ts`):
  * `site/_src/site.ts` => `site/_assets/site.js` + `site.css` + lazy chunks.  See the entry for what's in it.
  * - `baseConfig()`:  the library's own plugins (decorators BEFORE Solid), Solid dedupe, Lightning CSS targets.
@@ -34,11 +25,12 @@ export const SETS_ENTRY = `${ROOT}site/_src/sets.ts`
  * - Minified, no sourcemaps:  as a deploy would ship it.  `emptyOutDir: false`:
  *   `scripts/site-bundle.ts` clears the folder itself, keeping the `icon-packs` link.
  * - Aliases set here as well:  `site/` is outside `tsconfig.json`'s files, where `tsconfigPaths` may not apply.
- * - Mode `sets` (`SETS_MODE`):  the component sets' build instead, `site/_src/sets.ts` => `site/_assets/sets/`.
+ * - ONE build for every component set's pages (the page server's `componentSets` setting):  the other sets had
+ *   their own, mode `sets` (`site/_src/sets.ts` => `site/_assets/sets/`), from epic `epic-workflow` P10 until epic
+ *   `epic-engine` gave Spell UI's pages the component packs too (`SitePacks`).
  */
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   const base = baseConfig()
-  const isSets = mode === SETS_MODE
   return {
     ...base,
     root: ROOT,
@@ -59,7 +51,7 @@ export default defineConfig(({ mode }) => {
       ]
     },
     build: {
-      outDir: isSets ? SETS_ASSETS : SITE_ASSETS,
+      outDir: SITE_ASSETS,
       emptyOutDir: false,
       sourcemap: false,
       minify: true,
@@ -71,7 +63,7 @@ export default defineConfig(({ mode }) => {
       // `brands.json`-sized icon data and highlight.js's languages are lazy chunks, loaded only when used
       chunkSizeWarningLimit: 700,
       rolldownOptions: {
-        input: { site: isSets ? SETS_ENTRY : SITE_ENTRY },
+        input: { site: SITE_ENTRY },
         preserveEntrySignatures: "allow-extension",
         output: {
           // custom element class names are read by dev-time warnings and the manifest (see `vite.config.ts`)

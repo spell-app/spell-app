@@ -95,6 +95,18 @@ def test_a_slice_is_a_scratch_list_of_the_same_class() -> None:
     assert list(shoe) == ["a", "b", "c", "d"]
 
 
+def test_a_copy_runs_no_create() -> None:
+    class DealtDeck(List):
+        def create(self) -> None:
+            self.append("ace", "king", "queen")
+
+    deck = DealtDeck()
+    assert list(deck) == ["ace", "king", "queen"]
+    queens = core.filter(deck, lambda card: card == "queen")
+    assert type(queens) is DealtDeck
+    assert list(queens) == ["queen"]
+
+
 def test_setting_and_deleting_by_index_and_slice() -> None:
     deck = Deck(["a", "b", "c"])
     deck[0] = "A"

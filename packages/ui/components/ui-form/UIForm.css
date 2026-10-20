@@ -1,7 +1,7 @@
 /*
  * The style sheet of `<ui-form>`, `<ui-field>` and `<ui-fields>`:  a port of Fomantic's `form.less` + `form.variables`.
- * - ONE sheet for the three elements;  each adopts it after the foundation (`<ui-field>` also adopts `UILabel.css`,
- *   BEFORE this sheet, for its prompt).
+ * - ONE sheet for the three elements;  each adopts it after the foundation.
+ *   `<ui-field>` also adopts `UIField.css` AFTER it, for its own parts (label row, tip, hint, errors).
  *   `<ui-repeat>` adopts it too, for its `display: contents` host alone (its shadow is a bare `<slot>`).
  * - Shadow markup contract (class grammar;  a form's box has no better element than `<div>`):
  *   - `<ui-form>`:  `<div class="ui [size state] [equal width inverted loading disabled unstackable] form"
@@ -9,8 +9,9 @@
  *     the `<ui-form>`):  a form-associated control belongs to the nearest `<form>` ancestor in its own tree,
  *     so a `<form>` in this shadow root would own nothing (see `UIForm`, `notes/grammar.md`)
  *   - `<ui-field>`:  `<div class="[state] [inline required disabled] [N wide] field" part="field" [inert]>
- *     <slot></slot><span class="ui basic [left] pointing prompt label" part="prompt" role="alert">
- *     <span class="message">…</span></span></div>` -- the prompt only while validation failed
+ *     [<div class="row" part="row">…</div>]<div class="control" part="control"><slot></slot></div>
+ *     [<div class="hint" part="hint">…</div>][<div class="error prompt" part="error" role="alert">…</div>]</div>`
+ *     -- the label row only when it has something, the errors only while there are any (`UIField.css`)
  *   - `<ui-fields>`:  `<div class="[state] [inline grouped unstackable required disabled] [two | equal width]
  *     fields" part="fields" [inert]><slot></slot></div>`
  * - DOM elements are `display: contents`, so each ROOT is the box:
@@ -111,7 +112,6 @@
     --_ui-form-loader-speed: var(--ui-form-loader-speed, 0.6s);
     --_ui-form-loader-dimmer: var(--ui-form-loader-dimmer, color-mix(in oklab, var(--ui-surface) 80%, transparent));
     --_ui-form-inverted-label-color: var(--ui-form-inverted-label-color, var(--ui-text-inverted-color));
-    --_ui-form-prompt-inline-margin: var(--ui-form-prompt-inline-margin, -0.25em 0 -0.5em 0.5em);
     /* ## Owner tokens:  declared on every root, so a nested form never inherits an outer one's. */
     --_ui-form-label-color: var(--ui-form-label-color, var(--ui-text-color));
     --_ui-form-equal-width: 0;
@@ -148,7 +148,8 @@
   .ui.form .field:last-child {
     margin-block-end: 0;
   }
-  .field > slot {
+  .field > slot,
+  .field > .control > slot {
     /* A row inside a field starts clean. */
     --_ui-fields-child-width: initial;
     --_ui-fields-child-flex: initial;
@@ -160,6 +161,7 @@
     --_ui-fields-stacked: initial;
   }
   .field > slot,
+  .field > .control > slot,
   .fields > slot {
     /* Only the RESOLVED state tokens reach the controls, never the colour remap. */
     --ui-color: initial;
@@ -261,16 +263,6 @@
   .ui.form .success:is(.field, .fields) .success.message,
   .ui.warning.form .warning.message,
   .ui.form .warning:is(.field, .fields) .warning.message {
-    display: block;
-  }
-
-  /* Prompt:  the pointing label under the control. */
-  .field > .prompt.label {
-    display: block;
-    width: fit-content;
-    white-space: normal;
-  }
-  .field > .prompt.label > .message {
     display: block;
   }
 }
@@ -416,12 +408,6 @@
       vertical-align: baseline;
     }
   }
-  .inline.field > .prompt.label {
-    display: inline-block;
-    margin: var(--_ui-form-prompt-inline-margin, var(--ui-form-prompt-inline-margin, -0.25em 0 -0.5em 0.5em));
-    vertical-align: top;
-  }
-
   /* Required:  an asterisk after the label. */
   .required.field ::slotted(label)::after,
   .required:is(.grouped, .inline).fields ::slotted(label)::after,

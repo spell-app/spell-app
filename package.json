@@ -122,17 +122,17 @@
       "epics": {
         "name": "Epic UI",
         "dir": "spell-epic/src/docs",
-        "assets": "packages/ui/site/_assets/sets"
+        "assets": "packages/ui/site/_assets"
       },
       "app": {
         "name": "App UI",
         "dir": "packages/app/docs",
-        "assets": "packages/ui/site/_assets/sets"
+        "assets": "packages/ui/site/_assets"
       },
       "brand": {
         "name": "Brand",
         "dir": "packages/brand/docs",
-        "assets": "packages/ui/site/_assets/sets"
+        "assets": "packages/ui/site/_assets"
       }
     },
     "engineRoutes": {

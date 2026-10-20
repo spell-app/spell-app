@@ -1178,12 +1178,19 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * A comment saying the spell that made `node`:  `// - its "friend-lists" is a list of friend-lists`
-   * -- `undefined` when there's none (`spellOf()`).
+   * A comment saying the spell that made `node` (`spellOf()`):  a `//` line for each of its lines.
+   * - e.g. `// - its "friend-lists" is a list of friend-lists`
+   * - `undefined` when there's none.
    */
   spellComment(node: P.ASTNode): string | undefined {
     const spell = this.spellOf(node)
-    return spell && `// ${spell}`
+    return (
+      spell &&
+      spell
+        .split("\n")
+        .map((line) => `// ${line}`)
+        .join(jsText.NEWLINE)
+    )
   }
 
   /**
@@ -1252,13 +1259,15 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * What its class's schema declares about `node`:  its `check`'s keys, plus `init` for its `initializer`.
+   * What its class's schema declares about `node`:
+   * its `check`'s keys, plus `init` for its `initializer`, and `early` for a thing made with it (`madeEarly()`).
    * - E.g. `{ type: "text" }`, `{ init: () => new List() }`.
    * - `undefined` if nothing:  then it's undeclared.
    */
   declaration(node: P.ASTReactiveProperty): string | undefined {
     const parts = (node.check?.properties ?? []).map((property) => this.write(property))
     if (node.initializer) parts.push(`init: () => ${this.bare(node.initializer)}`)
+    if (this.madeEarly(node)) parts.push("early: true")
     return parts.length ? `{ ${parts.join(", ")} }` : undefined
   }
 
@@ -1305,6 +1314,12 @@ export class JSWriter extends ProgramWriter {
   /** Its `member`, patched onto its class from outside, wherever that class is written. */
   ASTPatchedMember(node: P.ASTPatchedMember): string {
     return this.write(node.member)
+  }
+
+  /** A property's rules, from outside its class:  `Card.declareRules("title", [{ type: "empty" }])`. */
+  ASTPropertyRules(node: P.ASTPropertyRules): string {
+    const name = this.quoted(this.propertyName(node.property))
+    return this.withSpell(node, `${this.write(node.type)}.declareRules(${name}, ${this.bare(node.rules)})`)
   }
 
   ////////////////
@@ -1375,6 +1390,19 @@ export class JSWriter extends ProgramWriter {
     const isFlat = children.length === 1 || !node.childValues.some((child) => child instanceof P.ASTJSXElement)
     if (fits && isFlat) return `${head}, ${inline})`
     return `${head},\n${jsText.indented(children.join(",\n"))}\n)`
+  }
+
+  /**
+   * A fragment, `<>...</>`, as Solid's `h()` takes one:  a list of its children, `[h("a"), h("b")]`.
+   * - On one line when they fit and none is an element among others, else one a line, as `ASTJSXElement()`.
+   * - Its live values stay functions in the list:  Solid calls them, as it does an element's.
+   */
+  ASTJSXFragment(node: P.ASTJSXFragment): string {
+    const children = node.childValues.map((child) => String(this.write(child)))
+    const inline = children.join(", ")
+    const isFlat = children.length === 1 || !node.childValues.some((child) => child instanceof P.ASTJSXElement)
+    if (isFlat && !inline.includes("\n") && inline.length < JSWriter.DRAWING_LINE) return `[${inline}]`
+    return `[\n${jsText.indented(children.join(",\n"))}\n]`
   }
 
   /**

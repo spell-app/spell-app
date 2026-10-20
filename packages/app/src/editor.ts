@@ -97,11 +97,20 @@ export class EditorStore extends Observable {
     }
   }
 
-  // TODO: these are referenced by `$/app/solid`'s `Actions` but not yet implemented.
-  /** Show settings for the current `project`. TODO: not yet implemented. */
+  /**
+   * Show the current `project`'s settings, in a dialog (`<ProjectSettings>`).
+   * - Through a DYNAMIC `import()`:  `editor.ts` stays free of Solid and `$/ui`.
+   * - NEVER throws:  an error loading the dialog, or saving, shows as the editor's error.
+   */
   showProjectSettings(): void {
-    console.warn("TODO: editor.showProjectSettings() not yet implemented")
+    const { project, projectRoot } = editor
+    if (!project || !projectRoot) return
+    void import("$/app/pages/ProjectSettings")
+      .then(({ openProjectSettings }) => openProjectSettings(project, projectRoot, (error) => editor.showError(error)))
+      .catch((error) => editor.showError(error))
   }
+
+  // TODO: these are referenced by `$/app/solid`'s `Actions` but not yet implemented.
   /** Show the "About Spell" dialog. TODO: not yet implemented. */
   aboutSpell(): void {
     console.warn("TODO: editor.aboutSpell() not yet implemented")
@@ -246,8 +255,9 @@ export class EditorStore extends Observable {
    * - No `projectId`:  asks the user for one.
    */
   async createApp(projectRoot?: SPACES.SpellProjectRoot, projectId?: string): Promise<void> {
-    // NOTE: defaulted here, NOT in the signature -- a default referencing `editor` would make
-    // `typeof EDITOR_DEFAULTS` circular, since defaults are part of the member's type.
+    // NOTE: defaulted here, NOT in the signature:
+    // a default referencing `editor` would make `typeof EDITOR_DEFAULTS` circular,
+    // since defaults are part of the member's type.
     projectRoot ??= editor.projectRoot!
     try {
       const project = await projectRoot.createApp(projectId)
@@ -435,8 +445,9 @@ export class EditorStore extends Observable {
   }
   /**
    * Forget `element` as where the running app draws -- if it still is:  `<AppRoot>`'s cleanup.
-   * - Why "if":  moving between the editor and the runner, the old page's cleanup may run AFTER the new page's
-   *   `<AppRoot>` handed its own over, which must not be forgotten.
+   * - Why "if":  moving between the editor and the runner,
+   *   the old page's cleanup may run AFTER the new page's `<AppRoot>` handed its own over,
+   *   which must not be forgotten.
    */
   releaseAppRoot(element: HTMLElement): void {
     if (appRoot === element) appRoot = undefined
@@ -540,6 +551,41 @@ export class EditorStore extends Observable {
         editor.showEditor(nextFile?.path || project.path)
         editor.showNotice("File removed.")
       }
+    } catch (e) {
+      editor.showError(e)
+    }
+  }
+
+  /**
+   * Make a property editor PAGE for one of current `project`'s types, and show it (epic `property-editor` P6).
+   * - e.g. `Card.editor.html`, for its type `Card`
+   * - No `type`:  asks which (`choose()`), of the types its declarations list;  cancelled:  nothing happens.
+   * - What it writes, and from what:  `PropertyEditorFiles` (`$/app/ui/PropertyEditorFiles`).
+   *   - the type's schema:  the running program's class when it runs this project, else its declarations
+   *   - a name that's taken:  `Card2.editor.html`, never the page that's there
+   * - Through a DYNAMIC `import()`:  `editor.ts` stays free of `$/ui`.
+   * - NEVER throws:  an error shows, e.g. a project never compiled has no types yet.
+   */
+  async createPropertyEditor(type?: string): Promise<void> {
+    const { project } = editor
+    if (!project) return
+    try {
+      const { PropertyEditorFiles } = await import("$/app/ui/PropertyEditorFiles")
+      if (!type) {
+        const types = await PropertyEditorFiles.typesOf(project)
+        if (!types.length) throw new UIError(`${project.Type} ${project.title} has no types yet:  compile it first.`)
+        type = (await editor.choose({
+          header: "New Property Editor",
+          message: "Make a property editor for which type?",
+          options: types,
+          defaultValue: types[0],
+          ok: "Create"
+        })) as string | undefined
+        if (!type) return
+      }
+      const schema = await PropertyEditorFiles.schemaForType(project, type)
+      if (!schema) throw new UIError(`${project.Type} ${project.title} has no type \`${type}\`.`)
+      await editor.createFile(PropertyEditorFiles.fileNameFor(project, type), PropertyEditorFiles.pageFor(schema))
     } catch (e) {
       editor.showError(e)
     }
@@ -778,8 +824,8 @@ export const editor = new EditorStore({})
 ////////////////
 
 /**
- * Any of the file classes `editor.file` can hold, plus the ad-hoc `initialSelection` that
- * `editor.selectPath()` stashes on it to tell `<InputEditor>` where to restore the cursor.
+ * Any of the file classes `editor.file` can hold, plus an ad-hoc `initialSelection`:
+ * `editor.selectPath()` stashes it there, to tell `<InputEditor>` where to restore the cursor.
  */
 export type EditorFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelection }
 

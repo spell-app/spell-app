@@ -3,9 +3,9 @@ export const words = {
   lang: "en",
   types: {
     Deck: {
-      setUp: "set up a deck",
-      display: "display a deck",
-      isSetUp: "is-set-up"
+      jokers: "jokers",
+      create: "create it",
+      display: "display it"
     },
     Suit: {
       color: "color"
@@ -15,54 +15,90 @@ export const words = {
     },
     Card: {
       suit: "suit",
-      color: "color",
-      isASuit: "is a (suit)",
       rank: "rank",
+      isASuit: "is a (suit)",
       isARank: "is a (rank)",
       isTheRankOfSuits: "is the (rank) of (suits)",
       isAFaceCard: "is a face card",
-      value: "value",
+      isANumberCard: "is a number card",
+      isAWildCard: "is a wild card",
       direction: "direction",
       isFaceUp: "is face up",
       isFaceDown: "is face down",
+      color: "color",
+      value: "value",
       name: "name",
       shortSuit: "short suit",
       shortRank: "short rank",
       shortDirection: "short direction",
-      shortName: "short name",
       state: "state",
-      front: "front",
-      back: "back",
-      turnFaceUp: "turn a card face up",
-      turnFaceDown: "turn a card face down",
-      turnOver: "turn a card over",
+      picture: "picture",
+      draw: "draw it",
+      turnFaceUp: "turn it face up",
+      turnFaceDown: "turn it face down",
+      turnOver: "turn it over",
       play: "play a card",
       pile: "pile"
     },
+    Joker: {
+      rank: "rank",
+      isAFaceCard: "is a face card",
+      suit: "suit",
+      color: "color",
+      shortSuit: "short suit",
+      value: "value",
+      name: "name",
+      picture: "picture"
+    },
     Pile: {
       name: "name",
-      droppable: "droppable",
+      layout: "layout",
       color: "color",
       value: "value",
       state: "state"
     },
-    Game: {
-      score: "score",
-      state: "state",
-      draw: "draw a game"
-    },
     StockPile: {
-      draw: "draw a stock-pile"
+      layout: "layout",
+      draw: "draw it"
     },
     DiscardPile: {
-      draw: "draw a discard-pile"
+      layout: "layout",
+      draw: "draw it"
     },
     Foundation: {
+      layout: "layout",
       symbol: "symbol",
-      draw: "draw a foundation"
+      draw: "draw it"
     },
     Tableau: {
-      draw: "draw a tableau"
+      layout: "layout",
+      draw: "draw it"
+    },
+    Solitaire: {
+      score: "score",
+      deck: "deck",
+      discards: "discards",
+      clubs: "clubs",
+      diamonds: "diamonds",
+      hearts: "hearts",
+      spades: "spades",
+      T1: "T1",
+      T2: "T2",
+      T3: "T3",
+      T4: "T4",
+      T5: "T5",
+      T6: "T6",
+      T7: "T7",
+      stock: "stock",
+      create: "create it",
+      debug: "debug it",
+      resetTheStock: "reset the stock",
+      playFromTheStock: "play from the stock",
+      dealTheCards: "deal the cards",
+      startANewGame: "start a new game",
+      cheat: "cheat",
+      autoPlay: "auto play",
+      draw: "draw it"
     }
   }
 }

@@ -492,6 +492,7 @@ const DEFAULT_WATCH = ["epics", "guides", "pages", "brand"]
  * The URL path a component set's address serves, of the component sets `sets` (epic `people-and-orgs` P18);
  * else `undefined`.
  * - `/components/<set>/_assets/<x>` -> the set's site bundle (`assets`)
+ *   - today Spell UI's site bundle, for every set (epic `epic-engine`)
  *   - the bundle then takes `/components/<set>/` as its site's root (the folder above its `_assets/`)
  * - `/components/<set>/<x>` -> its pages' folder (`dir`):  the set's pages, `__parts/` and `__data/`
  * - the same under `/worktrees/<w>/` (that worktree's set and bundle)

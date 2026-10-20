@@ -23,6 +23,8 @@
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
+    <!-- the comments (bullhorns, threads, Send):  the docs runtime's, alone, beside the site's Spell UI -->
+    <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="Utilities">
@@ -54,7 +56,7 @@
               not page chrome.  The boxes they arrange are utility-drawn placeholders too.
             - `style=` only where the utility's own knob IS a custom property (`--min-column-size`, `--content-percentage`).
           -->
-          <ui-section id="overview" header="Overview" sticky collapsible dividing>
+          <ui-section id="overview" label="Overview" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 Every utility is a `ui-*` class in `@layer ui.utilities`, injected into the page AND adopted into every shadow
@@ -69,8 +71,8 @@
             </ui-markdown>
           </ui-section>
 
-          <ui-section id="layout" header="Layout" sticky collapsible dividing>
-            <ui-section id="layout-stack" header="Stack" sticky collapsible dividing>
+          <ui-section id="layout" label="Layout" sticky collapsible dividing>
+            <ui-section id="layout-stack" label="Stack" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-stack`:  children in a column with even gaps;  their own block margins are dropped."
               >
@@ -82,7 +84,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="layout-cluster" header="Cluster" sticky collapsible dividing>
+            <ui-section id="layout-cluster" label="Cluster" sticky collapsible dividing>
               <ui-docs-example description="`ui-cluster`:  inline items that wrap, e.g. tags or buttons.">
                 <div class="ui-cluster">
                   <span class="ui-bg-blue ui-p-s ui-rounded-s">Alpha</span>
@@ -94,7 +96,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="layout-split" header="Split" sticky collapsible dividing>
+            <ui-section id="layout-split" label="Split" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-split`:  push items to opposite ends;  `ui-split:column` / `ui-split:row` fix the direction."
               >
@@ -105,7 +107,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="layout-flank" header="Flank" sticky collapsible dividing>
+            <ui-section id="layout-flank" label="Flank" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-flank`:  a fixed-size item beside flexible content, wrapping when the content gets narrower than `--content-percentage` (70%).  `ui-flank:end` flanks the last child."
               >
@@ -120,7 +122,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="layout-frame" header="Frame" sticky collapsible dividing>
+            <ui-section id="layout-frame" label="Frame" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-frame`:  a fixed aspect ratio, media inside covers it;  `ui-frame:square`, `:landscape`, `:portrait`."
               >
@@ -132,7 +134,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="layout-grid" header="Grid" sticky collapsible dividing>
+            <ui-section id="layout-grid" label="Grid" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-grid`:  as many columns as fit, each at least `--min-column-size` (default `20ch`);  `ui-span-grid` spans a full row."
               >
@@ -147,7 +149,7 @@
             </ui-section>
 
             <!-- SUSPECTED BUG (agents/SUSPECTED-BUGS.md, ui):  `ui-gap-*` loses to the layout primitives' own `gap` (same specificity, earlier in the sheet), so these rows are `ui-flex`, not `ui-cluster`. -->
-            <ui-section id="layout-gap" header="Gap" sticky collapsible dividing>
+            <ui-section id="layout-gap" label="Gap" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-gap-<space>` sets the gap of a flex or grid container;  `ui-gap-0` removes it."
               >
@@ -168,7 +170,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="layout-align-and-justify" header="Align and justify" sticky collapsible dividing>
+            <ui-section id="layout-align-and-justify" label="Align and justify" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-align-items-*`, `ui-align-self-*`, `ui-justify-content-*`, `ui-flex-wrap` / `-nowrap`."
               >
@@ -181,8 +183,8 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="sizing" header="Sizing" sticky collapsible dividing>
-            <ui-section id="sizing-widths" header="Widths" sticky collapsible dividing>
+          <ui-section id="sizing" label="Sizing" sticky collapsible dividing>
+            <ui-section id="sizing-widths" label="Widths" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-w-1/2`, `1/3`, `2/3`, `1/4`, `3/4`, `full`, `auto`, `fit`;  `ui-h-full`, `auto`, `fit`."
               >
@@ -195,7 +197,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="sizing-margin-and-padding" header="Margin and padding" sticky collapsible dividing>
+            <ui-section id="sizing-margin-and-padding" label="Margin and padding" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-m[-side]-<space>` and `ui-p[-side]-<space>`, logical sides `b i bs be is ie`."
               >
@@ -209,8 +211,8 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="text" header="Text" sticky collapsible dividing>
-            <ui-section id="text-roles" header="Roles" sticky collapsible dividing>
+          <ui-section id="text" label="Text" sticky collapsible dividing>
+            <ui-section id="text-roles" label="Roles" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-body`, `ui-heading`, `ui-caption`, each with sized variants (`ui-heading-large` ...)."
               >
@@ -223,7 +225,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="text-size-and-weight" header="Size and weight" sticky collapsible dividing>
+            <ui-section id="text-size-and-weight" label="Size and weight" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-font-size-<size>`, `ui-font-weight-{light,normal,semibold,bold}`, `ui-bold`, `ui-italic`, `ui-muted`."
               >
@@ -240,7 +242,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="text-alignment-and-wrapping" header="Alignment and wrapping" sticky collapsible dividing>
+            <ui-section id="text-alignment-and-wrapping" label="Alignment and wrapping" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-text-{start,center,end,justify}`, `ui-text-{nowrap,balance,pretty,truncate}`, `ui-text-{uppercase,lowercase,capitalize}`."
               >
@@ -255,7 +257,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="text-links-and-lists" header="Links and lists" sticky collapsible dividing>
+            <ui-section id="text-links-and-lists" label="Links and lists" sticky collapsible dividing>
               <ui-docs-example description="`ui-link`, `ui-link-plain` (underline on hover only), `ui-list-plain`.">
                 <div class="ui-stack ui-gap-xs">
                   <p class="ui-m-0">
@@ -271,8 +273,8 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="colour" header="Colour" sticky collapsible dividing>
-            <ui-section id="colour-colour-roles" header="Colour roles" sticky collapsible dividing>
+          <ui-section id="colour" label="Colour" sticky collapsible dividing>
+            <ui-section id="colour-colour-roles" label="Colour roles" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-text-<colour>`, `ui-bg-<colour>` (the pale background role), `ui-border-<colour>` (with a border width of your own)."
               >
@@ -285,7 +287,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="colour-remap" header="Remap" sticky collapsible dividing>
+            <ui-section id="colour-remap" label="Remap" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-<hue>` re-points the generic `--ui-color` tokens, so it recolours the uncoloured components inside a wrapper that take a colour (buttons, checkboxes, progress bars ...)."
               >
@@ -297,7 +299,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="colour-scheme" header="Scheme" sticky collapsible dividing>
+            <ui-section id="colour-scheme" label="Scheme" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-light`, `ui-dark` force a scheme on a subtree;  `ui-invert` flips relative to its parent."
               >
@@ -312,8 +314,8 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="shape" header="Shape" sticky collapsible dividing>
-            <ui-section id="shape-rounding" header="Rounding" sticky collapsible dividing>
+          <ui-section id="shape" label="Shape" sticky collapsible dividing>
+            <ui-section id="shape-rounding" label="Rounding" sticky collapsible dividing>
               <ui-docs-example description="`ui-rounded-{s,m,l,pill,circle,square}`.">
                 <div class="ui-cluster">
                   <div class="ui-bg-blue ui-p-s ui-rounded-square">square</div>
@@ -327,8 +329,8 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="misc" header="Misc" sticky collapsible dividing>
-            <ui-section id="misc-prose" header="Prose" sticky collapsible dividing>
+          <ui-section id="misc" label="Misc" sticky collapsible dividing>
+            <ui-section id="misc-prose" label="Prose" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-prose`:  readable rich text (a line measure plus vertical rhythm);  `ui-not-prose` opts a subtree back out."
               >
@@ -345,7 +347,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="misc-visually-hidden" header="Visually hidden" sticky collapsible dividing>
+            <ui-section id="misc-visually-hidden" label="Visually hidden" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-visually-hidden` hides content but keeps it for screen readers, and shows it again when focus moves inside (skip links);  `ui-visually-hidden-force` never shows it."
               >
@@ -357,7 +359,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="misc-cloak" header="Cloak" sticky collapsible dividing>
+            <ui-section id="misc-cloak" label="Cloak" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-cloak` hides undefined custom elements (FOUCE) until they upgrade, for 2s at most."
               >
@@ -367,7 +369,7 @@
               </ui-docs-example>
             </ui-section>
 
-            <ui-section id="misc-display" header="Display" sticky collapsible dividing>
+            <ui-section id="misc-display" label="Display" sticky collapsible dividing>
               <ui-docs-example
                 description="`ui-hidden`, `ui-block`, `ui-flex`;  `ui-hidden-{mobile,tablet,computer}` hide at a breakpoint (resize the window)."
               >

@@ -41,3 +41,10 @@ events.addRule(Trigger, {
     }
   ]
 })
+// `fire event card click with card = it`:  an event's name of several words -- see `event_words`
+events.addRule(Trigger, {
+  syntax: "(trigger|fire|send) event? {eventName:event_words} (with {props:object_literal_properties})?",
+  tests: [
+    { compileAs: "statement", tests: [["fire event card click with card = 1", 'trigger("card-click", { card: 1 })']] }
+  ]
+})

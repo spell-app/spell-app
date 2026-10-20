@@ -43,6 +43,9 @@ describe("<ui-button> classes", () => {
     ["negative tertiary", "ui negative tertiary button"],
     ["inverted", "ui inverted button"],
     ["fluid circular compact", "ui circular compact fluid button"],
+    ["unpadded", "ui unpadded button"],
+    ["wrapped", "ui wrapped button"],
+    ["ellipsis fluid", "ui ellipsis fluid button"],
     ["active", "ui active button"],
     ["disabled", "ui disabled button"],
     ["loading", "ui loading button"],
@@ -104,6 +107,61 @@ describe("<ui-button> classes", () => {
     expect(getComputedStyle(host).display).toBe("none")
     host.removeAttribute("hidden")
     expect(getComputedStyle(host).display).toBe("flex")
+  })
+})
+
+////////////////
+// ## Padding and text
+////////////////
+
+describe("<ui-button> padding and text", () => {
+  /** A long-text button in a parent narrower than its text. */
+  async function narrow(attributes: string) {
+    const wrapper = await ElementFixture.render(
+      `<div style="width: 6em"><ui-button ${attributes}>Save every change to this document</ui-button></div>`
+    )
+    const host = wrapper.querySelector<DOMElement>("ui-button")!
+    const control = host.shadowRoot!.querySelector<HTMLElement>("[part~=button]")!
+    return { wrapper, host, control }
+  }
+
+  it("`unpadded`:  no padding at all, where `compact` keeps some", async () => {
+    const { control: unpadded } = await button(`<ui-button unpadded>Go</ui-button>`)
+    const style = getComputedStyle(unpadded)
+    expect([style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft]).toEqual([
+      "0px",
+      "0px",
+      "0px",
+      "0px"
+    ])
+    const { control: compact } = await button(`<ui-button compact>Go</ui-button>`)
+    expect(parseFloat(getComputedStyle(compact).paddingTop)).toBeGreaterThan(0)
+  })
+
+  it("keeps its text on one line by default, however narrow its parent;  `wrapped` lets it wrap", async () => {
+    const { control: oneLine } = await narrow("")
+    const { control: short } = await button(`<ui-button>Go</ui-button>`)
+    expect(getComputedStyle(oneLine).whiteSpace).toBe("nowrap")
+    expect(oneLine.getBoundingClientRect().height).toBeCloseTo(short.getBoundingClientRect().height, 0)
+    const { control: wrapped } = await narrow("wrapped")
+    expect(wrapped.getBoundingClientRect().height).toBeGreaterThan(oneLine.getBoundingClientRect().height * 1.5)
+  })
+
+  it("`ellipsis`:  one line, cut off with `…`, and never wider than its parent", async () => {
+    const { wrapper, host, control } = await narrow("ellipsis")
+    expect(host.matches(":state(ellipsis)")).toBe(true)
+    const style = getComputedStyle(control)
+    expect(style.textOverflow).toBe("ellipsis")
+    expect(style.overflowX).toBe("hidden")
+    expect(style.whiteSpace).toBe("nowrap")
+    expect(host.getBoundingClientRect().width).toBeLessThanOrEqual(wrapper.getBoundingClientRect().width)
+    // The text is longer than the box it's cut to
+    expect(control.scrollWidth).toBeGreaterThan(control.clientWidth)
+  })
+
+  it("`ellipsis` beats `wrapped`:  still one line", async () => {
+    const { control } = await narrow("ellipsis wrapped")
+    expect(getComputedStyle(control).whiteSpace).toBe("nowrap")
   })
 })
 

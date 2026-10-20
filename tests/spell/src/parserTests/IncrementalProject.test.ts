@@ -68,6 +68,20 @@ describe("incremental parsing ~== full parse", () => {
     }, 600_000)
   }
 
+  test("a method added below a line that calls it:  that line parses;  deleted, it doesn't (P22)", () => {
+    const call = "greet everybody\n"
+    const method = "to greet everybody\n\tprint 1\n"
+    for (const keepLastGood of [false, true]) {
+      const project = newProject([{ path: "/A.spell", contents: call }], keepLastGood)
+      const errors = () => summarizeIncremental(project)[0]!.errors
+      expect(errors(), `keepLastGood ${keepLastGood}`).toHaveLength(1)
+      project.update("/A.spell", call + method)
+      expect(errors(), `keepLastGood ${keepLastGood}, added`).toEqual([])
+      project.update("/A.spell", call)
+      expect(errors(), `keepLastGood ${keepLastGood}, deleted`).toHaveLength(1)
+    }
+  })
+
   test("a body can't see names declared after it", () => {
     // `all-piles` is declared in Solitaire.spell, AFTER Card.spell -- a full parse doesn't know it yet.
     const edited = files.map((it) =>

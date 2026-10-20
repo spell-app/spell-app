@@ -20,6 +20,8 @@
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
+    <!-- the comments (bullhorns, threads, Send):  the docs runtime's, alone, beside the site's Spell UI -->
+    <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="Toast">
@@ -69,8 +71,8 @@
               </ui-markdown>
             </ui-message>
 
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-minimal" header="Minimal" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-minimal" label="Minimal" sticky collapsible dividing>
                 <ui-docs-example description="A minimal toast will just display a message.">
                   <template>
                     <ui-button id="toast-minimal">Show</ui-button>
@@ -86,7 +88,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-titled" header="Titled" sticky collapsible dividing>
+              <ui-section id="examples-types-titled" label="Titled" sticky collapsible dividing>
                 <ui-docs-example description="You can add a title to your toast.">
                   <template>
                     <ui-button id="toast-titled">Show</ui-button>
@@ -102,7 +104,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-progress-bar" header="Progress Bar" sticky collapsible dividing>
+              <ui-section id="examples-types-progress-bar" label="Progress Bar" sticky collapsible dividing>
                 <ui-docs-example description="You can attach a progress bar to your toast.">
                   <template>
                     <ui-button id="toast-progress">Show</ui-button>
@@ -121,8 +123,8 @@
               >
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-toast-type" header="Toast Type" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-toast-type" label="Toast Type" sticky collapsible dividing>
                 <ui-docs-example
                   description="A toast can be used to display different types of information:  `type` (`class` in `UI.toast()`)."
                 >
@@ -153,7 +155,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-position" header="Position" sticky collapsible dividing>
+              <ui-section id="examples-variations-position" label="Position" sticky collapsible dividing>
                 <ui-docs-example description="A toast can appear at different positions on the screen.">
                   <template>
                     <ui-button class="toast-position" data-position="top left">Top left</ui-button>
@@ -175,12 +177,12 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Attached Position (<code>position: 'top attached'</code> /
-                <code>'bottom attached'</code>, full-width toasts like a phone's notifications) and Center Aligned
-                content (<code>class: 'center aligned'</code>) -- left out of the toast sheets on purpose.</ui-message
+                >Not ported: Attached Position (the top attached and bottom attached positions, full-width toasts like
+                a phone's notifications) and Center Aligned content (the center aligned class). Both are left out of
+                the toast sheets on purpose.</ui-message
               >
 
-              <ui-section id="examples-variations-direction" header="Direction" sticky collapsible dividing>
+              <ui-section id="examples-variations-direction" label="Direction" sticky collapsible dividing>
                 <ui-docs-example description="Toasts can stack horizontally:  `horizontal: true`.">
                   <template>
                     <ui-button id="toast-horizontal">Show</ui-button>
@@ -193,13 +195,12 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-duration" header="Duration" sticky collapsible dividing>
+              <ui-section id="examples-variations-duration" label="Duration" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    You can choose how long a toast should be displayed: <code>displayTime</code> (<code
-                      >display-time</code
-                    >
-                    on the element), in milliseconds. <code>0</code> keeps it until it's clicked, and <code>auto</code>
+                    You can choose how long a toast should be displayed, in milliseconds:  <code>displayTime</code>, or
+                    <code>display-time</code> on the element. <code>0</code> keeps it until it's clicked, and
+                    <code>auto</code>
                     calculates the time from the number of words (120 a minute, at least a second).
                   </p>
                   <template>
@@ -232,7 +233,7 @@
 
               <ui-section
                 id="examples-variations-increasing-progress-bar"
-                header="Increasing Progress Bar"
+                label="Increasing Progress Bar"
                 sticky
                 collapsible
                 dividing
@@ -256,7 +257,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-color-variants" header="Color Variants" sticky collapsible dividing>
+              <ui-section id="examples-variations-color-variants" label="Color Variants" sticky collapsible dividing>
                 <ui-docs-example description="You can use all of the usual color names.">
                   <template>
                     <ui-button id="toast-colors">Show the next colour</ui-button>
@@ -294,7 +295,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted-colors" header="Inverted Colors" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted-colors" label="Inverted Colors" sticky collapsible dividing>
                 <ui-docs-example
                   description="Same as above, just add `inverted`:  a plain toast turns dark, a coloured one takes the hue's inverted variant."
                 >
@@ -333,7 +334,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-not-compact" header="Not compact" sticky collapsible dividing>
+              <ui-section id="examples-variations-not-compact" label="Not compact" sticky collapsible dividing>
                 <ui-docs-example
                   description='A toast is 350px wide by default;  `compact="false"` sizes it to its content.'
                 >
@@ -342,14 +343,14 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-actions" header="Actions" sticky collapsible dividing>
-              <ui-section id="examples-actions-general" header="General" sticky collapsible dividing>
+            <ui-section id="examples-actions" label="Actions" sticky collapsible dividing>
+              <ui-section id="examples-actions-general" label="General" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     Define click actions on your toast with a text and/or icon, optional class and click handler.
                   </p>
                   <ui-message slot="description" size="small"
-                    >The default click handler closes the toast, so leave it out when the button should only close it. A
+                    >The default click handler closes the toast, so leave it out when the button should only close it;  a
                     handler returning <code>false</code> keeps the toast open. In the page, put
                     <code>&lt;ui-button slot="actions"&gt;</code>s in the toast: any activated one closes it unless its
                     click was <code>preventDefault()</code>ed.</ui-message
@@ -393,7 +394,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-actions-basic" header="Basic" sticky collapsible dividing>
+              <ui-section id="examples-actions-basic" label="Basic" sticky collapsible dividing>
                 <ui-docs-example
                   description="`basic` actions don't lighten the actions' background;  `left` aligns the buttons to the left (`classActions` in `UI.toast()`, `actions` on the element)."
                 >
@@ -404,7 +405,7 @@
               </ui-section>
 
               <!-- GAP I118:  no `centered` actions (Fomantic's `classActions: 'centered'`);  shown right-aligned. -->
-              <ui-section id="examples-actions-centered" header="Centered" sticky collapsible dividing>
+              <ui-section id="examples-actions-centered" label="Centered" sticky collapsible dividing>
                 <ui-docs-example description="The action buttons can also be shown centered.">
                   <ui-toast color="black" message="Do you really want to star Fomantic-UI?">
                     <ui-button slot="actions" color="yellow">Yes, really</ui-button>
@@ -413,7 +414,7 @@
               </ui-section>
 
               <!-- GAP I121:  the attached group sits inset in a light frame, not flush with the toast. -->
-              <ui-section id="examples-actions-attached" header="Attached" sticky collapsible dividing>
+              <ui-section id="examples-actions-attached" label="Attached" sticky collapsible dividing>
                 <ui-docs-example
                   description="`attached` turns the actions into a button group joined below the toast;  `attached top` joins it above."
                 >
@@ -432,7 +433,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-actions-vertical" header="Vertical" sticky collapsible dividing>
+              <ui-section id="examples-actions-vertical" label="Vertical" sticky collapsible dividing>
                 <ui-docs-example description="`vertical` displays the actions to the right of the toast.">
                   <ui-toast color="black" actions="vertical" message="Do you really want to star Fomantic-UI?">
                     <ui-button slot="actions" color="green">Yes, really</ui-button>
@@ -443,7 +444,7 @@
 
               <ui-section
                 id="examples-actions-vertical-attached"
-                header="Vertical attached"
+                label="Vertical attached"
                 sticky
                 collapsible
                 dividing
@@ -465,8 +466,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
-              <ui-section id="examples-examples-without-icon" header="Without icon" sticky collapsible dividing>
+            <ui-section id="examples-examples" label="Examples" sticky collapsible dividing>
+              <ui-section id="examples-examples-without-icon" label="Without icon" sticky collapsible dividing>
                 <ui-docs-example
                   description="A toast shows no icon unless you ask for one (Fomantic's `showIcon: false`):  bare `icon` shows the type's own."
                 >
@@ -474,18 +475,18 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-individual-icon" header="Individual icon" sticky collapsible dividing>
+              <ui-section id="examples-examples-individual-icon" label="Individual icon" sticky collapsible dividing>
                 <ui-docs-example description='Use whatever icon you like:  `icon="microphone"`.'>
                   <ui-toast type="info" icon="microphone" message="Listen to me"></ui-toast>
                 </ui-docs-example>
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Image toasts (<code>showImage</code>, <code>classImage</code>) -- left out of the toast
-                sheet on purpose; slot an <code>&lt;ui-image avatar&gt;</code> into the content instead.</ui-message
+                >Not ported: Image toasts (<code>showImage</code>, <code>classImage</code>), left out of the toast
+                sheet on purpose. Slot an <code>&lt;ui-image avatar&gt;</code> into the content instead.</ui-message
               >
 
-              <ui-section id="examples-examples-close-icon" header="Close Icon" sticky collapsible dividing>
+              <ui-section id="examples-examples-close-icon" label="Close Icon" sticky collapsible dividing>
                 <ui-docs-example
                   description="You can force the user to click a close icon instead of clicking anywhere on the toast to close it:  `closable` (`closeIcon`)."
                 >
@@ -504,8 +505,8 @@
               >
             </ui-section>
 
-            <ui-section id="examples-create-from-dom" header="Create from DOM" sticky collapsible dividing>
-              <ui-section id="examples-create-from-dom-toast" header="Toast" sticky collapsible dividing>
+            <ui-section id="examples-create-from-dom" label="Create from DOM" sticky collapsible dividing>
+              <ui-section id="examples-create-from-dom-toast" label="Toast" sticky collapsible dividing>
                 <ui-docs-example
                   description="A toast can be made from markup:  a `<ui-toast>` in the page, with rich content in its slot."
                 >
@@ -517,7 +518,7 @@
 
               <ui-section
                 id="examples-create-from-dom-approve-deny-callbacks"
-                header="Approve / Deny Callbacks"
+                label="Approve / Deny Callbacks"
                 sticky
                 collapsible
                 dividing
@@ -525,8 +526,8 @@
                 <ui-docs-example>
                   <p slot="description">
                     Just like a modal, a toast ties approve / deny to any positive / approve, negative / deny or ok /
-                    cancel button: <code>ui-approve</code> and <code>ui-deny</code>, cancelable, so
-                    <code>preventDefault()</code> keeps it open.
+                    cancel button, with the cancelable <code>ui-approve</code> and <code>ui-deny</code>. Calling
+                    <code>preventDefault()</code> on one keeps it open.
                   </p>
                   <template>
                     <ui-toast id="toast-approve-deny" display-time="0" message="Want to close this DOM toast?">
@@ -552,10 +553,10 @@
               >
             </ui-section>
 
-            <ui-section id="examples-interaction" header="Interaction" sticky collapsible dividing>
+            <ui-section id="examples-interaction" label="Interaction" sticky collapsible dividing>
               <ui-section
                 id="examples-interaction-prevent-pausing"
-                header="Prevent pausing"
+                label="Prevent pausing"
                 sticky
                 collapsible
                 dividing
@@ -580,7 +581,7 @@
 
               <ui-section
                 id="examples-interaction-prevent-closing"
-                header="Prevent closing"
+                label="Prevent closing"
                 sticky
                 collapsible
                 dividing
@@ -594,16 +595,16 @@
 
               <ui-section
                 id="examples-interaction-access-created-toast"
-                header="Access created toast"
+                label="Access created toast"
                 sticky
                 collapsible
                 dividing
               >
                 <ui-docs-example>
                   <p slot="description">
-                    Each <code>UI.toast()</code> call returns a handle: <code>closed</code> resolves when the toast is
-                    gone, <code>element</code> is the <code>&lt;ui-toast&gt;</code>, and
-                    <code>UI.toasts.dismiss(id)</code> closes it early.
+                    Each <code>UI.toast()</code> call returns a handle, and <code>UI.toasts.dismiss(id)</code> closes it
+                    early. The handle's <code>closed</code> resolves when the toast is gone, and its
+                    <code>element</code> is the toast itself.
                   </p>
                   <template>
                     <ui-button id="toast-handle">Show, then close it after a second</ui-button>
@@ -621,7 +622,7 @@
 
               <ui-section
                 id="examples-interaction-close-with-a-command"
-                header="Close with a command"
+                label="Close with a command"
                 sticky
                 collapsible
                 dividing
@@ -638,7 +639,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Two ways to show a toast:
@@ -673,7 +674,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-closing" header="Closing" sticky collapsible dividing>
+            <ui-section id="usage-closing" label="Closing" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   What closes a toast: the countdown, the close icon, a click on it (`close-on-click`, off with a
@@ -692,7 +693,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `ui-show` (`{ displayTime }`): shown, its entry animation finished; the countdown has started.
@@ -712,7 +713,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A toast never takes focus.
@@ -723,7 +724,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A toast is a `role="status"` live region, so it's announced without moving focus;
@@ -740,7 +741,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Most apps call `UI.toast()` from an event handler. A `<ui-toast>` in a template is an ordinary
@@ -784,7 +785,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-toast-*` tokens: set one on the element, on any ancestor (`:root` for
@@ -814,7 +815,7 @@
               <ui-docs-tokens family="ui-toast" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   No Fomantic theme restyles toasts: they keep the default look under every theme. The one in the

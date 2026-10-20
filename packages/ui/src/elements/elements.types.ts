@@ -508,6 +508,10 @@ export const SOURCE_ATTRIBUTE = "source"
  */
 export const SourceEvent = {
   load: "ui-load",
+  /** A section's body is on its way (epic `property-editor` P10):  `LoadableBody` only. */
+  loading: "ui-loading",
+  /** A section's body is in place, `ui-load`'s new name:  `LoadableBody` only. */
+  loaded: "ui-loaded",
   change: "ui-change",
   save: "ui-save",
   saved: "ui-saved",

@@ -23,6 +23,8 @@
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
+    <!-- the comments (bullhorns, threads, Send):  the docs runtime's, alone, beside the site's Spell UI -->
+    <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="Root">
@@ -57,12 +59,12 @@
                 `site/examples/icon-pack/` (one icon, `spell sparkle`).
               - The Replay example needs the small script at the end of this tab:  components on this page are loaded already.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-root" header="Root" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-root" label="Root" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    Put one around a page or an app. Each <code>ui-*</code> tag inside loads its component the first
-                    time it appears; nothing else is downloaded. Load just the root:
+                    Put one around a page or an app:  each <code>ui-*</code> tag inside loads its component the first
+                    time it appears, and nothing else is downloaded. Load just the root:
                     <code>import "@spell-app/ui/ui-root"</code>.
                   </p>
                   <ui-root>
@@ -75,7 +77,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-theme-and-size" header="Theme and size" sticky collapsible dividing>
+              <ui-section id="examples-types-theme-and-size" label="Theme and size" sticky collapsible dividing>
                 <ui-docs-example description="`theme` and `size` apply to everything inside.">
                   <ui-root theme="dark" size="small" width="100%" aria-label="Dark report">
                     <ui-segment>
@@ -87,7 +89,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-a-box" header="A box" sticky collapsible dividing>
+              <ui-section id="examples-types-a-box" label="A box" sticky collapsible dividing>
                 <ui-docs-example
                   description="With `width` or `height` (CSS lengths, or `window` for the viewport's), the root is a box that scrolls its own content.  `fixed` pins it to the viewport:  a full-page app shell."
                 >
@@ -107,7 +109,7 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-while-loading" header="While loading" sticky collapsible dividing>
+            <ui-section id="examples-while-loading" label="While loading" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `display` says what shows until every component inside is ready (or `timeout`, 5s by default, has passed):
@@ -122,7 +124,7 @@
                 </script>
               </ui-markdown>
 
-              <ui-section id="examples-while-loading-replay" header="Replay" sticky collapsible dividing>
+              <ui-section id="examples-while-loading-replay" label="Replay" sticky collapsible dividing>
                 <ui-docs-example
                   description="Components on this page are loaded already, so the demo holds the root for 2 seconds:  press a button to see what a slow load shows."
                 >
@@ -144,14 +146,14 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-icons-and-emoji" header="Icons and emoji" sticky collapsible dividing>
-              <ui-section id="examples-icons-and-emoji-icon-packs" header="Icon packs" sticky collapsible dividing>
+            <ui-section id="examples-icons-and-emoji" label="Icons and emoji" sticky collapsible dividing>
+              <ui-section id="examples-icons-and-emoji-icon-packs" label="Icon packs" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    <code>icons</code> adds packs for everything inside: built-in ids (<code>fa7-free</code>,
-                    <code>fa7-brands</code>, <code>fomantic</code>) or <code>pack.js</code> URLs, comma-separated, later
-                    wins. Outside a root, the page's packs (<code>UI.icons.use()</code>). The sparkle is only in the
-                    example's own pack: inside the root it draws, outside it doesn't.
+                    <code>icons</code> adds packs for everything inside, comma-separated, later wins:  built-in ids
+                    (fa7-free, fa7-brands, fomantic) or <code>pack.js</code> URLs. Outside a root, the page's packs apply
+                    (<code>UI.icons.use()</code>):  the sparkle is only in the example's own pack, so inside the root it
+                    draws, outside it doesn't.
                   </p>
                   <p>
                     Inside:
@@ -164,7 +166,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-icons-and-emoji-emoji-names" header="Emoji names" sticky collapsible dividing>
+              <ui-section id="examples-icons-and-emoji-emoji-names" label="Emoji names" sticky collapsible dividing>
                 <ui-docs-example
                   description="`emoji=&quot;fomantic&quot;` uses Fomantic's names for everything inside;  outside, the page's set (CLDR by default).  `pencil` is a memo in Fomantic's names, a pencil in CLDR's."
                 >
@@ -180,7 +182,7 @@
               </ui-section>
 
               <!-- GAP I62:  a root's `size` scales only components (its scale token), not plain text or a bare `<ui-icon>` inside. -->
-              <ui-section id="examples-icons-and-emoji-nested-roots" header="Nested roots" sticky collapsible dividing>
+              <ui-section id="examples-icons-and-emoji-nested-roots" label="Nested roots" sticky collapsible dividing>
                 <ui-docs-example
                   description="A root inside a root inherits what it doesn't set and adds its own packs.  The outer one is ready only once every inner one is."
                 >
@@ -228,7 +230,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  from the old Astro page's Behaviour and Accessibility, plus the vocabulary's events. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Load the root, put one around the page (or each app on it), and write `ui-*` tags anywhere inside: no other
@@ -252,7 +254,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-loading" header="Loading" sticky collapsible dividing>
+            <ui-section id="usage-loading" label="Loading" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - Each undefined `ui-*` tag inside (now, and whenever content is added) imports its component once per page.
@@ -271,7 +273,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-component-packs" header="Component packs" sticky collapsible dividing>
+            <ui-section id="usage-component-packs" label="Component packs" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A component pack is another package's elements (any tag prefix: `epic-`, `x-` ...), loaded on demand like
@@ -313,7 +315,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `ui-ready` -- everything inside is ready (or the timeout passed) and the content shows: `{ failed }`, each
@@ -334,7 +336,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Nothing of its own. A root with a box (`width`, `height` or `fixed`) is one tab stop, so the arrow keys and
@@ -343,7 +345,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - While loading, the content is hidden (`visibility: hidden` or not drawn), so assistive technology doesn't read
@@ -365,7 +367,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  no tokens of its own;  what it sets for what's inside. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A root has no look of its own, so no `--ui-root-*` tokens. It themes what's INSIDE it:
@@ -390,7 +392,7 @@
               <ui-docs-tokens family="ui-root" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Root is ours, not Fomantic's, and draws nothing itself, so no theme restyles it. The site-wide theme (the picker in

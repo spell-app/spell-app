@@ -20,6 +20,8 @@
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
+    <!-- the comments (bullhorns, threads, Send):  the docs runtime's, alone, beside the site's Spell UI -->
+    <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="&lt;spell-app&gt;">
@@ -56,7 +58,7 @@
             <ui-item icon="play">Live: the real element, from the app's element build this page loads</ui-item>
           </ui-list>
 
-          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+          <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
               The calculator example, from the spell server, with its toolbar. Click Debug to see its things, its types
@@ -69,13 +71,13 @@
               <spell-app project="@spell/examples/fizzbuzz" toolbar debug="console" height="320px"></spell-app>
             </ui-docs-example>
             <p class="meta">
-              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
-              >), which this set's pages load.
+              Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
+              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <code>yarn build:element</code>.
             </p>
           </ui-section>
 
-          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+          <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>A page loads it either way:</p>
             <ul>
@@ -110,10 +112,14 @@
             </ui-accordion>
             <ul>
               <li>
-                What it runs: <code>project</code> (from the spell server), <code>src</code> (compiled files anywhere),
-                or what an <code>editor</code> compiles. Its script API: <code>run(compiled)</code> and
-                <code>restart()</code>.
+                What it runs, one of:
+                <ul>
+                  <li><code>project</code>: a project from the spell server</li>
+                  <li><code>src</code>: compiled files, from anywhere</li>
+                  <li><code>editor</code>: what that editor compiles</li>
+                </ul>
               </li>
+              <li>Its script API: <code>run(compiled)</code> and <code>restart()</code>.</li>
               <li>Each loads its OWN copy of the spell runtime, so apps on a page don't share their things.</li>
               <li>
                 Inside it, the runner's pieces:
@@ -129,7 +135,7 @@
             </ul>
           </ui-section>
 
-          <ui-section id="3-api" header="3. Attributes, events and texts" sticky collapsible dividing collapsed>
+          <ui-section id="3-api" label="3. Attributes, events and texts" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <p>Its own names, then those it takes as a root (<code>&lt;ui-root&gt;</code>'s):</p>
             <ui-docs-api family="spell-app"></ui-docs-api>
@@ -140,7 +146,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+          <ui-section id="4-its-code" label="4. Its code" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>
@@ -165,7 +171,7 @@
                 >: what it draws, the runner
               </li>
               <li>
-                Its build: <code>yarn build:element</code>, into <code>dist-element/</code>, served at
+                Its build: <code title="writes packages/app/dist-element/">yarn build:element</code>, served at
                 <code>/element/</code>
               </li>
             </ul>

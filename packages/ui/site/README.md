@@ -8,6 +8,6 @@ The site bundle every Spell UI docs page loads, and its entry.
 
 | Path | What |
 | --- | --- |
-| `_src/` | the bundle's entry (`site.ts`:  what's in it and why), the component sets' entry (`sets.ts`), its router, shell, sections, their shared constants (`site.types.ts`) and layout glue (`site.css`);  config `../vite.site.config.ts` |
-| `_assets/` | GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every diff):  the bundle (`yarn site:bundle`), which the page server builds when it starts, if stale (`spell dev bundles build --stale`);  `sets/` is the other sets' build;  `icon-packs` is a symlink to `../../src/icons/icon-packs`.  NEVER edit |
+| `_src/` | the bundle's entry (`site.ts`:  what's in it and why), the component packs' globals (`SitePacks.ts`), its router, shell, sections, their shared constants (`site.types.ts`) and layout glue (`site.css`);  config `../vite.site.config.ts` |
+| `_assets/` | GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every diff):  the bundle (`yarn site:bundle`), which the page server builds when it starts, if stale (`spell dev bundles build --stale`), every component set's;  `icon-packs` is a symlink to `../../src/icons/icon-packs`.  NEVER edit |
 | *(the data)* | *`../docs/__data/`:  `yarn site:data`* |

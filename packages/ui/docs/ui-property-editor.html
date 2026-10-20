@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Property Editor | Spell UI</title>
+    <meta
+      name="description"
+      content="A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Property Editor">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="https://github.com/spell-app/spell-app/issues/new?title=ui-property-editor%3A%20%20"
+              icon="bug"
+              aria-label="Report a bug"
+              title="Report a bug"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Property Editor
+            <ui-header>A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.</ui-header>
+          </ui-header>
+          <ui-docs-themes for="ui-property-editor" show="theme" class="site-themes"></ui-docs-themes>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+                    <ui-tab value="examples" label="Examples">
+            <!--
+              EXAMPLES:  ours, no Fomantic page (epic `property-editor` P4).
+              - Each editor's `schema` and `value` are JSON attributes:  no script.
+            -->
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-from-a-schema" label="From a schema" sticky collapsible dividing>
+                <ui-docs-example
+                  description="An empty editor draws one property per attribute of its `schema`, each with the control its type calls for, bound to `value`.  Type, tick, and watch the Bound object box."
+                >
+                  <ui-property-editor
+                    debug
+                    style="max-width: 360px"
+                    schema='{"name": "Theme", "attributes": [
+                      {"name": "title", "kind": "string", "type": "text", "description": "", "tip": "Shown in the theme list."},
+                      {"name": "size", "kind": "enum", "type": "choice", "values": ["sm", "md", "lg"], "description": ""},
+                      {"name": "dark", "kind": "boolean", "type": "boolean", "description": ""}
+                    ]}'
+                    value='{"title": "Sunrise", "size": "md", "dark": false}'
+                  ></ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-laid-out" label="Laid out" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Lay it out with `<ui-property-group>`s and `<ui-property>`s.  Groups fold, `as` picks a control, and `hint` goes under it;  a dotted `name` reaches into a nested thing.  The title is `label`, which draws a section around it."
+                >
+                  <ui-property-editor
+                    label="Theme"
+                    style="max-width: 360px"
+                    schema='{"name": "Theme", "attributes": [
+                      {"name": "title", "kind": "string", "type": "text", "description": ""},
+                      {"name": "corners", "kind": "enum", "type": "choice", "values": ["sharp", "soft", "round"], "description": ""},
+                      {"name": "font", "kind": "json", "type": "thing", "description": "", "attributesOf": [
+                        {"name": "family", "kind": "string", "type": "text", "description": "", "label": "Font family"}
+                      ]}
+                    ]}'
+                    value='{"title": "Sunrise", "corners": "soft", "font": {"family": "Inter"}}'
+                  >
+                    <ui-property name="title" hint="Used for the file name."></ui-property>
+                    <ui-property-group label="Shape" collapsible>
+                      <ui-property name="corners" as="buttons"></ui-property>
+                    </ui-property-group>
+                    <ui-property-group label="Type" collapsible>
+                      <ui-property name="font.family"></ui-property>
+                    </ui-property-group>
+                  </ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-rules" label="Rules" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A schema's `rules` are checked as you leave each field (`validate=&quot;on leave&quot;`), each with its own message when it has one.  A spell type's rules arrive in this shape:  `- its version must match &quot;^\d+\.\d+\.\d+$&quot;, with suggestion &quot;Write it like 1.2.3&quot;`.  Clear the name, or type a letter into the version."
+                >
+                  <ui-property-editor
+                    label="Release"
+                    validate="on leave"
+                    style="max-width: 360px"
+                    schema='{"name": "Release", "attributes": [
+                      {"name": "name", "kind": "string", "type": "text", "description": "", "rules": [{"type": "empty"}]},
+                      {"name": "version", "kind": "string", "type": "text", "description": "", "rules": [
+                        {"type": "regExp", "value": "/^\\d+\\.\\d+\\.\\d+$/", "prompt": "Write it like 1.2.3"}
+                      ]},
+                      {"name": "stars", "kind": "number", "type": "number", "description": "", "rules": [{"type": "range", "value": "1..5"}]}
+                    ]}'
+                    value='{"name": "Sunrise", "version": "1.0.0", "stars": 4}'
+                  ></ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-pages" label="Pages" sticky collapsible dividing>
+              <ui-section id="examples-pages-from-a-page" label="From a page" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`source` loads the layout from a saved page, `Theme.editor.html`:  plain markup, its groups and properties, which the page holds instead of the editor.  `select` would take only part of it."
+                >
+                  <ui-property-editor
+                    source="examples/Theme.editor.html"
+                    style="max-width: 360px"
+                    schema='{"name": "Theme", "attributes": [
+                      {"name": "title", "kind": "string", "type": "text", "description": ""},
+                      {"name": "size", "kind": "enum", "type": "choice", "values": ["sm", "md", "lg"], "description": ""},
+                      {"name": "dark", "kind": "boolean", "type": "boolean", "description": ""}
+                    ]}'
+                    value='{"title": "Sunrise", "size": "md", "dark": true}'
+                  ></ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-binding" label="Binding" sticky collapsible dividing>
+              <ui-section id="examples-binding-save-and-cancel" label="Save and Cancel" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`apply=&quot;on save&quot;` holds every edit until Save;  Cancel drops them.  A property holding an edit has `:state(changed)`."
+                >
+                  <ui-property-editor
+                    label="Project"
+                    apply="on save"
+                    debug
+                    style="max-width: 360px"
+                    schema='{"name": "Project", "attributes": [
+                      {"name": "title", "kind": "string", "type": "text", "description": ""},
+                      {"name": "version", "kind": "number", "type": "number", "min": 1, "description": ""}
+                    ]}'
+                    value='{"title": "Solitaire", "version": 1}'
+                  ></ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-binding-many-things" label="Many things" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A list as `value` edits every thing in it:  a property shows the value they agree on, else blank and Mixed.  A write sets all of them."
+                >
+                  <ui-property-editor
+                    debug
+                    style="max-width: 360px"
+                    schema='{"name": "Theme", "attributes": [
+                      {"name": "size", "kind": "string", "type": "text", "description": ""},
+                      {"name": "font", "kind": "string", "type": "text", "description": ""}
+                    ]}'
+                    value='[{"size": "md", "font": "Inter"}, {"size": "md", "font": "Lora"}]'
+                  ></ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <!-- USAGE:  how to use it, the registry, accessibility. -->
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A `<ui-property-editor>` is a [`<ui-form>`](ui-form.html) drawn from a SCHEMA:
+                  what the thing's properties are, each with its type, label, tip, choices, limits and rules.
+
+                  - `schema`, one of:
+                    - a schema's name, one the page added (`UI.propertyControls.addSchema()`)
+                    - a tag, `ui-button`:  its vocabulary
+                    - as a property:  a schema, or a component's vocabulary
+                  - `value`:  the thing it edits, or a list of things.
+                  - Empty, it draws every property, in the schema's order.
+                    Lay it out yourself with `<ui-property-group>`s (a [`<ui-section>`](ui-section.html) each)
+                    and `<ui-property name>`s (a [`<ui-field>`](ui-form.html) each).
+                  - It PASSES THROUGH the attributes of what it's built on:
+                    - the editor:  the form's (`apply`, `validate`, `rules`, `debug` ...),
+                      and a section's around its properties (`label`, `collapsible`, `sticky` ...)
+                    - a group:  a section's
+                    - a property:  a field's (`hint`, `apply`, `rules` ...)
+                  - `readonly` on the editor or a group reaches every property in it.
+                  - `ui-change` comes from the editor (`{ name, value, things }`), and from the property written.
+                </script>
+              </ui-markdown>
+            </ui-section>
+            <ui-section id="usage-controls-choices-and-rules" label="Controls, choices and rules" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `UI.propertyControls` is the page's registry of what properties are drawn and read with:
+
+                  - a control kind for `as`, and the types it's the default for
+                  - a choice source for `options` (or a schema's `choicesFrom`), maybe async
+                  - an "on change" rule for a schema's `onChange`, run after its property is written
+                  - a schema, by name
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  UI.propertyControls.add("date", { tag: "ui-calendar", types: ["date"] })
+                  UI.propertyControls.addChoices("fonts", async () => (await fetch("/fonts.json")).json())
+                  UI.propertyControls.addRule("darkSetsContrast", ({ things, value }) => {
+                    for (const theme of things) theme.contrast = value ? "high" : "normal"
+                  })
+                  UI.propertyControls.addSchema("Theme", themeSchema)
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - Each property names its control after its label, and its errors are an alert.
+                  - Each group is a real heading, with a fold button when it folds.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <!-- API:  generated from the vocabularies (`docs/__data/components.json5`);  nothing to write. -->
+            <ui-docs-api family="ui-property-editor"></ui-docs-api>
+          </ui-tab>
+        </ui-tabs>
+
+      </ui-container>
+    </main>
+  </body>
+</html>

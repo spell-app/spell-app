@@ -24,9 +24,9 @@ import { ask } from "$/server/test/serve"
 const SERVED = {
   componentSets: {
     ui: { name: "Spell UI", dir: "packages/ui/docs", assets: "packages/ui/site/_assets" },
-    epics: { name: "Epic UI", dir: "spell-epic/src/docs", assets: "packages/ui/site/_assets/sets" },
-    app: { name: "App UI", dir: "packages/app/docs", assets: "packages/ui/site/_assets/sets" },
-    brand: { name: "Brand", dir: "packages/brand/docs", assets: "packages/ui/site/_assets/sets" }
+    epics: { name: "Epic UI", dir: "spell-epic/src/docs", assets: "packages/ui/site/_assets" },
+    app: { name: "App UI", dir: "packages/app/docs", assets: "packages/ui/site/_assets" },
+    brand: { name: "Brand", dir: "packages/brand/docs", assets: "packages/ui/site/_assets" }
   },
   engineRoutes: {
     "/_epic/assets/": "spell-epic/src/tools/_assets",
@@ -207,7 +207,7 @@ describe("PageServer", () => {
     expect((await ask(port, "GET", "/components/ui/_assets/missing.js")).status).toBe(404)
   })
 
-  it("serves every other set at /components/<set>/:  its docs/, with the sets' build of Spell UI's site as _assets/", async () => {
+  it("serves every other set at /components/<set>/:  its docs/, with Spell UI's site bundle as _assets/", async () => {
     // Epic UI's:  spell-epic's, through the checkout's link
     const set = join(engine, "src", "docs")
     mkdirSync(join(set, "__data"), { recursive: true })
@@ -220,10 +220,8 @@ describe("PageServer", () => {
     expect(home.text).toContain(`<script src="/api/server/live.js" defer></script>`)
     expect((await ask(port, "GET", "/components/epics/epic-item.html")).text).toContain("<p>item</p>")
     expect((await ask(port, "GET", "/components/epics/__data/components.json5")).text).toBe(`{"from":"epics"}\n`)
-    // the bundle is the sets' build of Spell UI's site, one for every set but Spell UI's own
-    mkdirSync(join(root, "packages", "ui", "site", "_assets", "sets"), { recursive: true })
-    writeFileSync(join(root, "packages", "ui", "site", "_assets", "sets", "site.js"), "// sets\n")
-    expect((await ask(port, "GET", "/components/epics/_assets/site.js")).text).toBe("// sets\n")
+    // the bundle is Spell UI's site bundle, one for every set
+    expect((await ask(port, "GET", "/components/epics/_assets/site.js")).text).toBe("export {}\n")
     expect((await ask(port, "GET", "/components/epics/missing.html")).status).toBe(404)
     // its address without the slash:  with it, so its pages' relative links resolve
     const bare = await ask(port, "GET", "/components/epics")
@@ -238,7 +236,7 @@ describe("PageServer", () => {
       "/packages/brand/docs/brand-logo.html"
     )
     expect(componentSetPath("/worktrees/w/components/epics/_assets/site.js", server.componentSets)).toBe(
-      "/worktrees/w/packages/ui/site/_assets/sets/site.js"
+      "/worktrees/w/packages/ui/site/_assets/site.js"
     )
     expect(componentSetPath("/worktrees/w/components/ui/_assets/site.js", server.componentSets)).toBe(
       "/worktrees/w/packages/ui/site/_assets/site.js"
@@ -256,9 +254,9 @@ describe("PageServer", () => {
     expect(server.info.worktrees).toBe(join(root, ".claude", "worktrees"))
     const worktree = join(root, ".claude", "worktrees", "w")
     mkdirSync(join(worktree, "spell-epic", "src", "docs"), { recursive: true })
-    mkdirSync(join(worktree, "packages", "ui", "site", "_assets", "sets"), { recursive: true })
+    mkdirSync(join(worktree, "packages", "ui", "site", "_assets"), { recursive: true })
     writeFileSync(join(worktree, "spell-epic", "src", "docs", "index.html"), "<!doctype html><head></head><p>W</p>\n")
-    writeFileSync(join(worktree, "packages", "ui", "site", "_assets", "sets", "site.js"), "// w\n")
+    writeFileSync(join(worktree, "packages", "ui", "site", "_assets", "site.js"), "// w\n")
     expect((await ask(port, "GET", "/worktrees/w/components/epics/")).text).toContain("<p>W</p>")
     expect((await ask(port, "GET", "/worktrees/w/components/epics/_assets/site.js")).text).toBe("// w\n")
     // and pages are told the folder, and the URL path live reload reports its files under (`SRV.servedPath()`)

@@ -18,8 +18,8 @@ import {
 } from "$/app/solid"
 
 /**
- * The shared Solid UI (`chrome.tsx`, `Actions.tsx`, `ErrorBoundary.tsx`, `Notice.tsx`) on real `<ui-*>` elements,
- * in the browser:  Solid's client build, so `flush()` before asserting.
+ * The shared Solid UI (`chrome.tsx`, `Actions.tsx`, `ErrorBoundary.tsx`, `Notice.tsx`) on real `<ui-*>` elements.
+ * - In the browser:  Solid's client build, so `flush()` before asserting.
  */
 
 /** Undo for each test:  unmount, restore `editor` fields. */
@@ -141,6 +141,7 @@ describe("chrome + Actions", () => {
     const dropdown = host.querySelector("ui-dropdown") as HTMLElement & { open: boolean; value: unknown }
     expect([...dropdown.querySelectorAll(":scope > ui-item")].map(text)).toEqual([
       "New File",
+      "New Property Editor...",
       "Duplicate File",
       "Rename File",
       "Delete File"

@@ -37,8 +37,9 @@ vi.setConfig({ testTimeout: 30_000 })
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
 
 /**
- * Whether this checkout runs the epic engine:  spell-epic, through its `spell-epic` link, and the epic pages
- * (epic `epic-eject` I5).  Without them (CI), the tests of what `spell` hands on to `epic` are skipped.
+ * Whether this checkout runs the epic engine:
+ * spell-epic, through its `spell-epic` link, and the epic pages (epic `epic-eject` I5).
+ * - Without them (CI), the tests of what `spell` hands on to `epic` are skipped.
  */
 const HAS_ENGINE =
   existsSync(resolve(REPO_ROOT, "spell-epic", "bin", "epic")) && existsSync(resolve(REPO_ROOT, "epics"))
@@ -180,8 +181,8 @@ describe("spell dev", () => {
 })
 
 describe("spell dev pass-throughs", () => {
-  // the epic tools (`window`, `details`, the docs tools ...):  `epic`'s, spell-epic's;  here a fake `epic` in the
-  // checkout's `spell-epic` link, reporting what it was handed
+  // the epic tools (`window`, `details`, the docs tools ...):  `epic`'s, spell-epic's;
+  // here a fake `epic` in the checkout's `spell-epic` link, reporting what it was handed
   /** A fake checkout, each tool a script reporting what it got:  `{ tool, args, cwd, tsconfig }`, exiting 3. */
   const CHECKOUT = resolve(TEMP, "checkout")
   /** A folder inside it, to run from:  the tools must still be found. */
@@ -455,6 +456,97 @@ describe("spell check", () => {
     ])
   })
 })
+
+describe("spell check:  editor pages (epic property-editor P6, Q17)", () => {
+  /** A project declaring `Card`, whose editor page names a gone property, misses one, and has a misfit `as`. */
+  let paged: string
+  beforeAll(() => {
+    paged = tempProject(
+      "Paged",
+      "a card is a thing\na card has a rank as one of ace, king or queen\na card has a label as text\n" +
+        "a card has a count as number\n"
+    )
+    writeFileSync(resolve(paged, "Card.editor.html"), CARD_PAGE)
+  })
+
+  test("lists each problem as path:line:col, at its property's name or the editor, exit 1;  writes nothing", () => {
+    const { status, stdout, stderr } = spell(["check", "."], paged)
+    expect(stderr).toContain("(editor pages)  1 page · 3 errors")
+    expect(stdout).toBe(
+      [
+        'Card.editor.html:3:16  `as="select"` doesn\'t fit `label`, a text',
+        "Card.editor.html:4:16  Card has no `suit` any more",
+        "Card.editor.html:1:1  Card's `count` isn't on the page",
+        ""
+      ].join("\n")
+    )
+    expect(status).toBe(1)
+    expect(readFileSync(resolve(paged, "Card.editor.html"), "utf8")).toBe(CARD_PAGE)
+    expect(existsSync(resolve(paged, `Paged${SP.DECLARATIONS_JSON_SUFFIX}`))).toBe(false)
+  })
+
+  test("--fix puts the page right and says what it did, exit 0;  then a check is clean", () => {
+    const { status, stdout } = spell(["check", ".", "--fix"], paged)
+    expect(stdout).toBe(
+      [
+        "Card.editor.html:3:16  fixed:  `as=\"select\"` doesn't fit `label`, a text -- took its `as` off, back to its type's own control",
+        "Card.editor.html:4:16  fixed:  Card has no `suit` any more -- took it off the page",
+        "Card.editor.html:1:1  fixed:  Card's `count` isn't on the page -- added it to the \"Other\" group",
+        ""
+      ].join("\n")
+    )
+    expect(status).toBe(0)
+    const fixed = readFileSync(resolve(paged, "Card.editor.html"), "utf8")
+    expect(fixed).toContain('<ui-property name="label"></ui-property>')
+    expect(fixed).not.toContain("suit")
+    expect(fixed).toContain('<ui-property name="count"></ui-property>')
+
+    const again = spell(["check", "."], paged)
+    expect(again.stderr).toContain("(editor pages)  1 page\n")
+    expect(again.stdout).toBe("")
+    expect(again.status).toBe(0)
+  }, 30_000)
+
+  test("a page whose schema names no type of the project:  one problem, which --fix can't fix", () => {
+    const typo = tempProject("TypoPage", "a card is a thing\na card has a label as text\n")
+    writeFileSync(resolve(typo, "Card.editor.html"), CARD_PAGE.replace('schema="Card"', 'schema="Crad"'))
+    const { status, stdout } = spell(["check", ".", "--fix", "--json"], typo)
+    expect(JSON.parse(stdout)).toEqual([
+      expect.objectContaining({
+        path: resolve(typo, "Card.editor.html"),
+        line: 1,
+        column: 21,
+        message: '`schema="Crad"` names no type of TypoPage (it has Card)'
+      })
+    ])
+    expect(status).toBe(1)
+  })
+})
+
+describe("spell compile:  editor pages (epic property-editor P7, Q19)", () => {
+  test("writes each page as a module defining its <type-editor>, beside the program's own output", () => {
+    const compiled = tempProject("Compiled", "a card is a thing\na card has a rank as one of ace, king or queen\n")
+    writeFileSync(
+      resolve(compiled, "Card.editor.html"),
+      CARD_PAGE.replace(/\s*<ui-property name="(suit|label)"[^\n]*\n/g, "\n")
+    )
+    const { status, stderr } = spell(["compile", "."], compiled)
+    expect(status).toBe(0)
+    expect(stderr).toContain("Card.editor.js")
+    const module = readFileSync(resolve(compiled, "Card.editor.js"), "utf8")
+    expect(module).toContain('import "@spell-app/ui/ui-property-editor"')
+    expect(module).toContain('customElements.define("card-editor", CardEditor)')
+    expect(module).not.toContain("source=")
+  }, 30_000)
+})
+
+/** An editor page for the `Card` of the editor-page tests, as written by hand. */
+const CARD_PAGE = `<ui-property-editor schema="Card" label="Card">
+  <ui-property name="rank"></ui-property>
+  <ui-property name="label" as="select"></ui-property>
+  <ui-property name="suit"></ui-property>
+</ui-property-editor>
+`
 
 describe("spell describe", () => {
   test("a file:  what it declares", () => {

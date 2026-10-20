@@ -57,6 +57,23 @@ export const buttonVocabulary = {
     { name: "circular", kind: "keyOnly", description: "Pill shaped;  round when it holds only an icon." },
     { name: "compact", kind: "keyOnly", description: "Reduced padding." },
     {
+      name: "unpadded",
+      kind: "keyOnly",
+      description: "No padding at all, as `compact` taken to none:  hugs its content."
+    },
+    {
+      name: "wrapped",
+      kind: "keyOnly",
+      description: "Lets a long text wrap onto more lines.  Without it, a button's text stays on one line."
+    },
+    {
+      name: "ellipsis",
+      kind: "keyOnly",
+      description:
+        "One line, cut off with `…` where it doesn't fit.  " +
+        "It needs a width to cut at:  `fluid`, a width of its own, or a narrow parent (it's never wider than that)."
+    },
+    {
       name: "labeled",
       kind: "keyOrValueAndKey",
       values: ["left", "right"],
@@ -162,7 +179,8 @@ export const buttonVocabulary = {
     { name: "loading", description: "Busy." },
     { name: "fluid", description: "The host is block-level:  `fluid`, or attached `top` / `bottom` / bare." },
     { name: "left-floated", description: 'The host floats left (`floated="left"`).' },
-    { name: "right-floated", description: 'The host floats right (`floated="right"`).' }
+    { name: "right-floated", description: 'The host floats right (`floated="right"`).' },
+    { name: "ellipsis", description: "Cuts its text off with `…`:  the host is never wider than its parent." }
   ],
   texts: [{ key: "loading", text: "Loading…", description: "Announced while `loading`." }]
 } as const satisfies E.ComponentVocabulary

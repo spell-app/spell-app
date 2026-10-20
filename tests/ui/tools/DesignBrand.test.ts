@@ -18,7 +18,7 @@ describe("DesignBrand.examples()", () => {
     const page = `<!-- a <style> named in a comment -->
 <style>.stage { position: relative }</style>
 <ui-tabs><ui-tab value="examples" label="Examples">
-<ui-section id="a" header="Types"><ui-section id="b" header="Phone">
+<ui-section id="a" label="Types"><ui-section id="b" label="Phone">
 <ui-docs-example description="x">
   <brand-phone></brand-phone>
 </ui-docs-example>

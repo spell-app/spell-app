@@ -83,6 +83,7 @@ export const COMPONENTS = [
   "ui-components",
   "ui-section",
   "ui-panel",
+  "ui-property-editor",
   "ui-include",
   "ui-code",
   "ui-markdown",

@@ -3,9 +3,8 @@ export const words = {
   lang: "en",
   types: {
     Deck: {
-      setUp: "set up a deck",
-      display: "display a deck",
-      isSetUp: "is-set-up"
+      create: "create it",
+      display: "display it"
     },
     Suit: {
       color: "color"

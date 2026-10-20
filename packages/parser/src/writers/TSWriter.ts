@@ -520,13 +520,13 @@ export class TSWriter extends JSWriter {
 
   /**
    * A value kind's parameter named for it, e.g. `suit` in `static color(suit)` on `Suit`:
-   * one of its values, `(typeof SUITS)[number]` -- see `WriterProject.valueKinds`.
+   * one of its values, `(typeof Deck.Suits)[number]` -- see `WriterProject.valueKinds`.
    * - `undefined` for any other.
    */
   valueKindType(arg: P.ASTVariableExpression): string | undefined {
     const list = this.currentClass ? this.project.valueKinds.get(this.currentClass) : undefined
     if (!list || typeCaseOf(arg.name) !== this.currentClass) return undefined
-    return `(typeof ${list.constant})[number]`
+    return `(typeof ${this.listRef(list)})[number]`
   }
 
   thisParam(thisType?: string): string {
@@ -545,10 +545,7 @@ export class TSWriter extends JSWriter {
    */
   ASTClassDeclaration(node: P.ASTClassDeclaration): string {
     const declaration = this.withProjectMembers(node)
-    const hoisted = new Set(this.listsOf(declaration).map((list) => list.definition))
-    // the docstring right above a hoisted list went with it
-    const docstrings = new Set([...hoisted].map((definition) => docstringAbove(definition, declaration.members ?? [])))
-    const members = (declaration.members ?? []).filter((member) => !docstrings.has(member as P.ASTDocComment))
+    const members = declaration.members ?? []
     const { match, type, superType } = declaration
     const previousClass = this.currentClass
     this.currentClass = type.name
@@ -575,28 +572,16 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * What goes above class `node`:  each of its lists of values as a typed constant, with its docstring and a type
-   * for one of its values, a group each:
-   * ```
-   * /** card ranks *\/
-   * const RANKS = ["ace", 2, ...] as const
-   * export type Rank = (typeof RANKS)[number]
-   * ```
+   * What goes above class `node`:  a type for one value of each of its lists of values, e.g.
+   * `export type Rank = (typeof Card.Ranks)[number]` -- the list itself is in the class, `static Ranks = [...] as const`.
    * - `""` if it has none.
    */
   classPrefix(node: P.ASTClassDeclaration): string {
     const declaration = this.withProjectMembers(node)
-    const lists = this.listsOf(declaration)
-    if (!lists.length) return ""
-    const members = declaration.members ?? []
-    const groups = lists.map((list) => {
-      const docstring = docstringAbove(list.definition, members)
-      const lines = [`const ${list.constant} = ${this.write(list.definition.value)} as const`]
-      if (docstring) lines.unshift(String(this.write(docstring)))
-      if (list.type) lines.push(`export type ${list.type} = (typeof ${list.constant})[number]`)
-      return lines.join("\n")
-    })
-    return `${groups.join("\n\n")}\n`
+    const types = this.listsOf(declaration).flatMap((list) =>
+      list.type ? [`export type ${list.type} = (typeof ${this.listRef(list)})[number]`] : []
+    )
+    return types.length ? `${types.join("\n")}\n` : ""
   }
 
   /**
@@ -614,17 +599,22 @@ export class TSWriter extends JSWriter {
     return `${this.nameOf(name)}${this.signatureParams(method)}: ${returns ?? TSWriter.UNKNOWN}`
   }
 
+  /** Where a list of values is read, e.g. `Card.Ranks`, by our names for its class and static. */
+  listRef(list: P.TSList): string {
+    return `${this.typeNameOf(list.owner)}.${this.nameOf(list.definition.name)}`
+  }
+
   /** The hoisted lists `node` declares, in order -- see `WriterProject.lists`. */
   private listsOf(node: P.ASTClassDeclaration) {
     const lists = [...this.project.lists.values()]
     return (node.members ?? []).flatMap((member) => lists.filter((list) => list.definition === member))
   }
 
-  /** `static Ranks = RANKS` for a hoisted list;  else as javascript's. */
+  /** `static Ranks = [...] as const` for a list of values, typed -- see `WriterProject.lists`;  else as javascript's. */
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
     const list = [...this.project.lists.values()].find((it) => it.definition === node)
     if (!list) return super.ASTStaticDefinitionAsMember(node)
-    return this.withSpell(node, `static ${this.nameOf(node.name)} = ${list.constant}`)
+    return this.withSpell(node, `static ${this.nameOf(node.name)} = ${this.write(node.value)} as const`)
   }
 
   ////////////////
@@ -661,17 +651,17 @@ export class TSWriter extends JSWriter {
     return [this.spellComment(node), `${decorator}${accessor}`].filter(Boolean).join(jsText.NEWLINE)
   }
 
-  /** What `@prop()` declares:  `node`'s `check`, `init` for its `initializer`, a hoisted list by its constant. */
+  /** What `@prop()` declares:  `node`'s `check`, `init` for its `initializer`, a list of values read when set. */
   propInfo(node: P.ASTReactiveProperty): string | undefined {
     const parts = (node.check?.properties ?? []).map((property) => {
       const isOneOf = property instanceof P.ASTObjectLiteralProperty && property.property.value === "oneOf"
       const list = isOneOf && this.project.listFor(property.value)
       if (!list) return String(this.write(property))
-      // read when set stays so:  its class is further down
-      const isLazy = (property as P.ASTObjectLiteralProperty).value instanceof P.ASTMethodDefinition
-      return `oneOf: ${isLazy ? "() => " : ""}${list.constant}`
+      // read when set:  the decorator runs while the class is being made -- see `TSList`
+      return `oneOf: () => ${this.listRef(list)}`
     })
     if (node.initializer) parts.push(`init: () => ${this.bare(node.initializer)}`)
+    if (this.madeEarly(node)) parts.push("early: true")
     return parts.length ? `{ ${parts.join(", ")} }` : undefined
   }
 
@@ -690,7 +680,7 @@ export class TSWriter extends JSWriter {
       if (key === "type" && property.value instanceof P.ASTStringLiteral) return this.typeFor(property.value.value)
       if (key !== "oneOf") continue
       const list = this.project.listFor(property.value)
-      if (list) return list.type ?? `(typeof ${list.constant})[number]`
+      if (list) return list.type ?? `(typeof ${this.listRef(list)})[number]`
       return `(typeof ${this.write(listNamedBy(property.value))})[number]`
     }
     const initializer = node.initializer && unwrapped(node.initializer)
@@ -1199,6 +1189,16 @@ export class TSWriter extends JSWriter {
     return `${open}>\n${indented(written.join("\n"))}\n</${tag}>`
   }
 
+  /** A fragment, `<>...</>`, as is:  its children as an element's, `<></>` for none. */
+  ASTJSXFragment(node: P.ASTJSXFragment): string {
+    const children = (node.children ?? []).filter((child) => !(child instanceof P.ASTJSXEndTag))
+    const written = children.map((child) => this.jsxChild(child)).filter(Boolean)
+    const inline = written.join("")
+    const isShort = !written.some((child) => child.startsWith("<")) && !inline.includes("\n")
+    if (!written.length || (isShort && inline.length < JSX_LINE)) return `<>${inline}</>`
+    return `<>\n${indented(written.join("\n"))}\n</>`
+  }
+
   /** A value in JSX:  just the expression -- Solid's compiler makes it live. */
   ASTJSXLiveValue(node: P.ASTJSXLiveValue): string {
     return this.bare(node.expression)
@@ -1356,17 +1356,6 @@ function loopsOverAList(method: P.ASTMethodDefinition): boolean {
     if (node instanceof P.ASTMethodDefinition && node.inline) loops = true
   })
   return loops
-}
-
-/**
- * The docstring right above `member` in `members`, if it has one:
- * past a declaration's marker, `/*! SPELL: DECLARES ... *\/`.
- */
-function docstringAbove(member: P.ASTNode, members: P.ASTNode[]): P.ASTDocComment | undefined {
-  let index = members.indexOf(member) - 1
-  while (members[index] instanceof P.ASTPreservedComment) index--
-  const above = members[index]
-  return above instanceof P.ASTDocComment ? above : undefined
 }
 
 /** `text` with every non-blank line indented once. */

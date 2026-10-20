@@ -13,7 +13,7 @@
  *   - borders, status (`--spell-success` / `-soft` ...), art (`--spell-blob`, `-blob-2`, `--spell-line-flourish`)
  *   - shadows `--spell-shadow-xs` ... `-lg`, and the type roles (`--spell-type-eyebrow`, `-lede`, `-spell` ...)
  *   - the Polished Ivory ladder (`--spell-accent-25` ... `-800`) beside `spell`'s violet and brand primitives
- *   `<ui-brand-*>` elements (`packages/brand/components/`) and the `.spell.html` pages read these;  plain `<ui-*>`
+ *   `<brand-*>` elements (`packages/brand/components/`) and the `.spell.html` pages read these;  plain `<ui-*>`
  *   elements never do.
  * - Gaps (what no token reaches):  the epic page's "What the theme can't do today" table (Overview 1.4).
  *
@@ -304,10 +304,12 @@
     --ui-toast-radius: var(--ui-radius-l);
     --ui-modal-radius: 22px;
     --ui-popup-radius: var(--ui-radius-s);
-    /* `<ui-section info>` (and so `<ui-panel>`'s bands):  the brand's tooltip, an aubergine bubble, as
-       `<ui-brand-field>`'s */
+    /* `<ui-section info>` (and so `<ui-panel>`'s bands) and `<ui-field description>`:  the brand's tooltip, an
+       aubergine bubble */
     --ui-section-tip-background: var(--spell-surface-inverse);
     --ui-section-tip-color: var(--spell-text-inverse);
+    --ui-field-tip-background: var(--spell-surface-inverse);
+    --ui-field-tip-color: var(--spell-text-inverse);
     /* the brand's fold chevron (Theme Creator, Color Set Chooser):  UP while open, DOWN while folded */
     --ui-section-fold-icon-rotate: 180deg;
     --ui-section-fold-icon-folded-rotate: 0deg;

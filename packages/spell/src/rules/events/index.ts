@@ -7,5 +7,6 @@
  *   `priority` and length, the one registered first wins.  Moving a line here can change what parses.
  */
 export * from "./events.parser"
+export * from "./EventWords"
 export * from "./Trigger"
 export * from "./On"

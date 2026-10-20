@@ -3,97 +3,151 @@ a "card" is a thing where:
 
 	## suit and rank
 	- suit is a suit of its deck
-	- its "color" is the color of its suit
-	- it "is a (suit)"                      // e.g. "the card is a spade"
 	- its "rank" is a rank of its deck
+
+	- it "is a (suit)"                      // e.g. "the card is a spade"
 	- it "is a (rank)"                      // e.g. "the card is a queen"
 	- it "is the (rank) of (suits)"         // e.g. "the card is the queen of spades"
 	- it "is a face card" if its rank is a face card
-	- value is the position of its rank
+	- it "is a number card" if it is not a face card
+	- it "is a wild card" if it is a joker
 
 	## direction
 	- its direction is up or down
 	- it "is face up" if its direction is up
 	- it "is face down" if its direction is down
 
-	## names
-	- its "name" is: its rank + "-of-" + its suit
+	- its "color" is:
+		return the color of its suit
+
+	## value and names
+	- value is the position of its rank
+	- its "name" is:
+		return its rank + "-of-" + its suit
+
 	- its "short suit" is:
+		// uncodoe: see https://www.compart.com/en/unicode/block/U+1F0A0
 		if it is a club return "♣️"
 		if it is a diamond return "♦️"
 		if it is a heart return "♥️"
 		if it is a spade return "♠️"
 		return "?"
 	- its "short rank" is:
-		if its rank is nothing return "?"
+		if it is a joker return "🃏"
 		if its rank is a number return "" + its rank
 		return the first character of its rank as uppercase
 	- its "short direction" is:
-		if its direction is up return "+"
-		return "—"
-	- its "short name" is: its short rank + its short suit
+		if its direction is up return "↑"
+		return "↓"
 	- its "state" is: its short rank + its short suit + its short direction
 
+	## its picture:  unicode's Playing Cards, https://www.compart.com/en/unicode/block/U+1F0A0
+	// a row of each suit:  spades from 1F0A1, hearts 1F0B1, diamonds 1F0C1, clubs 1F0D1
+	// in a row:  ace 1, 2 ... 10, jack B, then a knight (C, not in our deck), queen D, king E
+	- its "picture" is:
+		if it is face down return unicode 1F0A0					// "playing card back"
+
+		set place to its value
+		if it is a queen or it is a king set place to place + 1
+		
+		if it is a spade return unicode (127136 + place)        // 1F0A0
+		if it is a heart return unicode (127152 + place)        // 1F0B0
+		if it is a diamond return unicode (127168 + place)      // 1F0C0
+		return unicode (127184 + place)                         // 1F0D0
+
 	## drawing
-	- to "draw its front":
-		<div onClick={fire event card-click with card = it} className="Card face-up [rank] [suit] ui button compact fluid [color]">
-			{its short rank + " "}
-			<span className="suit">{its short suit}</span>
-		</div>
-	- to "draw its back":
-		<div onClick={fire event card-click with card = it} className="Card face-down [rank] [suit] ui button compact fluid"><i className="fitted bicycle icon"/></div>
+	- to draw it: return <>
+		<ui-text size="massive" style="cursor:pointer" class="Card"
+			color={its color if it is face up otherwise "blue"} 
+			onClick={fire event card click with card = it} 
+		>
+			{its picture}
+		</ui-text>
+		</>
 
-## actions -- the sentence style, beside the outline
+	## actions -- the sentence style, beside the outline
 
-// Turn card face up or face down
-// Note that this will animate if you `wait for turn the card face up`
-to turn a card face up:
-	set its direction to up
-	pause for 50 msec
-to turn a card face down:
-	set its direction to down
-	pause for 50 msec
+	// Turn card face up or face down
+	// Note that this will animate if you `wait for turn the card face up`
+	- to turn it face up:
+		set its direction to up
+		pause for 50 msec
+	to turn it face down:
+		set its direction to down
+		pause for 50 msec
 
-// Flip card to opposite direction
-// Note that this will animate if you `wait for turn the card face up`
-to turn a card over:
-	if its direction is up: turn it face down
-	otherwise: turn it face up
-	pause for 50 msec
+	// Flip card to opposite direction
+	// Note that this will animate if you `wait for turn the card face up`
+	to turn it over:
+		if its direction is up: turn it face down
+		otherwise: turn it face up
+		pause for 50 msec
+
+a joker is a card
+	- its rank is "joker"
+	- it "is a face card" if yes
+	- its suit is its color
+	- its color is red or black
+	- its "short suit" is "🃟"
+	- its value is 53 if its color is black otherwise 54
+	- its "name" is:
+		return its color + "-joker"
+	- its "picture" is:
+		if it is face down return unicode 1F0A0
+		if its color is red return unicode 1F0BF		// red joker
+		return unicode 1F0CF							// black joker
+
 
 ## create a card instance with default properties
 to test card setup
-	the card is a new card whose rank is queen, suit is spades and direction is up
-	echo the card
-	expect the rank of the card to be queen
-	expect the suit of the card to be spades
-	expect the name of the card to be "queen-of-spades"
-	expect the color of the card to be black
-	expect the value of the card to be 12
-	expect the short suit of the card to be "♠️"
-	expect the short rank of the card to be "Q"
-	expect the short name of the card to be "Q♠️"
+	get a new card whose rank is queen, suit is spades and direction is up
+	its rank should be queen
+	its suit should be spades
+	its name should be "queen-of-spades"
+	its color should be black
+	its value should be 12
+	its short suit should be "♠️"
+	its short rank should be "Q"
 
-	expect the card is face up to be yes
-	expect the card is face down to be no
+	it is face up should be yes
+	it is face down should be no
 
-	expect the card is a face card to be yes
-	expect the card is not a face card to be false
+	it is a face card should be yes
+	it is not a face card should be no
+	it is a joker should be no
+	it is a wild card should be no
 
-	expect the card is a spade to be true
-	expect the card is a club to be false
+	it is a spade should be yes
+	it is a club should be no
 
-	expect the card is a queen to be true
-	expect the card is an ace to be false
-	expect the card is a 2 to be false
+	it is a queen should be yes
+	it is a joker should be no
+	it is an ace should be no
+	it is a 2 should be no
 
-	expect the card is the queen of spades to be true
-	expect the card is the queen of clubs to be false
-	expect the card is not the 2 of diamonds to be true
+	it is the queen of spades should be yes
+	it is the queen of clubs should be no
+	it is not the 2 of diamonds should be yes
+	its picture should be "🂭"
 
-	turn the card face down
-	expect the direction of the card to be down
+	turn it face down
+	its direction should be down
+	its picture should be "🂠"
 
-	turn the card over
-	expect the card is face up to be true
-test card setup
+	turn it over
+	it is face up should be yes
+
+	// test jokers
+	joker is a new joker with color = red
+	joker is a joker should be yes
+	the color of joker should be "red"
+	joker is a wild card should be yes
+	joker is a face card should be yes
+	the picture of joker should be "🂿"
+	the name of joker should be "red-joker"
+	the value of joker should be 54
+
+	set black joker to a new joker with color = black
+	the picture of black joker should be "🃏"
+	the value of black joker should be 53
+	the name of black joker should be "black-joker"

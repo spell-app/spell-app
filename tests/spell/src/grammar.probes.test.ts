@@ -261,8 +261,8 @@ describe("grammar probes", () => {
 
   test("T3  `is a` names a type declared further down", () => {
     expect(probe("print the card is a widget", "a widget is a thing")).toMatchInlineSnapshot(`
-      "core.console.log(card instanceof Widget)
-      export class Widget extends Thing {}"
+      "export class Widget extends Thing {}
+      core.console.log(card instanceof Widget)"
     `)
   })
 
@@ -975,7 +975,22 @@ function probe(...lines: string[]): string {
   const compiled = file!.compiled.split("\n").filter((line) => !DECLARATION_LINE.test(line))
   const output = compiled.slice(compiled.lastIndexOf(SETUP_END_COMPILED) + 1)
   const errors = [...types!.errors, ...file!.errors].map((error) => `ERROR ${error}`)
-  return [...output, ...errors].join("\n")
+  return [...classesAbove(compiled, SETUP_START_COMPILED), ...output, ...errors].join("\n")
+}
+
+/**
+ * The classes `compiled` declares above `setupStart`, its setup's first line:  a probe's own classes.
+ * - A file's compiled code declares its classes above its running code (`SP.hoistClassDeclarations()`).
+ */
+function classesAbove(compiled: string[], setupStart: string): string[] {
+  const classes: string[] = []
+  let inClass = false
+  for (const line of compiled.slice(0, compiled.indexOf(setupStart))) {
+    if (line.startsWith("export class ")) inClass = true
+    if (inClass) classes.push(line)
+    if (inClass && /^(export class .*)?\}$/.test(line)) inClass = false
+  }
+  return classes
 }
 
 /**
@@ -1007,7 +1022,12 @@ function probeMembership(pileLines: string[], lines: string[]): string {
   const { files } = parseMembership(pileLines, lines)
   const [pile, file] = files.slice(-2)
   const declarations = (code: string) => code.split("\n").filter((line) => !DECLARATION_LINE.test(line))
-  const output = declarations(file!.compiled).slice(MEMBERSHIP_SETUP.length)
+  const compiled = declarations(file!.compiled)
+  const setupStart = compiled.indexOf(SETUP_START_COMPILED)
+  const output = [
+    ...classesAbove(compiled, SETUP_START_COMPILED),
+    ...compiled.slice(setupStart + MEMBERSHIP_SETUP.length)
+  ]
   const errors = files.flatMap((it) => it.errors.map((error) => `ERROR ${it.path} ${error}`))
   return [...declarations(pile!.compiled), "---", ...output, ...errors].join("\n")
 }

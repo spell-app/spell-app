@@ -1,10 +1,10 @@
 // `$/ui/util` by name, never the `$/ui/core` entry:  node scripts load this file (see the class docs)
 import { beforeNextPaint } from "$/ui/util"
+import * as UIT from "$/ui/components/components.types"
 import {
   EXAMPLE_TAG,
   HEADING_SELECTOR,
   READING_LINE,
-  SECTION_HEADER_SELECTOR,
   SECTION_SELECTOR,
   SECTION_TAG,
   TABS_TAG,
@@ -180,8 +180,7 @@ export class TocIndex {
   private static text(heading: Element): string {
     let text: string | null | undefined
     if (heading.localName === EXAMPLE_TAG) text = heading.getAttribute(HEADER)
-    else if (heading.localName === SECTION_TAG)
-      text = heading.getAttribute(HEADER) || heading.querySelector(SECTION_HEADER_SELECTOR)?.textContent
+    else if (heading.localName === SECTION_TAG) text = UIT.SectionTitle.textOf(heading)
     else
       text = [...heading.childNodes]
         // `localName`, not `instanceof Element`:

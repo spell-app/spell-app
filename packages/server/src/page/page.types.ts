@@ -126,7 +126,12 @@ export type PageScript = {
  * One component set, as the settings name it (`"componentSets"`, under its id).
  * - `name`:  what prose calls it, e.g. `Epic UI`
  * - `dir`:  its pages' folder, relative to the checkout, e.g. `packages/ui/docs`
+ *   - Epic UI's is spell-epic's, through the checkout's `spell-epic` link (epic `epic-eject` I5)
  * - `assets`:  the site bundle its pages load as `_assets/`, relative to the checkout
+ *   - today Spell UI's site bundle (`packages/ui/site/_assets`), for every set:  it holds `globalThis.SpellUI`
+ *     (`SitePacks`) for the component packs a set's pages load, the epics pack, for the comments, on all of them
+ *   - the other sets had a build of their own (its `sets/`), from epic `epic-workflow` P10 until epic
+ *     `epic-engine` gave Spell UI's pages the packs too
  */
 export type ComponentSetSetting = {
   readonly name: string
@@ -192,4 +197,4 @@ export { COMPONENTS_PREFIX } from "./settings.ts"
  *   (some by path, under plain `node`:  so `./settings.ts` with its extension) until it switches, once epic
  *   `repo-split` P4 is on `main`.  Delete them when spell-epic reads `componentSets()` of its checkout's settings.
  */
-export { COMPONENT_SETS, SETS_BUNDLE, SITE_BUNDLE } from "./settings.ts"
+export { COMPONENT_SETS, SITE_BUNDLE } from "./settings.ts"

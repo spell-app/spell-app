@@ -183,14 +183,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - Each at `/components/<id>/`.  A new set is one more entry in the settings.
       - No dev server:  the pages are static, loading their site bundle.
       - ONE overlay (`componentSetPath()`):
-        - `<prefix>/_assets/` is the set's site bundle (`assets`)
+        - `<prefix>/_assets/` is the set's site bundle (`assets`):  today Spell UI's, for every set
+          - it loads the component packs a set's pages name (`SitePacks`):  the epics pack, for the comments, on all
+          - the other sets had their own build (its `sets/`), until epic `epic-engine`
         - the rest is the set's own folder:  its pages, `__parts/`, `__data/`
       - The same at `/worktrees/<w>/components/<set>/`.
       - `<prefix>` redirects to `<prefix>/`:  the one redirect left.
       - Live reload watches each set's folder and its bundle, reporting their changes at the set's address.
       - Settings that name no sets:  the sets of the checkout this package is in (`COMPONENT_SETS`).
         - REFACTOR:  only for spell-epic's route-module tests, whose scratch checkouts name none;
-          with `COMPONENT_SETS`, `SITE_BUNDLE` and `SETS_BUNDLE` (spell-epic imports them), it goes once spell-epic
+          with `COMPONENT_SETS` and `SITE_BUNDLE` (spell-epic imports them), it goes once spell-epic
           reads `componentSets()` (epic `repo-split` P4's T entry).
     - The bundles it serves are NOT committed:  page-server's route module builds them (`BundleBuild`).
     - Spell projects' compiled output (`build/`, never committed) is built the same way,

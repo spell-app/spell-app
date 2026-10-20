@@ -187,6 +187,14 @@ export const Actions = {
   createFile: (props: ActionProps) => (
     <Action title="New File" icon="pencil" onClick={() => editor.createFile()} {...props} />
   ),
+  createPropertyEditor: (props: ActionProps) => (
+    <Action
+      title="New Property Editor..."
+      icon="sliders horizontal"
+      onClick={() => editor.createPropertyEditor()}
+      {...props}
+    />
+  ),
   duplicateFile: (props: ActionProps) => (
     <Action title="Duplicate File" icon="clone outline" onClick={() => editor.duplicateFile()} {...props} />
   ),
@@ -276,10 +284,11 @@ export const Actions = {
       <Actions.deleteApp />
     </>
   ),
-  /** File dropdown items:  create, duplicate, rename, delete the file. */
+  /** File dropdown items:  create a file or a property editor page, duplicate, rename, delete the file. */
   FILE_DROPDOWN_ACTIONS: (): JSX.Element => (
     <>
       <Actions.createFile />
+      <Actions.createPropertyEditor />
       <Actions.duplicateFile />
       <Actions.renameFile />
       <Actions.deleteFile />

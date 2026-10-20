@@ -1113,6 +1113,18 @@
       "description": "Stringify and convert to lowercase."
     },
     {
+      "kind": "method",
+      "name": "unicode",
+      "of": "core",
+      "module": "string",
+      "params": [
+        {
+          "name": "code"
+        }
+      ],
+      "description": "The character with unicode code point `code`, e.g. `\"🂠\"` for `0x1F0A0`."
+    },
+    {
       "property": "TIME_UNITS_MAP",
       "of": "core",
       "module": "ui",
@@ -1440,6 +1452,18 @@
         }
       ],
       "description": "The program's thing of class `Class` at place `place`, in the order it made them, counting from 1 -- `undefined` if there's none there."
+    },
+    {
+      "kind": "method",
+      "name": "everyThing",
+      "of": "core",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        }
+      ],
+      "description": "Every thing of class `Class`, or of a sub-class, the program has made, in the order made:  a scratch list."
     },
     {
       "kind": "method",

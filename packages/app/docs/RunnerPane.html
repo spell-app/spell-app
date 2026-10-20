@@ -20,6 +20,8 @@
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
+    <!-- the comments (bullhorns, threads, Send):  the docs runtime's, alone, beside the site's Spell UI -->
+    <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="RunnerPane">
@@ -53,7 +55,7 @@
             >
           </ui-list>
 
-          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+          <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
               The todos example, with its debug pane open on the Thing Explorer. That pane, its tabs and what they show,
@@ -63,13 +65,13 @@
               <spell-app project="@spell/examples/todos" toolbar debug="things" height="480px"></spell-app>
             </ui-docs-example>
             <p class="meta">
-              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
-              >), which this set's pages load.
+              Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
+              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <code>yarn build:element</code>.
             </p>
           </ui-section>
 
-          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+          <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
               <code>&lt;spell-app&gt;</code>'s runner draws two: the debug pane, and, for a program with no app of its
@@ -105,8 +107,8 @@
               <li>With no <code>onPane</code>, or a single tab, the tabs just say what the pane is.</li>
               <li>Each tab has an id, a Fomantic icon name and a title: <code>sitemap</code>, "Type Explorer".</li>
               <li>
-                Its tabs are <code>&lt;ui-item&gt;</code>s in a <code>&lt;ui-menu&gt;</code>: whatever draws a runner
-                loads those tags, as <code>&lt;spell-app&gt;</code> does.
+                Its tabs are <code>&lt;ui-item&gt;</code>s in a <code>&lt;ui-menu&gt;</code>. So whatever draws a runner
+                loads those tags too, as <code>&lt;spell-app&gt;</code> does.
               </li>
               <li>
                 It sits in a
@@ -119,7 +121,7 @@
             </ul>
           </ui-section>
 
-          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+          <ui-section id="3-props" label="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <ui-docs-api family="RunnerPane"></ui-docs-api>
             <p class="meta">
@@ -129,7 +131,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+          <ui-section id="4-its-code" label="4. Its code" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>

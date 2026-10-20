@@ -9,15 +9,16 @@
  *   follows it;  a static deploy must copy through it (`cp -RL`).
  * - Sizes:  every file but the packs, raw and gzipped;  EAGER is `site.css` + `site.js` and the chunks it imports
  *   statically (what a page loads before any `import()`).
- * - Then the component sets' build (mode `sets`, `site/_src/sets.ts`) into `site/_assets/sets/`, with its own packs
- *   link:  the page server serves it as a set's `_assets/` (`/components/epics/_assets/`, epic `epic-workflow` P10).
+ * - Every component set's pages load this one bundle (the page server's `componentSets` setting):  the page server
+ *   serves it as each set's `_assets/` (`/components/epics/_assets/`).  The other sets' own build (`site/_assets/sets/`, epic
+ *   `epic-workflow` P10) is gone since epic `epic-engine`, which gave Spell UI's pages the component packs too.
  */
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync } from "node:fs"
 import path from "node:path"
 import { gzipSync } from "node:zlib"
 import { build } from "vite"
 
-import { SETS_ASSETS, SETS_MODE, SITE_ASSETS } from "../vite.site.config.ts"
+import { SITE_ASSETS } from "../vite.site.config.ts"
 import { Terminal } from "../tools/Terminal.ts"
 
 /** The packs link's name inside `_assets/`:  the one entry a rebuild keeps. */
@@ -28,10 +29,6 @@ const PACKS = path.join(SITE_ASSETS, PACKS_NAME)
 
 /** Where the packs link points:  relative, so the checkout can move. */
 const PACKS_TARGET = "../../src/icons/icon-packs"
-
-/** The sets' build's packs link, one folder deeper. */
-const SETS_PACKS = path.join(SETS_ASSETS, PACKS_NAME)
-const SETS_PACKS_TARGET = `../${PACKS_TARGET}`
 
 /** A static `import ... from "./x.js"` / `import "./x.js"` in minified output (never `import("./x.js")`). */
 const STATIC_IMPORT = /(?:^|[;}\n])\s*(?:import|export)(?:[^"'();]*?from)?\s*["'](\.\.?\/[^"']+)["']/g
@@ -45,10 +42,6 @@ const configFile = path.resolve(import.meta.dirname, "../vite.site.config.ts")
 await build({ configFile })
 link(PACKS, PACKS_TARGET)
 report((performance.now() - started) / 1000, SITE_ASSETS)
-const setsStarted = performance.now()
-await build({ configFile, mode: SETS_MODE })
-link(SETS_PACKS, SETS_PACKS_TARGET)
-report((performance.now() - setsStarted) / 1000, SETS_ASSETS)
 
 /** Link the icon packs at `packs` (to `target`), unless linked;  throws when the link leads nowhere. */
 function link(packs: string, target: string): void {
@@ -69,8 +62,7 @@ function isLink(file: string): boolean {
 
 /** Print the sizes of the bundle in `folder`:  eager files, totals, the biggest lazy chunks. */
 function report(seconds: number, folder: string): void {
-  // the sets' build is a folder of Spell UI's:  never counted in Spell UI's sizes
-  const files = walk(folder).filter((file) => !file.startsWith(`${PACKS_NAME}/`) && !file.startsWith("sets/"))
+  const files = walk(folder).filter((file) => !file.startsWith(`${PACKS_NAME}/`))
   const sizes = files.map((file) => {
     const bytes = readFileSync(path.join(folder, file))
     return { file, raw: bytes.length, gzip: gzipSync(bytes).length }

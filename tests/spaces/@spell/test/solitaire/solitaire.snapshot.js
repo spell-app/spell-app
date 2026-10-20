@@ -378,14 +378,6 @@ export class Game extends App {
     )
   }
 }
-export const game = new Game()
-core.console.log(game)
-
-core.heading("set up all piles")
-/** set up all piles */
-export const allPiles = new List({ instanceType: "Pile" })
-export const foundations = new List({ instanceType: "Pile" })
-export const tableaus = new List({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class StockPile extends Pile {
@@ -400,8 +392,6 @@ export class StockPile extends Pile {
     )
   }
 }
-export const stock = new StockPile({ name: "stock", droppable: false })
-allPiles.append(stock)
 
 /** set up discards: where played cards go when turning over stock */
 export class DiscardPile extends Pile {
@@ -413,8 +403,6 @@ export class DiscardPile extends Pile {
     return h("div", { class: "Pile Discards stacked" }, () => core.drawThing(this.lastItem))
   }
 }
-export const discards = new DiscardPile({ name: "discards", droppable: false })
-allPiles.append(discards)
 
 /** set up foundation piles: where we build up from ace => king */
 export class Foundation extends Pile {
@@ -441,6 +429,38 @@ export class Foundation extends Pile {
     )
   }
 }
+
+/** set up tableau piles: vertical piles where we arrange from king to ace */
+export class Tableau extends Pile {
+  canPickUpCard(card) {
+    return card.isFaceUp
+  }
+
+  canPlayCard(card) {
+    if (this.isEmpty) return card.isARank("king")
+    return this.color !== card.color && this.value === card.value + 1
+  }
+
+  draw() {
+    return h("div", { class: "Pile Tableau staggered" }, () => core.drawItems(this))
+  }
+}
+
+export const game = new Game()
+core.console.log(game)
+
+core.heading("set up all piles")
+/** set up all piles */
+export const allPiles = new List({ instanceType: "Pile" })
+export const foundations = new List({ instanceType: "Pile" })
+export const tableaus = new List({ instanceType: "Pile" })
+
+export const stock = new StockPile({ name: "stock", droppable: false })
+allPiles.append(stock)
+
+export const discards = new DiscardPile({ name: "discards", droppable: false })
+allPiles.append(discards)
+
 const it = new Foundation({
   name: "clubs",
   symbol: "♣️",
@@ -467,21 +487,6 @@ const it4 = new Foundation({
 foundations.append(it4)
 foundations.forEach((pile) => allPiles.append(pile))
 
-/** set up tableau piles: vertical piles where we arrange from king to ace */
-export class Tableau extends Pile {
-  canPickUpCard(card) {
-    return card.isFaceUp
-  }
-
-  canPlayCard(card) {
-    if (this.isEmpty) return card.isARank("king")
-    return this.color !== card.color && this.value === card.value + 1
-  }
-
-  draw() {
-    return h("div", { class: "Pile Tableau staggered" }, () => core.drawItems(this))
-  }
-}
 core.getRange(1, 7).forEach((number) => {
   const it5 = new Tableau({ name: `Tableau${number}`, droppable: true })
   tableaus.append(it5)

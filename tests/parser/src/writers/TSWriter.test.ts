@@ -187,7 +187,7 @@ describe("TSWriter", () => {
     expect(writer.write(ifUp)).toBe('if (this.rank == "up") return "+"')
   })
 
-  test("a list a property's values come from is a typed constant above its class", () => {
+  test("a list a property's values come from stays in its class, typed:  `Card.Suits`, read when set", () => {
     const card = new P.ASTTypeExpression(match, { name: "Card" })
     const suits = new P.ASTStaticDefinition(match, {
       type: card,
@@ -204,12 +204,11 @@ describe("TSWriter", () => {
     const project = writer.forProject([[declaration]])
     expect(project.write(new P.ASTStatementGroup(match, { statements: [declaration] }))).toBe(
       [
-        `const SUITS = ["clubs"] as const`,
-        `export type Suit = (typeof SUITS)[number]`,
+        `export type Suit = (typeof Card.Suits)[number]`,
         ``,
         `export class Card extends Thing {`,
-        `  static Suits = SUITS`,
-        `  @prop({ oneOf: SUITS })`,
+        `  static Suits = ["clubs"] as const`,
+        `  @prop({ oneOf: () => Card.Suits })`,
         `  accessor suit!: Suit`,
         `}`
       ].join("\n")

@@ -42,13 +42,34 @@ export function thing<C extends new (...args: any[]) => { create(): void }>(
 
 /**
  * Whether `ctor`'s constructor should call `create()` for an instance being built as `newTarget`.
- * - True unless a `@thing` class sits between `newTarget` (inclusive) and `ctor` (exclusive):  its wrapper
- *   constructor runs later, after more field initializers, so it calls `create()` instead.
+ * - True unless a `@thing` class sits between `newTarget` (inclusive) and `ctor` (exclusive):
+ *   its wrapper constructor runs later, after more field initializers, so it calls `create()` instead.
+ * - Always false inside `withoutCreate()`:  a copy runs no `create()`.
  * - `Thing` / `List` call this with themselves:  no `@thing` in the chain => they call `create()`, as before.
  */
 export function runsCreate(ctor: Function, newTarget: Function): boolean {
+  if (copying > 0) return false
   for (let current = newTarget; current && current !== ctor; current = Object.getPrototypeOf(current)) {
     if (Object.hasOwn(current, THING_CLASS)) return false
   }
   return true
 }
+
+/**
+ * `make()`'s value, made with NO `create()` run:  a copy, not a new one (epic page `outline-spell`, P24).
+ * - e.g. `filter()`'s result, `a copy of the pile`:
+ *   a deck whose `create()` deals 52 cards mustn't deal them into the deck of 4 queens a filter makes.
+ * - See `core.newScratch()`.
+ * - Nests:  `runsCreate()` is `false` until the outermost one returns.
+ */
+export function withoutCreate<T>(make: () => T): T {
+  copying++
+  try {
+    return make()
+  } finally {
+    copying--
+  }
+}
+
+/** How many `withoutCreate()` calls are running -- see `runsCreate()`. */
+let copying = 0

@@ -76,6 +76,29 @@ describe("compiled-style getter / setter properties", () => {
     expect(task.tags).toBe(task.tags)
     expect(new Task({}).tags).not.toBe(task.tags)
   })
+
+  test("an `early` starting value is made with the thing, unless its props gave one (outline-spell P19)", () => {
+    const made: string[] = []
+    class Pile extends Thing {}
+    class Game extends Thing {
+      static {
+        this.declareProp("clubs", { init: () => (made.push("clubs"), new Pile()), early: true })
+        this.declareProp("later", { init: () => (made.push("later"), new Pile()) })
+      }
+      get clubs(): Pile {
+        return this.getProp("clubs")
+      }
+      set clubs(value: Pile) {
+        this.setProp("clubs", value)
+      }
+    }
+    const game = new Game()
+    expect(made).toEqual(["clubs"])
+    expect(game.clubs).toBeInstanceOf(Pile)
+    const given = new Pile()
+    expect(new Game({ clubs: given }).clubs).toBe(given)
+    expect(made).toEqual(["clubs"])
+  })
 })
 
 describe("Thing.isOfType()", () => {

@@ -20,6 +20,8 @@
     </script>
     <link rel="stylesheet" href="_assets/site.css" />
     <script type="module" src="_assets/site.js"></script>
+    <!-- the comments (bullhorns, threads, Send):  the docs runtime's, alone, beside the site's Spell UI -->
+    <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="Search">
@@ -56,9 +58,9 @@
               (single-quoted), as these examples do, so they need no script.  Fomantic's remote GitHub searches run on a local
               `source` here:  the site never calls a third-party API.  Type in a search to see its results.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
               <!-- GAP I37:  Fomantic's bare prompt (no icon);  ours always draws the search icon. -->
-              <ui-section id="examples-types-standard" header="Standard" sticky collapsible dividing>
+              <ui-section id="examples-types-standard" label="Standard" sticky collapsible dividing>
                 <ui-docs-example description="A search can display a set of results.">
                   <ui-search
                     placeholder="Github Repositories..."
@@ -78,7 +80,7 @@
               </ui-section>
 
               <!-- GAP I38:  no `clearable` remove icon;  Escape clears the text instead. -->
-              <ui-section id="examples-types-clearable" header="Clearable" sticky collapsible dividing>
+              <ui-section id="examples-types-clearable" label="Clearable" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A search can show a remove icon to be able to cancel a previous search term.</p>
                   <ui-message slot="description" size="small"
@@ -95,7 +97,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-category" header="Category" sticky collapsible dividing>
+              <ui-section id="examples-types-category" label="Category" sticky collapsible dividing>
                 <ui-docs-example
                   description="A search can display results ordered by categories:  `category`, with each result's `category`."
                 >
@@ -109,7 +111,7 @@
 
               <ui-section
                 id="examples-types-horizontal-category"
-                header="Horizontal Category"
+                label="Horizontal Category"
                 sticky
                 collapsible
                 dividing
@@ -126,7 +128,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-local-search" header="Local Search" sticky collapsible dividing>
+              <ui-section id="examples-types-local-search" label="Local Search" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A search can look for results inside a static local source.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -143,7 +145,7 @@
 
               <ui-section
                 id="examples-types-local-category-search"
-                header="Local Category Search"
+                label="Local Category Search"
                 sticky
                 collapsible
                 dividing
@@ -161,7 +163,7 @@
 
               <ui-section
                 id="examples-types-search-ignoring-diacritics"
-                header="Search ignoring Diacritics"
+                label="Search ignoring Diacritics"
                 sticky
                 collapsible
                 dividing
@@ -180,7 +182,7 @@
 
               <ui-section
                 id="examples-types-highlight-search-matches"
-                header="Highlight search matches"
+                label="Highlight search matches"
                 sticky
                 collapsible
                 dividing
@@ -198,7 +200,7 @@
 
               <ui-section
                 id="examples-types-descriptions-prices-and-links"
-                header="Descriptions, prices and links"
+                label="Descriptions, prices and links"
                 sticky
                 collapsible
                 dividing
@@ -215,9 +217,9 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
               <!-- GAP I39:  Fomantic's second and third rows (`blue loading double`, `slow elastic pink loading`) have no attribute value. -->
-              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
+              <ui-section id="examples-states-loading" label="Loading" sticky collapsible dividing>
                 <ui-docs-example
                   description="A search can show a loading indicator.  It also spins while a remote query runs."
                 >
@@ -226,8 +228,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-disabled" header="Disabled" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example
                   description="A search can show it is currently unable to be interacted with:  it's dimmed and left out of the form."
                 >
@@ -235,7 +237,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-scrolling" header="Scrolling" sticky collapsible dividing>
+              <ui-section id="examples-variations-scrolling" label="Scrolling" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A search can have its results scroll.</p>
                   <ui-message slot="description" state="info" size="small"
@@ -255,11 +257,11 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-height" header="Height" sticky collapsible dividing>
+              <ui-section id="examples-variations-height" label="Height" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A search can be <code>very-short</code> (0.75x of the default height) so that more results can be
-                    glanced, or <code>short</code>, <code>long</code> (2x) and <code>very-long</code>.
+                    glanced. Or it can be short, long (2x) or very-long.
                   </p>
                   <ui-message slot="description" state="info" size="small"
                     >The default height is the height of one result times the number of results shown at the current
@@ -282,7 +284,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+              <ui-section id="examples-variations-fluid" label="Fluid" sticky collapsible dividing>
                 <ui-docs-example description="A search can have its results take up the width of its container.">
                   <ui-search
                     fluid
@@ -293,7 +295,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-aligned" header="Aligned" sticky collapsible dividing>
+              <ui-section id="examples-variations-aligned" label="Aligned" sticky collapsible dividing>
                 <ui-docs-example
                   description='A search can have its results aligned to its left or right container edge:  `aligned="right"` extends them to the left.'
                 >
@@ -307,7 +309,7 @@
               </ui-section>
 
               <!-- GAP I37:  Fomantic's sizes are bare prompts;  ours keep the search icon. -->
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A search can vary in size.">
                   <ui-search size="mini" placeholder="Mini search..."></ui-search>
                   <ui-search size="tiny" placeholder="Tiny search..."></ui-search>
@@ -320,22 +322,22 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-more-examples" header="More Examples" sticky collapsible dividing>
+            <ui-section id="examples-more-examples" label="More Examples" sticky collapsible dividing>
               <!-- GAP I37, I40:  no left icon input;  no response field mapping, so the GitHub search is a local source. -->
               <ui-section
                 id="examples-more-examples-using-different-response-fields"
-                header="Using Different Response Fields"
+                label="Using Different Response Fields"
                 sticky
                 collapsible
                 dividing
               >
                 <ui-docs-example>
                   <p slot="description">
-                    Fomantic maps a server's answer to its result fields with <code>fields</code>. A remote
-                    <code>&lt;ui-search url&gt;</code> expects Fomantic's own answer shape (<code
+                    Fomantic maps a server's answer to its result fields with <code>fields</code>;  a remote
+                    <code>&lt;ui-search url&gt;</code> expects Fomantic's own answer shape instead (<code
                       >{ results: [...] }</code
-                    >, or <code>{ results: { name: { name, results } } }</code> by category): shape a third-party API on
-                    your server, or set <code>source</code> from a <code>ui-search</code> listener. Here, a local
+                    >, or <code>{ results: { name: { name, results } } }</code> by category). Shape a third-party API on
+                    your server, or set <code>source</code> from a <code>ui-search</code> listener:  here, a local
                     source.
                   </p>
                   <ui-search
@@ -351,7 +353,7 @@
               <!-- GAP I40:  no `onResponse` hook to regroup a third-party answer. -->
               <ui-section
                 id="examples-more-examples-using-api-settings"
-                header="Using API Settings"
+                label="Using API Settings"
                 sticky
                 collapsible
                 dividing
@@ -384,7 +386,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (results, events, forms), keyboard, accessibility, framework snippets. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Write `<ui-search>` and give it results. Name it with `aria-label` or a `<label for>`: the placeholder alone is
@@ -415,7 +417,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `ui-search` -- `{ query }`: the user typed a query at least `min-characters` long; it's about to run.
@@ -440,7 +442,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+            <ui-section id="usage-forms" label="Forms" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A search is a form-associated element, like Fomantic's real `<input class="prompt">`.
@@ -453,7 +455,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-security" header="Security" sticky collapsible dividing>
+            <ui-section id="usage-security" label="Security" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Fomantic's Security tab warns that results from a foreign API may carry HTML. Ours render every field as TEXT
@@ -463,7 +465,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Focus stays in the text field; the arrows move a highlight through the results.
@@ -478,7 +480,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The text field is an ARIA 1.2 combobox with a list of results (the WAI-ARIA authoring practices pattern).
@@ -494,7 +496,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set `source` as a property, not an attribute, and listen for `ui-select` or `ui-change`.
@@ -534,7 +536,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-search-*` tokens: set one on the element, on any ancestor (`:root` included), or on
@@ -568,7 +570,7 @@
               <ui-docs-tokens family="ui-search" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   No Fomantic theme restyles the search itself (Fomantic's own search page has no theme list). The site-wide themes

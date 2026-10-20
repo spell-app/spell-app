@@ -70,8 +70,8 @@ const OWN_CHECKOUT = fileURLToPath(new URL("../../../..", import.meta.url))
  */
 export const COMPONENT_SETS: readonly ComponentSet[] = componentSets(pageServerSettings(OWN_CHECKOUT))
 
-/** The first set's site bundle (Spell UI's own site), relative to the checkout. */
+/**
+ * The first set's site bundle (Spell UI's site), relative to the checkout:  every set's since epic `epic-engine`
+ * (its `SETS_BUNDLE`, the other sets' own build, went then).
+ */
 export const SITE_BUNDLE = COMPONENT_SETS[0]?.assets ?? ""
-
-/** The site bundle the OTHER sets share (Spell UI's site built for them), relative to the checkout. */
-export const SETS_BUNDLE = COMPONENT_SETS.find((set) => set.assets !== SITE_BUNDLE)?.assets ?? SITE_BUNDLE

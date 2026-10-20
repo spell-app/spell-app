@@ -530,6 +530,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - `header`:  what the module starts with, e.g. `importHeaderFor()`'s imports.
    * - `scope`:  the project's, which the writer may read what it imports from (`P.ProgramWriter.forProject()`).
    * - `options`:  what its project file says that changes the code, e.g. where its lists start (`P.WriterOptions`).
+   * - Last, a call of each of its `to test ...` methods, the first time it loads (epic page `outline-spell`, P17):
+   *   `if (!core.isCarryingOver) testCardSetup()` -- see `testRuns()`.
    */
   static combineCompiled(
     parts: Array<P.ASTStatementGroup | string | undefined>,
@@ -546,7 +548,49 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         return String(projectWriter.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
       })
       .join(projectWriter.fileSeparator)
-    return projectWriter.module(header + code)
+    const tests = SpellProject.testRuns(hoisted)
+    const testCode = tests ? projectWriter.fileSeparator + String(projectWriter.write(tests)) : ""
+    return projectWriter.module(header + code + testCode)
+  }
+
+  /**
+   * A call of each `to test ...` method the project's files declare at their top level, in order:
+   * `if (!core.isCarryingOver) testCardSetup()` (epic page `outline-spell`, P17).
+   * - So a program runs its own tests the first time it loads, never on a hot reload (`core.isCarryingOver`).
+   * - Not one the program already calls at its start, e.g. a `test card setup` line.
+   * - `spell test` counts the ones a program runs itself, and doesn't run them again.
+   * - `undefined` for none.
+   */
+  private static testRuns(files: SP.HoistableStatement[][]): P.ASTStatementGroup | undefined {
+    const tests: P.ASTMethodDefinition[] = []
+    const called = new Set<string>()
+    const visit = (statement: SP.HoistableStatement) => {
+      if (statement instanceof P.ASTStatementGroup) statement.statements?.forEach(visit)
+      else if (SpellProject.isTestDefinition(statement)) tests.push(statement as P.ASTMethodDefinition)
+      else if (statement instanceof P.ASTProgramStart) {
+        const [call] = statement.statements?.statements ?? []
+        if (call instanceof P.ASTMethodInvocation && call.methodName) called.add(call.methodName)
+      }
+    }
+    files.forEach((statements) => statements.forEach(visit))
+    const toRun = tests.filter(({ methodName }) => methodName && !called.has(methodName))
+    if (!toRun.length) return undefined
+    const runs = toRun.map(
+      (test) =>
+        new P.ASTProgramStart(test.match, {
+          statement: new P.ASTMethodInvocation(test.match, { methodName: test.methodName!, args: [] })
+        })
+    )
+    return new P.ASTStatementGroup(toRun[0]!.match, { statements: runs })
+  }
+
+  /** Is `statement` a `to test ...` method:  a function whose body is a `core.test(...)` call? */
+  private static isTestDefinition(statement: SP.HoistableStatement): boolean {
+    if (!(statement instanceof P.ASTMethodDefinition) || !statement.exported) return false
+    const body = statement.body as P.ASTNode | undefined
+    let [first] = body instanceof P.ASTStatementBlock ? (body.statements ?? []) : [body]
+    if (first instanceof P.ASTReturnStatement) first = first.value
+    return first instanceof P.ASTCoreMethodInvocation && first.methodName === "test"
   }
 
   /**
@@ -886,6 +930,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         ".css": SP.SpellCSSFile,
         ".js": SP.SpellJSFile,
         ".jsx": SP.SpellJSFile,
+        // a property editor page:  any text file, never compiled
+        [SP.EDITOR_PAGE_SUFFIX]: SP.SpellJSFile,
         default: SP.SpellFile
       }
     }

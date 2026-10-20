@@ -131,6 +131,21 @@ function itemsOf(list: List): unknown[] {
 // ## Tests
 ////////////////
 
+describe("a copy runs no `create()` (outline-spell P24)", () => {
+  test("a filter's result is a deck of the queens alone, not 3 more cards", () => {
+    class DealtDeck extends List<string> {
+      create() {
+        this.append("ace", "king", "queen")
+      }
+    }
+    const deck = new DealtDeck()
+    expect([...deck]).toEqual(["ace", "king", "queen"])
+    const queens = deck.filter((card) => card === "queen")
+    expect(queens).toBeInstanceOf(DealtDeck)
+    expect([...queens]).toEqual(["queen"])
+  })
+})
+
 describe("exclusive lists", () => {
   test("adding a card makes its pile the owner", () => {
     const [card] = cards(1)

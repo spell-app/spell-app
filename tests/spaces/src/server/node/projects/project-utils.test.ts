@@ -134,6 +134,17 @@ describe("project-utils", () => {
     expect((await projectUtils.getIndex(projectId)).buildFolder).toBe("build-test-projects/Indexed")
   })
 
+  test("a property editor page is one of a project's files:  its index lists it (property-editor P6)", async () => {
+    const projectId = project("Paged")
+    await projectUtils.createFile(
+      projectId,
+      `Card${SP.EDITOR_PAGE_SUFFIX}`,
+      "<ui-property-editor></ui-property-editor>\n"
+    )
+    const index = await projectUtils.getIndex(projectId)
+    expect(index.imports.map((it) => it.path)).toEqual(["/Paged.spell", `/Card${SP.EDITOR_PAGE_SUFFIX}`])
+  })
+
   // the suspected bug of 2026-10-13:  renaming or duplicating a project moved only its source folder
   test("renaming a project deletes what was built for the old name:  NOTHING of it is served for the new", async () => {
     const projectId = await built("Old")

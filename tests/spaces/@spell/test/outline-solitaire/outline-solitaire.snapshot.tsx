@@ -1,94 +1,100 @@
 import { For } from "solid-js"
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, spellPosition, trigger, position, on } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, trigger, position, on } from "@spell/core"
 
 core.heading("Deck:  US standard card deck (without jokers) -- in the outline style")
 ///////////////////////////////////////////////////////////////////////////
 // ## Deck:  US standard card deck (without jokers) -- in the outline style
 ///////////////////////////////////////////////////////////////////////////
-const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const
-
-const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
-
 /**
  * First in the project:  a card says `its "suit" is a suit of its deck`, so the deck's kinds come before it.
- * What a deck DOES uses the card's names, so it's in `Dealing.spell`, after `Card.spell`.
+ * So what a deck DOES reads only what a card says it is:  its name, rank and suit, not `short name`.
  */
+@thing
 export class Deck extends List<Card> {
   static get instanceType() {
     return Card
   }
 
-  //## Dealing:  what a deck does -- after `Card.spell`, as it reads a card's names
-
-  setUp() {
-    if (this.isSetUp) return
+  /** a new deck holds one of each card, ace of clubs first */
+  create() {
     Deck.Ranks.forEach((rank) => Deck.Suits.forEach((suit) => {
       const it = new Card({ rank: rank, suit: suit })
       this.append(it)
     }))
-    this.isSetUp = true
   }
 
   display() {
-    const cardNames = new List()
-    this.forEach((card) => cardNames.append(card.shortName))
+    const cardNames = new List<string>({ instanceType: "text" })
+    this.forEach((card) => cardNames.append(card.name))
     core.echo(`deck: ${cardNames}`)
   }
 
   // "suits" as one of clubs, diamonds, hearts or spades
-  static Suits = SUITS
+  static Suits = ["clubs", "diamonds", "hearts", "spades"] as const
 
   // "ranks" as one of ace, 2 ... 10, jack, queen or king
-  static Ranks = RANKS
-
-  // set the is-set-up of the deck to yes
-  @prop({ type: "choice" })
-  accessor isSetUp!: boolean
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
 }
 export class Suit {
-  static color(suit: (typeof SUITS)[number]) {
+  static color(suit: (typeof Deck.Suits)[number]) {
     if (core.includes(["diamonds", "hearts"], suit)) return "red"
     return "black"
   }
 }
 export class Rank {
-  static isAFaceCard(rank: (typeof RANKS)[number]) {
+  static isAFaceCard(rank: (typeof Deck.Ranks)[number]) {
     return core.includes(["jack", "queen", "king"], rank)
   }
 }
+
+export function testDeckCreation() {
+  return core.test("test deck creation", function testDeckCreation() {
+    core.echoTestAction(`the deck is a new deck`)
+    const deck = new Deck()
+    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
+    core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
+    const queens = deck.filter((card) => card.rank == "queen")
+    core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
+    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    core.expect(deck.firstItem?.name!, `the name of the top card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
+
+    core.echo("the deck before shuffling:")
+    core.echoTestAction(`display the deck`)
+    deck.display()
+    core.expect(deck.firstItem?.name!, `the name of the first card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
+  })
+}
 // -----------
 core.heading("Definition of a card -- in the outline style:  a heading, then what's true of it")
-/** direction */
-const DIRECTIONS = ["up", "down"] as const
-export type Direction = (typeof DIRECTIONS)[number]
+export type Direction = (typeof Card.Directions)[number]
 
 /** Definition of a card -- in the outline style:  a heading, then what's true of it */
 export class Card extends Thing {
   /** suit and rank */
   // suit is a suit of its deck
-  @prop({ oneOf: () => SUITS })
-  accessor suit!: (typeof SUITS)[number]
+  @prop({ oneOf: () => Deck.Suits })
+  accessor suit!: (typeof Deck.Suits)[number]
 
   get color() {
     return Suit.color(this.suit)
   }
 
   /** e.g. "the card is a spade" */
-  isASuit(suit: (typeof SUITS)[number]) {
+  isASuit(suit: (typeof Deck.Suits)[number]) {
     return this.suit === suit
   }
 
   // - its "rank" is a rank of its deck
-  @prop({ oneOf: () => RANKS })
-  accessor rank!: (typeof RANKS)[number]
+  @prop({ oneOf: () => Deck.Ranks })
+  accessor rank!: (typeof Deck.Ranks)[number]
 
   /** e.g. "the card is a queen" */
-  isARank(rank: (typeof RANKS)[number]) {
+  isARank(rank: (typeof Deck.Ranks)[number]) {
     return this.rank === rank
   }
 
   /** e.g. "the card is the queen of spades" */
-  isTheRankOfSuits(rank: (typeof RANKS)[number], suit: (typeof SUITS)[number]) {
+  isTheRankOfSuits(rank: (typeof Deck.Ranks)[number], suit: (typeof Deck.Suits)[number]) {
     return this.rank === rank && this.suit === suit
   }
 
@@ -100,9 +106,10 @@ export class Card extends Thing {
     return spellPosition(positionOf(Deck.Ranks, this.rank))
   }
 
+  /** direction */
   // - its direction is up or down
-  static Directions = DIRECTIONS
-  @prop({ oneOf: DIRECTIONS })
+  static Directions = ["up", "down"] as const
+  @prop({ oneOf: () => Card.Directions })
   accessor direction!: Direction
 
   get isFaceUp() {
@@ -274,31 +281,6 @@ export function testCardSetup() {
   })
 }
 if (!core.isCarryingOver) testCardSetup()
-// -----------
-core.heading("Dealing:  what a deck does -- after `Card.spell`, as it reads a card's names")
-export function testDeckCreation() {
-  return core.test("test deck creation", function testDeckCreation() {
-    core.echoTestAction(`the deck is a new deck`)
-    const deck = new Deck()
-    core.echoTestAction(`set up the deck`)
-    deck.setUp()
-    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    core.echoTestAction(`set up the deck`)
-    deck.setUp()
-    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    const queens = deck.filter((card) => card.rank == "queen")
-    core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
-    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    core.expect(deck.firstItem?.shortName!, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
-
-    core.echo("the deck before shuffling:")
-    core.echoTestAction(`display the deck`)
-    deck.display()
-    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
-  })
-}
-if (!core.isCarryingOver) testDeckCreation()
 // -----------
 core.heading("Pile of playing cards")
 /** Pile of playing cards */
@@ -548,7 +530,6 @@ core.getRange(1, 7).forEach((number) => {
 
 /** the deck:  every card starts in the stock */
 export const deck = new Deck()
-deck.setUp()
 deck.forEach((card) => stock.append(card))
 
 core.heading("What the game knows:  read from the table, so after it")
@@ -680,3 +661,5 @@ resetTheGame()
 if (!core.isCarryingOver) game.start()
 // -----------
 core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
+// -----------
+if (!core.isCarryingOver) testDeckCreation()
