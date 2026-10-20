@@ -1,17 +1,18 @@
 /**
  * Formatting a page's text in memory, as `vp fmt` would format its file:  no `yarn vp fmt` per write (about 0.5s
  * each), and a page written once, already tidy.
- * - Imports `vite-plus/fmt` (oxfmt) and the repo root's `vite.lint.ts`, nothing from another package.
+ * - Imports `vite-plus/fmt` (oxfmt) and the toolchain's format settings (`@spell-app/toolchain/lint`), nothing else
+ *   of another package.
  * - From the docs tools' `plan-parts.js` (epic `epic-components`, P7;  spell-epic's `src/tools/` now).
  */
 import { basename } from "node:path"
 
 import { format } from "vite-plus/fmt"
 
-// The repo root's settings:  no alias reaches the root, so this one import climbs (as every `vite.config.ts` does)
-import { fmtConfig } from "../../../vite.lint.ts"
+// The format settings every package shares, by the toolchain's npm name (another repo's)
+import { fmtConfig } from "@spell-app/toolchain/lint"
 
-/** oxfmt's settings, as `vp fmt` reads them from the repo root's `vite.lint.ts` (minus what only the CLI uses). */
+/** oxfmt's settings, as `vp fmt` reads them from the toolchain's (`@spell-app/toolchain/lint`), minus what only the CLI uses. */
 const FORMAT = Object.fromEntries(
   Object.entries(fmtConfig).filter(([key]) => !["ignorePatterns", "sortPackageJson"].includes(key))
 )

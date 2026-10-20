@@ -3,8 +3,8 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createInterface } from "node:readline"
 
-import type { Handler } from "$/server"
-import { componentSetPath, componentSets, pageServerSettings, type ComponentSet } from "$/server/page"
+import type { Handler } from "@spell-app/server"
+import { componentSetPath, componentSets, pageServerSettings, type ComponentSet } from "@spell-app/server/page"
 import { BUNDLE_WAIT_MS } from "$/page-server"
 
 /**

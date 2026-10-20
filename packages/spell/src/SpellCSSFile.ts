@@ -1,4 +1,4 @@
-import { TextFile, batch } from "$/util"
+import { TextFile, batch } from "@spell-app/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 

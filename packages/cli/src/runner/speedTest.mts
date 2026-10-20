@@ -13,8 +13,8 @@ for (const method of ["log", "info", "debug", "warn", "group", "groupCollapsed",
   console[method] = () => {}
 }
 // defines `__PACKAGE_VERSION__` before spell reads it
-await import("$/spell/node/packageVersion.node")
-const { SP } = await import("$/spell")
+await import("@spell-app/spell/node/packageVersion.node")
+const { SP } = await import("@spell-app/spell")
 
 const { failed, ...results } = SP.spellParser.speedTest(process.argv[2] ?? "")
 process.stdout.write(`${JSON.stringify({ ...results, failed: failed.length })}\n`)

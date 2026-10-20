@@ -1,4 +1,4 @@
-import { CustomError, pluralize, singularize, typeCase } from "$/util"
+import { CustomError, pluralize, singularize, typeCase } from "@spell-app/util"
 import type { P } from "$/parser"
 
 export type { RulexParser } from "$/parser/rulex/RulexParser"

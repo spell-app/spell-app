@@ -1,4 +1,4 @@
-import { pluralize, proto, singularize } from "$/util"
+import { pluralize, proto, singularize } from "@spell-app/util"
 import { P } from "$/parser"
 import { Priority } from "$/spell/rules/rules.types"
 import { InfixOperatorSuffix, Precedence, SuffixLeft, type SpellExpressionProps } from "$/spell/rules/expressions"

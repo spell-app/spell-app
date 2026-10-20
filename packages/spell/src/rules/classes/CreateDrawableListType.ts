@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import type { P } from "$/parser"
 import { classes } from "./classes.parser"
 // Import directly to avoid circular import

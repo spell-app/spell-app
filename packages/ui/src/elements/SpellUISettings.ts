@@ -1,5 +1,5 @@
 // Import directly to avoid circular import:  everything here sits below the `core` entry, which imports this file
-import { SpellSolid, type SpellSolidSettings } from "$/spell-element"
+import { SpellSolid, type SpellSolidSettings } from "@spell-app/spell-element"
 import { Warnings } from "$/ui/util"
 import { Converters, SharedVocabulary, ValueSets, Vocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"

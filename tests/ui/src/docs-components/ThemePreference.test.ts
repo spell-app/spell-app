@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { LEGACY_SCHEME_KEYS, SCHEME_KEY } from "$/server/site/site.types"
+import { LEGACY_SCHEME_KEYS, SCHEME_KEY } from "@spell-app/server/site/site.types"
 
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import {

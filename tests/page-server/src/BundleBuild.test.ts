@@ -6,9 +6,9 @@ import { dirname, join } from "node:path"
 import { PassThrough } from "node:stream"
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vite-plus/test"
 
-import { SRV } from "$/server"
-import { componentSetPath, componentSets } from "$/server/page"
-import { ask } from "$/server/test/serve"
+import { SRV } from "@spell-app/server"
+import { componentSetPath, componentSets } from "@spell-app/server/page"
+import { ask } from "@spell-app/server/test/serve"
 import { BundleBuild } from "$/page-server"
 
 ////////////////

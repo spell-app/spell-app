@@ -21,11 +21,11 @@
  *   - `Warnings` -- `ui`'s console warnings, its own
  */
 
-export * from "$/util/class"
-export * from "$/util/decorators"
-export * from "$/util/dom"
-export * from "$/util/string"
-export * from "$/util/util.types"
+export * from "@spell-app/util/class"
+export * from "@spell-app/util/decorators"
+export * from "@spell-app/util/dom"
+export * from "@spell-app/util/string"
+export * from "@spell-app/util/util.types"
 
-export * from "$/spell-element/timing"
+export * from "@spell-app/spell-element/timing"
 export * from "./Warnings"

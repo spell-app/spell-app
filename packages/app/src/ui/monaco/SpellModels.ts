@@ -1,5 +1,5 @@
-import { observe } from "$/util"
-import { SP } from "$/spell"
+import { observe } from "@spell-app/util"
+import { SP } from "@spell-app/spell"
 import type { LSP } from "$/lsp"
 import { monaco } from "./monaco"
 import { AppAddresses } from "./AppAddresses"

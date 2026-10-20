@@ -24,7 +24,9 @@ export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
  *   every other chunk (shared code, the runtime, engines) `<name>-<hash>.js`.
  * - Minified, no sourcemaps:  as a deploy would ship it.  `emptyOutDir: false`:
  *   `scripts/site-bundle.ts` clears the folder itself, keeping the `icon-packs` link.
- * - Aliases set here as well:  `site/` is outside `tsconfig.json`'s files, where `tsconfigPaths` may not apply.
+ * - `ui`'s aliases set here as well:  `site/` is outside `tsconfig.json`'s files, where `tsconfigPaths` may not apply.
+ *   Other repos' packages (util, server, spell-element) by their npm names, through their `exports` (epic
+ *   `repo-split` P6).
  * - ONE build for every component set's pages (the page server's `componentSets` setting):  the other sets had
  *   their own, mode `sets` (`site/_src/sets.ts` => `site/_assets/sets/`), from epic `epic-workflow` P10 until epic
  *   `epic-engine` gave Spell UI's pages the component packs too (`SitePacks`).
@@ -43,11 +45,7 @@ export default defineConfig(() => {
         { find: /^\$\/ui$/, replacement: `${ROOT}src/index.ts` },
         // the elements sit beside `src/`, as every set's do (epic `people-and-orgs` P18):  before `$/ui/`
         { find: /^\$\/ui\/components\//, replacement: `${ROOT}components/` },
-        { find: /^\$\/ui\//, replacement: `${ROOT}src/` },
-        { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
-        { find: /^\$\/util\//, replacement: `${ROOT}../util/src/` },
-        { find: /^\$\/server$/, replacement: `${ROOT}../server/src/index.ts` },
-        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` }
+        { find: /^\$\/ui\//, replacement: `${ROOT}src/` }
       ]
     },
     build: {

@@ -2,8 +2,8 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vite-plus/test
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UI as SpellUI } from "$/ui"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { UI as SpellUI } from "@spell-app/ui"
 import { editor, type EditorStore } from "$/app/editor"
 import {
   Actions,

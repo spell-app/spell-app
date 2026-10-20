@@ -1,8 +1,8 @@
 import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
-import { F } from "$/ui/forms"
+import { E } from "@spell-app/ui/core"
+import { F } from "@spell-app/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
 import { brandColorPickerVocabulary } from "./BrandColorPicker.en"

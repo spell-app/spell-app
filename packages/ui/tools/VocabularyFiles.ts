@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import type { ComponentVocabulary } from "$/spell-element/vocabulary.types"
+import type { ComponentVocabulary } from "@spell-app/spell-element/vocabulary.types"
 
 /****************
  * ### `VocabularyFiles`

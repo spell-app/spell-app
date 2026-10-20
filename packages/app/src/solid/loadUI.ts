@@ -33,12 +33,12 @@ export const uiReady: Promise<void> = isServer ? Promise.resolve() : loadUI()
 export async function addAppIconsPageWide(): Promise<void> {
   if (isServer) return
   await uiReady
-  const { UI: SpellUI } = await import("$/ui")
+  const { UI: SpellUI } = await import("@spell-app/ui")
   void SpellUI.icons.use("fomantic")
 }
 
 /** Import `$/ui` (defining every tag) and start its runtime. */
 async function loadUI() {
-  const { UI: SpellUI } = await import("$/ui")
+  const { UI: SpellUI } = await import("@spell-app/ui")
   await SpellUI.load()
 }

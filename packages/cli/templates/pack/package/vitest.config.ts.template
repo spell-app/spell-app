@@ -10,7 +10,7 @@ import { baseConfig } from "@spell-app/ui/vite.config.ts"
  *   is current)
  * - `browser` -- `components/**`:  the `<__prefix__*>` elements, in a REAL browser (Vitest browser mode + Playwright,
  *   chromium), as Spell UI's are.  `baseConfig()`:  Spell UI's plugins (decorators BEFORE Solid), Solid dedupe,
- *   Lightning CSS;  Spell UI's test helpers come from `$/ui/test/...`
+ *   Lightning CSS;  Spell UI's test helpers come from `@spell-app/ui/test/...`
  * - `prefix` / `root`:  the repo root's `vitest.config.ts` lists these as `__pack__:node` / `__pack__:browser`, `root`
  *   set to this package, since vitest doesn't nest `projects`.  Own run:  no prefix, `root` is this folder.
  */

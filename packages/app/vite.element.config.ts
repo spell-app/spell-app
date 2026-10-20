@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { fileURLToPath } from "node:url"
 import { defineConfig, type Plugin } from "vite"
 
-import environment from "@spell-app/spaces/src/server/node/environment.ts"
+import environment from "@spell-app/spaces/server/node/environment"
 import { appConfig, sharedSolid } from "./vite.shared.ts"
 
 /**

@@ -3,8 +3,8 @@ import { basename, join, relative } from "path"
 
 import environment from "$/spaces/server/node/environment"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
-import { SP } from "$/spell"
-import { projectFileFor } from "$/spell/node/projectFile"
+import { SP } from "@spell-app/spell"
+import { projectFileFor } from "@spell-app/spell/node/projectFile"
 import { LSP } from "$/lsp"
 
 /**

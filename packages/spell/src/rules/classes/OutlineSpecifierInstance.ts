@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { classes } from "./classes.parser"
 import { TypeSpecifierInstance } from "./TypeSpecifierInstance"

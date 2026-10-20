@@ -9,7 +9,7 @@
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
-import { brokenRule, flushCells, ruleWarning, withoutCreate } from "$/util"
+import { brokenRule, flushCells, ruleWarning, withoutCreate } from "@spell-app/util"
 // Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
 import { assert } from "./assert"
 import { defineCoreModule, type PropCheck, type Core } from "./core.types"

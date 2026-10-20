@@ -1,6 +1,6 @@
 import { defineConfig } from "vite-plus"
 
-import { fmtConfig, packageLint } from "../../vite.lint.ts"
+import { fmtConfig, packageLint } from "@spell-app/toolchain/lint"
 
 /**
  * `assembler`'s Vite+ config:  only the `lint` / `fmt` blocks (`vp lint`, `vp fmt`), from the repo root's

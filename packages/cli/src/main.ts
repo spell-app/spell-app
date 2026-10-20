@@ -10,7 +10,7 @@
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
-import "$/spell/node/packageVersion.node"
+import "@spell-app/spell/node/packageVersion.node"
 // types only:  erased, so it loads nothing ahead of `consoleGuard`
 import type { CliSession, GlobalOptions } from "$/cli"
 

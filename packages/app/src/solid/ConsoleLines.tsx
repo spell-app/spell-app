@@ -2,8 +2,8 @@ import global from "global"
 import { For, Show, createContext, createMemo, useContext } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Observable } from "$/util"
-import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "$/core/console"
+import { Observable } from "@spell-app/util"
+import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "@spell-app/core/console"
 
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { tracked } from "./tracked"

@@ -1,9 +1,9 @@
 import { basename, resolve } from "path"
 import { fileURLToPath } from "url"
 
-import { describeTypecheckError, typecheck } from "$/spell/node/typecheck"
-import { describePyrightError, pyright } from "$/spell/node/pyright"
-import { SP } from "$/spell"
+import { describeTypecheckError, typecheck } from "@spell-app/spell/node/typecheck"
+import { describePyrightError, pyright } from "@spell-app/spell/node/pyright"
+import { SP } from "@spell-app/spell"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { CLI } from "$/cli"
 

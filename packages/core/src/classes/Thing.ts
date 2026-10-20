@@ -1,7 +1,7 @@
 /**
  * Base classes for spell.
  */
-import { Observable, runsCreate, schemaOf, typedJSON, type PropInfo } from "$/util"
+import { Observable, runsCreate, schemaOf, typedJSON, type PropInfo } from "@spell-app/util"
 import { registerThing, core } from "$/core/core"
 import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"

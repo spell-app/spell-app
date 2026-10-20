@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { MARKDOWN_TAG, rawTextOf } from "$/spell/rules/JSX/JSX.shared"
 import { Priority } from "$/spell/rules/rules.types"

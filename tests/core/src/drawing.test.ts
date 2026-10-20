@@ -3,7 +3,7 @@ import { Errored, enableExternalSource, flush } from "solid-js"
 import { render } from "@solidjs/web"
 import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vite-plus/test"
 
-import { bridgeSolid } from "$/util"
+import { bridgeSolid } from "@spell-app/util"
 import { core, Thing, List, prop, drawn, h } from "$/core"
 import { isElementThunk, type Drawing } from "$/core/drawing"
 

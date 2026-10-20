@@ -1,5 +1,5 @@
-import { JSON5File, CONFIRM, $fetch, getDier, KnownFormat } from "$/util"
-import { SP } from "$/spell"
+import { JSON5File, CONFIRM, $fetch, getDier, KnownFormat } from "@spell-app/util"
+import { SP } from "@spell-app/spell"
 
 import { LOCAL_PERSON } from "./projectGroups"
 

@@ -22,11 +22,16 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
-import { keepingCommentsIn, readJSON5File } from "$/util/node/json5"
-import type { SiteDataFile, SiteNav, SitePagesFile, SiteSearchFile } from "$/ui/docs-components/docs-components.types"
-import { ElementManifests } from "$/ui/tools/ElementManifests"
-import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
-import { SiteSearchBuilder } from "$/ui/tools/SiteSearchBuilder"
+import { keepingCommentsIn, readJSON5File } from "@spell-app/util/node/json5"
+import type {
+  SiteDataFile,
+  SiteNav,
+  SitePagesFile,
+  SiteSearchFile
+} from "@spell-app/ui/docs-components/docs-components.types"
+import { ElementManifests } from "@spell-app/ui/tools/ElementManifests"
+import { SiteDataBuilder } from "@spell-app/ui/tools/SiteDataBuilder"
+import { SiteSearchBuilder } from "@spell-app/ui/tools/SiteSearchBuilder"
 
 /** `packages/brand/`. */
 const BRAND = path.resolve(import.meta.dirname, "..")

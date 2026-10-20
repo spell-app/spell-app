@@ -5,7 +5,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import {
-  COMPONENT_SETS,
   PageServer,
   componentSetPath,
   componentSets,
@@ -285,8 +284,7 @@ describe("PageServer", () => {
     const several = await new PageServer({ root: main }).start({
       port: 0,
       routes: false,
-      pidFile: false,
-      bundles: false
+      pidFile: false
     })
     try {
       several.serveWorktrees(beside, old).serveWorktrees(old)
@@ -340,8 +338,7 @@ describe("PageServer", () => {
     const served = await new PageServer({ root: main }).start({
       port: 0,
       routes: false,
-      pidFile: false,
-      bundles: false
+      pidFile: false
     })
     try {
       const at = served.info.port
@@ -430,12 +427,10 @@ describe("PageServer", () => {
     expect(engineRoutes({})).toEqual([])
   })
 
-  // REFACTOR (epic `repo-split` P4):  until spell-epic's route-module tests write their scratch checkouts' sets
-  it("serves this checkout's component sets when its root's settings name none (COMPONENT_SETS)", () => {
+  it("serves no component sets and no engine routes when its root's settings name none", () => {
     const bare = mkdtempSync(join(tmpdir(), "srv-bare-"))
     try {
-      expect(new PageServer({ root: bare }).componentSets).toBe(COMPONENT_SETS)
-      expect(COMPONENT_SETS.map((set) => set.prefix)).toContain("/components/ui")
+      expect(new PageServer({ root: bare }).componentSets).toEqual([])
       expect(new PageServer({ root: bare }).engineRoutes).toEqual([])
     } finally {
       rmSync(bare, { recursive: true, force: true })

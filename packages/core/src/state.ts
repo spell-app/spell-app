@@ -26,7 +26,7 @@
  * - The twin of Python's `spell_core.state`:  both write the same JSON for the same things.
  *   `stateById.expected.json5`, with the core's tests (`tests/core/`), holds one, read by both.
  */
-import { getProp, ITEMS_KEY, keysOf, setProp, TYPE_KEY } from "$/util"
+import { getProp, ITEMS_KEY, keysOf, setProp, TYPE_KEY } from "@spell-app/util"
 
 import { programThings } from "./core"
 // Import directly to avoid circular import

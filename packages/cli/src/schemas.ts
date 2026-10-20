@@ -10,7 +10,7 @@ import { mkdirSync, statSync, writeFileSync } from "fs"
 import { resolve } from "path"
 import { pathToFileURL } from "url"
 
-import { jsonSchemaFor } from "$/core/model"
+import { jsonSchemaFor } from "@spell-app/core/model"
 
 /**
  * Write the JSON Schema of each type library `libFile` exports into `folder`, `<Type>.schema.json`;

@@ -4,6 +4,17 @@
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node/buildTsx": "./src/node/buildTsx.ts",
+    "./node/packageVersion.node": "./src/node/packageVersion.node.ts",
+    "./node/projectFile": "./src/node/projectFile.ts",
+    "./node/pyright": "./src/node/pyright.ts",
+    "./node/typecheck": "./src/node/typecheck.ts",
+    "./SpellSetup": "./src/SpellSetup.ts",
+    "./SpellUrls": "./src/SpellUrls.ts",
+    "./test": "./src/test/index.ts"
+  },
   "scripts": {
     "dev": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run",
     "/////// CORRECTNESS": "",
@@ -36,6 +47,7 @@
   },
   "devDependencies": {
     "@solidjs/compiler": "2.0.0-rc.13",
+    "@spell-app/toolchain": "workspace:*",
     "@types/node": "^22",
     "@types/semver": "^7.8.0",
     "@vitest/coverage-v8": "catalog:",

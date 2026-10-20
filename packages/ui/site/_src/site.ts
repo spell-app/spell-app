@@ -43,7 +43,7 @@ import { E, UI } from "$/ui/core"
 import { DocsFamilies } from "$/ui/docs-components/DocsFamilies"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
-import { defineSite } from "$/server/site"
+import { defineSite } from "@spell-app/server/site"
 import { SiteRouter } from "./SiteRouter"
 import { SiteShell } from "./SiteShell"
 

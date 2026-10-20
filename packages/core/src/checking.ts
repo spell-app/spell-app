@@ -21,7 +21,7 @@
  * - A property holding a thing takes a reference to it, `{ "$ref": "Person#matt" }`, or the thing written whole,
  *   inside (`"$type"` first).
  */
-import { ITEMS_KEY, rulePattern, schemaOf, TYPE_KEY, type PropInfo, type PropRule } from "$/util"
+import { ITEMS_KEY, rulePattern, schemaOf, TYPE_KEY, type PropInfo, type PropRule } from "@spell-app/util"
 
 import { REF_KEY, upgradeEntry } from "./saving"
 

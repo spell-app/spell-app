@@ -9,12 +9,12 @@
 import { existsSync } from "fs"
 import { isAbsolute, relative, resolve, sep } from "path"
 
-import type { SRV } from "$/server"
+import type { SRV } from "@spell-app/server"
 import { json5Edited } from "$/spaces/server/node/storage/json5"
 import environment from "$/spaces/server/node/environment"
 
-import { SP } from "$/spell"
-import { projectFileFor } from "$/spell/node/projectFile"
+import { SP } from "@spell-app/spell"
+import { projectFileFor } from "@spell-app/spell/node/projectFile"
 import { SPACES } from "$/spaces"
 
 import * as fileUtils from "./file-utils"

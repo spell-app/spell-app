@@ -3,9 +3,9 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { HIGHLIGHT_JS, PageServer } from "$/server/page"
-import { ask } from "$/server/test/serve"
-import { movedFolderPath } from "$/page-server"
+import { PageServer } from "@spell-app/server/page"
+import { ask } from "@spell-app/server/test/serve"
+import { HIGHLIGHT_JS, movedFolderPath } from "$/page-server"
 import pageServerRoutes from "$/page-server/pageServerRoutes"
 
 /** Write `text` at `path` under `root`, making folders. */

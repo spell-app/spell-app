@@ -14,7 +14,7 @@
  * - `import * as` the Solid packages, against "One Solid per page" in `packages/ui/AGENTS.md`, on purpose and ONLY
  *   here and in the docs bundle.
  * - SIDE EFFECT:  sets `globalThis.SpellUI`;  listed in `package.json`'s `sideEffects`, or the bundler drops it.
- * - `packModules` MUST name the pack build's externals (`PACK_MODULES` in `tools/ComponentPack.ts`).
+ * - `packModules` MUST name the pack build's externals (`PACK_MODULES` in `tools/packModules.ts`).
  *   - Also `@solidjs/h` and `ui-root`, as the docs bundle's:  the app's element bundles (`/element/spell.pack.js`,
  *     App UI's live `<spell-app>`) take the page's Solid only when ALL their shared modules are here
  *     (`spell-solid-shared.js`, app's `vite.solid.config.ts`), else they'd load a second one.
@@ -39,15 +39,12 @@ import { registerPack } from "$/ui/components/ui-components/ComponentPacks"
 /**
  * What a pack imports, by the specifier its build leaves external => the page's copy of that module.
  * - `$/spell-element`:  Spell UI's core module, which carries all of it (`$/ui/core` re-exports it):  one per page.
- * - REFACTOR: `$/spell-solid` too, spell-element's name until epic `repo-split` P3:  the epics pack, which every set's
- *   layout loads, reads it until spell-epic follows the rename (that epic's T6).  Delete it then.
  */
 const packModules: Record<string, unknown> = {
   "solid-js": solid,
   "@solidjs/web": solidWeb,
   "@solidjs/h": solidH,
   "$/spell-element": uiCore,
-  "$/spell-solid": uiCore,
   "$/ui/core": uiCore,
   "$/ui/forms": uiForms
 }

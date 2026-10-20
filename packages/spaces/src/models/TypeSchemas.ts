@@ -1,5 +1,5 @@
 // the types-only leaf:  `$/ui` would bring its elements (and Solid's JSX) into spaces' type check
-import type * as VT from "$/spell-element/vocabulary.types"
+import type * as VT from "@spell-app/spell-element/vocabulary.types"
 
 /****************
  * ### `TypeSchemas`

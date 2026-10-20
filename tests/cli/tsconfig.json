@@ -1,5 +1,5 @@
 {
   // cli's tests:  cli's own settings (packages/cli/tsconfig.json), over this folder
   "extends": "../../packages/cli/tsconfig.json",
-  "include": [".", "../../types"]
+  "include": ["."]
 }

@@ -13,25 +13,19 @@
   //   - a component set's elements live in its package's `components/`, outside `src/`:
   //     `$/<set>/components/...` (`ui`, `app`, `brand`), longer than `$/<set>/*`, so it wins
   //   - EXCEPT `$/epics`:  spell-epic's, through the checkout's `spell-epic` link (below)
-  // - From ANOTHER package, import the barrel only, except these entry points:  `$/parser/rulex` (opt-in),
-  //   `$/parser/test` / `$/spell/test` (test helpers),
-  //   `$/spell/node/...` (node-only:  `typecheck`, `pyright`, `buildTsx`, `packageVersion.node`, `spellSyntax`),
-  //   `$/spell/SpellSetup` + `$/spell/SpellUrls` (light, without the parser:  for `<spell-app>`),
+  // - These aliases are for INSIDE one future repo (epic `repo-split` P6, Q8):  a package of ANOTHER repo is imported by
+  //   its npm name, `@spell-app/ui/core`, an entry its `package.json` `exports` names (each package's list of what
+  //   other repos may import, pointing at SOURCE files);  lint fails a `$/` alias into another repo (`spell/no-cross-repo-alias`,
+  //   whose `REPO_OF` lists the repos).  P8 cuts this table into one per repo.
+  // - From ANOTHER package of the same repo, import the barrel only, except these entry points:  `$/parser/rulex`
+  //   (opt-in), `$/parser/test` / `$/spell/test` (test helpers), `$/spell/node/...` (node-only),
   //   `$/spaces/models/projectGroups` (light:  registers spell's project groups, for `<spell-app>`),
-  //   `$/spaces/server/node/...` (node-only:  `environment`, projects on disk in `projects/`, and the routes:  the
-  //   editor's server, its route module and `ProjectBuild`),
-  //   `$/ui/tools/IconPackBuilder` (node-only:  `ui`'s icon pack builder, for the `spell` CLI),
-  //   `$/ui/tools/SiteDataBuilder` (node-only:  the docs data builder, for `brand`'s `yarn site:data`),
-  //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s
-  //   static render, and its types),
-  //   `$/ui/tools/ComponentPack` (node-only:  a component pack's build and check, for `spell dev pack`),
-  //   `$/ui/property` (no Solid:  property schemas, and checking an editor page on the DOM it's handed:  for
-  //   `spell check`, and the app's New Property Editor),
-  //   `$/spell-element/timing` (`ui`'s `src/util/index.ts`:  a leaf below `ui`'s core),
-  //   `$/spell-element/elements.types` + `$/spell-element/vocabulary.types` (where `ui` augments the names it adds),
-  //   `$/spell-element/HotDefinitions` (dev-only, a side effect:  `ui`'s HMR plugin),
-  //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` and
-  //   `spell-element`'s barrel only:  the `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
+  //   `$/spaces/server/node/...` (node-only:  `environment`, projects on disk in `projects/`, and the routes),
+  //   `$/assembler/DataFile` and `$/assembler/contentFolder` (from `server`'s repo-mate).
+  // - The other repos' entry points are their `exports`:  `@spell-app/util/class` etc. (util's GENERIC files, for Spell
+  //   UI and spell-element:  the barrel also holds spell's heavy utilities), `@spell-app/util/node/json5`,
+  //   `@spell-app/spell-element/elements.types` + `/vocabulary.types` (where a set augments the names it adds),
+  //   `@spell-app/ui/tools/...` (node-only), `@spell-app/ui/property`, `@spell-app/server/page` ...
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
   //   - `cli` -> `app` -> `lsp` -> `spaces` -> `spell` -> `parser` / `core` -> `util`
   //   - `markdown` -> `parser`
@@ -41,11 +35,10 @@
   //   - Its opt-in entry points:  `$/server/page/...` (the generic page server) and `$/server/site/...` (the site header).
   //   - `$/server/test/...` are its test helpers.
   // - `page-server` is what only spell-app's page server does (its route module, the bundles' build), on `server`.
-  // - `assembler` (assembling pages:  link targets, formatting) is node-only and imports no package:
-  //   spell-epic's tooling imports it.
-  //   - Its opt-in entry points:  `$/assembler/json5`,
-  //     JSON5 written with its comments kept, for spaces and every component set's site data writer, `ui`'s tools included;
-  //     `$/assembler/DataFile`, the tooling's JSON5 data files on it (the CLI's commands page, spell-epic's tools);
+  // - `assembler` (assembling pages:  link targets, formatting) is node-only and imports only util's json5 and the
+  //   toolchain's format settings:  spell-epic's tooling imports it.
+  //   - Its opt-in entry points:  `$/assembler/DataFile`, the tooling's JSON5 data files (the CLI's commands page,
+  //     spell-epic's tools);
   //     `$/assembler/contentFolder`, the repo's shared content folder (the CLI's commands page and WWOD check).
   "compilerOptions": {
     "paths": {

@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { type FillInParts, fillInsAST, parseFillIns } from "$/spell/rules/core"
 import { JSX } from "./JSX.parser"

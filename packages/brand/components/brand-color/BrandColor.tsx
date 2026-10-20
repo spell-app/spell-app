@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "@spell-app/ui/core"
 import { Palette } from "$/brand"
 
 import { brandColorVocabulary } from "./BrandColor.en"

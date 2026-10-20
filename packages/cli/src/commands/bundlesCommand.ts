@@ -1,4 +1,4 @@
-import { AS } from "$/assembler"
+import { AS } from "@spell-app/assembler"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT, type BundlesOptions } from "$/cli/cli.types"

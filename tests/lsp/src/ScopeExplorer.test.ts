@@ -6,12 +6,12 @@ import { pathToFileURL } from "url"
 import { runInNewContext } from "vm"
 
 import environment from "$/spaces/server/node/environment"
-import { SP } from "$/spell"
+import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import { scopesFromPacks } from "$/lsp/ScopesSource"
-import { compiledFixture, fixtureDeclarations, fixturePath } from "$/spell/test"
+import { compiledFixture, fixtureDeclarations, fixturePath } from "@spell-app/spell/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */
 describe("ScopeExplorer", () => {

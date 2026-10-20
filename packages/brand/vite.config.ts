@@ -1,7 +1,7 @@
 import { defineConfig, type UserConfig } from "vite-plus"
 import { fileURLToPath } from "node:url"
 
-import { fmtConfig, packageLint } from "../../vite.lint.ts"
+import { fmtConfig, packageLint } from "@spell-app/toolchain/lint"
 import { baseConfig } from "@spell-app/ui/vite.config.ts"
 
 /** `packages/brand/`. */
@@ -24,8 +24,9 @@ export const BRAND_ENTRY = `${ROOT}src/brand-ui.ts`
  *   an APP build of one entry, code-split, `base: "./"` so chunk URLs are relative to the chunk that imports them.
  * - An ES module, so a page loads it from the page server, not `file://`
  *   (judgement J4:  a classic script would inline every theme, engine and emoji chunk).
- * - Aliases set here as well, as the site's config does:
- *   files outside a `tsconfig.json`'s `include` may not get `tsconfigPaths`.
+ * - The brand's own aliases set here as well, as the site's config does:
+ *   files outside a `tsconfig.json`'s `include` may not get `tsconfigPaths`.  Other repos' packages (Spell UI ...)
+ *   by their npm names, through their `exports` (epic `repo-split` P6).
  * - Also `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`;
  *   the built bundles (this one, the pack, the design build) are not ours to lint.
  */
@@ -48,14 +49,7 @@ export default defineConfig(() => {
         { find: /^\$\/brand\/components$/, replacement: `${ROOT}components/index.ts` },
         { find: /^\$\/brand\/components\//, replacement: `${ROOT}components/` },
         { find: /^\$\/brand$/, replacement: `${ROOT}src/index.ts` },
-        { find: /^\$\/brand\//, replacement: `${ROOT}src/` },
-        { find: /^\$\/ui\/components\//, replacement: `${ROOT}../ui/components/` },
-        { find: /^\$\/ui$/, replacement: `${ROOT}../ui/src/index.ts` },
-        { find: /^\$\/ui\//, replacement: `${ROOT}../ui/src/` },
-        { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
-        { find: /^\$\/util\//, replacement: `${ROOT}../util/src/` },
-        { find: /^\$\/server$/, replacement: `${ROOT}../server/src/index.ts` },
-        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` }
+        { find: /^\$\/brand\//, replacement: `${ROOT}src/` }
       ]
     },
     build: {

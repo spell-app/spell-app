@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
-import { UI, type DOMElement } from "$/ui/core"
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/A11y"
+import { UI, type DOMElement } from "@spell-app/ui/core"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { expectAccessible } from "@spell-app/ui/test/A11y"
 
 import "$/brand/components/brand-composer"
 

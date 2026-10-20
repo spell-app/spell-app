@@ -1,5 +1,5 @@
 import { Warnings } from "$/ui/util"
-import type { EnumOptions, ValueSetName } from "$/spell-element/vocabulary.types"
+import type { EnumOptions, ValueSetName } from "@spell-app/spell-element/vocabulary.types"
 import { ValueSets } from "./ValueSets"
 
 /****************

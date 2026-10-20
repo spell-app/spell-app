@@ -1,4 +1,4 @@
-import { instanceCase, proto } from "$/util"
+import { instanceCase, proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { SpellConstant } from "$/spell/rules/constants"

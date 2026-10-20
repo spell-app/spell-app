@@ -4,7 +4,7 @@
  * - Pure data:  `import type` only;  `variant`'s values are written out (the types file's `VARIANTS`).
  */
 
-import type { E } from "$/spell-element"
+import type { E } from "@spell-app/spell-element"
 
 /****************
  * ### `brandFlourishVocabulary`

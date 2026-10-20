@@ -190,10 +190,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - The same at `/worktrees/<w>/components/<set>/`.
       - `<prefix>` redirects to `<prefix>/`:  the one redirect left.
       - Live reload watches each set's folder and its bundle, reporting their changes at the set's address.
-      - Settings that name no sets:  the sets of the checkout this package is in (`COMPONENT_SETS`).
-        - REFACTOR:  only for spell-epic's route-module tests, whose scratch checkouts name none;
-          with `COMPONENT_SETS` and `SITE_BUNDLE` (spell-epic imports them), it goes once spell-epic
-          reads `componentSets()` (epic `repo-split` P4's T entry).
+      - Settings that name no sets:  no sets served.
     - The bundles it serves are NOT committed:  page-server's route module builds them (`BundleBuild`).
     - Spell projects' compiled output (`build/`, never committed) is built the same way,
       but by the app's route module, not here.
@@ -246,3 +243,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 As WWOD §8, plus our self-namespace:
 
 - `SRV` ~== `$/server`
+- Another repo imports it by its npm name (epic `repo-split` P6), an entry of its `package.json` `exports`, each a
+  SOURCE file:  `@spell-app/server`, `/page`, `/site`, `/site/site.types`, `/test/serve`;  and three that plain
+  `node` loads (node built-ins and type imports only, `.ts` and all):  `/checkout`, `/page/settings`, `/page/prune`.
+  - REFACTOR:  `./src/*` too, spell-epic's by-path imports (`@spell-app/server/src/page/settings.ts` ...) until it
+    switches to those entries (epic `repo-split` P6's T).

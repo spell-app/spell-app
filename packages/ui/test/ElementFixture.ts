@@ -1,7 +1,7 @@
 import { flush } from "solid-js"
 
 import { Fixture } from "$/ui/test/Fixture"
-import type { DOMElement } from "$/spell-element"
+import type { DOMElement } from "@spell-app/spell-element"
 
 /**
  * `Fixture.render()` plus "wait until every element in it has rendered":

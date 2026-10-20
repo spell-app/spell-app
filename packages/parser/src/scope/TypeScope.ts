@@ -1,4 +1,4 @@
-import { instanceCase, snakeCase, type PropRule } from "$/util"
+import { instanceCase, snakeCase, type PropRule } from "@spell-app/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { BlockScope } from "./BlockScope"

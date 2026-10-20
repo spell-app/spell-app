@@ -1,4 +1,4 @@
-import { NONE } from "$/util"
+import { NONE } from "@spell-app/util"
 import { P } from "$/parser"
 import { SpellIdentifier } from "./SpellIdentifier"
 import { variables } from "./variables.parser"

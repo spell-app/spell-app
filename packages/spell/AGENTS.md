@@ -420,7 +420,7 @@ when working with code in this package, `@spell-app/spell`.
 
 As WWOD §12, plus:
 
-- `vite.decorators.ts` (repo root) is used by `vitest.config.ts` here.
+- The toolchain's decorator pre-pass (`@spell-app/toolchain/decorators`) is used by `vitest.config.ts` here.
 
 ## Imports
 

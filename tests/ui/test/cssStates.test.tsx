@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/spell-element"
+import type { DOMElement } from "@spell-app/spell-element"
 
 import "$/ui/index"
 

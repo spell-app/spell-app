@@ -6,7 +6,7 @@
  *   The component adds `brand color` before the noun (`brand color picker`).
  */
 
-import type { E } from "$/spell-element"
+import type { E } from "@spell-app/spell-element"
 
 /****************
  * ### `<brand-color-picker>`

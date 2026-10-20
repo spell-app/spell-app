@@ -3,7 +3,8 @@ import type { OxlintConfig } from "vite-plus/lint"
 import { fileURLToPath } from "node:url"
 
 /**
- * Lint (oxlint) and format (oxfmt) settings every package shares, as `lint` / `fmt` blocks of `vite.config.ts`.
+ * Lint (oxlint) and format (oxfmt) settings every package shares, as `lint` / `fmt` blocks of `vite.config.ts`:
+ * `@spell-app/toolchain/lint` (the repo root's `vite.lint.ts` until epic `repo-split` P6).
  * - Was `.oxlintrc.json`, `.oxlintrc.react.json` and `.oxfmtrc.json` at the repo root,
  *   before Vite+ (`vp lint`, `vp fmt`, `vp check`) folded them into `vite.config.ts`.
  * - Plain objects, spread by the root's `vite.config.ts` and each package's:
@@ -38,11 +39,11 @@ export const lintBase = {
   // so every package gets its tools at the one version `vite-plus` pins.
   // `spell-ui/*`:  Spell UI's patterns in component files (`patternLint()`);
   // loaded everywhere, on in `PATTERN_FOLDERS`.
-  // `spell/*`:  the repo's own import rules (`vite.lint.imports.ts`), on everywhere (below).
+  // `spell/*`:  the repo's own import rules (`lint.imports.ts`), on everywhere (below).
   jsPlugins: [
     { name: "vite-plus", specifier: "vite-plus/oxlint-plugin" },
-    { name: "spell-ui", specifier: fileURLToPath(new URL("./vite.lint.patterns.ts", import.meta.url)) },
-    { name: "spell", specifier: fileURLToPath(new URL("./vite.lint.imports.ts", import.meta.url)) }
+    { name: "spell-ui", specifier: fileURLToPath(new URL("./lint.patterns.ts", import.meta.url)) },
+    { name: "spell", specifier: fileURLToPath(new URL("./lint.imports.ts", import.meta.url)) }
   ],
 
   // NOTE: only rules that DIFFER from the `correctness` defaults belong here.
@@ -93,7 +94,10 @@ export const lintBase = {
     // - HERE, not in an `overrides` entry:  it holds for every package and its tests, so the root's block and every
     //   package's (`packageLint()`) get it with the rest of `lintBase`, and it's on in tests too (`testLint` leaves it).
     // - It skips the repo root's own files itself:  they're in no package.
-    "spell/no-cross-package-import": "error"
+    "spell/no-cross-package-import": "error",
+    // A `$/` alias naming a package of ANOTHER repo:  `@spell-app/ui/core`, never `$/ui/core`, from the app
+    // (WWOD §4;  epic `repo-split` P6).  Here too, for the same reasons.
+    "spell/no-cross-repo-alias": "error"
   }
 } satisfies OxlintConfig
 
@@ -190,7 +194,7 @@ export const PATTERN_FOLDERS: Record<string, string[]> = {
 }
 
 /**
- * The `spell-ui/*` rules (`vite.lint.patterns.ts`), as an `overrides` entry:
+ * The `spell-ui/*` rules (`lint.patterns.ts`), as an `overrides` entry:
  * a component file doing by hand what one of Spell UI's decorators or helpers does
  * (`packages/ui/AGENTS.md`, "Solid authoring").
  * - Each message names the decorator or helper to use instead.
@@ -207,6 +211,22 @@ export function patternLint(prefix: string, names = Object.keys(PATTERN_FOLDERS)
     files: folders.flatMap((folder) => [`${folder}/**/*.ts`, `${folder}/**/*.tsx`]),
     rules: patternRules("error")
   } satisfies NonNullable<OxlintConfig["overrides"]>[number]
+}
+
+/**
+ * The `spell-ui/*` rules on component `folders` (relative to the config's folder), and `testLint`, as a `lint` block's
+ * `overrides`:  for a repo that is ONE package, its elements not under `packages/<name>/` (spell-epic's
+ * `src/components/`, epic `epic-eject` J14).
+ * - spell-epic's own until epic `repo-split` P6, in its copy of this file:  here so it can drop the copy.
+ */
+export function patternLintIn(folders: string[]) {
+  return [
+    {
+      files: folders.flatMap((folder) => [`${folder}/**/*.ts`, `${folder}/**/*.tsx`]),
+      rules: patternRules("error")
+    },
+    testLint
+  ] satisfies NonNullable<OxlintConfig["overrides"]>
 }
 
 /** Every `spell-ui/*` rule, set to `level`. */

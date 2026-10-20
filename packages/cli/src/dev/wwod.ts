@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "fs"
 import { join, relative, resolve } from "path"
 
 import { type AgentRulesProblem, type AgentRulesReport } from "$/cli"
-import { contentFolderOf } from "$/assembler/contentFolder"
+import { contentFolderOf } from "@spell-app/assembler/contentFolder"
 
 /**
  * The agents' rules (epic `wwod`):  WWOD, the house style in `agents/wwod/*.md`, and the files that cite it

@@ -1,5 +1,5 @@
-import { componentSets, pageServerSettings, HIGHLIGHT_JS, type RouteModule } from "$/server/page"
-import { BundleBuild, MOVED_FOLDERS, MOVED_OUT } from "$/page-server"
+import { componentSets, pageServerSettings, type RouteModule } from "@spell-app/server/page"
+import { BundleBuild, HIGHLIGHT_JS, MOVED_FOLDERS, MOVED_OUT } from "$/page-server"
 
 /**
  * What only spell-app's page server does, on the generic one (`$/server/page`'s `PageServer`):  a ROUTE MODULE,

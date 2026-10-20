@@ -1,10 +1,10 @@
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 import solid from "@solidjs/vite-plugin"
 import type { Plugin, PluginOption, UserConfig } from "vite"
 
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { standardDecorators } from "@spell-app/toolchain/decorators"
+import { packageVersion } from "@spell-app/toolchain/packageVersion"
+import { packModuleKey } from "@spell-app/ui/tools/packModules"
 import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "@spell-app/ui/vite.config.ts"
 
 /**
@@ -143,12 +143,9 @@ const FROM_SHARED_SOLID = new Map<string, string>([
 /**
  * The specifiers `spell-solid-shared.js` takes from the page when the page has them all:
  * keys of `globalThis.SpellUI.packModules`, the docs bundle's (`spell-epic/src/tools/_assets/spell-ui.entry.js`).
- * - REFACTOR: not `$/spell-element`:  spell-epic's docs bundle still names it `$/spell-solid`, its name until epic
- *   `repo-split` P3, so a page with it would get our Solid, a second one.  The page's `$/ui/core` carries every
- *   name of it anyway.  Put it back once spell-epic follows the rename (that epic's T6).
  */
 export const SHARED_SPECIFIERS = [...FROM_SHARED_SOLID]
-  .filter(([id, file]) => file === SHARED_SOLID.shared && id !== "$/spell-element")
+  .filter(([, file]) => file === SHARED_SOLID.shared)
   .map(([id]) => id)
 
 /** Solid's hyperscript, `h()`:  what compiled spell draws with, through `core`'s export (epic `output-targets` P20). */
@@ -174,8 +171,11 @@ const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/(ui|spell-element))
  * - Such an import resolves to an EXTERNAL id, which `output.paths` writes as `./spell-solid-shared.js` /
  *   `./spell-ui.js`:  relative.
  *   So every chunk that imports one MUST sit at the output folder's top level (ours do:  fixed names, no folders).
- * - Static and dynamic imports alike:  `import("$/ui")` becomes `import("./spell-ui.js")`, still on demand.
- * - Side-effect imports too:  `import "$/ui/components/ui-table"` becomes `import "./spell-ui-shared.js"`.
+ * - Static and dynamic imports alike:  `import("@spell-app/ui")` becomes `import("./spell-ui.js")`, still on demand.
+ * - Side-effect imports too:  `import "@spell-app/ui/ui-table"` becomes `import "./spell-ui-shared.js"`.
+ * - Looked up by `packModuleKey()`, the `$/` name the maps above are keyed by (`@spell-app/ui/core` => `$/ui/core`):
+ *   the same keys as a page's `SpellUI.packModules` (`SHARED_SPECIFIERS`), though the app imports Spell UI by its
+ *   npm name (epic `repo-split` P6).
  * - Any other Solid / `ui` specifier (`solid-js/store`, `$/ui/runtime`) is a build ERROR:
  *   add it to `FROM_SHARED_SOLID` and to what `vite.solid.config.ts` exports, or the shared files won't have its names.
  * - Type-only imports (`@solidjs/web/types/jsx.js`) are gone before this runs.
@@ -188,7 +188,8 @@ export function sharedSolid(): Plugin {
     enforce: "pre",
     resolveId(source) {
       if (source === H_PACKAGE) return SHARED_H
-      const file = FROM_SHARED_SOLID.get(source)
+      // by its `$/` name, the key a page's `packModules` offers:  our source imports `@spell-app/ui/core`
+      const file = FROM_SHARED_SOLID.get(packModuleKey(source))
       if (file) return { id: `${SHARED_ID}${file}`, external: true }
       if (source.startsWith(SHARED_ID)) return { id: source, external: true }
       if (SOLID_FAMILY.test(source)) {

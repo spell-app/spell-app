@@ -5,7 +5,7 @@
  * - `placeholderData()` and `QuotedPropertyFormulaBits`:  what `quoted_property_formula` and the
  *   `QuotedPropertyRule` it makes both work with
  */
-import { pluralize, singularize } from "$/util"
+import { pluralize, singularize } from "@spell-app/util"
 import { P } from "$/parser"
 
 /**

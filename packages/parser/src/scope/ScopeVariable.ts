@@ -1,4 +1,4 @@
-import type { PropRule } from "$/util"
+import type { PropRule } from "@spell-app/util"
 import { P } from "$/parser"
 
 /**

@@ -1,4 +1,4 @@
-import { proto, snakeCase } from "$/util"
+import { proto, snakeCase } from "@spell-app/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { Priority } from "$/spell/rules/rules.types"

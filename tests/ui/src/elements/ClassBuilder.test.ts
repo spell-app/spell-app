@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
-import { type ClassInput } from "$/spell-element"
+import { type ClassInput } from "@spell-app/spell-element"
 import { ClassBuilder } from "$/ui/elements"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 

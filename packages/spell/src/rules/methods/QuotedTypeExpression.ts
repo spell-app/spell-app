@@ -1,6 +1,6 @@
 import { isNode } from "browser-or-node"
 
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { Negatable } from "$/spell/rules/expressions"
 import { SubjectImplied } from "$/spell/rules/types"

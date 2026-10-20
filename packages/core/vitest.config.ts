@@ -2,8 +2,8 @@ import { resolve } from "node:path"
 
 import { defineConfig } from "vite-plus"
 
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { standardDecorators } from "@spell-app/toolchain/decorators"
+import { packageVersion } from "@spell-app/toolchain/packageVersion"
 
 /** Solid's packages:  core draws with them. */
 const SOLID = [/^solid-js/, /^@solidjs\//]

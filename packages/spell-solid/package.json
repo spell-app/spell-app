@@ -1,8 +1,0 @@
-{
-  "name": "@spell-app/spell-solid",
-  "version": "0.0.0",
-  "private": true,
-  "description": "REFACTOR: a stand-in, spell-element's old name (epic repo-split P3):  re-exports @spell-app/spell-element for spell-epic, until it follows the rename;  delete it then",
-  "license": "MIT",
-  "type": "module"
-}

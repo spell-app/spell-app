@@ -9,8 +9,8 @@
  *   order), then a `stylesheet` per shared sheet, then `done`, and exits.
  * - NEVER imports `$/cli`'s values:  this process needs only `ui`.
  */
-import { StaticRenderer } from "$/ui/tools/StaticRenderer"
-import type { StaticDocumentModule } from "$/ui/tools/tools.types"
+import { StaticRenderer } from "@spell-app/ui/tools/StaticRenderer"
+import type { StaticDocumentModule } from "@spell-app/ui/tools/tools.types"
 import type { CLI } from "$/cli"
 
 const server = await StaticRenderer.start()

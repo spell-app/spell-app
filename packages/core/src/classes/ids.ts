@@ -6,7 +6,7 @@
  */
 import _ from "lodash"
 
-import type { PropInfo } from "$/util"
+import type { PropInfo } from "@spell-app/util"
 
 /** Characters a made-up id's random part is written in:  base 36, lower case. */
 const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz"

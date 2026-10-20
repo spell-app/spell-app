@@ -1,7 +1,7 @@
 import { Match, Show, Switch, createSignal, onCleanup, onSettled } from "solid-js"
 
 import type { LSP } from "$/lsp"
-import type { SP } from "$/spell"
+import type { SP } from "@spell-app/spell"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "$/app/runner"
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "$/app/solid/TypeExplorer"

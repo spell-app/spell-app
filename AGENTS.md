@@ -57,6 +57,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | Folder | Package | Alias | Namespace | What it is |
 | --- | --- | --- | --- | --- |
 | [util](packages/util/AGENTS.md) | `@spell-app/util` | `$/util` | | helpers `ui` and spell share:  small generic ones (`@proto` ...), and spell's own in `src/spell/` (lodash, `Observable`, `Task` ...) |
+| [toolchain](packages/toolchain/AGENTS.md) | `@spell-app/toolchain` | | | what every package's configs share:  the lint and format settings and their rules, the decorator pre-pass, the version stamp, the base tsconfig, the global types (the repo root's files until epic `repo-split` P6) |
 | [parser](packages/parser/AGENTS.md) | `@spell-app/parser` | `$/parser` | `P` | the generic rule-based parser;  Rulex is an opt-in side-effect import, `$/parser/rulex` |
 | [markdown](packages/markdown/AGENTS.md) | `@spell-app/markdown` | `$/markdown` | `MD` | GitHub-flavoured markdown on the parser, drawing `ui-*` markup |
 | [core](packages/core/AGENTS.md) | `@spell-app/core` | `$/core` | `SC` | the runtime compiled spell runs on |
@@ -136,7 +137,6 @@ More on some of them:
   - link targets (`Linker`)
   - in-memory formatting (`formatHTML()`)
   - the bundles built on demand (`Bundle`)
-  - JSON5 written with its comments kept (`$/assembler/json5`):  spaces' files, the component sets' site data
   - later, the page server's assembly code
 - brand:  Claude Design's pages and tokens (never edited), and their Spell UI copies (`*.spell.html`).
   - And the `<brand-*>` elements those copies need:  a component pack.
@@ -184,9 +184,9 @@ ui -> util
   - ANY package may import it, `ui`'s tools too.
   - NEVER make it name spell-app's or spell-epic's folders:  they're its settings (epic `repo-split` P4).
 - `page-server`:  NO package imports it;  the page server loads its route module by PATH, from its settings.
-- `assembler` is node-only and imports no package (it uses linkedom, oxfmt and json5-writer).
+- `assembler` is node-only and imports only util's json5 (`@spell-app/util/node/json5`) and the toolchain's format
+  settings (it uses linkedom and oxfmt).
   - epics (its docs tools and its `epic` tool) imports it.
-  - So do spaces and ui's tools (the site data writers), for `$/assembler/json5`.
   - Any other node-side package or tool may import it too.
 - No exceptions (since epic `repo-split` P2):  `ui` holds nothing of spell, not even pre-compiled.
   - `<ui-code>` colours with highlight.js, and `<ui-markdown>` draws with marked.
@@ -196,19 +196,37 @@ ui -> util
   - The docs pages colour spell because the page server adds the app's `spell-language.js` to them
     (its `"pageScripts"`, [server's AGENTS.md](packages/server/AGENTS.md)):  spell-epic imports nothing of the app.
 - The direction is by convention, not enforced:  every alias works from every package.
+- `toolchain`:  every package's configs import it (`@spell-app/toolchain/lint`, `/decorators`, `/packageVersion`)
+  and every `tsconfig.json` extends it (`@spell-app/toolchain/tsconfig.base.json`);  it imports no package.
 
 ### Aliases and global types
 
+- Two ways to name another package, by where it will live once the repos split (epic `repo-split` P6, Q8):
+  - INSIDE one future repo, its alias, `$/name`:  `spell` imports `$/parser`, the app `$/lsp`.
+  - From ANOTHER repo, its npm name:  the app imports `@spell-app/ui/core`, Spell UI `@spell-app/spell-element`.
+    - Only an entry its `package.json` `exports` names, each pointing at a SOURCE file (`./src/core.ts`):
+      tsc (`moduleResolution: bundler`), Vite, `tsx` and plain `node` all read it.
+    - A Spell UI family by its published entry:  `@spell-app/ui/ui-code` (`./components/ui-code/index.ts`).
+    - Lint fails a `$/` alias into another repo (`spell/no-cross-repo-alias`, the toolchain's `lint.imports.ts`,
+      which holds the list of repos, `REPO_OF`).
+  - The future repos:  spell-util (util, toolchain), spell-server (server, assembler), spell-element, spell-lang
+    (parser, markdown, core, py, spell), spell-ui, spell-brand, spell-app (app, spaces, lsp, cli, vscode,
+    page-server), and spell-epic, a repo already.
+  - A string that only NAMES a module keeps its `$/` name:  a page's `SpellUI.packModules` keys (`"$/ui/core"`),
+    the run-time names every page and spell-epic's bundles share (`packModuleKey()`, [packModules.ts](packages/ui/tools/packModules.ts)).
 - ONE alias table, `tsconfig.base.json` at the repo root:  read its header comment.
-  - Every package's `tsconfig.json` extends it,
-    so `$/parser` means the same file wherever it's compiled from.
-- Global ambient types are in the root `types/` folder.
+  - Every package's `tsconfig.json` extends it, beside the toolchain's settings:
+    `"extends": ["@spell-app/toolchain/tsconfig.base.json", "../../tsconfig.base.json"]`.
+  - So `$/parser` means the same file wherever it's compiled from.
+  - Each future repo will hold its own part of it (P8).
+- Global ambient types are the toolchain's, [its types](packages/toolchain/types/index.d.ts).
   - Used bare, no import (WWOD §9 › "Ambient globals used bare").
-  - Every spell-family `tsconfig.json` includes that folder.
-  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`.
+  - A `tsconfig.json` that wants them names them:  `"types": [..., "@spell-app/toolchain/types"]`.
+  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`;  `vite/client`'s.
   - NOT json5-writer's, which ships no types of its own:
-    the one file that uses it types what it uses, [the assembler's json5.ts](packages/assembler/src/json5.ts).
-- `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
+    the one file that uses it types what it uses, [util's json5.ts](packages/util/src/node/json5.ts).
+- The decorator pre-pass and the version stamp are the toolchain's too:
+  `@spell-app/toolchain/decorators`, `@spell-app/toolchain/packageVersion`.
 - No `~/` or `#name` alias exists any more.
   - `$` means the packages folder, so ui is `$/ui` like the rest.
   - That can't collide with an npm package name (`@spell-app/...`, `solid-js`),
@@ -545,8 +563,6 @@ ui -> util
     - the epic skills (`/epic`, `/isolate`, `/details`, `/bg`, `/send` ... 17 of them) and every template
   - It takes `ui`, `server`, `assembler`, `util` and `spell-element` from spell-app's main checkout (`portal:`,
     through its own `.spell-app` link).
-    - REFACTOR: `spell-element` still by its old name, `spell-solid`:  a stand-in folder re-exporting it,
-      until spell-epic follows epic `repo-split` P3's rename (that epic's T6).
   - Its README says how it's laid out and installed;  its [AGENTS.md](spell-epic/AGENTS.md) and
     [src/AGENTS.md](spell-epic/src/AGENTS.md) hold its rules.
 - LIVE since the switch (epic `epic-eject` I5, 2026-10-18):  this repo carries no copy of the engine.
@@ -631,17 +647,19 @@ ui -> util
       ([the papercuts log](agents/PAPERCUTS.md), "## ui").
 - NEVER hard-code `<package>/node_modules/<dep>`:  yarn hoists to the root.
   - Node code resolves the package instead (in `ui`:  [NodePackage](packages/ui/tools/NodePackage.ts)).
-- Lint / format settings:  the repo root's `vite.lint.ts`.
-  - Every `vite.config.ts` spreads it, in its lint and fmt blocks.
+- Lint / format settings:  the toolchain's, `@spell-app/toolchain/lint` ([lint.ts](packages/toolchain/src/lint.ts)).
+  - Every `vite.config.ts` spreads it, in its lint and fmt blocks, the root's too.
   - No `.oxlintrc.json` / `.oxfmtrc.json` any more.
   - The editor and `vp check` read the ROOT block only.
     So a rule for some packages goes in `rootLint()`'s `overrides` too.
   - Our own rules, two JS plugins beside it:
-    - `vite.lint.patterns.ts`:  its rules, `spell-ui/*`, guard Spell UI's patterns in component files:
+    - `lint.patterns.ts`:  its rules, `spell-ui/*`, guard Spell UI's patterns in component files:
       "The lint guard" in [ui's AGENTS.md](packages/ui/AGENTS.md).
-    - `vite.lint.imports.ts`:  its rule, `spell/no-cross-package-import`, fails a `../` import from one package
-      (or its tests) into another's folder, everywhere (WWOD §4 › "Package aliases, never `../`").
-    - Their tests:  `tests/ui/tools/LintPatterns.test.ts`, `LintImports.test.ts`.
+    - `lint.imports.ts`, everywhere:
+      - `spell/no-cross-package-import` fails a `../` import from one package (or its tests) into another's folder
+        (WWOD §4 › "Package aliases, never `../`")
+      - `spell/no-cross-repo-alias` fails a `$/` alias into another future repo's package (above, "Aliases")
+    - Their tests:  `tests/ui/tools/LintPatterns.test.ts`, `tests/toolchain/src/lint.imports.test.ts`.
 - Three of the root's scripts run over every `@spell-app/*` package, with `vp run`:
   - `ts` and `test:packages`, 4 at a time
   - `review`, one at a time:  its tests flake under load

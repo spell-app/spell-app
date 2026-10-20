@@ -1,4 +1,4 @@
-import { JSON5File, TaskList, Task, getDier } from "$/util"
+import { JSON5File, TaskList, Task, getDier } from "@spell-app/util"
 import { P } from "$/parser"
 import { PY } from "$/py"
 // Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `core` itself --

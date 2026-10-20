@@ -1,5 +1,5 @@
 {
   // py's tests:  py's own settings (packages/py/tsconfig.json), over this folder
   "extends": "../../packages/py/tsconfig.json",
-  "include": [".", "../../types"]
+  "include": ["."]
 }

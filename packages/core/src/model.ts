@@ -37,7 +37,7 @@ export { on, off, once, trigger }
 export { positionOf } from "./collection-core"
 export { position, spellPosition, endPosition, withSpellPositions } from "./positions"
 // what compiled TypeScript's classes are declared with, e.g. `@prop({ type: "text" }) accessor name!: string`
-export { prop, state, derived, thing } from "$/util"
+export { prop, state, derived, thing } from "@spell-app/util"
 export {
   Saver,
   Loader,

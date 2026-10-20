@@ -1,6 +1,6 @@
 import { E, UI } from "$/ui/core"
 // Import directly to avoid circular import:  spell-element imports nothing of Spell UI, so it has always loaded first
-import { state, untracked } from "$/spell-element"
+import { state, untracked } from "@spell-app/spell-element"
 
 /****************
  * ### `LoadableBody`

@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync, writeFileSync } from "fs"
 import { dirname, resolve } from "path"
 
-import { SP } from "$/spell"
+import { SP } from "@spell-app/spell"
 import { SPACES } from "$/spaces"
-import { PropertyEditorPages, type PageProblem } from "$/ui/property"
+import { PropertyEditorPages, type PageProblem } from "@spell-app/ui/property"
 import { CLI } from "$/cli"
 
 /****************

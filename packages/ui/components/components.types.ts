@@ -985,7 +985,7 @@ export const MOTION_PROPERTY = "--ui-motion"
  * Fomantic's animations, added to spell-element's (`E.ElementAnimation`), so a family's `elementSetup.animation` and
  * an element's `animationToRun` are Spell UI's `Animation`.
  */
-declare module "$/spell-element/elements.types" {
+declare module "@spell-app/spell-element/elements.types" {
   interface ElementAnimations extends Record<Animation, true> {}
 }
 

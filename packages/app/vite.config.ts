@@ -1,7 +1,7 @@
 import { defineConfig } from "vite-plus"
 
-import { fmtConfig, packageLint } from "../../vite.lint.ts"
-import environment from "@spell-app/spaces/src/server/node/environment.ts"
+import { fmtConfig, packageLint } from "@spell-app/toolchain/lint"
+import environment from "@spell-app/spaces/server/node/environment"
 import { appConfig } from "./vite.shared.ts"
 
 /** Name of the runtime's entry in a build:  `dist/spell-runtime.js` -- see `editor.loadRuntime()`. */

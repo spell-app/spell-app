@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { readJSON5File } from "$/util/node/json5"
+import { readJSON5File } from "@spell-app/util/node/json5"
 
 import { SharedVocabulary } from "../src/vocabulary/SharedVocabulary.ts"
 import { ValueSets } from "../src/vocabulary/ValueSets.ts"
@@ -16,7 +16,7 @@ import {
   type SiteTag,
   type SiteTagPage
 } from "../src/docs-components/docs-components.types.ts"
-import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "$/spell-element/vocabulary.types"
+import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "@spell-app/spell-element/vocabulary.types"
 import { SITE_DATA, SITE_PAGES } from "./tools.types.ts"
 import { FamilyTokens } from "./FamilyTokens.ts"
 import { FoundationTokens } from "./FoundationTokens.ts"

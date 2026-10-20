@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterEach, vi } from "vite-plus/test"
 
 import { SP } from "$/spell"
-import { installDiskFetch } from "$/spaces/server/node/projects/disk-fetch"
+import { installDiskFetch } from "@spell-app/spaces/server/node/projects/disk-fetch"
 import { fixtureProjectId } from "$/spell/test"
 
 /**

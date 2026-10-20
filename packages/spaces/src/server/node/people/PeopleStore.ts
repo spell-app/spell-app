@@ -1,6 +1,15 @@
 import { execFileSync } from "child_process"
 
-import { checkEntry, Loader, parseRef, REF_KEY, Saver, core, upgradeEntry, type ThingsToSearch } from "$/core/model"
+import {
+  checkEntry,
+  Loader,
+  parseRef,
+  REF_KEY,
+  Saver,
+  core,
+  upgradeEntry,
+  type ThingsToSearch
+} from "@spell-app/core/model"
 import type { FileProblem, OrgRole, PersonChanges, PersonView } from "$/spaces/models/people"
 import type { SpaceStorage } from "$/spaces/models/SpaceStorage"
 import { readJSON5, writeJSON5 } from "$/spaces/server/node/storage/json5"

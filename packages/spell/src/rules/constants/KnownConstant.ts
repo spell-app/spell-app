@@ -1,4 +1,4 @@
-import { NONE, proto } from "$/util"
+import { NONE, proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { constants } from "./constants.parser"
 import { SpellConstant } from "./SpellConstant"

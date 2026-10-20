@@ -3,8 +3,8 @@ import { resolve } from "node:path"
 import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { standardDecorators } from "@spell-app/toolchain/decorators"
+import { packageVersion } from "@spell-app/toolchain/packageVersion"
 
 /**
  * Two projects:

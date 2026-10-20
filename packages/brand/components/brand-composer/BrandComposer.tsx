@@ -1,8 +1,8 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E, UI } from "$/ui/core"
-import { F } from "$/ui/forms"
+import { E, UI } from "@spell-app/ui/core"
+import { F } from "@spell-app/ui/forms"
 
 import { brandComposerVocabulary } from "./BrandComposer.en"
 import { BrandComposerFallback } from "./BrandComposer.fallback"

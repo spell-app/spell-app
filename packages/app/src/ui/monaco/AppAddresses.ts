@@ -1,6 +1,6 @@
 import { URI } from "monaco-editor/base/common/uri"
 
-import { SP } from "$/spell"
+import { SP } from "@spell-app/spell"
 import type { LSP } from "$/lsp"
 import type { monaco } from "./monaco"
 

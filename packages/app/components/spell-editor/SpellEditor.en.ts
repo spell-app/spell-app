@@ -4,7 +4,7 @@
  * - The pane's own words (tabs, status line) are `SpellEditorPane`'s.
  */
 
-import type { E } from "$/spell-element"
+import type { E } from "@spell-app/spell-element"
 
 /****************
  * ### `<spell-editor>`

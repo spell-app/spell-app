@@ -8,6 +8,13 @@
   "sideEffects": [
     "./src/HotDefinitions.ts"
   ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./elements.types": "./src/elements.types.ts",
+    "./HotDefinitions": "./src/HotDefinitions.ts",
+    "./timing": "./src/timing.ts",
+    "./vocabulary.types": "./src/vocabulary.types.ts"
+  },
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
@@ -22,6 +29,7 @@
   "devDependencies": {
     "@solidjs/vite-plugin": "3.0.0-next.47",
     "@solidjs/web": "2.0.0-rc.13",
+    "@spell-app/toolchain": "workspace:*",
     "@types/node": "^22.20.4",
     "@vitest/browser-playwright": "catalog:",
     "esbuild": "^0.28.2",

@@ -1,7 +1,7 @@
 import { For, Match, Show, Switch, createEffect, createMemo, createSignal, untrack } from "solid-js"
 
-import type { ThingAction, ThingLike, ThingRegistry } from "$/core/things"
-import type { SP } from "$/spell"
+import type { ThingAction, ThingLike, ThingRegistry } from "@spell-app/core/things"
+import type { SP } from "@spell-app/spell"
 import type { ThingExplorerState, ThingOrder } from "$/app/ui/ui.types"
 import { tracked } from "./tracked"
 import { SCOPE_ICONS, SectionMarker, sectionStartsAt } from "./ScopeDetailsPane"

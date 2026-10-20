@@ -1,4 +1,4 @@
-import { NONE, getPlurality, proto, type Plurality } from "$/util"
+import { NONE, getPlurality, proto, type Plurality } from "@spell-app/util"
 import { P } from "$/parser"
 import { identifierBlacklist } from "$/spell/rules/identifier-blacklist"
 import { type IdentifierMatchData } from "./variables.shared"

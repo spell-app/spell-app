@@ -1,4 +1,4 @@
-import { pluralize, proto, singularize, typeCase, upperFirst } from "$/util"
+import { pluralize, proto, singularize, typeCase, upperFirst } from "@spell-app/util"
 import { P } from "$/parser"
 import { Priority } from "$/spell/rules/rules.types"
 // Import directly to avoid circular import

@@ -1,24 +1,13 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": ["@spell-app/toolchain/tsconfig.base.json", "../../tsconfig.base.json"],
   "compilerOptions": {
+    "types": ["node", "@spell-app/toolchain/types"],
     "allowJs": true,
     "target": "ES2020",
-    "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true
+    "jsx": "react-jsx"
   },
-  "include": ["src", "../../types"],
+  "include": ["src"],
   // hand-written `ts/solid` output:  checked by `typecheck()`, with `@spell/core` and Solid's JSX (`typescript.test.ts`)
   "exclude": ["src/test/*.sample.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]

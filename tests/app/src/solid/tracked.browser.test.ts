@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vite-plus/test"
 import { createEffect, createMemo, createRoot, flush } from "solid-js"
 
-import { reactiveObject } from "$/util"
+import { reactiveObject } from "@spell-app/util"
 import { tracked } from "$/app/solid"
 
 /**

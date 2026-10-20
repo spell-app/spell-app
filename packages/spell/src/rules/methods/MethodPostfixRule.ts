@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { PostfixOperatorSuffix, Precedence, SuffixLeft } from "$/spell/rules/expressions"
 import { Priority } from "$/spell/rules/rules.types"

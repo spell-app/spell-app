@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
-import { ElementFixture } from "$/ui/test/ElementFixture"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
 
 import "$/brand/components/brand-flourish"
 

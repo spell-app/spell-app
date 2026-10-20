@@ -25,11 +25,11 @@
  *   Spell UI's core bundle carries it, and a component pack reads it from there (`SpellUI.packModules`).
  */
 
-export * from "$/util/class"
-export * from "$/util/decorators"
-export * from "$/util/dom"
-export * from "$/util/string"
-export * from "$/util/util.types"
+export * from "@spell-app/util/class"
+export * from "@spell-app/util/decorators"
+export * from "@spell-app/util/dom"
+export * from "@spell-app/util/string"
+export * from "@spell-app/util/util.types"
 
 export * from "./vocabulary.types"
 export * from "./elements.types"

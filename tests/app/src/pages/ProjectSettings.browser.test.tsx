@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { SP } from "$/spell"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import type { SP } from "@spell-app/spell"
 import type { SPACES } from "$/spaces"
 import { openProjectSettings } from "$/app/pages/ProjectSettings"
 

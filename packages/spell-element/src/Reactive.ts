@@ -10,7 +10,7 @@ import {
 } from "solid-js"
 import { isServer } from "@solidjs/web"
 
-import { camelCase } from "$/util/string"
+import { camelCase } from "@spell-app/util/string"
 import type { E } from "$/spell-element"
 // Import directly to avoid circular import:  the decorators run as the classes using them are defined
 import { AriaNames } from "./elements.types"

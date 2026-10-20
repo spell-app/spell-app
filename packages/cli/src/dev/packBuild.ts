@@ -4,8 +4,8 @@ import { join, relative } from "path"
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT } from "$/cli/cli.types"
 import type { PackBuildReport, PackCheckReport } from "$/cli/dev/dev.types"
-import { ComponentPack } from "$/ui/tools/ComponentPack"
-import { ComponentPackError } from "$/ui/tools/tools.types"
+import { ComponentPack } from "@spell-app/ui/tools/ComponentPack"
+import { ComponentPackError } from "@spell-app/ui/tools/tools.types"
 
 /**
  * `spell dev pack build <pack>`:  pack `name` of checkout `root` built by Spell UI's own pack tooling,

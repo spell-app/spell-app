@@ -5,7 +5,6 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServedFile, type ServerInfo } from "$/server"
 import {
-  COMPONENT_SETS,
   PageEditor,
   componentSets,
   engineRoutes,
@@ -117,9 +116,7 @@ export class PageServer {
     const settings = this.settings()
     const { writable, pageScripts = [] } = settings
     this.pageScripts = pageScripts
-    // REFACTOR (epic `repo-split` P4):  settings naming no sets serve this checkout's (`COMPONENT_SETS`), as before;
-    // only for spell-epic's route-module tests, whose scratch checkouts have none.  `[]` once spell-epic writes them.
-    this.componentSets = settings.componentSets ? componentSets(settings) : COMPONENT_SETS
+    this.componentSets = componentSets(settings)
     this.engineRoutes = engineRoutes(settings)
     this.web = new SRV.WebServer({
       root: this.root,
@@ -415,11 +412,8 @@ const SERVER_API = SRV.SERVER_API
  * - `port`:  wanted
  * - `routes`:  load route modules
  * - `pidFile`:  write the pid file
- * - `bundles`:  REFACTOR (epic `repo-split` P4):  read by nothing since the bundles' build moved into
- *   `$/page-server`'s route module (which `routes: false` leaves out);  kept so spell-epic's tests, which pass it,
- *   still compile.  Delete it once spell-epic stops passing it.
  */
-export type StartOptions = { port?: number; routes?: boolean; pidFile?: boolean; bundles?: boolean }
+export type StartOptions = { port?: number; routes?: boolean; pidFile?: boolean }
 
 /**
  * The checkout at `root`:  the folder holding `.git` at or above `start`.

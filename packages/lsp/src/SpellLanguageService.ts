@@ -31,10 +31,10 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { instanceCase, typeCase } from "$/util"
-import { P } from "$/parser"
-import { MD, type InlineNode } from "$/markdown"
-import { SP } from "$/spell"
+import { instanceCase, typeCase } from "@spell-app/util"
+import { P } from "@spell-app/parser"
+import { MD, type InlineNode } from "@spell-app/markdown"
+import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 
 /**

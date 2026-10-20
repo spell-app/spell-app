@@ -5,6 +5,11 @@
   "description": "Where projects and people live, and the servers that serve them:  the editor's, and Python's web server",
   "license": "MIT",
   "type": "module",
+  "exports": {
+    "./models/projectGroups": "./src/models/projectGroups.ts",
+    "./server/node/environment": "./src/server/node/environment.ts",
+    "./server/node/projects/disk-fetch": "./src/server/node/projects/disk-fetch.ts"
+  },
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
@@ -28,6 +33,7 @@
     "node-filter-async": "^3.0.0"
   },
   "devDependencies": {
+    "@spell-app/toolchain": "workspace:*",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.20.4",
     "tsx": "4.20.3",

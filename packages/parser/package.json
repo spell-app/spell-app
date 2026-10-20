@@ -3,6 +3,9 @@
   "version": "0.8.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
@@ -21,6 +24,7 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@spell-app/toolchain": "workspace:*",
     "@types/lodash": "^4.17.17",
     "@types/node": "^22.20.4",
     "@typescript/typescript6": "^6.0.2",

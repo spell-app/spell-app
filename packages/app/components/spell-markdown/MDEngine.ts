@@ -1,5 +1,5 @@
-import { MD } from "$/markdown"
-import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "$/ui/components/ui-markdown"
+import { MD } from "@spell-app/markdown"
+import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "@spell-app/ui/ui-markdown"
 
 /****************
  * ### `MDEngine`

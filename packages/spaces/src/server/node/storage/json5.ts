@@ -16,7 +16,7 @@
  */
 import JSON5 from "json5"
 
-import { json5Edited } from "$/util/node/json5"
+import { json5Edited } from "@spell-app/util/node/json5"
 import type { SpaceStorage } from "$/spaces/models/SpaceStorage"
 
 export { json5Edited }

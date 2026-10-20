@@ -49,7 +49,7 @@ export { position, spellPosition, endPosition, withSpellPositions } from "./posi
 export { itemOf } from "./deprecated"
 // The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
-export { prop, state, derived, thing } from "$/util"
+export { prop, state, derived, thing } from "@spell-app/util"
 export { drawn } from "./drawing"
 // The tag a drawable type's `<css>` block compiles to:  its style sheet, as text (epic `drawable-thing` P10).
 export { elementTagFor, css, type ElementDefiner, type ElementApi } from "./elements"

@@ -5,12 +5,12 @@ import { dirname, join, relative } from "path"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT } from "$/cli/cli.types"
-import { contentFolderOf } from "$/assembler/contentFolder"
-import { DataFile } from "$/assembler/DataFile"
+import { contentFolderOf } from "@spell-app/assembler/contentFolder"
+import { DataFile } from "@spell-app/assembler/DataFile"
 import { COMMANDS_JSON, type PackInfo, type PackScaffoldReport } from "$/cli/dev/dev.types"
 import { buildPack, readPack } from "$/cli/dev/packBuild"
 import { REPO_ROOT } from "$/cli/findCheckout"
-import { ComponentPack, PACK_FOLDER } from "$/ui/tools/ComponentPack"
+import { ComponentPack, PACK_FOLDER } from "@spell-app/ui/tools/ComponentPack"
 
 /**
  * `spell dev pack new <name> [--prefix x-]`:
@@ -155,8 +155,6 @@ const CORE_PACKAGES = [
   "spaces",
   "spell",
   "spell-element",
-  // REFACTOR: spell-element's old name, a stand-in folder for spell-epic until it follows the rename (`packages/spell-solid/`)
-  "spell-solid",
   "ui",
   "util",
   "vscode"
@@ -280,7 +278,8 @@ function solidVersion(root: string): string {
  * - `package.json`:  a workspace, and `components/__pack/` in `pageServer.watch` (pages reload when it's rebuilt)
  * - `tsconfig.base.json`:  `$/<name>`, `$/<name>/*`, `$/<name>/components`, `$/<name>/components/*`
  * - `vitest.config.ts`:  the pack's `node` + `browser` projects (`SPECIAL`)
- * - `vite.lint.ts`:  `components/__pack/` out of lint and format
+ * - `packages/toolchain/src/lint.ts` (`@spell-app/toolchain/lint`, the repo root's `vite.lint.ts` until epic
+ *   `repo-split` P6):  `components/__pack/` out of lint and format
  * - `.gitattributes`:  `components/__pack/**` generated, `merge=binary -diff`
  * - `.epic/generators.json5`:  the pack's generated files, rebuilt at a merge by `yarn pack:build` (epic `epic-eject` T4)
  * - `guides/dev/commands/commands.json5` (shared, in the content folder:  `contentFolderOf()`):
@@ -322,6 +321,9 @@ type WiringStep = {
   /** in the shared content folder (`contentFolderOf()`), not the checkout */
   shared?: boolean
 }
+
+/** The toolchain's lint and format settings, from the checkout's root:  where a pack's generated folder is ignored. */
+const LINT_SETTINGS = "packages/toolchain/src/lint.ts"
 
 /** Every edit wiring `pack` in takes. */
 function wiringSteps(pack: PackInfo): WiringStep[] {
@@ -376,7 +378,7 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       }
     },
     {
-      file: "vite.lint.ts",
+      file: LINT_SETTINGS,
       what: `packages/${name}/${PACK_FOLDER} ignored`,
       edit: (text) => {
         if (text.includes(`"packages/${name}/${PACK_FOLDER}"`)) return undefined

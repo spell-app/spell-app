@@ -3,7 +3,7 @@
 import { spawnSync, type SpawnSyncReturns } from "node:child_process"
 import { existsSync } from "node:fs"
 
-import { SRV } from "$/server"
+import { SRV } from "@spell-app/server"
 
 import { NodePackage } from "../NodePackage.ts"
 import { Terminal } from "../Terminal.ts"

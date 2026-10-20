@@ -14,7 +14,7 @@
 
 import type { E } from "$/ui/core"
 // a constant `SourceEvent` reads as it's made:  spell-element's types file, which loads nothing
-import { ERROR_EVENT } from "$/spell-element/elements.types"
+import { ERROR_EVENT } from "@spell-app/spell-element/elements.types"
 
 ////////////////
 // ## Class builder

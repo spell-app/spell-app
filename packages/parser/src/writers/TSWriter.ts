@@ -1,4 +1,4 @@
-import { drawableAttributeFor, elementTagFor } from "$/util"
+import { drawableAttributeFor, elementTagFor } from "@spell-app/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { JSWriter } from "./JSWriter"

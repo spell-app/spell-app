@@ -3,10 +3,10 @@ import { relative, resolve, sep } from "node:path"
 
 import JSON5 from "json5"
 
-// By package path, `.ts` and all:  plain `node` loads this file (spell-epic's docs tools, `details.js` ...), and
-// resolves no `$/` alias (epic `repo-split` I3).  The JSON5 editor, util's since `repo-split` P1, the one every
+// By util's npm name, an entry of its `exports`:  plain `node` loads this file (spell-epic's docs tools,
+// `details.js` ...), and resolves no `$/` alias (epic `repo-split` I3).  The JSON5 editor, util's since `repo-split` P1, the one every
 // JSON5 edit goes through (epic `people-and-orgs` P8)
-import { json5Edited } from "@spell-app/util/src/node/json5.ts"
+import { json5Edited } from "@spell-app/util/node/json5"
 
 /****************
  * ### `DataFile`

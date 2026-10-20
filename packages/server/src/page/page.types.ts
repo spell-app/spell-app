@@ -171,30 +171,7 @@ export type ComponentSet = ComponentSetSetting & {
 export type EngineRoute = readonly [route: string, folder: string]
 
 /**
- * Code colours (highlight.js) for every docs page, from the repo instead of cdnjs (epic `airplane` P1).
- * - `cdn`:  the tag older pages still carry;  a plain, blocking `<script>`
- *   - so a hanging network (plane wifi asking to pay first) held up the page's own scripts behind it,
- *     and the page showed raw markup for tens of seconds
- * - `local`:  the same file (11.9.0), at the docs pages' engine route
- * - REFACTOR:  the epic engine's fact, kept here only because spell-epic imports it from `$/server/page`
- *   (epic `repo-split` P4);  move it to spell-epic once spell-epic switches.
- *   The page server itself no longer uses it:  page-server's route module swaps the tag (`$/page-server`).
- */
-export const HIGHLIGHT_JS = {
-  cdn: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
-  local: "/_epic/assets/highlight.min.js"
-} as const
-
-/**
  * Where the component sets are served (`COMPONENTS_PREFIX`), from `settings.ts`, which plain `node` loads.
  * - `./settings.ts` with its extension:  plain `node` loads this file by path (spell-epic's tools)
  */
 export { COMPONENTS_PREFIX } from "./settings.ts"
-
-/**
- * The component sets of the checkout this package is in, and their site bundles, read from its settings.
- * - REFACTOR:  kept only for spell-epic, which reads spell-app's MAIN checkout through its link and imports these
- *   (some by path, under plain `node`:  so `./settings.ts` with its extension) until it switches, once epic
- *   `repo-split` P4 is on `main`.  Delete them when spell-epic reads `componentSets()` of its checkout's settings.
- */
-export { COMPONENT_SETS, SITE_BUNDLE } from "./settings.ts"

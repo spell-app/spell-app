@@ -459,7 +459,7 @@ Longer notes on some of them follow the table.
   They also edit the checkout's root files:
 
   ```
-  package.json, tsconfig.base.json, vitest.config.ts, vite.lint.ts, .gitattributes,
+  package.json, tsconfig.base.json, vitest.config.ts, packages/toolchain/src/lint.ts, .gitattributes,
   .epic/generators.json5, and the shared commands page, guides/dev/commands/commands.json5
   ```
 

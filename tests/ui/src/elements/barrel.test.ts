@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import * as spellElement from "$/spell-element"
+import * as spellElement from "@spell-app/spell-element"
 import * as core from "$/ui/core"
 import * as forms from "$/ui/forms"
 import * as elements from "$/ui/elements"

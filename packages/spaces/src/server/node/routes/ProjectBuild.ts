@@ -3,11 +3,11 @@ import { existsSync } from "fs"
 import { join, resolve } from "path"
 import { createInterface } from "readline"
 
-import type { SRV } from "$/server"
+import type { SRV } from "@spell-app/server"
 import environment from "$/spaces/server/node/environment"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
-import { SP } from "$/spell"
-import { hasProjectFile } from "$/spell/node/projectFile"
+import { SP } from "@spell-app/spell"
+import { hasProjectFile } from "@spell-app/spell/node/projectFile"
 
 /**
  * Builds spell projects when the API needs what they build:  their compiled output and scope packs are in `build/`

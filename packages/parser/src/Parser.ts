@@ -4,7 +4,7 @@ import isEqual from "lodash/isEqual"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
-import { Derivative, showWhitespace } from "$/util"
+import { Derivative, showWhitespace } from "@spell-app/util"
 import { P } from "$/parser"
 
 /**

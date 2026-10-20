@@ -1,4 +1,4 @@
-import { NONE } from "$/util"
+import { NONE } from "@spell-app/util"
 import { P } from "$/parser"
 import { MemberReadExpression } from "./MemberReadExpression"
 import { itsObject, type ItsMatchData } from "./properties.shared"

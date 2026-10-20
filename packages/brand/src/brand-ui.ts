@@ -25,12 +25,12 @@
  * - `window.Palette`:  the brand's colour math (`$/brand`), for the pages' own scripts.
  */
 import "./hues"
-import "$/ui/styles/ui.css"
+import "@spell-app/ui/styles/ui.css"
 import "./inspector.css"
 
-import { BuiltInPacks } from "$/ui/icons"
-import { UI } from "$/ui/runtime"
-import { defineSite } from "$/server/site"
+import { BuiltInPacks } from "@spell-app/ui/icons"
+import { UI } from "@spell-app/ui/runtime"
+import { defineSite } from "@spell-app/server/site"
 import { Palette } from "$/brand"
 
 /** This bundle's folder, `.../_assets/ui/`:  a string slice, NOT `new URL(".", import.meta.url)` (Vite would inline it). */
@@ -47,5 +47,5 @@ defineSite()
 
 // The elements LAST, by `import()`:  a chunked build may run a static import's chunk before this file's own
 // imports (`./hues`), and an element upgraded before `accent` is a hue drops `color="accent"` (issue I17)
-await import("$/ui")
+await import("@spell-app/ui")
 await import("$/brand/components")

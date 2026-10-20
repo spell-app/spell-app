@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import { ElementFixture } from "$/ui/test/ElementFixture"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
 
 // every Spell UI family the fields hold (`<ui-panel>`, `<ui-menu>`, `<ui-input>` ...), as the brand bundle loads them
-import "$/ui"
+import "@spell-app/ui"
 import "$/brand/components"
 import "$/brand/inspector.css"
 

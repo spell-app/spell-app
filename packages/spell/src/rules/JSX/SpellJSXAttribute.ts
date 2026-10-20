@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { fillInsAST, parseFillIns } from "$/spell/rules/core"
 // Import directly to avoid circular import

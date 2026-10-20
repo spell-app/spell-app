@@ -1,4 +1,4 @@
-import type { DOMElement, UIComponentClass } from "$/spell-element"
+import type { DOMElement, UIComponentClass } from "@spell-app/spell-element"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { E } from "$/ui/core"
 import { F } from "$/ui/forms"

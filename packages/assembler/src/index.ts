@@ -5,7 +5,6 @@
  *   and `epic` tool use when they write a page;  and the bundles the page server builds on demand (`Bundle`).
  * - Node only (`node:fs`, `git`, oxfmt):  imports no other package, so any node-side package or tool may import it.
  * - NOT here, imported by path:
- *   - `$/assembler/json5`:  a re-export of `$/util/node/json5`, where it moved (epic `repo-split` P1), for spell-epic
  *   - `$/assembler/DataFile` (the tooling's JSON5 data files, on it)
  */
 export * from "./assembler.types"

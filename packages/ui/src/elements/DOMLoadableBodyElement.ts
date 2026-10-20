@@ -1,6 +1,6 @@
 import type { E } from "$/ui/core"
 // Import directly to avoid circular import:  spell-element imports nothing of Spell UI, so it has always loaded first
-import { DOMElement } from "$/spell-element"
+import { DOMElement } from "@spell-app/spell-element"
 
 /****************
  * ### `DOMLoadableBodyElement`

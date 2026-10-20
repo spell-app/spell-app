@@ -39,7 +39,7 @@ import {
   spellPosition,
   endPosition,
   withSpellPositions
-} from "$/core"
+} from "@spell-app/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
 import { installSpellElements } from "./SpellElement"
 import { E as UIElements, SpellElement } from "./spellElements"

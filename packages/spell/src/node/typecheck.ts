@@ -138,13 +138,16 @@ function tsconfig(names: string[], projects: Record<string, string>) {
       lib: ["ES2023", "DOM", "DOM.Iterable"],
       jsx: "preserve",
       jsxImportSource: "@solidjs/web",
-      // `vite/client`:  `core` uses none of it
-      types: ["node"],
-      typeRoots: [`${repo}/node_modules/@types`],
+      // the repo's global types (`Prettify` ...), through the folder's `node_modules` link;  `vite/client`:  `core`
+      // uses none of it (the toolchain's types bring it all the same)
+      types: ["node", "@spell-app/toolchain/types"],
+      // `node_modules` too:  a scoped package's types (`@spell-app/toolchain/types`) are looked up only there
+      typeRoots: [`${repo}/node_modules/@types`, `${repo}/node_modules`],
       noUnusedLocals: false
     },
     files: [...names, resolve(packagesDir, UI_JSX_TYPES)],
-    include: [`${repo}/types`]
+    // none:  `files` only (else `core`'s own `include` would be inherited)
+    include: []
   }
 }
 

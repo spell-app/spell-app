@@ -108,7 +108,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - a project's files:  `new SPACES.ProjectFiles(project)`, to create, duplicate, rename and delete them
   - `SpellProject` itself only reads, compiles and saves (decision Q20).
 - Lint and format leave the projects alone:  `packages/spaces/@spell` and `tests/spaces/@spell`.
-  - Their ignore list is in the root's [vite.lint.ts](../../vite.lint.ts).
+  - Their ignore list is in the toolchain's [lint.ts](../toolchain/src/lint.ts).
 
 ## People
 
@@ -230,7 +230,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 As WWOD §12, plus:
 
-- Our `vitest.config.ts` uses the repo root's `vite.decorators.ts`:
+- Our `vitest.config.ts` uses the toolchain's `@spell-app/toolchain/decorators`:
   the routes load spell, whose rules use decorators.
 
 ## Types / Exports

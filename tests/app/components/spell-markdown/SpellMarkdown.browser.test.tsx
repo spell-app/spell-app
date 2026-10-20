@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, test } from "vite-plus/test"
 
-import { UI } from "$/ui/core"
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMMarkdownElement } from "$/ui/components/ui-markdown"
+import { UI } from "@spell-app/ui/core"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import type { DOMMarkdownElement } from "@spell-app/ui/ui-markdown"
 
 import "$/app/components/spell-markdown"
 

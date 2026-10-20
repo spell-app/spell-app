@@ -20,12 +20,12 @@
 import { SpellMarkdown } from "./SpellMarkdown"
 
 import "$/app/components/spell-code"
-import "$/ui/components/ui-checkbox"
-import "$/ui/components/ui-divider"
-import "$/ui/components/ui-list"
-import "$/ui/components/ui-parts"
-import "$/ui/components/ui-segment"
-import "$/ui/components/ui-table"
+import "@spell-app/ui/ui-checkbox"
+import "@spell-app/ui/ui-divider"
+import "@spell-app/ui/ui-list"
+import "@spell-app/ui/ui-parts"
+import "@spell-app/ui/ui-segment"
+import "@spell-app/ui/ui-table"
 
 SpellMarkdown.define()
 

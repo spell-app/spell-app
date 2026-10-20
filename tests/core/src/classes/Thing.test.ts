@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from "vite-plus/test"
 
-import { observe } from "$/util"
+import { observe } from "@spell-app/util"
 import { core, Thing, List } from "$/core"
 
 /**

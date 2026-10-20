@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { SpellExpression } from "$/spell/rules/expressions"
 import { math } from "./math.parser"

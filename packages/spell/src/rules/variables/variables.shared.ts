@@ -2,7 +2,7 @@
  * Shared by the `variables` rule files:  what an identifier stashes on its match,
  * and the syntax `variable` and `known_variable` share.
  */
-import { NONE } from "$/util"
+import { NONE } from "@spell-app/util"
 import { P } from "$/parser"
 
 /** Syntax shared by `variable` and `known_variable`:  identifier with optional `the`, e.g. `the thing`. */

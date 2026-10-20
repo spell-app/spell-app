@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 import type { JSX } from "@solidjs/web"
 
-import type { DOMElement, DOMElementClass, UIComponentClass } from "$/spell-element"
+import type { DOMElement, DOMElementClass, UIComponentClass } from "@spell-app/spell-element"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { E } from "$/ui/core"
 import { UIButton } from "$/ui/components/ui-button"

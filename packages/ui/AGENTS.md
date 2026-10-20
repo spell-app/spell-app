@@ -973,14 +973,14 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
 THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to the rules above.
 - Its rules are named `spell-ui/*`.
 - Where:  EVERY set's component folders (all written on `$/spell-element`),
-  as `PATTERN_FOLDERS` in [the root lint settings](../../vite.lint.ts) lists them.
+  as `PATTERN_FOLDERS` in [the toolchain's lint settings](../toolchain/src/lint.ts) lists them.
   - `ui`:  `components/`, `src/docs-components/`
   - `epics`:  `components/`
   - `brand`:  `components/`
   - `app`:  `components/` (`<spell-app>`, `<spell-editor>`;  since epic `people-and-orgs` P17)
   - NOT `app`'s `src/` (WWOD §17's function components), NOT the element core (`$/spell-element`, `src/elements/`),
     NOT tests.
-- What it flags ([the rules](../../vite.lint.patterns.ts)).
+- What it flags ([the rules](../toolchain/src/lint.patterns.ts)).
   Each message names the decorator or helper to use instead.
   - `no-solid-effect`:  `createEffect`, `createRenderEffect`, `onSettled`, `onMount` imported from `solid-js`
   - `no-mutation-observer`:  `new MutationObserver(...)`
@@ -1058,16 +1058,16 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
     - and a console ERROR naming the `source` (`Warnings.error()`)
     - The root still gets ready.
 - Modules a pack shares with the page are `SpellUI.packModules`:
-  the EXACT specifier its build leaves external => the page's module.
+  the specifier its build leaves external, by its `$/` name (`packModuleKey()`:  an import of `@spell-app/ui/core`
+  is `$/ui/core`) => the page's module.
   - `solid-js`, `@solidjs/web`, `$/spell-element`, `$/ui/core`, `$/ui/forms`
   - `$/spell-element`, what a pack's elements are written on, is Spell UI's core module:  it carries all of it.
-    - REFACTOR: `$/spell-solid` too, its name until epic `repo-split` P3, until spell-epic follows the rename (T6).
   - Built in two places, never in the library:
     - [the docs bundle's entry](../../spell-epic/src/tools/_assets/spell-ui.entry.js), spell-epic's
     - the site's bundle, every component set's ([SitePacks.ts](site/_src/SitePacks.ts))
   - Those are the two places a Solid package is `import * as`'d, on purpose:
     a pack may use any export, so they must all stay ("One Solid per page" above).
-  - A new specifier goes there AND in the pack build's externals (`PACK_MODULES`, [ComponentPack](tools/ComponentPack.ts)).
+  - A new specifier goes there AND in the pack build's externals (`PACK_MODULES`, [packModules.ts](tools/packModules.ts)).
   - So a pack's elements extend the page's own `UIComponent` / `DOMElement`.
 - Tests:  [the component packs test](../../tests/ui/components/ui-components/ComponentPacks.test.ts).
   - On [the classic fixtures](test/fixtures/component-packs/), served by Vitest's dev server.
@@ -1076,7 +1076,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
 
 As WWOD §12, plus:
 
-- [The decorator pre-pass](../../vite.decorators.ts), at the repo root, is used by `vite.config.ts`.
+- [The decorator pre-pass](../toolchain/src/decorators.ts), the toolchain's (`@spell-app/toolchain/decorators`), is used by `vite.config.ts`.
   - Through `baseConfig()`, shared with `vitest.config.ts` and the site bundle's `vite.site.config.ts`.
 - The decorator pre-pass MUST run BEFORE the Solid plugin:  the Solid compiler must see decorator-free code.
   - Both are `enforce: "pre"`;  `baseConfig()` orders them.
@@ -1130,10 +1130,19 @@ As WWOD §4, with `$/ui` / `$/ui/*` as our alias, plus these deliberate EXCEPTIO
 - `scripts/` likewise:  relative imports with `.ts` extensions, no aliases.
   - [`Terminal`](tools/Terminal.ts), [`StyleGenerator`](src/styles/StyleGenerator.ts):  a leaf file, never a barrel with `?inline` CSS
   - peers after a blank line (`./generatedFiles.ts`)
-- `package.json`'s `exports` names two SOURCE files beside the built ones, for other packages' Vite configs,
-  which Vite loads with no alias table (WWOD §4 › "Package aliases, never `../`"):
-  - `@spell-app/ui/vite.config.ts`:  `baseConfig()`, `CSS_TARGETS`, `SOLID_DEDUPE` ... (the brand's, the app's)
-  - `@spell-app/ui/test/setup.ts`:  a browser test project's `setupFiles`, Spell UI's core first
+- Another repo imports Spell UI by its npm name (epic `repo-split` P6;  the root's `AGENTS.md`, "Aliases"):
+  `package.json`'s `exports`, every entry a SOURCE file.
+  - The published entries, from source:  `@spell-app/ui`, `/core`, `/forms`, `/api`, `/styles`, every family's
+    `/ui-<name>` (`./components/ui-<name>/index.ts`), `/icons/*`.
+  - And what other repos' code, tools and tests import:  `/property`, `/runtime`, `/icons`, `/test/...`,
+    `/tools/...`, and for their Vite configs, which Vite loads with no alias table, `/vite.config.ts`
+    (`baseConfig()`, `CSS_TARGETS` ...) and `/test/setup.ts` (a browser test project's `setupFiles`).
+  - The BUILT shape, `dist/`, is `publishConfig`'s `exports` (and `main`, `types`):  `yarn pack` and
+    `yarn npm publish` write it over the source one, and `yarn smoke`'s declaration check reads it.
+- This package imports `util` and `spell-element` by their npm names (another repo's):  `@spell-app/spell-element`,
+  `@spell-app/util/class` ...;  `$/ui/...` for its own files.
+  - Their declarations still ship inside `dist/` (`declarations()` in [vite.config.ts](vite.config.ts) maps the npm
+    names to their source, and rewrites them relative).
 
 ## Comments & docs
 

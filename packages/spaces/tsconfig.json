@@ -1,25 +1,13 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": ["@spell-app/toolchain/tsconfig.base.json", "../../tsconfig.base.json"],
   "compilerOptions": {
     "allowJs": true,
     "target": "ES2020",
-    "useDefineForClassFields": true,
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
     "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
-    "types": ["node"]
+    "types": ["node", "@spell-app/toolchain/types"]
   },
-  "include": ["src", "../../types"],
+  "include": ["src"],
   // Python's web server, a uv project:  its `.venv` holds other people's code
   "exclude": ["node_modules", "src/server/py"]
 }

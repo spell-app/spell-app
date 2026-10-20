@@ -1,0 +1,5 @@
+{
+  // toolchain's tests:  toolchain's own settings (packages/toolchain/tsconfig.json), over this folder
+  "extends": "../../packages/toolchain/tsconfig.json",
+  "include": ["."]
+}

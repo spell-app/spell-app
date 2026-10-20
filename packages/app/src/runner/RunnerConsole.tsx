@@ -1,4 +1,4 @@
-import type { SpellConsole } from "$/core/console"
+import type { SpellConsole } from "@spell-app/core/console"
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor (epic page C9)
 import { tracked } from "$/app/solid/tracked"
 import { ConsoleLines } from "$/app/solid/ConsoleLines"

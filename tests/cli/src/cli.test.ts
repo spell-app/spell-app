@@ -16,10 +16,10 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
-import { SRV } from "$/server"
+import { SRV } from "@spell-app/server"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
-import { SP } from "$/spell"
-import { fixturePath } from "$/spell/test"
+import { SP } from "@spell-app/spell"
+import { fixturePath } from "@spell-app/spell/test"
 
 /**
  * The real `spell` command, end to end:  `bin/spell.mjs` run as a separate process, as a user would.

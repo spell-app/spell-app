@@ -16,7 +16,7 @@
  *   - A built-in type with no entry here, e.g. `number`, has no members yet.
  */
 
-import { snakeCase } from "$/util"
+import { snakeCase } from "@spell-app/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 

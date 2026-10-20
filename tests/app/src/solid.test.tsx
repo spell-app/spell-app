@@ -2,7 +2,7 @@ import { describe, test, expect } from "vite-plus/test"
 import { createSignal, flush } from "solid-js"
 import { renderToString } from "@solidjs/web"
 
-import type { UIT } from "$/ui"
+import type { UIT } from "@spell-app/ui"
 
 /**
  * Smoke test for the app's Solid tooling (`vite.shared.ts`), while React and Solid live side by side.

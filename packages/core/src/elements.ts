@@ -13,7 +13,7 @@
  * - Part of `core`:  imported by `$/core`'s barrel for its side effect.
  */
 
-import { elementTagFor, instanceCase, schemaOf, type Schema } from "$/util"
+import { elementTagFor, instanceCase, schemaOf, type Schema } from "@spell-app/util"
 
 import { core } from "./core"
 import { defineCoreModule } from "./core.types"

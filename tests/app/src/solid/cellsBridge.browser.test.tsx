@@ -10,7 +10,7 @@ import {
 } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { Observable, cellsContext, derived, flushCells, prop, thing } from "$/util"
+import { Observable, cellsContext, derived, flushCells, prop, thing } from "@spell-app/util"
 
 import "$/app/solid/cellsBridge"
 
@@ -301,7 +301,7 @@ describe("the bridge", () => {
   test("follows the cells of ANOTHER copy of the cells module -- e.g. a `<spell-app>`'s `spell-runtime.js`", async () => {
     // `?copy`:  a separate instance of the module, as each runtime bundle has its own `$/util`
     // @ts-expect-error -- a query on purpose:  Vite loads the file again, a second module
-    const copy = (await import("$/util/reactive/cells.ts?copy")) as typeof import("$/util")
+    const copy = (await import("@spell-app/util/reactive/cells?copy")) as typeof import("@spell-app/util")
     const source = { subs: new Set<any>(), version: 0 }
     let runs = 0
     inRoot(() => {

@@ -1,4 +1,4 @@
-import { E, UI } from "$/ui/core"
+import { E, UI } from "@spell-app/ui/core"
 
 /****************
  * ### `SpellLanguage`
@@ -58,5 +58,6 @@ const DEFAULT_VARIANT = "en"
  * - English only today;  a translation will bring its own parser.
  */
 const TRANSLATIONS: Record<string, () => Promise<Omit<E.CodeLanguage, "load">>> = {
-  en: () => import("$/spell").then(({ SP }) => ({ highlight: (code: string) => SP.SpellHighlighter.spans(code) }))
+  en: () =>
+    import("@spell-app/spell").then(({ SP }) => ({ highlight: (code: string) => SP.SpellHighlighter.spans(code) }))
 }

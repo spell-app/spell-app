@@ -1,20 +1,8 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": ["@spell-app/toolchain/tsconfig.base.json", "../../tsconfig.base.json"],
   "compilerOptions": {
     "target": "ES2022",
-    "useDefineForClassFields": true,
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
     "jsx": "preserve",
     "jsxImportSource": "@solidjs/web",
     "types": ["vite/client", "node"]

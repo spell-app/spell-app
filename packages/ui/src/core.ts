@@ -47,7 +47,7 @@
  *   The Solid host page's identity probe lives in that page (`tools/frameworks/solid/identity.js`).
  */
 
-export * from "$/spell-element"
+export * from "@spell-app/spell-element"
 import "$/ui/elements/SpellUISettings"
 export * from "$/ui/util"
 export * from "$/ui/vocabulary"

@@ -6,5 +6,5 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vitest.config.ts", "../../vite.decorators.ts", "../../vite.packageVersion.ts"]
+  "include": ["vitest.config.ts"]
 }

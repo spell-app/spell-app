@@ -4,13 +4,13 @@ import { fileURLToPath } from "node:url"
 import { describe, expect, test } from "vite-plus/test"
 import { RuleTester } from "vite-plus/lint/plugins-dev"
 
-import { PATTERN_FOLDERS } from "../../../vite.lint.ts"
-import { PATTERN_RULES } from "../../../vite.lint.patterns.ts"
+import { PATTERN_FOLDERS } from "@spell-app/toolchain/lint"
+import { PATTERN_RULES } from "@spell-app/toolchain/lint/patterns"
 
 /**
- * The `spell-ui/*` lint rules (`vite.lint.patterns.ts`, at the repo root):
+ * The `spell-ui/*` lint rules (`@spell-app/toolchain/lint/patterns`, the toolchain's):
  * what each flags, and the ALLOW-LIST of the uses that stay.
- * - Here, in `ui`'s node tooling tests:  the root has no test project, and the patterns are Spell UI's.
+ * - Here, in `ui`'s node tooling tests:  the patterns are Spell UI's, and so is the allow-list.
  * - A new `// oxlint-disable-next-line spell-ui/...` comment fails "the allow-list" below until it's added there:
  *   every exception is seen in review, with its reason.
  */

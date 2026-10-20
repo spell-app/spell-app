@@ -1,7 +1,7 @@
 import { Match, Show, Switch, createEffect, createSignal, onSettled, untrack } from "solid-js"
 
 import type { LSP } from "$/lsp"
-import type { SP } from "$/spell"
+import type { SP } from "@spell-app/spell"
 import type { ThingExplorerState, TypeExplorerState } from "$/app/ui/ui.types"
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "$/app/solid/TypeExplorer"

@@ -19,8 +19,7 @@ then [ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring":  how an element is wr
   - Named `spell-solid` (`$/spell-solid`) until epic `repo-split` P3 renamed it, package and alias, as Owen asked.
     - Its class `SpellSolid` (the settings, below) and the app's `spell-solid.js` chunks keep the old word:
       the app's runner already has a `SpellElement`, and those chunks carry Solid itself.
-    - REFACTOR: [`packages/spell-solid/`](../spell-solid/) is a stand-in under the old name, for spell-epic:
-      it only re-exports this package, until spell-epic follows the rename (epic `repo-split` T6).
+    - spell-epic followed the rename (epic `repo-split` T6);  the stand-in under the old name went in P6.
   - Its place in the layout:
     the epic's spaces page, [4.3 and 7.4](../../../spell-app.epics/epics/people-and-orgs/details/spaces-package.html#spell-solid).
 - What's in `src/`, imported as `$/spell-element`, namespace `E`:
@@ -131,7 +130,7 @@ As WWOD §4, plus:
     - the docs bundle, the site bundles
     - the app's `spell-solid.js`
   - A component pack leaves `$/spell-element` external, as it leaves Solid and `$/ui/core`.
-    - The list:  `PACK_MODULES`, in [Spell UI's pack tooling](../ui/tools/ComponentPack.ts).
+    - The list:  `PACK_MODULES`, in [Spell UI's pack modules](../ui/tools/packModules.ts).
     - It reads it from the page:
       `SpellUI.packModules["$/spell-element"]` is Spell UI's core module, which carries all of it.
   - The app's element bundles likewise take it from `spell-solid-shared.js`

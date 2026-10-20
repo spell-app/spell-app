@@ -7,7 +7,7 @@ import type {
   LocalizedVocabulary,
   NameMap,
   NamePair
-} from "$/spell-element/vocabulary.types"
+} from "@spell-app/spell-element/vocabulary.types"
 import { SharedVocabulary } from "./SharedVocabulary"
 import { ValueSets } from "./ValueSets"
 

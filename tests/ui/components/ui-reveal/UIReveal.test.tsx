@@ -6,7 +6,7 @@ import { Keys } from "$/ui/test/Keys"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/spell-element"
+import type { DOMElement } from "@spell-app/spell-element"
 
 import "$/ui/components/ui-reveal"
 

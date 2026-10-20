@@ -5,7 +5,7 @@ import { definePlugin, defineRule, type ESTree, type Rule } from "vite-plus/lint
  * (`packages/ui/AGENTS.md`, "Solid authoring";  epic `spell-element` P10).
  * - Each rule flags something a component does BY HAND that a decorator or a helper already does,
  *   and its message names that decorator or helper.
- * - Turned on only for the component folders `PATTERN_FOLDERS` names (`vite.lint.ts`):
+ * - Turned on only for the component folders `PATTERN_FOLDERS` names (`lint.ts`):
  *   every set's elements, all written on `$/spell-element`:  Spell UI's own, the epic pages' (`epics`), the brand pages'
  *   and the app's (`<spell-app>`, `<spell-editor>`).
  *   Not the app's function components, not the element core, not tests.

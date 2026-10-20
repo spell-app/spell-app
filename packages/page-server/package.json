@@ -5,6 +5,9 @@
   "description": "What only spell-app's page server does, on the generic one:  building its bundles, the shared pages' bridges",
   "license": "MIT",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
@@ -21,6 +24,7 @@
     "@spell-app/server": "workspace:*"
   },
   "devDependencies": {
+    "@spell-app/toolchain": "workspace:*",
     "@types/node": "^22.20.4",
     "tsx": "4.20.3",
     "typescript": "^7.0.2",

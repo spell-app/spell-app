@@ -3,7 +3,7 @@ import { userEvent } from "vite-plus/test/browser"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { ElementFixture } from "$/ui/test/ElementFixture"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
 import type { SpellCompiled } from "$/app/runner/runner.types"
 import { uiReady } from "$/app/solid/loadUI"
 import { SpellAppRunner, type SpellAppControls, type SpellAppSource } from "$/app/runner/SpellAppRunner"

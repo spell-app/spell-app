@@ -1,5 +1,5 @@
-import { schemaOf, type PropInfo } from "$/util"
-import type { V } from "$/ui/api"
+import { schemaOf, type PropInfo } from "@spell-app/util"
+import type { V } from "@spell-app/ui/api"
 
 /****************
  * ### `ClassSchemas`

@@ -5,8 +5,8 @@ import { delimiter, dirname, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import environment from "$/spaces/server/node/environment"
-import { buildTsx } from "$/spell/node/buildTsx"
-import { SP } from "$/spell"
+import { buildTsx } from "@spell-app/spell/node/buildTsx"
+import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 

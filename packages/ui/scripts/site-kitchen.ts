@@ -32,7 +32,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
-import { readJSON5File } from "$/util/node/json5"
+import { readJSON5File } from "@spell-app/util/node/json5"
 
 import type { SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { Terminal } from "../tools/Terminal.ts"

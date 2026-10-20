@@ -1,9 +1,9 @@
-import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "$/util"
+import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "@spell-app/util"
 
-import { P } from "$/parser"
-import { SP } from "$/spell"
+import { P } from "@spell-app/parser"
+import { SP } from "@spell-app/spell"
 import { SPACES } from "$/spaces"
-import type { SpellConsole } from "$/core/console"
+import type { SpellConsole } from "@spell-app/core/console"
 import type { SpellRuntime } from "$/app/runner"
 import type * as UIT from "$/app/ui/ui.types"
 import type { monaco } from "$/app/ui/monaco"

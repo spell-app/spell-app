@@ -1,4 +1,4 @@
-import { getDerived, singularize } from "$/util"
+import { getDerived, singularize } from "@spell-app/util"
 import { P } from "$/parser"
 // Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `core` itself.
 // Each runner runs its own copy:  see `spellRuntime.ts`.

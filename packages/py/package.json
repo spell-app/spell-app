@@ -3,6 +3,9 @@
   "version": "0.8.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./ts/index.ts"
+  },
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
@@ -20,6 +23,7 @@
     "@spell-app/util": "workspace:*"
   },
   "devDependencies": {
+    "@spell-app/toolchain": "workspace:*",
     "@types/node": "^22.20.4",
     "typescript": "^7.0.2",
     "vite": "catalog:",

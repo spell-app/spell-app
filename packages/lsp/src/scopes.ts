@@ -11,13 +11,13 @@
  * - NODE ONLY, and NOT in the `$/lsp` barrel:  it runs the moment it's imported.
  */
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "$/spell/node/packageVersion.node"
+import "@spell-app/spell/node/packageVersion.node"
 
 import { writeFileSync } from "fs"
 import { relative, resolve } from "path"
 
 import environment from "$/spaces/server/node/environment"
-import { SP } from "$/spell"
+import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
 

@@ -1,6 +1,0 @@
-{
-  // the stand-in's one setting:  the repo's alias table, so `$/spell-element` resolves from its files (Vite and Vitest
-  // find the tsconfig nearest the importing file)
-  "extends": "../../tsconfig.base.json",
-  "include": ["src"]
-}

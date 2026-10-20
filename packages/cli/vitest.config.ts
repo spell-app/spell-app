@@ -2,8 +2,8 @@ import { resolve } from "node:path"
 import { defineConfig } from "vite-plus"
 
 // The parser's SOURCE runs in our tests, so it needs the parser's own vite plugins
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { standardDecorators } from "@spell-app/toolchain/decorators"
+import { packageVersion } from "@spell-app/toolchain/packageVersion"
 
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion(import.meta.dirname)],

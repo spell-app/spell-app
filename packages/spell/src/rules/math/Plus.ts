@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { InfixOperatorSuffix, Precedence } from "$/spell/rules/expressions"
 import { math } from "./math.parser"

@@ -35,7 +35,7 @@ when working with code in this package, `@spell-app/markdown`.
 
 As WWOD §12, plus:
 
-- `vitest.config.ts` uses `vite.decorators.ts` (repo root).
+- `vitest.config.ts` uses the toolchain's decorator pre-pass (`@spell-app/toolchain/decorators`).
 
 ## Types / Exports
 

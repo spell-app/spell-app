@@ -6,7 +6,7 @@ import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI } from "$/ui/runtime"
-import type { DOMElement } from "$/spell-element"
+import type { DOMElement } from "@spell-app/spell-element"
 import type { TabChangeDetail, TabShowDetail } from "$/ui/components/components.types"
 
 import "$/ui/components/ui-tab"

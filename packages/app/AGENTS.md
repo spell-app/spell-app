@@ -305,7 +305,10 @@ when working with code in this package, `@spell-app/app`.
   - e.g. `import { UI } from "$/app/ui"`
 - Nothing imports THIS package except `cli`.
   And the `<script>` entries in its own pages:  `index.html` and the demos.
-- It may import spaces' models, `$/spaces`;  NEVER `$/spaces/server/node/...`, which is node only.
+- It may import spaces' models, `$/spaces` (the same repo, spell-app);  NEVER `$/spaces/server/node/...`, which is
+  node only.
+  - Another repo's packages by npm name (`@spell-app/spell`, `@spell-app/ui/core` ...:  the root's `AGENTS.md`,
+    "Aliases and global types").
   - The editor ([editor.ts](src/editor.ts)) does:
     - a group's projects are `SPACES.SpellProjectRoot`
     - a project's file create, copy, rename and delete are `SPACES.ProjectFiles` (never `SpellProject`'s)
@@ -315,15 +318,16 @@ when working with code in this package, `@spell-app/app`.
     - typed by `SPACES.MeAnswer`
   - `<spell-app>` loads only the light files, without the parser:
     - `$/spaces/models/projectGroups`, which registers spell's project groups
-    - `$/spell/SpellSetup`
-    - `$/spell/SpellUrls`
+    - `@spell-app/spell/SpellSetup`
+    - `@spell-app/spell/SpellUrls`
   - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<project>/<file>`, compiled files too.
 
 ## Decorators
 
 As WWOD §12, plus:
 
-- The repo root's `vite.decorators.ts` is used by every vite config here, `vitest.config.ts` included.
+- The toolchain's decorator pre-pass, `@spell-app/toolchain/decorators`, is used by every vite config here,
+  `vitest.config.ts` included.
   - The server is fine, as `tsx` is esbuild already.
 
 ## Types / Exports

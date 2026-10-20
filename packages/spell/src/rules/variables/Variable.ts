@@ -1,4 +1,4 @@
-import { NONE, type Plurality } from "$/util"
+import { NONE, type Plurality } from "@spell-app/util"
 import { P } from "$/parser"
 import { SpellIdentifier } from "./SpellIdentifier"
 import { VARIABLE_SYNTAX, type IdentifierMatchData } from "./variables.shared"

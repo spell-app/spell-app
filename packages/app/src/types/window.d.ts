@@ -1,4 +1,4 @@
-import type { SP } from "$/spell"
+import type { SP } from "@spell-app/spell"
 
 /**
  * Globals the app hangs off `window`.

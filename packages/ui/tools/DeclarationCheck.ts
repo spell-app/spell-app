@@ -6,10 +6,12 @@ import { dirname, join, normalize, relative, resolve } from "node:path"
 /****************
  * ### `DeclarationCheck`
  * Checks the built declarations (`dist/**.d.ts`, `vite.config.ts` `declarations()`) are what a consumer needs.
- * - Every `types` path in `package.json` `exports` (and the top-level `types`) exists.
+ * - Every `types` path in the PUBLISHED `exports` (and `types`) exists:  `package.json`'s `publishConfig`, which
+ *   `yarn pack` writes over the source ones (epic `repo-split` P6);  the top-level fields when it has none.
  * - Every import / export STATEMENT is a bare package name, or a relative path that resolves INSIDE `dist/`:
- *   no `$/util`, `$/ui` ... (build-time aliases a consumer can't resolve), and nothing escaping `dist/` (`util` is not
- *   published on its own, so its declarations ship in `dist/_util/`).  Doc comments may mention aliases.
+ *   no `$/util`, `$/ui` ... (build-time aliases a consumer can't resolve), no `@spell-app/util` or
+ *   `@spell-app/spell-element` (not published on their own:  their declarations ship in `dist/_util/` and
+ *   `dist/_spell-element/`), and nothing escaping `dist/`.  Doc comments may mention aliases.
  * - `problems()` is empty when it's fine;  `yarn smoke` runs it after `vite build` and fails otherwise.
  * - Node only, node built-ins only.
  ****************/
@@ -30,15 +32,16 @@ export class DeclarationCheck {
     return [...this.missingExports(), ...this.badSpecifiers()]
   }
 
-  /** `exports` / `types` entries naming a `.d.ts` that doesn't exist. */
+  /** Published `exports` / `types` entries naming a `.d.ts` that doesn't exist. */
   private missingExports(): string[] {
-    const packageJson = JSON.parse(readFileSync(join(this.root, "package.json"), "utf8")) as {
-      types?: string
-      exports?: Record<string, string | { types?: string }>
+    type Published = { types?: string; exports?: Record<string, string | { types?: string }> }
+    const packageJson = JSON.parse(readFileSync(join(this.root, "package.json"), "utf8")) as Published & {
+      publishConfig?: Published
     }
+    const published = packageJson.publishConfig?.exports ? packageJson.publishConfig : packageJson
     const paths = [
-      packageJson.types,
-      ...Object.values(packageJson.exports ?? {}).map((entry) => (typeof entry === "object" ? entry.types : undefined))
+      published.types,
+      ...Object.values(published.exports ?? {}).map((entry) => (typeof entry === "object" ? entry.types : undefined))
     ]
     return paths
       .filter((path): path is string => !!path)
@@ -56,6 +59,8 @@ export class DeclarationCheck {
         if (!specifier.startsWith(".")) {
           if (specifier.startsWith("#") || specifier.startsWith("$")) {
             problems.push(`${relative(this.root, file)}:  alias "${specifier}"`)
+          } else if (UNPUBLISHED.test(specifier)) {
+            problems.push(`${relative(this.root, file)}:  "${specifier}" is not published:  it ships inside dist/`)
           }
           continue
         }
@@ -90,3 +95,6 @@ export class DeclarationCheck {
     )
   }
 }
+
+/** Packages whose declarations ship inside `@spell-app/ui`'s `dist/` (`declarations()`):  never named by a `.d.ts`. */
+const UNPUBLISHED = /^@spell-app\/(util|spell-element)(\/|$)/

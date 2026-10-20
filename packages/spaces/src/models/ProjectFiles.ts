@@ -1,5 +1,5 @@
-import { $fetch, CONFIRM, getDier, KnownFormat } from "$/util"
-import { SP } from "$/spell"
+import { $fetch, CONFIRM, getDier, KnownFormat } from "@spell-app/util"
+import { SP } from "@spell-app/spell"
 
 /**
  * A project's FILE edits:  create, copy, rename and delete one of its files, as the editor asks.

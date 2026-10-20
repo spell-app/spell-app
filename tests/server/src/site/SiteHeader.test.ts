@@ -49,7 +49,7 @@ beforeAll(async () => {
   })
   put(join(main, "docs", "own.html"))
   put(join(content, "guides", "guide.html"))
-  server = await new PageServer({ root: main }).start({ port: 0, routes: false, pidFile: false, bundles: false })
+  server = await new PageServer({ root: main }).start({ port: 0, routes: false, pidFile: false })
   server.serveContent(content)
   browser = await chromium.launch()
 }, 120_000)

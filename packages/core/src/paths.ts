@@ -1,4 +1,4 @@
-import { getPath, setPath, splitPath, type PathStep } from "$/util"
+import { getPath, setPath, splitPath, type PathStep } from "@spell-app/util"
 
 import { core } from "./core"
 import { defineCoreModule } from "./core.types"

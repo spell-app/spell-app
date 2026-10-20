@@ -264,31 +264,33 @@ when working with code in this package, `@spell-app/brand`.
 ## Imports
 
 As the root's, plus these reaches into `ui` past its barrel, each because the barrel can't give it
-(until the elements move into Spell UI, epic todo T2):
-- `$/ui/core` (and `$/ui/forms`):  Spell UI's half of the element authoring API, beside `$/spell-element`'s.
+(until the elements move into Spell UI, epic todo T2).  Spell UI and spell-element are other repos', so all by npm name
+(epic `repo-split` P6), entries of their `exports`:
+- `@spell-app/ui/core` (and `@spell-app/ui/forms`):  Spell UI's half of the element authoring API,
+  beside `@spell-app/spell-element`'s.
   - Imported as a `ui` family imports it, through its namespaces:
 
     ```ts
-    import { E, UI, UIT } from "$/ui/core"
-    import { F } from "$/ui/forms"
+    import { E, UI, UIT } from "@spell-app/ui/core"
+    import { F } from "@spell-app/ui/forms"
     ```
 
   - then `E.IconGlyph`, `UI.browser`, `F.FormComponent` ...
   - `E.UIComponent` and `@E.state` are spell-element's:
-    a file that needs nothing more takes `E` from `$/spell-element`
+    a file that needs nothing more takes `E` from `@spell-app/spell-element`
 - the bundle entries (`src/`), as Spell UI's site entry does:
-  - `$/ui/runtime`, `$/ui/icons`, `$/ui/styles`, `$/ui/styles/ui.css`
+  - `@spell-app/ui/runtime`, `@spell-app/ui/icons`, `@spell-app/ui/styles`, `@spell-app/ui/styles/ui.css`
 - [site-data.ts](scripts/site-data.ts):  Spell UI's site-data tools, and the site data's types
-  - `$/ui/tools/SiteDataBuilder`
-  - `$/ui/tools/SiteSearchBuilder`
-  - `$/ui/tools/ElementManifests`
-  - `$/ui/docs-components/docs-components.types`
-- `$/ui/test/...`, in tests
+  - `@spell-app/ui/tools/SiteDataBuilder`
+  - `@spell-app/ui/tools/SiteSearchBuilder`
+  - `@spell-app/ui/tools/ElementManifests`
+  - `@spell-app/ui/docs-components/docs-components.types`
+- `@spell-app/ui/test/...`, in tests
 - NEVER the other way:  `ui` imports nothing of `brand`.
   - Its design export (`DesignBrand`) READS the docs set's `components.json5` and its pages, as data.
 - The pack's script may import only what a page shares (`PACK_MODULES` in Spell UI's
-  [pack tooling](../ui/tools/ComponentPack.ts)):
-  - `$/spell-element`, `$/ui/core`, `$/ui/forms`, Solid
+  [pack modules](../ui/tools/packModules.ts), by their `$/` keys:  `packModuleKey()`):
+  - `@spell-app/spell-element`, `@spell-app/ui/core`, `@spell-app/ui/forms`, Solid
   - `$/brand` (`src/`) is bundled into it
 
 ## Serving

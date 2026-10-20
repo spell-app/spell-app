@@ -2,7 +2,7 @@
 
 Custom elements a page loads ON DEMAND:  `<ui-root>` reads the pack's script (`components/__pack/__pack__.pack.js`, a classic
 script, so it works from `file://` too) when the page names it, shows each tag's skeleton until it's defined, then
-defines them all.  Written exactly like Spell UI's own element families, on its `$/ui/core`.
+defines them all.  Written exactly like Spell UI's own element families, on its `@spell-app/ui/core`.
 
 ```html
 <ui-root>
@@ -18,9 +18,9 @@ there (`SpellUI.registerPack()`) and takes Solid and Spell UI's shared code from
 
 If you find yourself writing a second copy of any of these, stop and reuse.
 
-- the pack's build, catalog and staleness check:  Spell UI's, `spell-ui-pack` (`packages/ui/tools/ComponentPack.ts`)
+- the pack's build, catalog and staleness check:  Spell UI's, `spell-ui-pack` (`packages/ui/tools/packModules.ts`)
 - reading a vocabulary's tag and skeleton:  Spell UI's `RootCatalog` (`packages/ui/tools/RootCatalog.ts`)
-- the element authoring API:  `$/ui/core`
+- the element authoring API:  `@spell-app/ui/core`
 
 ## Files
 

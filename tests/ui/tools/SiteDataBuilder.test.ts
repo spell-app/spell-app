@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vite-plus/test"
 
-import { keepingCommentsIn as asWritten, readJSON5File } from "$/util/node/json5"
+import { keepingCommentsIn as asWritten, readJSON5File } from "@spell-app/util/node/json5"
 import type { SitePagesFile } from "$/ui/docs-components/docs-components.types"
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 import { SITE_PAGES } from "$/ui/tools/tools.types"

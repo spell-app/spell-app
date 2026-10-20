@@ -167,8 +167,14 @@ describe("runner builds", () => {
     const names = SHARED_NAMES.exec(text)![1]!.split(", ")
     expect(names).toEqual(expect.arrayContaining(["createSignal", "render", "E", "UIComponent", "UIRoot", "h"]))
     const specifiers = JSON.parse(SHARED_SPECIFIERS.exec(text)![1]!) as string[]
-    // REFACTOR: no `$/spell-element` until spell-epic's docs bundle names it (`SHARED_SPECIFIERS`, `vite.shared.ts`)
-    expect(specifiers).toEqual(["solid-js", "@solidjs/web", "@solidjs/h", "$/ui/core", "$/ui/components/ui-root"])
+    expect(specifiers).toEqual([
+      "solid-js",
+      "@solidjs/web",
+      "@solidjs/h",
+      "$/spell-element",
+      "$/ui/core",
+      "$/ui/components/ui-root"
+    ])
     // a page's modules (the docs bundle's `SpellUI.packModules`), each name a stand-in;
     // `@solidjs/h` as it is, a default export, which `spell-solid-shared.js` renames `h`
     const page = Object.fromEntries(names.map((name) => [name, `page's ${name}`]))

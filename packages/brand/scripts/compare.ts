@@ -21,7 +21,7 @@ import { execFileSync } from "node:child_process"
 import { runInNewContext } from "node:vm"
 import { chromium, type Page } from "playwright"
 
-import { SRV } from "$/server"
+import { SRV } from "@spell-app/server"
 
 /** `packages/brand/`, and the repo root. */
 const BRAND = path.resolve(import.meta.dirname, "..")

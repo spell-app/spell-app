@@ -1,4 +1,4 @@
-import { SP } from "$/spell"
+import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 

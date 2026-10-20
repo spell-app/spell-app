@@ -1,8 +1,8 @@
 import { render } from "@solidjs/web"
 
-import { UI as SpellUI } from "$/ui"
-import type { V } from "$/ui/api"
-import { SP } from "$/spell"
+import { UI as SpellUI } from "@spell-app/ui"
+import type { V } from "@spell-app/ui/api"
+import { SP } from "@spell-app/spell"
 import { SPACES } from "$/spaces"
 import { uiReady } from "$/app/solid/loadUI"
 

@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 
-import { P } from "$/parser"
-import { SP } from "$/spell"
+import { P } from "@spell-app/parser"
+import { SP } from "@spell-app/spell"
 import { editor, runtimeConsole } from "$/app/editor"
 import { Actions, ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "$/app/solid"
 import { ConsoleInspectorContext, ConsoleLines, type ConsoleInspector } from "./ConsoleLines"

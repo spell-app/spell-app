@@ -42,7 +42,7 @@
  *   It's with the core's tests, in `tests/core/`.
  * - Not the same as a page's state (`state.ts`):  that numbers things per page, and holds them in one message.
  */
-import { getProp, ITEMS_KEY, keysOf, schemaOf, setProp, TYPE_KEY } from "$/util"
+import { getProp, ITEMS_KEY, keysOf, schemaOf, setProp, TYPE_KEY } from "@spell-app/util"
 
 import { programThings, core } from "./core"
 import { fieldsOf, hasSetter, isPlainObject, isSpellObject } from "./state"

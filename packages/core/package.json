@@ -4,7 +4,11 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./model": "./src/model.ts"
+    ".": "./src/index.ts",
+    "./console": "./src/console.ts",
+    "./core.types": "./src/core.types.ts",
+    "./model": "./src/model.ts",
+    "./things": "./src/things.ts"
   },
   "scripts": {
     "/////// CORRECTNESS": "",
@@ -28,6 +32,7 @@
     "solid-js": "2.0.0-rc.13"
   },
   "devDependencies": {
+    "@spell-app/toolchain": "workspace:*",
     "@types/lodash": "^4.17.17",
     "@types/node": "^22.20.4",
     "@typescript/typescript6": "^6.0.2",

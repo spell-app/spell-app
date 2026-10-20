@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { basename, dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
+import { PACK_MODULES, packModuleKey } from "./packModules.ts"
 import { RootCatalog, type RootCatalogEntry } from "./RootCatalog.ts"
 import { Terminal } from "./Terminal.ts"
 import {
@@ -363,12 +364,12 @@ SpellUI.registerPack({
         },
         rolldownOptions: {
           external: (id: string) => {
-            if (PACK_MODULES.includes(id)) return true
+            if (PACK_MODULES.includes(packModuleKey(id))) return true
             if (SHARED_IMPORT.test(id)) {
               throw new ComponentPackError(
                 `pack '${this.name}':  imports '${id}', which the page can't share;  import from ` +
                   `${PACK_MODULES.map((it) => `'${it}'`).join(", ")} only, or add it to PACK_MODULES ` +
-                  "(Spell UI's tools/ComponentPack.ts) and Spell UI's packModules"
+                  "(Spell UI's tools/packModules.ts) and Spell UI's packModules"
               )
             }
             return false
@@ -376,7 +377,7 @@ SpellUI.registerPack({
           output: {
             // custom element class names are read by dev-time warnings and the manifest (see ui's `vite.config.ts`)
             keepNames: true,
-            globals: (id: string) => `globalThis.SpellUI.packModules[${JSON.stringify(id)}]`
+            globals: (id: string) => `globalThis.SpellUI.packModules[${JSON.stringify(packModuleKey(id))}]`
           }
         }
       }
@@ -470,22 +471,6 @@ export type ComponentPackProps = {
   src?: string
 }
 
-/**
- * The modules a pack SHARES with the page instead of bundling:  the exact import specifiers its build leaves external.
- * - Each is read from `globalThis.SpellUI.packModules[<specifier>]`:  spell-epic's docs bundle's
- *   (`spell-ui.entry.js`), and the component sets' site build's (`site/_src/SitePacks.ts`).
- * - `$/spell-element`:  what the pack's elements are written on (`E.UIComponent` ...).
- *   The page's is Spell UI's core module, which carries all of it, so a page has one (`packModules`).
- * - Any other `$/ui...`, `$/spell-element/...`, Solid or `@spell-app/...` import fails the build:
- *   a second copy of spell-element, Spell UI's core or Solid on a page breaks them.
- * - Another one:  add it here AND to both `packModules`, AND to the guides' copy
- *   (spell-epic's `src/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
- * - REFACTOR: `$/spell-solid`, spell-element's name until epic `repo-split` P3, is still shared:  spell-epic's
- *   elements import it until spell-epic follows the rename (that epic's T6).  Delete it then, here and in both
- *   `packModules`.
- */
-export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/spell-element", "$/spell-solid", "$/ui/core", "$/ui/forms"]
-
 /** A pack's element families' folder. */
 const COMPONENTS_FOLDER = "components"
 
@@ -500,8 +485,7 @@ export const PACK_FOLDER = `${COMPONENTS_FOLDER}/__pack`
 const USAGE = "usage:  spell-ui-pack build | check [<folder>]   (the pack's package;  default the current folder)"
 
 /** Imports the page must share, never bundled:  spell-element, Spell UI, Solid, our other packages. */
-// REFACTOR: `spell-solid` too, spell-element's old name, until spell-epic follows the rename (`PACK_MODULES`)
-const SHARED_IMPORT = /^\$\/(ui|spell-element|spell-solid)(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
+const SHARED_IMPORT = /^\$\/(ui|spell-element)(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
 
 /** Version of what `build()` writes:  bump it when the generated files change shape, so every pack goes stale. */
 const PACK_FORMAT = "spell-pack 1"

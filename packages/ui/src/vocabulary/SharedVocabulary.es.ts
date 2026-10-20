@@ -1,4 +1,4 @@
-import type { SharedDictionary } from "$/spell-element/vocabulary.types"
+import type { SharedDictionary } from "@spell-app/spell-element/vocabulary.types"
 
 /**
  * Spanish names for the attributes every element shares (`SharedVocabulary`):  `<ie-boton desactivado>`.

@@ -3,7 +3,7 @@ import { describe, expect, test } from "vite-plus/test"
 import { SP } from "$/spell"
 
 // spell's project groups are spaces':  registered as it loads
-import "$/spaces/models/projectGroups"
+import "@spell-app/spaces/models/projectGroups"
 
 /**
  * `SP.SpellUrls`:  a project's files' URLs and its folder (epic `people-and-orgs` P15).

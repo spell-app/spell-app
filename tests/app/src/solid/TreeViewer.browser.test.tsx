@@ -2,9 +2,9 @@ import { afterEach, describe, expect, test } from "vite-plus/test"
 import { createSignal, flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { P } from "$/parser"
-import { spellParser } from "$/spell"
+import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import type { P } from "@spell-app/parser"
+import { spellParser } from "@spell-app/spell"
 import { uiReady } from "$/app/solid"
 import { TreeViewer } from "$/app/solid/TreeViewer"
 

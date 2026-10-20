@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
-import { readJSON5File } from "$/util/node/json5"
+import { readJSON5File } from "@spell-app/util/node/json5"
 
 import type { SiteDataFile, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { NavIndex } from "../src/docs-components/ui-docs-nav/NavIndex.ts"

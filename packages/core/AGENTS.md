@@ -240,7 +240,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 As WWOD §12, plus:
 
-- `vitest.config.ts` uses `vite.decorators.ts` (repo root).
+- `vitest.config.ts` uses the toolchain's decorator pre-pass (`@spell-app/toolchain/decorators`).
 
 ## Types / Exports
 

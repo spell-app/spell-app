@@ -5,6 +5,9 @@
   "description": "Spell's brand:  Claude Design's pages and tokens, their Spell UI copies, and the <brand-*> elements they need (a component pack)",
   "license": "MIT",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "build": "tsx scripts/build.ts",
     "compare": "tsx scripts/compare.ts",
@@ -23,6 +26,7 @@
   },
   "devDependencies": {
     "@solidjs/web": "2.0.0-rc.13",
+    "@spell-app/toolchain": "workspace:*",
     "@spell-app/ui": "workspace:*",
     "@types/node": "^22.20.4",
     "solid-js": "2.0.0-rc.13",

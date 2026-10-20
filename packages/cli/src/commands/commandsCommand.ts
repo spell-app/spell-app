@@ -5,8 +5,8 @@ import { join } from "path"
 
 import { CLI } from "$/cli"
 import { COMMANDS_JSON } from "$/cli/dev/dev.types"
-import { contentFolderOf } from "$/assembler/contentFolder"
-import { DataFile } from "$/assembler/DataFile"
+import { contentFolderOf } from "@spell-app/assembler/contentFolder"
+import { DataFile } from "@spell-app/assembler/DataFile"
 
 export { COMMANDS_JSON }
 

@@ -11,6 +11,20 @@
 export const BUNDLE_WAIT_MS = 120_000
 
 /**
+ * Code colours (highlight.js) for every docs page, from the repo instead of cdnjs (epic `airplane` P1;
+ * moved here from `$/server/page`, epic `repo-split` P6).
+ * - `cdn`:  the tag older pages still carry;  a plain, blocking `<script>`
+ *   - so a hanging network (plane wifi asking to pay first) held up the page's own scripts behind it,
+ *     and the page showed raw markup for tens of seconds
+ * - `local`:  the same file (11.9.0), at the docs pages' engine route
+ * - `localHighlight()` swaps one for the other on every page
+ */
+export const HIGHLIGHT_JS = {
+  cdn: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
+  local: "/_epic/assets/highlight.min.js"
+} as const
+
+/**
  * Folders the epic engine's files were in before, as URL paths:  old => where they are now (`movedFolderPath()`).
  * - a safety net for a page that still loads the engine from a checkout path, not its routes (`/_epic/...`):
  *   the shared pages were migrated (`epic migrate --step engine-asset-routes`, epic `epic-eject` T13),

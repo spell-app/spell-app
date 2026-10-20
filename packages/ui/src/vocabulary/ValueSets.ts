@@ -1,5 +1,5 @@
 import { numberToWord, proto, suggest } from "$/ui/util"
-import type { AttributeKind, AttributeSpec, ValueSetName } from "$/spell-element/vocabulary.types"
+import type { AttributeKind, AttributeSpec, ValueSetName } from "@spell-app/spell-element/vocabulary.types"
 
 /****************
  * ### `ValueSets`
@@ -340,7 +340,7 @@ const NUMBER = /^\d+(?:\.\d+)?$/
  * Spell UI's value sets and topics, added to spell-element's vocabulary types (where every set's vocabularies are
  * typed), so a vocabulary's `values: "hues"` and its `topics` are checked against this class.
  */
-declare module "$/spell-element/vocabulary.types" {
+declare module "@spell-app/spell-element/vocabulary.types" {
   interface ValueSetNames extends Record<keyof ValueSets, true> {}
   interface TopicNames extends Record<(typeof ValueSets.topics)[number], true> {}
 }

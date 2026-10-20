@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vit
 import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Fixture } from "$/ui/test/Fixture"
-import type { DOMElement } from "$/spell-element"
+import type { DOMElement } from "@spell-app/spell-element"
 import { DATA, PAGE, SEARCH } from "$/ui/test/docsSearch.fixtures"
 import { SiteData } from "$/ui/docs-components"
 

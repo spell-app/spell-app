@@ -2,10 +2,11 @@ import solid from "@solidjs/vite-plugin"
 import { defineConfig, type Plugin, type UserConfig } from "vite-plus"
 import dts, { type PluginOptions } from "vite-plugin-dts"
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
+import { createRequire } from "node:module"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { standardDecorators } from "../../vite.decorators.ts"
+import { standardDecorators } from "@spell-app/toolchain/decorators"
 import { environment } from "./tools/environment.ts"
 import { hotElements } from "./tools/HotElements.ts"
 
@@ -230,8 +231,9 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *   - `dist/ui/components/**` to `dist/components/**` (where it was while the families lived in `src/components/`)
  *   - `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s)
  *   - `dist/spell-element/src/**` to `dist/_spell-element/**`
- * - It also rewrites `$/util`, `$/spell-element` and `$/ui` specifiers to relative ones
- *   (a `declare module` augmentation's too).
+ * - It also rewrites `$/ui` specifiers, and `@spell-app/util` / `@spell-app/spell-element` ones (their npm names, as
+ *   `ui` imports them from another repo since epic `repo-split` P6), to relative ones (a `declare module`
+ *   augmentation's too).
  *   - `pathsToAliases: false`:
  *     the plugin's own rewrite measures from the layout BEFORE the move, and gets `../packages/ui/src/...`.
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
@@ -242,7 +244,8 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *   (`util`'s GENERIC ones only).
  *   NOT `util/src/spell/` or `util`'s barrel (which flattens it in):
  *   `exclude` lists them, and `src/util/index.ts` imports file by file.
- * - MUST end with NO `$/` alias in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
+ * - MUST end with NO `$/` alias and no `@spell-app/util` / `@spell-app/spell-element` in `dist/**.d.ts`, and no path
+ *   outside `dist/`;  `yarn smoke` checks.
  */
 export function declarations(): PluginOptions {
   return {
@@ -256,9 +259,35 @@ export function declarations(): PluginOptions {
       "../spell-element/src/HotDefinitions.ts"
     ],
     entryRoot: "..",
-    compilerOptions: { rootDir: ".." },
+    compilerOptions: { rootDir: "..", paths: declarationPaths() },
     pathsToAliases: false,
     beforeWriteFile: rewriteDeclaration
+  }
+}
+
+/**
+ * `declarations()`'s module paths:  `ui`'s aliases, and `util` and `spell-element` by their aliases AND their npm
+ * names, each to its SOURCE, by absolute path.
+ * - Their npm names through `node_modules` would make them a LIBRARY's files to TypeScript, which writes no
+ *   declarations for those:  `dist/_util/` and `dist/_spell-element/` would be empty (`yarn smoke` catches it).
+ * - Every path the three trees import by, as the root's `tsconfig.base.json` maps them:  these REPLACE its table.
+ */
+function declarationPaths(): Record<string, string[]> {
+  const ui = path.resolve(".")
+  const util = path.resolve("../util/src")
+  const element = path.resolve("../spell-element/src")
+  return {
+    "$/ui": [`${ui}/src/index.ts`],
+    "$/ui/*": [`${ui}/src/*`],
+    "$/ui/components/*": [`${ui}/components/*`],
+    "$/util": [`${util}/index.ts`],
+    "$/util/*": [`${util}/*`],
+    "@spell-app/util": [`${util}/index.ts`],
+    "@spell-app/util/*": [`${util}/*`],
+    "$/spell-element": [`${element}/index.ts`],
+    "$/spell-element/*": [`${element}/*`],
+    "@spell-app/spell-element": [`${element}/index.ts`],
+    "@spell-app/spell-element/*": [`${element}/*`]
   }
 }
 
@@ -290,8 +319,10 @@ function rewriteDeclaration(filePath: string, content: string) {
 
   const code = content
     .replace(
-      /(from |import\(|declare module )(["'])(\$\/[^"']+|\.\.?\/[^"']*)\2/g,
-      (_, start, quote, specifier: string) => {
+      /(from |import\(|declare module )(["'])(\$\/[^"']+|@spell-app\/(?:util|spell-element)(?:\/[^"']*)?|\.\.?\/[^"']*)\2/g,
+      (_, start, quote, written: string) => {
+        // another repo's package by its npm name (epic `repo-split` P6):  its subpaths are its alias's
+        const specifier = written.replace(/^@spell-app\//, "$/")
         const aliased = OUTSIDE.find(({ alias }) => specifier === alias || specifier.startsWith(`${alias}/`))
         const source = specifier.startsWith(".")
           ? path.resolve(sourceDir, specifier)
@@ -314,7 +345,7 @@ function rewriteDeclaration(filePath: string, content: string) {
 /**
  * The folders besides `src/` whose declarations ship inside `@spell-app/ui`, each into a `dist/` folder of its own
  * (`rewriteDeclaration()`):  ui's `components/`, and the packages outside this one.
- * - `alias`:  how `src/` imports them
+ * - `alias`:  how `src/` imports them (`$/util`), or what an npm name becomes (`@spell-app/util` => `$/util`)
  * - `src`:  their source folder
  * - `written`:  where `vite-plugin-dts` writes their declarations, in `dist/`
  * - `folder`:  where they go instead
@@ -333,15 +364,14 @@ const OUTSIDE = [
 /**
  * Hot module replacement for the components in `yarn dev` (`tools/HotElements.ts`;
  * `apply: "serve"`, so builds are untouched, and NOT in `vitest.config.ts`).
- * - `HotDefinitions` (`$/spell-element`'s) is injected by FILE PATH, not `$/spell-element/HotDefinitions`:
- *   `resolve.tsconfigPaths` only resolves aliases for TS / JS importers, and the sheets' handler import lives in a
- *   `.css?inline` module.
+ * - `HotDefinitions` (`@spell-app/spell-element`'s) is injected by FILE PATH, resolved from its package's `exports`:
+ *   the sheets' handler import lives in a `.css?inline` module, where `resolve.tsconfigPaths` resolves no alias.
  */
 function hotElementsPlugin(): Plugin {
   // HACK: `HotElements.ts` types its plugin with `vite`'s `Plugin`, this config with `vite-plus`'s:
   // the same version, but a second declaration TypeScript won't unify
   return hotElements(
-    fileURLToPath(new URL("../spell-element/src/HotDefinitions.ts", import.meta.url))
+    createRequire(import.meta.url).resolve("@spell-app/spell-element/HotDefinitions")
   ) as unknown as Plugin
 }
 

@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { SpellConstant } from "$/spell/rules/constants"
 // Import directly to avoid circular import

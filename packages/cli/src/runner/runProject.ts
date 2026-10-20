@@ -13,8 +13,8 @@
 import chalk from "chalk"
 import { format } from "util"
 
-import { bridgeSolid } from "$/util"
-import { App, core } from "$/core"
+import { bridgeSolid } from "@spell-app/util"
+import { App, core } from "@spell-app/core"
 import type { CLI } from "$/cli"
 
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec

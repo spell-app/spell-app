@@ -5,6 +5,12 @@
   "description": "Assembling pages:  link targets and in-memory formatting, shared by the docs tools and the `epic` tool",
   "license": "MIT",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./contentFolder": "./src/contentFolder.ts",
+    "./DataFile": "./src/DataFile.ts",
+    "./src/*": "./src/*"
+  },
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
@@ -18,6 +24,7 @@
     "test:watch": "vp test"
   },
   "dependencies": {
+    "@spell-app/toolchain": "workspace:*",
     "@spell-app/util": "workspace:*",
     "json5": "^2.1.1",
     "linkedom": "^0.18.13",

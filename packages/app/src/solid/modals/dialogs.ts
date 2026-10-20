@@ -1,4 +1,4 @@
-import { UI as SpellUI, type ModalOptions } from "$/ui"
+import { UI as SpellUI, type ModalOptions } from "@spell-app/ui"
 import { uiReady } from "$/app/solid/loadUI"
 import type { AlertModalProps, ChooserModalProps, ConfirmModalProps, PromptModalProps } from "$/app/solid/modals"
 

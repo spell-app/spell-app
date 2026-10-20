@@ -1,7 +1,7 @@
 /**
  * The `lists` rule module's shared types and helpers:  what several of its rule files use.
  */
-import { singularize } from "$/util"
+import { singularize } from "@spell-app/util"
 import { P } from "$/parser"
 
 ////////////////

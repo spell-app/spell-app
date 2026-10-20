@@ -1,7 +1,7 @@
 import { render } from "@solidjs/web"
 
 // Import parser bits
-import "$/parser"
+import "@spell-app/parser"
 import { editor } from "$/app/editor"
 import { ErrorNotice, Notice, addAppIconsPageWide } from "$/app/solid"
 import { Routes } from "$/app/pages/routes"

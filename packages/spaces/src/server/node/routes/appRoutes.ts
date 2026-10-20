@@ -1,12 +1,12 @@
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "$/spell/node/packageVersion.node"
+import "@spell-app/spell/node/packageVersion.node"
 
 import { existsSync, readFileSync } from "fs"
 import JSON5 from "json5"
 import { join } from "path"
 
-import { SRV } from "$/server"
-import type { RouteModule } from "$/server/page"
+import { SRV } from "@spell-app/server"
+import type { RouteModule } from "@spell-app/server/page"
 import { api, projectBuild, spaceFiles } from "./api"
 import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
 

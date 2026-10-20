@@ -1,10 +1,10 @@
 import { readFileSync } from "fs"
 import { join, resolve } from "path"
 
-import { SRV } from "$/server"
-import { PageServer } from "$/server/page"
+import { SRV } from "@spell-app/server"
+import { PageServer } from "@spell-app/server/page"
 import environment from "$/spaces/server/node/environment"
-import { SP } from "$/spell"
+import { SP } from "@spell-app/spell"
 import { CLI } from "$/cli"
 
 /** This checkout:  the page server's root. */

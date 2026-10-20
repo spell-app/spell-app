@@ -6,7 +6,7 @@
  * - The `$/parser/rulex` registration is in `SpellParser.ts`, which every rule module imports anyway.
  */
 
-import type { PropRule } from "$/util"
+import type { PropRule } from "@spell-app/util"
 import type { P } from "$/parser"
 import type { SpellLocation } from "./SpellLocation"
 import type { SpellFile } from "./SpellFile"

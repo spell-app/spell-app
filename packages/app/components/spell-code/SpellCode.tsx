@@ -1,5 +1,5 @@
-import { E } from "$/ui/core"
-import { UICode } from "$/ui/components/ui-code"
+import { E } from "@spell-app/ui/core"
+import { UICode } from "@spell-app/ui/ui-code"
 import { spellCodeVocabulary } from "./SpellCode.en"
 
 /****************

@@ -19,7 +19,7 @@ import {
   type ScopePack
 } from "$/lsp/lsp.types"
 // Import directly:  spell's light URL helper, and spaces' groups, which it splits an address by -- no parser, no barrel
-import { SpellUrls } from "$/spell/SpellUrls"
+import { SpellUrls } from "@spell-app/spell/SpellUrls"
 import "$/spaces/models/projectGroups"
 
 /** What a Type Explorer shows:  a tree, and the details of what's in it, by `path`. */

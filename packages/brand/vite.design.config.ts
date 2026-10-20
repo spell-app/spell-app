@@ -1,6 +1,7 @@
 import { defineConfig, type UserConfig } from "vite-plus"
 import { fileURLToPath } from "node:url"
 
+import { packModuleKey } from "@spell-app/ui/tools/packModules"
 import { baseConfig, SOLID_EXTERNAL } from "@spell-app/ui/vite.config.ts"
 
 /** `packages/brand/`. */
@@ -15,7 +16,8 @@ export const DESIGN_OUT = `${ROOT}dist`
  * Spell UI's `dist/` (it runs this build:  `vp build --config vite.design.config.ts`).
  * - Why a build of its own, not `src/` straight into that bundle:  the elements are Solid JSX, which only the Solid
  *   compiler (`baseConfig()`'s plugins) turns into code;  esbuild, which makes the bundle, can't.
- * - `$/ui/*`, `$/spell-element` and Solid stay EXTERNAL, as written:  the design bundle resolves `$/ui/core` /
+ * - Spell UI, spell-element and Solid stay EXTERNAL, by their `$/` names (`packModuleKey()`:  the elements import
+ *   `@spell-app/ui/core`, the build writes `$/ui/core`, as before epic `repo-split` P6):  the design bundle resolves `$/ui/core` /
  *   `$/ui/forms` to Spell UI's `dist/core.js` / `dist/forms.js`, and `$/spell-element` to `dist/core.js` (which carries
  *   it), the same modules its own elements use, so there's ONE `UIComponent`, one `ValueSets` (the `accent` hue
  *   reaches every element) and one Solid.
@@ -46,8 +48,9 @@ export default defineConfig(() => {
       cssTarget: ["chrome125", "safari26", "firefox147"],
       lib: { entry: { "brand-design": `${ROOT}src/brand-design.ts` }, formats: ["es"] },
       rolldownOptions: {
-        external: (id: string) => SOLID_EXTERNAL.test(id) || /^\$\/(ui|spell-element)(\/|$)/.test(id),
+        external: (id: string) => SOLID_EXTERNAL.test(id) || /^(\$|@spell-app)\/(ui|spell-element)(\/|$)/.test(id),
         output: {
+          paths: packModuleKey,
           // custom element class names are read by dev-time warnings (see ui's `vite.config.ts`)
           keepNames: true,
           codeSplitting: false

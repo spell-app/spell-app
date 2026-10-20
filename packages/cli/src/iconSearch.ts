@@ -8,7 +8,7 @@ import { readFileSync } from "fs"
 import { dirname, resolve } from "path"
 import { fileURLToPath } from "url"
 
-import { BuiltInIconPacks, BuiltInPacks, IconName, type IconPackIndex } from "$/ui/icons"
+import { BuiltInIconPacks, BuiltInPacks, IconName, type IconPackIndex } from "@spell-app/ui/icons"
 
 /** ui's search keywords:  `src/icons/data/search.json`, beside `icon-packs/`. */
 const SEARCH_FILE = resolve(dirname(fileURLToPath(BuiltInPacks.url("fa7-free"))), "..", "..", "data", "search.json")

@@ -8,7 +8,7 @@
  * - And the heading each was made under, as the program ran -- see `heading()`.
  * - And the program's classes, by name, e.g. for `core.fromJSON()` -- see `classNamed()`.
  */
-import { Cell } from "$/util"
+import { Cell } from "@spell-app/util"
 
 import { core } from "./core"
 import { defineCoreModule } from "./core.types"

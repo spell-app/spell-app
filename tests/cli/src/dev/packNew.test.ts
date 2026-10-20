@@ -4,7 +4,7 @@ import { dirname, join } from "path"
 import { afterAll, beforeEach, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
-import { DataFile } from "$/assembler/DataFile"
+import { DataFile } from "@spell-app/assembler/DataFile"
 
 /**
  * A throwaway checkout per test:
@@ -19,7 +19,7 @@ const ROOT_FILES = [
   "package.json",
   "tsconfig.base.json",
   "vitest.config.ts",
-  "vite.lint.ts",
+  "packages/toolchain/src/lint.ts",
   ".gitattributes",
   ".epic/generators.json5"
 ]
@@ -110,7 +110,7 @@ describe("CLI.newPack()", () => {
       "package.json",
       "tsconfig.base.json",
       "vitest.config.ts",
-      "vite.lint.ts",
+      "packages/toolchain/src/lint.ts",
       ".gitattributes",
       ".epic/generators.json5",
       COMMANDS_JSON
@@ -131,7 +131,7 @@ describe("CLI.newPack()", () => {
       /,\n {2}"my-pack": myPackProjects\(\{ prefix: "my-pack:", root: resolve\(PACKAGES_DIR, "my-pack"\) \}\)\n\}/
     )
     expect(vitest).toContain(" * - `my-pack`:  a component pack (`spell dev pack`)")
-    const lint = read("vite.lint.ts")
+    const lint = read("packages/toolchain/src/lint.ts")
     expect(lint).toMatch(
       // last in the list, whatever came before it (the real file grows)
       /",\n {2}\/\/ `my-pack`'s component pack.*\n {2}"packages\/my-pack\/components\/__pack"\n\]/

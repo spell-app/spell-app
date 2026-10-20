@@ -18,7 +18,9 @@ import { CLI } from "$/cli"
 
 /**
  * ONE throwaway checkout, with a tiny pack in it:  `pack new` + `pack element` (unbuilt), on copies of the root files.
- * - `packages/ui` is a link to this checkout's (the build needs Spell UI's `baseConfig()`)
+ * - `packages/ui` is a link to this checkout's (the build needs Spell UI's `baseConfig()`), and so is
+ *   `node_modules`:  the pack's `tsconfig.json` extends `@spell-app/toolchain/tsconfig.base.json`, and its elements
+ *   import Spell UI by its npm name (`@spell-app/ui/core`)
  * - the tests run in order
  */
 const ROOT = realpathSync(mkdtempSync(join(tmpdir(), "pack-build-")))
@@ -35,6 +37,7 @@ beforeAll(async () => {
   for (const file of ["package.json", "tsconfig.base.json"]) cpSync(join(CLI.REPO_ROOT, file), join(ROOT, file))
   mkdirSync(join(ROOT, "packages"))
   symlinkSync(join(CLI.REPO_ROOT, "packages", "ui"), join(ROOT, "packages", "ui"))
+  symlinkSync(join(CLI.REPO_ROOT, "node_modules"), join(ROOT, "node_modules"))
   await CLI.newPack(ROOT, "demo", { prefix: "demo-", build: false })
   await CLI.newElement(ROOT, "demo", "demo-card", { build: false })
 })

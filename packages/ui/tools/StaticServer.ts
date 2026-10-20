@@ -2,7 +2,7 @@
 
 import { transformSync } from "esbuild"
 
-import { SRV } from "$/server"
+import { SRV } from "@spell-app/server"
 
 import type { ImportMap } from "./tools.types.ts"
 

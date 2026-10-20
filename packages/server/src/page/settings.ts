@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { fileURLToPath } from "node:url"
 
 import type { ComponentSet, EngineRoute, PageServerSettings } from "$/server/page"
 
@@ -53,25 +52,3 @@ export function engineRoutes(settings: PageServerSettings): EngineRoute[] {
 function withSlash(path: string): string {
   return path.endsWith("/") ? path : `${path}/`
 }
-
-/**
- * REFACTOR (epic `repo-split` P4):  everything below is kept only for spell-epic, which reads spell-app's MAIN
- * checkout through its link, until it switches;  `page.types.ts` re-exports it.
- * - the checkout THIS package is in:  its settings are spell-epic's view of spell-app's
- * - delete it all when spell-epic reads `componentSets()` of a checkout's settings
- */
-const OWN_CHECKOUT = fileURLToPath(new URL("../../../..", import.meta.url))
-
-/**
- * The component sets of the checkout this package is in (`componentSets()` of its settings), as the page server
- * used to list them.
- * - also what a `PageServer` serves when its root's settings name none (a test's scratch checkout):
- *   spell-epic's route-module tests serve their sets that way
- */
-export const COMPONENT_SETS: readonly ComponentSet[] = componentSets(pageServerSettings(OWN_CHECKOUT))
-
-/**
- * The first set's site bundle (Spell UI's site), relative to the checkout:  every set's since epic `epic-engine`
- * (its `SETS_BUNDLE`, the other sets' own build, went then).
- */
-export const SITE_BUNDLE = COMPONENT_SETS[0]?.assets ?? ""

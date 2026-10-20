@@ -5,7 +5,7 @@ import type { JSX } from "@solidjs/web"
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UIComponent, type AttributeValues, type UIComponentClass, type DOMElement } from "$/spell-element"
+import { UIComponent, type AttributeValues, type UIComponentClass, type DOMElement } from "@spell-app/spell-element"
 
 import "$/ui/components/ui-label"
 import "$/ui/components/ui-segment"

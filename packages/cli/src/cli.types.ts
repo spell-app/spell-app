@@ -2,13 +2,13 @@
  * Shared types for the `spell` command-line tool -- see `main.ts`.
  * - Runtime-light:  `import type` only, plus the small `CliError` class and `EXIT` codes.
  */
-import type { SP } from "$/spell"
+import type { SP } from "@spell-app/spell"
 import type {
   StaticCoverage,
   StaticDocumentOptions,
   StaticDocumentResult,
   StaticStylesheetResult
-} from "$/ui/tools/tools.types"
+} from "@spell-app/ui/tools/tools.types"
 
 ////////////////
 // ## Projects

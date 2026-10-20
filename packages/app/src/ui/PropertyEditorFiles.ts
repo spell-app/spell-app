@@ -1,8 +1,8 @@
-import { SP } from "$/spell"
+import { SP } from "@spell-app/spell"
 import { SPACES } from "$/spaces"
-import type { V } from "$/ui/api"
+import type { V } from "@spell-app/ui/api"
 // a leaf of Spell UI without its elements:  the `$/ui` barrel would define every tag
-import { PropertyEditorPages } from "$/ui/property"
+import { PropertyEditorPages } from "@spell-app/ui/property"
 import { editor, runtimeCore } from "$/app/editor"
 import type { SpellRuntime } from "$/app/runner"
 import { ClassSchemas } from "$/app/ui/ClassSchemas"

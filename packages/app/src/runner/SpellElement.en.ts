@@ -5,7 +5,7 @@
  * - Pure data:  `import type` only.
  */
 
-import type { E } from "$/spell-element"
+import type { E } from "@spell-app/spell-element"
 
 /****************
  * ### `<spell-element>`

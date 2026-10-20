@@ -1,7 +1,7 @@
 import { onTestFinished, beforeAll, describe, expect, test } from "vite-plus/test"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { UIComponent, type DOMElement, type UIComponentClass } from "$/spell-element"
+import { UIComponent, type DOMElement, type UIComponentClass } from "@spell-app/spell-element"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"

@@ -4,8 +4,8 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 
 import environment from "$/spaces/server/node/environment"
-import { P } from "$/parser"
-import { SP } from "$/spell"
+import { P } from "@spell-app/parser"
+import { SP } from "@spell-app/spell"
 import {
   loadFixtureProject,
   parseSpellProject,
@@ -13,7 +13,7 @@ import {
   fixturePath,
   fixtureProjectId,
   FIXTURES_DIR
-} from "$/spell/test"
+} from "@spell-app/spell/test"
 import { SPACES } from "$/spaces"
 import { diskFetch, installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import { serverPathForRoot } from "$/spaces/server/node/projects/project-utils"

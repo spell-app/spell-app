@@ -3,7 +3,7 @@ import { resolve } from "node:path"
 import { defineConfig } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
-import { standardDecorators } from "../../vite.decorators.ts"
+import { standardDecorators } from "@spell-app/toolchain/decorators"
 
 /** Packages that MUST resolve to one copy:  two Solids can't share owners. */
 const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]

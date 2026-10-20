@@ -3,6 +3,9 @@
   "version": "0.8.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
   "scripts": {
     "start": "yarn && yarn workspace @spell-app/server server stop && node ../cli/bin/spell.mjs serve --headless",
     "stop": "node scripts/stop.mjs",
@@ -51,6 +54,7 @@
   },
   "devDependencies": {
     "@solidjs/vite-plugin": "3.0.0-next.47",
+    "@spell-app/toolchain": "workspace:*",
     "@types/lodash": "^4.17.17",
     "@types/node": "^22.20.4",
     "@typescript/typescript6": "^6.0.2",

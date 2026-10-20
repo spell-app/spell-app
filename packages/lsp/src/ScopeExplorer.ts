@@ -1,7 +1,7 @@
-import { singularize, typeCase } from "$/util"
-import { SPELL_CLASSES } from "$/core/core.types"
-import { P } from "$/parser"
-import { SP } from "$/spell"
+import { singularize, typeCase } from "@spell-app/util"
+import { SPELL_CLASSES } from "@spell-app/core/core.types"
+import { P } from "@spell-app/parser"
+import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 
 /**

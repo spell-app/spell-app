@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "@spell-app/util"
 import { P } from "$/parser"
 import { identifierBlacklist } from "$/spell/rules/identifier-blacklist"
 import { properties } from "./properties.parser"

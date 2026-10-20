@@ -2,8 +2,8 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from "fs"
 import { resolve } from "path"
 
 import environment from "$/spaces/server/node/environment"
-import { SP } from "$/spell"
-import { hasProjectFile } from "$/spell/node/projectFile"
+import { SP } from "@spell-app/spell"
+import { hasProjectFile } from "@spell-app/spell/node/projectFile"
 import { CLI } from "$/cli"
 
 /**

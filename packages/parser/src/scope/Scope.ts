@@ -1,4 +1,4 @@
-import { Derivative } from "$/util"
+import { Derivative } from "@spell-app/util"
 import type { P } from "$/parser"
 // Import directly to avoid circular import:  a VALUE import of `P` here
 // would make `$/parser/scope/Scope` an entry which breaks the barrel -- see `barrel.test.ts`
