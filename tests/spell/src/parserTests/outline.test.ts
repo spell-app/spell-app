@@ -316,6 +316,65 @@ describe("outline style", () => {
     })
   })
 
+  describe("a kind's values and lists (P12):  `- value is the position of its rank`", () => {
+    const DECK = [
+      "a deck is a list of cards with:",
+      '\t- "suits" as one of clubs, diamonds, hearts or spades',
+      '\t- "ranks" as one of ace, 2 ... 10, jack, queen or king'
+    ]
+    const CARD = ["a card is a thing where:", "\t- rank is a rank", "\t- value is the position of its rank"]
+
+    test("a kind's value is found in its kind's own list:  12 for a queen, the deck above or below", () => {
+      for (const lines of [
+        [...DECK, ...CARD],
+        [...CARD, ...DECK]
+      ]) {
+        expect(compile(lines)).toContain("return spellPosition(positionOf(Deck.Ranks, this.rank))")
+        const run = runSpell([...lines, "the queen is a new card with rank = queen"])
+        expect(run("queen")).toMatchObject({ queen: { value: 12 } })
+      }
+    })
+
+    test("`... in deck ranks` keeps working", () => {
+      expect(
+        compile([
+          ...DECK,
+          "a card is a thing where:",
+          "\t- rank is a rank",
+          "\t- value is the position of its rank in deck ranks"
+        ])
+      ).toContain("positionOf(Deck.Ranks, this.rank)")
+    })
+
+    test("anything but a kind's value needs its list:  a warning, and no position", () => {
+      const lines = [
+        "a card is a thing where:",
+        "\t- deck is a deck",
+        "\t- place is the position of its deck",
+        "a deck is a list of cards"
+      ]
+      const { files } = parseSpellProject([{ path: "/test.spell", contents: lines.join("\n") }])
+      expect(files[0]!.errors).toEqual([])
+      expect(SP.SpellWarnings.in(files[0]!.match!).map(({ message }) => message)).toEqual([
+        `"the position of its deck":  a deck isn't a kind's value;  say which list, "... in ..."`
+      ])
+    })
+
+    test("a loop over a kind's list knows its item:  a member the kind doesn't have warns (I14)", () => {
+      const lines = [
+        ...DECK,
+        "to set up a deck:",
+        "\tfor each rank in its ranks",
+        "\t\tfor each suit in its suits",
+        "\t\t\tprint suit"
+      ]
+      const { files } = parseSpellProject([{ path: "/test.spell", contents: lines.join("\n") }])
+      expect(SP.SpellWarnings.in(files[0]!.match!).map(({ message }) => message)).toEqual([
+        'A rank never says it has a suits:  declare it, e.g. "a rank has a suits as a suits"'
+      ])
+    })
+  })
+
   describe('inferred phrases (P3, J9):  `it "is a (suit)"` with no `for its suits`', () => {
     const DECK = [
       "a deck is a list of cards with:",

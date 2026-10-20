@@ -206,7 +206,8 @@
       path: "type:List/method:position of (a thing) in (a list)",
       description: "Where `thing` first is in it, counting from 1, e.g. `position of the ace in the deck`.\n- Nothing if it isn't there.",
       rules: [
-        { name: "list_position", syntax: "the? position of {thing:expression} in {list:operand}" }
+        { name: "list_position", syntax: "the? position of {thing:expression} in {list:operand}" },
+        { name: "list_position", syntax: "the? position of {thing:expression}" }
       ]
     },
     {

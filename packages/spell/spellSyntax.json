@@ -1749,7 +1749,7 @@
           "ruleNames": ["list_position"],
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListPosition.ts",
-          "line": 16,
+          "line": 21,
           "purpose": "Return position of an item in a list, e.g. `position of thing in my-list` => `spellPosition(positionOf(myList, thing))`, imported from `@spell/core`.",
           "syntaxes": [
             {
@@ -1766,6 +1766,9 @@
                   "code": "spell_position(core.position_of(my_list, thing))"
                 }
               }
+            },
+            {
+              "syntax": "the? position of {thing:expression}"
             }
           ],
           "aliases": ["expression"]

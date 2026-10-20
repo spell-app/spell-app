@@ -783,6 +783,13 @@ A kind that says so is saved in a file of its own.
   - It was `(it == 'diamonds') || 'hearts'`.
 - Ranges in a list of values:  `2 ... 10`.
   - Its rule:  `number_range`, spread by `identifier_list`.
+- A kind's list is a `list of suits` (its class variable and instance twin, issue I14):
+  so `for each rank in its ranks` knows each is a rank, and a member a rank doesn't have warns.
+  - A member read of an enumeration reports that datatype, else a plain `list` (`MemberReadExpression.getDatatype()`).
+- `the position of` a kind's value, with no `in ...`, finds it in the kind's own list (P12):
+  `the position of its rank` => `spellPosition(positionOf(Deck.Ranks, this.rank))`.
+  - `list_position`'s second syntax keeps the kind's record (`data.kindType`), and reads its list when compiling.
+  - A stub which never becomes a kind warns once the project has parsed, and compiles to an empty list.
 - A value kind may be used ABOVE its declaration, e.g. the card above the deck (issue I3):
   - `SpellParser.declaredTypes()` finds `"suits" as one of ...` lines too.
     - Its pattern for them:  `VALUE_KIND_DECLARATION`

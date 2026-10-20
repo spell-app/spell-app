@@ -334,6 +334,10 @@ exports[`rule names > spell's rules keep their names, modules and order 1`] = `
       "list_length",
       "list_length",
     ],
+    "list_position": [
+      "list_position",
+      "list_position",
+    ],
     "method_arg": [
       "var_method_arg",
       "valued_var_method_arg",
@@ -373,6 +377,7 @@ exports[`rule names > spell's rules keep their names, modules and order 1`] = `
       "list_length",
       "list_length",
       "list_count",
+      "list_position",
       "list_position",
       "position_expression",
       "ordinal_position_expression",
@@ -691,7 +696,7 @@ exports[`rule names > spell's rules keep their names, modules and order 1`] = `
     "list_length · lists · 2",
     "list_membership_test · lists · 1",
     "list_move · lists · 2",
-    "list_position · lists · 1",
+    "list_position · lists · 2",
     "list_prepend · lists · 1",
     "list_range_iteration · lists · 1",
     "list_remove · lists · 1",

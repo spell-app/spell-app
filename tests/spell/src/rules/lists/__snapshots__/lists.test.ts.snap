@@ -17,7 +17,7 @@ exports[`testing spell module lists > rule group specs > match snapshot -- if th
   "list_length": "arg|list|body?",
   "list_membership_test": "operator|arg|body?",
   "list_move": "thing|list",
-  "list_position": "thing|list",
+  "list_position": "thing|list?",
   "list_prepend": "thing|list",
   "list_range_iteration": "item|start|end|body?",
   "list_remove": "thing|list",
