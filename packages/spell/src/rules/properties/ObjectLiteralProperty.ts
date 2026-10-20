@@ -1,3 +1,4 @@
+import { proto } from "$/util"
 import { P } from "$/parser"
 import { properties } from "./properties.parser"
 
@@ -36,6 +37,31 @@ properties.addRule(ObjectLiteralProperty, {
 
         // TODO: `{property}` converts to `foo_bar` before we get here
         [`foo-bar = 1`, "fooBar: 1"]
+      ]
+    }
+  ]
+})
+/**
+ * `named_object_literal_property` rule:  `name T1` -- a one-word property and a bare name, no `=`
+ * (epic `outline-spell` P19).
+ * - e.g. `a new tableau with name T1`, as `tableau T1` names it
+ * - The name starts with a capital letter (`thing_name`);  a lowercase one is written `name = "t1"`.
+ */
+export class NamedObjectLiteralProperty extends ObjectLiteralProperty {
+  @proto static alias = "object_literal_property"
+
+  /** Quick test:  two words, the second starting with a capital letter. */
+  test(_scope: P.Scope, tokens: P.Token[], start = 0) {
+    return /^[A-Z]/.test(`${tokens[start + 1]?.value ?? ""}`)
+  }
+}
+properties.addRule(NamedObjectLiteralProperty, {
+  syntax: "{property} {value:thing_name}",
+  tests: [
+    {
+      tests: [
+        [`name T1`, `name: "T1"`],
+        [`name t1`, undefined]
       ]
     }
   ]

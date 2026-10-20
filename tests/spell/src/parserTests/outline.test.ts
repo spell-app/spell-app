@@ -207,6 +207,34 @@ describe("outline style", () => {
     expect(tableaus.items.length).toBe(1)
   })
 
+  describe("starting values (P19):  `- its clubs is a new foundation with ...`", () => {
+    const types = ["a pile is a thing", "a foundation is a pile", "\t- its symbol is text"]
+
+    test("the same as the sentence `has ... as a new ...`", () => {
+      expect(
+        compile(["a game is an app where:", '\t- its clubs is a new foundation with name = "clubs"', ...types])
+      ).toBe(compile(["a game is an app", 'a game has a clubs as a new foundation with name = "clubs"', ...types]))
+    })
+
+    test("each thing gets its own, of the new thing's type;  `name T1` needs no `=`", () => {
+      const run = runSpell([
+        "a game is an app where:",
+        '\t- its clubs is a new foundation with name = "clubs", symbol = "♣️"',
+        "\t- its T1 is a new pile with name T1",
+        ...types,
+        "set a to a new game",
+        "set b to a new game",
+        "set clubs-a to the clubs of a",
+        "set clubs-b to the clubs of b",
+        "set t1 to the T1 of b"
+      ])
+      const { clubs_a, clubs_b, t1 } = run("clubs_a, clubs_b, t1") as Record<string, Record<string, unknown>>
+      expect(clubs_a).not.toBe(clubs_b)
+      expect(clubs_a).toMatchObject({ name: "clubs", symbol: "♣️" })
+      expect(t1).toMatchObject({ name: "T1" })
+    })
+  })
+
   describe("re-opening a type (P11):  `a game:` adds to it", () => {
     test("in the same file:  its bullets go into the one class", () => {
       const sentences = [

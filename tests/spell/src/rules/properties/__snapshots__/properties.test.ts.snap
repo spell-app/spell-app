@@ -5,6 +5,7 @@ exports[`testing spell module properties > rule group specs > match snapshot -- 
   "its_known_property": "property",
   "its_ordinal": "ordinal|arg",
   "its_property": "property",
+  "named_object_literal_property": "property|value",
   "object_literal_property": "property|value",
   "property_expression": "property|expression",
 }

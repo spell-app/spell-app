@@ -1527,7 +1527,7 @@
           "ruleNames": ["object_literal_property"],
           "internal": false,
           "file": "packages/spell/src/rules/properties/ObjectLiteralProperty.ts",
-          "line": 10,
+          "line": 11,
           "purpose": "Single object-literal property declaration: `{property} (=|is|of) {value:expression}`.",
           "syntaxes": [
             {
@@ -1547,6 +1547,32 @@
             }
           ],
           "aliases": []
+        },
+        {
+          "className": "NamedObjectLiteralProperty",
+          "ruleNames": ["named_object_literal_property"],
+          "internal": false,
+          "file": "packages/spell/src/rules/properties/ObjectLiteralProperty.ts",
+          "line": 50,
+          "purpose": "`name T1` -- a one-word property and a bare name, no `=` (epic `outline-spell` P19).",
+          "syntaxes": [
+            {
+              "syntax": "{property} {value:thing_name}",
+              "example": "name T1",
+              "outputs": {
+                "js": {
+                  "code": "name: \"T1\""
+                },
+                "ts": {
+                  "code": "name: \"T1\""
+                },
+                "py": {
+                  "code": "\"name\": \"T1\""
+                }
+              }
+            }
+          ],
+          "aliases": ["object_literal_property"]
         },
         {
           "className": "ObjectLiteralProperties",
@@ -3882,6 +3908,32 @@
                 },
                 "py": {
                   "code": "List(item_type=\"Person\")"
+                }
+              }
+            }
+          ],
+          "aliases": ["outline_specifier"]
+        },
+        {
+          "className": "OutlineSpecifierInstance",
+          "ruleNames": ["outline_specifier_instance"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/OutlineSpecifierInstance.ts",
+          "line": 13,
+          "purpose": "`a new foundation with ...` -- a property's starting value, in a type's outline body (epic `outline-spell` P19).",
+          "syntaxes": [
+            {
+              "syntax": "({new_list}|{new_thing})",
+              "example": "a new thing",
+              "outputs": {
+                "js": {
+                  "code": "new Thing()"
+                },
+                "ts": {
+                  "code": "new Thing()"
+                },
+                "py": {
+                  "code": "Thing()"
                 }
               }
             }

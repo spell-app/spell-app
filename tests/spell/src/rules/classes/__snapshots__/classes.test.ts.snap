@@ -20,6 +20,7 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "new_thing": "type|props?",
   "outline_specifier_datatype": "datatype|owner?",
   "outline_specifier_enum": "enumeration",
+  "outline_specifier_instance": "new_list?|new_thing?",
   "outline_specifier_list": "instanceType",
   "property_value_either": "type_property|body?",
   "property_value_getter": "property|type|body?",
