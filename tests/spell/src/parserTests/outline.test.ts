@@ -216,6 +216,53 @@ describe("outline style", () => {
     expect(compile([...lines, "set piles to 3", "set count to the piles"])).toMatch(/count = piles$/m)
   })
 
+  test("`- can never take a card`:  a pile takes nothing unless its kind says;  `the first pile in the piles where ...`", () => {
+    const run = runSpell(
+      [
+        "a card is a thing",
+        "a pile is a list of cards where:",
+        "\t- can never take a card",
+        "a tableau is a pile where:",
+        "\t- can take a card if: it is empty",
+        "set card to a new card",
+        'set a to a new pile with name = "a"',
+        'set b to a new tableau with name = "b"',
+        "set taker to the first pile in the piles where it can take the card",
+        "set name to the name of taker"
+      ],
+      { registered: true }
+    )
+    expect(run("name")).toEqual({ name: "b" })
+  })
+
+  describe("names of several words (P26)", () => {
+    test("a variable:  declared by `set start pile to ...`, read by its words, the same as `start-pile`", () => {
+      const run = runSpell([
+        "a pile is a list of things",
+        "set start pile to a new pile",
+        "set anything changed to no",
+        "if anything changed is no",
+        "\tadd 1 to start pile",
+        "add 2 to the start pile",
+        "add 3 to start-pile",
+        "set count to the number of items in start pile"
+      ])
+      expect(run("count")).toEqual({ count: 3 })
+    })
+
+    test("words a variable doesn't go by aren't a read;  a name can't hold `to`", () => {
+      expect(() => runSpell(["set start pile to 1", "set x to end pile"])).toThrow(/parse errors/)
+      expect(() => runSpell(["set cards to move to 1"])).toThrow(/parse errors/)
+    })
+
+    test("an event:  `on card click` hears `fire event card-click`, and the other way round", () => {
+      const lines = ["on card click with a card", "\tprint 1", "fire event card click with card = 1", "trigger card-click"]
+      const compiled = compile(lines)
+      expect(compiled).toContain('on("card-click"')
+      expect(compiled.match(/trigger\("card-click"/g)).toHaveLength(2)
+    })
+  })
+
   describe("methods before their definitions (P22)", () => {
     test("a call above its definition:  in a type's body, at the top, before a later method", () => {
       const run = runSpell([

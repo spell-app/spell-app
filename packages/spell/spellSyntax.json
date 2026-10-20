@@ -331,6 +331,32 @@
           "aliases": ["expression"]
         },
         {
+          "className": "KnownWordsVariable",
+          "ruleNames": ["known_words_variable"],
+          "internal": false,
+          "file": "packages/spell/src/rules/variables/KnownWordsVariable.ts",
+          "line": 11,
+          "purpose": "A known variable of several words, read, e.g. `start pile`, `the test card` (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "the? {identifier:words_identifier}",
+              "example": "start pile",
+              "outputs": {
+                "js": {
+                  "code": "startPile"
+                },
+                "ts": {
+                  "code": "startPile"
+                },
+                "py": {
+                  "code": "start_pile"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
           "className": "SingularIdentifier",
           "ruleNames": ["singular_identifier"],
           "internal": false,
@@ -400,6 +426,57 @@
                 },
                 "py": {
                   "code": "thing"
+                }
+              }
+            }
+          ],
+          "aliases": []
+        },
+        {
+          "className": "WordsIdentifier",
+          "ruleNames": ["words_identifier"],
+          "internal": false,
+          "file": "packages/spell/src/rules/variables/WordsIdentifier.ts",
+          "line": 17,
+          "purpose": "A variable's name of several words, e.g. `start pile` (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "example": "start pile",
+              "outputs": {
+                "js": {
+                  "code": "startPile"
+                },
+                "ts": {
+                  "code": "startPile"
+                },
+                "py": {
+                  "code": "start_pile"
+                }
+              }
+            }
+          ],
+          "aliases": []
+        },
+        {
+          "className": "WordsVariable",
+          "ruleNames": ["words_variable"],
+          "internal": false,
+          "file": "packages/spell/src/rules/variables/WordsVariable.ts",
+          "line": 9,
+          "purpose": "A variable of several words, known or not, e.g. `the start pile` (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "the? {identifier:words_identifier}",
+              "example": "the start pile",
+              "outputs": {
+                "js": {
+                  "code": "startPile"
+                },
+                "ts": {
+                  "code": "startPile"
+                },
+                "py": {
+                  "code": "start_pile"
                 }
               }
             }
@@ -1575,6 +1652,32 @@
           "aliases": ["object_literal_property"]
         },
         {
+          "className": "FlagObjectLiteralProperty",
+          "ruleNames": ["flag_object_literal_property"],
+          "internal": false,
+          "file": "packages/spell/src/rules/properties/ObjectLiteralProperty.ts",
+          "line": 76,
+          "purpose": "`jokers` -- a property's name alone, meaning `jokers = yes` (epic `outline-spell` P26).",
+          "syntaxes": [
+            {
+              "syntax": "{property}",
+              "example": "jokers",
+              "outputs": {
+                "js": {
+                  "code": "jokers: true"
+                },
+                "ts": {
+                  "code": "jokers: true"
+                },
+                "py": {
+                  "code": "\"jokers\": True"
+                }
+              }
+            }
+          ],
+          "aliases": ["object_literal_property"]
+        },
+        {
           "className": "ObjectLiteralProperties",
           "ruleNames": ["object_literal_properties"],
           "internal": false,
@@ -1845,6 +1948,32 @@
                 },
                 "py": {
                   "code": "core.get_item_at(my_list, 0)"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
+          "className": "OrdinalWhereExpression",
+          "ruleNames": ["ordinal_where_expression"],
+          "internal": false,
+          "file": "packages/spell/src/rules/lists/OrdinalWhereExpression.ts",
+          "line": 17,
+          "purpose": "The first (second, last ...) item of a list that passes a test (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "the {ordinal} {arg:singular_identifier} (in|of) {list:expression} where {inline_expression}?",
+              "example": "the first item in my-list where its id > 1",
+              "outputs": {
+                "js": {
+                  "code": "core.getItemAt(core.filter(myList, (item) => item.id > 1), 0)"
+                },
+                "ts": {
+                  "code": "core.getItemAt(core.filter(myList, (item) => item.id > 1), 0)"
+                },
+                "py": {
+                  "code": "core.get_item_at(core.filter(my_list, lambda item: item.id > 1), 0)"
                 }
               }
             }
@@ -3579,7 +3708,7 @@
           "ruleNames": ["list_guard"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/ListGuard.ts",
-          "line": 32,
+          "line": 35,
           "purpose": "What a list type takes, or gives up, when something MOVES (epic page Q23 - Q25).",
           "syntaxes": [
             {
@@ -3628,6 +3757,21 @@
               }
             },
             {
+              "syntax": "(a|an) {type:known_type} can (never:never) (verb:add|take) (a|an) {item:type}",
+              "example": "a pile can never take a card",
+              "outputs": {
+                "js": {
+                  "code": "Pile.prototype.canTake = function (card) {\n  return false\n}"
+                },
+                "ts": {
+                  "code": "export interface Pile { canTake(card: Card): boolean }\nPile.prototype.canTake = function (this: Pile, card: Card) {\n  return false\n}"
+                },
+                "py": {
+                  "code": "@Pile.add_method(\"can_take\")\ndef _pile_can_take(self, card: Card) -> bool:\n    return False"
+                }
+              }
+            },
+            {
               "syntax": "{type:subject_it} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?"
             },
             {
@@ -3637,6 +3781,9 @@
               "syntax": "{type:subject_it} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
             },
             {
+              "syntax": "{type:subject_it} can (never:never) (verb:add|take) (a|an) {item:type}"
+            },
+            {
               "syntax": "{type:subject_implied} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?"
             },
             {
@@ -3644,6 +3791,9 @@
             },
             {
               "syntax": "{type:subject_implied} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}"
+            },
+            {
+              "syntax": "{type:subject_implied} can (never:never) (verb:add|take) (a|an) {item:type}"
             }
           ],
           "aliases": ["statement"]
@@ -4481,6 +4631,31 @@
           "aliases": ["jsxChild", "expression"]
         },
         {
+          "className": "SpellJSXFragment",
+          "ruleNames": ["jsxFragment"],
+          "internal": false,
+          "file": "packages/spell/src/rules/JSX/SpellJSXFragment.ts",
+          "line": 27,
+          "purpose": "Several elements drawn side by side, with no element around them, `<>...</>`.",
+          "syntaxes": [
+            {
+              "example": "<><a/><b/></>",
+              "outputs": {
+                "js": {
+                  "code": "[\n  h(\"a\"),\n  h(\"b\")\n]"
+                },
+                "ts": {
+                  "code": "<>\n  <a />\n  <b />\n</>"
+                },
+                "py": {
+                  "code": "[h(\"a\"), h(\"b\")]"
+                }
+              }
+            }
+          ],
+          "aliases": ["jsxChild", "expression"]
+        },
+        {
           "className": "SpellJSXText",
           "ruleNames": ["jsxText"],
           "internal": false,
@@ -4802,6 +4977,32 @@
           "aliases": ["statement"]
         },
         {
+          "className": "WordsAssignment",
+          "ruleNames": ["words_assignment"],
+          "internal": false,
+          "file": "packages/spell/src/rules/assignment/WordsAssignment.ts",
+          "line": 10,
+          "purpose": "`set start pile to ...` -- sets, or declares, a variable of several words (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "set {thing:words_variable} to {value:expression}",
+              "example": "set start pile to yes",
+              "outputs": {
+                "js": {
+                  "code": "export const startPile = true"
+                },
+                "ts": {
+                  "code": "export const startPile: boolean = true"
+                },
+                "py": {
+                  "code": "start_pile = True"
+                }
+              }
+            }
+          ],
+          "aliases": ["statement"]
+        },
+        {
           "className": "Get",
           "ruleNames": ["get"],
           "internal": false,
@@ -4911,6 +5112,21 @@
                   "code": "core.trigger(\"card-click\")"
                 }
               }
+            },
+            {
+              "syntax": "(trigger|fire|send) event? {eventName:event_words} (with {props:object_literal_properties})?",
+              "example": "fire event card click with card = 1",
+              "outputs": {
+                "js": {
+                  "code": "trigger(\"card-click\", { card: 1 })"
+                },
+                "ts": {
+                  "code": "trigger(\"card-click\", { card: 1 })"
+                },
+                "py": {
+                  "code": "core.trigger(\"card-click\", card=1)"
+                }
+              }
             }
           ],
           "aliases": ["statement"]
@@ -4937,9 +5153,34 @@
                   "code": "core.on(\"card-click\")"
                 }
               }
+            },
+            {
+              "syntax": "on event? {eventName:event_words} {props:with_props_arg}? :? {statement_body}?",
+              "example": "on card click",
+              "outputs": {
+                "js": {
+                  "code": "on(\"card-click\")"
+                },
+                "ts": {
+                  "code": "on(\"card-click\")"
+                },
+                "py": {
+                  "code": "core.on(\"card-click\")"
+                }
+              }
             }
           ],
           "aliases": ["statement"]
+        },
+        {
+          "className": "EventWords",
+          "ruleNames": ["event_words"],
+          "internal": false,
+          "file": "packages/spell/src/rules/events/EventWords.ts",
+          "line": 14,
+          "purpose": "An event's name of several words, e.g. `card click` (epic page `outline-spell`, P26).",
+          "syntaxes": [],
+          "aliases": []
         }
       ]
     },

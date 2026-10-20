@@ -28,7 +28,7 @@ export class Deck extends List<Card> {
   }
 
   display() {
-    const cardNames = new List()
+    const cardNames = new List<string>({ instanceType: "text" })
     this.forEach((card) => cardNames.append(card.name))
     core.echo(`deck: ${cardNames}`)
   }

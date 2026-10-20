@@ -31,6 +31,7 @@ exports[`testing spell module lists > rule group specs > match snapshot -- if th
   "merge_lists": "expression|type?",
   "number_range": "start|end",
   "ordinal_position_expression": "ordinal|arg|expression",
+  "ordinal_where_expression": "ordinal|arg|list|body?",
   "position_expression": "arg|position|expression",
   "random_item_expression": "arg|list",
   "random_items_expression": "number|arg|list",

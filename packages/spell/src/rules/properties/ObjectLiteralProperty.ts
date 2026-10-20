@@ -66,3 +66,30 @@ properties.addRule(NamedObjectLiteralProperty, {
     }
   ]
 })
+
+/**
+ * `flag_object_literal_property` rule:  `jokers` -- a property's name alone, meaning `jokers = yes`
+ * (epic `outline-spell` P26).
+ * - e.g. `a new deck with jokers`, `a new deck with jokers and name = "big"`
+ * - One word, then the end, a comma or `and`:  a word with more after it is something else.
+ */
+export class FlagObjectLiteralProperty extends ObjectLiteralProperty {
+  @proto static alias = "object_literal_property"
+
+  /** Quick test:  one word, then nothing, `,` or `and`. */
+  test(_scope: P.Scope, tokens: P.Token[], start = 0) {
+    const next = tokens[start + 1]
+    return !!tokens[start] && (!next || !!next.matchesLiteral([",", "and"]))
+  }
+
+  getAST(match: P.MatchFor<this>) {
+    return new P.ASTObjectLiteralProperty(match, {
+      property: P.asAST<P.ASTPropertyLiteral>(match.groups.property.AST),
+      value: new P.ASTBooleanLiteral(match, true)
+    })
+  }
+}
+properties.addRule(FlagObjectLiteralProperty, {
+  syntax: "{property}",
+  tests: [{ tests: [[`jokers`, `jokers: true`]] }]
+})

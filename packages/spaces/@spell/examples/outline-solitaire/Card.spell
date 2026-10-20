@@ -4,44 +4,52 @@ a "card" is a thing where:
 	## suit and rank
 	- suit is a suit of its deck
 	- its "color" is the color of its suit
-	- it "is a (suit)"                      // e.g. "the card is a spade"
 	- its "rank" is a rank of its deck
+
+	- it "is a (suit)"                      // e.g. "the card is a spade"
 	- it "is a (rank)"                      // e.g. "the card is a queen"
 	- it "is the (rank) of (suits)"         // e.g. "the card is the queen of spades"
 	- it "is a face card" if its rank is a face card
-	- value is the position of its rank
+	// CLAUDE TODO: doesn't work, should be `get isANumberCard`
+	- it "is a number card" if it is not a face card
+	- it "is a wild card" if it is not a joker
 
 	## direction
+	// CLAUDE TODO: `DIRECTIONS` should only be defined as Card.Directions
 	- its direction is up or down
 	- it "is face up" if its direction is up
 	- it "is face down" if its direction is down
 
-	## names
-	- its "name" is: its rank + "-of-" + its suit
+	## value and names
+	- value is the position of its rank
+	- its "name" is:
+		if it is a joker return "joker"
+		return its rank + "-of-" + its suit
+
 	- its "short suit" is:
+		// uncodoe: see https://www.compart.com/en/unicode/block/U+1F0A0
 		if it is a club return "♣️"
 		if it is a diamond return "♦️"
 		if it is a heart return "♥️"
 		if it is a spade return "♠️"
 		return "?"
 	- its "short rank" is:
-		if its rank is nothing return "?"
+		if it is a joker return "🃏"
 		if its rank is a number return "" + its rank
 		return the first character of its rank as uppercase
 	- its "short direction" is:
-		if its direction is up return "+"
-		return "—"
-	- its "short name" is: its short rank + its short suit
+		if its direction is up return "↑"
+		return "↓"
 	- its "state" is: its short rank + its short suit + its short direction
 
 	## drawing
 	- to "draw its front":
-		<ui-button onClick={fire event card-click with card = it} className="Card face-up [rank] [suit]" color={its color} compact fluid>
+		<ui-button compact onClick={fire event card click with card = it} className="Card face-up [rank] [suit]" color={its color} compact fluid>
 			{its short rank + " "}
 			<span className="suit">{its short suit}</span>
 		</ui-button>
 	- to "draw its back":
-		<ui-button onClick={fire event card-click with card = it} className="Card face-down [rank] [suit]" compact fluid>
+		<ui-button compact onClick={fire event card click with card = it} className="Card face-down [rank] [suit]" compact fluid>
 			<ui-icon name="bicycle" fitted/>
 		</ui-button>
 
@@ -63,6 +71,14 @@ a "card" is a thing where:
 		otherwise: turn it face up
 		pause for 50 msec
 
+a joker is a card
+	- its rank is "joker"
+	- its suit is its color
+	- its color is red or black
+	- its "short suit" is "🃟"
+	- its value is 53 if it is black otherwise 54
+
+
 ## create a card instance with default properties
 to test card setup
 	get a new card whose rank is queen, suit is spades and direction is up
@@ -73,18 +89,20 @@ to test card setup
 	its value should be 12
 	its short suit should be "♠️"
 	its short rank should be "Q"
-	its short name should be "Q♠️"
 
 	it is face up should be yes
 	it is face down should be no
 
 	it is a face card should be yes
 	it is not a face card should be no
+	it is a joker should be no
+	it is a wild card should be no
 
 	it is a spade should be yes
 	it is a club should be no
 
 	it is a queen should be yes
+	it is a joker should be no
 	it is an ace should be no
 	it is a 2 should be no
 
@@ -97,3 +115,9 @@ to test card setup
 
 	turn it over
 	it is face up should be yes
+
+	// test jokers
+	joker is a new joker with color = red
+	joker is a joker should be yes
+	joker is a wild card should be yes
+	joker is a face card should be yes

@@ -25,6 +25,12 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - Some tokens span lines.
   Each is ONE token inside ONE `LineToken`:
   - a JSX element, e.g. a whole `return <div>...</div>` body
+  - a JSX FRAGMENT, `<>...</>`:  elements side by side, with no element around them (`P.JSXFragmentToken`)
+    - Elements one after another are ONE implicit fragment, as if wrapped in `<>...</>`:
+      on the same line, or the next, indented at least as far as the first one's line
+      ([`Tokenizer.matchJSXElements()`](../parser/src/tokenizer/Tokenizer.ts)).
+      So `return <ui-container>...</ui-container>` with `<ui-grid>...</ui-grid>` below it draws both.
+    - The `jsxFragment` rule;  javascript draws it as a list, `[h("a"), h("b")]`, TypeScript as `<>...</>`.
   - a string with `\n`
   - JSX `{...}` contents are re-tokenized later, from a collapsed copy.
 - Every token has an absolute `start`.
@@ -1058,6 +1064,15 @@ A kind that says so is saved in a file of its own.
 - Lookups record misses as `NONE` in `match.data`.
   - in `scopeVar`, `scopeType` or `scopeConstant`
   - `known_variable`, `known_type` and `known_constant` reject `NONE`.
+- A variable's name of several words (P26):  `set start pile to ...` declares it (`words_assignment`), and
+  `known_words_variable` reads it, `start pile`, `the start pile`.
+  - `words_identifier`:  2 to 4 plain words, up to a structural one (`to`, `of`, `with` ...);
+    the longest run a variable in scope goes by, else the whole run.
+  - The same variable as its dashed name:  `start pile` and `start-pile` are both `start_pile`.
+  - A name can't hold a structural word:  `cards-to-move` is written `moving cards`.
+  - Its quick test looks the words up first:  it's an expression, tried at almost every word.
+  - An event's name of several words too, `on card click`, `fire event card click` (`event_words`):
+    the same event as `card-click`.
 - `getAST()` NEVER changes scope or looks it up.
   - ASTs are built lazily, e.g. at compile, when scope may have moved on.
   - What an AST needs from scope is looked up WHILE PARSING, into `match.data`:

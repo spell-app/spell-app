@@ -80,6 +80,7 @@ describe("priority and precedence", () => {
         "min:  Priority.specific",
         "minus:  Precedence.sum",
         "or:  Precedence.or",
+        "ordinal_where_expression:  Priority.specific",
         "plus:  Precedence.sum",
         "property_expression:  Priority.preferred",
         "quoted_property_formula:  Priority.declaration",

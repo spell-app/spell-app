@@ -2,6 +2,7 @@
 
 exports[`testing spell module properties > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
 {
+  "flag_object_literal_property": "property",
   "its_known_property": "property",
   "its_ordinal": "ordinal|arg",
   "its_property": "property",

@@ -29,7 +29,7 @@ class Deck(List):
                 self.append(it)
 
     def display(self) -> None:
-        card_names = List()
+        card_names = List(item_type="text")
         for card in self:
             card_names.append(card.name)
         core.echo(f"deck: {card_names}")

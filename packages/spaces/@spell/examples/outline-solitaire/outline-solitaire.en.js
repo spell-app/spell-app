@@ -3,6 +3,7 @@ export const words = {
   lang: "en",
   types: {
     Deck: {
+      jokers: "jokers",
       create: "create it",
       display: "display it"
     },
@@ -15,20 +16,21 @@ export const words = {
     Card: {
       suit: "suit",
       color: "color",
-      isASuit: "is a (suit)",
       rank: "rank",
+      isASuit: "is a (suit)",
       isARank: "is a (rank)",
       isTheRankOfSuits: "is the (rank) of (suits)",
       isAFaceCard: "is a face card",
-      value: "value",
+      isNumberCard: "is a number card",
+      isAWildCard: "is a wild card",
       direction: "direction",
       isFaceUp: "is face up",
       isFaceDown: "is face down",
+      value: "value",
       name: "name",
       shortSuit: "short suit",
       shortRank: "short rank",
       shortDirection: "short direction",
-      shortName: "short name",
       state: "state",
       front: "front",
       back: "back",
@@ -38,30 +40,40 @@ export const words = {
       play: "play a card",
       pile: "pile"
     },
+    Joker: {
+      rank: "rank",
+      suit: "suit",
+      color: "color",
+      shortSuit: "short suit",
+      value: "value"
+    },
     Pile: {
       name: "name",
-      droppable: "droppable",
+      layout: "layout",
       color: "color",
       value: "value",
       state: "state"
     },
     StockPile: {
+      layout: "layout",
       draw: "draw it"
     },
     DiscardPile: {
+      layout: "layout",
       draw: "draw it"
     },
     Foundation: {
+      layout: "layout",
       symbol: "symbol",
       draw: "draw it"
     },
     Tableau: {
+      layout: "layout",
       draw: "draw it"
     },
     Solitaire: {
       score: "score",
       deck: "deck",
-      stock: "stock",
       discards: "discards",
       clubs: "clubs",
       diamonds: "diamonds",
@@ -74,14 +86,15 @@ export const words = {
       T5: "T5",
       T6: "T6",
       T7: "T7",
-      fillTheStock: "fill the stock",
+      stock: "stock",
+      create: "create it",
       debug: "debug it",
       resetTheStock: "reset the stock",
       playFromTheStock: "play from the stock",
       dealTheCards: "deal the cards",
-      reset: "reset",
+      startANewGame: "start a new game",
       cheat: "cheat",
-      autoPlay: "auto-play",
+      autoPlay: "auto play",
       draw: "draw it"
     }
   }
