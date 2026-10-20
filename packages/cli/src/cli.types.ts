@@ -240,6 +240,14 @@ export type StaticOptions = GlobalOptions & {
 }
 
 /**
+ * `spell pony` flags.
+ * - `gallop`:  her legs gallop (epic `property-editor` P8)
+ */
+export type PonyOptions = GlobalOptions & {
+  gallop?: boolean
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `owen@spell`'s, your space's (`<spell-spaces>/@spell/owen@/`)
  */

@@ -219,6 +219,7 @@ program
   .command("pony")
   .description("a pony in Spell's wizard hat, saying something -- yours, or one of its own")
   .argument("[words...]", "what the pony says")
+  .option("--gallop", "her legs gallop:  in place in a terminal, else one stride's frames")
   .action((words: string[], _options, command) => run(CLI.ponyCommand, words, command.optsWithGlobals()))
 
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
