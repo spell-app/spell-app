@@ -1113,6 +1113,18 @@
       "description": "Stringify and convert to lowercase."
     },
     {
+      "kind": "method",
+      "name": "unicode",
+      "of": "core",
+      "module": "string",
+      "params": [
+        {
+          "name": "code"
+        }
+      ],
+      "description": "The character with unicode code point `code`, e.g. `\"🂠\"` for `0x1F0A0`."
+    },
+    {
       "property": "TIME_UNITS_MAP",
       "of": "core",
       "module": "ui",

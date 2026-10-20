@@ -20,8 +20,7 @@ export class Task extends Thing {
   }
 }
 
-const FILTERS = ["all", "active", "completed"] as const
-export type Filter = (typeof FILTERS)[number]
+export type Filter = (typeof TodosApp.Filters)[number]
 
 export class TodosApp extends App {
   // a todos-app has a property tasks as a new list of tasks
@@ -33,8 +32,8 @@ export class TodosApp extends App {
   accessor newTaskName!: string
 
   // a todos-app has a filter as one of all, active or completed
-  static Filters = FILTERS
-  @prop({ oneOf: FILTERS })
+  static Filters = ["all", "active", "completed"] as const
+  @prop({ oneOf: () => TodosApp.Filters })
   accessor filter!: Filter
 
   @derived get shownTasks() {

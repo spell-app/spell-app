@@ -235,6 +235,24 @@ describe("outline style", () => {
     expect(run("name")).toEqual({ name: "b" })
   })
 
+  test("in a quoted phrase only `(...)` is a parameter:  `\"is a number card\"` is a getter, `isANumberCard`", () => {
+    const compiled = compile(["a card is a thing where:", '\t- it "is a number card" if yes', '\t- it "is (n as a number) away" if yes'])
+    expect(compiled).toContain("get isANumberCard()")
+    expect(compiled).toContain("isNAway(n) {")
+  })
+
+  test("`unicode 1F0A0` is the character, written in hex;  `unicode code` one worked out as the program runs", () => {
+    const run = runSpell([
+      "set back to unicode 1F0A0\t\t// a comment after it",
+      "set heart to unicode 2665",
+      "set base to 127137",
+      "set ace to unicode base",
+      "set next to unicode (base + 1)",
+      "set none to unicode 1.5"
+    ])
+    expect(run("back, heart, ace, next, none")).toEqual({ back: "🂠", heart: "♥", ace: "🂡", next: "🂢", none: "" })
+  })
+
   describe("names of several words (P26)", () => {
     test("a variable:  declared by `set start pile to ...`, read by its words, the same as `start-pile`", () => {
       const run = runSpell([

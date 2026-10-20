@@ -17,5 +17,7 @@ exports[`testing spell module expressions > rule group specs > match snapshot --
   "or": "operator|expression",
   "parenthesized_expression": "expression",
   "there_is_a": "operator|expression",
+  "unicode_expression": "code",
+  "unicode_literal": "code",
 }
 `;

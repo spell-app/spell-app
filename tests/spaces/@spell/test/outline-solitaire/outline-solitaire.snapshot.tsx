@@ -5,10 +5,6 @@ core.heading("Deck:  US standard card deck (without jokers) -- in the outline st
 ///////////////////////////////////////////////////////////////////////////
 // ## Deck:  US standard card deck (without jokers) -- in the outline style
 ///////////////////////////////////////////////////////////////////////////
-const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const
-
-const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
-
 /**
  * First in the project:  a card says `its "suit" is a suit of its deck`, so the deck's kinds come before it.
  * So what a deck DOES reads only what a card says it is:  its name, rank and suit, not `short name`.
@@ -34,19 +30,19 @@ export class Deck extends List<Card> {
   }
 
   // "suits" as one of clubs, diamonds, hearts or spades
-  static Suits = SUITS
+  static Suits = ["clubs", "diamonds", "hearts", "spades"] as const
 
   // "ranks" as one of ace, 2 ... 10, jack, queen or king
-  static Ranks = RANKS
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
 }
 export class Suit {
-  static color(suit: (typeof SUITS)[number]) {
+  static color(suit: (typeof Deck.Suits)[number]) {
     if (core.includes(["diamonds", "hearts"], suit)) return "red"
     return "black"
   }
 }
 export class Rank {
-  static isAFaceCard(rank: (typeof RANKS)[number]) {
+  static isAFaceCard(rank: (typeof Deck.Ranks)[number]) {
     return core.includes(["jack", "queen", "king"], rank)
   }
 }
@@ -70,37 +66,35 @@ export function testDeckCreation() {
 }
 // -----------
 core.heading("Definition of a card -- in the outline style:  a heading, then what's true of it")
-/** direction */
-const DIRECTIONS = ["up", "down"] as const
-export type Direction = (typeof DIRECTIONS)[number]
+export type Direction = (typeof Card.Directions)[number]
 
 /** Definition of a card -- in the outline style:  a heading, then what's true of it */
 export class Card extends Thing {
   /** suit and rank */
   // suit is a suit of its deck
-  @prop({ oneOf: () => SUITS })
-  accessor suit!: (typeof SUITS)[number]
+  @prop({ oneOf: () => Deck.Suits })
+  accessor suit!: (typeof Deck.Suits)[number]
 
   get color() {
     return Suit.color(this.suit)
   }
 
   /** e.g. "the card is a spade" */
-  isASuit(suit: (typeof SUITS)[number]) {
+  isASuit(suit: (typeof Deck.Suits)[number]) {
     return this.suit === suit
   }
 
   // - its "rank" is a rank of its deck
-  @prop({ oneOf: () => RANKS })
-  accessor rank!: (typeof RANKS)[number]
+  @prop({ oneOf: () => Deck.Ranks })
+  accessor rank!: (typeof Deck.Ranks)[number]
 
   /** e.g. "the card is a queen" */
-  isARank(rank: (typeof RANKS)[number]) {
+  isARank(rank: (typeof Deck.Ranks)[number]) {
     return this.rank === rank
   }
 
   /** e.g. "the card is the queen of spades" */
-  isTheRankOfSuits(rank: (typeof RANKS)[number], suit: (typeof SUITS)[number]) {
+  isTheRankOfSuits(rank: (typeof Deck.Ranks)[number], suit: (typeof Deck.Suits)[number]) {
     return this.rank === rank && this.suit === suit
   }
 
@@ -112,9 +106,10 @@ export class Card extends Thing {
     return spellPosition(positionOf(Deck.Ranks, this.rank))
   }
 
+  /** direction */
   // - its direction is up or down
-  static Directions = DIRECTIONS
-  @prop({ oneOf: DIRECTIONS })
+  static Directions = ["up", "down"] as const
+  @prop({ oneOf: () => Card.Directions })
   accessor direction!: Direction
 
   get isFaceUp() {

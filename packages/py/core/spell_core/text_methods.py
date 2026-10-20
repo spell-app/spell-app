@@ -12,7 +12,7 @@ from spell_core.js_text import js_string
 
 
 class TextMethods:
-    """`core`'s text words:  `upper_case()`, `lower_case()`."""
+    """`core`'s text words:  `upper_case()`, `lower_case()`, `unicode()`."""
 
     def upper_case(self, text: object) -> str:
         """`text` as text, in UPPER CASE:  `{x} as upper case`.
@@ -28,3 +28,19 @@ class TextMethods:
         - `None` is `""`.
         """
         return "" if text is None else js_string(text).lower()
+
+    def unicode(self, code: object) -> str:
+        """The character with unicode code point `code`, e.g. `"🂠"` for `0x1F0A0`:  `unicode {number}`.
+
+        - `""` for `None`, or what's no code point (not a whole number, or past `0x10FFFF`).
+        - The twin of the JavaScript core's `unicode()`.
+        """
+        if code is None or isinstance(code, bool):
+            return ""
+        try:
+            point = float(code)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return ""
+        if not point.is_integer() or point < 0 or point > 0x10FFFF:
+            return ""
+        return chr(int(point))

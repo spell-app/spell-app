@@ -646,6 +646,58 @@
           "aliases": ["expression"]
         },
         {
+          "className": "UnicodeLiteral",
+          "ruleNames": ["unicode_literal"],
+          "internal": false,
+          "file": "packages/spell/src/rules/expressions/UnicodeLiteral.ts",
+          "line": 14,
+          "purpose": "`unicode 1F0A0` -- the character with that code point, written in hex (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "unicode {code:unicode_code}",
+              "example": "unicode 1F0A0",
+              "outputs": {
+                "js": {
+                  "code": "\"🂠\""
+                },
+                "ts": {
+                  "code": "\"🂠\""
+                },
+                "py": {
+                  "code": "\"🂠\""
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
+          "className": "UnicodeExpression",
+          "ruleNames": ["unicode_expression"],
+          "internal": false,
+          "file": "packages/spell/src/rules/expressions/UnicodeExpression.ts",
+          "line": 13,
+          "purpose": "`unicode code` -- the character with a code point worked out as the program runs (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "unicode {code:operand}",
+              "example": "unicode code",
+              "outputs": {
+                "js": {
+                  "code": "core.unicode(code)"
+                },
+                "ts": {
+                  "code": "core.unicode(code)"
+                },
+                "py": {
+                  "code": "core.unicode(code)"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
           "className": "CompoundExpression",
           "ruleNames": ["expression"],
           "internal": false,
@@ -1138,6 +1190,16 @@
               "syntax": "(has|(negated:does not have|doesn't have|doesnt have))"
             }
           ],
+          "aliases": []
+        },
+        {
+          "className": "UnicodeCode",
+          "ruleNames": ["unicode_code"],
+          "internal": false,
+          "file": "packages/spell/src/rules/expressions/UnicodeCode.ts",
+          "line": 14,
+          "purpose": "A code point written in hex, e.g. `1F0A0`, `2665`, `A0` (epic page `outline-spell`, P26).",
+          "syntaxes": [],
           "aliases": []
         }
       ]
@@ -5577,11 +5639,25 @@
           "aliases": []
         },
         {
+          "className": "QuotedSignatureWords",
+          "ruleNames": ["quoted_signature_words"],
+          "internal": false,
+          "file": "packages/spell/src/rules/methods/QuotedSignatureWords.ts",
+          "line": 12,
+          "purpose": "A QUOTED phrase's words, where only `(...)` is a parameter (epic page `outline-spell`, P26).",
+          "syntaxes": [
+            {
+              "syntax": "({method_keyword}|\\( {method_arg} \\))+"
+            }
+          ],
+          "aliases": []
+        },
+        {
           "className": "QuotedMethodSignature",
           "ruleNames": ["quoted_method_signature"],
           "internal": false,
           "file": "packages/spell/src/rules/methods/QuotedMethodSignature.ts",
-          "line": 17,
+          "line": 18,
           "purpose": "Method signature surrounded by quotes.",
           "syntaxes": [],
           "aliases": []

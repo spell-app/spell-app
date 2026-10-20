@@ -52,8 +52,8 @@ export class WriterProject {
   /** Each class's own properties, by name:  see `propertyOf()`. */
   readonly properties = new Map<string, Map<string, P.ASTReactiveProperty>>()
   /**
-   * Each list a property's values come from, hoisted out of its class as a typed constant, by `<Class>.<Static>`:
-   * e.g. `Card.Ranks` => `RANKS`, type `Rank`.  See `TSList`.
+   * Each list a property's values come from, typed, by `<Class>.<Static>`:
+   * e.g. `Card.Ranks`, type `Rank`.  See `TSList`.
    */
   readonly lists = new Map<string, TSList>()
   /**
@@ -417,32 +417,37 @@ export class WriterProject {
     )
     if (!definition || !isListLiteral(definition.value)) return
 
-    const taken = new Set([...classes.keys(), ...[...this.lists.values()].flatMap((it) => [it.constant, it.type])])
-    let constant = constantCaseOf(definition.name)
-    if (taken.has(constant)) constant = `${constantCaseOf(owner)}_${constant}`
+    const taken = new Set([...classes.keys(), ...[...this.lists.values()].map((it) => it.type)])
+    // read where it lives, in its class:  `Card.Directions` (Owen, epic page `outline-spell`, P26)
+    const constant = `${owner}.${definition.name}`
     const type = typeCaseOf(property.property.value)
-    const hoisted = { definition, constant, type: taken.has(type) ? undefined : type }
+    const hoisted = { definition, owner, constant, type: taken.has(type) ? undefined : type }
     this.lists.set(key, hoisted)
     if (classes.has(type)) this.valueKinds.set(type, hoisted)
   }
 }
 
 /**
- * A list a property's values come from, hoisted out of its class as a typed constant:
+ * A list a property's values come from, typed where it lives, in its class:
  * ```
- * const RANKS = ["ace", 2, ...] as const
- * export type Rank = (typeof RANKS)[number]
+ * export type Rank = (typeof Card.Ranks)[number]
+ * export class Card extends Thing {
+ *   static Ranks = ["ace", 2, ...] as const
+ *   @prop({ oneOf: () => Card.Ranks })
  * ```
- * then `static Ranks = RANKS` in its class.
- * - Why out of the class:  a decorator's arguments run while its class is being made,
- *   so `@prop({ oneOf: RANKS })` can't read `Card.Ranks` yet.
+ * - `oneOf` is read when a value is set:  a decorator's arguments run while its class is being made,
+ *   so `@prop({ oneOf: Card.Ranks })` couldn't read `Card` yet.
+ * - It was a constant above the class, `const RANKS`, until epic page `outline-spell` P26:
+ *   Owen, "`DIRECTIONS` should only be defined as Card.Directions".
  */
 export type TSList = {
   /** Its `static` in its class, e.g. `static Ranks = [...]`:  its values. */
   definition: P.ASTStaticDefinition
-  /** The constant's name, e.g. `RANKS`. */
+  /** The class it's in, e.g. `Card`. */
+  owner: string
+  /** Where it's read, e.g. `Card.Ranks`, in spell's names:  a writer names it its way, `TSWriter.listRef()`. */
   constant: string
-  /** The type of one of its values, e.g. `Rank`;  none if that name's taken:  `(typeof RANKS)[number]` instead. */
+  /** The type of one of its values, e.g. `Rank`;  none if that name's taken:  `(typeof Card.Ranks)[number]` instead. */
   type: string | undefined
 }
 
