@@ -117,7 +117,8 @@
     "engineRoutes": {
       "/_epic/assets/": "../spell-epic/src/tools/_assets",
       "/_epic/pack/": "../spell-epic/src/components/__pack",
-      "/templates/": "../spell-epic/templates"
+      "/templates/": "../spell-epic/templates",
+      "/packages/brand/components/__pack/": "../spell-brand/components/__pack"
     }
   },
   "shared": {
