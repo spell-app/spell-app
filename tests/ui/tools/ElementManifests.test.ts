@@ -3,7 +3,7 @@ import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, test } from "vite-plus/test"
 
-import { readJSON5File } from "$/assembler/json5"
+import { readJSON5File } from "$/util/node/json5"
 import type { SiteDataFile } from "$/ui/docs-components/docs-components.types"
 import { ElementManifests } from "$/ui/tools/ElementManifests"
 

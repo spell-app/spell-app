@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { readJSON5File } from "$/assembler/json5"
+import { readJSON5File } from "$/util/node/json5"
 
 import { DesignBrand } from "./DesignBrand.ts"
 import { DesignComponents } from "./DesignComponents.ts"

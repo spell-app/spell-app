@@ -40,6 +40,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Why:  so spell's utilities never reach `ui`'s bundles or published declarations.
   - `ui` keeps its own `util` barrel (`$/ui/util`) for package-specific helpers.
 
+## Node-only helpers (`src/node/`)
+
+- Generic helpers that need node:  imported by deep path, NEVER through a barrel, so no browser code pulls them in.
+- [json5.ts](src/node/json5.ts):  JSON5 written with its comments kept (`json5Edited()`, `keepingComments()`,
+  `readJSON5File()`), on json5-writer.
+  - `$/util/node/json5`.
+  - Moved here from the assembler (epic `repo-split` P1):  ui's tools, app, brand, spaces, spell-epic and the
+    assembler's `DataFile` use it, and util is the bottom of the stack.
+  - Its tests run in node (`vitest.config.ts`'s `spell` project).
+
 ## Spell's utilities (`src/spell/`)
 
 - Spell's own utilities, flattened into the `$/util` barrel LAST:

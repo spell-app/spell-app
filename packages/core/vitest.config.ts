@@ -17,7 +17,7 @@ const SOLID = [/^solid-js/, /^@solidjs\//]
  *   `drawing.test.ts` draws into a fake page (linkedom).
  */
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion()],
+  plugins: [standardDecorators(), packageVersion(import.meta.dirname)],
   resolve: { tsconfigPaths: true },
   // the tests live in the repo's tests/ folder, at the same paths as the code
   // (absolute:  Vitest reads a relative `dir` from wherever the run starts, e.g. the repo root)

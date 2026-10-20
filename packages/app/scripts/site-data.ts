@@ -13,7 +13,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
-import { keepingCommentsIn } from "$/assembler/json5"
+import { keepingCommentsIn } from "$/util/node/json5"
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 
 import { AppUIDataBuilder } from "../tools/AppUIDataBuilder.ts"

@@ -34,7 +34,7 @@ const NOT_SOLID_SOURCE = /\/node_modules\/(?!@solidjs\/router\/)/
  *   Vite's default targets lower `light-dark()` and break `ui-dark` subtrees (see `packages/ui/vite.config.ts`).
  */
 export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
-  const plugins: PluginOption[] = [standardDecorators(), packageVersion(), solid({ exclude: [NOT_SOLID_SOURCE] })]
+  const plugins: PluginOption[] = [standardDecorators(), packageVersion(import.meta.dirname), solid({ exclude: [NOT_SOLID_SOURCE] })]
   if (iconPacks) plugins.push(iconPacksBesideBuiltIns())
   return {
     plugins,

@@ -31,7 +31,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
-import { readJSON5File } from "$/assembler/json5"
+import { readJSON5File } from "$/util/node/json5"
 
 import { Terminal } from "../tools/Terminal.ts"
 import { SITE_DATA, SITE_PAGES } from "../tools/tools.types.ts"

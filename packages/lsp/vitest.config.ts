@@ -11,7 +11,7 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  * - `standardDecorators()` lowers standard decorators:  vite 8's own transform (oxc) doesn't.
  */
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion()],
+  plugins: [standardDecorators(), packageVersion(import.meta.dirname)],
   resolve: { tsconfigPaths: true },
   // the tests live in the repo's tests/ folder, at the same paths as the code
   test: { dir: resolve(import.meta.dirname, "../../tests/lsp") }

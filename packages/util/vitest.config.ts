@@ -11,8 +11,8 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  * - `browser` -- the generic helpers' tests, in a REAL browser (Vitest browser mode + Playwright, chromium):
  *   `dom.test.ts` needs shadow roots and a custom element registry, and `decorators.test.ts` proves `@proto` after
  *   esbuild lowers standard decorators.
- * - `spell` -- the tests of `src/spell/` (spell's utilities) and `src/reactive/` (spell cells), in node:  fetch,
- *   tasks, constants, cells.
+ * - `spell` -- the tests of `src/spell/` (spell's utilities), `src/reactive/` (spell cells) and `src/node/` (node-only
+ *   helpers:  json5), in node:  fetch, tasks, constants, cells, JSON5 edits.
  * - `standardDecorators()` is what lowers decorators:  Vite 8's own transform (oxc) doesn't.  See `AGENTS.md`.
  * - Aliases (`$/util` ...) come from the repo root's `tsconfig.base.json`, through `resolve.tsconfigPaths`.
  * - `prefix` / `root`:  the repo root's `vitest.config.ts` lists these with `util:` names and `root` set to this
@@ -32,7 +32,7 @@ export function utilProjects({
         // the tests live in the repo's tests/ folder, at the same paths as the code
         dir: resolve(import.meta.dirname, "../../tests/util"),
         include: ["src/**/*.test.ts"],
-        exclude: ["**/node_modules/**", "src/spell/**", "src/reactive/**"],
+        exclude: ["**/node_modules/**", "src/spell/**", "src/reactive/**", "src/node/**"],
         browser: {
           enabled: true,
           provider: playwright(),
@@ -42,14 +42,14 @@ export function utilProjects({
       }
     },
     {
-      plugins: [standardDecorators(), packageVersion()],
+      plugins: [standardDecorators(), packageVersion(import.meta.dirname)],
       resolve: { tsconfigPaths: true },
       ...(root && { root }),
       test: {
         name: `${prefix}spell`,
         environment: "node",
         dir: resolve(import.meta.dirname, "../../tests/util"),
-        include: ["src/spell/**/*.test.ts", "src/reactive/**/*.test.ts"]
+        include: ["src/spell/**/*.test.ts", "src/reactive/**/*.test.ts", "src/node/**/*.test.ts"]
       }
     }
   ]

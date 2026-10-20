@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
-import { readJSON5File } from "$/assembler/json5"
+import { readJSON5File } from "$/util/node/json5"
 
 import { DesignComponents } from "./DesignComponents.ts"
 import type { SiteDataFile } from "../src/docs-components/docs-components.types.ts"

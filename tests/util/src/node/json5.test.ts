@@ -5,10 +5,10 @@ import { join } from "node:path"
 import JSON5 from "json5"
 import { afterEach, describe, expect, test } from "vite-plus/test"
 
-import { json5Edited, keepingComments, keepingCommentsIn, readJSON5File } from "$/assembler/json5"
+import { json5Edited, keepingComments, keepingCommentsIn, readJSON5File } from "$/util/node/json5"
 
 /**
- * JSON5 written with its comments kept (`$/assembler/json5`):  spaces' files, and the component sets' site data
+ * JSON5 written with its comments kept (`$/util/node/json5`):  spaces' files, and the component sets' site data
  * (`docs/__data/*.json5`, epic `epic-workflow` P20), whose writers rewrite the whole file on every run.
  */
 

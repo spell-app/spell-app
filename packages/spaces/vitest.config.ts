@@ -13,7 +13,7 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  * - Python's web server has its own tests, pytest's:  `yarn test` runs them after these.
  */
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion()],
+  plugins: [standardDecorators(), packageVersion(import.meta.dirname)],
   resolve: { tsconfigPaths: true },
   test: {
     // the tests live in the repo's tests/ folder, at the same paths as the code

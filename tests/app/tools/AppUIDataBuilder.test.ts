@@ -3,7 +3,7 @@ import path from "node:path"
 
 import { describe, expect, test } from "vite-plus/test"
 
-import { keepingCommentsIn } from "$/assembler/json5"
+import { keepingCommentsIn } from "$/util/node/json5"
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 
 import { AppUIDataBuilder } from "../../../packages/app/tools/AppUIDataBuilder.ts"

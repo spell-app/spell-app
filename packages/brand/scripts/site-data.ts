@@ -22,7 +22,7 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
-import { keepingCommentsIn, readJSON5File } from "$/assembler/json5"
+import { keepingCommentsIn, readJSON5File } from "$/util/node/json5"
 import type { SiteDataFile, SiteNav, SitePagesFile, SiteSearchFile } from "$/ui/docs-components/docs-components.types"
 import { ElementManifests } from "$/ui/tools/ElementManifests"
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"

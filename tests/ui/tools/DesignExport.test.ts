@@ -2,7 +2,7 @@ import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { readJSON5File } from "$/assembler/json5"
+import { readJSON5File } from "$/util/node/json5"
 import { DesignColor } from "$/ui/tools/DesignColor"
 import { DesignExport } from "$/ui/tools/DesignExport"
 import { ElementManifests } from "$/ui/tools/ElementManifests"

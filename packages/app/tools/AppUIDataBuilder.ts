@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 
-import { readJSON5File } from "$/assembler/json5"
+import { readJSON5File } from "$/util/node/json5"
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 import {
   APP_COMPONENTS,
