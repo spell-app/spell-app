@@ -50,15 +50,15 @@ import { P } from "$/parser"
  * ```
  * - Why only `syntax` + `tests` at registration:  the class can then be reused by another language's parser.
  * - `@proto static` values are inherited by subclasses;  `@proto` rejects a prop the rule doesn't declare.
- * - The rule NAME comes from the class name, in snake_case:  `DefinePropertyHas` => `"define_property_has"`,
- *   what `syntax` strings say (`{define_property_has}`) -- see `ruleNameFor()`.
+ * - The rule NAME comes from the class name, in snake_case -- see `ruleNameFor()`:
+ *   `DefinePropertyHas` => `"define_property_has"`, what `syntax` strings say (`{define_property_has}`).
  *   - Plain `static ruleName = "line"` where the class name doesn't give it (`class BlockLine`).
  * - Spell keeps one rule class per file, the file named for the class:  "Parser rules" in spell's `AGENTS.md`.
  * - `priority` picks between rules matching the SAME words -- see `Choice.getBestMatch()`:
  *   a `Choice` takes the highest priority, then the longest match, then the earliest rule.
  *   - NOT how tightly an operator binds:  that's spell's operator `precedence`, read only by its expression loop.
- * - Several syntaxes => register the class once per syntax, each with its own `tests`.  Instances merge into
- *   a `P.Group` under the rule's name.
+ * - Several syntaxes => register the class once per syntax, each with its own `tests`.
+ *   Instances merge into a `P.Group` under the rule's name.
  * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
  *   needs `remove`, then `from` somewhere later -- see `Sequence.test()`.  Override `test()` to do better.
  * - `syntax`, `tests` and `ruleName` are NOT inherited -- share syntax with a `const`,
@@ -90,8 +90,9 @@ import { P } from "$/parser"
  * ```
  * - See `specialize()`, and `SP.SpellDeclarations` for how a project writes these out.
  * - `scope.addRule()` registers on the scope's `parser` AND records the class + definition on the scope
- *   (`scope.rules`, a `P.ScopeRule` list), so the scope can later hand on what it created -- that pair is
- *   what re-registering somewhere else needs.  A built rule is frozen and already bound to its name.
+ *   (`scope.rules`, a `P.ScopeRule` list), so the scope can later hand on what it created:
+ *   that pair is what re-registering somewhere else needs.
+ *   A built rule is frozen and already bound to its name.
  *
  * ### 4. Anonymous building blocks ~== plain `new`
  * ```ts
@@ -99,8 +100,9 @@ import { P } from "$/parser"
  * new P.Subrule({ rule: "expression", matchGroup: "thing", optional: true })
  * new P.Sequence(new P.Keyword("give"), new P.Subrule("thing"))
  * ```
- * - No `name`, so they stay out of `match.groups` unless given a `matchGroup`.  Not frozen unless they end up
- *   inside a registered rule.  This is what rulex makes from a `syntax` string, and how rulex defines itself.
+ * - What rulex makes from a `syntax` string, and how rulex defines itself.
+ * - No `name`, so they stay out of `match.groups` unless given a `matchGroup`.
+ * - Not frozen unless they end up inside a registered rule.
  *
  * ### 5. From rulex syntax directly
  * ```ts
@@ -184,9 +186,9 @@ export abstract class Rule<
    * - `ListAddRelative` => `"list_add_relative"`, `If` => `"if"`, `Item2Of` => `"item2_of"`
    * - `list_add_relative`, `matchGroup` (rulex's), `_if` => unchanged
    * - Only splits before a capital, so digits stay put;  a run of capitals is one word:  `JSXText` => `"jsx_text"`.
-   * - Why rule names stay snake_case while classes are PascalCase:  `syntax` strings (`{list_add_relative}`),
-   *   saved declarations and highlighting all name rules, so the names didn't change when the classes did
-   *   (epic `output-targets` P18).
+   * - Why rule names stay snake_case while classes are PascalCase:
+   *   `syntax` strings (`{list_add_relative}`), saved declarations and highlighting all name rules,
+   *   so the names didn't change when the classes did (epic `output-targets` P18).
    */
   static ruleNameFor(className: string): string {
     if (!/^[A-Z]/.test(className)) return className
@@ -228,8 +230,9 @@ export abstract class Rule<
    * - `statics` MUST be plain data (JSON-able) for that round trip:  behaviour lives in our methods.
    * - e.g. `Negatable.specialize({ ruleName: "is" })`
    * - An importable rule class may override this to take a MINIMAL set, working out the rest, e.g.
-   *   `DynamicMethodRule.specialize({ output: "play_fizzbuzz" })`.  It calls `super.specialize(statics, declared)`
-   *   with all of them -- `declared`, what IT was given, is what `specializedWith` remembers.
+   *   `DynamicMethodRule.specialize({ output: "play_fizzbuzz" })`.
+   *   It calls `super.specialize(statics, declared)` with all of them:
+   *   `declared`, what IT was given, is what `specializedWith` remembers.
    */
   static specialize<T extends AbstractClass<Rule>>(
     this: T,
@@ -457,8 +460,8 @@ export abstract class Rule<
   declare optional: boolean | undefined
   /**
    * What may sit between the previous token and our first -- see `P.Spacing`.  Unset:  anything.
-   * - Checked by the rule that holds us (`Sequence`, `Repeat`), which can see the previous token;  rulex sets it
-   *   from how the syntax is spaced.
+   * - Checked by the rule that holds us (`Sequence`, `Repeat`), which can see the previous token;
+   *   rulex sets it from how the syntax is spaced.
    */
   declare spacing: P.Spacing | undefined
   /** What committing our match changes in scope, if set explicitly -- see `getScopeChanges()`. */
@@ -657,8 +660,8 @@ export abstract class Rule<
   }
 
   /**
-   * What a declaration calls one of our matches, as a NAME or OWNER in `getDeclaration()`:  default, its source
-   * text without trailing whitespace, e.g. `card` for `a card has ...`'s type.
+   * What a declaration calls one of our matches, as a NAME or OWNER in `getDeclaration()`:
+   * default, its source text without trailing whitespace, e.g. `card` for `a card has ...`'s type.
    * - Override where the source text isn't the name, e.g. a language's `it` standing for a type, or a name in
    *   quotes.
    */

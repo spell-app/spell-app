@@ -3072,7 +3072,7 @@
           "ruleNames": ["with_nested_statements"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/WithNestedStatements.ts",
-          "line": 12,
+          "line": 13,
           "purpose": "`where:`, `with:` or a bare `:` ending a line -- then the indented block under it is the statement's body, e.g. a type's outline body (epic page `outline-spell` Q7).",
           "syntaxes": [
             {
@@ -3868,7 +3868,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/classes/PropertyValueEither.ts",
           "line": 21,
-          "purpose": "`the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?` -- defines a property getter whose value is conditional on `condition`.",
+          "purpose": "Defines a property getter whose value depends on a condition, e.g. `the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?`",
           "syntaxes": [
             {
               "syntax": "{type_property} is {inline_value_if}",
@@ -4590,8 +4590,8 @@
           "ruleNames": ["subject_implied"],
           "internal": false,
           "file": "packages/spell/src/rules/types/SubjectImplied.ts",
-          "line": 14,
-          "purpose": "The subject an outline body's line leaves out, e.g. `- \"suit\" is a suit` or `- has a name as text` for `its \"suit\" is a suit`, `it has a name as text` -- see `SubjectRule` (epic page `outline-spell`, P8).",
+          "line": 15,
+          "purpose": "The subject an outline body's line leaves out (epic page `outline-spell`, P8).",
           "syntaxes": [],
           "aliases": []
         }

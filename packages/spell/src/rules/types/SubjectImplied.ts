@@ -4,9 +4,10 @@ import { types } from "./types.parser"
 import { SubjectRule } from "./SubjectRule"
 
 /**
- * `subject_implied` rule:  the subject an outline body's line leaves out, e.g. `- "suit" is a suit` or
- * `- has a name as text` for `its "suit" is a suit`, `it has a name as text` -- see `SubjectRule`
- * (epic page `outline-spell`, P8).
+ * `subject_implied` rule:  the subject an outline body's line leaves out (epic page `outline-spell`, P8).
+ * - e.g. `- "suit" is a suit` for `its "suit" is a suit`
+ * - e.g. `- has a name as text` for `it has a name as text`
+ * - Its match is `it`'s or `its`'s, as `SubjectRule` makes it.
  * - Takes NO tokens (`zeroWidth`):  the line's own first word follows it in each member rule's syntax,
  *   a quoted name, or a verb such as `has` or `belongs`.
  * - Only in a type's outline body, as `it` / `its`.

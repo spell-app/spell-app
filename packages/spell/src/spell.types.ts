@@ -324,8 +324,8 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   /** Rest of the line, as an expression. */
   inline_expression: { inlineAs: "expression" },
   /**
-   * Rest of the line, as ONE line of a getter's body:  `red if ... otherwise it is black` (`value_if`),
-   * e.g. `property_value_either`'s.
+   * Rest of the line, as ONE line of a getter's body (`value_if`), e.g. `property_value_either`'s:
+   * `red if ... otherwise it is black`
    */
   inline_value_if: { inlineAs: "value_if" },
   /**

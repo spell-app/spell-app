@@ -6,10 +6,10 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { SpellType } from "$/spell/rules/types/SpellType"
 
 /**
- * A statement declaring a type -- which may take an OUTLINE body:  `a card is a thing where:`, then indented
- * lines all about cards, e.g. `- it has a deck` (epic page `outline-spell`).
- * - The body's scope is a `P.SubjectScope` about the type:  `it` / `its` there mean it -- `subject_it`,
- *   `subject_its` -- except inside a method or getter, where `it` is the instance.
+ * A statement declaring a type -- which may take an OUTLINE body:
+ * `a card is a thing where:`, then indented lines all about cards, e.g. `- it has a deck` (epic page `outline-spell`).
+ * - The body's scope is a `P.SubjectScope` about the type:  `it` / `its` there mean it,
+ *   `subject_it` / `subject_its` -- except inside a method or getter, where `it` is the instance.
  * - `flatBody`:  the body compiles beside the class, as if its lines were written out at the top level,
  *   so its members are hoisted into the class as usual.
  * - `where:`, `with:` and a bare `:` all open the body (epic page Q7):  `{with_nested_statements}?`.
@@ -79,8 +79,8 @@ export class TypeDeclaration<
   }
 
   /**
-   * SIDE EFFECT:  declares `match`'s type in its scope, with its short name if it has one -- unless it's already
-   * defined (no redefinition / merge).
+   * SIDE EFFECT:  declares `match`'s type in its scope, with its short name if it has one
+   * -- unless it's already defined (no redefinition / merge).
    * - A type only STUBBED by an earlier mention, or left by an earlier parse of this statement, is claimed instead --
    *   see `P.TypeScope.claim()`.
    * - An IMPORTED one is declared again anyway, so `SP.SpellDeclarations.checkImportClashes()` can report it.

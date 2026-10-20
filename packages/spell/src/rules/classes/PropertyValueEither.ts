@@ -8,11 +8,11 @@ import { classes } from "./classes.parser"
 import { type MethodBody } from "./classes.shared"
 
 /**
- * `property_value_either` rule:
- * `the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?` -- defines a
- * property getter whose value is conditional on `condition`.
- * - Its body is ONE line of a getter's body, `red if ... otherwise it is black`:  a `value_if`
- *   (epic page `outline-spell`, T6).  So the getter's code is written once, there.
+ * `property_value_either` rule:  defines a property getter whose value depends on a condition,
+ * e.g. `the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?`
+ * - Its body is ONE line of a getter's body, `red if ... otherwise it is black`:
+ *   a `value_if` (epic page `outline-spell`, T6).
+ *   So the getter's code is written once, there.
  * - SIDE EFFECT: stubs `type` into scope (`P.TypeScope.getOrStub()`), and adds any bare constant value
  *   to `scope.constants` if not already known.
  * - Compiles to a getter in its class that `if`s on the condition, returning the other value

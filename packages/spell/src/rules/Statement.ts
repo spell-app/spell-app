@@ -264,8 +264,8 @@ export class SpellStatement<
    * - Default:  a line whose subject (its `type` group) is the body's `it` / `its`, with the subject spelled out:
    *   - `it has a deck` => `a card has a deck`
    *   - `its "color" is red if ...` => `the "color" of a card is red if ...`
-   *   - or left out (`subject_implied`):  `has a deck`, `"color" is red if ...` the same
-   *     (epic page `outline-spell`, P8)
+   *   - the same with the subject left out (`subject_implied`, epic page `outline-spell` P8):
+   *     `has a deck`, `"color" is red if ...`
    * - Override where the sentence style says it differently, e.g. `define_property_has`'s `has ... as ...`.
    * - Its FIRST line only:  a body stays as written.
    */

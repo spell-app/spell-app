@@ -44,10 +44,10 @@ export class Sequence<
   /**
    * Match each rule in `this.rules` in order against `tokens`, bailing unless every non-optional rule matches.
    * - In expecting mode (see `P.Expectations`):
-   *   - out of tokens before a child, records it -- and each optional one after it, up to the first we can't
-   *     do without
-   *   - failing on a child after one ran out of tokens INSIDE it, records that one as `within`:  we're partway
-   *     through it, e.g. an argument of a method call being typed -- for signature help
+   *   - out of tokens before a child, records it
+   *     -- and each optional one after it, up to the first we can't do without
+   *   - failing on a child after one ran out of tokens INSIDE it, records that one as `within`:
+   *     we're partway through it, e.g. an argument of a method call being typed -- for signature help
    *   - children parse one level deeper
    * - A required word failing right after a `{slot}` may make the slot GIVE BACK what it took -- see `giveBack()`.
    * - NOTE: HOT -- normal parsing reads `P.Expectations.current` once, and only after `test()` passes.
