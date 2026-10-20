@@ -35,6 +35,17 @@ describe("IconPacks.resolve()", () => {
     expect(packs.resolve("slack")).toBeUndefined()
   })
 
+  it("names the card suits in the plural:  `hearts`, `diamonds`, even under Fomantic's `diamond` (a gem)", async () => {
+    const packs = new IconPacks()
+    await packs.ready
+    expect(packs.resolve("hearts")?.key).toBe("solid/heart")
+    expect(packs.resolve("hearts outline")?.key).toBe("regular/heart")
+    expect(packs.resolve("diamonds")?.key).toBe("solid/diamond")
+    await packs.use("fomantic")
+    expect(packs.resolve("diamond")?.url).toMatch(/\/solid\/gem\.svg$/)
+    expect(packs.resolve("diamonds")?.url).toMatch(/\/solid\/diamond\.svg$/)
+  })
+
   it("resolves keys against `pack.js`'s folder, sized from the index", async () => {
     const packs = new IconPacks()
     await packs.use(STROKE)

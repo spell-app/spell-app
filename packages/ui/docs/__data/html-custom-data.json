@@ -1493,6 +1493,27 @@
           }
         },
         {
+          "name": "unpadded",
+          "description": {
+            "kind": "markdown",
+            "value": "No padding at all, as `compact` taken to none:  hugs its content.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "wrapped",
+          "description": {
+            "kind": "markdown",
+            "value": "Lets a long text wrap onto more lines.  Without it, a button's text stays on one line.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "ellipsis",
+          "description": {
+            "kind": "markdown",
+            "value": "One line, cut off with `…` where it doesn't fit.  It needs a width to cut at:  `fluid`, a width of its own, or a narrow parent (it's never wider than that).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "labeled",
           "description": {
             "kind": "markdown",

@@ -101,6 +101,8 @@ copied to `dist/icon-packs/` by `emitIconPacks()` (in `vite.config.ts`):
 - The extras ([`iconExtras.ts`](../scripts/iconExtras.ts)):  hand-picked, edit freely.
   - the brands our own examples use:  `discord`, `github`, `medium`, `twitter`
   - the Fomantic names they use, as aliases:  `help`, `mail`, `setting`, `linkify`
+  - our own names, as aliases:  the card suits in the plural, `hearts` and `diamonds`
+    - Font Awesome Free has no club or spade, so `clubs` and `spades` draw nothing.
   - Everything else:  `<ui-root icons="fa7-brands">` / `<ui-root icons="fomantic">`.
 - FA's own aliases (`cog` -> `gear`, `contact book` -> `address book`) are aliases in both FA packs.
   - On a regular icon, with ` outline` added:  `contact book outline`.

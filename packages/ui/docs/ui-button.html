@@ -411,6 +411,17 @@
                 </ui-docs-example>
               </ui-section>
 
+              <ui-section id="examples-variations-unpadded" header="Unpadded" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A button can drop its padding altogether, as `compact` taken to none:  the box hugs its text or icon.  A `labeled` icon button keeps room for its icon block."
+                >
+                  <ui-button unpadded>Hold</ui-button>
+                  <ui-button unpadded icon="pause" aria-label="Pause"></ui-button>
+                  <ui-button unpadded labeled icon="pause">Pause</ui-button>
+                  <ui-button unpadded basic>Basic</ui-button>
+                </ui-docs-example>
+              </ui-section>
+
               <ui-section id="examples-variations-toggle" header="Toggle" sticky collapsible dividing>
                 <ui-docs-example
                   description="A button can be formatted to toggle on and off:  a click flips `active` and fires `ui-toggle`."
@@ -434,6 +445,32 @@
               <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
                 <ui-docs-example description="A button can take the width of its container.">
                   <ui-button fluid>Fits container</ui-button>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-wrapped" header="Wrapped" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A button's text stays on one line, however narrow its container.  `wrapped` lets a long text wrap onto more lines instead."
+                >
+                  <div style="max-width: 10em">
+                    <ui-button>Stays on one line, however long</ui-button>
+                    <ui-divider spacer></ui-divider>
+                    <ui-button wrapped>Wraps onto more lines when it's long</ui-button>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-ellipsis" header="Ellipsis" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`ellipsis` cuts a text that doesn't fit off with `…`, on one line.  It needs a width to cut at:  `fluid`, a width of its own, or a narrow parent, which it never grows past."
+                >
+                  <div style="max-width: 14em">
+                    <ui-button ellipsis fluid icon="download">Download the whole archive</ui-button>
+                    <ui-divider spacer></ui-divider>
+                    <ui-button ellipsis primary>Save every change to this document</ui-button>
+                    <ui-divider spacer></ui-divider>
+                    <ui-button ellipsis style="width: 9em">A width of its own</ui-button>
+                  </div>
                 </ui-docs-example>
               </ui-section>
 

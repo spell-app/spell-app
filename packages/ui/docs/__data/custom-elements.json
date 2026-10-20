@@ -1001,6 +1001,30 @@
               "fieldName": "compact"
             },
             {
+              "name": "unpadded",
+              "description": "No padding at all, as `compact` taken to none:  hugs its content.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "unpadded"
+            },
+            {
+              "name": "wrapped",
+              "description": "Lets a long text wrap onto more lines.  Without it, a button's text stays on one line.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "wrapped"
+            },
+            {
+              "name": "ellipsis",
+              "description": "One line, cut off with `…` where it doesn't fit.  It needs a width to cut at:  `fluid`, a width of its own, or a narrow parent (it's never wider than that).",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "ellipsis"
+            },
+            {
               "name": "labeled",
               "description": "With `icon`:  the icon in its own block, `labeled` (start) or `labeled=\"right\"`.  With `label`:  which side the label goes, `labeled` (end) or `labeled=\"left\"`.",
               "type": {
@@ -1208,6 +1232,10 @@
             {
               "name": "right-floated",
               "description": "The host floats right (`floated=\"right\"`)."
+            },
+            {
+              "name": "ellipsis",
+              "description": "Cuts its text off with `…`:  the host is never wider than its parent."
             },
             {
               "name": "busy",

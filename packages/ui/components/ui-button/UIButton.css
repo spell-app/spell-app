@@ -49,8 +49,9 @@
  *   - NEVER set `--_button-*` or `--_ui-*` from outside;  theme with `--ui-button-*`
  * - NOTE: left out, on purpose:
  *   - social buttons (`facebook`, `twitter` ...):  colour a button with `color` / `--ui-color` instead
- *   - `wrapped` groups (a corner tweak for multi-row basic groups) and the stacked-border tricks of
+ *   - Fomantic's `wrapped` groups (a corner tweak for multi-row basic groups) and the stacked-border tricks of
  *     basic / inverted groups (overlapping negative margins):  groups draw one border plus dividers instead
+ *     - `<ui-button wrapped>` is ours:  a label that may wrap, where a button's text stays on one line by default
  *   - pointing / tag / corner shapes of the `labeled` button's label -- they belong to `label.less`
  *   - a child's OWN colour inside a basic / inverted / tertiary GROUP:  the group resolves those looks where
  *     it declares them, so colour the group (Fomantic's docs only colour groups)
@@ -87,6 +88,10 @@
   }
   :host(:state(right-floated)) {
     float: right;
+  }
+  /* `ellipsis`:  never wider than the parent, so the label has a width to cut at. */
+  :host(:state(ellipsis)) {
+    max-width: 100%;
   }
   /* `delegatesFocus`:  the inner `<button>` draws the ring, never the DOM element. */
   :host(:focus-visible) {
@@ -203,6 +208,8 @@
     text-decoration: none;
     text-shadow: none;
     text-transform: none;
+    /* One line, unless `wrapped` */
+    white-space: nowrap;
     vertical-align: baseline;
     cursor: pointer;
     user-select: none;
@@ -546,6 +553,24 @@
   /* Compact:  three quarters of the padding. */
   .ui.compact:is(.button, .buttons) {
     --_button-density: var(--_ui-button-compact-ratio);
+  }
+
+  /* Unpadded:  no padding at all (a `labeled icon` button keeps room for its icon block). */
+  .ui.unpadded.button {
+    --_button-density: 0;
+  }
+
+  /* Wrapped:  a long label wraps onto more lines;  a button stays on one line without it. */
+  .ui.wrapped.button {
+    white-space: normal;
+  }
+
+  /* Ellipsis:  one line, cut off with "…";  the host's `:state(ellipsis)` keeps it inside its parent. */
+  .ui.ellipsis.button {
+    --_button-overflow: hidden;
+    max-width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   /* Circular:  pill shaped, never narrower than it is tall. */
