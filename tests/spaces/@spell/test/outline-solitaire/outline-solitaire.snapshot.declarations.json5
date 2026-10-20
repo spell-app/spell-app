@@ -11,8 +11,8 @@
     "DiscardPile",
     "Foundation",
     "Tableau",
-    "test_card_setup",
     "test_deck_creation",
+    "test_card_setup",
     "debug_the_game",
     "reset_the_stock_pile",
     "play_from_the_stock_pile",
@@ -26,11 +26,11 @@
       "type": "Deck",
       "superType": "List",
       "itemType": "Card",
-      "defined": "/Deck.spell:274-555"
+      "defined": "/Deck.spell:285-932"
     },
     {
-      "syntax": "set up {thisArg:expression}",
-      "output": "set_up",
+      "syntax": "create {thisArg:expression}",
+      "output": "create",
       "rule": "method_call",
       "of": "Deck",
       "alias": [
@@ -38,9 +38,8 @@
         "expression"
       ],
       "kind": "method",
-      "name": "set up a deck",
-      "returns": "nothing",
-      "defined": "/Dealing.spell:81-303"
+      "name": "create it",
+      "defined": "/Deck.spell:629-783"
     },
     {
       "syntax": "display {thisArg:expression}",
@@ -52,16 +51,8 @@
         "expression"
       ],
       "kind": "method",
-      "name": "display a deck",
-      "defined": "/Dealing.spell:305-454"
-    },
-    {
-      "property": "is_set_up",
-      "asWritten": "is-set-up",
-      "of": "Deck",
-      "datatype": "choice",
-      "autoDeclared": true,
-      "defined": "/Dealing.spell:267-303"
+      "name": "display it",
+      "defined": "/Deck.spell:788-932"
     },
     {
       "type": "Suit",
@@ -73,24 +64,24 @@
         "hearts",
         "spades"
       ],
-      "defined": "/Deck.spell:311-362"
+      "defined": "/Deck.spell:322-373"
     },
     {
       "property": "color",
       "of": "Suit",
-      "defined": "/Deck.spell:366-443"
+      "defined": "/Deck.spell:377-454"
     },
     {
       "constants": [
         "red"
       ],
-      "defined": "/Deck.spell:394-425"
+      "defined": "/Deck.spell:405-436"
     },
     {
       "constants": [
         "black"
       ],
-      "defined": "/Deck.spell:428-443"
+      "defined": "/Deck.spell:439-454"
     },
     {
       "type": "Rank",
@@ -111,7 +102,7 @@
         "queen",
         "king"
       ],
-      "defined": "/Deck.spell:447-499"
+      "defined": "/Deck.spell:458-510"
     },
     {
       "syntax": "{operator:is} a face card",
@@ -122,7 +113,16 @@
       "name": "\"is a face card\"",
       "returns": "choice",
       "staticOf": "Rank",
-      "defined": "/Deck.spell:503-555"
+      "defined": "/Deck.spell:514-566"
+    },
+    {
+      "syntax": "test deck creation",
+      "output": "test_deck_creation",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "deck creation",
+      "defined": "/Deck.spell:934-1416"
     },
     {
       "type": "Card",
@@ -370,7 +370,7 @@
       "kind": "method",
       "name": "play a card",
       "waits": true,
-      "defined": "/Solitaire.spell:3913-4901"
+      "defined": "/Solitaire.spell:3897-4885"
     },
     {
       "syntax": "test card setup",
@@ -380,15 +380,6 @@
       "kind": "function",
       "name": "card setup",
       "defined": "/Card.spell:2215-3327"
-    },
-    {
-      "syntax": "test deck creation",
-      "output": "test_deck_creation",
-      "rule": "method_call",
-      "alias": "statement",
-      "kind": "function",
-      "name": "deck creation",
-      "defined": "/Dealing.spell:456-1015"
     },
     {
       "type": "Pile",
@@ -447,7 +438,7 @@
       "property": "state",
       "of": "Game",
       "datatype": "list",
-      "defined": "/Solitaire.spell:2771-2880"
+      "defined": "/Solitaire.spell:2755-2864"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -460,7 +451,7 @@
       ],
       "kind": "method",
       "name": "draw a game",
-      "defined": "/Solitaire.spell:7343-8738"
+      "defined": "/Solitaire.spell:7327-8722"
     },
     {
       "type": "StockPile",
@@ -478,7 +469,7 @@
       ],
       "kind": "method",
       "name": "draw a stock-pile",
-      "defined": "/Solitaire.spell:7038-7235"
+      "defined": "/Solitaire.spell:7022-7219"
     },
     {
       "type": "DiscardPile",
@@ -496,7 +487,7 @@
       ],
       "kind": "method",
       "name": "draw a discard-pile",
-      "defined": "/Solitaire.spell:7237-7341"
+      "defined": "/Solitaire.spell:7221-7325"
     },
     {
       "type": "Foundation",
@@ -520,7 +511,7 @@
       ],
       "kind": "method",
       "name": "draw a foundation",
-      "defined": "/Solitaire.spell:6593-6938"
+      "defined": "/Solitaire.spell:6577-6922"
     },
     {
       "type": "Tableau",
@@ -538,7 +529,7 @@
       ],
       "kind": "method",
       "name": "draw a tableau",
-      "defined": "/Solitaire.spell:6940-7036"
+      "defined": "/Solitaire.spell:6924-7020"
     },
     {
       "syntax": "debug the game",
@@ -549,7 +540,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2894-2968"
+      "defined": "/Solitaire.spell:2878-2952"
     },
     {
       "syntax": "reset the stock pile",
@@ -560,7 +551,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2970-3136"
+      "defined": "/Solitaire.spell:2954-3120"
     },
     {
       "syntax": "play from the stock pile",
@@ -572,7 +563,7 @@
       ],
       "kind": "function",
       "waits": true,
-      "defined": "/Solitaire.spell:3138-3324"
+      "defined": "/Solitaire.spell:3122-3308"
     },
     {
       "syntax": "deal the cards",
@@ -584,7 +575,7 @@
       ],
       "kind": "function",
       "waits": true,
-      "defined": "/Solitaire.spell:3326-3911"
+      "defined": "/Solitaire.spell:3310-3895"
     },
     {
       "syntax": "auto-play",
@@ -596,7 +587,7 @@
       ],
       "kind": "function",
       "waits": true,
-      "defined": "/Solitaire.spell:4945-6021"
+      "defined": "/Solitaire.spell:4929-6005"
     },
     {
       "syntax": "reset the game",
@@ -607,7 +598,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:6023-6088"
+      "defined": "/Solitaire.spell:6007-6072"
     },
     {
       "syntax": "cheat",
@@ -620,72 +611,71 @@
       "kind": "function",
       "returns": "nothing",
       "waits": true,
-      "defined": "/Solitaire.spell:6090-6466"
+      "defined": "/Solitaire.spell:6074-6450"
     }
   ],
   "codeLines": [
     10,
-    17,
-    26,
+    16,
+    23,
+    35,
+    36,
+    37,
     38,
-    43,
-    44,
-    45,
-    46,
-    49,
-    50,
-    57,
-    59,
-    64,
+    41,
+    42,
+    47,
+    67,
     69,
-    73,
+    74,
     79,
-    84,
-    88,
-    92,
-    97,
-    103,
+    83,
+    89,
+    94,
+    98,
+    102,
     107,
-    112,
-    116,
-    124,
-    130,
-    135,
-    139,
-    144,
+    113,
+    117,
+    122,
+    126,
+    134,
+    140,
+    145,
+    149,
     154,
-    170,
-    175,
-    184,
-    190,
-    227,
-    274,
-    299,
-    302,
-    307,
-    312,
-    317,
-    322,
-    332,
-    349,
-    350,
-    355,
-    361,
+    164,
+    180,
+    185,
+    194,
+    200,
+    237,
+    285,
+    288,
+    293,
+    298,
+    303,
+    308,
+    318,
+    335,
+    336,
+    341,
+    347,
+    391,
+    396,
     405,
     410,
-    419,
-    424,
-    430,
-    431,
-    451,
-    463,
-    473,
-    535,
-    539,
-    548,
-    564,
-    602,
-    640,
-    645
+    416,
+    417,
+    437,
+    449,
+    459,
+    520,
+    524,
+    533,
+    549,
+    587,
+    625,
+    630
   ]
 }

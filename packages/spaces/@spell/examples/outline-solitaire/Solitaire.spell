@@ -29,7 +29,6 @@ solitaire is an app where:
 
 	// once, at the start:  every card of the deck into the stock
 	- to fill the stock:
-		set up its deck
 		for each card in its deck
 			add the card to the stock of the solitaire
 

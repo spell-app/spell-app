@@ -75,7 +75,6 @@ for each number from 1 to 7
 
 // the deck:  every card starts in the stock
 set the deck to a new deck
-set up the deck
 for each card in the deck
 	add it to the stock
 

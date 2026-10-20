@@ -30,6 +30,7 @@ from spell_core.js_text import is_plain_number
 from spell_core.kinds import is_a_number, is_js_truthy, is_same
 from spell_core.lists import List
 from spell_core.positions import zero_index_of
+from spell_core.things import without_create
 
 if TYPE_CHECKING:
     from spell_core.console import SpellConsole
@@ -483,9 +484,12 @@ class CollectionMethods:
             return {}
 
     def new_scratch(self, cls: Callable[[], Any]) -> Any:
-        """A new `cls()`, for a helper's result:  a spell list owns nothing, even an exclusive one (`as_scratch()`)."""
+        """A new `cls()`, for a helper's result:  a spell list owns nothing, even an exclusive one (`as_scratch()`).
+
+        - A copy, not a new one:  its `create()` doesn't run (`without_create()`).
+        """
         # never one of the program's things:  a place counts only those (`core.things_made()`)
-        with self.quietly():  # type: ignore[attr-defined]
+        with self.quietly(), without_create():  # type: ignore[attr-defined]
             made = cls()
         if isinstance(made, List):
             made.as_scratch()

@@ -14,28 +14,24 @@ from spell_core import core, Thing, List, App, prop, h, position, spell_position
 class Deck(List):
     """
     First in the project:  a card says `its "suit" is a suit of its deck`, so the deck's kinds come before it.
-    What a deck DOES uses the card's names, so it's in `Dealing.spell`, after `Card.spell`.
+    So what a deck DOES reads only what a card says it is:  its name, rank and suit, not `short name`.
     """
 
     @staticmethod
     def instance_type() -> Any:
         return Card
 
-    # Dealing:  what a deck does -- after `Card.spell`, as it reads a card's names
-
-    def set_up(self) -> None:
-        if self.is_set_up:
-            return
+    def create(self) -> None:
+        """a new deck holds one of each card, ace of clubs first"""
         for rank in Deck.RANKS:
             for suit in Deck.SUITS:
                 it = Card(rank=rank, suit=suit)
                 self.append(it)
-        self.is_set_up = True
 
     def display(self) -> None:
         card_names = List()
         for card in self:
-            card_names.append(card.short_name)
+            card_names.append(card.name)
         core.echo(f"deck: {card_names}")
 
     # "suits" as one of clubs, diamonds, hearts or spades
@@ -43,9 +39,6 @@ class Deck(List):
 
     # "ranks" as one of ace, 2 ... 10, jack, queen or king
     RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
-
-    # set the is-set-up of the deck to yes
-    is_set_up = prop(type="choice")
 
 
 class Suit:
@@ -60,6 +53,40 @@ class Rank:
     @staticmethod
     def is_a_face_card(rank: Any) -> bool:
         return rank in ["jack", "queen", "king"]
+
+
+def test_deck_creation() -> Any:
+    with core.test("test deck creation"):
+        core.echo_test_action("the deck is a new deck")
+        deck = Deck()
+        core.expect(len(deck), "the number of cards in the deck", 52, "52")
+        core.echo_test_action(
+            "set the queens to the cards in the deck where the rank of the card is \"queen\"",
+        )
+        queens = deck.filter(lambda card: card.rank == "queen")
+        core.expect(len(queens), "the number of cards in the queens", 4, "4")
+        core.expect(
+            getattr(deck.last_item, "name", None),
+            "the name of the bottom card of the deck",
+            "king-of-spades",
+            "\"king-of-spades\"",
+        )
+        core.expect(
+            getattr(deck.first_item, "name", None),
+            "the name of the top card of the deck",
+            "ace-of-clubs",
+            "\"ace-of-clubs\"",
+        )
+
+        core.echo("the deck before shuffling:")
+        core.echo_test_action("display the deck")
+        deck.display()
+        core.expect(
+            getattr(deck.first_item, "name", None),
+            "the name of the first card of the deck",
+            "ace-of-clubs",
+            "\"ace-of-clubs\"",
+        )
 
 
 # -----------
@@ -300,48 +327,6 @@ async def test_card_setup() -> Any:
 
 
 asyncio.run(test_card_setup())
-
-
-# -----------
-
-
-def test_deck_creation() -> Any:
-    with core.test("test deck creation"):
-        core.echo_test_action("the deck is a new deck")
-        deck = Deck()
-        core.echo_test_action("set up the deck")
-        deck.set_up()
-        core.expect(len(deck), "the number of cards in the deck", 52, "52")
-        core.echo_test_action("set up the deck")
-        deck.set_up()
-        core.expect(len(deck), "the number of cards in the deck", 52, "52")
-        core.echo_test_action(
-            "set the queens to the cards in the deck where the rank of the card is \"queen\"",
-        )
-        queens = deck.filter(lambda card: card.rank == "queen")
-        core.expect(len(queens), "the number of cards in the queens", 4, "4")
-        core.expect(
-            getattr(deck.last_item, "name", None),
-            "the name of the bottom card of the deck",
-            "king-of-spades",
-            "\"king-of-spades\"",
-        )
-        core.expect(
-            getattr(deck.first_item, "short_name", None),
-            "the short name of the top card of the deck",
-            "A♣️",
-            "\"A♣️\"",
-        )
-
-        core.echo("the deck before shuffling:")
-        core.echo_test_action("display the deck")
-        deck.display()
-        core.expect(
-            deck.first_item.is_the_rank_of_suits("ace", "clubs"),
-            "the first card of the deck is the ace of clubs",
-            True,
-            "yes",
-        )
 
 
 # -----------
@@ -601,7 +586,6 @@ for number in range(1, 8):
 
 # the deck:  every card starts in the stock
 deck = Deck()
-deck.set_up()
 for card in deck:
     stock.append(card)
 

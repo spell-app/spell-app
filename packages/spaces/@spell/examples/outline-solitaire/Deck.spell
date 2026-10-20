@@ -9,27 +9,23 @@ a "deck" is a list of cards with:
 	- "ranks" as one of ace, 2 ... 10, jack, queen or king
 	- a rank "is a face card" if it is jack, queen or king
 
+	// a new deck holds one of each card, ace of clubs first
+	- to create it:
+		for each rank in deck ranks
+			for each suit in deck suits
+				get a new card with rank = the rank, suit = the suit
+				add it to the deck
 
-## Dealing:  what a deck does
-to set up a deck
-	if the is-set-up of it return
-	for each rank in deck ranks
-		for each suit in deck suits
-			get a new card with rank = the rank, suit = the suit
-			add it to the deck
-	set the is-set-up of the deck to yes
+	- to display it:
+		set card-names to a new list of text
+		for each card in the deck
+			add the name of the card to card-names
+		echo "deck: " + card-names
 
-to display a deck
-	set card-names to a new list of text
-	for each card in the deck
-		add the name of the card to card-names
-	echo "deck: " + card-names
 
+## Tests
 to test deck creation
 	the deck is a new deck
-	set up the deck
-	the number of cards in the deck should be 52
-	set up the deck
 	the number of cards in the deck should be 52
 	set the queens to the cards in the deck where the rank of the card is "queen"
 	the number of cards in the queens should be 4

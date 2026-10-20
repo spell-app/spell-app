@@ -6,27 +6,24 @@ core.heading("Deck:  US standard card deck (without jokers) -- in the outline st
 ///////////////////////////////////////////////////////////////////////////
 /**
  * First in the project:  a card says `its "suit" is a suit of its deck`, so the deck's kinds come before it.
- * What a deck DOES uses the card's names, so it's in `Dealing.spell`, after `Card.spell`.
+ * So what a deck DOES reads only what a card says it is:  its name, rank and suit, not `short name`.
  */
 export class Deck extends List {
   static get instanceType() {
     return Card
   }
 
-  //## Dealing:  what a deck does -- after `Card.spell`, as it reads a card's names
-
-  setUp() {
-    if (this.isSetUp) return
+  /** a new deck holds one of each card, ace of clubs first */
+  create() {
     Deck.Ranks.forEach((rank) => Deck.Suits.forEach((suit) => {
       const it = new Card({ rank: rank, suit: suit })
       this.append(it)
     }))
-    this.isSetUp = true
   }
 
   display() {
     const cardNames = new List()
-    this.forEach((card) => cardNames.append(card.shortName))
+    this.forEach((card) => cardNames.append(card.name))
     core.echo(`deck: ${cardNames}`)
   }
 
@@ -35,11 +32,6 @@ export class Deck extends List {
 
   // "ranks" as one of ace, 2 ... 10, jack, queen or king
   static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
-
-  // set the is-set-up of the deck to yes
-  static { this.declareProp("isSetUp", { type: "choice" }) }
-  get isSetUp() { return this.getProp("isSetUp") }
-  set isSetUp(value) { this.setProp("isSetUp", value) }
 }
 export class Suit {
   static color(suit) {
@@ -51,6 +43,24 @@ export class Rank {
   static isAFaceCard(rank) {
     return core.includes(["jack", "queen", "king"], rank)
   }
+}
+
+export function testDeckCreation() {
+  return core.test("test deck creation", function testDeckCreation() {
+    core.echoTestAction(`the deck is a new deck`)
+    const deck = new Deck()
+    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
+    core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
+    const queens = deck.filter((card) => card.rank == "queen")
+    core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
+    core.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    core.expect(deck.firstItem?.name, `the name of the top card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
+
+    core.echo("the deck before shuffling:")
+    core.echoTestAction(`display the deck`)
+    deck.display()
+    core.expect(deck.firstItem?.name, `the name of the first card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
+  })
 }
 // -----------
 core.heading("Definition of a card -- in the outline style:  a heading, then what's true of it")
@@ -270,30 +280,6 @@ export function testCardSetup() {
   })
 }
 if (!core.isCarryingOver) testCardSetup()
-// -----------
-core.heading("Dealing:  what a deck does -- after `Card.spell`, as it reads a card's names")
-export function testDeckCreation() {
-  return core.test("test deck creation", function testDeckCreation() {
-    core.echoTestAction(`the deck is a new deck`)
-    const deck = new Deck()
-    core.echoTestAction(`set up the deck`)
-    deck.setUp()
-    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    core.echoTestAction(`set up the deck`)
-    deck.setUp()
-    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    const queens = deck.filter((card) => card.rank == "queen")
-    core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
-    core.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    core.expect(deck.firstItem?.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
-
-    core.echo("the deck before shuffling:")
-    core.echoTestAction(`display the deck`)
-    deck.display()
-    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
-  })
-}
 // -----------
 core.heading("Pile of playing cards")
 /** Pile of playing cards */
@@ -525,7 +511,6 @@ core.getRange(1, 7).forEach((number) => {
 
 /** the deck:  every card starts in the stock */
 export const deck = new Deck()
-deck.setUp()
 deck.forEach((card) => stock.append(card))
 
 core.heading("What the game knows:  read from the table, so after it")

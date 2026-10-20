@@ -9,7 +9,7 @@
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
-import { flushCells } from "$/util"
+import { flushCells, withoutCreate } from "$/util"
 // Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
 import { assert } from "./assert"
 import { defineCoreModule, type PropCheck, type Core } from "./core.types"
@@ -131,10 +131,12 @@ export const coreMethods = defineCoreModule({
    * - NOT one of the program's things -- see `ThingRegistry.quietly()`
    * - a list owns nothing, even an exclusive one (epic page D8):
    *   filtering a pile mustn't take its cards -- see `List.asScratch()`
+   * - its `create()` doesn't run:  it's a copy, not a new one -- see `withoutCreate()`
    */
   newScratch(constructor: new () => unknown): unknown {
     const things = programThings()
-    const made = things ? things.quietly(() => new constructor()) : new constructor()
+    const make = () => withoutCreate(() => new constructor())
+    const made = things ? things.quietly(make) : make()
     ;(made as { asScratch?: () => unknown }).asScratch?.()
     return made
   },
