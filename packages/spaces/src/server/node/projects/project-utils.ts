@@ -226,8 +226,9 @@ const GENERATED_SUFFIXES = [
  *   They have:  this one also leaves out compiled output, snapshots, scope packs, page files and words files.
  * - Leaves out spaces' own names, by the list spaces keeps (`SPACES.isSpaceName()`, decision J52):
  *   `__init__.js` or `__helpers__.spell` still list.
+ * - Lists property editor pages (`SP.EDITOR_PAGE_SUFFIX`, `Card.editor.html`):  the editor opens them as text.
  */
-const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
+const manifestExtensions = [".spell", ".css", ".js", ".jsx", SP.EDITOR_PAGE_SUFFIX]
 export function isManifestFile(name: string, projectName = "") {
   if (SPACES.isSpaceName(name)) return false
   if (GENERATED_SUFFIXES.some((suffix) => name.endsWith(suffix))) return false
@@ -363,8 +364,8 @@ export const request_getIndex = respondWithJSON(async (request) => {
 
 /**
  * The still-encoded rest of `request`'s path after `prefix`, e.g. `@spell/examples` for `/api/projects/list/...`.
- * - From the path AS IT ARRIVED (`originalUrl`):  a route's params are decoded whole, and a place is decoded part by
- *   part (`SP.SpellUrls`, rule 4).
+ * - From the path AS IT ARRIVED (`originalUrl`):
+ *   a route's params are decoded whole, and a place is decoded part by part (`SP.SpellUrls`, rule 4).
  */
 function tailOf(request: Request, prefix: string): string {
   const path = request.originalUrl.split(/[?#]/)[0]!
@@ -409,8 +410,9 @@ export function fileOrOldName(serverPath: string): string {
  * - Failure:
  *   - 404 (via `responseUtils.sendFile()`) if file not found
  *   - 400 if the URL names no project's file (no file after the project, an unknown group, a bad part)
- * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
- *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
+ * - NOTE: deliberately NOT wrapped in `respondWithJSON`:
+ *   that would send a JSON body on top of the file we already streamed.
+ *   We catch by hand instead, so a rejection can't go unhandled and hang the client.
  */
 export const request_getFile = async (request: Request, response: Response) => {
   let location: SP.SpellLocation
@@ -549,6 +551,41 @@ export async function setProjectTitle(projectId: string, title: string | null | 
 }
 
 /**
+ * SIDE EFFECT:  project `projectId`'s file says `settings`, its comments and its `imports` kept
+ * (Project Settings, epic `property-editor` P5).
+ * - Only the settings a person edits (`SPACES.PROJECT_SETTINGS`), never its `imports`.
+ * - A setting that's `null`, `""` or `[]` is removed:  its default applies.
+ * - A setting `settings` doesn't name is left as it is.
+ * - Returns the settings the file says now.
+ */
+export async function saveProjectSettings(
+  projectId: string,
+  settings: SPACES.ProjectSettings
+): Promise<SPACES.ProjectSettings> {
+  const file: Record<string, unknown> = { ...(await loadProjectFile(projectId)) }
+  for (const key of SPACES.PROJECT_SETTINGS) {
+    if (!(key in settings)) continue
+    const value = settings[key]
+    const isEmpty = value === null || value === "" || (Array.isArray(value) && !value.length)
+    if (isEmpty) delete file[key]
+    else file[key] = value
+  }
+  await saveProjectFile(projectId, file as ProjectFileJSON)
+  return Object.fromEntries(SPACES.PROJECT_SETTINGS.filter((key) => key in file).map((key) => [key, file[key]]))
+}
+
+/**
+ * `POST /api/projects/settings/project` -- save a project's settings into its project file.
+ * - Client sends body:  `{ projectId, settings }`, see `saveProjectSettings()`.
+ * - Returns:  the settings its file says now.
+ * - Failure:  500 if `projectId` is invalid, or on write error.
+ */
+export const request_saveProjectSettings = respondWithJSON(async (request) => {
+  const { projectId, settings } = request.body
+  return await saveProjectSettings(projectId, settings ?? {})
+})
+
+/**
  * Remove (permanently delete) project `projectId` -- recursive folder delete via `fileUtils.deletePath()`.
  * - Its build folder too.
  */
@@ -607,8 +644,8 @@ function isGeneratedFileOf(name: string, projectName: string): boolean {
  * `DELETE /api/projects/remove/project` -- permanently delete a project.
  * - Client sends body: `{ projectId }`.
  *   - NOTE: a `DELETE` request carrying a JSON body, which `SpellProjectRoot.deleteApp()` on the client relies on.
- *   - It works because the routes' body parser (`SRV.parseBodies()`, in `cli.ts` and `appRoutes.ts`) reads a body
- *     for every verb, not just `POST`.
+ *   - It works because the routes' body parser (`SRV.parseBodies()`, in `cli.ts` and `appRoutes.ts`)
+ *     reads a body for every verb, not just `POST`.
  * - Returns: updated project list for `projectId`'s `projectRoot`.
  * - Failure: 500 if `projectId` is invalid.
  * - No confirmation/undo server-side:  deletion is immediate and permanent.

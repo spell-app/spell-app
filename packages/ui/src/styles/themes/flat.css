@@ -15,7 +15,8 @@
  *   - `@headerMargin: 1em 0 1rem` -> `--ui-header-margin-top` / `-bottom`
  * - Form (Fomantic's `form.variables` + `form.overrides`), all scoped to FORMS, as Fomantic's were:
  *   - uppercase 11px labels:  `--ui-form-label-font-size` + a `text-transform` override (no token)
- *   - `@gutterWidth`, `@validationMargin` -> `--ui-form-gutter`, `--ui-form-prompt-inline-margin`
+ *   - `@gutterWidth` -> `--ui-form-gutter`
+ *   - `@validationMargin`:  none, since fields show errors as plain lines under the control
  *   - text inputs:  transparent, square, no border but a `#ddd` underline, `0.5em` side padding;  textareas keep a
  *     full `#ddd` border, `1em` padding, and turn `#eee` on focus
  *   - selection dropdowns:  underlined and square too;  their menu keeps the default radius
@@ -72,7 +73,6 @@
     /* Form */
     --ui-form-label-font-size: 0.78571em;
     --ui-form-gutter: 1.5em;
-    --ui-form-prompt-inline-margin: 0 0 0 1em;
   }
 
   /* Form scope:  controls inside a form are flat;  the same controls elsewhere keep classic's look. */

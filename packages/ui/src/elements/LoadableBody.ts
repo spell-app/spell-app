@@ -116,6 +116,7 @@ export class LoadableBody {
     this.pendingKey = LoadableBody.key(request.source, request.select)
     this.loadStatus = E.SourceStatus.loading
     this.loadError = undefined
+    this.owner.send(E.SourceEvent.loading, { source: request.source })
     this.isOverdue = false
     const timer = E.after(E.SOURCE_BODY_HOLD_MS / 1000, () => {
       if (generation === this.generation) this.isOverdue = true
@@ -139,6 +140,8 @@ export class LoadableBody {
       if (generation !== this.generation) return
       this.insert(E.SourceMarkup.parse(loaded.text, { page: domElement.ownerDocument, source, select }))
       this.loadStatus = E.SourceStatus.loaded
+      this.owner.send(E.SourceEvent.loaded, { source, content: loaded.text })
+      // its old name, until every page listens for the new (epic `property-editor` P10)
       this.owner.send(E.SourceEvent.load, { source, content: loaded.text })
     } catch (error) {
       if (generation !== this.generation) return

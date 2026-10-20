@@ -6,24 +6,25 @@
  *   `UIT` by value straight from `components.types`.
  * - The notes below are the whole family's:  `<ui-field>`, `<ui-fields>` and `<ui-repeat>` too.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-form size="large" state="error">` => `ui large error form`;
- *   `<ui-field width="4" required>` => `required four wide field`;
- *   `<ui-fields widths="2" inline>` => `inline two fields`, `widths="equal"` => `equal width fields`.
- *   Fields have no `ui` (Fomantic styles them inside `.ui.form`).
+ *   - `<ui-form size="large" state="error">` => `ui large error form`
+ *   - `<ui-field width="4" required>` => `required four wide field`
+ *   - `<ui-fields widths="2" inline>` => `inline two fields`, `widths="equal"` => `equal width fields`
+ *   - Fields have no `ui` (Fomantic styles them inside `.ui.form`).
  * - `state` is `kind: "valueOnly"`:  it emits its value alone (`error field`), a remap in `colors.css`.
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
- * - Binding too:  `value` is a PROPERTY (`json`), the object its named controls show and edit;
+ * - Binding too:  `value` is a PROPERTY (`json`), the object its named controls show and edit.
  *   `<ui-repeat name>` repeats its fields per item of one of its lists.
  */
 
 import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import { STATE_STATES, ValidationTriggers } from "./UIForm.types"
+import { FormApplyModes, STATE_STATES, ValidationTriggers } from "./UIForm.types"
 
 /****************
  * ### `formVocabulary`
- * The names of `<ui-form>`, a form's look and its validation, around a NATIVE `<form>` (slotted inside it,
- * or around it):  `<div class="ui … form" part="form"><slot></slot></div>`.
+ * The names of `<ui-form>`:  a form's look and its validation,
+ * around a NATIVE `<form>` (slotted inside it, or around it).
+ * - Its shadow DOM:  `<div class="ui … form" part="form"><slot></slot></div>`.
  ****************/
 export const formVocabulary = {
   tag: "ui-form",
@@ -60,13 +61,24 @@ export const formVocabulary = {
         "`--ui-stack-with` token decides (`<ui-root stack-with>`)."
     },
     {
-      name: "validate-on",
+      name: "validate",
       kind: "enum",
+      // not `validate`:  that's the DOM element's `validate()`
+      property: "validateOn",
       values: ValidationTriggers,
-      default: "submit",
+      default: "on save",
       description:
-        "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A " +
-        "field showing an error always re-validates as it changes."
+        "When fields validate:  `immediately`, as each changes;  `on leave`, as the cursor leaves each;  or only " +
+        "`on save` (a submit, or `save()`).  A field showing an error always validates again as it changes."
+    },
+    {
+      name: "apply",
+      kind: "enum",
+      values: FormApplyModes,
+      default: "immediately",
+      description:
+        "When edits land in the bound `value`:  `immediately`;  or `on save`, all together on `save()`, while " +
+        "`cancel()` drops them (`:state(changed)` while any are held).  Each field's own `apply` says when it takes an edit."
     },
     {
       name: "rules",
@@ -124,6 +136,29 @@ export const formVocabulary = {
       name: "ui-failure",
       detail: "{ values: Record<string, FieldValue>, errors: Record<string, string[]>, originalEvent?: Event }",
       description: "A submit failed validation (the native submission is stopped);  `errors` by field."
+    },
+    {
+      name: "ui-saving",
+      detail: "{ changes: FormChange[], value: unknown }",
+      cancelable: true,
+      description:
+        '`save()`, with `apply="on save"`:  the held edits are about to land;  `preventDefault()` keeps them held.'
+    },
+    {
+      name: "ui-saved",
+      detail: "{ changes: FormChange[], value: unknown }",
+      description: "The held edits landed in the bound `value`."
+    },
+    {
+      name: "ui-cancelling",
+      detail: "{ changes: FormChange[] }",
+      cancelable: true,
+      description: "`cancel()`:  the held edits are about to be dropped;  `preventDefault()` keeps them."
+    },
+    {
+      name: "ui-cancelled",
+      detail: "{ changes: FormChange[] }",
+      description: "The held edits were dropped:  every control shows the bound `value` again."
     }
   ],
   slots: [{ name: "", description: "The native `<form>` (or its content, when the `<ui-form>` sits inside one)." }],
@@ -134,6 +169,7 @@ export const formVocabulary = {
   states: [
     ...STATE_STATES,
     { name: "loading", description: "Busy." },
+    { name: "changed", description: '`apply="on save"`:  edits are held, not saved yet.' },
     { name: "disabled", description: "Can't be used." },
     {
       name: "root",

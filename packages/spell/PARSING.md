@@ -247,7 +247,10 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `parenthesized_expression`:  what's inside
 - A rule needing a LOOKUP for it does it in `parse()`, into `match.data`:
   - what it looks up:  a member of a type, a list type's item type, a method's record
-  - how:  `scope.getType(datatype)`, `scope.getItemType(datatype)`, `TypeScope.getMember(words)`
+  - how:
+    - `scope.getType(datatype)`
+    - `scope.getItemType(datatype)`
+    - `TypeScope.getMember(words)`
   - never in `getDatatype()`, which may run later
 - Sinks:  where a datatype is kept, so later lines know it.
   - a new variable:  the value's datatype, on its `ScopeVariable`
@@ -712,6 +715,26 @@ A kind that says so is saved in a file of its own.
     - `quoted_type_expression`, `quoted_property_formula`
     - `its_quoted_property` (a `type_property` for `property_value_either`)
     - `saved_inline`, `saved_in_file`, and `list_guard`'s three (`- it can take a card if: ...`)
+- A property's RULES (epic `property-editor` P9):  what its value must be, beyond its type.
+  - The words after `must`:  [`must_rule`](src/rules/classes/MustRule.ts).
+    - e.g. `not be empty`, `match "^\d+$"`, `be between 1 and 5`
+    - then, if it likes, what to say when it's broken:  `with suggestion "..."` (`rule_suggestion`)
+  - A pattern is read exactly as typed (`pattern_text`):  `[a-z]` is a set of letters, not a fill-in as in text.
+  - Three places:
+    - a line of its own, `- its title must not be empty`:  [`property_must`](src/rules/classes/PropertyMust.ts)
+    - the property's own line, `- it has a title as text, which must not be empty`
+    - indented under it, `- it must not be empty`:  `property_body_must`
+  - The last is the property's own BODY:  `{nested_statements}?`, at the end of `define_property_has`'s syntaxes.
+    - Its scope is a `P.SubjectScope` the property statement declared.
+      `property_body_must` takes a line only there.
+    - The body compiles to nothing itself:  `DefinePropertyHas.rulesOf()` reads its lines.
+  - Each rule lands on the property's record, so the declarations write them (`rules`).
+    - `P.TypeScope.addPropertyRules()` keeps them by statement, journaled.
+    - From its body:  in `mutateScopeFromBody()`.
+    - From a line of its own:  in its `mutateScope()`, if the property is declared above it (else a warning).
+  - And in the compiled class:
+    - with the property:  `declareProp("title", { type: "text", rules: [...] })`
+    - for a line of its own, `P.ASTPropertyRules`:  `Card.declareRules(...)` after the class
 - `subject_implied`:  the subject LEFT OUT (P8).
   - e.g. `- has a name as text`, `- "suit" is a suit`
   - A `SubjectRule` taking NO tokens (`zeroWidth`, see "Rules and matching").
@@ -1137,13 +1160,14 @@ A kind that says so is saved in a file of its own.
   - Spaces' list:  `SPACES.SPACE_NAMES` (`isSpaceName()`).
     - e.g. `__members/`, `__project.json5` ...
   - Known by that list, never by the `__` alone:  `__init__.py` and `__snapshots__/` are a project's files.
-- A project's file, `__project.json5` (`SP.PROJECT_FILE`;  an old `project.json` is read too), imports:
+- A project's file, `__project.json5` (`SP.PROJECT_FILE`), imports:
   - another project by its address, `{ "path": "@spell/library/cards" }`
   - its own files by their paths in it, `{ "path": "/Card.spell" }`
   - `SpellLocation.isAddress()` tells them apart:  only an address has an `@` in its first part.
+  - An old `project.json` is read too.
 - Compiled output is never one of a project's own files.
-  - The server's index lists only spell, CSS and javascript files:  see `isManifestFile()`.
-    - `.spell`, `.css`, `.js` and `.jsx`
+  - The server's index lists only spell, CSS and javascript files, and property editor pages:  see `isManifestFile()`.
+    - `.spell`, `.css`, `.js`, `.jsx` and `.editor.html` (`SP.EDITOR_PAGE_SUFFIX`)
     - So no other target's output, e.g. `<Project>.spell.py`, is ever listed.
   - Of those, it leaves out:
     - a project's `<Project>.spell.js`, and a fixture's `<Project>.snapshot.js`

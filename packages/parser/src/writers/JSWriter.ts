@@ -1178,12 +1178,19 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * A comment saying the spell that made `node`:  `// - its "friend-lists" is a list of friend-lists`
-   * -- `undefined` when there's none (`spellOf()`).
+   * A comment saying the spell that made `node` (`spellOf()`):  a `//` line for each of its lines.
+   * - e.g. `// - its "friend-lists" is a list of friend-lists`
+   * - `undefined` when there's none.
    */
   spellComment(node: P.ASTNode): string | undefined {
     const spell = this.spellOf(node)
-    return spell && `// ${spell}`
+    return (
+      spell &&
+      spell
+        .split("\n")
+        .map((line) => `// ${line}`)
+        .join(jsText.NEWLINE)
+    )
   }
 
   /**
@@ -1307,6 +1314,12 @@ export class JSWriter extends ProgramWriter {
   /** Its `member`, patched onto its class from outside, wherever that class is written. */
   ASTPatchedMember(node: P.ASTPatchedMember): string {
     return this.write(node.member)
+  }
+
+  /** A property's rules, from outside its class:  `Card.declareRules("title", [{ type: "empty" }])`. */
+  ASTPropertyRules(node: P.ASTPropertyRules): string {
+    const name = this.quoted(this.propertyName(node.property))
+    return this.withSpell(node, `${this.write(node.type)}.declareRules(${name}, ${this.bare(node.rules)})`)
   }
 
   ////////////////

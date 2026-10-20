@@ -62,13 +62,13 @@
               flow of the page;  the fixed ones start `hidden` and open from a button, so they never cover the docs.  Most are
               `closable="false"`, so a stray click doesn't take the example away.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
               <ui-message size="small" state="info"
                 >A nag shows as soon as it is on the page, unless its dismissal is remembered (see the Usage tab) or
                 it starts <code>hidden</code>; Fomantic's starts hidden until script calls it.</ui-message
               >
 
-              <ui-section id="examples-types-nag" header="Nag" sticky collapsible dividing>
+              <ui-section id="examples-types-nag" label="Nag" sticky collapsible dividing>
                 <ui-docs-example
                   description="A simple nag appears in the DOM where it is declared.  Closing it hides it for this visit."
                 >
@@ -76,7 +76,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-title" header="Title" sticky collapsible dividing>
+              <ui-section id="examples-types-title" label="Title" sticky collapsible dividing>
                 <ui-docs-example
                   description='A nag can have a title:  a `<span class="title">` inside is set off in the title colour.'
                 >
@@ -86,11 +86,12 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-fixed-nag" header="Fixed Nag" sticky collapsible dividing>
+              <ui-section id="examples-types-fixed-nag" label="Fixed Nag" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A fixed nag appears at the top of the screen. This one starts <code>hidden</code> and a button shows
-                    it (<code>command="--show"</code>); <code>persist</code> ignores the stored dismissal, for the demo.
+                    A fixed nag appears at the top of the screen:  this one starts <code>hidden</code>, and a button
+                    shows it (<code>command="--show"</code>). <code>persist</code> ignores the stored dismissal, for the
+                    demo.
                   </p>
                   <ui-button commandfor="nag-fixed" command="--show" icon="eye">Show fixed nag</ui-button>
                   <ui-nag id="nag-fixed" fixed hidden persist>Look, I am a fixed nag!</ui-nag>
@@ -101,7 +102,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-overlay-nag" header="Overlay Nag" sticky collapsible dividing>
+              <ui-section id="examples-types-overlay-nag" label="Overlay Nag" sticky collapsible dividing>
                 <ui-docs-example
                   description="An overlay nag is absolute positioned and appears at the top of the parent element, over its content."
                 >
@@ -125,8 +126,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-groups" header="Groups" sticky collapsible dividing>
-              <ui-section id="examples-groups-nags" header="Nags" sticky collapsible dividing>
+            <ui-section id="examples-groups" label="Groups" sticky collapsible dividing>
+              <ui-section id="examples-groups-nags" label="Nags" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A group of nags can be formatted to appear together.</p>
                   <ui-message slot="description" size="small" class="site-not-ported"
@@ -140,8 +141,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example description="A nag can be formatted to be different colors.">
                   <ui-nag color="red" closable="false"><span class="title">Red</span></ui-nag>
                   <ui-nag color="orange" closable="false"><span class="title">Orange</span></ui-nag>
@@ -158,7 +159,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example
                   description="A nag can be formatted to appear inverted:  a nag is dark by default, `inverted` makes it light;  a coloured one takes its tint."
                 >
@@ -171,7 +172,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A nag can have different sizes.">
                   <ui-nag size="mini" closable="false"><span class="title">Mini nag</span></ui-nag>
                   <ui-nag size="tiny" closable="false"><span class="title">Tiny nag</span></ui-nag>
@@ -187,7 +188,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  showing, remembering, events, script API, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Nags present a one-time message that persists until the user acknowledges it: the site's use of cookies, an
@@ -206,7 +207,7 @@
 
             <ui-section
               id="usage-remembering-the-dismissal"
-              header="Remembering the dismissal"
+              label="Remembering the dismissal"
               sticky
               collapsible
               dividing
@@ -225,7 +226,7 @@
               </ui-markdown>
               <ui-section
                 id="usage-remembering-the-dismissal-cookie-nag"
-                header="Cookie nag"
+                label="Cookie nag"
                 sticky
                 collapsible
                 dividing
@@ -249,13 +250,13 @@
                 </script>
               </ui-code>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's API-backed dismissal, <code>expirationKey</code>, <code>detachable</code> and
-                <code>context</code> -- the nag stays where it is written; store the dismissal on a server from
+                >Not ported: Fomantic's API-backed dismissal, and its expirationKey, detachable and context settings.
+                The nag stays where it is written:  store the dismissal on a server from
                 <code>ui-hide</code>.</ui-message
               >
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `ui-show` -- shown, its entry animation finished (Fomantic's `onVisible`); `detail` is `{}`.
@@ -277,7 +278,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-behaviors" header="Behaviors" sticky collapsible dividing>
+            <ui-section id="usage-behaviors" label="Behaviors" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Fomantic's behaviors are methods on the host:
@@ -291,7 +292,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Tab** reaches the close icon, a real `<button>`.
@@ -300,7 +301,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A nag has no role of its own: it's content, read in page order. If it must be announced when it appears,
@@ -314,7 +315,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A nag manages itself: put it in the template with a `key`, and listen for `ui-hide` if you track it.
@@ -354,7 +355,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-nag-*` tokens: set one on the element, on any ancestor (`:root` for every nag), or
@@ -387,7 +388,7 @@
               <ui-docs-tokens family="ui-nag" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

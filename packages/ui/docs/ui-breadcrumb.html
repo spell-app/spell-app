@@ -57,8 +57,8 @@
               Each breadcrumb is a `<nav>` landmark, so every example names its own with `aria-label`:  two landmarks with one
               name on a page are ambiguous.  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-breadcrumb" header="Breadcrumb" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-breadcrumb" label="Breadcrumb" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A standard breadcrumb. Each <code>&lt;ui-breadcrumb-section&gt;</code> draws its own divider, so
@@ -80,8 +80,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-divider" header="Divider" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-divider" label="Divider" sticky collapsible dividing>
                 <ui-docs-example
                   description="A breadcrumb can contain a divider to show the relationship between sections, this can be formatted as an icon or text:  `divider` sets the text (`/` when unset), `divider-icon` an icon."
                 >
@@ -121,7 +121,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-section" header="Section" sticky collapsible dividing>
+              <ui-section id="examples-content-section" label="Section" sticky collapsible dividing>
                 <ui-docs-example
                   description="A breadcrumb can contain sections that can either be formatted as a link (`href`) or text."
                 >
@@ -132,7 +132,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-link" header="Link" sticky collapsible dividing>
+              <ui-section id="examples-content-link" label="Link" sticky collapsible dividing>
                 <ui-docs-example description="A section may be linkable or contain a link.">
                   <ui-breadcrumb aria-label="Section holding a link">
                     <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
@@ -144,8 +144,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-active" label="Active" sticky collapsible dividing>
                 <ui-docs-example
                   description='A section can be active:  the current page, bold, never a link, with `aria-current="page"`.'
                 >
@@ -157,8 +157,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A breadcrumb can be inverted.">
                   <ui-segment inverted>
                     <ui-breadcrumb inverted aria-label="Inverted links" divider-icon="chevron right">
@@ -176,7 +176,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A breadcrumb can vary in size.">
                   <ui-breadcrumb size="mini" aria-label="Mini" divider-icon="chevron right">
                     <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
@@ -232,7 +232,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (sections, dividers), keyboard, accessibility. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-breadcrumb>` is a `<nav>` around an ordered list; each `<ui-breadcrumb-section>` is one item of it.
@@ -255,7 +255,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Breadcrumbs have no events of their own: a linked section is a real `<a>`, so it fires the native `click` and
@@ -264,7 +264,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Tab** / **Shift+Tab** moves between the linked sections; text and `active` sections are not tab stops.
@@ -273,7 +273,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The WAI-ARIA breadcrumb pattern: a `<nav>` landmark around an `<ol>`, whose items are the sections.
@@ -296,7 +296,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-breadcrumb-*` tokens: set one on the element, on any ancestor (a header, `:root`), or
@@ -328,7 +328,7 @@
               <ui-docs-tokens family="ui-breadcrumb" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

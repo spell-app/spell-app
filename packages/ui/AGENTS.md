@@ -309,10 +309,11 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - A COMPONENT SET, laid out as every set is (epic `people-and-orgs` P18;  the root's `AGENTS.md`):
     - its pages in this package's `docs/`, served at `/components/ui/`
     - the site bundle laid over them, at `_assets/`
-    - From 2026-10-05 (claude-design P6) until then, the pages were SHARED content, the checkout's `ui/`.
+    - From 2026-10-05 (claude-design P6) until P18, the pages were SHARED content, the checkout's `ui/`.
 - In two halves, one constant each in [the tools' types](tools/tools.types.ts).
-- `SITE_PAGES`, the PAGES:  [`docs/`](docs/index.html), tracked here, so a page changes in the same commit as its
-  element ([its README](docs/README.md):  how pages are made).
+- `SITE_PAGES`, the PAGES:  [`docs/`](docs/index.html), tracked here.
+  - So a page changes in the same commit as its element.
+  - How pages are made:  [its README](docs/README.md).
   - ONE flat folder:
     - the pages:  `*.html`, an element's named for its tag (`ui-button.html`)
     - the component index:  `components.html`
@@ -806,7 +807,8 @@ SHARED STATES:  states every element takes, though its vocabulary never names th
   - Replaces a constructor calling `this.on(type, this.handler)`.
   - `this.on(type, listener, { target })` itself, for a listener added later or under a condition.
     - So no vocabulary may name an attribute `on`.
-      Fomantic's `on` setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`.
+      Fomantic's `on` settings take other names here:
+      `<ui-form validate>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`.
     - One stopped by an effect keeps its own `AbortController`, aborted in the cleanup.
 - `@E.untracked select(option)`:  an action or handler whose body runs inside `untrack()`.
   - It reads `this.x` plainly, where it used to read `untrack(() => this.x)`.
@@ -1013,7 +1015,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
     - Read from the pack's `<Name>.en.ts` vocabularies by [the root catalog](tools/RootCatalog.ts),
       as `yarn gen:root` reads ours (skeleton text, "Overview").
   - `prefix` ends in `-`, is never `ui-`, and starts every catalog tag.
-  - A pack's families are written like ours ([the epics package's AGENTS.md](../epics/AGENTS.md)).
+  - A pack's families are written like ours ([spell-epic's AGENTS.md](../../spell-epic/src/AGENTS.md)).
 - The `ui-components` family ([its folder](components/ui-components/)) holds the runtime side:
   - `<ui-components source>` (`UIComponents`):  invisible, no logic, no fallback.
     - The root reads its `source`.
@@ -1051,7 +1053,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
   - `solid-js`, `@solidjs/web`, `$/spell-solid`, `$/ui/core`, `$/ui/forms`
   - `$/spell-solid`, what a pack's elements are written on, is Spell UI's core module:  it carries all of it.
   - Built in two places, never in the library:
-    - [the docs bundle's entry](../epics/tools/_assets/spell-ui.entry.js)
+    - [the docs bundle's entry](../../spell-epic/src/tools/_assets/spell-ui.entry.js), spell-epic's
     - the site's bundle, every component set's ([SitePacks.ts](site/_src/SitePacks.ts))
   - Those are the two places a Solid package is `import * as`'d, on purpose:
     a pack may use any export, so they must all stay ("One Solid per page" above).

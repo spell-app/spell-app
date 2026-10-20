@@ -66,7 +66,7 @@
             </script>
           </ui-markdown>
 
-          <ui-section id="why-keep-the-grammar" header="Why Keep the Grammar" sticky collapsible dividing>
+          <ui-section id="why-keep-the-grammar" label="Why Keep the Grammar" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 - Shadow markup keeps Fomantic's classes on semantic elements: `<button class="ui small primary button">`.
@@ -80,7 +80,7 @@
             </ui-markdown>
           </ui-section>
 
-          <ui-section id="shape" header="Shape" sticky collapsible dividing>
+          <ui-section id="shape" label="Shape" sticky collapsible dividing>
             <ui-code language="text">
               <script type="text/plain">
                 ui  <size>  <color>  <keyOnly...>  <valueAndKey / keyOrValueAndKey...>  <multiple...>  <width...>  <textAlign>  <verticalAlign>  <noun>  <extra>
@@ -95,7 +95,7 @@
                 - The noun (`button`, `card`, `column`), then any extra classes (a state such as `active`).
               </script>
             </ui-markdown>
-            <ui-section id="shape-all-at-once" header="All at Once" sticky collapsible dividing>
+            <ui-section id="shape-all-at-once" label="All at Once" sticky collapsible dividing>
               <ui-docs-example description="`size`, two key-only words and the noun:  `ui small basic primary button`.">
                 <ui-button size="small" primary basic>Save</ui-button>
               </ui-docs-example>
@@ -115,7 +115,7 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="attribute-kinds" header="Attribute Kinds" sticky collapsible dividing>
+          <ui-section id="attribute-kinds" label="Attribute Kinds" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 Semantics are copied from Semantic UI React's `classNameBuilders`. The class word ("key") defaults
@@ -145,7 +145,7 @@
               </script>
             </ui-markdown>
 
-            <ui-section id="attribute-kinds-size" header="Size" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-size" label="Size" sticky collapsible dividing>
               <ui-docs-example
                 description='`size="small"` emits its value;  `size="medium"` is the default and emits nothing.'
               >
@@ -154,28 +154,28 @@
                 <ui-button size="large">size="large"</ui-button>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="attribute-kinds-colour" header="Colour" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-colour" label="Colour" sticky collapsible dividing>
               <ui-docs-example description='`color="red"` emits its value:  `ui red button`.'>
                 <ui-button color="red">color="red"</ui-button>
                 <ui-button color="primary">color="primary"</ui-button>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="attribute-kinds-value-only" header="Value Only" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-value-only" label="Value Only" sticky collapsible dividing>
               <ui-docs-example
                 description='Where a colour would go, a value of its own:  `state="warning"` => `ui warning message`.'
               >
                 <ui-message state="warning">state="warning"</ui-message>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="attribute-kinds-key-only" header="Key Only" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-key-only" label="Key Only" sticky collapsible dividing>
               <ui-docs-example
-                description="A bare boolean emits its key:  `basic` => `ui basic button`, `raised` => `ui raised segment`."
+                description="A bare boolean emits its key.  `basic` => `ui basic button`.  `raised` => `ui raised segment`."
               >
                 <ui-button basic>basic</ui-button>
                 <ui-segment raised>raised</ui-segment>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="attribute-kinds-value-and-key" header="Value and Key" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-value-and-key" label="Value and Key" sticky collapsible dividing>
               <ui-docs-example
                 description='`floated="left"` => `ui left floated segment`;  a bare `floated` emits nothing.'
               >
@@ -185,19 +185,19 @@
             </ui-section>
             <ui-section
               id="attribute-kinds-key-or-value-and-key"
-              header="Key or Value and Key"
+              label="Key or Value and Key"
               sticky
               collapsible
               dividing
             >
               <ui-docs-example
-                description='`pointing` => `ui pointing label`;  `pointing="left"` => `ui left pointing label`.'
+                description='`pointing` => `ui pointing label`.  `pointing="left"` => `ui left pointing label`.'
               >
                 <ui-label pointing>pointing</ui-label>
                 <ui-label pointing="left">pointing="left"</ui-label>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="attribute-kinds-multiple" header="Multiple" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-multiple" label="Multiple" sticky collapsible dividing>
               <ui-docs-example
                 description='`only="mobile tablet"` => `mobile only tablet only row`.  Narrow your window to swap the rows.'
               >
@@ -211,9 +211,9 @@
                 </ui-grid>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="attribute-kinds-alignment" header="Alignment" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-alignment" label="Alignment" sticky collapsible dividing>
               <ui-docs-example
-                description='`text-align="center"` => `center aligned`;  `vertical-align="middle"` => `middle aligned`.'
+                description='`text-align="center"` => `center aligned`.  `vertical-align="middle"` => `middle aligned`.'
               >
                 <ui-segment text-align="center">text-align="center"</ui-segment>
                 <ui-grid columns="2" vertical-align="middle">
@@ -224,14 +224,14 @@
                 </ui-grid>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="attribute-kinds-icon" header="Icon" sticky collapsible dividing>
+            <ui-section id="attribute-kinds-icon" label="Icon" sticky collapsible dividing>
               <ui-docs-example description='`icon="user"` names a glyph:  no class word, an icon in the shadow root.'>
                 <ui-button icon="user">icon="user"</ui-button>
               </ui-docs-example>
             </ui-section>
           </ui-section>
 
-          <ui-section id="widths" header="Widths" sticky collapsible dividing>
+          <ui-section id="widths" label="Widths" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 The attribute is `width`, NEVER `wide`. It accepts:
@@ -250,7 +250,7 @@
                   `three buttons` on `<ui-buttons>`.
               </script>
             </ui-markdown>
-            <ui-section id="widths-widths" header="Widths" sticky collapsible dividing>
+            <ui-section id="widths-widths" label="Widths" sticky collapsible dividing>
               <ui-docs-example
                 description='`width="4"`, `width="1/4"` and `width="25%"` all emit `four wide`;  the rest of each row is `twelve wide`.'
               >
@@ -270,7 +270,7 @@
                 </ui-grid>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="widths-equal-width" header="Equal Width" sticky collapsible dividing>
+            <ui-section id="widths-equal-width" label="Equal Width" sticky collapsible dividing>
               <ui-docs-example description='`columns="equal"` => `equal width`:  the columns share each line.'>
                 <ui-grid columns="equal" celled>
                   <ui-column>One</ui-column>
@@ -281,7 +281,7 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="booleans" header="Booleans" sticky collapsible dividing>
+          <ui-section id="booleans" label="Booleans" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 - absent => false
@@ -291,7 +291,7 @@
                 - reflection: true => `""`, false => attribute removed; NEVER `"false"`
               </script>
             </ui-markdown>
-            <ui-section id="booleans-booleans" header="Booleans" sticky collapsible dividing>
+            <ui-section id="booleans-booleans" label="Booleans" sticky collapsible dividing>
               <ui-docs-example
                 description='Unlike a native attribute, `basic="false"` and `basic="no"` mean NOT basic.'
               >
@@ -302,14 +302,13 @@
               </ui-docs-example>
             </ui-section>
             <ui-message size="small"
-              >Except <code>disabled</code> on a form control (<code>&lt;ui-button&gt;</code>,
-              <code>&lt;ui-input&gt;</code>, <code>&lt;ui-checkbox&gt;</code> ...): the browser disables a
-              form-associated element whenever the attribute is PRESENT, so <code>disabled="false"</code> still
-              disables it. Remove the attribute instead.</ui-message
+              >Except <code>disabled</code> on a form control, such as a button, an input or a checkbox: the browser
+              disables a form-associated element whenever the attribute is PRESENT, so <code>disabled="false"</code>
+              still disables it. Remove the attribute instead.</ui-message
             >
           </ui-section>
 
-          <ui-section id="medium" header="Medium" sticky collapsible dividing>
+          <ui-section id="medium" label="Medium" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 `medium` is a real size meaning "default". It is accepted, validated and reflected like any other
@@ -317,7 +316,7 @@
                 `.medium` rule.
               </script>
             </ui-markdown>
-            <ui-section id="medium-medium" header="Medium" sticky collapsible dividing>
+            <ui-section id="medium-medium" label="Medium" sticky collapsible dividing>
               <ui-docs-example description="Both render `ui button`.">
                 <ui-button size="medium">size="medium"</ui-button>
                 <ui-button>no size</ui-button>
@@ -325,7 +324,7 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="value-sets" header="Value Sets" sticky collapsible dividing>
+          <ui-section id="value-sets" label="Value Sets" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 Enumerated values are validated against shared sets (`ValueSets`), or a list in the vocabulary:

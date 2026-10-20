@@ -54,8 +54,8 @@
               `src/components/ui-parts/examples/elements/`), then its attributes.  The Content parts page
               (`ui-header.html`) shows every part together.
             -->
-            <ui-section id="examples-owners" header="Owners" sticky collapsible dividing>
-              <ui-section id="examples-owners-card" header="Card" sticky collapsible dividing>
+            <ui-section id="examples-owners" label="Owners" sticky collapsible dividing>
+              <ui-section id="examples-owners-card" label="Card" sticky collapsible dividing>
                 <ui-docs-example description="A card's extra content:  its footer band.">
                   <ui-card>
                     <ui-content>
@@ -67,7 +67,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-owners-item" header="Item" sticky collapsible dividing>
+              <ui-section id="examples-owners-item" label="Item" sticky collapsible dividing>
                 <ui-docs-example description="An item's extra content:  a line under its description.">
                   <ui-items>
                     <ui-item image="../images/wireframe/image.png">
@@ -81,7 +81,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-owners-feed" header="Feed" sticky collapsible dividing>
+              <ui-section id="examples-owners-feed" label="Feed" sticky collapsible dividing>
                 <ui-docs-example description="A feed event's extra images;  with `text`, extra text.">
                   <ui-feed>
                     <ui-event>
@@ -108,7 +108,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-extra>` is extra content, set apart from the main content: a card's footer, an item's extra line, a feed
@@ -120,7 +120,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-owners" header="Owners" sticky collapsible dividing>
+            <ui-section id="usage-owners" label="Owners" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-extra>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `UIParts.css` styles it by that
@@ -135,7 +135,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A neutral block with no role. Its muted colour is a look only: put nothing in it that a reader must not miss.

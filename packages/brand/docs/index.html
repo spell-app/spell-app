@@ -86,7 +86,7 @@
             >
           </ui-list>
 
-          <ui-section id="1-loading-them" header="1. Loading them" sticky collapsible dividing collapsed>
+          <ui-section id="1-loading-them" label="1. Loading them" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="box open"></ui-icon>
             <ul>
               <li>
@@ -128,7 +128,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="2-colour" header="2. Colour" sticky collapsible dividing collapsed>
+          <ui-section id="2-colour" label="2. Colour" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -160,7 +160,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="3-fields-and-casting" header="3. Fields and casting" sticky collapsible dividing collapsed>
+          <ui-section id="3-casting" label="3. Casting" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="wand magic sparkles"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -171,10 +171,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td><a href="brand-field.html"><code>brand-field</code></a></td>
-                    <td>One control with its label, a value readout, action buttons, an info tip, help and errors.</td>
-                  </tr>
                   <tr>
                     <td><a href="brand-composer.html"><code>brand-composer</code></a></td>
                     <td>
@@ -187,7 +183,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="4-the-apps-pieces" header="4. The app's pieces" sticky collapsible dividing collapsed>
+          <ui-section id="4-the-apps-pieces" label="4. The app's pieces" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="mobile screen"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -214,7 +210,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="5-page-art" header="5. Page art" sticky collapsible dividing collapsed>
+          <ui-section id="5-page-art" label="5. Page art" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="feather"></ui-icon>
             <ui-table celled compact striped unstackable>
               <table>
@@ -242,47 +238,48 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="6-specimen" header="6. Specimen" sticky collapsible dividing collapsed>
+          <ui-section id="6-specimen" label="6. Specimen" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
-              Brand fields in Spell UI's panels, as the Theme Creator's inspector has them: an info tip, a value
-              readout, action buttons, help and an error.
+              Spell UI's fields in its panels, as the Theme Creator's inspector has them: an info tip, an output,
+              action buttons, a hint and an error. The brand pages draw them smaller, the inspector's look; this site
+              shows Spell UI's own.
             </p>
             <div class="brand-home-row">
-              <ui-panel header="Color Set" collapsible style="width: 380px">
+              <ui-panel label="Color Set" collapsible style="width: 380px">
                 <ui-input placeholder="Name, e.g. brand" aria-label="Name"></ui-input>
-                <brand-field
+                <ui-field
                   label="Base color"
-                  value="#8E96B5"
-                  info="The color the set is built around.  Pick one, or paste a hex or OKLCH value."
+                  output="#8E96B5"
+                  description="The color the set is built around.  Pick one, or paste a hex or OKLCH value."
                 >
                   <ui-input value="#8E96B5"></ui-input>
-                </brand-field>
-                <ui-panel header="Tweak" collapsible>
-                  <brand-field
+                </ui-field>
+                <ui-panel label="Tweak" collapsible>
+                  <ui-field
                     label="Base color sits at"
-                    value="400"
-                    info="Which of the 17 steps the base color lands on.  Auto picks the step closest in lightness."
+                    output="400"
+                    description="Which of the 17 steps the base color lands on.  Auto picks the step closest in lightness."
                   >
                     <ui-button slot="actions" size="mini" circular basic icon="check">Auto</ui-button>
                     <ui-slider min="0" max="16" value="6" ticked></ui-slider>
-                  </brand-field>
-                  <brand-field label="Vibrancy" value="100%" info="How colourful the middle steps are.">
+                  </ui-field>
+                  <ui-field label="Vibrancy" output="100%" description="How colourful the middle steps are.">
                     <ui-button slot="actions" size="mini" circular basic icon="rotate left">Reset</ui-button>
                     <ui-slider min="0" max="200" step="20" value="100" ticked></ui-slider>
-                  </brand-field>
+                  </ui-field>
                 </ui-panel>
               </ui-panel>
-              <ui-panel header="A form" style="width: 320px">
-                <brand-field label="Email" required error="That doesn't look like an email.">
+              <ui-panel label="A form" style="width: 320px">
+                <ui-field label="Email" required error="That doesn't look like an email.">
                   <ui-input value="owen@" type="email"></ui-input>
-                </brand-field>
-                <brand-field label="App name" help="Shown on the home screen.">
+                </ui-field>
+                <ui-field label="App name" hint="Shown on the home screen.">
                   <ui-input value="Habit Tracker"></ui-input>
-                </brand-field>
-                <brand-field label="Notifications" inline>
+                </ui-field>
+                <ui-field label="Notifications" inline>
                   <ui-checkbox type="toggle" selected></ui-checkbox>
-                </brand-field>
+                </ui-field>
               </ui-panel>
             </div>
             <div class="brand-home-row">

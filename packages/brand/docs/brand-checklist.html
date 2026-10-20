@@ -114,8 +114,8 @@
       <ui-container class="site-body">
         <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
           <ui-tab value="examples" label="Examples">
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-progress" header="Progress" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-progress" label="Progress" sticky collapsible dividing>
                 <ui-docs-example
                   description='The Spell App&apos;s build card:  `step` (from 0) marks the checks before it done, the one at it active (a soft, pulsing mark) and the rest pending;  `step` at or past the end marks them all done.  Cast it:  the page moves `step` on every 850ms, and the checklist tells screen readers each step done, then "All done".'
                 >
@@ -131,7 +131,7 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-types-checkable" header="Checkable" sticky collapsible dividing>
+              <ui-section id="examples-types-checkable" label="Checkable" sticky collapsible dividing>
                 <ui-docs-example
                   description="`checkable`:  every check is a checkbox the user ticks (click, Space or Enter), struck through once done;  `step` is ignored.  The Spell App phone's habits, in the serif font.  Each tick fires `ui-change` on the check, which bubbles through the list:  here it updates the count."
                 >
@@ -148,8 +148,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-state" header="Each state" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-state" label="Each state" sticky collapsible dividing>
                 <ui-docs-example
                   description="`state` on a check, when its list has no `step`:  `done` (a filled mark with a check), `active` (a soft mark that pulses, unless the reader prefers reduced motion) and `pending` (an empty ring, subtle text;  the default)."
                 >
@@ -162,7 +162,7 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-step" header="Step" sticky collapsible dividing>
+              <ui-section id="examples-states-step" label="Step" sticky collapsible dividing>
                 <ui-docs-example
                   description='The same four checks at `step="0"`, `"2"` and `"4"`:  just started, half way, all done.  A list&apos;s `step` overrides its checks&apos; own `state`.'
                 >
@@ -194,7 +194,7 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-states-checked" header="Checked" sticky collapsible dividing>
+              <ui-section id="examples-states-checked" label="Checked" sticky collapsible dividing>
                 <ui-docs-example
                   description="A `checkable` check:  ticked (`checked` in markup, the `selected` attribute once live) or not.  Ticked reads subtle and struck through;  unticked, body text on a stronger ring.  A check can be `checkable` on its own, outside a checkable list."
                 >
@@ -209,8 +209,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-font" header="Font" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-font" label="Font" sticky collapsible dividing>
                 <ui-docs-example
                   description="`font`:  `sans` (14px text, 20px marks, 12px apart:  the build progress;  the default) or `serif` (15px text, 19px marks, 10px apart:  the phone's habits).  A check takes its list's, unless it has its own."
                 >
@@ -232,7 +232,7 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+              <ui-section id="examples-variations-compact" label="Compact" sticky collapsible dividing>
                 <ui-docs-example
                   description="Smaller, by tokens on the list:  the Spell Marketing page's build card (13px text, 16px marks, 9px to the text, 10px between lines)."
                 >
@@ -255,7 +255,7 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
-              <ui-section id="examples-variations-align" header="Align" sticky collapsible dividing>
+              <ui-section id="examples-variations-align" label="Align" sticky collapsible dividing>
                 <ui-docs-example
                   description="`--brand-checklist-align`:  `center` (the default) puts the mark beside the middle of a check's text;  `start` beside its FIRST line, for a title over a description (the Spell Docs page's “What you'll need”)."
                 >
@@ -295,7 +295,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A column of round-marked lines, `<brand-check>`s inside a `<brand-checklist>`. Two uses:
@@ -338,7 +338,7 @@
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The list is a `list`, each check a `listitem`; name the list with `aria-label`.
@@ -359,7 +359,7 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set a `--brand-checklist-*` token on the list (its checks inherit it), on one check, any

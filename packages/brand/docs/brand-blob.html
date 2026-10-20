@@ -133,8 +133,8 @@
       <ui-container class="site-body">
         <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
           <ui-tab value="examples" label="Examples">
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-blob" header="Corner blob" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-blob" label="Corner blob" sticky collapsible dividing>
                 <ui-docs-example
                   description="The brand's “lavender blob tucked into a corner”:  the docs hero's, 420 × 360px, hanging 160px past the side and 180px past the bottom.  Never behind body text."
                 >
@@ -146,8 +146,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-corner" header="Corner" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-corner" label="Corner" sticky collapsible dividing>
                 <ui-docs-example
                   description="`corner`:  `top-left`, `top-right`, `bottom-left` or `bottom-right` (the default).  Two blobs in opposite corners frame a hero."
                 >
@@ -172,7 +172,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-shape" header="Shape" sticky collapsible dividing>
+              <ui-section id="examples-content-shape" label="Shape" sticky collapsible dividing>
                 <ui-docs-example
                   description="`shape`:  `organic` (the default, a soft egg), `mound`, a hill rising from the edge, its flat side facing out (top corners turn it upside down, left corners mirror it), or `wave`, below."
                 >
@@ -230,8 +230,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-tone" header="Tone" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-tone" label="Tone" sticky collapsible dividing>
                 <ui-docs-example
                   description="`tone`:  `blob` (lavender, the default), `blob-2` (paler, grey-blue), `violet`, `lilac`, or `current` (`currentColor`, here amber).  `blob` and `blob-2` soften in dark mode, as the theme's art roles do."
                 >
@@ -260,7 +260,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-surfaces" header="On a coloured surface" sticky collapsible dividing>
+              <ui-section id="examples-variations-surfaces" label="On a coloured surface" sticky collapsible dividing>
                 <ui-docs-example
                   description="On aubergine, a `lilac` mound (the Brand Montage's call-to-action tile);  on ivory, a lavender blob.  `--brand-blob-color` sets any colour."
                 >
@@ -274,7 +274,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example
                   description="`--brand-blob-width` / `-height`:  the shape's size;  `--brand-blob-x` / `-y`:  how far it hangs past the side and the top or bottom edge.  Set them on the blob or any ancestor."
                 >
@@ -318,7 +318,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Page art for a hero, a card or a tile. Put it FIRST in a box that is positioned and clips, and give
@@ -344,7 +344,7 @@
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Decorative: hidden from screen readers (`aria-hidden`), and it takes no clicks or focus. Keep text
@@ -359,7 +359,7 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set a `--brand-blob-*` token on the blob, any ancestor or `:root`. The colours come from the

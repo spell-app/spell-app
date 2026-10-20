@@ -47,17 +47,17 @@ const SECTIONS = `
   <div>
     <ui-docs-toc for="nested"></ui-docs-toc>
     <article id="nested">
-      <ui-section id="examples-types" header="Types">
-        <ui-section id="examples-types-button" header="Button">
+      <ui-section id="examples-types" label="Types">
+        <ui-section id="examples-types-button" label="Button">
           <ui-docs-example><ui-button>A</ui-button></ui-docs-example>
         </ui-section>
         <ui-section id="examples-types-group">
           <span slot="header">Group <code>ui-buttons</code></span>
-          <ui-section id="examples-types-group-or" header="Or"><p>Or</p></ui-section>
+          <ui-section id="examples-types-group-or" label="Or"><p>Or</p></ui-section>
         </ui-section>
       </ui-section>
-      <ui-section id="examples-states" header="States">
-        <ui-docs-example header="Disabled"><ui-section header="Demo">not listed</ui-section></ui-docs-example>
+      <ui-section id="examples-states" label="States">
+        <ui-docs-example header="Disabled"><ui-section label="Demo">not listed</ui-section></ui-docs-example>
       </ui-section>
     </article>
   </div>`

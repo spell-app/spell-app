@@ -6,6 +6,7 @@
  * - The `$/parser/rulex` registration is in `SpellParser.ts`, which every rule module imports anyway.
  */
 
+import type { PropRule } from "$/util"
 import type { P } from "$/parser"
 import type { SpellLocation } from "./SpellLocation"
 import type { SpellFile } from "./SpellFile"
@@ -75,9 +76,19 @@ export const COMPILED_PY_SUFFIX = ".spell.py"
  * - The file:  what it offers importers, committed beside its source.
  *   See `SpellProject.declarationsFile`.
  * - Its shape:  `SP.SpellDeclarationsData`.
- * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
+ * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js`, `.jsx`
+ *   and property editor pages (`EDITOR_PAGE_SUFFIX`).
  */
 export const DECLARATIONS_JSON_SUFFIX = ".declarations.json5"
+
+/**
+ * End of a property editor PAGE's name, e.g. `Card.editor.html` (epic `property-editor` P6):
+ * plain markup, which `<ui-property-editor source>` loads.
+ * - One of a project's own files:  the server lists it, and the editor opens it as text (a `SpellJSFile`).
+ * - NEVER compiled.
+ * - The spell editor's "New Property Editor..." writes one (`editor.createPropertyEditor()`, in the app).
+ */
+export const EDITOR_PAGE_SUFFIX = ".editor.html"
 
 /**
  * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js`:
@@ -527,6 +538,11 @@ export type SpellDeclaration = {
    * - Read-only:  see `P.ScopeVariable.exclusive`.
    */
   exclusive?: boolean
+  /**
+   * A `property`'s rules:  what its value must be, beyond its type -- see `P.ScopeVariable.rules`.
+   * - e.g. `[{ type: "empty" }]` for `- its title must not be empty` (epic `property-editor` P9)
+   */
+  rules?: readonly PropRule[]
   /** Instance property it declares, e.g. `suit`. */
   property?: string
   /**

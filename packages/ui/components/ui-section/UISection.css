@@ -13,16 +13,19 @@
  *                                                                (not collapsible:  <span class="toggle">)
  *             <span class="fold icon" part="fold-icon" aria-hidden="true"><svg/></span>   (collapsible only)
  *             <span class="icon" part="icon"><slot name="icon"><svg/></slot></span>        (icon only)
- *             <span class="header" part="header"><slot name="header">text</slot></span>
+ *             <span class="header" part="header"><slot name="label"><slot name="header">text</slot></slot></span>
  *           </button>
  *         </hN>
  *         <span class="badge" part="badge"><slot name="badge">text</slot></span>         (badge only)
  *         <span class="actions" part="actions"><slot name="actions"></slot></span>       (actions only)
  *         <span class="fold icon" part="fold-icon" aria-hidden="true"><svg/></span>  (`fold-icon="end"`:  not in the
  *                                                                                     toggle, here)
- *         <span id="tip" class="tip" part="tip" role="tooltip"><slot name="info">text</slot></span>   (info only)
+ *         <span id="tip" class="tip" part="tip" role="tooltip">
+ *           <slot name="description"><slot name="info">text</slot></slot></span>              (description only)
  *       </header>
- *       <div class="subhead" part="subhead"><slot name="subhead">text</slot></div>       (subhead only)
+ *       <div class="subhead" part="subhead"><slot name="hint"><slot name="subhead">text</slot></slot></div> (hint only)
+ *       (each inner slot:  the old name, `header` / `info` / `subhead`, read until every page says the new;  epic
+ *       `property-editor` P10)
  *       <div id="content" class="content" part="content" [hidden="until-found"]
  *            [style="--_ui-section-height: <height>"]>
  *         <p class="source error" part="error" role="alert">Couldn't load …</p>       (failed `source` only)

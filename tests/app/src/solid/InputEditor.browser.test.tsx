@@ -14,10 +14,11 @@ import { LazyMonaco } from "$/app/solid/LazyMonaco"
 import { OutputEditor } from "$/app/solid/OutputEditor"
 
 /**
- * The Solid source editors on real Monaco, in the browser:  `<InputEditor>` (lazy `<FileEditor>`, its error
- * fallback), `<OutputEditor>`, `<FileDropdown>`.
- * - Files are FAKES, as spell cells (`reactiveObject()`):  a `.js` file (no parse) with just what `SpellModels` and `editor`
- *   read -- a real `SpellProject` loads from the API server, which tests don't have.
+ * The Solid source editors on real Monaco, in the browser:
+ * `<InputEditor>` (lazy `<FileEditor>`, its error fallback), `<OutputEditor>`, `<FileDropdown>`.
+ * - Files are FAKES, as spell cells (`reactiveObject()`):
+ *   a `.js` file (no parse) with just what `SpellModels` and `editor` read.
+ * - Why:  a real `SpellProject` loads from the API server, which tests don't have.
  */
 
 /** Undo for each test:  unmount, restore `editor` fields. */
@@ -131,6 +132,7 @@ describe("<FileDropdown>", () => {
       "test-project/two.js",
       "divider",
       "New File",
+      "New Property Editor...",
       "Duplicate File",
       "Rename File",
       "Delete File"

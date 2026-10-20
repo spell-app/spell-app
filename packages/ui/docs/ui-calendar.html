@@ -59,8 +59,8 @@
               - Every example pins `locale="en-US"` (except the locale ones), so names and formats don't follow the reader's
                 browser.  Fomantic's jQuery settings are attributes here.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-calendar" header="Calendar" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-calendar" label="Calendar" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A standard calendar: a date and a time, Fomantic's default <code>type</code>. The field takes typed
@@ -70,7 +70,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-range" header="Range" sticky collapsible dividing>
+              <ui-section id="examples-types-range" label="Range" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A range calendar allows you to select a start date and a stop date: <code>end-calendar</code> names
@@ -106,7 +106,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-inline-calendar" header="Inline calendar" sticky collapsible dividing>
+              <ui-section id="examples-types-inline-calendar" label="Inline calendar" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     An inline calendar isn't shown in a popup: no field, no popup, still a form control. Name it with
@@ -138,8 +138,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A calendar can have different sizes.">
                   <ui-calendar size="tiny" fluid locale="en-US" placeholder="Date/Time"></ui-calendar>
                   <ui-divider spacer></ui-divider>
@@ -169,7 +169,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A calendar can have its colors inverted.">
                   <ui-segment inverted>
                     <ui-calendar inverted fluid locale="en-US" placeholder="Date/Time"></ui-calendar>
@@ -195,7 +195,7 @@
                 be drawn yet: a calendar shows one grid (plan issue I63).</ui-message
               >
 
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example description="`color` tints the chosen cell, the range and the focus ring.">
                   <ui-calendar
                     inline
@@ -218,7 +218,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+              <ui-section id="examples-variations-compact" label="Compact" sticky collapsible dividing>
                 <ui-docs-example description="A compact calendar has tighter cells.">
                   <ui-calendar
                     inline
@@ -231,7 +231,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-position" header="Position" sticky collapsible dividing>
+              <ui-section id="examples-variations-position" label="Position" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     <code>position</code> says where the popup opens against the field; it flips when there's no room.
@@ -247,8 +247,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example
                   description="A disabled calendar does not allow user interaction, and isn't submitted."
                 >
@@ -256,7 +256,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+              <ui-section id="examples-states-read-only" label="Read-only" sticky collapsible dividing>
                 <ui-docs-example
                   description="A read-only calendar shows its value and can't be changed, but is still submitted."
                 >
@@ -270,7 +270,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-required" header="Required" sticky collapsible dividing>
+              <ui-section id="examples-states-required" label="Required" sticky collapsible dividing>
                 <ui-docs-example description="A required calendar must have a value for its form to submit.">
                   <ui-form>
                     <form>
@@ -291,21 +291,21 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
-              <ui-section id="examples-examples-date-calendar" header="Date calendar" sticky collapsible dividing>
+            <ui-section id="examples-examples" label="Examples" sticky collapsible dividing>
+              <ui-section id="examples-examples-date-calendar" label="Date calendar" sticky collapsible dividing>
                 <ui-docs-example description='A date calendar disables the time selection:  `type="date"`.'>
                   <ui-calendar type="date" locale="en-US" placeholder="Date"></ui-calendar>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-time-calendar" header="Time calendar" sticky collapsible dividing>
+              <ui-section id="examples-examples-time-calendar" label="Time calendar" sticky collapsible dividing>
                 <ui-docs-example description='A time calendar disables the date selection:  `type="time"`.'>
                   <ui-calendar type="time" locale="en-US" placeholder="Time"></ui-calendar>
                 </ui-docs-example>
                 <ui-docs-example>
                   <p slot="description">
-                    The type and the date are HTML attributes: <code>value</code> is an ISO string in the shape of the
-                    <code>type</code> (<code>2019-12-24</code>).
+                    The type and the date are HTML attributes:  <code>value</code> is an ISO string in the shape of the
+                    type, e.g. <code>2019-12-24</code>.
                   </p>
                   <ui-calendar type="date" value="2019-12-24" locale="en-US" placeholder="Date"></ui-calendar>
                 </ui-docs-example>
@@ -314,7 +314,7 @@
               <!-- GAP I64:  no start view (`startMode: "year"`);  a plain date calendar stands in. -->
               <ui-section
                 id="examples-examples-year-first-calendar"
-                header="Year first calendar"
+                label="Year first calendar"
                 sticky
                 collapsible
                 dividing
@@ -329,10 +329,10 @@
               </ui-section>
 
               <!-- GAP I65:  no custom text format;  the 24-hour clock comes from the locale. -->
-              <ui-section id="examples-examples-24-hour-format" header="24 hour format" sticky collapsible dividing>
+              <ui-section id="examples-examples-24-hour-format" label="24 hour format" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    You can get rid of the AM/PM notation with a <code>locale</code> that uses a 24-hour clock
+                    You can get rid of the AM/PM notation with a locale that uses a 24-hour clock
                     (<code>en-GB</code>, <code>de-DE</code> ...).
                   </p>
                   <ui-calendar type="time" locale="en-GB" placeholder="Time"></ui-calendar>
@@ -341,7 +341,7 @@
 
               <ui-section
                 id="examples-examples-month-and-year-calendar"
-                header="Month and year calendar"
+                label="Month and year calendar"
                 sticky
                 collapsible
                 dividing
@@ -353,13 +353,13 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-year-calendar" header="Year calendar" sticky collapsible dividing>
+              <ui-section id="examples-examples-year-calendar" label="Year calendar" sticky collapsible dividing>
                 <ui-docs-example description='A year calendar allows you to select a year only:  `type="year"`.'>
                   <ui-calendar type="year" locale="en-US" placeholder="Date"></ui-calendar>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-min-max-date" header="Min/max date" sticky collapsible dividing>
+              <ui-section id="examples-examples-min-max-date" label="Min/max date" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     You can set a minimum and a maximum selection date: <code>min</code> and <code>max</code>, ISO like
@@ -389,14 +389,14 @@
 
               <ui-section
                 id="examples-examples-day-first-calendar"
-                header="Day first calendar"
+                label="Day first calendar"
                 sticky
                 collapsible
                 dividing
               >
                 <ui-docs-example>
                   <p slot="description">
-                    Day first display (parsing too) follows the <code>locale</code>: <code>en-GB</code> reads and writes
+                    Day first display (parsing too) follows the locale:  <code>en-GB</code> reads and writes
                     <code>30/09/2026</code>.
                   </p>
                   <ui-calendar type="date" value="2026-09-30" locale="en-GB" placeholder="Date"></ui-calendar>
@@ -411,7 +411,7 @@
 
               <ui-section
                 id="examples-examples-select-adjacent-days"
-                header="Select adjacent days"
+                label="Select adjacent days"
                 sticky
                 collapsible
                 dividing
@@ -430,7 +430,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-language" header="Language" sticky collapsible dividing>
+              <ui-section id="examples-examples-language" label="Language" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     It's possible to change the calendar language to fit with your needs: <code>locale</code> sets month
@@ -451,7 +451,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-today-button" header="Today button" sticky collapsible dividing>
+              <ui-section id="examples-examples-today-button" label="Today button" sticky collapsible dividing>
                 <ui-docs-example description="`today` adds a Today (or Now, with a time) button under the grid.">
                   <ui-calendar
                     inline
@@ -464,7 +464,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-fluid" header="Fluid" sticky collapsible dividing>
+              <ui-section id="examples-examples-fluid" label="Fluid" sticky collapsible dividing>
                 <ui-docs-example description="The field can take the full width of its container.">
                   <ui-calendar
                     fluid
@@ -477,7 +477,7 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-coupling" header="Coupling" sticky collapsible dividing>
+            <ui-section id="examples-coupling" label="Coupling" sticky collapsible dividing>
               <!-- GAP I66:  a calendar can't be coupled to a button;  example left out. -->
               <ui-message size="small" class="site-not-ported"
                 >Button (a calendar opened from a <code>ui button</code>, with no text field) can't be built yet: a
@@ -492,14 +492,14 @@
 
             <ui-section
               id="examples-disabling-specific-days"
-              header="Disabling specific Days"
+              label="Disabling specific Days"
               sticky
               collapsible
               dividing
             >
               <ui-section
                 id="examples-disabling-specific-days-days-of-week"
-                header="Days of Week"
+                label="Days of Week"
                 sticky
                 collapsible
                 dividing
@@ -523,7 +523,7 @@
               <!-- GAP I68:  no reason popup on a disabled date. -->
               <ui-section
                 id="examples-disabling-specific-days-single-dates"
-                header="Single Dates"
+                label="Single Dates"
                 sticky
                 collapsible
                 dividing
@@ -553,7 +553,7 @@
 
             <ui-section
               id="examples-highlighting-specific-days"
-              header="Highlighting specific Days"
+              label="Highlighting specific Days"
               sticky
               collapsible
               dividing
@@ -567,7 +567,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  views, values, typing, forms, events, disabled days, keyboard, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A calendar is a field whose icon is a real button opening the picker, a popover dialog anchored to the field by
@@ -582,7 +582,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-values" header="Values" sticky collapsible dividing>
+            <ui-section id="usage-values" label="Values" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Values are ISO strings, the shapes of the native date inputs:
@@ -606,7 +606,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+            <ui-section id="usage-forms" label="Forms" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A calendar is a form control: `name` submits the ISO value, `required` validates, a form reset restores the
@@ -615,7 +615,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `ui-change` (`{ value }`) fires when the user chooses, types or clears a value; `ui-open` / `ui-close` around
@@ -632,7 +632,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-disabled-days" header="Disabled days" sticky collapsible dividing>
+            <ui-section id="usage-disabled-days" label="Disabled days" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Days that can't be chosen are the `disabledDates` (ISO dates) and `disabledDaysOfWeek` (0 = Sunday) PROPERTIES;
@@ -648,7 +648,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Arrow Down** (in the field or on the button): open the picker, focus in the grid.
@@ -663,7 +663,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The picker follows the WAI-ARIA APG date picker dialog. The grid is a `role="grid"` named by its title (a time
@@ -681,7 +681,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Bind `value` (an ISO string) and listen for `ui-change`; set `disabledDates` as a property.
@@ -723,7 +723,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-calendar-*` tokens: set one on the element, on any ancestor (`:root` for every
@@ -754,7 +754,7 @@
               <ui-docs-tokens family="ui-calendar" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

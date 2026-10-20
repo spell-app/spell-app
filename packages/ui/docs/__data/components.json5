@@ -315,9 +315,19 @@
           "description": "A panel is about to close -- its title was activated, or another panel is opening in an `exclusive` accordion;  `preventDefault()` keeps it open (and then the other one closed)."
         },
         {
-          "name": "ui-load",
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
           "detail": "{ source: string, content: string }",
           "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "Old name of `ui-loaded`:  sent just after it, until every page listens for the new."
         },
         {
           "name": "ui-error",
@@ -7190,11 +7200,38 @@
         "form field",
         "form group",
         "form control",
-        "label and input"
+        "label and input",
+        "property",
+        "inspector row"
       ],
-      "description": "A field is a form element containing a label and an input.",
+      "description": "A field is a form element containing a label and an input, with a hint, a tip and its errors.",
       "noun": "field",
       "attributes": [
+        {
+          "name": "label",
+          "kind": "string",
+          "description": "The label, in the label row;  `slot=\"label\"` is the rich version.  Names the control for screen readers."
+        },
+        {
+          "name": "description",
+          "kind": "string",
+          "description": "A tip behind an info icon at the end of the label row, shown on hover and focus;  `slot=\"description\"` is the rich version (bold words, line breaks)."
+        },
+        {
+          "name": "hint",
+          "kind": "string",
+          "description": "Text under the control;  `slot=\"hint\"` is the rich version."
+        },
+        {
+          "name": "output",
+          "kind": "string",
+          "description": "A value shown at the end of the label row (`100%`, `+8°`);  `slot=\"output\"` is the rich version."
+        },
+        {
+          "name": "error",
+          "kind": "string",
+          "description": "An error, as a line under the control, and the `error` state.  `<ui-form>`'s validation shows its own there."
+        },
         {
           "name": "state",
           "kind": "valueOnly",
@@ -7204,7 +7241,24 @@
             "success",
             "warning"
           ],
-          "description": "Field state:  tints its label and controls.  Failed validation shows `error` on top."
+          "description": "Field state:  tints its label and controls.  An error shows `error` on top."
+        },
+        {
+          "name": "apply",
+          "kind": "string",
+          "default": "immediately",
+          "description": "When a change to the control is written to the bound value:  `immediately`;  `delayed`, after a pause in typing (300ms;  `delayed 100` for 100ms);  or `on leave`, when the cursor leaves the field."
+        },
+        {
+          "name": "mixed",
+          "kind": "boolean",
+          "description": "The things being edited disagree on this value:  the control shows blank, with a `Mixed` placeholder.  Set by the form;  writing a value clears it."
+        },
+        {
+          "name": "rules",
+          "kind": "json",
+          "reflect": false,
+          "description": "Validation rules for this field's control, in `<ui-form rules>`'s shape (`\"email\"`, `[\"notEmpty\", \"minLength[6]\"]`);  added to the form's own rules for it."
         },
         {
           "name": "inline",
@@ -7215,6 +7269,11 @@
           "name": "required",
           "kind": "keyOnly",
           "description": "Marks the label with an asterisk (validation is `rules` / `required`)."
+        },
+        {
+          "name": "readonly",
+          "kind": "boolean",
+          "description": "Shows the value;  it can't be changed.  Nests like `disabled`:  set on a group, it reaches each field."
         },
         {
           "name": "disabled",
@@ -7304,7 +7363,27 @@
       "slots": [
         {
           "name": "",
-          "description": "A `<label for>`, then the control(s):  `<ui-input>`, `<ui-dropdown>`, native inputs ..."
+          "description": "The control(s):  `<ui-input>`, `<ui-dropdown>`, native inputs ...;  or a `<label for>`, then them."
+        },
+        {
+          "name": "label",
+          "description": "Rich label (instead of `label`)."
+        },
+        {
+          "name": "description",
+          "description": "Rich tip (instead of `description`):  bold words, line breaks."
+        },
+        {
+          "name": "hint",
+          "description": "Rich hint (instead of `hint`)."
+        },
+        {
+          "name": "output",
+          "description": "Rich output (instead of `output`)."
+        },
+        {
+          "name": "actions",
+          "description": "Small buttons at the end of the label row (`Reset`, `Auto`);  a taller one never grows the row."
         }
       ],
       "events": [],
@@ -7314,8 +7393,40 @@
           "description": "The field box."
         },
         {
-          "name": "prompt",
-          "description": "The inline validation prompt, a pointing label."
+          "name": "row",
+          "description": "The label row."
+        },
+        {
+          "name": "label",
+          "description": "The label."
+        },
+        {
+          "name": "actions",
+          "description": "The actions, at the end of the label row."
+        },
+        {
+          "name": "output",
+          "description": "The output."
+        },
+        {
+          "name": "info",
+          "description": "The info icon."
+        },
+        {
+          "name": "tip",
+          "description": "The tip, shown from the info icon."
+        },
+        {
+          "name": "control",
+          "description": "Around the control(s) under a label row;  no box of its own (`display: contents`)."
+        },
+        {
+          "name": "hint",
+          "description": "The hint."
+        },
+        {
+          "name": "error",
+          "description": "The error lines."
         }
       ],
       "states": [
@@ -7338,6 +7449,14 @@
         {
           "name": "warning",
           "description": "In the warning state."
+        },
+        {
+          "name": "mixed",
+          "description": "The things being edited disagree on this value (`mixed`)."
+        },
+        {
+          "name": "readonly",
+          "description": "Can't be changed (`readonly`, its own or a group's)."
         },
         {
           "name": "disabled",
@@ -7368,7 +7487,18 @@
           "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
         }
       ],
-      "texts": [],
+      "texts": [
+        {
+          "key": "info",
+          "text": "More about {label}",
+          "description": "The info icon's name;  `{label}` is the label."
+        },
+        {
+          "key": "mixed",
+          "text": "Mixed",
+          "description": "The placeholder of a control whose things disagree."
+        }
+      ],
       "mainTag": "ui-form",
       "main": false,
       "page": false,
@@ -8083,15 +8213,26 @@
           "description": "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
         },
         {
-          "name": "validate-on",
+          "name": "validate",
           "kind": "enum",
           "values": [
-            "submit",
-            "blur",
-            "change"
+            "immediately",
+            "on leave",
+            "on save"
           ],
-          "default": "submit",
-          "description": "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A field showing an error always re-validates as it changes."
+          "default": "on save",
+          "property": "validateOn",
+          "description": "When fields validate:  `immediately`, as each changes;  `on leave`, as the cursor leaves each;  or only `on save` (a submit, or `save()`).  A field showing an error always validates again as it changes."
+        },
+        {
+          "name": "apply",
+          "kind": "enum",
+          "values": [
+            "immediately",
+            "on save"
+          ],
+          "default": "immediately",
+          "description": "When edits land in the bound `value`:  `immediately`;  or `on save`, all together on `save()`, while `cancel()` drops them (`:state(changed)` while any are held).  Each field's own `apply` says when it takes an edit."
         },
         {
           "name": "rules",
@@ -8198,6 +8339,28 @@
           "name": "ui-failure",
           "detail": "{ values: Record<string, FieldValue>, errors: Record<string, string[]>, originalEvent?: Event }",
           "description": "A submit failed validation (the native submission is stopped);  `errors` by field."
+        },
+        {
+          "name": "ui-saving",
+          "detail": "{ changes: FormChange[], value: unknown }",
+          "cancelable": true,
+          "description": "`save()`, with `apply=\"on save\"`:  the held edits are about to land;  `preventDefault()` keeps them held."
+        },
+        {
+          "name": "ui-saved",
+          "detail": "{ changes: FormChange[], value: unknown }",
+          "description": "The held edits landed in the bound `value`."
+        },
+        {
+          "name": "ui-cancelling",
+          "detail": "{ changes: FormChange[] }",
+          "cancelable": true,
+          "description": "`cancel()`:  the held edits are about to be dropped;  `preventDefault()` keeps them."
+        },
+        {
+          "name": "ui-cancelled",
+          "detail": "{ changes: FormChange[] }",
+          "description": "The held edits were dropped:  every control shows the bound `value` again."
         }
       ],
       "parts": [
@@ -8230,6 +8393,10 @@
         {
           "name": "loading",
           "description": "Busy."
+        },
+        {
+          "name": "changed",
+          "description": "`apply=\"on save\"`:  edits are held, not saved yet."
         },
         {
           "name": "disabled",
@@ -13568,14 +13735,20 @@
       "noun": "section",
       "attributes": [
         {
-          "name": "header",
+          "name": "label",
           "kind": "string",
-          "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links)."
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
         },
         {
-          "name": "subhead",
+          "name": "hint",
           "kind": "string",
-          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`."
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
         },
         {
           "name": "level",
@@ -13601,9 +13774,12 @@
           "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
         },
         {
-          "name": "info",
+          "name": "description",
           "kind": "string",
-          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
         },
         {
           "name": "collapsible",
@@ -13833,12 +14009,12 @@
           "description": "The content:  anything, nested `<ui-section>`s included."
         },
         {
-          "name": "header",
-          "description": "Rich title, instead of the `header` attribute."
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
         },
         {
-          "name": "subhead",
-          "description": "Rich subhead, instead of the `subhead` attribute."
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
         },
         {
           "name": "icon",
@@ -13853,27 +14029,71 @@
           "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
         },
         {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
           "name": "info",
-          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+          "description": "Old name of the `description` slot."
         }
       ],
       "events": [
         {
-          "name": "ui-open",
+          "name": "ui-opening",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
         },
         {
-          "name": "ui-close",
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to fold:  the title was activated.  Cancel to stay open."
         },
         {
-          "name": "ui-load",
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
           "detail": "{ source: string, content: string }",
           "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "Old name of `ui-loaded`:  sent just after it, until every page listens for the new."
         },
         {
           "name": "ui-error",
@@ -13921,11 +14141,11 @@
         },
         {
           "name": "tip",
-          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
         },
         {
           "name": "subhead",
-          "description": "The subhead under the title."
+          "description": "The hint under the title."
         },
         {
           "name": "content",
@@ -13950,12 +14170,20 @@
           "description": "Folds with a height transition (`interpolate-size`)."
         },
         {
-          "name": "in-section",
+          "name": "nested",
           "description": "Nested in another section."
         },
         {
-          "name": "in-sections",
+          "name": "in-group",
           "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
         },
         {
           "name": "inverted",
@@ -15325,6 +15553,1696 @@
       "main": true,
       "page": true,
       "href": "ui-progress.html"
+    },
+    {
+      "tag": "ui-property",
+      "name": "Property",
+      "folder": "ui-property-editor",
+      "topics": [
+        "forms",
+        "inputs"
+      ],
+      "aka": [
+        "property",
+        "inspector row",
+        "setting",
+        "schema field"
+      ],
+      "description": "A property is one field of a property editor:  its label, tip, choices and rules come from the editor's schema.",
+      "noun": "field",
+      "attributes": [
+        {
+          "name": "name",
+          "kind": "string",
+          "description": "The property it edits;  a dotted path reaches into a nested thing (`font.size`).  Required."
+        },
+        {
+          "name": "as",
+          "kind": "string",
+          "description": "Which control (a kind `UI.propertyControls` knows):  `input`, `text`, `number`, `date`, `select`, `buttons`, `range`, `checkbox`, `toggle`, `color`, `editor`, or one a page added.  None:  the default for its type."
+        },
+        {
+          "name": "options",
+          "kind": "string",
+          "description": "Where its choices come from, when not the schema's:  a source the page added (`UI.propertyControls.addChoices()`), or a list, `a, b, c`."
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "description": "The label, in the label row;  `slot=\"label\"` is the rich version.  Names the control for screen readers."
+        },
+        {
+          "name": "description",
+          "kind": "string",
+          "description": "A tip behind an info icon at the end of the label row, shown on hover and focus;  `slot=\"description\"` is the rich version (bold words, line breaks)."
+        },
+        {
+          "name": "hint",
+          "kind": "string",
+          "description": "Text under the control;  `slot=\"hint\"` is the rich version."
+        },
+        {
+          "name": "output",
+          "kind": "string",
+          "description": "A value shown at the end of the label row (`100%`, `+8°`);  `slot=\"output\"` is the rich version."
+        },
+        {
+          "name": "error",
+          "kind": "string",
+          "description": "An error, as a line under the control, and the `error` state.  `<ui-form>`'s validation shows its own there."
+        },
+        {
+          "name": "state",
+          "kind": "valueOnly",
+          "values": [
+            "error",
+            "info",
+            "success",
+            "warning"
+          ],
+          "description": "Field state:  tints its label and controls.  An error shows `error` on top."
+        },
+        {
+          "name": "apply",
+          "kind": "string",
+          "default": "immediately",
+          "description": "When a change to the control is written to the bound value:  `immediately`;  `delayed`, after a pause in typing (300ms;  `delayed 100` for 100ms);  or `on leave`, when the cursor leaves the field."
+        },
+        {
+          "name": "mixed",
+          "kind": "boolean",
+          "description": "The things being edited disagree on this value:  the control shows blank, with a `Mixed` placeholder.  Set by the form;  writing a value clears it."
+        },
+        {
+          "name": "rules",
+          "kind": "json",
+          "reflect": false,
+          "description": "Validation rules for this field's control, in `<ui-form rules>`'s shape (`\"email\"`, `[\"notEmpty\", \"minLength[6]\"]`);  added to the form's own rules for it."
+        },
+        {
+          "name": "inline",
+          "kind": "keyOnly",
+          "description": "Label beside the control, not above it."
+        },
+        {
+          "name": "required",
+          "kind": "keyOnly",
+          "description": "Marks the label with an asterisk (validation is `rules` / `required`)."
+        },
+        {
+          "name": "readonly",
+          "kind": "boolean",
+          "description": "Shows the value;  it can't be changed.  Nests like `disabled`:  set on a group, it reaches each field."
+        },
+        {
+          "name": "disabled",
+          "kind": "keyOnly",
+          "description": "Dimmed and not usable (`inert`)."
+        },
+        {
+          "name": "width",
+          "kind": "width",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16"
+          ],
+          "valueSet": "widths",
+          "description": "Width in a row of fields:  columns (`4` of 16), fractions (`1/4`) or percentages (`25%`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins."
+        },
+        {
+          "name": "animation",
+          "kind": "enum",
+          "values": [
+            "fade",
+            "fade up",
+            "fade down",
+            "fade left",
+            "fade right",
+            "scale",
+            "zoom",
+            "drop",
+            "browse",
+            "browse right",
+            "fly",
+            "fly up",
+            "fly down",
+            "fly left",
+            "fly right",
+            "slide",
+            "slide up",
+            "slide down",
+            "slide left",
+            "slide right",
+            "swing",
+            "swing up",
+            "swing down",
+            "swing left",
+            "swing right",
+            "horizontal flip",
+            "vertical flip",
+            "flash",
+            "shake",
+            "bounce",
+            "tada",
+            "pulse",
+            "jiggle",
+            "glow",
+            "none"
+          ],
+          "shared": true,
+          "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "Your own control, instead of the one it makes;  or nothing."
+        },
+        {
+          "name": "label",
+          "description": "Rich label (instead of `label`)."
+        },
+        {
+          "name": "description",
+          "description": "Rich tip (instead of `description`):  bold words, line breaks."
+        },
+        {
+          "name": "hint",
+          "description": "Rich hint (instead of `hint`)."
+        },
+        {
+          "name": "output",
+          "description": "Rich output (instead of `output`)."
+        },
+        {
+          "name": "actions",
+          "description": "Small buttons at the end of the label row (`Reset`, `Auto`);  a taller one never grows the row."
+        }
+      ],
+      "events": [
+        {
+          "name": "ui-change",
+          "detail": "{ name: string, value: unknown }",
+          "description": "Its property was written (on Save, with `apply=\"on save\"`)."
+        }
+      ],
+      "parts": [
+        {
+          "name": "field",
+          "description": "The field box."
+        },
+        {
+          "name": "row",
+          "description": "The label row."
+        },
+        {
+          "name": "label",
+          "description": "The label."
+        },
+        {
+          "name": "actions",
+          "description": "The actions, at the end of the label row."
+        },
+        {
+          "name": "output",
+          "description": "The output."
+        },
+        {
+          "name": "info",
+          "description": "The info icon."
+        },
+        {
+          "name": "tip",
+          "description": "The tip, shown from the info icon."
+        },
+        {
+          "name": "control",
+          "description": "Around the control(s) under a label row;  no box of its own (`display: contents`)."
+        },
+        {
+          "name": "hint",
+          "description": "The hint."
+        },
+        {
+          "name": "error",
+          "description": "The error lines."
+        }
+      ],
+      "states": [
+        {
+          "name": "changed",
+          "description": "Its edit is held, not saved yet (`apply=\"on save\"`)."
+        },
+        {
+          "name": "buttons",
+          "description": "Its control is a row of choices, one each (`as=\"buttons\"`)."
+        },
+        {
+          "name": "field",
+          "description": "Always:  how `<ui-form>` finds a control's field (`closest(':state(field)')`)."
+        },
+        {
+          "name": "error",
+          "description": "In the error state (attribute, or failed validation)."
+        },
+        {
+          "name": "info",
+          "description": "In the info state."
+        },
+        {
+          "name": "success",
+          "description": "In the success state."
+        },
+        {
+          "name": "warning",
+          "description": "In the warning state."
+        },
+        {
+          "name": "mixed",
+          "description": "The things being edited disagree on this value (`mixed`)."
+        },
+        {
+          "name": "readonly",
+          "description": "Can't be changed (`readonly`, its own or a group's)."
+        },
+        {
+          "name": "disabled",
+          "description": "Can't be used."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+        },
+        {
+          "name": "still",
+          "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+        },
+        {
+          "name": "hiding",
+          "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+        }
+      ],
+      "texts": [
+        {
+          "key": "info",
+          "text": "More about {label}",
+          "description": "The info icon's name;  `{label}` is the label."
+        },
+        {
+          "key": "mixed",
+          "text": "Mixed",
+          "description": "The placeholder of a control whose things disagree."
+        }
+      ],
+      "mainTag": "ui-property-editor",
+      "main": false,
+      "page": false,
+      "href": "ui-property-editor.html#ui-property"
+    },
+    {
+      "tag": "ui-property-editor",
+      "name": "Property editor",
+      "folder": "ui-property-editor",
+      "topics": [
+        "forms",
+        "inputs",
+        "collections"
+      ],
+      "aka": [
+        "inspector",
+        "property sheet",
+        "properties panel",
+        "settings form",
+        "object editor"
+      ],
+      "description": "A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.",
+      "noun": "form",
+      "attributes": [
+        {
+          "name": "schema",
+          "kind": "json",
+          "reflect": false,
+          "description": "What it edits, described:  a tag (`ui-button`:  its vocabulary), a schema the page added (`UI.propertyControls.addSchema()`), or, as a property, a `PropertySchema` or a component vocabulary."
+        },
+        {
+          "name": "value",
+          "kind": "json",
+          "reflect": false,
+          "description": "The thing it edits, or a LIST of things (edited at once:  a property shows the value they agree on)."
+        },
+        {
+          "name": "source",
+          "kind": "string",
+          "description": "Its layout page:  a spell path inside the spell editor, else a full URL (epic `property-editor` P6)."
+        },
+        {
+          "name": "select",
+          "kind": "string",
+          "description": "With `source`:  a CSS selector;  only its first match in the layout page is used."
+        },
+        {
+          "name": "readonly",
+          "kind": "boolean",
+          "description": "Shows every value;  nothing can be changed.  Reaches every property in it."
+        },
+        {
+          "name": "output",
+          "kind": "string",
+          "description": "A value at the end of the title bar;  `slot=\"output\"`."
+        },
+        {
+          "name": "error",
+          "kind": "string",
+          "description": "An error under the title, and the `error` state."
+        },
+        {
+          "name": "size",
+          "kind": "size",
+          "values": [
+            "mini",
+            "tiny",
+            "small",
+            "medium",
+            "large",
+            "big",
+            "huge",
+            "massive"
+          ],
+          "valueSet": "sizes",
+          "description": "Size of everything inside, `mini` ... `massive`."
+        },
+        {
+          "name": "state",
+          "kind": "valueOnly",
+          "values": [
+            "error",
+            "info",
+            "success",
+            "warning"
+          ],
+          "description": "Form state:  shows the `<ui-message>`s of that state inside.  Failed validation sets `error` on top."
+        },
+        {
+          "name": "equal-width",
+          "kind": "keyOnly",
+          "description": "Every row of fields shares its width equally."
+        },
+        {
+          "name": "inverted",
+          "kind": "keyOnly",
+          "description": "For dark backgrounds:  light labels."
+        },
+        {
+          "name": "loading",
+          "kind": "keyOnly",
+          "description": "Busy:  dimmed behind a spinner, not usable."
+        },
+        {
+          "name": "disabled",
+          "kind": "keyOnly",
+          "description": "Nothing inside can be used (`inert`)."
+        },
+        {
+          "name": "unstackable",
+          "kind": "keyOnly",
+          "description": "Rows of fields never stack on narrow forms."
+        },
+        {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
+        },
+        {
+          "name": "validate",
+          "kind": "enum",
+          "values": [
+            "immediately",
+            "on leave",
+            "on save"
+          ],
+          "default": "on save",
+          "property": "validateOn",
+          "description": "When fields validate:  `immediately`, as each changes;  `on leave`, as the cursor leaves each;  or only `on save` (a submit, or `save()`).  A field showing an error always validates again as it changes."
+        },
+        {
+          "name": "apply",
+          "kind": "enum",
+          "values": [
+            "immediately",
+            "on save"
+          ],
+          "default": "immediately",
+          "description": "When edits land in the bound `value`:  `immediately`;  or `on save`, all together on `save()`, while `cancel()` drops them (`:state(changed)` while any are held).  Each field's own `apply` says when it takes an edit."
+        },
+        {
+          "name": "rules",
+          "kind": "json",
+          "reflect": false,
+          "description": "Validation rules by field name (or id), Fomantic's `fields` shape:  `{ email: \"email\", password: [\"notEmpty\", \"minLength[6]\"], name: { rules: [{ type: \"notEmpty\", prompt: \"...\" }], optional: true } }`."
+        },
+        {
+          "name": "error-focus",
+          "kind": "boolean",
+          "default": true,
+          "description": "Focus the first invalid field when a submit fails;  `error-focus=\"no\"` to keep focus."
+        },
+        {
+          "name": "prevent-leaving",
+          "kind": "boolean",
+          "description": "Ask before leaving the page while fields differ from their starting values."
+        },
+        {
+          "name": "debug",
+          "kind": "boolean",
+          "description": "Show the bound `value` (else `values`) as JSON below the form, live."
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
+        },
+        {
+          "name": "hint",
+          "kind": "string",
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
+        },
+        {
+          "name": "level",
+          "kind": "enum",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "description": "Heading level of the title (`<h1>` ... `<h6>`);  default:  the enclosing section's level + 1, else 2 (under the page's `h1`)."
+        },
+        {
+          "name": "icon",
+          "kind": "icon",
+          "description": "Icon name, before the title;  a slotted `slot=\"icon\"` (a `<ui-icon>`, anything) replaces it."
+        },
+        {
+          "name": "badge",
+          "kind": "string",
+          "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
+        },
+        {
+          "name": "description",
+          "kind": "string",
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
+        },
+        {
+          "name": "collapsible",
+          "kind": "boolean",
+          "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there."
+        },
+        {
+          "name": "collapsed",
+          "kind": "boolean",
+          "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match."
+        },
+        {
+          "name": "fold-icon",
+          "kind": "enum",
+          "values": [
+            "start",
+            "end"
+          ],
+          "description": "With `collapsible`:  where the fold chevron sits:  `start`, before the title (the default), or `end`, at the far end of the title bar, after the badge and actions (a click on it folds too)."
+        },
+        {
+          "name": "sticky",
+          "kind": "keyOnly",
+          "description": "The title bar sticks while the section is on screen;  a sticky section inside another sticks just below its title."
+        },
+        {
+          "name": "offset",
+          "kind": "number",
+          "default": 0,
+          "description": "With `sticky`:  pixels between the top edge and a TOP-LEVEL section's stuck title (e.g. a page header's height);  nested sections work theirs out."
+        },
+        {
+          "name": "color",
+          "kind": "color",
+          "values": [
+            "primary",
+            "secondary",
+            "red",
+            "orange",
+            "yellow",
+            "olive",
+            "green",
+            "teal",
+            "blue",
+            "violet",
+            "purple",
+            "pink",
+            "brown",
+            "grey",
+            "black"
+          ],
+          "valueSet": "hues",
+          "description": "Hue of the title (and of the rule or box edge)."
+        },
+        {
+          "name": "dividing",
+          "kind": "keyOnly",
+          "description": "A rule under the title."
+        },
+        {
+          "name": "block",
+          "kind": "keyOnly",
+          "description": "The title bar in a tinted box."
+        },
+        {
+          "name": "bordered",
+          "kind": "keyOnly",
+          "description": "A box around the section, as a segment."
+        },
+        {
+          "name": "styled",
+          "kind": "keyOnly",
+          "description": "Boxed as a styled accordion:  a tinted title bar over padded content."
+        },
+        {
+          "name": "raised",
+          "kind": "keyOnly",
+          "description": "With a box:  lifted with a shadow."
+        },
+        {
+          "name": "basic",
+          "kind": "keyOnly",
+          "description": "No box, rule or tint, whatever else is set."
+        },
+        {
+          "name": "compact",
+          "kind": "keyOnly",
+          "description": "Less padding and space around the title."
+        },
+        {
+          "name": "padded",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "very"
+          ],
+          "description": "More padding in the content;  `padded=\"very\"` for even more."
+        },
+        {
+          "name": "attached",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "top",
+            "bottom"
+          ],
+          "description": "With a box:  joined edge to edge with the box above / below;  bare `attached` sits between two."
+        },
+        {
+          "name": "scrolling",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "short",
+            "very short",
+            "long",
+            "very long"
+          ],
+          "description": "The content has a capped height and scrolls;  `short` ... `very long` scale the cap."
+        },
+        {
+          "name": "height",
+          "kind": "string",
+          "description": "The content's cap, any CSS length (`20em`, `300px`):  above it the content scrolls (implies `scrolling`)."
+        },
+        {
+          "name": "text-align",
+          "kind": "textAlign",
+          "values": [
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Aligns the TITLE `left`, `center` or `right`."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins."
+        },
+        {
+          "name": "animation",
+          "kind": "enum",
+          "values": [
+            "fade",
+            "fade up",
+            "fade down",
+            "fade left",
+            "fade right",
+            "scale",
+            "zoom",
+            "drop",
+            "browse",
+            "browse right",
+            "fly",
+            "fly up",
+            "fly down",
+            "fly left",
+            "fly right",
+            "slide",
+            "slide up",
+            "slide down",
+            "slide left",
+            "slide right",
+            "swing",
+            "swing up",
+            "swing down",
+            "swing left",
+            "swing right",
+            "horizontal flip",
+            "vertical flip",
+            "flash",
+            "shake",
+            "bounce",
+            "tada",
+            "pulse",
+            "jiggle",
+            "glow",
+            "none"
+          ],
+          "shared": true,
+          "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "`<ui-property-group>`s and `<ui-property>`s.  Empty:  one property per attribute."
+        },
+        {
+          "name": "output",
+          "description": "Rich output (instead of `output`)."
+        },
+        {
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
+        },
+        {
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
+        },
+        {
+          "name": "icon",
+          "description": "Icon before the title, instead of the `icon` attribute (a `<ui-icon>`, an image)."
+        },
+        {
+          "name": "badge",
+          "description": "Rich badge, instead of the `badge` attribute (e.g. a `<ui-label>`)."
+        },
+        {
+          "name": "actions",
+          "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
+        },
+        {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
+          "name": "info",
+          "description": "Old name of the `description` slot."
+        }
+      ],
+      "events": [
+        {
+          "name": "ui-change",
+          "detail": "{ name: string, value: unknown, things: object[] }",
+          "description": "A property was written to the thing (or things)."
+        },
+        {
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "Its `source` page is about to load (P6)."
+        },
+        {
+          "name": "ui-loaded",
+          "detail": "{ source: string, content: string }",
+          "description": "It arrived (P6)."
+        },
+        {
+          "name": "ui-valid",
+          "detail": "{ field: string, value: FieldValue, values: Record<string, FieldValue> }",
+          "description": "A field passed validation."
+        },
+        {
+          "name": "ui-invalid",
+          "detail": "{ field: string, value: FieldValue, errors: string[], values: Record<string, FieldValue> }",
+          "description": "A field failed validation;  `errors` are its prompts."
+        },
+        {
+          "name": "ui-success",
+          "detail": "{ values: Record<string, FieldValue>, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "A submit passed validation;  `preventDefault()` stops the native submission (e.g. to send it by fetch)."
+        },
+        {
+          "name": "ui-failure",
+          "detail": "{ values: Record<string, FieldValue>, errors: Record<string, string[]>, originalEvent?: Event }",
+          "description": "A submit failed validation (the native submission is stopped);  `errors` by field."
+        },
+        {
+          "name": "ui-saving",
+          "detail": "{ changes: FormChange[], value: unknown }",
+          "cancelable": true,
+          "description": "`save()`, with `apply=\"on save\"`:  the held edits are about to land;  `preventDefault()` keeps them held."
+        },
+        {
+          "name": "ui-saved",
+          "detail": "{ changes: FormChange[], value: unknown }",
+          "description": "The held edits landed in the bound `value`."
+        },
+        {
+          "name": "ui-cancelling",
+          "detail": "{ changes: FormChange[] }",
+          "cancelable": true,
+          "description": "`cancel()`:  the held edits are about to be dropped;  `preventDefault()` keeps them."
+        },
+        {
+          "name": "ui-cancelled",
+          "detail": "{ changes: FormChange[] }",
+          "description": "The held edits were dropped:  every control shows the bound `value` again."
+        },
+        {
+          "name": "ui-opening",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
+        },
+        {
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "About to fold:  the title was activated.  Cancel to stay open."
+        },
+        {
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-error",
+          "detail": "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
+          "cancelable": true,
+          "description": "The `source` file couldn't be loaded or shown;  `kind` says why.  An error line shows in the content unless cancelled;  opening it again tries again."
+        }
+      ],
+      "parts": [
+        {
+          "name": "editor",
+          "description": "The editor's outer box."
+        },
+        {
+          "name": "footer",
+          "description": "Under the properties:  Save and Cancel, with `apply=\"on save\"`."
+        },
+        {
+          "name": "output",
+          "description": "The output."
+        },
+        {
+          "name": "error-line",
+          "description": "The editor's own error, under its title."
+        },
+        {
+          "name": "form",
+          "description": "The form box."
+        },
+        {
+          "name": "debug",
+          "description": "The JSON `debug` shows, a `<pre>` in a captioned box below the content."
+        },
+        {
+          "name": "section",
+          "description": "The section box."
+        },
+        {
+          "name": "title",
+          "description": "The title bar:  sticks with `sticky`."
+        },
+        {
+          "name": "heading",
+          "description": "The `<h1>` ... `<h6>`."
+        },
+        {
+          "name": "toggle",
+          "description": "With `collapsible`:  the `<button>` inside the heading that folds the section."
+        },
+        {
+          "name": "fold-icon",
+          "description": "With `collapsible`:  the chevron, in the toggle;  with `fold-icon=\"end\"`, at the end of the title bar."
+        },
+        {
+          "name": "icon",
+          "description": "The icon box."
+        },
+        {
+          "name": "header",
+          "description": "The title text box."
+        },
+        {
+          "name": "badge",
+          "description": "The badge pill."
+        },
+        {
+          "name": "actions",
+          "description": "The actions box, at the right of the title bar."
+        },
+        {
+          "name": "tip",
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
+        },
+        {
+          "name": "subhead",
+          "description": "The hint under the title."
+        },
+        {
+          "name": "content",
+          "description": "The content box:  `size`, `scrolling` and `height` apply here."
+        },
+        {
+          "name": "error",
+          "description": "With `source`:  the line saying the file couldn't be loaded."
+        }
+      ],
+      "states": [
+        {
+          "name": "readonly",
+          "description": "Nothing can be changed (`readonly`)."
+        },
+        {
+          "name": "error",
+          "description": "In the error state (attribute, or failed validation)."
+        },
+        {
+          "name": "info",
+          "description": "In the info state."
+        },
+        {
+          "name": "success",
+          "description": "In the success state."
+        },
+        {
+          "name": "warning",
+          "description": "In the warning state."
+        },
+        {
+          "name": "loading",
+          "description": "Busy."
+        },
+        {
+          "name": "changed",
+          "description": "`apply=\"on save\"`:  edits are held, not saved yet."
+        },
+        {
+          "name": "disabled",
+          "description": "Can't be used."
+        },
+        {
+          "name": "root",
+          "description": "Always on:  the form's own host (its sheet also styles `<ui-fields>` / `<ui-field>` hosts), a block and the size container its rows stack by."
+        },
+        {
+          "name": "collapsed",
+          "description": "Folded."
+        },
+        {
+          "name": "stuck",
+          "description": "With `sticky`:  the title bar is stuck to the top."
+        },
+        {
+          "name": "animated",
+          "description": "Folds with a height transition (`interpolate-size`)."
+        },
+        {
+          "name": "nested",
+          "description": "Nested in another section."
+        },
+        {
+          "name": "in-group",
+          "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
+        },
+        {
+          "name": "inverted",
+          "description": "In the dark scheme."
+        },
+        {
+          "name": "loaded",
+          "description": "With `source`:  the file's body is in place."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+        },
+        {
+          "name": "still",
+          "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+        },
+        {
+          "name": "hiding",
+          "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+        }
+      ],
+      "texts": [
+        {
+          "key": "save",
+          "text": "Save",
+          "description": "The Save button, with `apply=\"on save\"`."
+        },
+        {
+          "key": "cancel",
+          "text": "Cancel",
+          "description": "The Cancel button, with `apply=\"on save\"`."
+        },
+        {
+          "key": "other",
+          "text": "Other",
+          "description": "The group of properties a layout doesn't place (P6)."
+        },
+        {
+          "key": "formDebugBound",
+          "text": "Bound object",
+          "description": "Caption of `debug`'s JSON while the form is bound."
+        },
+        {
+          "key": "formDebugValues",
+          "text": "Values",
+          "description": "Caption of `debug`'s JSON while it isn't:  the form's `values`."
+        },
+        {
+          "key": "loading",
+          "text": "Loading…",
+          "description": "Announced while `loading`."
+        },
+        {
+          "key": "fold",
+          "text": "Fold",
+          "description": "Tooltip of the fold button while open."
+        },
+        {
+          "key": "unfold",
+          "text": "Unfold",
+          "description": "Tooltip of the fold button while folded."
+        },
+        {
+          "key": "sourceLoadError",
+          "text": "Couldn't load {source}.",
+          "description": "The fetch failed."
+        },
+        {
+          "key": "sourceCrossOrigin",
+          "text": "Can't show {source}:  only files from this site can be shown.",
+          "description": "`source` is on another origin."
+        },
+        {
+          "key": "sourceFileProtocol",
+          "text": "Can't load {source}:  this page was opened from disk.  Open it from a web server to see it.",
+          "description": "The page is a `file://` page."
+        },
+        {
+          "key": "sourceRenderError",
+          "text": "Couldn't show {source}.",
+          "description": "The text arrived, but couldn't be shown."
+        }
+      ],
+      "mainTag": "ui-property-editor",
+      "main": true,
+      "page": true,
+      "href": "ui-property-editor.html"
+    },
+    {
+      "tag": "ui-property-group",
+      "name": "Property group",
+      "folder": "ui-property-editor",
+      "topics": [
+        "forms",
+        "layout"
+      ],
+      "aka": [
+        "property group",
+        "fieldset",
+        "settings group",
+        "inspector section"
+      ],
+      "description": "A property group is a folding band of properties in a property editor.  It takes `<ui-section>`'s attributes.",
+      "noun": "section",
+      "attributes": [
+        {
+          "name": "select",
+          "kind": "string",
+          "description": "A CSS selector:  the group's properties are its first match in the editor's `source` page (P6)."
+        },
+        {
+          "name": "readonly",
+          "kind": "boolean",
+          "description": "Shows every value;  nothing can be changed.  Reaches every property in it."
+        },
+        {
+          "name": "state",
+          "kind": "valueOnly",
+          "values": [
+            "error",
+            "info",
+            "success",
+            "warning"
+          ],
+          "description": "Its state:  tints its title.  A property in it failing validation shows `error` on top."
+        },
+        {
+          "name": "output",
+          "kind": "string",
+          "description": "A value at the end of the title bar;  `slot=\"output\"`."
+        },
+        {
+          "name": "error",
+          "kind": "string",
+          "description": "An error under the title, and the `error` state."
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
+        },
+        {
+          "name": "hint",
+          "kind": "string",
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
+        },
+        {
+          "name": "level",
+          "kind": "enum",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "description": "Heading level of the title (`<h1>` ... `<h6>`);  default:  the enclosing section's level + 1, else 2 (under the page's `h1`)."
+        },
+        {
+          "name": "icon",
+          "kind": "icon",
+          "description": "Icon name, before the title;  a slotted `slot=\"icon\"` (a `<ui-icon>`, anything) replaces it."
+        },
+        {
+          "name": "badge",
+          "kind": "string",
+          "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
+        },
+        {
+          "name": "description",
+          "kind": "string",
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
+        },
+        {
+          "name": "collapsible",
+          "kind": "boolean",
+          "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there."
+        },
+        {
+          "name": "collapsed",
+          "kind": "boolean",
+          "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match."
+        },
+        {
+          "name": "fold-icon",
+          "kind": "enum",
+          "values": [
+            "start",
+            "end"
+          ],
+          "description": "With `collapsible`:  where the fold chevron sits:  `start`, before the title (the default), or `end`, at the far end of the title bar, after the badge and actions (a click on it folds too)."
+        },
+        {
+          "name": "sticky",
+          "kind": "keyOnly",
+          "description": "The title bar sticks while the section is on screen;  a sticky section inside another sticks just below its title."
+        },
+        {
+          "name": "offset",
+          "kind": "number",
+          "default": 0,
+          "description": "With `sticky`:  pixels between the top edge and a TOP-LEVEL section's stuck title (e.g. a page header's height);  nested sections work theirs out."
+        },
+        {
+          "name": "color",
+          "kind": "color",
+          "values": [
+            "primary",
+            "secondary",
+            "red",
+            "orange",
+            "yellow",
+            "olive",
+            "green",
+            "teal",
+            "blue",
+            "violet",
+            "purple",
+            "pink",
+            "brown",
+            "grey",
+            "black"
+          ],
+          "valueSet": "hues",
+          "description": "Hue of the title (and of the rule or box edge)."
+        },
+        {
+          "name": "size",
+          "kind": "size",
+          "values": [
+            "mini",
+            "tiny",
+            "small",
+            "medium",
+            "large",
+            "big",
+            "huge",
+            "massive"
+          ],
+          "valueSet": "sizes",
+          "description": "Text size of the CONTENT, `mini` ... `massive`;  the title keeps its level's size."
+        },
+        {
+          "name": "dividing",
+          "kind": "keyOnly",
+          "description": "A rule under the title."
+        },
+        {
+          "name": "block",
+          "kind": "keyOnly",
+          "description": "The title bar in a tinted box."
+        },
+        {
+          "name": "bordered",
+          "kind": "keyOnly",
+          "description": "A box around the section, as a segment."
+        },
+        {
+          "name": "styled",
+          "kind": "keyOnly",
+          "description": "Boxed as a styled accordion:  a tinted title bar over padded content."
+        },
+        {
+          "name": "raised",
+          "kind": "keyOnly",
+          "description": "With a box:  lifted with a shadow."
+        },
+        {
+          "name": "basic",
+          "kind": "keyOnly",
+          "description": "No box, rule or tint, whatever else is set."
+        },
+        {
+          "name": "compact",
+          "kind": "keyOnly",
+          "description": "Less padding and space around the title."
+        },
+        {
+          "name": "padded",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "very"
+          ],
+          "description": "More padding in the content;  `padded=\"very\"` for even more."
+        },
+        {
+          "name": "attached",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "top",
+            "bottom"
+          ],
+          "description": "With a box:  joined edge to edge with the box above / below;  bare `attached` sits between two."
+        },
+        {
+          "name": "scrolling",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "short",
+            "very short",
+            "long",
+            "very long"
+          ],
+          "description": "The content has a capped height and scrolls;  `short` ... `very long` scale the cap."
+        },
+        {
+          "name": "height",
+          "kind": "string",
+          "description": "The content's cap, any CSS length (`20em`, `300px`):  above it the content scrolls (implies `scrolling`)."
+        },
+        {
+          "name": "text-align",
+          "kind": "textAlign",
+          "values": [
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Aligns the TITLE `left`, `center` or `right`."
+        },
+        {
+          "name": "inverted",
+          "kind": "keyOnly",
+          "description": "For dark backgrounds:  the dark scheme."
+        },
+        {
+          "name": "loading",
+          "kind": "keyOnly",
+          "description": "Dims the content under a spinner;  `aria-busy`."
+        },
+        {
+          "name": "disabled",
+          "kind": "keyOnly",
+          "description": "Dimmed and inert;  can't be folded."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins."
+        },
+        {
+          "name": "animation",
+          "kind": "enum",
+          "values": [
+            "fade",
+            "fade up",
+            "fade down",
+            "fade left",
+            "fade right",
+            "scale",
+            "zoom",
+            "drop",
+            "browse",
+            "browse right",
+            "fly",
+            "fly up",
+            "fly down",
+            "fly left",
+            "fly right",
+            "slide",
+            "slide up",
+            "slide down",
+            "slide left",
+            "slide right",
+            "swing",
+            "swing up",
+            "swing down",
+            "swing left",
+            "swing right",
+            "horizontal flip",
+            "vertical flip",
+            "flash",
+            "shake",
+            "bounce",
+            "tada",
+            "pulse",
+            "jiggle",
+            "glow",
+            "none"
+          ],
+          "shared": true,
+          "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on."
+        }
+      ],
+      "slots": [
+        {
+          "name": "output",
+          "description": "Rich output (instead of `output`)."
+        },
+        {
+          "name": "",
+          "description": "The content:  anything, nested `<ui-section>`s included."
+        },
+        {
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
+        },
+        {
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
+        },
+        {
+          "name": "icon",
+          "description": "Icon before the title, instead of the `icon` attribute (a `<ui-icon>`, an image)."
+        },
+        {
+          "name": "badge",
+          "description": "Rich badge, instead of the `badge` attribute (e.g. a `<ui-label>`)."
+        },
+        {
+          "name": "actions",
+          "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
+        },
+        {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
+          "name": "info",
+          "description": "Old name of the `description` slot."
+        }
+      ],
+      "events": [
+        {
+          "name": "ui-invalid",
+          "detail": "as `<ui-form>`'s",
+          "description": "A property in the group failed validation (the editor sends it on the group too)."
+        },
+        {
+          "name": "ui-success",
+          "detail": "as `<ui-form>`'s",
+          "description": "The editor's submit or Save passed validation (sent on each group too)."
+        },
+        {
+          "name": "ui-opening",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
+        },
+        {
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "About to fold:  the title was activated.  Cancel to stay open."
+        },
+        {
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
+          "detail": "{ source: string, content: string }",
+          "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-error",
+          "detail": "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
+          "cancelable": true,
+          "description": "The `source` file couldn't be loaded or shown;  `kind` says why.  An error line shows in the content unless cancelled;  opening it again tries again."
+        }
+      ],
+      "parts": [
+        {
+          "name": "output",
+          "description": "The output."
+        },
+        {
+          "name": "error-line",
+          "description": "The group's own error, under its title."
+        },
+        {
+          "name": "section",
+          "description": "The section box."
+        },
+        {
+          "name": "title",
+          "description": "The title bar:  sticks with `sticky`."
+        },
+        {
+          "name": "heading",
+          "description": "The `<h1>` ... `<h6>`."
+        },
+        {
+          "name": "toggle",
+          "description": "With `collapsible`:  the `<button>` inside the heading that folds the section."
+        },
+        {
+          "name": "fold-icon",
+          "description": "With `collapsible`:  the chevron, in the toggle;  with `fold-icon=\"end\"`, at the end of the title bar."
+        },
+        {
+          "name": "icon",
+          "description": "The icon box."
+        },
+        {
+          "name": "header",
+          "description": "The title text box."
+        },
+        {
+          "name": "badge",
+          "description": "The badge pill."
+        },
+        {
+          "name": "actions",
+          "description": "The actions box, at the right of the title bar."
+        },
+        {
+          "name": "tip",
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
+        },
+        {
+          "name": "subhead",
+          "description": "The hint under the title."
+        },
+        {
+          "name": "content",
+          "description": "The content box:  `size`, `scrolling` and `height` apply here."
+        },
+        {
+          "name": "error",
+          "description": "With `source`:  the line saying the file couldn't be loaded."
+        }
+      ],
+      "states": [
+        {
+          "name": "changed",
+          "description": "A property in it has an edit not saved yet (`apply=\"on save\"`)."
+        },
+        {
+          "name": "readonly",
+          "description": "Nothing in it can be changed (`readonly`)."
+        },
+        {
+          "name": "error",
+          "description": "Its `error`, or a property in it failing validation."
+        },
+        {
+          "name": "collapsed",
+          "description": "Folded."
+        },
+        {
+          "name": "stuck",
+          "description": "With `sticky`:  the title bar is stuck to the top."
+        },
+        {
+          "name": "animated",
+          "description": "Folds with a height transition (`interpolate-size`)."
+        },
+        {
+          "name": "nested",
+          "description": "Nested in another section."
+        },
+        {
+          "name": "in-group",
+          "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
+        },
+        {
+          "name": "inverted",
+          "description": "In the dark scheme."
+        },
+        {
+          "name": "loading",
+          "description": "Busy:  `loading`, or a `source` body that is slow to arrive."
+        },
+        {
+          "name": "disabled",
+          "description": "Dimmed and inert."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+        },
+        {
+          "name": "still",
+          "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+        },
+        {
+          "name": "hiding",
+          "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+        }
+      ],
+      "texts": [
+        {
+          "key": "loading",
+          "text": "Loading…",
+          "description": "Announced while `loading`."
+        },
+        {
+          "key": "fold",
+          "text": "Fold",
+          "description": "Tooltip of the fold button while open."
+        },
+        {
+          "key": "unfold",
+          "text": "Unfold",
+          "description": "Tooltip of the fold button while folded."
+        }
+      ],
+      "mainTag": "ui-property-editor",
+      "main": false,
+      "page": false,
+      "href": "ui-property-editor.html#ui-property-group"
     },
     {
       "tag": "ui-pushable",
@@ -17553,14 +19471,20 @@
       "noun": "section",
       "attributes": [
         {
-          "name": "header",
+          "name": "label",
           "kind": "string",
-          "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links)."
+          "aliases": [
+            "header"
+          ],
+          "description": "Title text;  a slotted `slot=\"label\"` is the rich version (code, links).  Old name:  `header`."
         },
         {
-          "name": "subhead",
+          "name": "hint",
           "kind": "string",
-          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`."
+          "aliases": [
+            "subhead"
+          ],
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"hint\"`.  Old name:  `subhead`."
         },
         {
           "name": "level",
@@ -17586,9 +19510,12 @@
           "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
         },
         {
-          "name": "info",
+          "name": "description",
           "kind": "string",
-          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+          "aliases": [
+            "info"
+          ],
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"description\"` is the rich version (bold words, line breaks).  Old name:  `info`."
         },
         {
           "name": "collapsible",
@@ -17818,12 +19745,12 @@
           "description": "The content:  anything, nested `<ui-section>`s included."
         },
         {
-          "name": "header",
-          "description": "Rich title, instead of the `header` attribute."
+          "name": "label",
+          "description": "Rich title, instead of the `label` attribute."
         },
         {
-          "name": "subhead",
-          "description": "Rich subhead, instead of the `subhead` attribute."
+          "name": "hint",
+          "description": "Rich hint, instead of the `hint` attribute."
         },
         {
           "name": "icon",
@@ -17838,27 +19765,71 @@
           "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
         },
         {
+          "name": "description",
+          "description": "Rich tip, instead of the `description` attribute (bold words, line breaks)."
+        },
+        {
+          "name": "header",
+          "description": "Old name of the `label` slot."
+        },
+        {
+          "name": "subhead",
+          "description": "Old name of the `hint` slot."
+        },
+        {
           "name": "info",
-          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+          "description": "Old name of the `description` slot."
         }
       ],
       "events": [
         {
-          "name": "ui-open",
+          "name": "ui-opening",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
         },
         {
-          "name": "ui-close",
+          "name": "ui-opened",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Unfolded, by any route:  the title, the page removing `collapsed`, find-in-page."
+        },
+        {
+          "name": "ui-closing",
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to fold:  the title was activated.  Cancel to stay open."
         },
         {
-          "name": "ui-load",
+          "name": "ui-closed",
+          "detail": "{ open: boolean, section: Element }",
+          "description": "Folded, by any route:  the title, or the page setting `collapsed`."
+        },
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-opening`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Old name of `ui-closing`:  sent just after it, the same way, until every page listens for the new."
+        },
+        {
+          "name": "ui-loading",
+          "detail": "{ source: string }",
+          "description": "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+        },
+        {
+          "name": "ui-loaded",
           "detail": "{ source: string, content: string }",
           "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "Old name of `ui-loaded`:  sent just after it, until every page listens for the new."
         },
         {
           "name": "ui-error",
@@ -17906,11 +19877,11 @@
         },
         {
           "name": "tip",
-          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+          "description": "With `description`:  the tip, under the title bar, shown on hover and keyboard focus."
         },
         {
           "name": "subhead",
-          "description": "The subhead under the title."
+          "description": "The hint under the title."
         },
         {
           "name": "content",
@@ -17935,12 +19906,20 @@
           "description": "Folds with a height transition (`interpolate-size`)."
         },
         {
-          "name": "in-section",
+          "name": "nested",
           "description": "Nested in another section."
         },
         {
-          "name": "in-sections",
+          "name": "in-group",
           "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "in-section",
+          "description": "Old name of `nested`."
+        },
+        {
+          "name": "in-sections",
+          "description": "Old name of `in-group`."
         },
         {
           "name": "inverted",
@@ -28580,11 +30559,6 @@
           "type": "color"
         },
         {
-          "name": "--ui-form-prompt-inline-margin",
-          "default": "-0.25em 0 -0.5em 0.5em",
-          "type": "length"
-        },
-        {
           "name": "--ui-form-label-color",
           "default": "var(--ui-text-color)",
           "type": "color"
@@ -31869,6 +33843,20 @@
           "type": "color"
         }
       ]
+    },
+    "ui-property-editor": {
+      "folder": "ui-property-editor",
+      "mainTag": "ui-property-editor",
+      "title": "Property Editor",
+      "summary": "A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.",
+      "status": "in-progress",
+      "docs": false,
+      "tags": [
+        "ui-property-editor",
+        "ui-property",
+        "ui-property-group"
+      ],
+      "tokens": []
     },
     "ui-rail": {
       "folder": "ui-rail",
@@ -36686,6 +38674,7 @@
         "ui-checkbox",
         "ui-code",
         "ui-dimmer",
+        "ui-form",
         "ui-label",
         "ui-markdown",
         "ui-menu",

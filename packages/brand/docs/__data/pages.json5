@@ -36,11 +36,6 @@
       "summary": "A brand composer is the box where you describe an app in plain words and cast it:  a serif text box, tool chips, a keyboard hint and a round Cast button.",
       "status": "done"
     },
-    "brand-field": {
-      "title": "Brand field",
-      "summary": "A brand field wraps one control with its label, a value readout, action buttons, an info tip, help and errors.",
-      "status": "done"
-    },
     "brand-flourish": {
       "title": "Brand flourish",
       "summary": "A brand flourish draws generated page art (swoops, blobs, curls, sparkles) behind its parent's content.",
@@ -152,10 +147,9 @@
       ]
     },
     {
-      "id": "fields",
-      "title": "Fields and casting",
+      "id": "casting",
+      "title": "Casting",
       "tags": [
-        "brand-field",
         "brand-composer"
       ]
     },

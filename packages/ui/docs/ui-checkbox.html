@@ -63,14 +63,14 @@
               Examples tab), plus our own extra (Colored).  `<ui-checkbox>` and `<ui-radio>` are one family, but the radio
               examples are on `ui-radio.html` (epic ui-docs-rework P7):  here only a pointer to it.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-checkbox" header="Checkbox" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-checkbox" label="Checkbox" sticky collapsible dividing>
                 <ui-docs-example description="A standard checkbox.">
                   <ui-checkbox name="example">Make my profile visible</ui-checkbox>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-radio" header="Radio" sticky collapsible dividing>
+              <ui-section id="examples-types-radio" label="Radio" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A checkbox can be formatted as a radio element: <code>&lt;ui-radio&gt;</code>, an exclusive option.
@@ -80,7 +80,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-slider" header="Slider" sticky collapsible dividing>
+              <ui-section id="examples-types-slider" label="Slider" sticky collapsible dividing>
                 <ui-docs-example
                   description='A checkbox can be formatted to emphasize the current selection state:  `type="slider"`.'
                 >
@@ -88,7 +88,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-toggle" header="Toggle" sticky collapsible dividing>
+              <ui-section id="examples-types-toggle" label="Toggle" sticky collapsible dividing>
                 <ui-docs-example
                   description='A checkbox can be formatted to show an on or off choice:  `type="toggle"`.'
                 >
@@ -97,7 +97,7 @@
               </ui-section>
 
               <!-- GAP:  Fomantic styles an invisible checkbox's LABEL as any component (button, message, segment);  ours is a bordered label tinted when chosen. -->
-              <ui-section id="examples-types-invisible" header="Invisible" sticky collapsible dividing>
+              <ui-section id="examples-types-invisible" label="Invisible" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     An invisible checkbox has no box: the label itself is the control, bordered while unchosen and
@@ -105,9 +105,9 @@
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
                     >Not ported: styling the label as another component (Fomantic's
-                    <code>label class="ui purple button"</code>, <code>ui orange message</code>,
-                    <code>ui teal segment</code>) and <code>compact invisible</code> -- the label is in the shadow root,
-                    so it can't take another component's classes.</ui-message
+                    <code>label class="ui purple button"</code>, or an orange message or teal segment label), and
+                    <code>compact invisible</code>. The label is in the shadow root, so it can't take another
+                    component's classes.</ui-message
                   >
                   <ui-form>
                     <form>
@@ -148,8 +148,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-read-only" label="Read-only" sticky collapsible dividing>
                 <ui-docs-example
                   description="A checkbox can be read-only and unable to change states.  It is still submitted."
                 >
@@ -157,7 +157,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-checked" header="Checked" sticky collapsible dividing>
+              <ui-section id="examples-states-checked" label="Checked" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A checkbox can be checked. <code>selected</code> is the canonical name; <code>checked</code> is
@@ -167,7 +167,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-indeterminate" header="Indeterminate" sticky collapsible dividing>
+              <ui-section id="examples-states-indeterminate" label="Indeterminate" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A checkbox can be indeterminate: neither on nor off. A click clears it, as natively.
@@ -184,7 +184,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A checkbox can show it is currently unable to be interacted with. It is left out of the form.
@@ -199,8 +199,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-fitted" label="Fitted" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A fitted checkbox does not leave padding for a label. Give it an <code>aria-label</code>.
@@ -217,7 +217,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A checkbox can be formatted to appear on dark backgrounds.">
                   <ui-segment compact inverted>
                     <ui-checkbox inverted>Inverted</ui-checkbox>
@@ -231,7 +231,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-right-aligned" header="Right aligned" sticky collapsible dividing>
+              <ui-section id="examples-variations-right-aligned" label="Right aligned" sticky collapsible dividing>
                 <ui-docs-example description="A checkbox can be aligned to the right of the label:  `right-aligned`.">
                   <ui-form>
                     <form>
@@ -245,7 +245,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+              <ui-section id="examples-variations-colored" label="Colored" sticky collapsible dividing>
                 <ui-docs-example
                   description="A checkbox can have different colors:  `color` tints the chosen box, bullet, lane or line."
                 >
@@ -255,7 +255,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A checkbox can have different sizes.">
                   <ui-checkbox size="mini">Checkbox</ui-checkbox>
                   <ui-checkbox size="mini" type="toggle">Toggle</ui-checkbox>
@@ -294,10 +294,10 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-examples" header="Examples" sticky collapsible dividing>
+            <ui-section id="examples-examples" label="Examples" sticky collapsible dividing>
               <ui-section
                 id="examples-examples-grouped-checkboxes"
-                header="Grouped Checkboxes"
+                label="Grouped Checkboxes"
                 sticky
                 collapsible
                 dividing
@@ -334,7 +334,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-one-way-choices" header="One-Way Choices" sticky collapsible dividing>
+              <ui-section id="examples-examples-one-way-choices" label="One-Way Choices" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A disabled checkbox can't be used at all; a read-only one shows its state but can't change it.
@@ -352,11 +352,11 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-examples-two-values" header="Two Values" sticky collapsible dividing>
+              <ui-section id="examples-examples-two-values" label="Two Values" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    Ours, not Fomantic's: <code>off-value</code> is what a box submits while unchosen, so the form always
-                    hears one of two values (<code>panel=open</code> or <code>panel=closed</code>).
+                    Ours, not Fomantic's:  <code>off-value</code> is what a box submits while unchosen. So the form
+                    always hears one of two values, <code>panel=open</code> or <code>panel=closed</code>.
                   </p>
                   <ui-form>
                     <form>
@@ -376,17 +376,17 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Using Callbacks, Checking Conditions and Attaching Events to other Elements -- they are
-                jQuery behaviours (<code>check</code>, <code>set checked</code>, <code>beforeChecked</code>,
-                <code>attach events</code>). Set the <code>selected</code> property, listen for
-                <code>ui-change</code>, and wire other controls with a click listener (Usage tab).</ui-message
+                >Not ported: Using Callbacks, Checking Conditions and Attaching Events to other Elements, which are
+                jQuery behaviours (check, set checked, beforeChecked, attach events). Instead, set the
+                <code>selected</code> property and listen for <code>ui-change</code>. Wire other controls with a click
+                listener (Usage tab).</ui-message
               >
             </ui-section>
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  forms, `selected` / `checked`, events, keyboard, accessibility, frameworks;  radios:  ui-radio.html. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Write `<ui-checkbox>` with its label inside. No JavaScript to call: it works as soon as the element is defined,
@@ -402,7 +402,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-forms" header="Forms" sticky collapsible dividing>
+            <ui-section id="usage-forms" label="Forms" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A checkbox is a real form control.
@@ -416,7 +416,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-two-values" header="Two values" sticky collapsible dividing>
+            <ui-section id="usage-two-values" label="Two values" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A native checkbox submits nothing while unchosen, so the server never hears "closed". `off-value` fixes
@@ -446,7 +446,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `ui-change` fires when the user chooses or unchooses, with `{ selected, value, originalEvent }`. `value` is
@@ -463,7 +463,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-vetoing-a-change" header="Vetoing a change" sticky collapsible dividing>
+            <ui-section id="usage-vetoing-a-change" label="Vetoing a change" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `ui-change` fires BEFORE the state changes; a handler that sets `selected` back vetoes the change. That covers
@@ -480,7 +480,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-grouped-checkboxes" header="Grouped checkboxes" sticky collapsible dividing>
+            <ui-section id="usage-grouped-checkboxes" label="Grouped checkboxes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Fomantic's master / child example, on `ui-change`: the master sets every child, and each child sets the master
@@ -508,7 +508,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Space** toggles the checkbox.
@@ -518,7 +518,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - The shadow root holds a real `<input type="checkbox">` tied to a `<label>`, so clicking the label,
@@ -537,7 +537,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Bind `selected` as a property to control the box, and listen for `ui-change`.
@@ -579,7 +579,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-checkbox-*` tokens: set one on the element, on any ancestor (a form, `:root`), or on
@@ -609,7 +609,7 @@
               <ui-docs-tokens family="ui-checkbox" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

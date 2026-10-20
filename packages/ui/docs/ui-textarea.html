@@ -61,8 +61,8 @@
               form page's TextArea field, plus the input variations a textarea takes.  Every field is named with
               `aria-label`;  in a form a `<label for>` does the same job.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-textarea" header="Textarea" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-textarea" label="Textarea" sticky collapsible dividing>
                 <ui-docs-example
                   description="A textarea allows extended user input:  `rows` sets its height;  without it the field is Fomantic's form height."
                 >
@@ -70,7 +70,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-in-a-form" header="In a Form" sticky collapsible dividing>
+              <ui-section id="examples-types-in-a-form" label="In a Form" sticky collapsible dividing>
                 <ui-docs-example
                   description="In a `<ui-form>` field, a `<label for>` names it, as Fomantic's form TextArea does."
                 >
@@ -90,14 +90,14 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" label="Disabled" sticky collapsible dividing>
                 <ui-docs-example description="A textarea can be disabled:  dimmed, and left out of the form.">
                   <ui-textarea disabled rows="2" value="Can't touch this" aria-label="Disabled"></ui-textarea>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-read-only" header="Read-only" sticky collapsible dividing>
+              <ui-section id="examples-states-read-only" label="Read-only" sticky collapsible dividing>
                 <ui-docs-example
                   description="A read-only textarea shows its value but can't be edited;  it is still submitted."
                 >
@@ -105,7 +105,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-states-form-states" header="Form States" sticky collapsible dividing>
+              <ui-section id="examples-states-form-states" label="Form States" sticky collapsible dividing>
                 <ui-docs-example
                   description="`state` tints the box, text and placeholder:  `error`, `info`, `success`, `warning`."
                 >
@@ -117,9 +117,9 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
               <!-- GAP I101:  `<ui-textarea>` has no `icon` or corner label (Fomantic's six textarea inputs);  only the plain one. -->
-              <ui-section id="examples-variations-height" header="Height" sticky collapsible dividing>
+              <ui-section id="examples-variations-height" label="Height" sticky collapsible dividing>
                 <ui-docs-example
                   description="`rows` sets the visible lines;  without it a textarea is Fomantic's form height (`--ui-input-textarea-height`, 12em)."
                 >
@@ -128,19 +128,19 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-fluid" header="Fluid" sticky collapsible dividing>
+              <ui-section id="examples-variations-fluid" label="Fluid" sticky collapsible dividing>
                 <ui-docs-example description="A fluid textarea takes the full width of its container.">
                   <ui-textarea fluid rows="2" placeholder="Full width" aria-label="Full width"></ui-textarea>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-transparent" header="Transparent" sticky collapsible dividing>
+              <ui-section id="examples-variations-transparent" label="Transparent" sticky collapsible dividing>
                 <ui-docs-example description="A transparent textarea has no box:  text only.">
                   <ui-textarea transparent rows="2" placeholder="Write here..." aria-label="Transparent"></ui-textarea>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example description="A textarea can be formatted to appear on dark backgrounds.">
                   <ui-segment inverted>
                     <ui-textarea inverted rows="2" placeholder="On a dark background" aria-label="Inverted"></ui-textarea>
@@ -148,7 +148,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example description="A textarea can vary in size.">
                   <ui-textarea size="mini" rows="1" placeholder="Mini" aria-label="Mini"></ui-textarea>
                   <ui-textarea size="small" rows="1" placeholder="Small" aria-label="Small"></ui-textarea>
@@ -162,7 +162,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  forms, validation, events, keyboard, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `<ui-textarea>` is a multi-line field. It shares its family, sheet, sizes, states and tokens with
@@ -175,7 +175,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-forms-and-validation" header="Forms and validation" sticky collapsible dividing>
+            <ui-section id="usage-forms-and-validation" label="Forms and validation" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A textarea is a real form control: inside a `<form>` its `name` / `value` is submitted with it.
@@ -191,7 +191,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `ui-input` fires on every keystroke, with `event.detail.value`.
@@ -209,7 +209,7 @@
               </ui-code>
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The shadow root holds a real `<textarea>`, so the browser does the keyboard work.
@@ -221,7 +221,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - Typing, selection, autofill and the on-screen keyboard come from the browser's own control.
@@ -237,7 +237,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Bind `value` as a property to control the field, set `rules` as a property, and listen for `ui-input`.
@@ -278,7 +278,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the input family's tokens a textarea reads, live. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A textarea reads the input family's `--ui-input-*` tokens: the shared box, border, colour and placeholder
@@ -308,7 +308,7 @@
               </ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle textareas (the input family's): Chubby, Flat and

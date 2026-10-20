@@ -1,4 +1,4 @@
-import { instanceCase, snakeCase } from "$/util"
+import { instanceCase, snakeCase, type PropRule } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { BlockScope } from "./BlockScope"
@@ -160,6 +160,34 @@ export class TypeScope extends BlockScope {
     }
   }
 
+  /**
+   * Add `rules` to property `name`, said by `declaredBy`:  what its value must be, beyond its type.
+   * - See `P.ScopeVariable.rules` (epic `property-editor` P9).
+   * - Said on a line of its own, `- its title must not be empty`,
+   *   or on the property's own line, `..., which must ...`.
+   * - Kept by statement:  `declaredBy` parsed again replaces what it said before.
+   *   Journaled, so an incremental parse neither loses nor doubles them.
+   * - Returns `false` when we have no property `name` (yet):  the caller says so.
+   */
+  addPropertyRules(name: string, rules: readonly PropRule[], declaredBy: P.Match): boolean {
+    const variable = this.variables.get(name, "LOCAL_ONLY")
+    if (!variable) return false
+    const previous = { sources: variable.ruleSources, rules: variable.rules }
+    const sources = [
+      ...(variable.ruleSources ?? []).filter(
+        (it) => it.declaredBy !== declaredBy && !TypeScope.sameStatement(it.declaredBy, declaredBy)
+      ),
+      { declaredBy, rules }
+    ]
+    const next = { sources, rules: sources.flatMap((it) => it.rules) }
+    const apply = (state: typeof next | typeof previous) => {
+      variable.ruleSources = state.sources
+      variable.rules = state.rules
+    }
+    apply(next)
+    declaredBy.scope.parser?.journal?.record({ undo: () => apply(previous), redo: () => apply(next) })
+    return true
+  }
   /**
    * SIDE EFFECT:  `itemType` gains the read-only member naming us, the list type it belongs to ONE of,
    * e.g. `pile` on `Card` for `a card belongs to one pile`:  the pile holding a card, or nothing.

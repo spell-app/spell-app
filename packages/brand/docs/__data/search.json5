@@ -15,8 +15,8 @@
           "title": "2. Colour"
         },
         {
-          "id": "3-fields-and-casting",
-          "title": "3. Fields and casting"
+          "id": "3-casting",
+          "title": "3. Casting"
         },
         {
           "id": "4-the-apps-pieces",
@@ -614,105 +614,6 @@
         }
       ],
       "tag": "brand-composer"
-    },
-    {
-      "path": "brand-field.html",
-      "title": "Brand Field",
-      "summary": "<brand-field>:  one control with its label, a value readout, action buttons, an info tip, help and errors.",
-      "tabs": {
-        "examples": "Examples",
-        "usage": "Usage",
-        "api": "API",
-        "theming": "Theming"
-      },
-      "sections": [
-        {
-          "id": "examples-types",
-          "title": "Types",
-          "tab": "examples"
-        },
-        {
-          "id": "examples-types-inspector-field",
-          "title": "Inspector field",
-          "parent": 0
-        },
-        {
-          "id": "examples-types-form-field",
-          "title": "Form field",
-          "parent": 0
-        },
-        {
-          "id": "examples-content",
-          "title": "Content",
-          "tab": "examples"
-        },
-        {
-          "id": "examples-content-actions",
-          "title": "Actions",
-          "parent": 3
-        },
-        {
-          "id": "examples-content-info-tip",
-          "title": "Info tip",
-          "parent": 3
-        },
-        {
-          "id": "examples-content-menu",
-          "title": "Menu",
-          "parent": 3
-        },
-        {
-          "id": "examples-content-rich-label",
-          "title": "Rich label and value",
-          "parent": 3
-        },
-        {
-          "id": "examples-states",
-          "title": "States",
-          "tab": "examples"
-        },
-        {
-          "id": "examples-states-error",
-          "title": "Error",
-          "parent": 8
-        },
-        {
-          "id": "examples-states-disabled",
-          "title": "Disabled",
-          "parent": 8
-        },
-        {
-          "id": "examples-variations",
-          "title": "Variations",
-          "tab": "examples"
-        },
-        {
-          "id": "examples-variations-inline",
-          "title": "Inline",
-          "parent": 11
-        },
-        {
-          "id": "usage-using-it",
-          "title": "Using it",
-          "tab": "usage"
-        },
-        {
-          "id": "usage-keyboard",
-          "title": "Keyboard",
-          "tab": "usage"
-        },
-        {
-          "id": "usage-accessibility",
-          "title": "Accessibility",
-          "tab": "usage"
-        },
-        {
-          "id": "theming-tokens",
-          "title": "Tokens",
-          "tab": "theming"
-        }
-      ],
-      "tag": "brand-field"
     },
     {
       "path": "brand-flourish.html",

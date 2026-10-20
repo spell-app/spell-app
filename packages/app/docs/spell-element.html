@@ -58,7 +58,7 @@
             >
           </ui-list>
 
-          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+          <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
               Solitaire, drawn with drawable things: each card is its own
@@ -90,13 +90,13 @@
               </ui-grid>
             </ui-docs-example>
             <p class="meta">
-              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
-              >), which this set's pages load.
+              Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
+              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <code>yarn build:element</code>.
             </p>
           </ui-section>
 
-          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+          <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>Nobody draws it by name: a program does, when it draws a thing of a drawable type.</p>
             <ui-accordion class="spell-code" styled>
@@ -163,11 +163,11 @@
             </ul>
           </ui-section>
 
-          <ui-section id="3-api" header="3. Attributes" sticky collapsible dividing collapsed>
+          <ui-section id="3-api" label="3. Attributes" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <p>
-              The names every drawable type's element starts with. Each type adds an attribute per property it declares:
-              a card's <code>rank</code>, <code>suit</code> and <code>direction</code>.
+              The attributes every drawable type's element starts with. Each type adds one per property it declares: a
+              card's rank, suit and direction.
             </p>
             <ui-docs-api family="spell-element"></ui-docs-api>
             <p class="meta">
@@ -177,7 +177,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+          <ui-section id="4-its-code" label="4. Its code" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>

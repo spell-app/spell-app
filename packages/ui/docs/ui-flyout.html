@@ -58,8 +58,8 @@
               `command="--show"`):  no script.  Never `visible` on load:  it would block the page.
               `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-flyout" header="Flyout" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-flyout" label="Flyout" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
                     A flyout: a modal panel that slides in from the left, with a header, content and actions. The
@@ -88,7 +88,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-shorthands" header="Shorthands" sticky collapsible dividing>
+              <ui-section id="examples-types-shorthands" label="Shorthands" sticky collapsible dividing>
                 <ui-docs-example
                   description="`header` and `content` are shorthands for a header and a block of text;  `closable` adds a close icon."
                 >
@@ -103,8 +103,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-width" header="Width" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-width" label="Width" sticky collapsible dividing>
                 <ui-docs-example
                   description="A flyout can specify its width:  `very thin`, `thin`, the default, `wide` or `very wide`."
                 >
@@ -179,11 +179,11 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-position" header="Position" sticky collapsible dividing>
+              <ui-section id="examples-variations-position" label="Position" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A flyout can specify its display position: <code>position="left"</code> (the default),
-                    <code>right</code>, <code>top</code> or <code>bottom</code>.
+                    A flyout can specify its display position:  <code>position</code> is left (the default), right, top
+                    or bottom.
                   </p>
                   <ui-message slot="description" size="small" state="info"
                     >Top and bottom flyouts are full width, and their height is defined by their content.</ui-message
@@ -220,7 +220,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-fullscreen" header="Fullscreen" sticky collapsible dividing>
+              <ui-section id="examples-variations-fullscreen" label="Fullscreen" sticky collapsible dividing>
                 <ui-docs-example description="A flyout can take all the entire screen if needed.">
                   <ui-button commandfor="flyout-fullscreen" command="--show">Show</ui-button>
                   <ui-flyout
@@ -235,7 +235,7 @@
 
               <ui-section
                 id="examples-variations-scrolling-content"
-                header="Scrolling Content"
+                label="Scrolling Content"
                 sticky
                 collapsible
                 dividing
@@ -265,7 +265,7 @@
               </ui-section>
 
               <!-- GAP I99, I110:  no centred actions (`<ui-actions>` has no text-align), and the header ignores its text-align;  only the content centres. -->
-              <ui-section id="examples-variations-center-aligned" header="Center Aligned" sticky collapsible dividing>
+              <ui-section id="examples-variations-center-aligned" label="Center Aligned" sticky collapsible dividing>
                 <ui-docs-example
                   description='You can center align the header, the content or even actions individually:  `text-align="center"`.'
                 >
@@ -282,7 +282,7 @@
               </ui-section>
 
               <!-- GAP I99:  no left actions;  they stay on the right. -->
-              <ui-section id="examples-variations-left-actions" header="Left Actions" sticky collapsible dividing>
+              <ui-section id="examples-variations-left-actions" label="Left Actions" sticky collapsible dividing>
                 <ui-docs-example description="You can also place the action buttons to the left.">
                   <ui-button commandfor="flyout-left-actions" command="--show">Show</ui-button>
                   <ui-flyout id="flyout-left-actions">
@@ -299,7 +299,7 @@
               <!-- GAP I99:  no basic header or actions;  they keep their tinted backgrounds and rules. -->
               <ui-section
                 id="examples-variations-basic-header-and-actions"
-                header="Basic Header and Actions"
+                label="Basic Header and Actions"
                 sticky
                 collapsible
                 dividing
@@ -319,7 +319,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" label="Inverted" sticky collapsible dividing>
                 <ui-docs-example
                   description="A flyout can use the dark scheme:  `inverted` replaces the background, the header colour and the actions background."
                 >
@@ -330,7 +330,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-blurring" header="Blurring" sticky collapsible dividing>
+              <ui-section id="examples-variations-blurring" label="Blurring" sticky collapsible dividing>
                 <ui-docs-example description="`blurring` blurs and greys the page behind the flyout's dimmer.">
                   <ui-button commandfor="flyout-blurring" command="--show">Show</ui-button>
                   <ui-flyout
@@ -348,7 +348,7 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  what a flyout is, opening, dismissal, events, keyboard, accessibility, frameworks. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A flyout is `<ui-modal>`'s element in a flyout's clothes: the same `<dialog>` opened with `showModal()`, so
@@ -362,7 +362,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-opening-it" header="Opening it" sticky collapsible dividing>
+            <ui-section id="usage-opening-it" label="Opening it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - With no script, from a native `<button commandfor="id" command="--show">` or a `<ui-button>` (an invoker
@@ -376,7 +376,7 @@
               </ui-markdown>
               <ui-section
                 id="usage-opening-it-toggle-from-a-menu"
-                header="Toggle from a menu"
+                label="Toggle from a menu"
                 sticky
                 collapsible
                 dividing
@@ -420,7 +420,7 @@
               >
             </ui-section>
 
-            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+            <ui-section id="usage-events" label="Events" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Buttons inside act by Fomantic's classes: `approve` / `ok` / `positive` approve, `deny` / `cancel` / `negative`
@@ -447,13 +447,13 @@
                 </script>
               </ui-code>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's behaviors (<code>show</code>, <code>hide</code>, <code>toggle</code> ...), the
-                <code>dimPage</code> / <code>returnScroll</code> / <code>transition</code> settings and its callbacks
-                -- write <code>visible</code>, use invoker commands, and listen for the events.</ui-message
+                >Not ported: Fomantic's behaviors (show, hide, toggle ...), its dimPage, returnScroll and transition
+                settings, and its callbacks. Instead, write <code>visible</code>, use invoker commands, and listen for
+                the events.</ui-message
               >
             </ui-section>
 
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - **Tab** / **Shift+Tab** move between the controls inside the flyout, never out.
@@ -463,7 +463,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A real modal `<dialog>`: focus moves inside and **Tab** stays there, the rest of the page is inert, and focus
@@ -480,7 +480,7 @@
               </ui-markdown>
             </ui-section>
 
-            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+            <ui-section id="usage-framework-usage" label="Framework usage" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Bind `open` to your state and listen for `ui-close` (and `ui-approve` / `ui-deny`) to follow the user.
@@ -525,7 +525,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Theme with the public `--ui-flyout-*` tokens: set one on the element, on any ancestor (`:root` for every
@@ -564,7 +564,7 @@
               <ui-docs-tokens family="ui-flyout" playground></ui-docs-tokens>
             </ui-section>
 
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a

@@ -66,13 +66,13 @@
       <ui-container class="site-body">
         <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
           <ui-tab value="examples" label="Examples">
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-presets" header="Presets" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-presets" label="Presets" sticky collapsible dividing>
                 <ui-docs-example
                   description="The Color Set Chooser's presets:  `selectable` makes the set a radio group;  `value` is the chosen chip's `name`.  Click a chip, or tab in and use the arrow keys."
                 >
-                  <ui-panel header="Color Set" color="accent" class="brand-docs-panel">
-                    <ui-panel header="Presets">
+                  <ui-panel label="Color Set" color="accent" class="brand-docs-panel">
+                    <ui-panel label="Presets">
                       <brand-color-set
                         selectable
                         value="violet"
@@ -91,7 +91,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-families" header="Families grid" sticky collapsible dividing>
+              <ui-section id="examples-types-families" label="Families grid" sticky collapsible dividing>
                 <ui-docs-example
                   description="`columns`:  a grid of equal cells, each chip filling its cell.  The brand's 20 colour sets, each at its seed's step (the Chooser's &quot;Or start from a family&quot;)."
                 >
@@ -127,7 +127,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-row" header="Laid-out row" sticky collapsible dividing>
+              <ui-section id="examples-types-row" label="Laid-out row" sticky collapsible dividing>
                 <ui-docs-example
                   description="Without `selectable`, just a row:  each chip keeps its own look and behaviour (`label`, `copy` ...).  Too narrow, every chip shrinks alike."
                 >
@@ -148,8 +148,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-value" header="Value" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-value" label="Value" sticky collapsible dividing>
                 <ui-docs-example
                   description="`value` names the chosen chip by `name`, or by colour however written (`20 163 154` finds `#14A39A`).  Unset, the chips' own `selected` stand."
                 >
@@ -164,7 +164,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Put `<brand-color>` chips inside. Add `selectable` to let people pick one, and an `aria-label` to
@@ -187,7 +187,7 @@
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A `selectable` set is one Tab stop: the chosen chip, else the first.
@@ -199,7 +199,7 @@
                 </script>
               </ui-markdown>
             </ui-section>
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - `selectable`: the set is a radio group (named by its own `aria-label`), each chip a radio named
@@ -215,7 +215,7 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set a `--brand-color-set-*` token on the set, any ancestor or `:root`; the chips take

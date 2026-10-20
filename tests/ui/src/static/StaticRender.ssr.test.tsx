@@ -86,7 +86,7 @@ describe("StaticRender.fragment()", () => {
 
   it("renders nested sections:  the inner heading one level down", () => {
     const html = StaticRender.fragment(
-      `<ui-section header="Outer"><p>A</p><ui-section header="Inner"><p>B</p></ui-section></ui-section>`
+      `<ui-section label="Outer"><p>A</p><ui-section label="Inner"><p>B</p></ui-section></ui-section>`
     )
     expect(html).toMatch(/<h2 [^>]*>.*Outer.*<\/h2>/)
     expect(html).toMatch(/<h3 [^>]*>.*Inner.*<\/h3>/)

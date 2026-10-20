@@ -20,3 +20,25 @@ describe("ponyLines()", () => {
     expect(CLI.PONY_SAYINGS.length).toBeGreaterThan(0)
   })
 })
+
+describe("gallopFrames()", () => {
+  it("one stride:  legs reaching, passing, tucked, passing;  only the legs move", () => {
+    const frames = CLI.gallopFrames("Hi")
+    expect(frames.map((frame) => frame.at(-2))).toEqual([
+      "            //  //     \\\\  \\\\",
+      "            ||  ||     ||  ||",
+      "            \\\\  \\\\     //  //",
+      "            ||  ||     ||  ||"
+    ])
+    const standing = CLI.ponyLines("Hi")
+    for (const frame of frames) {
+      expect(frame).toHaveLength(standing.length)
+      expect(frame.slice(0, -2)).toEqual(standing.slice(0, -2))
+    }
+  })
+
+  it("each leg's top stays under the body's bottom line", () => {
+    const top = (line: string) => [...line].flatMap((char, column) => (char.trim() ? [column] : []))
+    for (const frame of CLI.gallopFrames("Hi")) expect(top(frame.at(-2)!)).toEqual([12, 13, 16, 17, 23, 24, 27, 28])
+  })
+})

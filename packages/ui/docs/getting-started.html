@@ -57,10 +57,10 @@
             </script>
           </ui-markdown>
 
-          <ui-section id="general-usage" header="General Usage" sticky collapsible dividing>
+          <ui-section id="general-usage" label="General Usage" sticky collapsible dividing>
             <ui-section
               id="general-usage-descriptive-attributes"
-              header="Descriptive Attributes"
+              label="Descriptive Attributes"
               sticky
               collapsible
               dividing
@@ -79,7 +79,7 @@
                 <ui-button size="huge" primary>Button</ui-button>
               </ui-docs-example>
             </ui-section>
-            <ui-section id="general-usage-attribute-order" header="Attribute Order" sticky collapsible dividing>
+            <ui-section id="general-usage-attribute-order" label="Attribute Order" sticky collapsible dividing>
               <ui-docs-example>
                 <p slot="description">
                   Fomantic needs some class names in a strict order (<code>ui left labeled right floated button</code>,
@@ -96,11 +96,14 @@
             </ui-section>
           </ui-section>
 
-          <ui-section id="installation" header="Installation" sticky collapsible dividing>
+          <ui-section id="installation" label="Installation" sticky collapsible dividing>
             <ui-message state="info" header="Not published yet">
-              <code>@spell-app/ui</code> lives in the spell-app monorepo (<code>packages/ui</code>) and isn't on npm
-              yet. Once it is, the steps below apply. Until then: <code>yarn</code> in the monorepo, and
-              <code>yarn build</code> in <code>packages/ui</code> writes <code>dist/</code>.
+              <code>@spell-app/ui</code> isn't on npm yet:  the steps below apply once it is. Until then, build it in
+              the spell-app monorepo, where it lives:
+              <ul>
+                <li><code>yarn</code> in the monorepo</li>
+                <li>then <code>yarn build</code> in the ui package (<code>packages/ui</code>), which writes its dist folder</li>
+              </ul>
             </ui-message>
             <ui-markdown>
               <script type="text/markdown">
@@ -150,7 +153,7 @@
             >
           </ui-section>
 
-          <ui-section id="the-contract" header="The Contract" sticky collapsible dividing>
+          <ui-section id="the-contract" label="The Contract" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 Every component follows the same three rules, which is what makes it work in every framework:
@@ -166,7 +169,7 @@
                   `{ value }`, plus `originalEvent`.
               </script>
             </ui-markdown>
-            <ui-section id="the-contract-plain-html" header="Plain HTML" sticky collapsible dividing>
+            <ui-section id="the-contract-plain-html" label="Plain HTML" sticky collapsible dividing>
               <ui-docs-example
                 description="No framework:  attributes in markup, the `options` property and a `ui-change` listener in script.  Pick a fruit."
               >
@@ -193,7 +196,7 @@
             </ui-markdown>
           </ui-section>
 
-          <ui-section id="frameworks" header="Frameworks" sticky collapsible dividing>
+          <ui-section id="frameworks" label="Frameworks" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 The contract holds in React 19, Vue 3.5, Svelte 5, Solid, Angular 20 and Preact 10. One line each:
@@ -214,7 +217,7 @@
             </ui-markdown>
           </ui-section>
 
-          <ui-section id="styling" header="Styling" sticky collapsible dividing>
+          <ui-section id="styling" label="Styling" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 Components use shadow DOM, so page CSS doesn't reach inside. Instead:
@@ -240,7 +243,7 @@
             </ui-code>
           </ui-section>
 
-          <ui-section id="updating" header="Updating" sticky collapsible dividing>
+          <ui-section id="updating" label="Updating" sticky collapsible dividing>
             <ui-markdown>
               <script type="text/markdown">
                 Once published, `yarn up @spell-app/ui` (or `npm update @spell-app/ui`) is all there is: no

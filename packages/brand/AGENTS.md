@@ -41,8 +41,9 @@ when working with code in this package, `@spell-app/brand`.
   - NEVER edit Claude Design's files.
     - They're the reference the copies are measured against.
     - Claude Design may export over them.
-  - A `.dc.html` page is an `<x-dc>` template, compiled into React at load by `support.js`.
-    - `support.js` is Claude Design's runtime, generated.
+  - A `.dc.html` page is a Claude Design template, compiled into React as it loads.
+    - The template:  an `<x-dc>` element.
+    - The compiler:  `support.js`, Claude Design's runtime, generated.
     - React and Font Awesome come from CDNs.
     - Four pages also fetch local files, so they need the page server.
   - Used only by the specimen cards, never by the 13 pages (all inline styles):
@@ -99,7 +100,7 @@ when working with code in this package, `@spell-app/brand`.
       - why:  a test can't read the shared folder
   - `brand.types.ts`
   - the bundles' entries, each saying what's in it, and why:
-    - `brand-ui.ts`
+    - `brand-ui.ts`, with the inspector's fields' look (`inspector.css`)
     - `brand-design.ts`
     - `hues.ts`
     - The old docs pages' bundle went at P18 (`brand-docs.ts`, with its `brand-docs.css`):
@@ -112,7 +113,8 @@ when working with code in this package, `@spell-app/brand`.
       which carries spell-solid's names too ([spell-solid's AGENTS.md](../spell-solid/AGENTS.md), "Imports").
   - `yarn lint` holds them to it:  the `spell-ui/*` rules (ui's "Solid authoring", "The lint guard").
   - Generic ones move into Spell UI later (epic decision D2).
-  - `__pack/`:  GENERATED, committed (`spell dev pack build brand`, `yarn pack:build`).  NEVER edit:
+  - `__pack/`:  GENERATED and committed, by `spell dev pack build brand` (or `yarn pack:build`).
+    NEVER edit its files:
     - `brand.catalog.ts`:  tag => family folder + skeleton, read from the vocabularies
       - its second line records the sources' hash
     - `brand.entry.ts`:  `SpellUI.registerPack({ name, prefix, catalog, define })`
@@ -129,7 +131,7 @@ when working with code in this package, `@spell-app/brand`.
   - `rename-shared.ts`:  the shared Brand tab pages' rename to `brand-`, once, at the merge (see "Commands")
 - `vite.design.config.ts`:  the elements, built for the claude.ai design bundle.
   - The output:  `brand-design.js`, in `dist/` (git-ignored).
-  - The design bundle's build runs it:  [bundle-spell-ui.js](../epics/tools/bundle-spell-ui.js) `--design`.
+  - The design bundle's build runs it:  [bundle-spell-ui.js](../../spell-epic/src/tools/bundle-spell-ui.js) `--design`.
     That's `yarn design:bundle`, in epics.
 - `brand/leonardo/` (shared):  the original reference images and brief, from before Claude Design.
 
@@ -188,17 +190,20 @@ when working with code in this package, `@spell-app/brand`.
   screenshots of each original and its copy, and a diff % per page.
   - into `.compare/` (git-ignored):  `dc.png`, `spell.png`, `side.png`, `diff.png`, `report.md`
   - A rough guide:  LOOK at `side.png`, or the Compare view (`/brand/compare.html`).
-- `yarn test`:  two projects (`vitest.config.ts`), from the repo's `tests/brand/`, at the same paths as the code.
+- `yarn test`:  two projects, set up in [vitest.config.ts](vitest.config.ts).
+  - The tests live in the repo's `tests/brand/`, at the same paths as the code.
   - e.g. `BrandLogo`'s test:  [BrandLogo.test.tsx](../../tests/brand/components/brand-logo/BrandLogo.test.tsx)
-  - `node`:  `src/`, `Palette.test.ts` and `pack.test.ts`
-  - `browser`:  the elements, Vitest browser mode, chromium
+  - `node`:  `src/`'s tests, `Palette.test.ts` and `pack.test.ts`
+  - `browser`:  in Vitest browser mode, chromium
+    - the elements
+    - `src/`'s `*.browser.test.ts`:  the inspector's look
     - with Spell UI's helpers:  `$/ui/test/ElementFixture`, `$/ui/test/a11y`
   - The root's `yarn test` runs them as `brand:node` / `brand:browser`.
 - `yarn ts`, `yarn lint`, `yarn format`, `yarn review`.
 
 ## The elements
 
-- Each family has a page in the docs set, `<tag>.html` in `docs/`, at `/components/brand/<tag>.html`.
+- Each family has a page in the docs set, `docs/`, named for its tag:  `/components/brand/<tag>.html`.
   - Spell UI's components page shape:  masthead, then Examples / Usage / API / Theming tabs.
   - A new family:
     1. `spell dev pack element brand brand-<name>`
@@ -221,10 +226,14 @@ when working with code in this package, `@spell-app/brand`.
   - Its docs page is Spell UI's:  `/components/ui/ui-panel.html`.
   - Its tokens are `--ui-panel-*`.
   - `color="accent"` works on the brand pages:  [hues.ts](src/hues.ts) + `spell-brand`.
-- `<brand-field>` (`components/brand-field/`):  a form field.
-  - a label row (label, actions, value, info tip), the control, help and error
-  - `<ui-form>` validates it as a `<ui-field>`:  `:state(field)` + `showErrors()`
-  - It names an unnamed slotted control after its `label` (`aria-label`).
+- The inspector's fields are Spell UI's too:  `<ui-field>`.
+  - It replaced `<brand-field>` (epic `property-editor` P1).
+  - a label row (label, actions, output, info tip), the control, the hint and errors
+  - Its docs are Spell UI's:  `/components/ui/ui-form.html`.
+  - The brand pages draw it in the inspector's look:  [inspector.css](src/inspector.css), in the copies' bundle.
+    - a 20px label row, a 13px medium label;  compact slotted inputs, selects, dropdowns and segmented menus
+    - only `<ui-field>`s in a `<ui-panel>`:  every other Spell UI form keeps its own look
+    - its tip's colours are the `spell-brand` theme's (`--ui-field-tip-*`)
 - `<brand-composer>` (`components/brand-composer/`):  write a spell, and cast it.
   - a form element:  the text under `name`
   - `brand-cast` (cancelable), from the button or Cmd / Ctrl+Enter
@@ -282,7 +291,8 @@ As the root's, plus these reaches into `ui` past its barrel, each because the ba
   - So the Brand tab's pages are at `/brand/...`, and this package's files at `/packages/brand/...`.
   - The site header's Brand tab opens `/brand/index.html`, and lights on every page under `/brand/`.
     - Its entry:  `PROPERTIES`, in [site.types.ts](../server/src/site/site.types.ts).
-  - The docs set, `docs/`, at `/components/brand/` (`COMPONENT_SETS` in `$/server/page`).
+  - The docs set, `docs/`, at `/components/brand/`:
+    its entry is `COMPONENT_SETS`, in `$/server/page`.
     - Spell UI's sets bundle is laid over it at `_assets/`.
     - `/brand/components/` (the old element pages) answers "not found".
 - Live reload:  the root `package.json`'s `pageServer.watch` lists them:

@@ -101,9 +101,13 @@ async function compileProject(
   }
   const checked = stdout ? { counts: {}, details: [] } : typecheckTargets(session, project, targets)
   const schemaProblem = stdout ? undefined : await writeLibrarySchemas(session, project, targets, wrote)
+  // its editor pages, each a module defining its <type-editor> (epic `property-editor` P7)
+  const pages = stdout ? { wrote: [], notes: [] } : await new CLI.EditorPages(session, project).compile()
+  wrote.push(...pages.wrote)
   const notes = [
     why,
     schemaProblem,
+    ...pages.notes,
     ...Object.entries(checked.counts).map(
       ([checker, count]) => count && `${count} ${checker} error${count === 1 ? "" : "s"}`
     ),

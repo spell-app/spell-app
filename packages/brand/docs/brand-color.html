@@ -60,8 +60,8 @@
       <ui-container class="site-body">
         <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
           <ui-tab value="examples" label="Examples">
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-chip" header="Chip" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-chip" label="Chip" sticky collapsible dividing>
                 <ui-docs-example
                   description="One colour, always square.  `name` names it for screen readers (with the colour);  `value` takes `#RRGGBB`, `#RGB`, `R G B` or `oklch(...)`."
                 >
@@ -72,7 +72,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-swatch" header="Palette swatch" sticky collapsible dividing>
+              <ui-section id="examples-types-swatch" label="Palette swatch" sticky collapsible dividing>
                 <ui-docs-example
                   description="The Color Palette page's swatch:  its hex inside, in white or ink (whichever reads better);  `copy` makes it a button that copies the colour."
                 >
@@ -85,8 +85,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-labels" header="Labels" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-labels" label="Labels" sticky collapsible dividing>
                 <ui-docs-example
                   description="`label`:  `hex`, `oklch` (L % · C · H°, as the Color Palette page), `name`, or `step` (the name's last number)."
                 >
@@ -97,7 +97,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-contrast" header="Contrast mark" sticky collapsible dividing>
+              <ui-section id="examples-content-contrast" label="Contrast mark" sticky collapsible dividing>
                 <ui-docs-example
                   description="`contrast`:  `AA` on shades that white or ink text reads clearly on (4.5:1);  a middle shade, like violet-500, gets none."
                 >
@@ -109,7 +109,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-details" header="Details tip" sticky collapsible dividing>
+              <ui-section id="examples-content-details" label="Details tip" sticky collapsible dividing>
                 <ui-docs-example
                   description="`details`:  hover or tab to a chip for its name, hex, OKLCH, contrast against white and ink, and what the shade is good for."
                 >
@@ -119,7 +119,7 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-copy" header="What it copies" sticky collapsible dividing>
+              <ui-section id="examples-content-copy" label="What it copies" sticky collapsible dividing>
                 <ui-docs-example
                   description="`copy`:  `hex` (bare `copy` too), `oklch`, `token` (`var(--violet-600)`) or `css` (`--violet-600: #6550CA;`).  Each dispatches `ui-copy` and shows a check for a moment."
                 >
@@ -155,8 +155,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-states" header="States" sticky collapsible dividing>
-              <ui-section id="examples-states-selected" header="Selected" sticky collapsible dividing>
+            <ui-section id="examples-states" label="States" sticky collapsible dividing>
+              <ui-section id="examples-states-selected" label="Selected" sticky collapsible dividing>
                 <ui-docs-example
                   description="`selected`:  the Color Set Chooser's double ring, a gap in the surface's colour, then the ring.  A set marks its chosen chip this way."
                 >
@@ -167,8 +167,8 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>
                 <ui-docs-example
                   description="`size`:  `mini` to `massive`;  the chip, its text and its mark scale together.  `--brand-color-size` sets any size."
                 >
@@ -186,7 +186,7 @@
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   One colour as a chip. Give it a `value`, and a `name` when the colour has one (a token, a step).
@@ -206,7 +206,7 @@
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A `copy` chip is a button: Tab to it, Enter or Space copies. A `details` chip without `copy` is a Tab
@@ -215,7 +215,7 @@
                 </script>
               </ui-markdown>
             </ui-section>
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - A plain chip is an image named by its name and colour ("brand-500 #8E96B5", plus "AA" when the mark
@@ -234,7 +234,7 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set a `--brand-color-*` token on the chip, any ancestor or `:root`. The defaults come from the

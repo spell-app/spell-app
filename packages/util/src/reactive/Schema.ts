@@ -8,6 +8,8 @@
  *   an object counts by its class, compared with `instanceof` (a `UIError` where an `Error` was is no widening).
  */
 
+import type { PropRule } from "./PropRules"
+
 ////////////////
 // ## `Symbol.metadata`
 ////////////////
@@ -109,7 +111,22 @@ export function schemaOf(Class: Function): Schema {
  * - Same runtime shape as `@prop(info)`:  both end up in `schemaOf(Class)`.
  */
 export function declareProp(Class: Function, name: string, info: PropInfo): void {
-  schemaOf(Class).declared.set(name, info)
+  const { declared } = schemaOf(Class)
+  // keep rules declared before it, from a line of their own:  see `declareRules()`
+  const rules = declared.get(name)?.rules
+  declared.set(name, rules ? { ...info, rules: [...(info.rules ?? []), ...rules] } : info)
+}
+
+/**
+ * Add `rules` to prop `name` of `Class`:  what its value must be, beyond its type -- see `PropRule`.
+ * - What compiled spell calls for a rule on a line of its own, after the class:
+ *   `Card.declareRules("title", [{ type: "empty" }])` for `- its title must not be empty`.
+ * - Call it before or after the prop's own declaration:  `declareProp()` keeps the rules either way.
+ */
+export function declareRules(Class: Function, name: string, rules: readonly PropRule[]): void {
+  const { declared } = schemaOf(Class)
+  const info = declared.get(name) ?? {}
+  declared.set(name, { ...info, rules: [...(info.rules ?? []), ...rules] })
 }
 
 /**
@@ -176,6 +193,12 @@ export type PropInfo = {
    * - For the saver (epic `people-and-orgs`), which needs each item's kind:  nothing checks it yet.
    */
   itemType?: string
+  /**
+   * What its value must be, beyond its type -- see `PropRule`.
+   * - e.g. `[{ type: "empty" }]` for `- its title must not be empty`
+   * - A setter WARNS when a value breaks one (epic `property-editor` P9).
+   */
+  rules?: readonly PropRule[]
 }
 
 ////////////////

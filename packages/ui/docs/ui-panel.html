@@ -51,28 +51,28 @@
           <ui-tab value="examples" label="Examples">
             <!--
               EXAMPLES:  ours, no Fomantic page (moved from the brand's `<ui-brand-panel>` page, epic `design-system`).
-              - Fields are plain Spell UI controls with an `aria-label`:  the brand's `<ui-brand-field>` isn't Spell UI's.
+              - Fields are plain Spell UI controls with an `aria-label`.
               - `color="accent"` isn't shown:  the hue exists only where the `spell-brand` theme AND the brand bundle add it.
             -->
-            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
-              <ui-section id="examples-types-panel" header="Panel" sticky collapsible dividing>
+            <ui-section id="examples-types" label="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-panel" label="Panel" sticky collapsible dividing>
                 <ui-docs-example
-                  description="A panel is a tinted box under a header band:  `header` is the band's title.  Its content is a column of fields, 8px apart."
+                  description="A panel is a tinted box under a header band:  `label` is the band's title.  Its content is a column of fields, 8px apart."
                 >
-                  <ui-panel header="Theme" style="max-width: 320px">
+                  <ui-panel label="Theme" style="max-width: 320px">
                     <ui-input placeholder="Name, e.g. sunrise" aria-label="Name"></ui-input>
                     <ui-slider min="13" max="19" value="16" aria-label="Text size"></ui-slider>
                   </ui-panel>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-sub-panels" header="Sub-panels" sticky collapsible dividing>
+              <ui-section id="examples-types-sub-panels" label="Sub-panels" sticky collapsible dividing>
                 <ui-docs-example
                   description="A panel inside a panel is a SUB-HEAD BAND:  small capitals, a hairline above, reaching the box's edges.  Group a panel's fields under them."
                 >
-                  <ui-panel header="Color Set" style="max-width: 320px">
+                  <ui-panel label="Color Set" style="max-width: 320px">
                     <ui-input placeholder="Name, e.g. brand" aria-label="Set name"></ui-input>
-                    <ui-panel header="Tweak">
+                    <ui-panel label="Tweak">
                       <ui-slider min="0" max="200" step="20" value="100" aria-label="Vibrancy"></ui-slider>
                       <ui-slider min="-40" max="40" step="8" value="0" aria-label="Hue drift toward dark"></ui-slider>
                     </ui-panel>
@@ -80,15 +80,15 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-types-collapsible" header="Collapsible" sticky collapsible dividing>
+              <ui-section id="examples-types-collapsible" label="Collapsible" sticky collapsible dividing>
                 <ui-docs-example
                   description="`collapsible` bands fold and unfold when clicked;  `collapsed` starts one folded.  A folded LAST band closes the box, no gap under it."
                 >
-                  <ui-panel header="Color Set" collapsible style="max-width: 320px">
-                    <ui-panel header="Tweak" collapsible>
+                  <ui-panel label="Color Set" collapsible style="max-width: 320px">
+                    <ui-panel label="Tweak" collapsible>
                       <ui-slider min="0" max="200" step="20" value="100" aria-label="Vibrancy"></ui-slider>
                     </ui-panel>
-                    <ui-panel header="Presets" collapsible collapsed>
+                    <ui-panel label="Presets" collapsible collapsed>
                       <p>Six preset chips.</p>
                     </ui-panel>
                   </ui-panel>
@@ -96,12 +96,12 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
-              <ui-section id="examples-content-actions" header="Actions" sticky collapsible dividing>
+            <ui-section id="examples-content" label="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-actions" label="Actions" sticky collapsible dividing>
                 <ui-docs-example
                   description='`slot="actions"` puts small buttons at the end of a band, before the chevron:  a reset, a copy.'
                 >
-                  <ui-panel header="CSS" collapsible style="max-width: 320px">
+                  <ui-panel label="CSS" collapsible style="max-width: 320px">
                     <ui-button slot="actions" size="mini" circular basic icon="copy">Copy</ui-button>
                     <ui-code language="css"
                       ><script type="text/plain">
@@ -112,39 +112,39 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-subhead" header="Subhead" sticky collapsible dividing>
-                <ui-docs-example description="`subhead` is a line of small, muted text under the band.">
-                  <ui-panel header="Theme" subhead="Saved to themes/sunrise.css" style="max-width: 320px">
+              <ui-section id="examples-content-subhead" label="Subhead" sticky collapsible dividing>
+                <ui-docs-example description="`hint` is a line of small, muted text under the band.">
+                  <ui-panel label="Theme" hint="Saved to themes/sunrise.css" style="max-width: 320px">
                     <ui-slider min="0" max="3" value="2" aria-label="Corners"></ui-slider>
                   </ui-panel>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-info-tip" header="Info tip" sticky collapsible dividing>
+              <ui-section id="examples-content-info-tip" label="Info tip" sticky collapsible dividing>
                 <ui-docs-example
-                  description='`info` (or `slot="info"`, for bold words and paragraphs):  a tip about the band, shown under it while the pointer is on its title or its fold button has focus.'
+                  description='`description` (or `slot="description"`, for bold words and paragraphs):  a tip about the band, shown under it while the pointer is on its title or its fold button has focus.'
                 >
-                  <ui-panel header="Theme" collapsible style="max-width: 320px">
-                    <span slot="info"
+                  <ui-panel label="Theme" collapsible style="max-width: 320px">
+                    <span slot="description"
                       >A <b>theme</b> is the look of an app made with Spell: its colours, fonts and shapes.</span
                     >
-                    <ui-panel header="Shape" collapsible info="Corners and shadows, for every card and button.">
+                    <ui-panel label="Shape" collapsible description="Corners and shadows, for every card and button.">
                       <ui-slider min="0" max="3" value="2" aria-label="Corners"></ui-slider>
                     </ui-panel>
                   </ui-panel>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-content-fold-icon" header="Fold icon" sticky collapsible dividing>
+              <ui-section id="examples-content-fold-icon" label="Fold icon" sticky collapsible dividing>
                 <ui-docs-example
                   description="`fold-icon`:  where a band's chevron sits.  `end` (the panel's default) at the far end of the band, after any actions;  `start` before the title, as a plain `<ui-section>`'s."
                 >
                   <div class="ui-cluster" style="align-items: start">
-                    <ui-panel header="Preview" collapsible style="width: 240px">
+                    <ui-panel label="Preview" collapsible style="width: 240px">
                       <ui-button slot="actions" size="mini" circular basic icon="moon outline">Dark</ui-button>
                       <p>fold-icon="end"</p>
                     </ui-panel>
-                    <ui-panel header="Preview" collapsible fold-icon="start" style="width: 240px">
+                    <ui-panel label="Preview" collapsible fold-icon="start" style="width: 240px">
                       <ui-button slot="actions" size="mini" circular basic icon="moon outline">Dark</ui-button>
                       <p>fold-icon="start"</p>
                     </ui-panel>
@@ -153,34 +153,34 @@
               </ui-section>
             </ui-section>
 
-            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
-              <ui-section id="examples-variations-colors" header="Colors" sticky collapsible dividing>
+            <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-colors" label="Colors" sticky collapsible dividing>
                 <ui-docs-example
                   description="`color` paints the whole panel from a hue:  the header band, a lighter box, the border, the sub-head bands.  No `color` is `primary`;  sub-panels follow their panel's hue.  A hue a theme adds works too (the brand pages' `accent`)."
                 >
                   <div class="ui-cluster" style="align-items: start">
-                    <ui-panel header="Default" style="width: 200px">
-                      <ui-panel header="Tweak"><p>No <code>color</code>: primary.</p></ui-panel>
+                    <ui-panel label="Default" style="width: 200px">
+                      <ui-panel label="Tweak"><p>No <code>color</code>: primary.</p></ui-panel>
                     </ui-panel>
-                    <ui-panel header="Violet" color="violet" style="width: 200px">
-                      <ui-panel header="Tweak"><p>Any hue.</p></ui-panel>
+                    <ui-panel label="Violet" color="violet" style="width: 200px">
+                      <ui-panel label="Tweak"><p>Any hue.</p></ui-panel>
                     </ui-panel>
-                    <ui-panel header="Grey" color="grey" style="width: 200px">
-                      <ui-panel header="Tweak"><p>Quiet.</p></ui-panel>
+                    <ui-panel label="Grey" color="grey" style="width: 200px">
+                      <ui-panel label="Tweak"><p>Quiet.</p></ui-panel>
                     </ui-panel>
-                    <ui-panel header="Teal" color="teal" style="width: 200px">
-                      <ui-panel header="Tweak"><p>Sub-panels follow.</p></ui-panel>
+                    <ui-panel label="Teal" color="teal" style="width: 200px">
+                      <ui-panel label="Tweak"><p>Sub-panels follow.</p></ui-panel>
                     </ui-panel>
                   </div>
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-section id="examples-variations-tokens" label="Tokens" sticky collapsible dividing>
                 <ui-docs-example
                   description="Every colour, the radius, the padding and the spacing are tokens (`--ui-panel-*`):  set them on the panel or any ancestor.  The Theming tab lists them."
                 >
                   <ui-panel
-                    header="Settings"
+                    label="Settings"
                     style="
                       max-width: 320px;
                       --ui-panel-background: var(--ui-surface);
@@ -197,18 +197,18 @@
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+            <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   A `<ui-panel>` is a [`<ui-section>`](ui-section.html) in an inspector's look, so it takes EVERY section
-                  attribute, slot, part and event: `header`, `subhead`, `icon`, `badge`, `info`, `level`, `collapsible`,
-                  `collapsed`, `fold-icon`, `sticky`, the `header`, `subhead`, `icon`, `badge`, `actions` and `info`
-                  slots, `ui-open` / `ui-close`. Its vocabulary is built on the section's, so an attribute the section
+                  attribute, slot, part and event: `label`, `hint`, `icon`, `badge`, `description`, `level`, `collapsible`,
+                  `collapsed`, `fold-icon`, `sticky`, the `label`, `hint`, `icon`, `badge`, `actions` and `description`
+                  slots, `ui-opening` / `ui-closing` and `ui-opened` / `ui-closed`. Its vocabulary is built on the section's, so an attribute the section
                   gains, the panel gains too.
 
                   - Put fields straight inside: inputs, sliders, checkboxes, `<ui-field>`s. They stack 8px apart.
                   - Nest a panel to start a sub-head band; its fields follow it.
-                  - `collapsed` is controlled: set it to fold or unfold; cancel `ui-open` / `ui-close` to keep the
+                  - `collapsed` is controlled: set it to fold or unfold; cancel `ui-opening` / `ui-closing` to keep the
                     user's click from changing it.
                   - It needs no theme: under any theme it's a `primary`-tinted box. The brand pages' `spell-brand`
                     theme adds the `accent` hue (Polished Ivory) and the brand's shadow.
@@ -216,13 +216,13 @@
               </ui-markdown>
               <ui-code language="js">
                 <script type="text/plain">
-                  document.querySelector("ui-panel").addEventListener("ui-close", (event) => {
+                  document.querySelector("ui-panel").addEventListener("ui-closing", (event) => {
                     if (unsavedChanges) event.preventDefault() // keep it open
                   })
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-loading-a-band-from-a-file" header="Loading a band from a file" sticky collapsible dividing>
+            <ui-section id="usage-loading-a-band-from-a-file" label="Loading a band from a file" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   `source` comes with `<ui-section source>` (being built in epic `claude-design`): a collapsed band
@@ -232,13 +232,13 @@
               </ui-markdown>
               <ui-code language="html">
                 <script type="text/plain">
-                  <ui-panel header="Theme" collapsible>
-                    <ui-panel header="Advanced" collapsible collapsed source="advanced.html"></ui-panel>
+                  <ui-panel label="Theme" collapsible>
+                    <ui-panel label="Advanced" collapsible collapsed source="advanced.html"></ui-panel>
                   </ui-panel>
                 </script>
               </ui-code>
             </ui-section>
-            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+            <ui-section id="usage-keyboard" label="Keyboard" sticky collapsible dividing>
               <ui-table celled compact unstackable>
                 <table>
                   <thead>
@@ -260,7 +260,7 @@
                 </table>
               </ui-table>
             </ui-section>
-            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+            <ui-section id="usage-accessibility" label="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   - Each band is a real heading (`h2`, nested ones one level deeper), so panels appear in the page
@@ -281,7 +281,7 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+            <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Set a `--ui-panel-*` token on the panel, any ancestor or `:root`; it inherits into the shadow root.
@@ -291,15 +291,15 @@
                 </script>
               </ui-markdown>
               <ui-docs-tokens family="ui-panel" playground>
-                <ui-panel header="Color Set" collapsible style="max-width: 320px">
+                <ui-panel label="Color Set" collapsible style="max-width: 320px">
                   <ui-input placeholder="Name, e.g. brand" aria-label="Set name"></ui-input>
-                  <ui-panel header="Tweak" collapsible>
+                  <ui-panel label="Tweak" collapsible>
                     <ui-slider min="0" max="200" step="20" value="100" aria-label="Vibrancy"></ui-slider>
                   </ui-panel>
                 </ui-panel>
               </ui-docs-tokens>
             </ui-section>
-            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+            <ui-section id="theming-themes" label="Themes" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
                   Panel is ours, not Fomantic's, so no Fomantic theme restyles it directly: it follows the theme's

@@ -54,7 +54,7 @@
             <ui-item icon="image">A picture, not live: they act on the editor, so they need it running</ui-item>
           </ui-list>
 
-          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+          <ui-section id="1-what-it-looks-like" label="1. What it looks like" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="image"></ui-icon>
             <p>
               The input editor's toolbar: Compile, Save, Reload and New File are actions, as menu items. Save is lit
@@ -73,7 +73,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+          <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>The toolbar in the picture: each entry of <code>Actions</code> is a component, drawn by name:</p>
             <ui-accordion class="spell-code" styled>
@@ -111,7 +111,11 @@
             <ul>
               <li>
                 <code>&lt;Action&gt;</code> is one action: a menu item by default, or a button with <code>button</code>.
-                <code>title</code> is its text, <code>icon</code> its icon, and <code>active</code> lights it up.
+                <ul>
+                  <li><code>title</code>: its text</li>
+                  <li><code>icon</code>: its icon</li>
+                  <li><code>active</code>: lights it up</li>
+                </ul>
               </li>
               <li>
                 <code>Actions</code> holds the app's own, each an Action with its text, icon and click filled in, in
@@ -128,8 +132,8 @@
                 </ul>
               </li>
               <li>
-                Props given where it's drawn win over the entry's own: <code>title</code>, <code>icon</code>,
-                <code>onClick</code> ...
+                Props given where it's drawn win over the entry's own: its text, its icon, its click handler
+                (<code>onClick</code>) ...
               </li>
               <li>
                 Some light up as the editor changes: Compile when the file needs compiling, Save and Reload when it has
@@ -144,7 +148,7 @@
             </ul>
           </ui-section>
 
-          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+          <ui-section id="3-props" label="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <ui-docs-api family="Actions"></ui-docs-api>
             <p class="meta">
@@ -154,7 +158,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+          <ui-section id="4-its-code" label="4. Its code" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>

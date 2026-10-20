@@ -123,19 +123,30 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * The spell that made `node`, as written, on one line:  `- its "friend-lists" is a list of friend-lists`
-   * -- `undefined` when there's none to show (a node made by the writer).
+   * The spell that made `node`, as written:  `- its "friend-lists" is a list of friend-lists`.
+   * - `undefined` when there's none to show (a node made by the writer).
    * - Written in a comment above a property, by every target (Owen, epic `people-and-orgs` P19).
+   * - Its statement on one line.
+   *   A property with its rules indented under it gets a line for each rule too, indented, as written
+   *   (epic `property-editor` P9).
    * - A property that lists its values (`its "role" is one of guest, member ...`):
    *   above the list, `static Roles = [...]`, which its statement writes first.
    */
   spellOf(node: P.ASTNode): string | undefined {
     if (node instanceof P.ASTReactiveProperty && listsItsValues(node)) return undefined
     if (node instanceof P.ASTStaticDefinition && !(unwrapped(node.value) instanceof P.ASTEnumeration)) return undefined
-    const text = node.match?.inputText.replace(/\s+/g, " ").trim()
+    const input = node.match?.inputText ?? ""
+    // a property's own line, then each rule indented under it:  its body
+    const bodyText =
+      node instanceof P.ASTReactiveProperty ? (node.match?.data.body as P.Match | undefined)?.inputText : ""
+    const first = bodyText && input.endsWith(bodyText) ? input.slice(0, -bodyText.length) : input
+    const body = bodyText ? bodyText.split(/\r?\n/) : []
+    const text = first.replace(/\s+/g, " ").trim()
     if (!text) return undefined
     // an outline line (`it` / `its` the type it's in) gets back the dash it was written with, which isn't matched
-    return /^its?\b/.test(text) ? `- ${text}` : text
+    const line = /^its?\b/.test(text) ? `- ${text}` : text
+    const rules = body.map((it) => it.replace(/\s+/g, " ").trim()).filter(Boolean)
+    return [line, ...rules.map((it) => `  ${it}`)].join("\n")
   }
 
   /**

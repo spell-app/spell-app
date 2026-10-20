@@ -347,6 +347,11 @@
       "summary": "A progress bar shows the progression of a task.",
       "status": "done"
     },
+    "ui-property-editor": {
+      "title": "Property Editor",
+      "summary": "A property editor draws a form from a schema:  one field per property, in folding groups, for one thing or many.",
+      "status": "in-progress"
+    },
     "ui-rail": {
       "title": "Rail",
       "summary": "A rail is used to show accompanying content outside the boundaries of the main view of a site.",

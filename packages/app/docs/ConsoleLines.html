@@ -57,7 +57,7 @@
             <ui-item icon="play">Live: a real <code>&lt;spell-app&gt;</code>, showing its console</ui-item>
           </ui-list>
 
-          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+          <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
               FizzBuzz, a program that only prints, so its runner shows its console where an app would be: every line in
@@ -68,13 +68,13 @@
               <spell-app project="@spell/examples/fizzbuzz" toolbar height="420px"></spell-app>
             </ui-docs-example>
             <p class="meta">
-              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
-              >), which this set's pages load.
+              Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
+              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <code>yarn build:element</code>.
             </p>
           </ui-section>
 
-          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+          <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
               A console hands it its lines, and keeps them live. The runners' console, under every
@@ -107,7 +107,7 @@
                 for a group, a <a href="#ConsoleGroup">ConsoleGroup</a>.
               </li>
               <li>
-                A group is its own line with an arrow, then its lines under it, one step further in. Click the arrow to
+                A group is its own line with an arrow, then its lines under it, one step further in: click the arrow to
                 open or close it. The editor's console logs its compiling and running as groups.
               </li>
               <li>
@@ -133,7 +133,7 @@
             </ul>
           </ui-section>
 
-          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+          <ui-section id="3-props" label="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <ui-docs-api family="ConsoleLines"></ui-docs-api>
             <p class="meta">
@@ -143,7 +143,7 @@
             </p>
           </ui-section>
 
-          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+          <ui-section id="4-its-code" label="4. Its code" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>

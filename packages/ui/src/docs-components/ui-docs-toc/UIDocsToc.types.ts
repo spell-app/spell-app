@@ -58,11 +58,8 @@ export const HEADING_SELECTOR = `${SECTION_SELECTOR}, ${ENTRY_SELECTOR}`
 /** A tag whose shadow root a heading must not be inside:  an example's own header is its `header` attribute. */
 export const EXAMPLE_TAG = "ui-docs-example"
 
-/** A section that nests:  its title is its `header` attribute or its `slot="header"` child. */
+/** A section that nests:  its title is its `label` attribute or its `slot="label"` child (`UIT.SectionTitle`). */
 export const SECTION_TAG = "ui-section"
-
-/** A `<ui-section>`'s rich title, a direct child. */
-export const SECTION_HEADER_SELECTOR = ':scope > [slot="header"]'
 
 /** The tab set a `for` may name:  then the toc follows its shown pane. */
 export const TABS_TAG = "ui-tabs"

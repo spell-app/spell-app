@@ -519,6 +519,30 @@ export type FormFailureDetail = FormSuccessDetail & {
   errors: Record<string, string[]>
 }
 
+/** One edit `<ui-form apply="on save">` holds:  `target[name] = value`, once saved. */
+export type FormChange = {
+  /** the property */
+  name: string
+  /** its new value */
+  value: unknown
+  /** the thing it's written to:  the form's `value`, one of its things, or a `<ui-repeat>` row's item */
+  target: object
+}
+
+/** `detail` of `ui-saving` (cancelable:  the edits stay held) and `ui-saved`. */
+export type FormSaveDetail = {
+  /** the held edits, in the order they were made */
+  changes: readonly FormChange[]
+  /** the form's `value` */
+  value: unknown
+}
+
+/** `detail` of `ui-cancelling` (cancelable:  the edits stay held) and `ui-cancelled`. */
+export type FormCancelDetail = {
+  /** the held edits, dropped */
+  changes: readonly FormChange[]
+}
+
 /**
  * Custom state every `<ui-field>` carries, always:
  * `<ui-form>` finds a control's field with `control.closest(":state(field)")`,
@@ -1238,7 +1262,29 @@ export type AccordionPanel = {
   content?: Element
 }
 
-/** `detail` of the cancelable `ui-open` / `ui-close`, from a `<ui-section>`. */
+/**
+ * A `<ui-section>`'s TITLE, as a page writes it:  the `label` attribute, else a `slot="label"` child.
+ * - Or either by its old name, `header` (epic `property-editor` P10, decision Q12).
+ * - For what reads a page's sections:  the toc, the search outline.
+ */
+export const SectionTitle = {
+  /** The attribute and slot names, the new first. */
+  names: ["label", "header"],
+  /** Its title's text, whitespace as written;  `undefined` when it has none. */
+  textOf(section: Element): string | undefined {
+    for (const name of SectionTitle.names) {
+      const said = section.getAttribute(name)
+      if (said) return said
+    }
+    for (const name of SectionTitle.names) {
+      const slotted = [...section.children].find((child) => child.getAttribute("slot") === name)
+      if (slotted) return slotted.textContent ?? undefined
+    }
+    return undefined
+  }
+} as const
+
+/** `detail` of the cancelable `ui-opening` / `ui-closing` (and their old names), from a `<ui-section>`. */
 export type SectionToggleDetail = {
   /** state the section is ABOUT to enter:  `true` unfolding */
   open: boolean
@@ -1680,9 +1726,19 @@ export const SourceBodyAttributes = [
 /** Events of a source body;  spread into the vocabulary's `events`. */
 export const SourceBodyEvents = [
   {
-    name: "ui-load",
+    name: "ui-loading",
+    detail: "{ source: string }",
+    description: "The `source` file is on its way:  the section unfolded for the first time, or `reloadBody()`."
+  },
+  {
+    name: "ui-loaded",
     detail: "{ source: string, content: string }",
     description: "The `source` file arrived and its body is in place (`content` is the file's text)."
+  },
+  {
+    name: "ui-load",
+    detail: "{ source: string, content: string }",
+    description: "Old name of `ui-loaded`:  sent just after it, until every page listens for the new."
   },
   {
     name: "ui-error",
