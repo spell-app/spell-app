@@ -15,10 +15,8 @@ a "deck" is a list of cards with:
 	- to create it:
 		for each rank in deck ranks
 			for each suit in deck suits
-				// CLAUDE: this should work
-				// add (a new card with rank = the rank, suit = the suit) to it
-				get a new card with rank = the rank, suit = the suit
-				add it to the deck
+				// `the deck`, not `it`:  in a `for each`, `it` is the loop's item, here the suit
+				add (a new card with rank = the rank, suit = the suit) to the deck
 		if its jokers is yes
 			get a new joker with color = red
 			add it to the deck

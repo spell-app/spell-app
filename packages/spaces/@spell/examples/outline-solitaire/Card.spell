@@ -3,27 +3,26 @@ a "card" is a thing where:
 
 	## suit and rank
 	- suit is a suit of its deck
-	- its "color" is the color of its suit
 	- its "rank" is a rank of its deck
 
 	- it "is a (suit)"                      // e.g. "the card is a spade"
 	- it "is a (rank)"                      // e.g. "the card is a queen"
 	- it "is the (rank) of (suits)"         // e.g. "the card is the queen of spades"
 	- it "is a face card" if its rank is a face card
-	// CLAUDE TODO: doesn't work, should be `get isANumberCard`
 	- it "is a number card" if it is not a face card
-	- it "is a wild card" if it is not a joker
+	- it "is a wild card" if it is a joker
 
 	## direction
-	// CLAUDE TODO: `DIRECTIONS` should only be defined as Card.Directions
 	- its direction is up or down
 	- it "is face up" if its direction is up
 	- it "is face down" if its direction is down
 
+	- its "color" is:
+		return the color of its suit
+
 	## value and names
 	- value is the position of its rank
 	- its "name" is:
-		if it is a joker return "joker"
 		return its rank + "-of-" + its suit
 
 	- its "short suit" is:
@@ -42,16 +41,29 @@ a "card" is a thing where:
 		return "↓"
 	- its "state" is: its short rank + its short suit + its short direction
 
+	## its picture:  unicode's Playing Cards, https://www.compart.com/en/unicode/block/U+1F0A0
+	// a row of each suit:  spades from 1F0A1, hearts 1F0B1, diamonds 1F0C1, clubs 1F0D1
+	// in a row:  ace 1, 2 ... 10, jack B, then a knight (C, not in our deck), queen D, king E
+	- its "picture" is:
+		if it is face down return unicode 1F0A0					// "playing card back"
+
+		set place to its value
+		if it is a queen or it is a king set place to place + 1
+		
+		if it is a spade return unicode (127136 + place)        // 1F0A0
+		if it is a heart return unicode (127152 + place)        // 1F0B0
+		if it is a diamond return unicode (127168 + place)      // 1F0C0
+		return unicode (127184 + place)                         // 1F0D0
+
 	## drawing
-	- to "draw its front":
-		<ui-button compact onClick={fire event card click with card = it} className="Card face-up [rank] [suit]" color={its color} compact fluid>
-			{its short rank + " "}
-			<span className="suit">{its short suit}</span>
-		</ui-button>
-	- to "draw its back":
-		<ui-button compact onClick={fire event card click with card = it} className="Card face-down [rank] [suit]" compact fluid>
-			<ui-icon name="bicycle" fitted/>
-		</ui-button>
+	- to draw it: return <>
+		<ui-text size="massive" style="cursor:pointer" class="Card"
+			color={its color if it is face up otherwise "blue"} 
+			onClick={fire event card click with card = it} 
+		>
+			{its picture}
+		</ui-text>
+		</>
 
 	## actions -- the sentence style, beside the outline
 
@@ -73,10 +85,16 @@ a "card" is a thing where:
 
 a joker is a card
 	- its rank is "joker"
+	- it "is a face card" if yes
 	- its suit is its color
 	- its color is red or black
 	- its "short suit" is "🃟"
 	- its value is 53 if it is black otherwise 54
+	- its "name" is:
+		return its color + "-joker"
+	- its "picture" is:
+		if it is face down return unicode 1F0A0
+		otherwise return unicode 1F0BF
 
 
 ## create a card instance with default properties
@@ -85,7 +103,6 @@ to test card setup
 	its rank should be queen
 	its suit should be spades
 	its name should be "queen-of-spades"
-	its color should be black
 	its value should be 12
 	its short suit should be "♠️"
 	its short rank should be "Q"
@@ -109,9 +126,13 @@ to test card setup
 	it is the queen of spades should be yes
 	it is the queen of clubs should be no
 	it is not the 2 of diamonds should be yes
+	its picture should be "🂭"
 
+	its color should be black
 	turn it face down
+	its color should be grey
 	its direction should be down
+	its picture should be "🂠"
 
 	turn it over
 	it is face up should be yes
@@ -121,3 +142,5 @@ to test card setup
 	joker is a joker should be yes
 	joker is a wild card should be yes
 	joker is a face card should be yes
+	the picture of joker should be "🂿"
+	the name of joker should be "red joker"
