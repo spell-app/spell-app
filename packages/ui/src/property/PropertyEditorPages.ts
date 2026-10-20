@@ -1,5 +1,6 @@
 // the types-only leaf, as `V`:  `$/ui/api` would bring every element (and Solid's JSX) into a node tool's type check
 import type * as V from "$/spell-solid/vocabulary.types"
+import { kebabCase } from "$/ui/util"
 import { PropertySchemas } from "./PropertySchemas"
 
 /****************
@@ -21,6 +22,9 @@ import { PropertySchemas } from "./PropertySchemas"
  *   - a property the page names that the schema dropped
  *   - an attribute of the schema the page doesn't name
  *   - a control (`as`) that no longer fits its type (`select` for a value that has no choices any more)
+ * - `compile()`:  the page as ONE javascript module defining `<card-editor>` (epic `property-editor` P7):
+ *   its layout and schema inlined, so it needs Spell UI's property editor and nothing else (no page loading,
+ *   no spell parser).  `spell compile` writes it beside a program's own output, `Card.editor.js`.
  * - `fix()`:  the page put right:  dropped properties taken away, new ones added to an "Other" group,
  *   a control that no longer fits back to its type's own.
  * - DOM only, no Solid and no runtime:  a browser's DOM, or linkedom's under node (`spell check`).
@@ -95,6 +99,82 @@ export class PropertyEditorPages {
     return `${PropertyEditorPages.lines(editor, 0).join("\n")}\n`
   }
 
+  /**
+   * The page whose editor is `editor`, compiled for `schema`:  a javascript module defining `<card-editor>`
+   * (`Card`'s, its tag from the schema's name), with its class's name and the module's text.
+   * - The element draws a `<ui-property-editor>` in its light DOM:  the page's editor's attributes (its own win),
+   *   the schema, and the page's layout;  `value`, `save()`, `cancel()` and `validate()` reach it.
+   * - `uiModule`:  what it imports for Spell UI's property editor;  a page that has it already passes another.
+   * - Code made as text (as spell compiles programs), from the page's own markup (`text()`).
+   */
+  static compile(
+    editor: Element,
+    schema: V.PropertySchema,
+    { uiModule = UI_MODULE }: CompileOptions = {}
+  ): CompiledPage {
+    const tag = `${kebabCase(schema.name).replace(/^-/, "")}-editor`
+    const className = `${schema.name.replace(/\W/g, "")}Editor`
+    const attributes = Object.fromEntries(
+      [...editor.attributes].filter(({ name }) => !NOT_COMPILED.has(name)).map(({ name, value }) => [name, value])
+    )
+    const layout = [...editor.children].map((child) => PropertyEditorPages.lines(child, 0).join("\n")).join("\n")
+    const lines = [
+      `// ${schema.name}'s property editor, <${tag}>:  made by \`spell compile\` from its page (epic \`property-editor\` P7).`,
+      `// NEVER edit:  edit the page, then compile.`,
+      `import ${JSON.stringify(uiModule)}`,
+      ``,
+      `/** ${schema.name}'s properties. */`,
+      `const SCHEMA = ${JSON.stringify(schema, null, 2)}`,
+      ``,
+      `/** The page's editor's attributes:  the element's own win. */`,
+      `const ATTRIBUTES = ${JSON.stringify(attributes)}`,
+      ``,
+      `/** The page's layout:  its groups and properties. */`,
+      `const LAYOUT = ${JSON.stringify(layout)}`,
+      ``,
+      `/** <${tag}>:  ${schema.name}'s property editor, as its page lays it out. */`,
+      `export class ${className} extends HTMLElement {`,
+      `  connectedCallback() {`,
+      `    if (this.editor) return`,
+      `    const editor = document.createElement("ui-property-editor")`,
+      `    for (const [name, value] of Object.entries(ATTRIBUTES)) editor.setAttribute(name, value)`,
+      `    for (const { name, value } of this.attributes) editor.setAttribute(name, value)`,
+      `    editor.schema = SCHEMA`,
+      `    const template = document.createElement("template")`,
+      `    template.innerHTML = LAYOUT`,
+      `    editor.append(template.content)`,
+      `    if (this.pendingValue !== undefined) editor.value = this.pendingValue`,
+      `    this.editor = editor`,
+      `    this.append(editor)`,
+      `  }`,
+      ``,
+      `  /** The thing it edits, or a list of things:  its editor's. */`,
+      `  get value() {`,
+      `    return this.editor ? this.editor.value : this.pendingValue`,
+      `  }`,
+      `  set value(value) {`,
+      `    if (this.editor) this.editor.value = value`,
+      `    else this.pendingValue = value`,
+      `  }`,
+      ``,
+      `  /** Its editor's \`save()\`, \`cancel()\` and \`validate()\`. */`,
+      `  save() {`,
+      `    return this.editor?.save() ?? false`,
+      `  }`,
+      `  cancel() {`,
+      `    return this.editor?.cancel() ?? false`,
+      `  }`,
+      `  validate() {`,
+      `    return this.editor?.validate() ?? true`,
+      `  }`,
+      `}`,
+      ``,
+      `if (!customElements.get(${JSON.stringify(tag)})) customElements.define(${JSON.stringify(tag)}, ${className})`,
+      ``
+    ]
+    return { tag, className, text: lines.join("\n") }
+  }
+
   ////////////////
   // ## Helpers
   ////////////////
@@ -151,6 +231,22 @@ export class PropertyEditorPages {
   }
 }
 
+/** What `compile()` takes. */
+export type CompileOptions = {
+  /** What the module imports for Spell UI's property editor;  default `@spell-app/ui/ui-property-editor`. */
+  uiModule?: string
+}
+
+/** A page compiled:  its element's tag and class, and the module's text. */
+export type CompiledPage = {
+  /** `card-editor`. */
+  tag: string
+  /** `CardEditor`. */
+  className: string
+  /** The javascript module. */
+  text: string
+}
+
 /** One thing wrong with a page. */
 export type PageProblem = {
   /** `dropped`:  the schema has no such property;  `missing`:  the page doesn't name one;  `control`:  `as` doesn't fit. */
@@ -187,6 +283,12 @@ const KIND_TYPES: Record<string, readonly V.ValueType[]> = {
   date: ["date"],
   editor: ["thing"]
 }
+
+/** What a compiled page imports for Spell UI's property editor, by default. */
+const UI_MODULE = "@spell-app/ui/ui-property-editor"
+
+/** A page's editor's attributes a compiled page leaves out:  the schema is inlined, and nothing is loaded. */
+const NOT_COMPILED = new Set(["schema", "source", "select"])
 
 /** One level of a page's indent. */
 const INDENT = "  "

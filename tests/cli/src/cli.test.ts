@@ -522,6 +522,23 @@ describe("spell check:  editor pages (epic property-editor P6, Q17)", () => {
   })
 })
 
+describe("spell compile:  editor pages (epic property-editor P7, Q19)", () => {
+  test("writes each page as a module defining its <type-editor>, beside the program's own output", () => {
+    const compiled = tempProject("Compiled", "a card is a thing\na card has a rank as one of ace, king or queen\n")
+    writeFileSync(
+      resolve(compiled, "Card.editor.html"),
+      CARD_PAGE.replace(/\s*<ui-property name="(suit|label)"[^\n]*\n/g, "\n")
+    )
+    const { status, stderr } = spell(["compile", "."], compiled)
+    expect(status).toBe(0)
+    expect(stderr).toContain("Card.editor.js")
+    const module = readFileSync(resolve(compiled, "Card.editor.js"), "utf8")
+    expect(module).toContain('import "@spell-app/ui/ui-property-editor"')
+    expect(module).toContain('customElements.define("card-editor", CardEditor)')
+    expect(module).not.toContain("source=")
+  }, 30_000)
+})
+
 /** An editor page for the `Card` of the editor-page tests, as written by hand. */
 const CARD_PAGE = `<ui-property-editor schema="Card" header="Card">
   <ui-property name="rank"></ui-property>

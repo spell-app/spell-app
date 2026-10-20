@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, writeFileSync } from "fs"
-import { resolve } from "path"
+import { dirname, resolve } from "path"
 
 import { SP } from "$/spell"
 import { SPACES } from "$/spaces"
@@ -103,6 +103,37 @@ export class EditorPages {
     return results
   }
 
+  /**
+   * Compile each page into a module defining its `<type-editor>` (`PropertyEditorPages.compile()`), beside the
+   * project's own output:  `Card.editor.html` => `Card.editor.js` (epic `property-editor` P7, Q19).
+   * - Run after `spell compile` has compiled and SAVED the project:  each page's type from its declarations then.
+   * - Returns the files written, and a note per page it couldn't compile (no editor, no such type).
+   * - SIDE EFFECT:  writes the modules.
+   */
+  async compile(): Promise<{ wrote: string[]; notes: string[] }> {
+    const results = { wrote: [] as string[], notes: [] as string[] }
+    const paths = this.paths
+    if (!paths.length) return results
+    const declarations = SP.SpellDeclarations.read(String(this.project.declarationsFile.contents ?? ""))
+    const folder = dirname(this.project.outputFile.location.serverPath)
+    const { parseHTML } = await import("linkedom")
+    for (const path of paths) {
+      const name = path.split(/[/\\]/).pop()!
+      const { document } = parseHTML(`<!doctype html><html><body>${readFileSync(path, "utf8")}</body></html>`)
+      const editor = PropertyEditorPages.editorIn(document)
+      const type = editor?.getAttribute("schema")
+      const schema = type && declarations ? SPACES.TypeSchemas.fromDeclarations(declarations, type) : undefined
+      if (!editor || !schema) {
+        results.notes.push(`${name} not compiled:  ${editor ? `no type \`${type ?? ""}\`` : "no <ui-property-editor>"}`)
+        continue
+      }
+      const target = resolve(folder, name.slice(0, -SP.EDITOR_PAGE_SUFFIX.length) + COMPILED_SUFFIX)
+      writeFileSync(target, PropertyEditorPages.compile(editor, schema).text)
+      results.wrote.push(target)
+    }
+    return results
+  }
+
   ////////////////
   // ## Helpers
   ////////////////
@@ -152,6 +183,9 @@ export type EditorPageResults = {
   problems: CLI.Problem[]
   fixes: CLI.Problem[]
 }
+
+/** A compiled page's file name ends so:  `Card.editor.js`. */
+const COMPILED_SUFFIX = ".editor.js"
 
 /** A line and column, from 1. */
 type Position = { line: number; column: number }

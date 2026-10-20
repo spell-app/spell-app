@@ -61,3 +61,35 @@ describe("PropertyEditorPages", () => {
     expect(text).not.toContain(`as="number"`)
   })
 })
+
+describe("PropertyEditorPages.compile()", () => {
+  it("makes a module defining <theme-editor>:  its layout and schema inlined, no page loading", async () => {
+    // the elements are on the page already:  the module imports nothing more
+    await import("$/ui")
+    const editor = editorOf(`<ui-property-editor schema="Theme" header="Theme" source="nope.html">
+      <ui-property name="title" hint="Used for the file name."></ui-property>
+      <ui-property-group header="Look"><ui-property name="size" as="buttons"></ui-property></ui-property-group>
+    </ui-property-editor>`)
+    const compiled = PropertyEditorPages.compile(editor, THEME, { uiModule: "data:text/javascript," })
+    expect([compiled.tag, compiled.className]).toEqual(["theme-editor", "ThemeEditor"])
+    expect(compiled.text).not.toContain("nope.html")
+    const url = URL.createObjectURL(new Blob([compiled.text], { type: "text/javascript" }))
+    await import(/* @vite-ignore */ url)
+
+    const host = document.createElement("theme-editor") as HTMLElement & { value: unknown }
+    const thing = { title: "Sunrise", size: "md" }
+    host.value = thing
+    document.body.append(host)
+    try {
+      const inner = host.querySelector("ui-property-editor")!
+      expect(inner.getAttribute("header")).toBe("Theme")
+      expect(inner.hasAttribute("source")).toBe(false)
+      await expect.poll(() => host.querySelectorAll("ui-property[name=size] ui-radio").length).toBe(2)
+      const title = host.querySelector("ui-property[name=title] ui-input") as HTMLElement & { value: unknown }
+      await expect.poll(() => title?.value).toBe("Sunrise")
+      expect(host.value).toBe(thing)
+    } finally {
+      host.remove()
+    }
+  })
+})
