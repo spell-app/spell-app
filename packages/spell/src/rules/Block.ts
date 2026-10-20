@@ -85,6 +85,8 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    *   docstring, right on its code -- see `SP.SpellDeclarations.commentFor()`.
    * - A declaring line's docstring, comment and code are ONE `P.ASTStatementGroup`, so they move together:
    *   each class member moves into its class's body, if that's in this block -- see `SP.hoistClassMembers()`.
+   * - At a FILE's top level, a class declared below the file's first running code moves up above it,
+   *   so the program can use it as it loads -- see `SP.hoistClassDeclarations()`.
    * - A `##` heading followed by a regular comment compiles as a banner -- see `P.ASTBannerComment`.
    * - A heading at a FILE's top level also says so as the program runs, just above its own lines:
    *   `core.heading("set up all piles")`.
@@ -122,7 +124,9 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
       if (statement) statements.push(...Block.flatBodyStatements(statement))
     })
     statements.unshift(...(autoDeclared.get(undefined) ?? []))
-    const [hoisted] = SP.hoistClassMembers([statements])
+    const [members] = SP.hoistClassMembers([statements])
+    // a file's classes before its running code -- see `SP.hoistClassDeclarations()`
+    const hoisted = isFileTopLevel ? SP.hoistClassDeclarations(members) : members
     if (match.data.enclose) return new P.ASTStatementBlock(match, { statements: hoisted })
     return new P.ASTStatementGroup(match, { statements: hoisted })
   }

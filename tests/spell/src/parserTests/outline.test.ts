@@ -186,6 +186,27 @@ describe("outline style", () => {
     })
   })
 
+  test("`every pile`:  every pile the program made, sub-types too, in the order made (P16)", () => {
+    const run = runSpell(
+      [
+        "a card is a thing",
+        "a pile is a list of cards",
+        "a tableau is a pile",
+        'set a to a new pile with name = "a"',
+        'set b to a new tableau with name = "b"',
+        "set piles to every pile",
+        "set tableaus to every tableau"
+      ],
+      { registered: true }
+    )
+    const { piles, tableaus } = run("piles, tableaus") as {
+      piles: { items: { name: string }[] }
+      tableaus: { items: unknown[] }
+    }
+    expect(piles.items.map(({ name }) => name)).toEqual(["a", "b"])
+    expect(tableaus.items.length).toBe(1)
+  })
+
   describe("re-opening a type (P11):  `a game:` adds to it", () => {
     test("in the same file:  its bullets go into the one class", () => {
       const sentences = [
@@ -737,12 +758,18 @@ describe("outline style", () => {
  * `lines` compiled, then RUN on `core`'s source, as `membership.test.ts` does:  a function of the names to return.
  * - Throws on a parse error.
  */
-function runSpell(lines: string[]) {
-  return runSpellFiles([{ path: "/Test.spell", contents: lines.join("\n") }])
+function runSpell(lines: string[], options?: RunOptions) {
+  return runSpellFiles([{ path: "/Test.spell", contents: lines.join("\n") }], options)
+}
+
+/** How `runSpell()` runs a program. */
+type RunOptions = {
+  /** `true`:  its things register in `core.things`, as a running program's do, e.g. for `every pile`.  Default:  not. */
+  registered?: boolean
 }
 
 /** `files`, a project, compiled then RUN -- see `runSpell()`. */
-function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
+function runSpellFiles(sources: Array<{ path: string; contents: string }>, { registered = false }: RunOptions = {}) {
   const { files } = parseSpellProject(sources)
   const errors = files.flatMap((file) => file.errors)
   if (errors.length) throw new Error(`parse errors:\n${JSON.stringify(errors, null, 2)}`)
@@ -764,7 +791,9 @@ function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
     // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
     const fn = new Function("core", "Thing", "List", "App", ...Object.keys(imported), body)
     const run = () => fn(core, Thing, List, App, ...Object.values(imported))
-    return core.things.quietly(run) as Record<string, unknown>
+    if (!registered) return core.things.quietly(run) as Record<string, unknown>
+    core.things.clear()
+    return run() as Record<string, unknown>
   }
 }
 

@@ -1443,6 +1443,18 @@
     },
     {
       "kind": "method",
+      "name": "everyThing",
+      "of": "core",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        }
+      ],
+      "description": "Every thing of class `Class`, or of a sub-class, the program has made, in the order made:  a scratch list."
+    },
+    {
+      "kind": "method",
       "name": "referenceFor",
       "of": "core",
       "module": "references",

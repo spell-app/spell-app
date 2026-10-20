@@ -63,37 +63,36 @@ to turn a card over:
 
 ## create a card instance with default properties
 to test card setup
-	the card is a new card whose rank is queen, suit is spades and direction is up
-	echo the card
-	expect the rank of the card to be queen
-	expect the suit of the card to be spades
-	expect the name of the card to be "queen-of-spades"
-	expect the color of the card to be black
-	expect the value of the card to be 12
-	expect the short suit of the card to be "♠️"
-	expect the short rank of the card to be "Q"
-	expect the short name of the card to be "Q♠️"
+	get a new card whose rank is queen, suit is spades and direction is up
+	echo it
+	its rank should be queen
+	its suit should be spades
+	its name should be "queen-of-spades"
+	its color should be black
+	its value should be 12
+	its short suit should be "♠️"
+	its short rank should be "Q"
+	its short name should be "Q♠️"
 
-	expect the card is face up to be yes
-	expect the card is face down to be no
+	it is face up should be yes
+	it is face down should be no
 
-	expect the card is a face card to be yes
-	expect the card is not a face card to be false
+	it is a face card should be yes
+	it is not a face card should be no
 
-	expect the card is a spade to be true
-	expect the card is a club to be false
+	it is a spade should be yes
+	it is a club should be no
 
-	expect the card is a queen to be true
-	expect the card is an ace to be false
-	expect the card is a 2 to be false
+	it is a queen should be yes
+	it is an ace should be no
+	it is a 2 should be no
 
-	expect the card is the queen of spades to be true
-	expect the card is the queen of clubs to be false
-	expect the card is not the 2 of diamonds to be true
+	it is the queen of spades should be yes
+	it is the queen of clubs should be no
+	it is not the 2 of diamonds should be yes
 
-	turn the card face down
-	expect the direction of the card to be down
+	turn it face down
+	its direction should be down
 
-	turn the card over
-	expect the card is face up to be true
-test card setup
+	turn it over
+	it is face up should be yes

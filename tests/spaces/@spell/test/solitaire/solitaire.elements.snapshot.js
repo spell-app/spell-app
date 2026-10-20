@@ -308,12 +308,6 @@ export class Game extends App {
     )
   }
 }
-export let game
-
-/** set up all piles */
-export let allPiles
-export let foundations
-export let tableaus
 
 /** set up stock pile: unplayed cards */
 export class StockPile extends Pile {
@@ -328,7 +322,6 @@ export class StockPile extends Pile {
     )
   }
 }
-export let stock
 
 /** set up discards: where played cards go when turning over stock */
 export class DiscardPile extends Pile {
@@ -340,7 +333,6 @@ export class DiscardPile extends Pile {
     return h("div", { class: "Pile Discards stacked" }, () => core.drawThing(this.lastItem))
   }
 }
-export let discards
 
 /** set up foundation piles: where we build up from ace => king */
 export class Foundation extends Pile {
@@ -367,10 +359,6 @@ export class Foundation extends Pile {
     )
   }
 }
-export let it
-export let it2
-export let it3
-export let it4
 
 /** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {
@@ -387,6 +375,22 @@ export class Tableau extends Pile {
     return h("div", { class: "Pile Tableau staggered" }, () => core.drawItems(this))
   }
 }
+
+export let game
+
+/** set up all piles */
+export let allPiles
+export let foundations
+export let tableaus
+
+export let stock
+
+export let discards
+
+export let it
+export let it2
+export let it3
+export let it4
 
 /** set up deck of cards */
 export let deck

@@ -215,9 +215,19 @@ export class SpellParser extends P.Parser {
    *   See `P.IncrementalProject.update()`.
    * - A value kind too, `- "suits" as one of ...` declares `suit` (`value_kind`):  so a card above the deck
    *   can say `its "suit" is a suit` (epic page `outline-spell`, issue I3).
+   * - A name of several words too, e.g. `a stock pile is a pile`, `a bank account aka account is a thing`.
+   *   Only before `is a` / `is an` or `aka`:  `a cards color is black` names no type.
    */
   declaredTypes(text: string): string[] {
-    const types = [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)
+    const types = [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(
+      ([, type, words, created]) =>
+        type ??
+        words
+          ?.trim()
+          .split(/[ \t]+/)
+          .join("-") ??
+        created!
+    )
     const kinds = [...text.matchAll(SpellParser.VALUE_KIND_DECLARATION)].map(([, plural]) => singularize(plural!))
     return [...types, ...kinds]
   }
@@ -228,9 +238,10 @@ export class SpellParser extends P.Parser {
   /**
    * A line declaring a type, its name captured -- see `declaredTypes()`.
    * - The name may be quoted, `a "card" is a thing` (`quoted_type`), and the line bulleted, `- a card is a thing`.
+   * - Its groups:  a one-word name;  a name of several words, before `is a` / `is an` or `aka`;  `create a type ...`'s.
    */
   static TYPE_DECLARATION =
-    /^[ \t]*(?:-[ \t]+)?(?:an?[ \t]+["']?([\w-]+)["']?[ \t]+is\b|create[ \t]+a[ \t]+type[ \t]+(?:named|called)[ \t]+([\w-]+))/gim
+    /^[ \t]*(?:-[ \t]+)?(?:an?[ \t]+["']?([\w-]+)["']?[ \t]+is\b|an?[ \t]+((?:(?!(?:is|aka)\b)[\w-]+[ \t]+){1,3}(?!(?:is|aka)\b)[\w-]+)[ \t]+(?:is[ \t]+an?|aka)\b|create[ \t]+a[ \t]+type[ \t]+(?:named|called)[ \t]+([\w-]+))/gim
 
   /** Commit a spell statement parsed on its own -- see `SP.commitStatement()`. */
   commit(match: P.Match) {

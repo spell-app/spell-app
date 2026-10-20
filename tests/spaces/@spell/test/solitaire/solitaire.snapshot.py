@@ -462,15 +462,6 @@ class Game(App):
         )
 
 
-game = Game()
-core.console.log(game)
-
-# set up all piles
-all_piles = List(item_type="Pile")
-foundations = List(item_type="Pile")
-tableaus = List(item_type="Pile")
-
-
 class StockPile(Pile):
     """set up stock pile: unplayed cards"""
 
@@ -489,10 +480,6 @@ class StockPile(Pile):
         )
 
 
-stock = StockPile(name="stock", droppable=False)
-all_piles.append(stock)
-
-
 class DiscardPile(Pile):
     """set up discards: where played cards go when turning over stock"""
 
@@ -501,10 +488,6 @@ class DiscardPile(Pile):
 
     def draw(self) -> Any:
         return h("div", {"class": "Pile Discards stacked"}, core.draw_thing(self.last_item))
-
-
-discards = DiscardPile(name="discards", droppable=False)
-all_piles.append(discards)
 
 
 class Foundation(Pile):
@@ -535,18 +518,6 @@ class Foundation(Pile):
         )
 
 
-it = Foundation(name="clubs", symbol="♣️", droppable=True)
-foundations.append(it)
-it_2 = Foundation(name="diamonds", symbol="♦️", droppable=True)
-foundations.append(it_2)
-it_3 = Foundation(name="hearts", symbol="♥️", droppable=True)
-foundations.append(it_3)
-it_4 = Foundation(name="spades", symbol="♠️", droppable=True)
-foundations.append(it_4)
-for pile in foundations:
-    all_piles.append(pile)
-
-
 class Tableau(Pile):
     """set up tableau piles: vertical piles where we arrange from king to ace"""
 
@@ -561,6 +532,31 @@ class Tableau(Pile):
     def draw(self) -> Any:
         return h("div", {"class": "Pile Tableau staggered"}, core.draw_items(self))
 
+
+game = Game()
+core.console.log(game)
+
+# set up all piles
+all_piles = List(item_type="Pile")
+foundations = List(item_type="Pile")
+tableaus = List(item_type="Pile")
+
+stock = StockPile(name="stock", droppable=False)
+all_piles.append(stock)
+
+discards = DiscardPile(name="discards", droppable=False)
+all_piles.append(discards)
+
+it = Foundation(name="clubs", symbol="♣️", droppable=True)
+foundations.append(it)
+it_2 = Foundation(name="diamonds", symbol="♦️", droppable=True)
+foundations.append(it_2)
+it_3 = Foundation(name="hearts", symbol="♥️", droppable=True)
+foundations.append(it_3)
+it_4 = Foundation(name="spades", symbol="♠️", droppable=True)
+foundations.append(it_4)
+for pile in foundations:
+    all_piles.append(pile)
 
 for number in range(1, 8):
     it_5 = Tableau(name=f"Tableau{number}", droppable=True)

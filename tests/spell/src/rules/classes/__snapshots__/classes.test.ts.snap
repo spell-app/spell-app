@@ -12,6 +12,7 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "create_type": "type|aka?|superType|with_nested_statements?|body?",
   "define_property_has": "type|property|specifier?",
   "draw_side": "alias|body?",
+  "every_thing": "type",
   "its_quoted_property": "type|property",
   "list_guard": "type|verb|item|body?|never?",
   "named_thing": "type|name",

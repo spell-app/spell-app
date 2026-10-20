@@ -46,16 +46,29 @@ export const words = {
       value: "value",
       state: "state"
     },
-    Game: {
+    Solitaire: {
       score: "score",
+      stock: "stock",
+      discards: "discards",
+      foundations: "foundations",
+      tableaus: "tableaus",
+      deck: "deck",
+      layOut: "lay out a solitaire",
       state: "state",
-      draw: "draw a game"
+      debug: "debug a solitaire",
+      resetTheStockOfSolitaire: "reset the stock of a solitaire",
+      playFromTheStockOfSolitaire: "play from the stock of a solitaire",
+      dealTheCardsOfSolitaire: "deal the cards of a solitaire",
+      autoPlay: "auto-play a solitaire",
+      reset: "reset a solitaire",
+      cheatAtSolitaire: "cheat at a solitaire",
+      draw: "draw a solitaire"
     },
     StockPile: {
-      draw: "draw a stock-pile"
+      draw: "draw a stock pile"
     },
     DiscardPile: {
-      draw: "draw a discard-pile"
+      draw: "draw a discard pile"
     },
     Foundation: {
       symbol: "symbol",

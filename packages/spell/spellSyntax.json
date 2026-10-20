@@ -3068,6 +3068,32 @@
           "aliases": ["expression"]
         },
         {
+          "className": "EveryThing",
+          "ruleNames": ["every_thing"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/EveryThing.ts",
+          "line": 14,
+          "purpose": "Every thing of a type the program has made, in the order made (epic page `outline-spell`, P16).",
+          "syntaxes": [
+            {
+              "syntax": "every {type:known_type}",
+              "example": "every pile",
+              "outputs": {
+                "js": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "ts": {
+                  "code": "core.everyThing(Pile)"
+                },
+                "py": {
+                  "code": "core.every_thing(Pile)"
+                }
+              }
+            }
+          ],
+          "aliases": ["expression"]
+        },
+        {
           "className": "WithNestedStatements",
           "ruleNames": ["with_nested_statements"],
           "internal": false,

@@ -514,6 +514,11 @@ A kind that says so is saved in a file of its own.
     - compiles to `core.thingAtPlace(Tableau, 1)`
   - Both are core's thing references, `Tableau#T1` and `Tableau#1`:  [references.ts](../core/src/references.ts).
   - The writers read off either with `?.`:  the program may not have made it (`ProgramWriter.ITEM_READS`).
+- And EVERY one of a type (epic `outline-spell` P16):  [`every_thing`](src/rules/classes/EveryThing.ts).
+  - e.g. `every pile`:  every pile the program made, sub-types included, in the order made
+  - compiles to `core.everyThing(Pile)`, a scratch list:  it takes none of them from the lists holding them
+  - its datatype:  `list of piles`
+  - Only the program's things:  NOT a thing made in a test, nor a scratch list (made `quietly()`).
 - `named_thing` has its own quick `test()`:  a name near its start.
   - Near:  within `SpellType.MAX_NAME_WORDS` words.
   - Without it, `{type}` is a subrule, so the plain test would pass any line with text in quotes on it.
@@ -934,6 +939,7 @@ A kind that says so is saved in a file of its own.
     - So a line can name a type declared further down, or in a later file.
     - The types come from `SpellParser.declaredTypes()`.
       It scans for lines starting `a card is`, `create a type called hand`.
+      - a name of several words too, before `is a` / `is an` or `aka`:  `a stock pile is a pile` (P15)
     - `P.IncrementalProject` and `parseSpellProject()` both do it.
     - An edit which changes WHICH types a file declares re-parses the whole project.
   - `is a <type>` (`is_a`) names a KNOWN type:  built in, imported, declared or stubbed earlier.
@@ -1369,6 +1375,16 @@ A kind that says so is saved in a file of its own.
   - `ASTNode.compile()` is `P.JSWriter.instance.write(node)`.
   - Each writer has one method per AST class, named for it:  `ASTIfStatement(node)`.
   - NEVER write output in an AST class.
+- A file's classes come before its running code (P15):  `SP.hoistClassDeclarations()`, from `Block.getAST()`.
+  - So a line can make a thing of a type declared further down:  `set the stock to a new stock pile` above
+    `a stock pile is a pile`.
+  - Only a class declared below the file's first running code moves, up above it, keeping its order.
+  - Banners, headings' calls and the code under them stay where they are.
+  - A patch onto another file's class doesn't count as running code.
+- A program runs its own tests the first time it loads (P17):  `SpellProject.combineCompiled()`, last,
+  calls each `to test ...` method its files declare, `if (!core.isCarryingOver) testCardSetup()`.
+  - Never on a hot reload (`core.isCarryingOver`), and not one the program calls at its start already.
+  - `spell test` counts those runs, and doesn't run them again.
 - A block compiles as its statements joined with `\n`.
   - Nesting indents by re-joining with `\n` + 2 spaces (`P.jsText.INDENT`, NEVER a tab).
     Python's is 4 spaces (`P.pyText.INDENT`).

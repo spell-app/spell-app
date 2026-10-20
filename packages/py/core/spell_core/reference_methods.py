@@ -78,6 +78,16 @@ class ReferenceMethods:
         """The program's thing of class `cls` EXACTLY at `place`, counting from 1:  spell's `the first tableau`."""
         return references.thing_at_place(cls, place, self.things_made())
 
+    def every_thing(self, cls: type) -> Any:
+        """Every thing of class `cls`, or a sub-class, the program made, in order:  spell's `every pile`.
+
+        - A scratch list:  it takes none of them from the lists that hold them.
+        """
+        from spell_core.lists import List  # here:  lists imports this module's package
+
+        things = [thing for thing in self.things_made() if isinstance(thing, cls)]
+        return List(item_type=cls.__name__).as_scratch().append(*things)
+
     def reference_for(self, thing: object) -> str | None:
         """The reference that finds `thing` again:  `Tableau#T1`, else its place, `Tableau#3`."""
         return references.reference_for(thing, self.things_made(), _kept())
