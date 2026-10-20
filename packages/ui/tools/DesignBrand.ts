@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs"
-import { join } from "node:path"
+import { join, relative } from "node:path"
 
 import { readJSON5File } from "$/util/node/json5"
 
@@ -12,33 +12,41 @@ import type { DesignExample, DesignSource } from "./tools.types.ts"
  * The brand's `<brand-*>` elements (a component pack) as a card source of the design system
  * (`DesignSource`;  epic `claude-design`, P11):  one "Brand" card per family, beside Spell UI's own.
  * - Read as DATA, never imported:  `ui` must not depend on `brand` (root `AGENTS.md`, "Overview").
- *   So this reads files the brand writes, as the brand book's "CONTENT FUNDAMENTALS" already was:
- *   - `packages/brand/docs/__data/components.json5` --
- *     its docs set's data, the same shape as ours (`yarn site:data` in `packages/brand`)
- *   - `packages/brand/docs/<tag>.html` -- its docs set's pages (served at `/components/brand/`):
+ *   So this reads files the brand writes, in the brand's package folder, which the CALLER names
+ *   (`yarn design:build --brand <folder>`;  Spell UI never names the brand's folder itself, epic `repo-split` P5):
+ *   - `docs/__data/components.json5` -- its docs set's data, the same shape as ours (its `yarn site:data`)
+ *   - `docs/<tag>.html` -- its docs set's pages (served at `/components/brand/`):
  *     the examples are their Examples tab's `<ui-docs-example>`s, titled by the `<ui-section>` around each
  *   - each page's own `<style>`s:  the classes those examples use (`.brand-docs-row`, `.stage` ...)
  * - The elements themselves reach the bundle from the docs tool (`bundle-spell-ui.js --design`),
  *   which may import any package.
  ****************/
 export class DesignBrand {
-  /** the repo root, absolute */
-  readonly root: string
+  /** the brand's package folder, absolute */
+  readonly folder: string
+  /** `packages/ui`, absolute:  the paths the export records are relative to it */
+  readonly uiFolder: string
   /** the brand's site data */
   readonly data: SiteDataFile
   /** each docs page's text, by family folder, read once */
   private readonly pages = new Map<string, string>()
 
-  constructor({ root, data }: DesignBrandProps) {
-    this.root = root
+  constructor({ folder, uiFolder, data }: DesignBrandProps) {
+    this.folder = folder
+    this.uiFolder = uiFolder
     this.data = data
   }
 
-  /** The brand's card source, or `undefined` where this checkout has no brand site data. */
-  static read(root: string): DesignSource | undefined {
-    const file = join(root, DATA)
+  /** The card source of the brand in package folder `folder`, or `undefined` when it has no site data there. */
+  static read(folder: string, uiFolder: string): DesignSource | undefined {
+    const file = join(folder, DATA)
     if (!existsSync(file)) return undefined
-    return new DesignBrand({ root, data: readJSON5File<SiteDataFile>(file) }).source()
+    return new DesignBrand({ folder, uiFolder, data: readJSON5File<SiteDataFile>(file) }).source()
+  }
+
+  /** The brand's folder as the export records it:  relative to `packages/ui`, e.g. `../brand`. */
+  get shownFolder(): string {
+    return relative(this.uiFolder, this.folder)
   }
 
   /** This brand as a `DesignSource`. */
@@ -46,7 +54,8 @@ export class DesignBrand {
     return {
       group: GROUP,
       data: this.data,
-      componentsPath: "../brand/components",
+      componentsPath: `${this.shownFolder}/components`,
+      docsPaths: [`${this.shownFolder}/${DATA}`, `${this.shownFolder}/${PAGES}/brand-*.html`],
       intro:
         "Spell's own elements (`<brand-*>`):  its colour tools, the inspector field, the composer, the build " +
         "checklist and phone, and the page art (logo, flourish, blob).  They read the brand roles (`--spell-*`, " +
@@ -66,7 +75,7 @@ export class DesignBrand {
       const headers = [...before.matchAll(/<ui-section\b[^>]*\sheader="([^"]*)"/g)]
       const title = headers.at(-1)?.[1] ?? "Example"
       const markup = DesignComponents.dedent(match[1]!)
-      if (markup.trim()) result.push({ title, markup, source: `${PAGES}/${folder}.html` })
+      if (markup.trim()) result.push({ title, markup, source: `${this.shownFolder}/${PAGES}/${folder}.html` })
     }
     return result
   }
@@ -85,7 +94,7 @@ export class DesignBrand {
   private page(folder: string): string {
     const cached = this.pages.get(folder)
     if (cached !== undefined) return cached
-    const file = join(this.root, PAGES, `${folder}.html`)
+    const file = join(this.folder, PAGES, `${folder}.html`)
     const text = existsSync(file) ? readFileSync(file, "utf8") : ""
     this.pages.set(folder, text)
     return text
@@ -94,8 +103,10 @@ export class DesignBrand {
 
 /** Constructor props of `DesignBrand`. */
 export type DesignBrandProps = {
-  /** the repo root, absolute */
-  root: string
+  /** the brand's package folder, absolute */
+  folder: string
+  /** `packages/ui`, absolute */
+  uiFolder: string
   /** the brand's site data */
   data: SiteDataFile
 }
@@ -103,8 +114,8 @@ export type DesignBrandProps = {
 /** The brand's card group, after Spell UI's own. */
 const GROUP = "Brand"
 
-/** The brand's docs set, repo-relative:  its pages, one per family (`<tag>.html`). */
-const PAGES = "packages/brand/docs"
+/** The brand's docs set, in its folder:  its pages, one per family (`<tag>.html`). */
+const PAGES = "docs"
 
-/** The brand's docs set's data, repo-relative. */
+/** The brand's docs set's data, in its folder. */
 const DATA = `${PAGES}/__data/components.json5`

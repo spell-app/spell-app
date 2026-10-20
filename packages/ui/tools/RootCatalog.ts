@@ -12,7 +12,7 @@ import { VocabularyFiles } from "./VocabularyFiles.ts"
  *   the way `ComponentDefinitions` reads them, without Vite's `import.meta.glob`.  A vocabulary without a skeleton
  *   writes no `skeleton` key.
  * - Two writers:  `yarn gen:root` (`scripts/gen-root.ts`), Spell UI's `UIRoot.catalog.ts`;  and
- *   `spell dev pack build` (`packages/cli/src/dev/packBuild.ts`), a component pack's `<pack>.catalog.ts`.
+ *   `ComponentPack` (`spell-ui-pack build`, `spell dev pack build`), a component pack's `<pack>.catalog.ts`.
  * - Static:  nothing to keep between calls.  Node only:  `import()`s each vocabulary, which is pure data.
  ****************/
 export class RootCatalog {

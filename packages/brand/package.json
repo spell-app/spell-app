@@ -18,11 +18,12 @@
     "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vite.design.config.ts vitest.config.ts _assets/brand-pages.js _assets/brand-pages.css && cd ../../tests/brand && vp fmt . && echo '<< OXFMT PASSED\n'",
     "/////// TESTING": "",
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'",
-    "pack:build": "node ../cli/bin/spell.mjs dev pack build brand",
-    "pack:check": "node ../cli/bin/spell.mjs dev pack check brand"
+    "pack:build": "spell-ui-pack build",
+    "pack:check": "spell-ui-pack check"
   },
   "devDependencies": {
     "@solidjs/web": "2.0.0-rc.13",
+    "@spell-app/ui": "workspace:*",
     "@types/node": "^22.20.4",
     "solid-js": "2.0.0-rc.13",
     "tsx": "^4.23.15",

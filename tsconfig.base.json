@@ -23,7 +23,7 @@
   //   `$/ui/tools/SiteDataBuilder` (node-only:  the docs data builder, for `brand`'s `yarn site:data`),
   //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s
   //   static render, and its types),
-  //   `$/ui/tools/RootCatalog` (node-only:  a `<ui-root>` catalog from vocabularies, for `spell dev pack build`),
+  //   `$/ui/tools/ComponentPack` (node-only:  a component pack's build and check, for `spell dev pack`),
   //   `$/spell-solid/timing` (`ui`'s `src/util/index.ts`:  a leaf below `ui`'s core),
   //   `$/spell-solid/elements.types` + `$/spell-solid/vocabulary.types` (where `ui` augments the names it adds),
   //   `$/spell-solid/HotDefinitions` (dev-only, a side effect:  `ui`'s HMR plugin),

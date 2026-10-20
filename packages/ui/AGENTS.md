@@ -447,8 +447,12 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   nests every page's flat level 2 / 3 headers and headed examples into `<ui-section>`s.
   - It writes (or fixes) their ids, `<tab>-<section>-<example>`;  idempotent.
   - `site:index`, `site:kitchen` and `site:new` run it on what they write.
-- `yarn design:build [--out <dir>]` (`spell dev design build`):  the claude.ai design system's files (epic `claude-design`).
+- `yarn design:build [--out <dir>] [--brand <folder>] [--brand-book <file>]` (`spell dev design build`):
+  the claude.ai design system's files (epic `claude-design`).
   - [Its script](scripts/design-build.ts), on [the design export](tools/DesignExport.ts).
+  - `--brand`:  the brand's package folder, its `<brand-*>` cards;  `--brand-book`:  Claude Design's brand book.
+    - Spell UI never names either (epic `repo-split` P5):  `spell dev design build` passes spell-app's.
+    - Without them:  no Brand cards and no content rules, and the README's "Not synced" says so.
   - Written to `<dir>/project/`;  by default `build/design-system/` (git-ignored).
   - Made from the site's components data, the element examples and the Spell theme.
   - Run `yarn site:data` first, after a vocabulary change.
@@ -1002,7 +1006,13 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
   - Restated in `wwod-spell-ui`'s names when `main` merged in (2026-10-08),
     in place of `wwod-spell-ui` P12's JSON packs.
 - The pack is ONE classic script, so it works from `file://`.
-  - Built by `spell dev pack build` ([the pack build](../cli/src/dev/packBuild.ts)).
+  - Built by Spell UI's own pack tooling, [ComponentPack](tools/ComponentPack.ts) (epic `repo-split` P5):
+    - `spell-ui-pack build | check [<folder>]`, this package's bin ([its script](bin/spell-ui-pack.mjs)),
+      run from the pack's own repo:  spell-epic's and the brand's `yarn pack:build` / `pack:check`
+    - spell-app's `spell dev pack build <pack>` finds the pack by name, and calls the same tool
+    - It runs the tool's source through `tsx`, with the PACK's `tsconfig.json`:
+      the pack's vocabularies import `$/<pack>/...` as its own build resolves them.
+    - Its generated files still name `spell dev pack build <pack>`:  the packs stayed byte for byte the same.
   - As it runs, it calls `SpellUI.registerPack({ name, prefix, catalog, define })`.
   - `catalog` has `ROOT_CATALOG`'s shape (`RootCatalogEntry`:  a folder and a parsed skeleton).
     - Read from the pack's `<Name>.en.ts` vocabularies by [the root catalog](tools/RootCatalog.ts),
@@ -1050,7 +1060,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
     - the site's component sets' build ([SitePacks.ts](site/_src/SitePacks.ts))
   - Those are the two places a Solid package is `import * as`'d, on purpose:
     a pack may use any export, so they must all stay ("One Solid per page" above).
-  - A new specifier goes there AND in the pack build's externals.
+  - A new specifier goes there AND in the pack build's externals (`PACK_MODULES`, [ComponentPack](tools/ComponentPack.ts)).
   - So a pack's elements extend the page's own `UIComponent` / `DOMElement`.
 - Tests:  [the component packs test](../../tests/ui/components/ui-components/ComponentPacks.test.ts).
   - On [the classic fixtures](test/fixtures/component-packs/), served by Vitest's dev server.

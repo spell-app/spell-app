@@ -7,7 +7,8 @@ import { findCheckout } from "$/cli/findCheckout"
 
 /**
  * `spell dev pack <verb> ...`:  component packs (epic `epic-components`) -- another package's custom elements, which
- * a page loads on demand through `<ui-root>`.  The logic:  `src/dev/packNew.ts`, `src/dev/packBuild.ts`.
+ * a page loads on demand through `<ui-root>`.  The logic:  `src/dev/packNew.ts`, and Spell UI's own pack tooling
+ * (`packages/ui/tools/ComponentPack.ts`) for `build` and `check`, through `src/dev/packBuild.ts`.
  * - `new <name> [--prefix x-]`:  `packages/<name>/` from the templates (missing files only), wired into the checkout,
  *   then built
  * - `element <pack> <tag>`:  one element family, `components/<tag>/`, then the pack rebuilt

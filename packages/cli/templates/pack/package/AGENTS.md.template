@@ -18,15 +18,16 @@ house style every package shares.  Only what's local is below;  a section named 
   </ui-root>
   ```
 
-- Made by `spell dev pack new __pack__ --prefix __prefix__`;  its tooling is the CLI's (`spell dev pack`,
-  `packages/cli/src/dev/pack*.ts`), so every pack builds and checks the same way.
+- Made by `spell dev pack new __pack__ --prefix __prefix__`.
+- Its build and check are Spell UI's own pack tooling (`spell-ui-pack`, `packages/ui/tools/ComponentPack.ts`), so
+  every pack builds and checks the same way, in any repo.
 - `components/<tag>/` (`$/__pack__/components`) -- one folder per element family, written exactly like a Spell UI
   family (`packages/ui/AGENTS.md`, "Overview" and "Solid authoring"), every file named for its COMPONENT:
   `<Name>.tsx` (the component, on `E.UIComponent`), `<Name>.en.ts` (its tag's vocabulary:  topics + aka, skeleton
   text), `<Name>.css`, `<Name>.test.tsx`, `<Name>.types.ts` (only what several of its files share), `index.ts`
   (defines its tags:  SIDE EFFECT).  No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element __pack__ <tag>`, the tag starting `__prefix__`.
-- `src/` (`$/__pack__`) -- code the elements share, and `pack.test.ts`, which runs `spell dev pack check __pack__`.
+- `src/` (`$/__pack__`) -- code the elements share, and `pack.test.ts`, which runs `yarn pack:check`.
 - `components/__pack/` -- GENERATED, committed (`spell dev pack build __pack__`, `yarn pack:build`).  NEVER edit:
   - `__pack__.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies;  its second line records
     the hash of the sources it was built from
@@ -45,7 +46,7 @@ house style every package shares.  Only what's local is below;  a section named 
 - Elements import Spell UI's code ONLY from `$/ui/core` / `$/ui/forms` (as a Spell UI family does), and Solid from
   `solid-js` / `@solidjs/web`:  the build fails on any other `$/ui/...` or Solid import, which the page couldn't
   share.  Another shared module:  add it to Spell UI's `packModules` AND `PACK_MODULES` in
-  `packages/cli/src/dev/packBuild.ts`.
+  `packages/ui/tools/ComponentPack.ts`.
 - Every tag starts `__prefix__`:  `<ui-root>` knows the pack's tags by that prefix.
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):  those pages load `main`'s
   `components/__pack/`, through the main checkout's page server.  So:
@@ -54,8 +55,10 @@ house style every package shares.  Only what's local is below;  a section named 
 
 ## Commands
 
-- `yarn pack:build` ~== `spell dev pack build __pack__` -- the catalog, the entry and the script, into `components/__pack/`
-- `yarn pack:check` ~== `spell dev pack check __pack__` -- exits 1 while `components/__pack/` is stale
+- `yarn pack:build` ~== `spell-ui-pack build` ~== `spell dev pack build __pack__` -- the catalog, the entry and the
+  script, into `components/__pack/`
+- `yarn pack:check` ~== `spell-ui-pack check` ~== `spell dev pack check __pack__` -- exits 1 while
+  `components/__pack/` is stale
 - `yarn test` -- `node` (`src/`) and `browser` (`components/`, chromium);  the root's `yarn test` runs them as
   `__pack__:node` / `__pack__:browser`
 - `yarn ts`, `yarn lint`, `yarn format`, `yarn review`

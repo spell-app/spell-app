@@ -8,8 +8,9 @@ import { CliError, EXIT } from "$/cli/cli.types"
 import { contentFolderOf } from "$/assembler/contentFolder"
 import { DataFile } from "$/assembler/DataFile"
 import { COMMANDS_JSON, type PackInfo, type PackScaffoldReport } from "$/cli/dev/dev.types"
-import { PACK_FOLDER, buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
+import { buildPack, readPack } from "$/cli/dev/packBuild"
 import { REPO_ROOT } from "$/cli/findCheckout"
+import { ComponentPack, PACK_FOLDER } from "$/ui/tools/ComponentPack"
 
 /**
  * `spell dev pack new <name> [--prefix x-]`:
@@ -31,7 +32,7 @@ export async function newPack(root: string, name: string, options: NewPackOption
   }
   if (CORE_PACKAGES.includes(name)) throw new CliError(`pack new:  '${name}' is one of the repo's own packages`)
   const dir = join(root, "packages", name)
-  const existing = packPrefix(dir)
+  const existing = ComponentPack.prefixOf(dir)
   const prefix = options.prefix ?? existing ?? `${name}-`
   if (!TAG_PREFIX.test(prefix) || prefix === "ui-") {
     throw new CliError(`pack new:  '${prefix}' isn't a tag prefix:  lowercase, ending in '-', never 'ui-', e.g. epic-`)

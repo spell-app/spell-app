@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { dirname, join, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { readJSON5File } from "$/util/node/json5"
@@ -31,8 +31,13 @@ import {
  * - NOT `components/bundle.js` / `bundle.css`:  the design bundle's build (P8) writes those into the same folder,
  *   and `write()` leaves them there.
  * - Sources:  `docs/__data/components.json5` (`yarn site:data`:  every vocabulary), the element examples, the theme
- *   sheets, and the brand book's "CONTENT FUNDAMENTALS" (`brand/spell-design-system/readme.md`, shared).
- * - Plus the brand's `<brand-*>` cards, a "Brand" group (`DesignBrand`, epic `claude-design` P11):  read as data.
+ *   sheets, and the brand book's "CONTENT FUNDAMENTALS" (`brandBook`:  Claude Design's export,
+ *   `brand/spell-design-system/readme.md` in the shared content).
+ * - Plus the brand's `<brand-*>` cards, a "Brand" group (`DesignBrand`, epic `claude-design` P11):  read as data,
+ *   from the brand's folder (`brand`).
+ * - The brand's folder and its book are SETTINGS (`DesignExportOptions`;  `yarn design:build --brand <folder>
+ *   --brand-book <file>`):  Spell UI never names where the brand lives (epic `repo-split` P5).
+ *   Without them the export has no Brand cards and no content rules, and its README says so.
  ****************/
 export class DesignExport {
   /** `packages/ui`, absolute */
@@ -43,8 +48,10 @@ export class DesignExport {
   readonly git: DesignGit
   /** when this export was made:  `lastChange.at`, `meta.synced` */
   readonly now: Date
-  /** cards from outside Spell UI:  the brand's, unless this checkout has none */
+  /** cards from outside Spell UI:  the brand's, when its folder was given */
   readonly sources: readonly DesignSource[]
+  /** the brand book (Claude Design's export), absolute;  `undefined`:  none given */
+  readonly brandBook: string | undefined
   /** Spell UI's site data with the sources' merged in:  every card's facts */
   readonly allData: SiteDataFile
 
@@ -53,14 +60,15 @@ export class DesignExport {
     this.data = options.data ?? readJSON5File<SiteDataFile>(join(this.uiFolder, SITE_DATA, "components.json5"))
     this.git = options.git ?? DesignExport.readGit(this.uiFolder)
     this.now = options.now ?? new Date()
-    this.sources = options.sources ?? DesignExport.defaultSources(this.uiFolder)
+    this.sources = options.sources ?? DesignExport.brandSources(options.brand, this.uiFolder)
+    this.brandBook = options.brandBook
     this.allData = DesignComponents.merge(this.data, this.sources)
   }
 
-  /** The sources a checkout has:  the brand's (`DesignBrand`), when its site data is there. */
-  static defaultSources(uiFolder: string): DesignSource[] {
-    const brand = DesignBrand.read(join(uiFolder, "../.."))
-    return brand ? [brand] : []
+  /** The brand's card source (`DesignBrand`), when its folder `brand` is given and has its site data. */
+  static brandSources(brand: string | undefined, uiFolder: string): DesignSource[] {
+    const source = brand === undefined ? undefined : DesignBrand.read(brand, uiFolder)
+    return source ? [source] : []
   }
 
   /** Every file of the export, in memory, with what went in and what was left out. */
@@ -148,11 +156,11 @@ export class DesignExport {
 
   /**
    * The brand book's "CONTENT FUNDAMENTALS" section, as written there (voice, casing, headlines, ledes ...).
-   * - Empty when that file isn't in this checkout.
+   * - Empty when no brand book was given (`brandBook`), or it isn't there.
    */
   private contentFundamentals(): string[] {
-    const file = join(this.uiFolder, "../..", BRAND_BOOK)
-    if (!existsSync(file)) return []
+    const file = this.brandBook
+    if (file === undefined || !existsSync(file)) return []
     const text = readFileSync(file, "utf8")
     const match = /^## CONTENT FUNDAMENTALS\s*\n([\s\S]*?)(?=^---\s*$|^## )/m.exec(text)
     if (!match) return []
@@ -165,9 +173,11 @@ export class DesignExport {
     lines.push(
       `- Made by \`yarn design:build\` (packages/ui) from ${tokens.meta.repo}@${this.git.sha}:  the vocabularies ` +
         "(`docs/__data/components.json5`), the element examples and the `spell-brand` theme's sheets" +
-        (this.sources.length
-          ? ";  the Brand cards from the brand's (`packages/brand/docs/__data/components.json5`, its docs pages' examples)"
-          : "") +
+        this.sources
+          .map(
+            (source) => `;  the ${source.group} cards from ${source.docsPaths.map((path) => `\`${path}\``).join(", ")}`
+          )
+          .join("") +
         ".  Edits made here are overwritten by the next build."
     )
     lines.push(
@@ -181,6 +191,8 @@ export class DesignExport {
     lines.push("- Emoji names (`<ui-emoji>`):  their data loads lazily, which a design frame blocks.")
     if (!this.sources.length)
       lines.push("- The brand's own elements (`<brand-*>`):  not in this build (no brand data).")
+    if (!this.contentFundamentals().length)
+      lines.push("- The brand's content rules (voice, casing, headlines):  not in this build (no brand book).")
     if (skipped.length) {
       lines.push(`- Tokens left out (${skipped.length}):`)
       for (const entry of skipped) lines.push(`  - \`${entry.name}\` (${entry.family}):  ${entry.reason}`)
@@ -214,8 +226,8 @@ export class DesignExport {
         docs: [
           `${SITE_DATA}/components.json5`,
           "components/*/examples/elements/*.html",
-          `../../${BRAND_BOOK}`,
-          ...(this.sources.length ? ["../brand/docs/__data/components.json5", "../brand/docs/brand-*.html"] : [])
+          ...(this.brandBook === undefined ? [] : [relative(this.uiFolder, this.brandBook)]),
+          ...this.sources.flatMap((source) => source.docsPaths)
         ]
       },
       components: Object.fromEntries(
@@ -344,8 +356,13 @@ export type DesignExportOptions = {
   git?: DesignGit
   /** default:  now */
   now?: Date
-  /** cards from outside Spell UI;  default:  the brand's (`DesignBrand.read()`), when there */
+  /** cards from outside Spell UI;  default:  the brand's (`DesignBrand.read()`), when `brand` is given */
   sources?: DesignSource[]
+  /** the brand's package folder, absolute:  its `<brand-*>` cards;  default none */
+  brand?: string
+  /** the brand book (Claude Design's export, `brand/spell-design-system/readme.md` in the shared content), absolute;
+   * default none */
+  brandBook?: string
 }
 
 /** The commit an export came from, and who made it. */
@@ -360,9 +377,6 @@ export type DesignGit = {
 
 /** `packages/ui`, absolute. */
 const UI_FOLDER = fileURLToPath(new URL("../", import.meta.url))
-
-/** The brand book (Claude Design's export), repo-relative:  SHARED, the root's `brand/` link (epic `claude-design`, P11). */
-const BRAND_BOOK = "brand/spell-design-system/readme.md"
 
 /** The design system's title on claude.ai (Owen, 2026-10-05). */
 const SYSTEM_TITLE = "Spell"

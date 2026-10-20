@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "Fomantic UI's vocabulary as modern-CSS web components, on Solid 2",
   "license": "MIT",
+  "bin": {
+    "spell-ui-pack": "./bin/spell-ui-pack.mjs"
+  },
   "files": [
     "dist",
     "/CHANGELOG.md"

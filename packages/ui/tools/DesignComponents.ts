@@ -12,7 +12,7 @@ import type { DesignExample, DesignFamily, DesignSource } from "./tools.types.ts
  * - All from the site data (`components.json5`:  every vocabulary) and the families' element examples
  *   (`components/<folder>/examples/elements/*.html`), so nothing about a tag is guessed.
  * - Card groups:  a small fixed set (`GROUPS`), picked from each main tag's topics, in its own topic order.
- * - `sources`:  cards from outside Spell UI (the brand's `<ui-brand-*>`, `DesignBrand`):  their site data merged into
+ * - `sources`:  cards from outside Spell UI (the brand's `<brand-*>`, `DesignBrand`):  their site data merged into
  *   `data`, every family of one in that source's group (after `GROUPS`), its examples and styles from the source.
  ****************/
 export class DesignComponents {

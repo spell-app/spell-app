@@ -1,6 +1,7 @@
 /**
  * Types shared by the package tooling (`tools/`):  the package config, the measurement / smoke / LOC result
- * shapes, the site's two folders, the static pages' and the design export's shapes, and `IconPackError`.
+ * shapes, the site's two folders, the static pages' and the design export's shapes, the component packs' reports,
+ * and the error classes (`IconPackError`, `ComponentPackError` ...).
  * - At the BOTTOM of the tools' import graph:  `import type` only, so every tool (and `packages/cli`, through
  *   `$/ui/tools/tools.types`) imports it without loading another.
  * - Every `tools/results/*-results.json` has one of these shapes;  `ReportTables` reads them.
@@ -444,6 +445,31 @@ export type IconPackErrorCause = {
 }
 
 ////////////////
+// ## Component packs (`ComponentPack`, `spell-ui-pack`)
+////////////////
+
+/**
+ * What `ComponentPack.build()` wrote.
+ * - `files`:  absolute paths:  the pack's generated files, then its set's docs data folder when it has one
+ * - `tags`:  every tag of the pack, sorted;  `hash`:  its sources' (`ComponentPack.hash()`)
+ */
+export type ComponentPackBuild = { pack: string; files: string[]; tags: string[]; hash: string }
+
+/** What `ComponentPack.check()` found:  each generated file that isn't current;  none means current. */
+export type ComponentPackCheck = { pack: string; hash: string; stale: ComponentPackStale[] }
+
+/** One stale generated file:  its absolute path, and why, e.g. `built from older sources`. */
+export type ComponentPackStale = { file: string; reason: string }
+
+/**
+ * Thrown by `ComponentPack` when a pack can't be read or built:  a folder that isn't a pack, a tag without the pack's
+ * prefix, an import the page can't share, or a docs data builder that failed.
+ * - `spell-ui-pack` prints its message and exits 1;  `spell dev pack` turns it into its own error.
+ */
+export class ComponentPackError extends Error {}
+ComponentPackError.prototype.name = "ComponentPackError"
+
+////////////////
 // ## Static pages (`StaticDocument`, `spell static`)
 ////////////////
 
@@ -669,7 +695,7 @@ export type DesignExample = {
 }
 
 /**
- * Cards from outside Spell UI's own families:  the brand's `<ui-brand-*>` elements (epic `claude-design`, P11,
+ * Cards from outside Spell UI's own families:  the brand's `<brand-*>` elements (epic `claude-design`, P11,
  * `DesignBrand`).  Read as DATA (site data, docs pages, a sheet):  `ui` imports no code of theirs.
  */
 export type DesignSource = {
@@ -679,6 +705,8 @@ export type DesignSource = {
   data: SiteDataFile
   /** where its family folders are, relative to `packages/ui` (for `tokens.json`'s `meta`), e.g. `../brand/components` */
   componentsPath: string
+  /** the files its cards are read from, relative to `packages/ui` (for the same), e.g. `../brand/docs/brand-*.html` */
+  docsPaths: string[]
   /** what the README says about the group, under its heading */
   intro: string
   /** a family folder's example sections, in page order */

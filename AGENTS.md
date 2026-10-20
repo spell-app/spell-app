@@ -93,8 +93,9 @@ More on some of them:
       checkout's `spell-epic` link (below)
     - App UI:  [app's docs/](packages/app/docs/), at `/components/app/`
     - Brand UI:  [brand's docs/](packages/brand/docs/), at `/components/brand/`
-  - A set that's a component PACK (epics, brand) is built by `spell dev pack build`:  the epics' in spell-epic
-    (its `yarn pack:build`).
+  - A set that's a component PACK (epics, brand) is built by Spell UI's own pack tooling, `spell-ui-pack build`
+    ([ComponentPack.ts](packages/ui/tools/ComponentPack.ts), epic `repo-split` P5):  each pack's `yarn pack:build`,
+    the epics' in spell-epic.  `spell dev pack build <pack>` calls the same tool.
     - It writes the pack, `components/__pack/`, and the set's `docs/__data/` too.
   - The top bar's Spell/UI, Epic/UI and App/UI tabs;  the brand's set lights the Brand tab.
   - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found" (Q30).

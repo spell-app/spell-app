@@ -92,9 +92,11 @@ describe("CLI.newPack()", () => {
       name: "@spell-app/epics",
       spellPack: { prefix: "epic-" },
       scripts: {
-        "pack:build": "node ../cli/bin/spell.mjs dev pack build epics",
-        "pack:check": "node ../cli/bin/spell.mjs dev pack check epics"
-      }
+        "pack:build": "spell-ui-pack build",
+        "pack:check": "spell-ui-pack check"
+      },
+      // Spell UI's pack tooling is its `spell-ui-pack` (epic `repo-split` P5)
+      devDependencies: { "@spell-app/ui": "workspace:*" }
     })
     expect(pack.devDependencies["solid-js"]).toBe(JSON.parse(read("package.json")).resolutions["solid-js"])
     expect(read("packages/epics/vitest.config.ts")).toContain("export function epicsProjects(")
@@ -189,7 +191,7 @@ describe("CLI.newPack()", () => {
     expect(report.updated[0]).toMatch(/^packages\/epics\/package\.json \(version, .*scripts\.pack:build.*spellPack\)$/)
     const pack = JSON.parse(read("packages/epics/package.json"))
     expect(pack.scripts.ts).toBe("mine")
-    expect(pack.scripts["pack:check"]).toBe("node ../cli/bin/spell.mjs dev pack check epics")
+    expect(pack.scripts["pack:check"]).toBe("spell-ui-pack check")
     expect(pack.spellPack).toEqual({ prefix: "epic-" })
   })
 

@@ -49,13 +49,11 @@ export type AgentRulesReport = { sections: number; rules: number; files: number;
 ////////////////
 
 /**
- * A component pack:  a package `packages/<name>/` whose `package.json` has a `spellPack` (`readPack()`).
+ * The component pack `spell dev pack new` / `element` writes into:  `packages/<name>/`, which may not be a pack yet.
  * - `prefix`:  every tag's, e.g. `epic-`;  `dir`:  the package, absolute:  the folder of its `components/`
- * - a pack that's a whole checkout (spell-epic, epic `epic-eject` J14), absolute too:
- *   - `src`:  the folder `$/<name>` names (else `<dir>/src`)
- *   - `manifest`:  the folder of its `package.json` (else `dir`)
+ * - A pack that's there is Spell UI's `ComponentPack` (`readPack()`), which has these too.
  */
-export type PackInfo = { name: string; prefix: string; dir: string; src?: string; manifest?: string }
+export type PackInfo = { name: string; prefix: string; dir: string }
 
 /**
  * What `spell dev pack new` / `element` did, paths relative to the checkout.

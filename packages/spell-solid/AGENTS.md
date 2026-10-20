@@ -121,7 +121,7 @@ As WWOD §4, plus:
     - the docs bundle, the site bundles
     - the app's `spell-solid.js`
   - A component pack leaves `$/spell-solid` external, as it leaves Solid and `$/ui/core`.
-    - The list:  `PACK_MODULES`, in [the pack build](../cli/src/dev/packBuild.ts).
+    - The list:  `PACK_MODULES`, in [Spell UI's pack tooling](../ui/tools/ComponentPack.ts).
     - It reads it from the page:
       `SpellUI.packModules["$/spell-solid"]` is Spell UI's core module, which carries all of it.
   - The app's element bundles likewise take it from `spell-solid-shared.js`

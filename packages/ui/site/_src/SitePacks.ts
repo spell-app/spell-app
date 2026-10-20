@@ -11,7 +11,7 @@
  * - `import * as` the Solid packages, against "One Solid per page" in `packages/ui/AGENTS.md`, on purpose and ONLY
  *   here and in the docs bundle.
  * - SIDE EFFECT:  sets `globalThis.SpellUI`;  listed in `package.json`'s `sideEffects`, or the bundler drops it.
- * - `packModules` MUST name the pack build's externals (`PACK_MODULES` in `packages/cli/src/dev/packBuild.ts`).
+ * - `packModules` MUST name the pack build's externals (`PACK_MODULES` in `tools/ComponentPack.ts`).
  *   - Also `@solidjs/h` and `ui-root`, as the docs bundle's:  the app's element bundles (`/element/spell.pack.js`,
  *     App UI's live `<spell-app>`) take the page's Solid only when ALL their shared modules are here
  *     (`spell-solid-shared.js`, app's `vite.solid.config.ts`), else they'd load a second one.

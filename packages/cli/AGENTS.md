@@ -109,6 +109,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`.
     - That's [packCommand.ts](src/commands/packCommand.ts),
       on [packNew.ts](src/dev/packNew.ts) / [packBuild.ts](src/dev/packBuild.ts), which import no barrel.
+    - `build` and `check` are Spell UI's own pack tooling (`$/ui/tools/ComponentPack`, epic `repo-split` P5),
+      which spell-epic and the brand run without this CLI (`spell-ui-pack`).
+      [packBuild.ts](src/dev/packBuild.ts) only finds the pack by name in the checkout, and turns its errors into ours.
 - [templates/](templates/):  files commands write from, `*.template` with `__token__`s.
   - [pack/](templates/pack/):  for `spell dev pack new` / `element`.
   - Change a template, and every pack made after gets it;  existing packs keep their files.

@@ -1822,6 +1822,7 @@ __metadata:
   resolution: "@spell-app/brand@workspace:packages/brand"
   dependencies:
     "@solidjs/web": "npm:2.0.0-rc.13"
+    "@spell-app/ui": "workspace:*"
     "@types/node": "npm:^22.20.4"
     solid-js: "npm:2.0.0-rc.13"
     tsx: "npm:^4.23.15"
@@ -2083,6 +2084,8 @@ __metadata:
   peerDependencies:
     "@solidjs/web": 2.0.0-rc.13
     solid-js: 2.0.0-rc.13
+  bin:
+    spell-ui-pack: ./bin/spell-ui-pack.mjs
   languageName: unknown
   linkType: soft
 

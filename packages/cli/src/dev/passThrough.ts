@@ -70,10 +70,15 @@ export function runTool(name: ToolName, args: string[], env: NodeJS.ProcessEnv =
 /**
  * What an engine tool run through checkout `root`'s `spell-epic` link needs to work on THAT checkout, as `epic` tells
  * its tools:  `EPIC_CHECKOUT`, its data;  `SPELL_UI_DIR`, its Spell UI (the design bundle's, not spell-epic's own
- * `.spell-app`'s).
+ * `.spell-app`'s);  `SPELL_BRAND_DIR`, its brand (the design bundle's `<brand-*>` elements:  read once spell-epic
+ * stops finding the brand beside Spell UI, epic `repo-split` P5).
  */
 export function engineEnv(root: string): NodeJS.ProcessEnv {
-  return { EPIC_CHECKOUT: root, SPELL_UI_DIR: join(root, "packages", "ui") }
+  return {
+    EPIC_CHECKOUT: root,
+    SPELL_UI_DIR: join(root, "packages", "ui"),
+    SPELL_BRAND_DIR: join(root, "packages", "brand")
+  }
 }
 
 /**

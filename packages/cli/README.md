@@ -238,8 +238,9 @@ Longer notes on some of them follow the table.
   - Another file in conflict stops it mid-merge:  resolve, `git add`, then `--continue`.
   - Lists snapshot entries neither side had, to review.
   - `--json`.
-- `dev pack`:  what each pack's own build and check scripts run.
-  - That's `yarn pack:build` and `yarn pack:check`, in the pack.
+- `dev pack`:  component packs, found by name in the checkout.
+  - `build` and `check` run Spell UI's own pack tooling ([`ComponentPack.ts`](../ui/tools/ComponentPack.ts)):
+    the same as each pack's `yarn pack:build` and `yarn pack:check` (`spell-ui-pack build | check`), there.
   - `new <name> [--prefix x-]`:  makes `packages/<name>/` from the package templates, and wires it into the checkout.
     - Only the files it lacks;  `package.json` is merged.
     - The templates:  [the package templates](templates/pack/package/).
@@ -477,7 +478,9 @@ Longer notes on some of them follow the table.
   - A file named `gitignore.template` becomes `.gitignore`.
   - How they're filled, and how to add one:  [the templates README](templates/README.md).
 - A pack is a package whose `package.json` has `"spellPack": { "prefix": "epic-" }`.
-- The build runs Vite in-process (`configFile: false`), on the checkout's Spell UI `baseConfig()`.
+- `build` and `check` are Spell UI's own pack tooling, `ComponentPack` (`packages/ui/tools/ComponentPack.ts`, epic
+  `repo-split` P5):  spell-epic and the brand run it as `spell-ui-pack`, without this CLI.
+- The build runs Vite in-process (`configFile: false`), on Spell UI's `baseConfig()`.
   - Only Solid and Spell UI's core and forms stay external (`PACK_MODULES`):
 
     ```

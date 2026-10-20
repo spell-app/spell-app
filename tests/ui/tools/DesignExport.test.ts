@@ -1,3 +1,5 @@
+import { mkdtempSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
@@ -32,6 +34,8 @@ let tokens: DesignTokensFile
 beforeAll(() => {
   const exporter = new DesignExport({
     data: DATA,
+    // the brand's folder is the caller's to give (epic `repo-split` P5):  `spell dev design build` gives spell-app's
+    brand: BRAND,
     git: { branch: "main", sha: "abc1234", user: "Test" },
     now: new Date(0)
   })
@@ -209,6 +213,41 @@ describe("DesignExport.build() brand cards", () => {
     const logo = files.get("components/BrandLogo/preview.html")!
     expect(logo).toContain("<brand-logo")
     expect(files.get("README.md")).toContain("### Brand")
+    expect(tokens.meta.paths).toMatchObject({
+      docs: expect.arrayContaining(["../brand/docs/__data/components.json5", "../brand/docs/brand-*.html"])
+    })
+  })
+
+  // epic `repo-split` P5:  Spell UI never names where the brand lives;  the caller gives it, or there's none
+  it("without the brand's folder or book:  no Brand cards, no content rules, and the README says so", () => {
+    const plain = new DesignExport({
+      data: DATA,
+      git: { branch: "main", sha: "abc1234", user: "Test" },
+      now: new Date(0)
+    })
+    const built = plain.build()
+    expect(built.families.some((family) => family.group === "Brand")).toBe(false)
+    const readme = built.files.find((file) => file.path === "README.md")!.text
+    expect(readme).toContain("The brand's own elements (`<brand-*>`):  not in this build (no brand data).")
+    expect(readme).toContain("not in this build (no brand book)")
+    expect(readme).not.toContain("## Content fundamentals")
+  })
+
+  it("a brand book given:  its CONTENT FUNDAMENTALS in the README", () => {
+    const book = join(mkdtempSync(join(tmpdir(), "brand-book-")), "readme.md")
+    writeFileSync(book, "# Brand\n\n## CONTENT FUNDAMENTALS\n\nSentence case.\n\n## VISUAL\n\nnot this\n")
+    const readme = new DesignExport({
+      data: DATA,
+      git: { branch: "main", sha: "abc1234", user: "Test" },
+      now: new Date(0),
+      sources: [],
+      brandBook: book
+    })
+      .build()
+      .files.find((file) => file.path === "README.md")!.text
+    expect(readme).toContain("## Content fundamentals\n\nSentence case.\n")
+    expect(readme).not.toContain("not this")
+    expect(readme).not.toContain("(no brand book)")
   })
 })
 

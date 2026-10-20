@@ -39,6 +39,10 @@ beforeAll(async () => {
   await CLI.newElement(ROOT, "demo", "demo-card", { build: false })
 })
 
+/**
+ * `spell dev pack build` / `check`, through the CLI:  Spell UI's pack tooling (`ComponentPack`, its own tests in
+ * `tests/ui/tools/`) on a pack found by name in a checkout, its paths relative to the checkout.
+ */
 describe("CLI.buildPack() / CLI.checkPack()", () => {
   test("an unbuilt pack is STALE:  every generated file missing", async () => {
     expect((await CLI.checkPack(ROOT, "demo")).stale).toEqual([
@@ -125,77 +129,21 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
     expect(spell("build", "demo").out).toContain("every tag must start 'demo-', but these don't:  x-card")
     writeFileSync(vocabulary, words)
   }, 60_000)
-
-  // The hash follows the elements' imports:  `src/` may hold node-only code (a tool, its tests) the script never bundles
-
-  test("a file under `src/` the elements don't import never makes the pack stale", () => {
-    const hash = CLI.packHash(CLI.readPack(ROOT, "demo"))
-    mkdirSync(join(PACK, "src", "tool"), { recursive: true })
-    writeFileSync(join(PACK, "src", "tool", "Tool.ts"), `export const TOOL = 1\n`)
-    expect(CLI.packHash(CLI.readPack(ROOT, "demo"))).toBe(hash)
-    writeFileSync(join(PACK, "src", "tool", "Tool.ts"), `export const TOOL = 2\n`)
-    expect(CLI.packHash(CLI.readPack(ROOT, "demo"))).toBe(hash)
-  })
-
-  test("a file under `src/` the elements DO import, directly or through another, or as `?inline` CSS, does", () => {
-    const pack = CLI.readPack(ROOT, "demo")
-    mkdirSync(join(PACK, "src", "shared"), { recursive: true })
-    writeFileSync(join(PACK, "src", "shared", "index.ts"), `export * from "./words"\n`)
-    writeFileSync(join(PACK, "src", "shared", "words.ts"), `export const WORDS = 1\n`)
-    writeFileSync(join(PACK, "src", "shared", "look.css"), `:host { color: red }\n`)
-    const element = join(CARD, "DemoCard.tsx")
-    const source = readFileSync(element, "utf8")
-    writeFileSync(
-      element,
-      `import { WORDS } from "$/demo/shared"\nimport look from "../../src/shared/look.css?inline"\n${source}`
-    )
-    const hashes = [CLI.packHash(pack)]
-    writeFileSync(join(PACK, "src", "shared", "index.ts"), `export * from "./words"\nexport const MORE = 1\n`)
-    hashes.push(CLI.packHash(pack))
-    writeFileSync(join(PACK, "src", "shared", "words.ts"), `export const WORDS = 2\n`)
-    hashes.push(CLI.packHash(pack))
-    writeFileSync(join(PACK, "src", "shared", "look.css"), `:host { color: blue }\n`)
-    hashes.push(CLI.packHash(pack))
-    expect(new Set(hashes).size).toBe(4)
-    expect(CLI.packSources(pack).map((file) => file.slice(PACK.length + 1))).toEqual([
-      "components/demo-card/DemoCard.css",
-      "components/demo-card/DemoCard.en.ts",
-      "components/demo-card/DemoCard.tsx",
-      "components/demo-card/index.ts",
-      "components/index.ts",
-      "src/shared/index.ts",
-      "src/shared/look.css",
-      "src/shared/words.ts"
-    ])
-    writeFileSync(element, source)
-  })
 })
 
 // epic `epic-eject` J14:  spell-epic is one package, its pack in `src/`, `$/epics` that folder itself
 describe("a pack at a checkout's root", () => {
-  test("its root `package.json` names it:  `components/` and `$/<name>` in its `dir`, its scripts at the root", () => {
+  test("found by the name its root `package.json` gives it:  Spell UI's pack, `components/` and `$/<name>` in its `dir`", () => {
     const repo = realpathSync(mkdtempSync(join(tmpdir(), "pack-root-")))
     const src = join(repo, "src")
     writeFileSync(
       join(repo, "package.json"),
       JSON.stringify({ spellPack: { name: "flat", prefix: "flat-", dir: "src" }, scripts: {} })
     )
-    mkdirSync(join(src, "components", "flat-card"), { recursive: true })
-    mkdirSync(join(src, "shared"))
-    writeFileSync(join(src, "components", "index.ts"), `export * from "./flat-card"\n`)
-    writeFileSync(join(src, "components", "flat-card", "index.ts"), `import { WORDS } from "$/flat/shared"\n`)
-    writeFileSync(join(src, "shared", "index.ts"), `export const WORDS = 1\n`)
-    writeFileSync(join(src, "unused.ts"), `export const NODE_ONLY = 1\n`)
     try {
-      const pack = CLI.readPack(repo, "flat")
-      expect(pack).toEqual({ name: "flat", prefix: "flat-", dir: src, src, manifest: repo })
+      expect(CLI.readPack(repo, "flat")).toMatchObject({ name: "flat", prefix: "flat-", dir: src, src, folder: repo })
       expect(CLI.packNames(repo)).toEqual(["flat"])
-      expect(CLI.packSources(pack).map((file) => file.slice(src.length + 1))).toEqual([
-        "components/flat-card/index.ts",
-        "components/index.ts",
-        "shared/index.ts"
-      ])
-      expect(() => CLI.readPack(repo, "other")).toThrow(/isn't a component pack/)
+      expect(() => CLI.readPack(repo, "other")).toThrow(/isn't a component pack;  make one with `spell dev pack new/)
     } finally {
       rmSync(repo, { recursive: true, force: true })
     }

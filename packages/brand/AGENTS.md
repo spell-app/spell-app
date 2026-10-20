@@ -21,7 +21,9 @@ when working with code in this package, `@spell-app/brand`.
   - A page loads them through `<ui-root>`, as it loads the epics pack's ([ui's AGENTS.md](../ui/AGENTS.md), "Component packs").
   - They were `<ui-brand-*>`, Spell UI's prefix, before P18.
   - Made one by `spell dev pack new brand --prefix brand-`.
-    The pack's tooling is the CLI's (`spell dev pack`).
+  - Its build and check are Spell UI's own pack tooling (epic `repo-split` P5):  `spell-ui-pack`,
+    [ComponentPack.ts](../ui/tools/ComponentPack.ts), which the brand uses as any pack does.
+    - A bin of `@spell-app/ui`, a dev dependency here:  the brand reaches Spell UI's tool, never spell-app's CLI.
 - Two halves (epic `claude-design`, P11, 2026-10-05):
   - The Brand tab's PAGES are shared, in the repo root's `brand/`.
     - It's a link into spell-app-dev, the same in every checkout (the root's `AGENTS.md`, "Shared content").
@@ -162,9 +164,10 @@ when working with code in this package, `@spell-app/brand`.
   - The page server rebuilds it when it starts, if any of these changed:
     `components/`, `src/`, or the Spell UI source it reads.
   - While the page server runs, rerun it by hand (or restart the page server).
-- `yarn pack:build` ~== `spell dev pack build brand`:  the pack, `components/__pack/`.
+- `yarn pack:build` ~== `spell-ui-pack build` ~== `spell dev pack build brand`:  the pack, `components/__pack/`.
   - then `yarn site:data`
-  - `yarn pack:check` ~== `spell dev pack check brand`:  exits 1 while the pack or the docs data is stale.
+  - `yarn pack:check` ~== `spell-ui-pack check` ~== `spell dev pack check brand`:  exits 1 while the pack or the docs
+    data is stale.
   - [The pack's test](../../tests/brand/src/pack.test.ts) runs the check, so `yarn test` fails on a stale pack.
 - `yarn site:data [--check]`:  the docs set's data, `docs/__data/` (see "Overview").
   - It's Spell UI's `SiteDataBuilder`, reading `components/`, made the set's:
@@ -211,6 +214,8 @@ when working with code in this package, `@spell-app/brand`.
     - The brand's are `--brand-*` since P18 (people-and-orgs issue, at P18).
 - The claude.ai design system shows each family as a card in its "Brand" group
   ([DesignBrand.ts](../ui/tools/DesignBrand.ts), epic `claude-design` P11).
+  - Spell UI reads this folder only where it's GIVEN it:  `yarn design:build --brand <folder>`, which
+    `spell dev design build` passes (epic `repo-split` P5).
   - its API:  from `components.json5` in `docs/__data/`
   - its examples:  from its docs page's Examples tab
     - each `<ui-docs-example>`, titled by its section, with the page's own styles
@@ -272,7 +277,8 @@ As the root's, plus these reaches into `ui` past its barrel, each because the ba
 - `$/ui/test/...`, in tests
 - NEVER the other way:  `ui` imports nothing of `brand`.
   - Its design export (`DesignBrand`) READS the docs set's `components.json5` and its pages, as data.
-- The pack's script may import only what a page shares (`PACK_MODULES` in the CLI's pack build):
+- The pack's script may import only what a page shares (`PACK_MODULES` in Spell UI's
+  [pack tooling](../ui/tools/ComponentPack.ts)):
   - `$/spell-solid`, `$/ui/core`, `$/ui/forms`, Solid
   - `$/brand` (`src/`) is bundled into it
 

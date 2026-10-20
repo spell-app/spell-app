@@ -7,7 +7,7 @@ import type { ComponentVocabulary } from "$/spell-solid/vocabulary.types"
 /****************
  * ### `VocabularyFiles`
  * Every English vocabulary of a folder of families (`components/`, `src/docs-components/`), read from its
- * `<Name>.en.ts` files in node:  what `RootCatalog` (`yarn gen:root`, `spell dev pack build`) and `yarn site:data`
+ * `<Name>.en.ts` files in node:  what `RootCatalog` (`yarn gen:root`, `ComponentPack`) and `yarn site:data`
  * (`SiteDataBuilder`) read.
  * - A vocabulary file is named for its component and its LANGUAGE:  `UIButton.en.ts`, a translation
  *   `UIButton.es.ts`.  `languageOf()` is the one rule for that name;  `yarn measure`'s buckets use it too.

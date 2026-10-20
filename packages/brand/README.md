@@ -23,7 +23,7 @@ The page must load Spell UI's [docs bundle](../epics/tools/_assets/spell-ui.js),
 
 If you find yourself writing a second copy of any of these, stop and reuse.
 
-- the pack's build, catalog and staleness check:  the CLI's, `spell dev pack` ([packBuild.ts](../cli/src/dev/packBuild.ts))
+- the pack's build, catalog and staleness check:  Spell UI's, `spell-ui-pack` ([ComponentPack.ts](../ui/tools/ComponentPack.ts))
 - reading a vocabulary's tag and skeleton:  Spell UI's [`RootCatalog`](../ui/tools/RootCatalog.ts)
 - the docs data, in [site-data.ts](scripts/site-data.ts):  Spell UI's builders
   - `SiteDataBuilder`, `SiteSearchBuilder`, `ElementManifests`
