@@ -2,6 +2,7 @@ import { proto } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { SpellStatement, type SpellStatementProps } from "$/spell/rules/Statement"
+import { Priority } from "$/spell/rules/rules.types"
 import { MethodDefinition } from "./MethodDefinition"
 import type { MethodRuleDeclared } from "./methods.shared"
 
@@ -108,6 +109,9 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
    * - Unknown always fits, so untyped code parses as it did.
    * - Its receiver left out (`onThis()`):  only inside our type's own methods,
    *   or anywhere on a one-of-a-kind app's one instance (`theOnlyOne()`).
+   * - A call that's all words, no arguments, is `specific`:  the project's own phrase beats a built-in reading of
+   *   the same words (Owen, epic page `outline-spell`):  `draw its placeholder` is the pile's `drawItsPlaceholder()`,
+   *   not drawing a property `placeholder`.  One with arguments isn't:  `draw the card` stays `draw_thing`'s.
    */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -120,6 +124,8 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
     }
     const thisDatatype = this.onThis(match) ? this.thisType : match.groups.thisArg?.datatype
     match.data.method = MethodDefinition.findMethod(scope, this.methodName, thisDatatype)
+    const { thisArg, callArgs, props } = match.groups
+    if (!thisArg && !callArgs?.length && !props) match.priority = Priority.specific
     return match
   }
 

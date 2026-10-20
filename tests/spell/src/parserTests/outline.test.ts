@@ -253,6 +253,19 @@ describe("outline style", () => {
     expect(run("back, heart, ace, next, none")).toEqual({ back: "🂠", heart: "♥", ace: "🂡", next: "🂢", none: "" })
   })
 
+  test("a call that's all words beats a built-in reading:  `{draw its placeholder}` is the pile's own method", () => {
+    const compiled = compile([
+      "a card is a thing",
+      "a pile is a drawable list of cards where:",
+      "\t- to draw its placeholder:",
+      "\t\treturn <ui-button basic/>",
+      "\t- to draw it:",
+      "\t\treturn <div>{draw its placeholder}</div>"
+    ])
+    expect(compiled).toContain("this.drawItsPlaceholder()")
+    expect(compiled).not.toContain("this.placeholder")
+  })
+
   describe("names of several words (P26)", () => {
     test("a variable:  declared by `set start pile to ...`, read by its words, the same as `start-pile`", () => {
       const run = runSpell([

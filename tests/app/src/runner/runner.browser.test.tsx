@@ -322,6 +322,23 @@ describe("compiled spell draws with Solid", () => {
     expect(cardsIn(host)[1]).toBe(jokerNode)
   })
 
+  test("an empty list draws its placeholder;  a card in, it goes, and the card keeps its node", async () => {
+    const program = CARDS.replace(
+      "export class Pile extends List {}",
+      'export class Pile extends List {\n  drawItsPlaceholder() { return h("div", { class: "card placeholder" }) }\n}'
+    ).replace("game.pile.add(ace, king, joker)", "")
+    const host = await mount(source(program, "Game"))
+    await waitFor(() => cardsIn(host).length === 1)
+    expect(cardsIn(host)[0]!.classList.contains("placeholder")).toBe(true)
+    const { game, Card } = (globalThis as unknown as { cardGame: CardGame }).cardGame
+    game.pile.add(new Card({ rank: "Q" }))
+    await waitFor(() => cardsIn(host).length === 1 && !cardsIn(host)[0]!.classList.contains("placeholder"))
+    const queenNode = cardsIn(host)[0]
+    game.pile.add(new Card({ rank: "K" }))
+    await waitFor(() => cardsIn(host).length === 2)
+    expect(cardsIn(host)[0]).toBe(queenNode)
+  })
+
   test("a thing that can't draw shows a stand-in, says so once, and sends `ui-error`;  the rest draws", async () => {
     const errors: unknown[] = []
     const onError = (event: Event) => errors.push((event as CustomEvent<{ error: unknown }>).detail.error)

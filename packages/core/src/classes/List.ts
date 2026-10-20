@@ -139,13 +139,25 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * `list.draw()` draws its items, each in its own error boundary.
+   * `list.draw()` draws its items, each in its own error boundary -- or, while it's empty, its placeholder.
    * - Override in a subclass to draw a wrapper element, etc.,
    *   and use `draw items of {list}` or `draw each of {list}` to draw the items inside it.
+   *   An override draws its own placeholder, if it wants one:  `{draw its placeholder}` in spell.
    * - `draw the deck` calls it through `core.drawThing()` (`drawing.ts`).
    */
   draw(): Drawing {
-    return this.drawItems()
+    // the placeholder in a function of its own:  only it re-runs as the list empties and fills,
+    // so the items keep their nodes (`core.drawItems()` keeps each by identity)
+    return [() => (this.isEmpty ? this.drawItsPlaceholder() : undefined), this.drawItsItems()]
+  }
+
+  /**
+   * What an empty list draws in place of its items -- nothing, unless a subclass says.
+   * - e.g. the outline of a pile's spot:  in spell, `- to draw its placeholder:` in a list type's body.
+   * - `draw()` calls it while the list is empty.
+   */
+  drawItsPlaceholder(): Drawing | undefined {
+    return undefined
   }
 
   /**
@@ -153,7 +165,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * - Compiles from `draw each card in the deck` / `draw cards of the deck` => `core.drawItems(deck)`
    *   -- see `rules/draw/DrawItems.ts`.
    */
-  drawItems(): Drawing {
+  drawItsItems(): Drawing {
     return core.drawItems(this)
   }
 

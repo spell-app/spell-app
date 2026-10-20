@@ -5415,7 +5415,7 @@
           "ruleNames": [],
           "internal": true,
           "file": "packages/spell/src/rules/methods/DynamicMethodRule.ts",
-          "line": 25,
+          "line": 26,
           "purpose": "Rule `constructor` for a plain (non-instance, non-operator) dynamically-defined method's CALL SITE, e.g. matching `notify 1` after `to notify (message): ...` defined it.",
           "syntaxes": [],
           "aliases": []
