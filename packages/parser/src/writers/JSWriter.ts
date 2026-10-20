@@ -1252,13 +1252,15 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * What its class's schema declares about `node`:  its `check`'s keys, plus `init` for its `initializer`.
+   * What its class's schema declares about `node`:  its `check`'s keys, plus `init` for its `initializer`
+   * (and `early` for a thing, `madeEarly()`).
    * - E.g. `{ type: "text" }`, `{ init: () => new List() }`.
    * - `undefined` if nothing:  then it's undeclared.
    */
   declaration(node: P.ASTReactiveProperty): string | undefined {
     const parts = (node.check?.properties ?? []).map((property) => this.write(property))
     if (node.initializer) parts.push(`init: () => ${this.bare(node.initializer)}`)
+    if (this.madeEarly(node)) parts.push("early: true")
     return parts.length ? `{ ${parts.join(", ")} }` : undefined
   }
 

@@ -207,6 +207,35 @@ describe("outline style", () => {
     expect(tableaus.items.length).toBe(1)
   })
 
+  describe("one-of-a-kind apps (P21):  `solitaire is an app where:`", () => {
+    test("the type and its one instance, made after every class, even one declared below", () => {
+      const run = runSpell([
+        "game is an app where:",
+        "\t- its score is a number",
+        '\t- its clubs is a new pile with name = "clubs"',
+        "\t- to add a point:\n\t\tset its score to its score + 1",
+        "a pile is a thing",
+        "\t- to play it:\n\t\tadd a point",
+        "set the score of game to 0",
+        "add a point",
+        "play the clubs of game",
+        "set score to the score of the game",
+        "set clubs to the name of the clubs of game"
+      ])
+      // bare calls anywhere:  at the top, and in another type's method
+      expect(run("score, clubs")).toEqual({ score: 2, clubs: "clubs" })
+    })
+
+    test("compiles to the class, then `export const game = new Game()`;  `a game is an app` makes none", () => {
+      expect(compile(["game is an app"])).toBe("export class Game extends App {}\nexport const game = new Game()")
+      expect(compile(["a game is an app"])).toBe("export class Game extends App {}")
+    })
+
+    test("only an app", () => {
+      expect(() => runSpell(["game is a thing"])).toThrow(/parse errors/)
+    })
+  })
+
   describe("body methods (P20, I15):  a method in a type's body that names no type is the type's", () => {
     test("`- to debug it:` is `to debug a game`;  `- to cheat at it:` keeps the type's name after `at`", () => {
       const sentences = ["a game is an app", "to debug a game:\n\tprint 1", "to cheat at a game:\n\tprint 2"]
@@ -268,6 +297,21 @@ describe("outline style", () => {
       expect(clubs_a).not.toBe(clubs_b)
       expect(clubs_a).toMatchObject({ name: "clubs", symbol: "♣️" })
       expect(t1).toMatchObject({ name: "T1" })
+    })
+
+    test("a thing's is made with it:  `every pile` finds them before anything reads them;  a list's isn't", () => {
+      const lines = [
+        "a game is an app where:",
+        '\t- its clubs is a new pile with name = "clubs"',
+        '\t- its hearts is a new pile with name = "hearts"',
+        "\t- its scores is a new list of numbers",
+        "a pile is a thing"
+      ]
+      const run = runSpell([...lines, "set game to a new game", "set piles to every pile"], { registered: true })
+      const { piles } = run("piles") as { piles: { items: { name: string }[] } }
+      expect(piles.items.map(({ name }) => name)).toEqual(["clubs", "hearts"])
+      expect(compile(lines)).toContain('init: () => new Pile({ name: "clubs" }), early: true')
+      expect(compile(lines)).not.toMatch(/new List\(.*early/)
     })
   })
 

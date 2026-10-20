@@ -79,6 +79,7 @@ def prop(
     default: object = None,
     init: Callable[[], object] | None = None,
     item_type: str | builtins.type | None = None,
+    early: bool = False,
 ) -> "Prop":
     """Declare a property of a thing or a list, in its class body:  `rank = prop(one_of=RANKS)`.
 
@@ -92,13 +93,16 @@ def prop(
       - stored, so `to_json()` writes it
     - `item_type`:  the class a LIST property holds, or its name, e.g. `"Task"` for `as a new list of tasks`.
       - for the saver (epic `people-and-orgs`), which needs each item's kind:  nothing checks it yet
+    - `early`:  `init` makes its value as the thing is made, not on first read (epic `outline-spell` P19).
+      - compiled spell, for a starting value that's a thing:  `init=lambda: Foundation(...), early=True`,
+        so a solitaire's piles exist as soon as it does
     - throws `TypeError` for a list, dict or set `default`:
       every thing would share that one object.  Pass `init=list` instead.
     """
     if isinstance(default, SHARED_DEFAULTS):
         kind = builtins.type(default).__name__
         raise TypeError(f"prop():  a {kind} default would be shared by every instance;  pass init={kind} instead")
-    return Prop(_type_name(type), one_of, default, init, _type_name(item_type))
+    return Prop(_type_name(type), one_of, default, init, _type_name(item_type), early)
 
 
 def _type_name(type: str | builtins.type | None) -> str | None:
@@ -121,6 +125,7 @@ class Prop:
         default: object,
         init: Callable[[], object] | None,
         item_type: str | None = None,
+        early: bool = False,
     ) -> None:
         """A property with what `prop()` was told:  its name comes when its class is made (`__set_name__()`)."""
         # its name in the class body, e.g. `rank`
@@ -135,6 +140,8 @@ class Prop:
         self.init = init
         # the class name of what a list property holds, e.g. `Task`
         self.item_type = item_type
+        # makes its value as the thing is made, not on first read
+        self.early = early
 
     def __set_name__(self, owner: type, name: str) -> None:
         """Python tells us our name as the class is made:  `rank = prop(...)` is `rank`."""
@@ -182,6 +189,16 @@ class Prop:
         return f"prop({', '.join(parts)})"
 
 
+def _early_props(cls: type) -> list[str]:
+    """Names of `cls`'s properties made with the thing (`prop(early=True)`), base classes' first."""
+    names: list[str] = []
+    for klass in reversed(cls.__mro__):
+        for name, value in vars(klass).items():
+            if isinstance(value, Prop) and value.early and name not in names:
+                names.append(name)
+    return names
+
+
 def _declared_parts(declared: Prop) -> list[tuple[str, object]]:
     """What `declared` was told, by `prop()`'s keyword names, for its `repr()`."""
     return [
@@ -190,6 +207,7 @@ def _declared_parts(declared: Prop) -> list[tuple[str, object]]:
         ("default", declared.default),
         ("init", declared.init),
         ("item_type", declared.item_type),
+        ("early", declared.early or None),
     ]
 
 
@@ -278,11 +296,15 @@ class SpellObject:
         """Set `props`, each as `thing.name = value` would, then run `create()`.
 
         - Counted among the program's things, in the order made:  `core.things_made()`.
+        - Its starting values that are things (`prop(early=True)`) are made before `create()`, unless `props` gave them:
+          e.g. a solitaire's piles.
         """
         program_core().note_made(self)
         self._props: dict[str, object] = {}
         for name, value in props.items():
             setattr(self, name, value)
+        for name in _early_props(builtins.type(self)):
+            getattr(self, name)
         self.create()
 
     def __init_subclass__(cls, **kwargs: Any) -> None:

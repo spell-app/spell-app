@@ -3202,6 +3202,32 @@
           "aliases": ["statement"]
         },
         {
+          "className": "CreateOneOfAKind",
+          "ruleNames": ["create_one_of_a_kind"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/CreateOneOfAKind.ts",
+          "line": 20,
+          "purpose": "`solitaire is an app` -- declares an app AND its one instance (epic `outline-spell` P21).",
+          "syntaxes": [
+            {
+              "syntax": "{type:type_words} is (a|an) {superType:type} {with_nested_statements}?",
+              "example": "solitaire is an app",
+              "outputs": {
+                "js": {
+                  "code": "export class Solitaire extends App {}\nexport const solitaire = new Solitaire()"
+                },
+                "ts": {
+                  "code": "export class Solitaire extends App {}\nexport const solitaire = new Solitaire()"
+                },
+                "py": {
+                  "code": "class Solitaire(App):\n    pass\n\nsolitaire = Solitaire()"
+                }
+              }
+            }
+          ],
+          "aliases": ["statement"]
+        },
+        {
           "className": "CreateListType",
           "ruleNames": ["create_list_type"],
           "internal": false,

@@ -940,6 +940,7 @@ A kind that says so is saved in a file of its own.
     - The types come from `SpellParser.declaredTypes()`.
       It scans for lines starting `a card is`, `create a type called hand`.
       - a name of several words too, before `is a` / `is an` or `aka`:  `a stock pile is a pile` (P15)
+      - a one-of-a-kind app, with no article:  `solitaire is an app` (P21)
     - `P.IncrementalProject` and `parseSpellProject()` both do it.
     - An edit which changes WHICH types a file declares re-parses the whole project.
   - `is a <type>` (`is_a`) names a KNOWN type:  built in, imported, declared or stubbed earlier.
@@ -1387,6 +1388,11 @@ A kind that says so is saved in a file of its own.
   - Only a class declared below the file's first running code moves, up above it, keeping its order.
   - Banners, headings' calls and the code under them stay where they are.
   - A patch onto another file's class doesn't count as running code.
+  - A one-of-a-kind app (P21, `create_one_of_a_kind`), `solitaire is an app where:`, IS running code:
+    its line is its class, then `export const solitaire = new Solitaire()`.
+    - So every class declared below it moves above it, and its properties' starting values can make them.
+    - Its variable is of kind `only` (`P.ScopeVariable.kind`):  a call of its body's methods with no receiver
+      works anywhere, on it (`DynamicMethodRule.theOnlyOne()`).
 - A program runs its own tests the first time it loads (P17):  `SpellProject.combineCompiled()`, last,
   calls each `to test ...` method its files declare, `if (!core.isCarryingOver) testCardSetup()`.
   - Never on a hot reload (`core.isCarryingOver`), and not one the program calls at its start already.

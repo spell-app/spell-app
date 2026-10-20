@@ -672,6 +672,7 @@ export class TSWriter extends JSWriter {
       return `oneOf: ${isLazy ? "() => " : ""}${list.constant}`
     })
     if (node.initializer) parts.push(`init: () => ${this.bare(node.initializer)}`)
+    if (this.madeEarly(node)) parts.push("early: true")
     return parts.length ? `{ ${parts.join(", ")} }` : undefined
   }
 

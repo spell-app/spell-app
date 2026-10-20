@@ -1362,6 +1362,7 @@ export class PyBaseWriter extends P.ProgramWriter {
     if (initial) {
       const isValue = initial instanceof P.ASTLiteral || initial instanceof P.ASTConstantExpression
       args.push(isValue ? `default=${this.bare(initial)}` : `init=lambda: ${this.bare(initial)}`)
+      if (this.madeEarly(node)) args.push("early=True")
     }
     return args.join(", ")
   }

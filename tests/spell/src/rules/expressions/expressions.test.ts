@@ -44,6 +44,7 @@ describe("priority and precedence", () => {
         "class_member:  Priority.userDeclared",
         "create_drawable_list_type:  Priority.declaration",
         "create_list_type:  Priority.declaration",
+        "create_one_of_a_kind:  Priority.declaration",
         "create_type:  Priority.declaration",
         "css_block:  Priority.declaration",
         "define_property_has:  Priority.declaration",

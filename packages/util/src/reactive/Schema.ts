@@ -68,6 +68,12 @@ export class Schema {
     return undefined
   }
 
+  /** Names of the props whose value is made with the instance (`PropInfo.early`), here and up the chain, parents' first. */
+  earlyProps(): string[] {
+    const own = [...this.declared].filter(([, info]) => info.early && info.init).map(([name]) => name)
+    return [...(this.parent?.earlyProps() ?? []), ...own]
+  }
+
   /** `name`'s type as a person would say it, e.g. `text`, `number | text` -- `unknown` if never set. */
   typeOf(name: string): string {
     const declared = this.info(name)?.type
@@ -156,6 +162,12 @@ export type PropInfo = {
    * - Called with `this` ~== the instance.
    */
   init?: (this: any) => unknown
+  /**
+   * `true`:  `init` makes its value as the instance is made, not on first read -- see `Schema.earlyProps()`.
+   * - Compiled spell, for a starting value that's a thing:  `{ init: () => new Foundation(...), early: true }`,
+   *   so a solitaire's piles exist as soon as it does (epic `outline-spell` P19).
+   */
+  early?: boolean
   /**
    * What a LIST prop holds, as the runtime names it:  a class name, e.g. `"Task"` for
    *   `a project has tasks as a new list of tasks`, or a value's type, e.g. `"text"`.

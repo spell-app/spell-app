@@ -8,6 +8,7 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "class_member": "type|member",
   "create_drawable_list_type": "type|aka?|instanceType|with_nested_statements?|body?",
   "create_list_type": "type|instanceType|aka?|with_nested_statements?|body?",
+  "create_one_of_a_kind": "type|superType|with_nested_statements?|body?",
   "create_thing": "type|props?",
   "create_type": "type|aka?|superType|with_nested_statements?|body?",
   "define_property_has": "type|property|specifier?",

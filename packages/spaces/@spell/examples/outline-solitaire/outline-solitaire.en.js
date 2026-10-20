@@ -46,36 +46,44 @@ export const words = {
       value: "value",
       state: "state"
     },
-    Solitaire: {
-      score: "score",
-      stock: "stock",
-      discards: "discards",
-      foundations: "foundations",
-      tableaus: "tableaus",
-      deck: "deck",
-      layOut: "lay out a solitaire",
-      state: "state",
-      debug: "debug a solitaire",
-      resetTheStockOfSolitaire: "reset the stock of a solitaire",
-      playFromTheStockOfSolitaire: "play from the stock of a solitaire",
-      dealTheCardsOfSolitaire: "deal the cards of a solitaire",
-      autoPlay: "auto-play a solitaire",
-      reset: "reset a solitaire",
-      cheatAtSolitaire: "cheat at a solitaire",
-      draw: "draw a solitaire"
-    },
     StockPile: {
-      draw: "draw a stock pile"
+      draw: "draw it"
     },
     DiscardPile: {
-      draw: "draw a discard pile"
+      draw: "draw it"
     },
     Foundation: {
       symbol: "symbol",
-      draw: "draw a foundation"
+      draw: "draw it"
     },
     Tableau: {
-      draw: "draw a tableau"
+      draw: "draw it"
+    },
+    Solitaire: {
+      score: "score",
+      deck: "deck",
+      stock: "stock",
+      discards: "discards",
+      clubs: "clubs",
+      diamonds: "diamonds",
+      hearts: "hearts",
+      spades: "spades",
+      T1: "T1",
+      T2: "T2",
+      T3: "T3",
+      T4: "T4",
+      T5: "T5",
+      T6: "T6",
+      T7: "T7",
+      fillTheStock: "fill the stock",
+      debug: "debug it",
+      resetTheStock: "reset the stock",
+      playFromTheStock: "play from the stock",
+      dealTheCards: "deal the cards",
+      reset: "reset",
+      cheat: "cheat",
+      autoPlay: "auto-play",
+      draw: "draw it"
     }
   }
 }

@@ -14,8 +14,11 @@ export class ScopeVariable {
    * e.g. to map spell: `its` to javascript: `this`.
    */
   declare output: string | undefined
-  /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
-  declare kind: "argument" | "static" | undefined
+  /**
+   * Variable kind.  One of `"argument"`, `"static"`, `"only"` or `undefined` for a normal variable.
+   * - `"only"`:  the one thing of its type, e.g. `solitaire` after spell's `solitaire is an app`.
+   */
+  declare kind: "argument" | "static" | "only" | undefined
   /**
    * What it holds, in spell's words -- `undefined` if unknown.  See `P.Datatype`.
    * - e.g. `Card` for an argument `(a card)`, or the datatype of the value it was declared with
@@ -94,8 +97,8 @@ export type ScopeVariableProps = {
    * javascript: `this`.
    */
   output?: string
-  /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
-  kind?: "argument" | "static"
+  /** See `ScopeVariable.kind`. */
+  kind?: "argument" | "static" | "only"
   /** See `ScopeVariable.datatype`. */
   datatype?: P.Datatype
   /** String used to initialize the variable.  Not consistently used. */

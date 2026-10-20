@@ -96,8 +96,12 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match || !this.argumentsFit(match)) return undefined
-    // on this thing:  only inside our type's own methods
-    if (this.onThis(match) && !this.insideOurType(scope)) return undefined
+    // on this thing:  inside our type's own methods, or anywhere on a one-of-a-kind app (`solitaire is an app`)
+    if (this.onThis(match) && !this.insideOurType(scope)) {
+      const only = this.theOnlyOne(scope)
+      if (!only) return undefined
+      match.data.onlyOne = only.output ?? only.name
+    }
     const thisDatatype = this.onThis(match) ? this.thisType : match.groups.thisArg?.datatype
     match.data.method = MethodDefinition.findMethod(scope, this.methodName, thisDatatype)
     return match
@@ -112,6 +116,19 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
    */
   startsTheProgram(): boolean {
     return this.alias === "statement" && TEST_METHOD.test(this.methodName)
+  }
+
+  /**
+   * The variable holding the one thing of our type, if it's one of a kind:  `solitaire` after `solitaire is an app`.
+   * - A variable of kind `only`, of our type, as `create_one_of_a_kind` declares it.
+   * - A lookup:  call it WHILE PARSING.
+   */
+  theOnlyOne(scope: P.Scope): P.ScopeVariable | undefined {
+    const type = scope.getType(this.thisType)
+    if (!type) return undefined
+    const name = type.name.replace(/(?<=[a-z0-9])(?=[A-Z])/g, "_").toLowerCase()
+    const variable = scope.variables?.get(name)
+    return variable?.kind === "only" && variable.datatype === type.name ? variable : undefined
   }
 
   /** Could each of `match`'s arguments be what we take?  See `parse()`. */
@@ -144,8 +161,9 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   getAST(match: P.MatchFor<this>): P.ASTMethodInvocation | P.ASTScopedMethodInvocation {
     const { methodName } = this
     const { thisArg, callArgs, props } = match.groups
+    const { onlyOne } = match.data
     const thing = this.onThis(match)
-      ? new P.ASTVariableExpression(match, { name: "this" })
+      ? new P.ASTVariableExpression(match, { name: onlyOne ?? "this" })
       : (thisArg?.AST as P.ASTExpression | undefined)
     // `match.AST` is typed as the generic `ASTNode` (from `Rule.getAST()`);
     // `callArgs`/`props` are always parsed via `{callArgs:expression}` / `object_literal_properties`,
@@ -166,6 +184,8 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
 type DynamicMethodData = {
   /** Record of the method it calls, found while parsing -- `undefined` if none known. */
   method?: P.ScopeMethod
+  /** Its receiver, left out, when it's a one-of-a-kind app's:  that one's variable, e.g. `solitaire`.  See `parse()`. */
+  onlyOne?: string
 }
 
 /**
