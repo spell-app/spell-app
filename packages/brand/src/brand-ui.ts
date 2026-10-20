@@ -10,8 +10,10 @@
  *   An ES module:  from the page server, not `file://` (judgement J4).
  * - What it holds, in import order (ES modules evaluate top to bottom):
  *   0. `./hues`:  the brand's `accent` hue, added to Spell UI's `hues` before any element is defined
- *   1. the page CSS:  `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup),
- *      extracted to `brand-ui.css`
+ *   1. the page CSS, extracted to `brand-ui.css`:
+ *      - `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup)
+ *      - the inspector's fields (`inspector.css`):  Spell UI's `<ui-field>` in a `<ui-panel>`, as Claude Design
+ *        draws them
  *   2. `BuiltInPacks`:  pointed at `_assets/ui/icon-packs/` (a symlink to ui's packs) from THIS file's URL, so
  *      every Font Awesome 7 icon draws, offline
  *   3. (LAST, by `import()`:  after the hue, whatever the chunking)  every `ui-*` family (`$/ui`) and every
@@ -24,6 +26,7 @@
  */
 import "./hues"
 import "$/ui/styles/ui.css"
+import "./inspector.css"
 
 import { BuiltInPacks } from "$/ui/icons"
 import { UI } from "$/ui/runtime"

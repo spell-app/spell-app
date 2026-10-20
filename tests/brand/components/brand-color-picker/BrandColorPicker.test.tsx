@@ -6,7 +6,7 @@ import { expectAccessible } from "$/ui/test/A11y"
 import { Palette } from "$/brand"
 
 import "$/brand/components/brand-color-picker"
-import "$/brand/components/brand-field"
+import "$/ui/components/ui-form"
 
 ////////////////
 // ## Fixtures
@@ -173,14 +173,14 @@ describe("<brand-color-picker> display", () => {
     await expectAccessible(host)
   })
 
-  it("takes its name from a <brand-field>'s label, or a <label for>;  else 'Colour'", async () => {
-    const field = await ElementFixture.render(`<brand-field label="Base color">
+  it("takes its name from a <ui-field>'s label, or a <label for>;  else 'Colour'", async () => {
+    const field = await ElementFixture.render(`<ui-field label="Base color">
       <brand-color-picker></brand-color-picker>
-    </brand-field>`)
+    </ui-field>`)
     const inField = field.querySelector("brand-color-picker")!
     await vi.waitFor(() => expect(part(inField, "picker").getAttribute("aria-label")).toBe("Base color"))
-    // and fills the field's width
-    expect(inField.getBoundingClientRect().width).toBeCloseTo(field.getBoundingClientRect().width, 0)
+    // and fills the field's width (its DOM element is `display: contents`:  its box is the `field` part)
+    expect(inField.getBoundingClientRect().width).toBeCloseTo(part(field, "field").getBoundingClientRect().width, 0)
     const wrapper = await ElementFixture.render(`<div><label for="seed">Seed</label>
       <brand-color-picker id="seed"></brand-color-picker></div>`)
     const labelled = wrapper.querySelector("brand-color-picker")!

@@ -22,7 +22,7 @@
 @layer ui.components.brand-color-picker.types, ui.components.brand-color-picker.content, ui.components.brand-color-picker.states;
 
 @layer ui.components.brand-color-picker.types {
-  /* in a flex row (`<brand-field>`'s control box), take the row's width as a block would */
+  /* a block;  in a flex row too, it takes the row's width */
   :host {
     display: block;
     flex: 1 1 auto;

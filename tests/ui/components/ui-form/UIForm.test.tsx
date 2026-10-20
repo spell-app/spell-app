@@ -55,10 +55,10 @@ async function form(html: string) {
   return { host, native, root }
 }
 
-/** The inline prompt a field shows, or `null`. */
+/** The error lines a field shows, joined, or `null`. */
 function prompt(field: Element): string | null {
-  const label = field.shadowRoot!.querySelector("[part~=prompt]")
-  return label ? [...label.querySelectorAll(".message")].map((line) => line.textContent).join(" | ") : null
+  const lines = field.shadowRoot!.querySelector("[part~=error]")
+  return lines ? [...lines.querySelectorAll(".message")].map((line) => line.textContent).join(" | ") : null
 }
 
 /**
@@ -467,7 +467,7 @@ describe("<ui-form> validation", () => {
     const fields = [...native.querySelectorAll("ui-field")]
     expect(prompt(fields[0]!)).toBe("Name must have a value")
     expect(prompt(fields[1]!)).toBe("E-mail must have a value | E-mail must be a valid e-mail")
-    expect(fields[0]!.shadowRoot!.querySelector("[part~=prompt]")!.className).toBe("ui basic pointing prompt label")
+    expect(fields[0]!.shadowRoot!.querySelector("[part~=error]")!.className).toBe("error prompt")
     expect(fields[0]!.shadowRoot!.querySelector("[part~=field]")!.classList.contains("error")).toBe(true)
     expect(fields[0]!.matches(":state(error)")).toBe(true)
     expect(native.querySelector("[name=name]")!.getAttribute("aria-invalid")).toBe("true")
@@ -828,12 +828,12 @@ describe("<ui-form> debug", () => {
 ////////////////
 
 describe("<ui-form> accessibility", () => {
-  it("the prompt is an alert;  axe passes on a failed form", async () => {
+  it("the error lines are an alert;  axe passes on a failed form", async () => {
     const { host, native } = await form(SIGN_UP)
     host.rules = SIGN_UP_RULES
     host.validate()
     await ElementFixture.tick()
-    expect(native.querySelector("ui-field")!.shadowRoot!.querySelector("[part~=prompt]")!.getAttribute("role")).toBe(
+    expect(native.querySelector("ui-field")!.shadowRoot!.querySelector("[part~=error]")!.getAttribute("role")).toBe(
       "alert"
     )
     await expectAccessible(host)

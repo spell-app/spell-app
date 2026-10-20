@@ -32,7 +32,6 @@ Considered and left out:
   - The native `<form>` around them still submits.
   - Lost:  the layout classes, and `disabled` making the box `inert`.
     A `<fieldset disabled>` still disables the controls in it.
-- `ui-brand-field`:  layout around a slotted control, as `ui-field`.
 - Content from attributes:  not form functionality.  A broken one shows its children only.
   - `ui-image`'s `<img>`, `ui-icon`, `ui-flag`
   - the `header` / `message` shorthands

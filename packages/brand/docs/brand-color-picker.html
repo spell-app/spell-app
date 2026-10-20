@@ -142,15 +142,15 @@
 
               <ui-section id="examples-types-in-a-panel" header="In a panel" sticky collapsible dividing>
                 <ui-docs-example
-                  description="In the brand's inspector:  a `<brand-field>` labels it (and names it for screen readers), inside a `<ui-panel>`."
+                  description="In the brand's inspector:  a `<ui-field>` labels it (and names it for screen readers), inside a `<ui-panel>`."
                 >
                   <ui-panel header="Color Set" color="accent" class="brand-docs-panel">
-                    <brand-field
+                    <ui-field
                       label="Base color"
-                      info="The colour you're starting from.  Drag in the square, or type HSL, RGB or OKLCH."
+                      description="The colour you're starting from.  Drag in the square, or type HSL, RGB or OKLCH."
                     >
                       <brand-color-picker value="#14A39A" name="base"></brand-color-picker>
-                    </brand-field>
+                    </ui-field>
                   </ui-panel>
                 </ui-docs-example>
               </ui-section>
@@ -254,7 +254,7 @@
             <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  - The picker is a group, named by `label`, else by what names the element (a `<brand-field>`'s
+                  - The picker is a group, named by `label`, else by what names the element (a `<ui-field>`'s
                     label, a `<label for>`, `aria-label`), else "Colour".
                   - The square is TWO native range inputs, hidden from sight: "Saturation" and "Lightness" (spoken
                     as percentages), both described as a "2D slider". There's no ARIA role for a 2D control, so each

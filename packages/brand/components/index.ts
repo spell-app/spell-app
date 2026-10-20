@@ -2,9 +2,9 @@
  * `$/brand/components` barrel:  every `<brand-*>` element.
  * - SIDE EFFECT:  each is defined as its folder's barrel is imported.
  * - Elements the brand pages need that Spell UI doesn't have yet (decision D2):
- *   - generic ones (field, colour chips), to move into Spell UI later
+ *   - generic ones (colour chips), to move into Spell UI later
  *   - brand-only page art (flourishes, blobs, the logo)
- *   - The panel moved first:  it's Spell UI's `<ui-panel>` now (`packages/ui/components/ui-panel/`).
+ *   - Moved already:  the panel (Spell UI's `<ui-panel>`) and the field (`<ui-field>`, epic `property-editor` P1).
  * - Each is written as a Spell UI family (`packages/ui/AGENTS.md`, "Solid authoring"), on `$/spell-solid`.
  *   Spell UI's shared code comes from `$/ui/core` (and `$/ui/forms`).
  * - A component pack (`spell dev pack`):
@@ -13,7 +13,6 @@
  *   - the brand's own bundles import this barrel instead (`brand-ui.ts`, `brand-design.ts`)
  * - `brand-color` first:  the set and the range draw its chips.
  */
-export * from "./brand-field"
 export * from "./brand-color"
 export * from "./brand-color-set"
 export * from "./brand-color-range"

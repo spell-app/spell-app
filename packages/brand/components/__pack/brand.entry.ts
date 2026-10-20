@@ -21,7 +21,6 @@ SpellUI.registerPack({
       import("../brand-color-range"),
       import("../brand-color-set"),
       import("../brand-composer"),
-      import("../brand-field"),
       import("../brand-flourish"),
       import("../brand-logo"),
       import("../brand-phone")

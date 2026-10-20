@@ -281,6 +281,51 @@
                   </ui-form>
                 </ui-docs-example>
               </ui-section>
+              <ui-section id="examples-content-label-row" header="Label Row" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A field can draw its own label row:  the label, an output at its end and a tip behind an info icon;  a hint goes under the control."
+                >
+                  <ui-form>
+                    <form method="dialog">
+                      <ui-field
+                        label="Text size"
+                        output="16px"
+                        description="The size of body text;  headings scale from it."
+                        hint="13 to 19 pixels."
+                      >
+                        <ui-slider min="13" max="19" value="16"></ui-slider>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-content-actions" header="Actions" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Small buttons in the label row's actions slot;  a taller one never grows the row."
+                >
+                  <ui-form>
+                    <form method="dialog">
+                      <ui-field label="Accent colour" output="#6550CA">
+                        <ui-button slot="actions" size="mini" basic>Reset</ui-button>
+                        <ui-input value="#6550CA"></ui-input>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-content-error" header="Error" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A field shows its error as a line under the control;  the form's validation shows its own there."
+                >
+                  <ui-form>
+                    <form method="dialog">
+                      <ui-field label="Hex" error="That isn't a colour.">
+                        <ui-input value="#12"></ui-input>
+                      </ui-field>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+              </ui-section>
               <ui-section id="examples-content-fields" header="Fields" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">A set of fields can appear grouped together: <code>&lt;ui-fields&gt;</code>.</p>

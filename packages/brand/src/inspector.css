@@ -1,0 +1,96 @@
+/*
+ * The brand pages' INSPECTOR fields:  Spell UI's `<ui-field>` in a `<ui-panel>`, as Claude Design draws them
+ * (Color Set Chooser's "Vibrancy" row, Theme Creator's "Corners").
+ * - In the copies' bundle (`brand-ui.ts`), so only the `.spell.html` pages get it:
+ *   every other Spell UI form keeps its own look.
+ * - Light-DOM rules, through the field's public tokens and parts and its controls' tokens.
+ *   `@layer ui.app`, so a page's own rule (unlayered) wins.
+ * - The tip's colours are the `spell-brand` theme's (`--ui-field-tip-*`).
+ *
+ * The field:
+ * - Its label row is 20px tall:  a 13px medium label;  actions, a 12px medium output and the info icon at its end.
+ * - The control sits 6px under the row.
+ *   A page sets its own on the field (`--ui-form-label-distance`):  set above it, this rule would win.
+ * - No margin under the field:  the panel's gap spaces them.
+ *
+ * Its controls, only those slotted DIRECTLY (a row of inputs in a `<div>` is the page's to size):
+ * - An input, select or dropdown is COMPACT, the inspector's 30px field (Claude Design's:  14px, weight 500,
+ *   6px corners).
+ *   - Height = line-height + 2 x padding + 2 x border:  at 14px, 17 + 2 x 5.5 + 2 (input),
+ *     16.8 + 2 x 5.6 + 2 (select);  a selection dropdown's `min-height`, 16.8 + 2 x 6.6, holds its border.
+ *     Each value in the control's own `em`.
+ *   - Set on the control, so it overrides values set above the field, on purpose (design-system issue I16).
+ *     A value the page sets on the control itself still wins;  so does its own `size`.
+ * - A SEGMENTED `<ui-menu>` is the inspector's track (Theme Creator's "Corners"), 32px tall:
+ *   a 1px hairline (the theme's `--ui-menu-segmented-border`) and 2px inside it, round 26px options 3px apart,
+ *   12px medium text, 9px / 6px corners.
+ *   - The track's colours stay the theme's:  a page tints them to its panel.
+ *   - Its own `size` scales the menu's text back, as an input's:  leave it off.
+ * - A `<ui-menu>` stretches across the panel:  its DOM element is `display: contents`, so it's given a block box
+ *   (the menu's own `:host` rule loses to this one, from the outer tree);
+ *   `alignment="fluid"` then fills it.
+ */
+
+@layer ui.app {
+  ui-panel ui-field {
+    --ui-form-label-font-size: 0.8125em;
+    --ui-form-label-font-weight: 500;
+    --ui-form-label-distance: calc(6em / 13);
+    --ui-form-row-distance: 0;
+  }
+  /* the page's text size, not the panel's 14px:  every size below, and its controls', is in its `em` */
+  ui-panel ui-field::part(field) {
+    font-size: var(--ui-font-size);
+  }
+  ui-panel ui-field::part(row) {
+    min-height: calc(20em / 13);
+    line-height: 1;
+  }
+  /* actions as tall as the row:  a taller pill overhangs it evenly */
+  ui-panel ui-field::part(actions) {
+    height: calc(20em / 13);
+  }
+  ui-panel ui-field::part(output) {
+    font-size: calc(12em / 13);
+    font-weight: 500;
+  }
+  ui-panel ui-field::part(tip) {
+    font-size: calc(12em / 13);
+    box-shadow: var(--spell-shadow-lg, var(--ui-shadow-floating));
+  }
+  ui-panel ui-field::part(hint),
+  ui-panel ui-field::part(error) {
+    font-size: 0.75em;
+  }
+
+  /* ## Compact controls */
+  ui-panel ui-field > :is(ui-input, ui-select, ui-dropdown) {
+    --ui-scale: var(--ui-size-small);
+    --ui-font-weight-normal: 500;
+    --ui-input-padding-block: calc(5.5em / 14);
+    --ui-input-padding-inline: calc(12em / 14);
+    --ui-input-radius: calc(6em / 14);
+    --ui-select-padding-block: calc(5.6em / 14);
+    --ui-select-padding-inline: calc(12em / 14);
+    --ui-select-radius: calc(6em / 14);
+    --ui-dropdown-padding-block: calc(6.6em / 14);
+    --ui-dropdown-padding-inline: calc(12em / 14);
+    --ui-dropdown-radius: calc(6em / 14);
+    /* the dropdown sets no weight of its own:  it inherits this */
+    font-weight: 500;
+  }
+  ui-panel ui-field > ui-menu[appearance="segmented"] {
+    --ui-menu-margin: 0;
+    --ui-menu-item-font-size: 0.75em;
+    --ui-menu-item-weight: 500;
+    --ui-menu-active-weight: 500;
+    --ui-menu-segmented-padding: 2px;
+    --ui-menu-segmented-gap: 3px;
+    --ui-menu-segmented-radius: 9px;
+    --ui-menu-segmented-item-radius: 6px;
+    --ui-menu-segmented-item-padding: calc(7em / 12) calc(8em / 12);
+  }
+  ui-panel ui-field > ui-menu:not([hidden]) {
+    display: block;
+  }
+}

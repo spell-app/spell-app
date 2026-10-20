@@ -99,7 +99,7 @@ when working with code in this package, `@spell-app/brand`.
       - why:  a test can't read the shared folder
   - `brand.types.ts`
   - the bundles' entries, each saying what's in it, and why:
-    - `brand-ui.ts`
+    - `brand-ui.ts`, with the inspector's fields' look (`inspector.css`)
     - `brand-design.ts`
     - `hues.ts`
     - The old docs pages' bundle went at P18 (`brand-docs.ts`, with its `brand-docs.css`):
@@ -191,7 +191,7 @@ when working with code in this package, `@spell-app/brand`.
 - `yarn test`:  two projects (`vitest.config.ts`), from the repo's `tests/brand/`, at the same paths as the code.
   - e.g. `BrandLogo`'s test:  [BrandLogo.test.tsx](../../tests/brand/components/brand-logo/BrandLogo.test.tsx)
   - `node`:  `src/`, `Palette.test.ts` and `pack.test.ts`
-  - `browser`:  the elements, Vitest browser mode, chromium
+  - `browser`:  the elements, and `src/`'s `*.browser.test.ts` (the inspector's look), Vitest browser mode, chromium
     - with Spell UI's helpers:  `$/ui/test/ElementFixture`, `$/ui/test/a11y`
   - The root's `yarn test` runs them as `brand:node` / `brand:browser`.
 - `yarn ts`, `yarn lint`, `yarn format`, `yarn review`.
@@ -221,10 +221,13 @@ when working with code in this package, `@spell-app/brand`.
   - Its docs page is Spell UI's:  `/components/ui/ui-panel.html`.
   - Its tokens are `--ui-panel-*`.
   - `color="accent"` works on the brand pages:  [hues.ts](src/hues.ts) + `spell-brand`.
-- `<brand-field>` (`components/brand-field/`):  a form field.
-  - a label row (label, actions, value, info tip), the control, help and error
-  - `<ui-form>` validates it as a `<ui-field>`:  `:state(field)` + `showErrors()`
-  - It names an unnamed slotted control after its `label` (`aria-label`).
+- The inspector's fields are Spell UI's too:  `<ui-field>` (epic `property-editor` P1, which removed `<brand-field>`).
+  - a label row (label, actions, output, info tip), the control, the hint and errors
+  - Its docs are Spell UI's:  `/components/ui/ui-form.html`.
+  - The brand pages draw it in the inspector's look:  [inspector.css](src/inspector.css), in the copies' bundle.
+    - a 20px label row, a 13px medium label;  compact slotted inputs, selects, dropdowns and segmented menus
+    - only `<ui-field>`s in a `<ui-panel>`:  every other Spell UI form keeps its own look
+    - its tip's colours are the `spell-brand` theme's (`--ui-field-tip-*`)
 - `<brand-composer>` (`components/brand-composer/`):  write a spell, and cast it.
   - a form element:  the text under `name`
   - `brand-cast` (cancelable), from the button or Cmd / Ctrl+Enter
