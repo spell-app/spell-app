@@ -8,8 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./contentFolder": "./src/contentFolder.ts",
-    "./DataFile": "./src/DataFile.ts",
-    "./src/*": "./src/*"
+    "./DataFile": "./src/DataFile.ts"
   },
   "scripts": {
     "/////// CORRECTNESS": "",

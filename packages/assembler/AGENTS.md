@@ -55,8 +55,6 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     package or tool may import it.
   - Another repo imports it by its npm name, an entry of its `exports`:  `@spell-app/assembler`,
     `@spell-app/assembler/DataFile`, `/contentFolder`.
-    - REFACTOR:  `./src/*` too, spell-epic's by-path imports (`@spell-app/assembler/src/DataFile.ts`) until it
-      switches to the entries (epic `repo-split` P6's T).
   - NEVER make it import spell-epic's code:  spell-epic imports this.
   - `DataFile` (`$/assembler/DataFile`):  the tooling's JSON5 data files, here since epic `epic-eject` I5, so the CLI
     reads the commands page's data without the engine.

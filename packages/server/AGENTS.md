@@ -246,5 +246,3 @@ As WWOD §8, plus our self-namespace:
 - Another repo imports it by its npm name (epic `repo-split` P6), an entry of its `package.json` `exports`, each a
   SOURCE file:  `@spell-app/server`, `/page`, `/site`, `/site/site.types`, `/test/serve`;  and three that plain
   `node` loads (node built-ins and type imports only, `.ts` and all):  `/checkout`, `/page/settings`, `/page/prune`.
-  - REFACTOR:  `./src/*` too, spell-epic's by-path imports (`@spell-app/server/src/page/settings.ts` ...) until it
-    switches to those entries (epic `repo-split` P6's T).
