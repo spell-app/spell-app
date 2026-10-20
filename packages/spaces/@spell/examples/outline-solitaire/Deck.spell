@@ -49,4 +49,5 @@ to test deck creation
 	the number of cards in the deck should be 54
 	set wild cards to the cards in the deck where it is a joker
 	the number of cards in wild cards should be 2
-	the name of the bottom card of the deck should be "joker"
+	// the red joker, then the black one, last
+	the name of the bottom card of the deck should be "black-joker"

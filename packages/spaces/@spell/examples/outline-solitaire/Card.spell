@@ -89,12 +89,13 @@ a joker is a card
 	- its suit is its color
 	- its color is red or black
 	- its "short suit" is "🃟"
-	- its value is 53 if it is black otherwise 54
+	- its value is 53 if its color is black otherwise 54
 	- its "name" is:
 		return its color + "-joker"
 	- its "picture" is:
 		if it is face down return unicode 1F0A0
-		otherwise return unicode 1F0BF
+		if its color is red return unicode 1F0BF
+		return unicode 1F0CF
 
 
 ## create a card instance with default properties
@@ -103,6 +104,7 @@ to test card setup
 	its rank should be queen
 	its suit should be spades
 	its name should be "queen-of-spades"
+	its color should be black
 	its value should be 12
 	its short suit should be "♠️"
 	its short rank should be "Q"
@@ -128,9 +130,7 @@ to test card setup
 	it is not the 2 of diamonds should be yes
 	its picture should be "🂭"
 
-	its color should be black
 	turn it face down
-	its color should be grey
 	its direction should be down
 	its picture should be "🂠"
 
@@ -140,7 +140,14 @@ to test card setup
 	// test jokers
 	joker is a new joker with color = red
 	joker is a joker should be yes
+	the color of joker should be "red"
 	joker is a wild card should be yes
 	joker is a face card should be yes
 	the picture of joker should be "🂿"
-	the name of joker should be "red joker"
+	the name of joker should be "red-joker"
+	the value of joker should be 54
+
+	set black joker to a new joker with color = black
+	the picture of black joker should be "🃏"
+	the value of black joker should be 53
+	the name of black joker should be "black-joker"
