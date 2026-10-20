@@ -94,7 +94,8 @@ a joker is a card
 		return its color + "-joker"
 	- its "picture" is:
 		if it is face down return unicode 1F0A0
-		return unicode 1F0CF
+		if its color is red return unicode 1F0BF		// red joker
+		return unicode 1F0CF							// black joker
 
 
 ## create a card instance with default properties
