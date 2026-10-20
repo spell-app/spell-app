@@ -232,6 +232,31 @@ export type JSXElementTokenProps = Prettify<P.TokenProps<never>> & {
 }
 
 /**
+ * Token for a JSX FRAGMENT:  several elements drawn side by side, with no element around them.
+ * - Written `<>...</>`:  `element.children` are its children, its `</>` end tag last, as an element's are.
+ * - Or IMPLICIT:  JSX elements one after another, on one line or on the lines below it, as one value
+ *   (`return <a/>`, then `<b/>` on the next line) -- see `Tokenizer.matchJSXElements()`.
+ *   Its `children` are just those elements.
+ */
+export class JSXFragmentToken extends JSXToken<never, JSXFragmentTokenProps> {
+  /** Its children:  elements, text, `{...}` expressions, and an explicit fragment's `</>` end tag. */
+  get children() {
+    return this.record.children
+  }
+  /** Is it elements one after another, NOT written `<>...</>`? */
+  get isImplicit() {
+    return !!this.record.isImplicit
+  }
+}
+/** Extra `record` props for `JSXFragmentToken`. */
+export type JSXFragmentTokenProps = Prettify<P.TokenProps<never>> & {
+  /** Array of children. */
+  children?: P.Token[]
+  /** Elements one after another, NOT written `<>...</>`? */
+  isImplicit?: boolean
+}
+
+/**
  * Token for a single JSX end tag.
  *  - `element.tagName` is the tag name.
  */

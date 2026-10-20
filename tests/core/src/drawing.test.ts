@@ -78,6 +78,17 @@ class PlainPile extends List<Card> {
   }
 }
 
+/** A pile drawn as a FRAGMENT, as compiled JavaScript writes `<>...</>`:  a list of `h()`'s thunks. */
+class PairPile extends List<Card> {
+  override draw(): Drawing {
+    drawCalls.set(this, (drawCalls.get(this) ?? 0) + 1)
+    return [
+      h("h3", { ref: (node: Element) => madeNodes.push(node) }, "Pile"),
+      h("div", { ref: (node: Element) => madeNodes.push(node) }, () => core.drawItems(this))
+    ] as unknown as Drawing
+  }
+}
+
 /** A card whose drawing throws while `h()` MAKES it, not in `draw()`:  a part of it that can't be drawn. */
 class HalfCard extends Card {
   override draw(): Drawing {
@@ -213,6 +224,24 @@ describe("@drawn", () => {
     expect(madeNodes).toHaveLength(4)
     expect(element.firstChild).toBe(pileNode)
     expect(pileNode!.firstChild).toBe(firstNode)
+    expect([drawCalls.get(pile), drawCalls.get(first)]).toEqual([1, 1])
+  })
+
+  test("a fragment's thunks are made ONCE too:  a card added to its pile makes neither of its elements again", () => {
+    madeNodes.length = 0
+    const pile = new PairPile()
+    const first = new PlainCard({ rank: "ace" })
+    pile.add(first)
+    draw(() => core.drawThing(pile))
+    expect(element.innerHTML).toBe(`<h3>Pile</h3><div><i>hearts</i></div>`)
+    const [heading, frame] = madeNodes
+
+    pile.add(new PlainCard({ rank: 3, suit: "spades" }))
+    first.suit = "diamonds"
+    core.flush()
+    expect(element.innerHTML).toBe(`<h3>Pile</h3><div><i>diamonds</i><i>spades</i></div>`)
+    expect(madeNodes).toHaveLength(4)
+    expect([element.childNodes[0], element.childNodes[1]]).toEqual([heading, frame])
     expect([drawCalls.get(pile), drawCalls.get(first)]).toEqual([1, 1])
   })
 

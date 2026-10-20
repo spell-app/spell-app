@@ -1380,6 +1380,19 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
+   * A fragment, `<>...</>`, as Solid's `h()` takes one:  a list of its children, `[h("a"), h("b")]`.
+   * - On one line when they fit and none is an element among others, else one a line, as `ASTJSXElement()`.
+   * - Its live values stay functions in the list:  Solid calls them, as it does an element's.
+   */
+  ASTJSXFragment(node: P.ASTJSXFragment): string {
+    const children = node.childValues.map((child) => String(this.write(child)))
+    const inline = children.join(", ")
+    const isFlat = children.length === 1 || !node.childValues.some((child) => child instanceof P.ASTJSXElement)
+    if (isFlat && !inline.includes("\n") && inline.length < JSWriter.DRAWING_LINE) return `[${inline}]`
+    return `[\n${jsText.indented(children.join(",\n"))}\n]`
+  }
+
+  /**
    * `node`'s props, `{ class: "suit", onClick: (event) => {...} }`, by the page's names (`attributeName()`):
    * - `class` first, as the TypeScript writer writes it, so both targets draw the same (the core contract)
    * - on one line when it fits, else one a line

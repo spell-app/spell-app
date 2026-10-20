@@ -27,20 +27,26 @@ import { SpellJSXContent } from "./SpellJSXContent"
 export class SpellJSX extends P.TokenType<never, JSXMatchData> {
   static ruleName = "jsxElement"
   @proto static alias = ["jsxChild", "expression"]
-  @proto static tokenType = P.JSXElementToken
+  // `jsxFragment` matches a fragment's token instead
+  @proto static tokenType: P.TokenConstructor = P.JSXElementToken
 
-  /** Parse the element's `attributes` / `children` tokens, through `scope.parser.parse()` (see the note inside). */
+  /**
+   * Parse the element's `attributes` / `children` tokens, through `scope.parser.parse()` (see the note inside).
+   * - A fragment's children alone:  `jsxFragment` parses with this too.
+   */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXElement at a time!")
-    const [element] = match.matched as [P.JSXElementToken]
+    const [element] = match.matched as [P.JSXElementToken | P.JSXFragmentToken]
     // `Scope.parse()` only accepts a `string` for `text`, but we have actual `Token`s here:
     // call `scope.parser.parse()` directly instead, as `SpellCSSFile.parse()` does.
-    match.data.attributes = element.attributes?.map((attr) => scope.parser?.parse(attr, "jsxAttribute", scope))
     match.data.children = element.children?.map(
       (child) => scope.parser?.parse(child, "jsxChild", scope) || scope.parser?.parse(child, "parse_error", scope)
     )
+    // a fragment (`jsxFragment`) has no tag and no attributes
+    if (!(element instanceof P.JSXElementToken)) return match
+    match.data.attributes = element.attributes?.map((attr) => scope.parser?.parse(attr, "jsxAttribute", scope))
     // a dotted tag, `<UI.Form>`:  the writer writes the error where the element would be, this reports it
     const tagError = P.ASTJSXElement.tagError(element.tagName)
     if (tagError) match.data.error = SP.spellParser.createParseError(scope, [element], tagError)
@@ -51,15 +57,20 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
    * Build `P.ASTJSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`.
    * - Spell's own tag words as the web's:  `<children/>` => `<slot/>` (`SPELL_TAG_NAMES`).
    */
-  getAST(match: P.MatchFor<this>) {
+  getAST(match: P.MatchFor<this>): P.ASTJSXElement {
     const { tagName: written } = match.matched[0] as P.JSXElementToken
     const tagName = SPELL_TAG_NAMES.get(written) ?? written
     const attrs = match.data.attributes?.map((attr) => P.asAST<P.ASTJSXAttribute>(attr?.AST))
-    const children =
+    return new P.ASTJSXElement(match, { tagName, attrs, children: this.childASTs(match) })
+  }
+
+  /** The ASTs of `match`'s children, leaving out what writes nothing (e.g. blank `jsxText`). */
+  protected childASTs(match: P.MatchFor<this>): P.ASTJSXElementProps["children"] {
+    return (
       match.data.children
         ?.map((child) => P.asAST<P.ASTJSXElement | P.ASTJSXEndTag | P.ASTJSXText | P.ASTJSXExpression>(child?.AST))
         .filter(Boolean) ?? []
-    return new P.ASTJSXElement(match, { tagName, attrs, children })
+    )
   }
 
   /**

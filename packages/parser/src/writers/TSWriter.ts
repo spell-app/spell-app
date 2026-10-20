@@ -1200,6 +1200,16 @@ export class TSWriter extends JSWriter {
     return `${open}>\n${indented(written.join("\n"))}\n</${tag}>`
   }
 
+  /** A fragment, `<>...</>`, as is:  its children as an element's, `<></>` for none. */
+  ASTJSXFragment(node: P.ASTJSXFragment): string {
+    const children = (node.children ?? []).filter((child) => !(child instanceof P.ASTJSXEndTag))
+    const written = children.map((child) => this.jsxChild(child)).filter(Boolean)
+    const inline = written.join("")
+    const isShort = !written.some((child) => child.startsWith("<")) && !inline.includes("\n")
+    if (!written.length || (isShort && inline.length < JSX_LINE)) return `<>${inline}</>`
+    return `<>\n${indented(written.join("\n"))}\n</>`
+  }
+
   /** A value in JSX:  just the expression -- Solid's compiler makes it live. */
   ASTJSXLiveValue(node: P.ASTJSXLiveValue): string {
     return this.bare(node.expression)
