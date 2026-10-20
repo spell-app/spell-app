@@ -109,7 +109,11 @@
             <ul>
               <li>
                 <code>&lt;Action&gt;</code> is one action: a menu item by default, or a button with <code>button</code>.
-                <code>title</code> is its text, <code>icon</code> its icon, and <code>active</code> lights it up.
+                <ul>
+                  <li><code>title</code>: its text</li>
+                  <li><code>icon</code>: its icon</li>
+                  <li><code>active</code>: lights it up</li>
+                </ul>
               </li>
               <li>
                 <code>Actions</code> holds the app's own, each an Action with its text, icon and click filled in, in
@@ -126,8 +130,8 @@
                 </ul>
               </li>
               <li>
-                Props given where it's drawn win over the entry's own: <code>title</code>, <code>icon</code>,
-                <code>onClick</code> ...
+                Props given where it's drawn win over the entry's own: its text, its icon, its click handler
+                (<code>onClick</code>) ...
               </li>
               <li>
                 Some light up as the editor changes: Compile when the file needs compiling, Save and Reload when it has

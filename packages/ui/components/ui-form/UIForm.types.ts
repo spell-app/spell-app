@@ -1,8 +1,8 @@
 /**
  * The `ui-form` family's loose constants and types:  what its components, its vocabularies and `FormFields` share.
- * - Pure data, at the bottom of the folder's imports:  `import type` only (its vocabularies too:
- *   they value-import this file), `UIT` by value straight from `components.types`, so node can load it
- *   (`yarn site:data`).
+ * - Pure data, at the bottom of the folder's imports, so node can load it (`yarn site:data`):
+ *   - `import type` only, its vocabularies too:  they value-import this file
+ *   - `UIT` by value, straight from `components.types`
  * - A word only ONE class uses sits below that class instead (epic `wwod-spell-ui`, Q18).
  */
 

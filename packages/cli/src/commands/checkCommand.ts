@@ -7,11 +7,11 @@ import { CLI } from "$/cli"
  *   `--json` prints them as a JSON array of `CLI.Problem`s instead.
  * - Progress and a count per project go to stderr.
  * - A `.spell` file:  parses its whole project -- it can't parse alone -- but lists only ITS errors.
- * - A project's EDITOR PAGES (`Card.editor.html`) too, against its types, after its spell (decision Q17):
- *   see `CLI.EditorPages`.
- *   - `--fix`:  puts each right and writes it back, then lists what it did, one line each (`... fixed:  ...`):
- *     on stdout, or with `--json` on stderr.
- *     What it can't put right is still an error.
+ * - A project's EDITOR PAGES (`Card.editor.html`) too, against its types, after its spell
+ *   (decision Q17;  `CLI.EditorPages`).
+ *   - `--fix`:  puts each page right and writes it back,
+ *     then lists what it did, one line each (`... fixed:  ...`), on stdout (with `--json`, on stderr).
+ *   - What it can't put right is still an error.
  * - SIDE EFFECT:  compiles any project they import which has never been compiled --
  *   see `CliSession.compileImports()`.
  * - Returns the exit code:  `EXIT.ERRORS` if there were any.

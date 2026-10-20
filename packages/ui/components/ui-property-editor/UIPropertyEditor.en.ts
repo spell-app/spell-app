@@ -1,9 +1,11 @@
 /**
  * The English vocabulary of `<ui-property-editor>`:  every name the tag uses.
- * - Its own names first, then those it PASSES THROUGH:  `<ui-form>`'s (it is one), then `<ui-section>`'s
- *   (it draws one around its properties), each only where it means the same.
- *   - Not passed through:  the section's `source` and `select` (the editor's own are its layout page's), and the
- *     form's `value` (the editor's own takes a thing or a list).
+ * - Its own names first, then those it PASSES THROUGH, each only where it means the same:
+ *   - `<ui-form>`'s:  it is one
+ *   - then `<ui-section>`'s:  it draws one around its properties
+ * - Not passed through:
+ *   - the section's `source` and `select`:  the editor's own are its layout page's
+ *   - the form's `value`:  the editor's own takes a thing or a list
  * - The shape is `E.ComponentVocabulary`.  Pure data:  `import type` only (`passThrough()` too).
  */
 

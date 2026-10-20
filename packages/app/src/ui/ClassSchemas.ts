@@ -5,13 +5,18 @@ import type { V } from "$/ui/api"
  * ### `ClassSchemas`
  * A spell class, as what `<ui-property-editor>` reads (a `PropertySchema`):  one attribute per declared property.
  *
- * - The app does it, not Spell UI:  Spell UI never imports spell's packages, and the app may import both
- *   (epic `property-editor` Q16, "for now";  its todo T6 weighs going through the class's JSON Schema instead).
+ * - It's the app's, not Spell UI's:  Spell UI never imports spell's packages, and the app may import both.
+ *   - That's epic `property-editor` Q16, "for now".
+ *   - Its todo T6 weighs going through the class's JSON Schema instead.
  * - What it reads is what the compiled class declares of each property (`schemaOf()`):
  *   its type, its legal values, its default, a list's item type.
  *   - A superclass's properties come first;  a subclass's declaration of the same name wins.
- *   - Its type, as a form edits it:  `text`, `number`, `choice` (spell's yes or no) as `boolean`, `date`;
- *     legal values as a `choice`;  a list as a `list` of its item's type;  a class name as a nested `thing`.
+ *   - Each type, as a form edits it:
+ *     - `text`, `number`, `date` as they are
+ *     - spell's `choice` (a yes or no) as `boolean`
+ *     - legal values as a `choice`
+ *     - a list as a `list` of its item's type
+ *     - a class name as a nested `thing`
  * - No labels yet:  a form makes them from the names (`listsStartAt` => `Lists start at`).
  * - STATIC and instance-free:  it keeps nothing between calls.
  ****************/
@@ -78,7 +83,7 @@ const VALUE_TYPES: Record<string, V.ValueType> = {
   list: "list"
 }
 
-/** The property-only kind an attribute read from a class gets, by its value's type. */
+/** The kind an attribute read from a class gets, by its value's type:  property-only, never a CSS class word. */
 const KIND_FOR_TYPE: Record<V.ValueType, V.AttributeKind> = {
   text: "string",
   number: "number",

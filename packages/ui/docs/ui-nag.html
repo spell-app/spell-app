@@ -87,8 +87,9 @@
               <ui-section id="examples-types-fixed-nag" label="Fixed Nag" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A fixed nag appears at the top of the screen. This one starts <code>hidden</code> and a button shows
-                    it (<code>command="--show"</code>); <code>persist</code> ignores the stored dismissal, for the demo.
+                    A fixed nag appears at the top of the screen:  this one starts <code>hidden</code>, and a button
+                    shows it (<code>command="--show"</code>). <code>persist</code> ignores the stored dismissal, for the
+                    demo.
                   </p>
                   <ui-button commandfor="nag-fixed" command="--show" icon="eye">Show fixed nag</ui-button>
                   <ui-nag id="nag-fixed" fixed hidden persist>Look, I am a fixed nag!</ui-nag>
@@ -247,8 +248,8 @@
                 </script>
               </ui-code>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's API-backed dismissal, <code>expirationKey</code>, <code>detachable</code> and
-                <code>context</code> -- the nag stays where it is written; store the dismissal on a server from
+                >Not ported: Fomantic's API-backed dismissal, and its expirationKey, detachable and context settings.
+                The nag stays where it is written:  store the dismissal on a server from
                 <code>ui-hide</code>.</ui-message
               >
             </ui-section>

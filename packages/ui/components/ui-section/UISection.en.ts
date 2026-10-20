@@ -4,16 +4,21 @@
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The attributes become Fomantic's class words, in Fomantic's order (`ClassBuilder`):
  *   `<ui-section color="teal" dividing sticky>` => `ui teal dividing sticky section`.
- * - Not class words:  the strings and numbers (`label`, `hint`, `description`, `level`, `badge`, `offset`, `height`),
- *   the booleans (`collapsible`, `collapsed`) and `fold-icon`.  The component draws or reads them.
+ * - Not class words, which the component draws or reads instead:
+ *   - the strings and numbers:  `label`, `hint`, `description`, `level`, `badge`, `offset`, `height`
+ *   - the booleans:  `collapsible`, `collapsed`
+ *   - `fold-icon`
  * - `source` (`UIT.LoadableBody*`):  the content comes from a file the first time the section unfolds.
  *   Spread in here, so a subclass reusing this vocabulary (`<ui-panel>`) has it too.
- * - `collapsed` is CONTROLLED, like the accordion's `open`:  set it to fold or unfold;
+ * - `collapsed` is CONTROLLED, like the accordion's `open`:  set it to fold or unfold.
  *   `ui-opening` / `ui-closing` can veto a person's change.
- * - Its words match `<ui-field>`'s (epic `property-editor` P10, decision Q12):  `label`, `hint`, `description`;  events in
- *   pairs, `ui-closing` then `ui-closed`;  states `nested` and `in-group`.
- *   - Its old words still work, until every page says the new ones:  the attributes as `aliases`, and the old slots,
- *     events and states beside the new (each says "old name of ...").
+ * - Its words match `<ui-field>`'s (epic `property-editor` P10, decision Q12):
+ *   - `label`, `hint`, `description`
+ *   - events in pairs:  `ui-closing` then `ui-closed`
+ *   - states `nested` and `in-group`
+ *   - Its old words still work, until every page says the new ones:
+ *     - the attributes as `aliases`
+ *     - the old slots, events and states beside the new (each says "old name of ...")
  */
 
 import type { E } from "$/ui/core"
@@ -21,9 +26,10 @@ import * as UIT from "$/ui/components/components.types"
 
 /****************
  * ### `sectionVocabulary`
- * The names of `<ui-section>`, a titled block of content that can fold:
- * `<section class="ui … section" part="section">` holding its title bar
- * (`<hN>` with the icon, label and a fold button, then the badge and actions), an optional hint, then the content.
+ * The names of `<ui-section>`, a titled block of content that can fold.
+ * Its `<section class="ui … section" part="section">` holds:
+ * - its title bar:  `<hN>` with the icon, label and a fold button, then the badge and actions
+ * - an optional hint, then the content
  ****************/
 export const sectionVocabulary = {
   tag: "ui-section",

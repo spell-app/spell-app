@@ -32,11 +32,14 @@ export class DOMPropertyGroupElement extends E.DOMLoadableBodyElement {
  * ### `UIPropertyGroup`
  * The component behind `<ui-property-group>`:  a folding band of properties in a `<ui-property-editor>`.
  *
- * - It IS a `<ui-section>` (it extends `UISection`):  the same attributes, slots, parts, events and folding,
- *   but `source` (a group's properties come from its editor;  its `select` picks its part of the editor's page, P6).
+ * - It IS a `<ui-section>` (it extends `UISection`):  the same attributes, slots, parts, events and folding.
+ *   - All but `source`:  a group's properties come from its editor.
+ *   - Its `select` picks its part of the editor's page (P6).
  * - Its own:
- *   - `output`, at the end of the title bar;  `error`, a line under the title
- *   - `state` tints its title;  `error` (its own, or a property failing validation) shows `:state(error)`
+ *   - `output`, at the end of the title bar
+ *   - `error`, a line under the title
+ *   - `state` tints its title
+ *   - `:state(error)`:  its own `error`, or a property failing validation
  *   - `readonly`:  every property in it is readonly (each reads it as it connects)
  *   - `:state(changed)`:  a property in it holds an edit not saved yet
  * - The editor tells it about its properties (`markFieldFailed()`, `markChanged()`),

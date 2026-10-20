@@ -1,31 +1,35 @@
 /**
- * `yarn site:sections [--check] [page ...]`:  turn the Spell UI site's flat pages into NESTED `<ui-section>`s, with
- * ids that spell out their nesting, written into the markup (epic page ui-docs-rework, D8).
- * - Content roots:  each pane of a page's `<ui-tabs id="site-tabs">` (`<ui-tab value>`), else its
- *   `<article class="site-article">`.  Only their DIRECT children are read:  headers inside an example, a grid or a
- *   demo are content, never sections.
+ * `yarn site:sections [--check] [page ...]`:  turn the Spell UI site's flat pages into NESTED `<ui-section>`s,
+ * with ids that spell out their nesting, written into the markup (epic page ui-docs-rework, D8).
+ * - Content roots:
+ *   each pane of a page's `<ui-tabs id="site-tabs">` (`<ui-tab value>`), else its `<article class="site-article">`.
+ *   - Only their DIRECT children are read:  headers inside an example, a grid or a demo are content, never sections.
  * - Within a root:
  *   - a level 2 `<ui-header>` and everything after it (until the next one) becomes
  *     `<ui-section id="<tab>-<slug>" label="<text>" sticky collapsible dividing>`
  *   - a level 3 `<ui-header>` becomes a section nested in the level 2 one, the same way
  *   - a `<ui-docs-example header="X">` becomes a section nested in the innermost one, `id="<parent id>-<slug(X)>"`,
- *     holding the example WITHOUT its `header`;  the header-less examples right after it (Fomantic's
- *     `.another.example`) go in with it
+ *     holding the example WITHOUT its `header`
+ *     - the header-less examples right after it (Fomantic's `.another.example`) go in with it
  *   - a header holding markup (`<code>` ...) keeps it as the section's `<span slot="label">`
  *   - a section's title is `label`;  one by its old name, `header` (epic `property-editor` P10), is read the same
- *   - ids:  the pane's value, then each level's slug (lowercase kebab of its header, `TocIndex.slug()`);  a page
- *     without tabs starts at the slug (`#general-usage`, `#general-usage-descriptive-attributes`).  Made unique in
- *     the page with `-2`, `-3` ...
- * - Comments go with the content they precede:  a `GAP` note before an example lands just before that example's
- *   section.  A generator's marker (`<!-- kitchen:start -->`, `<!-- components:end -->`) closes every open section
- *   and stays at the root, so `yarn site:index` / `yarn site:kitchen` can splice between them (both run this on
- *   their output).
- * - Existing sections:  their ids are checked against their nesting and FIXED (a renamed header, a moved section);
- *   their content is converted the same way.  So running it twice changes nothing, and it is the fix for
- *   `yarn site:check`'s "section id doesn't follow its nesting".
- * - Text-level, not a DOM round trip:  every untouched line keeps its bytes;  moved content is re-indented 2 spaces
- *   per new level (markdown / code blocks strip common indentation, so they read the same).
- * - `--check`:  write nothing;  exit 1 if a page would change.  No pages named:  every page of the site.
+ *   - ids:  the pane's value, then each level's slug (lowercase kebab of its header, `TocIndex.slug()`)
+ *     - a page without tabs starts at the slug (`#general-usage`, `#general-usage-descriptive-attributes`)
+ *     - made unique in the page with `-2`, `-3` ...
+ * - Comments go with the content they precede:
+ *   a `GAP` note before an example lands just before that example's section.
+ *   - A generator's marker (`<!-- kitchen:start -->`, `<!-- components:end -->`) closes every open section,
+ *     and stays at the root.
+ *   - So `yarn site:index` / `yarn site:kitchen` can splice between them (both run this on their output).
+ * - Existing sections:  their ids are checked against their nesting and FIXED (a renamed header, a moved section).
+ *   - Their content is converted the same way.
+ *   - So running it twice changes nothing,
+ *     and it is the fix for `yarn site:check`'s "section id doesn't follow its nesting".
+ * - Text-level, not a DOM round trip:  every untouched line keeps its bytes.
+ *   - Moved content is re-indented 2 spaces per new level
+ *     (markdown / code blocks strip common indentation, so they read the same).
+ * - `--check`:  write nothing;  exit 1 if a page would change.
+ * - No pages named:  every page of the site.
  */
 import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
@@ -141,10 +145,11 @@ export class SiteSections {
   ////////////////
 
   /**
-   * Convert `container`'s children, whose own id (the prefix of theirs) is `parentId`;  `extra`:  spaces every line
-   * of the result moves right (the new sections around it).  Returns the new inner text.
-   * - Nothing to change (no header, headed example or stale id among the children, nor deeper):  the original
-   *   text, only moved.
+   * Convert `container`'s children, whose own id (the prefix of theirs) is `parentId`.
+   * - `extra`:  spaces every line of the result moves right (the new sections around it).
+   * - Returns the new inner text.
+   * - Nothing to change (no header, headed example or stale id among the children, nor deeper):
+   *   the original text, only moved.
    */
   private convertInner(container: HtmlNode, parentId: string, extra: number): string {
     const changes = this.changes
@@ -328,8 +333,8 @@ export class SiteSections {
   ////////////////
 
   /**
-   * `text` with every line but blank ones moved `by` spaces (left when negative);  `skipFirst`:  not its first line
-   * (the rest of a line that started earlier).
+   * `text` with every line but blank ones moved `by` spaces (left when negative).
+   * - `skipFirst`:  not its first line (the rest of a line that started earlier).
    */
   private static shift(text: string, by: number, skipFirst = false): string {
     if (!by) return text

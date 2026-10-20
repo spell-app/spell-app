@@ -71,7 +71,7 @@
 
               <ui-section id="examples-types-laid-out" label="Laid out" sticky collapsible dividing>
                 <ui-docs-example
-                  description="Write `<ui-property-group>`s and `<ui-property>`s to lay it out:  groups fold, `as` picks a control, `hint` goes under it, and a dotted `name` reaches into a nested thing.  The title comes from `header`, which draws a section around it."
+                  description="Lay it out with `<ui-property-group>`s and `<ui-property>`s.  Groups fold, `as` picks a control, and `hint` goes under it;  a dotted `name` reaches into a nested thing.  The title is `label`, which draws a section around it."
                 >
                   <ui-property-editor
                     label="Theme"
@@ -98,7 +98,7 @@
 
               <ui-section id="examples-types-rules" label="Rules" sticky collapsible dividing>
                 <ui-docs-example
-                  description="A schema's `rules` are checked as you type, each in its own words when it has some:  what a spell type's rules come as (`- its version must match &quot;^\d+\.\d+\.\d+$&quot;, with suggestion &quot;Write it like 1.2.3&quot;`).  Clear the name, or type a letter into the version."
+                  description="A schema's `rules` are checked as you leave each field (`validate=&quot;on leave&quot;`), each with its own message when it has one.  A spell type's rules arrive in this shape:  `- its version must match &quot;^\d+\.\d+\.\d+$&quot;, with suggestion &quot;Write it like 1.2.3&quot;`.  Clear the name, or type a letter into the version."
                 >
                   <ui-property-editor
                     label="Release"
@@ -178,20 +178,24 @@
             <ui-section id="usage-using-it" label="Using it" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  A `<ui-property-editor>` is a [`<ui-form>`](ui-form.html) drawn from a SCHEMA: what the thing's
-                  properties are, each with its type, label, tip, choices, limits and rules.
+                  A `<ui-property-editor>` is a [`<ui-form>`](ui-form.html) drawn from a SCHEMA:
+                  what the thing's properties are, each with its type, label, tip, choices, limits and rules.
 
-                  - `schema`: a name the page added (`UI.propertyControls.addSchema()`), a tag (`ui-button`: its
-                    vocabulary), or, as a property, a schema or a component vocabulary.
-                  - `value`: the thing it edits, or a list of things.
-                  - Empty, it draws every property in the schema's order. Lay it out yourself with
-                    `<ui-property-group>`s (a [`<ui-section>`](ui-section.html) each) and `<ui-property name>`s (a
-                    [`<ui-field>`](ui-form.html) each).
-                  - It PASSES THROUGH what it's built on: the form's attributes (`apply`, `validate`, `rules`,
-                    `debug` ...) and, around its properties, a section's (`header`, `collapsible`, `sticky` ...).
-                    A group takes a section's, a property a field's (`hint`, `apply`, `rules` ...).
+                  - `schema`, one of:
+                    - a schema's name, one the page added (`UI.propertyControls.addSchema()`)
+                    - a tag, `ui-button`:  its vocabulary
+                    - as a property:  a schema, or a component's vocabulary
+                  - `value`:  the thing it edits, or a list of things.
+                  - Empty, it draws every property, in the schema's order.
+                    Lay it out yourself with `<ui-property-group>`s (a [`<ui-section>`](ui-section.html) each)
+                    and `<ui-property name>`s (a [`<ui-field>`](ui-form.html) each).
+                  - It PASSES THROUGH the attributes of what it's built on:
+                    - the editor:  the form's (`apply`, `validate`, `rules`, `debug` ...),
+                      and a section's around its properties (`label`, `collapsible`, `sticky` ...)
+                    - a group:  a section's
+                    - a property:  a field's (`hint`, `apply`, `rules` ...)
                   - `readonly` on the editor or a group reaches every property in it.
-                  - `ui-change` comes from the editor (`{ name, value, things }`) and from the property written.
+                  - `ui-change` comes from the editor (`{ name, value, things }`), and from the property written.
                 </script>
               </ui-markdown>
             </ui-section>

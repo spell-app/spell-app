@@ -60,8 +60,8 @@
               <ui-section id="examples-types-dimmer" label="Dimmer" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A simple dimmer displays no content. It covers its parent; <code>visible</code> shows it, and a click
-                    on the dimmer hides it. The buttons show and hide it with <code>command="--show"</code> /
+                    A simple dimmer displays no content:  it covers its parent, <code>visible</code> shows it, and a
+                    click on the dimmer hides it. The buttons show and hide it with <code>command="--show"</code> /
                     <code>"--close"</code>.
                   </p>
                   <ui-segment>
@@ -148,7 +148,7 @@
                     A dimmer can blur its contents: <code>blurring</code> blurs and greys what's behind it.
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
-                    >Fomantic puts <code>blurring</code> on the dimmable parent (<code>ui blurring segment</code>); ours
+                    >Fomantic puts <code>blurring</code> on the dimmable parent (<code>ui blurring segment</code>). Ours
                     goes on the dimmer, which blurs through <code>backdrop-filter</code>.</ui-message
                   >
                   <ui-segment>
@@ -257,7 +257,7 @@
                 <ui-docs-example>
                   <p slot="description">
                     A dimmer can be formatted to have a different depth of background shading:
-                    <code>shade="medium"</code>, <code>light</code> or <code>very light</code>.
+                    <code>shade</code> is medium, light or very light.
                   </p>
                   <ui-message slot="description" state="info" size="small"
                     >Also works in combination with <code>inverted</code>.</ui-message
@@ -282,8 +282,8 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Partially Dimmer (<code>top</code> / <code>center</code> / <code>bottom dimmer</code>, a
-                caption as tall as its content) -- deferred (<code>docs/status.md</code>); use
+                >Not ported: Partially Dimmer (a top, center or bottom dimmer, a caption as tall as its content). It's
+                deferred, in <code title="packages/ui/notes/status.md">the status checklist</code>:  use
                 <code>vertical-align</code> on a full dimmer meanwhile.</ui-message
               >
             </ui-section>
@@ -341,8 +341,8 @@
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-message slot="description" size="small" class="site-not-ported"
-                    >Not ported: Fomantic's <code>displayLoader</code> / <code>loaderVariation</code> /
-                    <code>loaderText</code> settings -- put the loader you want inside the dimmer.</ui-message
+                    >Not ported: Fomantic's loader settings (displayLoader, loaderVariation, loaderText). Put the loader
+                    you want inside the dimmer.</ui-message
                   >
                   <ui-segment>
                     <ui-dimmer visible closedby="none">

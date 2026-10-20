@@ -100,7 +100,7 @@ export class EditorStore extends Observable {
   /**
    * Show the current `project`'s settings, in a dialog (`<ProjectSettings>`).
    * - Through a DYNAMIC `import()`:  `editor.ts` stays free of Solid and `$/ui`.
-   * - NEVER throws:  an error loading it, or saving, shows.
+   * - NEVER throws:  an error loading the dialog, or saving, shows as the editor's error.
    */
   showProjectSettings(): void {
     const { project, projectRoot } = editor
@@ -255,8 +255,9 @@ export class EditorStore extends Observable {
    * - No `projectId`:  asks the user for one.
    */
   async createApp(projectRoot?: SPACES.SpellProjectRoot, projectId?: string): Promise<void> {
-    // NOTE: defaulted here, NOT in the signature -- a default referencing `editor` would make
-    // `typeof EDITOR_DEFAULTS` circular, since defaults are part of the member's type.
+    // NOTE: defaulted here, NOT in the signature:
+    // a default referencing `editor` would make `typeof EDITOR_DEFAULTS` circular,
+    // since defaults are part of the member's type.
     projectRoot ??= editor.projectRoot!
     try {
       const project = await projectRoot.createApp(projectId)
@@ -444,8 +445,9 @@ export class EditorStore extends Observable {
   }
   /**
    * Forget `element` as where the running app draws -- if it still is:  `<AppRoot>`'s cleanup.
-   * - Why "if":  moving between the editor and the runner, the old page's cleanup may run AFTER the new page's
-   *   `<AppRoot>` handed its own over, which must not be forgotten.
+   * - Why "if":  moving between the editor and the runner,
+   *   the old page's cleanup may run AFTER the new page's `<AppRoot>` handed its own over,
+   *   which must not be forgotten.
    */
   releaseAppRoot(element: HTMLElement): void {
     if (appRoot === element) appRoot = undefined
@@ -555,8 +557,8 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Make a property editor PAGE for one of current `project`'s types, e.g. `Card.editor.html`, and show it
-   * (epic `property-editor` P6).
+   * Make a property editor PAGE for one of current `project`'s types, and show it (epic `property-editor` P6).
+   * - e.g. `Card.editor.html`, for its type `Card`
    * - No `type`:  asks which (`choose()`), of the types its declarations list;  cancelled:  nothing happens.
    * - What it writes, and from what:  `PropertyEditorFiles` (`$/app/ui/PropertyEditorFiles`).
    *   - the type's schema:  the running program's class when it runs this project, else its declarations
@@ -822,8 +824,8 @@ export const editor = new EditorStore({})
 ////////////////
 
 /**
- * Any of the file classes `editor.file` can hold, plus the ad-hoc `initialSelection` that
- * `editor.selectPath()` stashes on it to tell `<InputEditor>` where to restore the cursor.
+ * Any of the file classes `editor.file` can hold, plus an ad-hoc `initialSelection`:
+ * `editor.selectPath()` stashes it there, to tell `<InputEditor>` where to restore the cursor.
  */
 export type EditorFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelection }
 

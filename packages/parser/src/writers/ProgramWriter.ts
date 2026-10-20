@@ -123,13 +123,14 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * The spell that made `node`, as written, on one line:  `- its "friend-lists" is a list of friend-lists`
-   * -- `undefined` when there's none to show (a node made by the writer).
+   * The spell that made `node`, as written:  `- its "friend-lists" is a list of friend-lists`.
+   * - `undefined` when there's none to show (a node made by the writer).
    * - Written in a comment above a property, by every target (Owen, epic `people-and-orgs` P19).
+   * - Its statement on one line.
+   *   A property with its rules indented under it gets a line for each rule too, indented, as written
+   *   (epic `property-editor` P9).
    * - A property that lists its values (`its "role" is one of guest, member ...`):
    *   above the list, `static Roles = [...]`, which its statement writes first.
-   * - A property with its rules indented under it (epic `property-editor` P9):  a line each, the rules indented, as
-   *   written.
    */
   spellOf(node: P.ASTNode): string | undefined {
     if (node instanceof P.ASTReactiveProperty && listsItsValues(node)) return undefined

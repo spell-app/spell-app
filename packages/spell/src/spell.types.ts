@@ -539,8 +539,8 @@ export type SpellDeclaration = {
    */
   exclusive?: boolean
   /**
-   * A `property`'s rules:  what its value must be, beyond its type, e.g. `[{ type: "empty" }]` for
-   * `- its title must not be empty` -- see `P.ScopeVariable.rules` (epic `property-editor` P9).
+   * A `property`'s rules:  what its value must be, beyond its type -- see `P.ScopeVariable.rules`.
+   * - e.g. `[{ type: "empty" }]` for `- its title must not be empty` (epic `property-editor` P9)
    */
   rules?: readonly PropRule[]
   /** Instance property it declares, e.g. `suit`. */

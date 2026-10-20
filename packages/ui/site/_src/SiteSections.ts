@@ -5,24 +5,33 @@ import { FOLDS_KEY } from "./site.types"
 
 /****************
  * ### `SiteSections`
- * The page side of the site's nested `<ui-section>`s (written into the pages by `yarn site:sections`):  where their
- * titles stick, the reader's folds, and LANDING on a `#hash`.  ONE per page (`SiteSections.instance`), following
- * whichever `main` the router shows (`show()`).
- * - Sticky:  the tabs' bar sticks at the top of the page column (`site.css`, "Sections and tabs");  every
- *   top-level section's title sticks just below it:  its `offset` (px) is set here, from the bar's measured height
- *   and `--site-top` (resolved through a hidden probe), again whenever the bar or the window resizes.  Nested titles
- *   stack below their parents' (the element does that).  The same line goes on `main` as `--site-sections-top`, for
- *   the browser's own anchor scrolling (`scroll-margin-top`).  A page's own sticky bar (`PAGE_BAR`) stacks between.
- * - Folds:  remembered per page (`localStorage`, `FOLDS_KEY` + the path:  `{ [section id]: folded }`):  the reader's
- *   (`ui-opening` / `ui-closing` that can be cancelled) are saved, and restored on every visit;  everything else starts
- *   OPEN.  An unfold made by a landing, or by find-in-page, is never saved.
- * - Landing (`land()`):  the target's pane selected (the first word of a section id IS its tab:  `#usage-keyboard`),
- *   every section around it (and itself) unfolded without animation, then scrolled so its title sits just below the
- *   stuck ones;  once more after `SETTLE_MS` (late layout, the toc's own first scroll), unless the reader scrolled,
- *   clicked or typed meanwhile.  Old hashes still land (`resolve()`).
- * - SIDE EFFECTS:  document `ui-opening` / `ui-closing` and window `hashchange` / `resize` listeners, a `ResizeObserver`,
- *   the probe `<div>` in `<body>`;  `offset` attributes on the sections, an inline `--site-sections-top` on `main`,
- *   `history.replaceState()` of an old hash to the id it found.
+ * The page side of the site's nested `<ui-section>`s (written into the pages by `yarn site:sections`):
+ * where their titles stick, the reader's folds, and LANDING on a `#hash`.
+ * - ONE per page (`SiteSections.instance`), following whichever `main` the router shows (`show()`).
+ * - Sticky:  the tabs' bar sticks at the top of the page column (`site.css`, "Sections and tabs").
+ *   - Every top-level section's title sticks just below it:  its `offset` (px) is set here,
+ *     from the bar's measured height and `--site-top` (resolved through a hidden probe).
+ *     Again whenever the bar or the window resizes.
+ *   - Nested titles stack below their parents' (the element does that).
+ *   - The same line goes on `main` as `--site-sections-top`,
+ *     for the browser's own anchor scrolling (`scroll-margin-top`).
+ *   - A page's own sticky bar (`PAGE_BAR`) stacks between.
+ * - Folds:  remembered per page (`localStorage`, `FOLDS_KEY` + the path:  `{ [section id]: folded }`).
+ *   - The reader's (`ui-opening` / `ui-closing` that can be cancelled) are saved, and restored on every visit.
+ *   - Everything else starts OPEN.
+ *   - An unfold made by a landing, or by find-in-page, is never saved.
+ * - Landing (`land()`):
+ *   - the target's pane selected (the first word of a section id IS its tab:  `#usage-keyboard`)
+ *   - every section around it (and itself) unfolded without animation
+ *   - then scrolled so its title sits just below the stuck ones
+ *   - once more after `SETTLE_MS` (late layout, the toc's own first scroll),
+ *     unless the reader scrolled, clicked or typed meanwhile
+ *   - Old hashes still land (`resolve()`).
+ * - SIDE EFFECTS:
+ *   - document `ui-opening` / `ui-closing` and window `hashchange` / `resize` listeners, a `ResizeObserver`
+ *   - the probe `<div>` in `<body>`
+ *   - `offset` attributes on the sections, an inline `--site-sections-top` on `main`
+ *   - `history.replaceState()` of an old hash to the id it found
  ****************/
 export class SiteSections {
   /** The one instance, made on first use:  static, as the page has one set of sections and one scroll. */
@@ -68,10 +77,10 @@ export class SiteSections {
   ////////////////
 
   /**
-   * `main` is the page shown (its first load, or a swap):  restore its folds, set the sticky offsets, and again once
-   * its `<ui-root>` is ready (the tabs' bar has drawn).
-   * - `isFirst`:  before the sections are defined, so a restored fold just starts folded;  after a swap they have
-   *   drawn, so it folds without its animation.
+   * `main` is the page shown (its first load, or a swap):  restore its folds, set the sticky offsets,
+   * and again once its `<ui-root>` is ready (the tabs' bar has drawn).
+   * - `isFirst`:  before the sections are defined, so a restored fold just starts folded.
+   *   After a swap they have drawn, so it folds without its animation.
    */
   show(main: HTMLElement, { isFirst = false }: { isFirst?: boolean } = {}): void {
     this.main = main
@@ -130,8 +139,9 @@ export class SiteSections {
 
   /**
    * The reader folded or unfolded a section:  remember it.
-   * - Not ours:  another element's, demo sections inside examples, a vetoed toggle, a `ui-opening` that
-   *   can't be cancelled (find-in-page's reveal:  never saved, as a landing's unfold isn't).
+   * - Not ours:
+   *   - another element's, demo sections inside examples, a vetoed toggle
+   *   - a `ui-opening` that can't be cancelled (find-in-page's reveal:  never saved, as a landing's unfold isn't)
    */
   private onToggle(event: CustomEvent<{ open: boolean }>): void {
     const section = event.target as HTMLElement
@@ -162,8 +172,9 @@ export class SiteSections {
   ////////////////
 
   /**
-   * Land on `hash` in `main`, if it names something there;  false when it doesn't (or names a pane:  the tabs show
-   * it themselves), so the caller can scroll to the top instead.
+   * Land on `hash` in `main`, if it names something there.
+   * - False when it doesn't (or names a pane:  the tabs show it themselves),
+   *   so the caller can scroll to the top instead.
    * - The scroll happens once `<ui-root>` is ready, the pane has swapped in and the folds have drawn.
    */
   land(main: HTMLElement, hash: string): boolean {
@@ -183,8 +194,9 @@ export class SiteSections {
   /**
    * What `id` names in `main`:
    * - an element with that id
-   * - an OLD link:  a pane's section of that name (`#types` => `#examples-types`), else the first page section whose
-   *   id ends with it (an example's old slug:  `#vertical-divider` => `#examples-types-vertical-divider`)
+   * - an OLD link:  a pane's section of that name (`#types` => `#examples-types`),
+   *   else the first page section whose id ends with it
+   *   (an example's old slug:  `#vertical-divider` => `#examples-types-vertical-divider`)
    * - a tag's own page's `<ui-docs-api tag>` for that tag (`ui-radio.html#ui-radio`):  the tables, headerless
    * - a tag of the family (`#ui-or`):  its tables in the `<ui-docs-api>`, drawn in its shadow root later
    */
@@ -232,9 +244,9 @@ export class SiteSections {
   }
 
   /**
-   * Scroll so `target`'s top sits on its line:  below the stuck bar and the titles of the sections around `holder`
-   * (`target` itself, or the element whose shadow root holds it);  a section's own title sits right on the line, where
-   * it sticks.
+   * Scroll so `target`'s top sits on its line:  below the stuck bar and the titles of the sections around `holder`.
+   * - `holder`:  `target` itself, or the element whose shadow root holds it.
+   * - A section's own title sits right on the line, where it sticks.
    */
   private scrollTo(target: Element, holder: Element): void {
     const box = SiteSections.boxOf(target)
@@ -272,8 +284,10 @@ export class SiteSections {
   }
 
   /**
-   * Where `target`'s top is now, unstuck:  a section's sentinel (where its title would be, even while stuck), else
-   * its box;  a box-less element (`display: contents`):  its parent's.  `undefined` while it has none (a hidden pane).
+   * Where `target`'s top is now, unstuck:
+   * - a section's sentinel (where its title would be, even while stuck), else its box
+   * - a box-less element (`display: contents`):  its parent's
+   * - `undefined` while it has none (a hidden pane)
    */
   private static boxOf(target: Element): DOMRect | undefined {
     const sentinel = target.localName === SECTION_TAG ? target.shadowRoot?.querySelector(".sentinel") : undefined
@@ -371,8 +385,8 @@ export class SiteSections {
 }
 
 /**
- * What a hash names:  an element (with the id the URL should say), or a tag of the family, drawn by
- * `<ui-docs-api>` in its shadow root.
+ * What a hash names:  an element (with the id the URL should say),
+ * or a tag of the family, drawn by `<ui-docs-api>` in its shadow root.
  */
 type Found = { target: Element; id: string } | { api: HTMLElement; tag: string }
 
@@ -392,8 +406,9 @@ const GAP = 8
 const API_WAIT_MS = 5000
 
 /**
- * A page's own sticky bar above its sections (a `<ui-sticky>`:  the kitchen sink's theme picker):  its `offset` is
- * set to stick below the site's top, and the section titles stick below it.  One per page.
+ * A page's own sticky bar above its sections (a `<ui-sticky>`:  the kitchen sink's theme picker).
+ * - Its `offset` is set to stick below the site's top, and the section titles stick below it.
+ * - One per page.
  */
 const PAGE_BAR = "ui-sticky.site-sticky-bar"
 

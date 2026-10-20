@@ -1714,15 +1714,15 @@ export class ASTPatchedMember extends ASTStatement {
 }
 
 /**
- * PropertyRules -- RULES for a property, said on a line of their own:  what its value must be, beyond its type
- * (epic `property-editor` P9).
+ * PropertyRules -- RULES for a property, said on a line of their own:
+ * what its value must be, beyond its type (epic `property-editor` P9).
  * - e.g. `- its title must not be empty` => `Card.declareRules("title", [{ type: "empty" }])`.
  * - `type` (required) is its class, as a TypeExpression or bare name.
  * - `property` (required) is PropertyLiteral or string:  named as its `declareProp()` names it.
  * - `rules` (required) is an ArrayLiteral of rules, each an ObjectLiteral in `PropRule`'s shape.
- * - Always written from outside its class, after it, wherever the line is:  NOT a ClassMember, so
- *   `SP.hoistClassMembers()` leaves it where it is.  Its class's schema takes rules before or after the property's own
- *   declaration (`declareRules()`).
+ * - Always written from outside its class, after it, wherever the line is.
+ *   - NOT a ClassMember, so `SP.hoistClassMembers()` leaves it where it is.
+ *   - Its class's schema takes rules before or after the property's own declaration (`declareRules()`).
  * - A rule on the property's own line goes in its `ASTReactiveProperty.check` instead:  `rules: [...]`.
  */
 export type ASTPropertyRulesProps = Prettify<{

@@ -475,8 +475,8 @@
                     <a href="ui-dropdown.html" target="src-spell-app-dev-ui-components-ui-dropdown-html">dropdown</a>.
                   </p>
                   <ui-message slot="description" state="info" size="small"
-                    >A <code>&lt;ui-dropdown&gt;</code> is form-associated: its <code>name</code> /
-                    <code>value</code> submit with the form, no hidden input needed.</ui-message
+                    >A <code>&lt;ui-dropdown&gt;</code> is form-associated: its name and value submit with the form, no
+                    hidden input needed.</ui-message
                   >
                   <ui-form>
                     <form method="dialog">
@@ -607,9 +607,8 @@
                     <a href="ui-message.html" target="src-spell-app-dev-ui-components-ui-message-html">message</a>.
                   </p>
                   <ui-message slot="description" state="info" size="small"
-                    >Any <code>info</code>, <code>error</code>, <code>success</code> or <code>warning</code> message
-                    inside a form is hidden until the form is in that state. A message with no <code>state</code> always
-                    shows.</ui-message
+                    >A message inside a form is hidden until the form is in its state: info, error, success or warning.
+                    A message with no <code>state</code> always shows.</ui-message
                   >
                   <ui-form>
                     <form method="dialog">
@@ -1134,9 +1133,8 @@
                 <ui-docs-example>
                   <p slot="description">A field can show that input is mandatory.</p>
                   <ui-message slot="description" state="info" size="small"
-                    ><code>required</code> on a <code>&lt;ui-field&gt;</code> only draws the asterisk: put
-                    <code>required</code> on the control too (or a <code>notEmpty</code> rule) to enforce
-                    it.</ui-message
+                    ><code>required</code> on a <code>&lt;ui-field&gt;</code> only draws the asterisk. To enforce it, put
+                    <code>required</code> on the control too, or a <code>notEmpty</code> rule.</ui-message
                   >
                   <ui-form>
                     <form method="dialog">
@@ -1370,16 +1368,18 @@
             <ui-section id="usage-validation" label="Validation" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  Validation runs on submit: the `rules` property (Fomantic's `fields` shape, keyed by `name` or `id`) plus each
-                  control's own constraints (`required`, `type="email"` ...).
+                  Validation runs on submit:  the `rules` property (Fomantic's `fields` shape, keyed by `name` or `id`),
+                  plus each control's own constraints (`required`, `type="email"` ...).
 
-                  - An invalid submit is stopped before the page's own submit handlers run: the failing fields show a prompt
-                    inside their `<ui-field>`, the form goes into the `error` state (showing its error `<ui-message>`s),
-                    `ui-failure` fires and the first invalid field is focused.
-                  - A valid submit fires `ui-success`, which is cancelable: `preventDefault()` stops the native submission, e.g.
-                    to send it with `fetch()` instead.
-                  - `validate="on leave"` or `validate="immediately"` also validates each field as the person leaves or changes it, and a field
-                    showing an error always validates again as it changes.  Each `<ui-field rules>` adds its own rules to the form&apos;s.
+                  - An invalid submit is stopped before the page's own submit handlers run:
+                    - the failing fields show a prompt inside their `<ui-field>`
+                    - the form goes into the `error` state, showing its error `<ui-message>`s
+                    - `ui-failure` fires, and the first invalid field is focused
+                  - A valid submit fires `ui-success`, which is cancelable:
+                    `preventDefault()` stops the native submission, e.g. to send it with `fetch()` instead.
+                  - `validate="on leave"` or `validate="immediately"` also validates each field as the person leaves or
+                    changes it. A field showing an error always validates again as it changes.
+                  - Each `<ui-field rules>` adds its own rules to the form&apos;s.
                 </script>
               </ui-markdown>
               <ui-section id="usage-validation-validation" label="Validation" sticky collapsible dividing>

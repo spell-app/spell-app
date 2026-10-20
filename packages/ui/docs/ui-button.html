@@ -64,9 +64,9 @@
                 </ui-docs-example>
               </ui-section>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's focusable <code>&lt;div class="ui button" tabindex="0"&gt;</code> -- every
-                <code>&lt;ui-button&gt;</code> renders a real <code>&lt;button&gt;</code> (or <code>&lt;a&gt;</code>),
-                so it is always keyboard focusable.</ui-message
+                >Not ported: Fomantic's focusable <code>&lt;div class="ui button" tabindex="0"&gt;</code>. Every
+                <code>&lt;ui-button&gt;</code> renders a real button (or link), so it is always keyboard
+                focusable.</ui-message
               >
 
               <ui-section id="examples-types-emphasis" label="Emphasis" sticky collapsible dividing>
@@ -74,8 +74,7 @@
                   <p slot="description">A button can be formatted to show different levels of emphasis.</p>
                   <ui-message slot="description" state="info" size="small"
                     >Set your brand colours in the <code>--ui-primary</code> and <code>--ui-secondary</code> tokens (see
-                    the Theming tab), and every element's <code>primary</code> /
-                    <code>secondary</code> follows.</ui-message
+                    the Theming tab). Every element's primary and secondary look follows.</ui-message
                   >
                   <ui-button primary>Save</ui-button>
                   <ui-button>Discard</ui-button>
@@ -108,12 +107,12 @@
               <ui-section id="examples-types-labeled" label="Labeled" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A button can appear alongside a label: <code>label</code> (or the <code>label</code> slot) joins
-                    one, and <code>labeled="left"</code> puts it first.
+                    A button can appear alongside a label:  <code>label</code>, or the label slot, joins one.
+                    <code>labeled="left"</code> puts it first.
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
-                    >Not ported: the label's pointing shape (<code>right pointing</code> / <code>left pointing</code>)
-                    -- shapes belong to <code>&lt;ui-label&gt;</code>, so the joined label is a plain basic
+                    >Not ported: the label's pointing shape (<code>right pointing</code> / <code>left pointing</code>).
+                    Shapes belong to <code>&lt;ui-label&gt;</code>, so the joined label is a plain basic
                     label.</ui-message
                   >
                   <ui-button icon="heart" label="2,048">Like</ui-button>
@@ -350,17 +349,17 @@
                 </ui-docs-example>
               </ui-section>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: the rest of Fomantic's <code>state</code> behaviour (hover texts, <code>flash</code>,
-                <code>sync</code>, API and automatic states) -- a name that changes under the pointer confuses screen
+                >Not ported: the rest of Fomantic's state behaviour (hover texts, <code>flash</code>,
+                <code>sync</code>, API and automatic states). A name that changes under the pointer confuses screen
                 readers.</ui-message
               >
             </ui-section>
 
             <ui-section id="examples-variations" label="Variations" sticky collapsible dividing>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Social buttons (<code>facebook</code>, <code>twitter</code> ...) -- brand colours age
-                fast; colour a button with <code>color</code> or <code>--ui-color</code> and a brand
-                <code>icon</code> instead.</ui-message
+                >Not ported: Social buttons (<code>facebook</code>, <code>twitter</code> ...). Brand colours age
+                fast:  colour a button with <code>color</code> or <code>--ui-color</code>, and a brand icon
+                instead.</ui-message
               >
 
               <ui-section id="examples-variations-size" label="Size" sticky collapsible dividing>

@@ -3653,7 +3653,7 @@
           "ruleNames": ["define_property_has"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/DefinePropertyHas.ts",
-          "line": 51,
+          "line": 54,
           "purpose": "Declares an instance property on `type`, optionally constrained/initialized by a `type_specifier`.",
           "syntaxes": [
             {
@@ -3997,8 +3997,8 @@
           "ruleNames": ["pattern_text"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/PatternText.ts",
-          "line": 12,
-          "purpose": "A PATTERN in quotes, a regular expression, read exactly as typed (epic `property-editor` P9).",
+          "line": 14,
+          "purpose": "A PATTERN in quotes, a regular expression, read exactly as typed.",
           "syntaxes": [
             {
               "example": "\"^\\d+$\"",
@@ -4023,7 +4023,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/classes/RuleSuggestion.ts",
           "line": 11,
-          "purpose": "What to say when a property's rule is broken, in place of the rule's own words (epic `property-editor` P9).",
+          "purpose": "What to say when a property's rule is broken, in place of the rule's own words.",
           "syntaxes": [
             {
               "syntax": ",? (with suggestion|saying) {prompt:text}",
@@ -4048,8 +4048,8 @@
           "ruleNames": ["must_rule"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/MustRule.ts",
-          "line": 20,
-          "purpose": "What a property's value must be, the words after `must` -- a PROPERTY RULE (epic `property-editor` P9).",
+          "line": 29,
+          "purpose": "What a property's value must be, the words after `must`, e.g. `not be empty`.",
           "syntaxes": [
             {
               "syntax": "(empty:not be empty) {suggestion:rule_suggestion}?",
@@ -4149,8 +4149,8 @@
           "ruleNames": ["type_specifier_text_kind"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/TypeSpecifierTextKind.ts",
-          "line": 13,
-          "purpose": "`as a url` / `as an email` -- text that must be a web address, or an email address (epic `property-editor` P9).",
+          "line": 15,
+          "purpose": "Makes a property text that must be a web address or an email address.",
           "syntaxes": [
             {
               "syntax": "as (a|an) (kind:url|email)",
@@ -4175,8 +4175,8 @@
           "ruleNames": ["outline_specifier_text_kind"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/OutlineSpecifierTextKind.ts",
-          "line": 6,
-          "purpose": "`a url` / `an email` in an outline line -- see `type_specifier_text_kind`.",
+          "line": 10,
+          "purpose": "In an outline line, makes a property text that must be a url or an email.",
           "syntaxes": [
             {
               "syntax": "(a|an) (kind:url|email)",
@@ -4243,8 +4243,8 @@
           "ruleNames": ["property_must"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/PropertyMust.ts",
-          "line": 23,
-          "purpose": "A RULE for a property, on a line of its own: what its value must be, beyond its type (epic `property-editor` P9).",
+          "line": 26,
+          "purpose": "What a property's value must be, beyond its type, said on a line of its own.",
           "syntaxes": [
             {
               "syntax": "{type:subject_its} {property:member_words} must {rule:must_rule}"
@@ -4263,8 +4263,8 @@
           "ruleNames": ["property_body_must"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/PropertyBodyMust.ts",
-          "line": 19,
-          "purpose": "A RULE for a property, indented under the property's own line: what its value must be (epic `property-editor` P9).",
+          "line": 21,
+          "purpose": "What a property's value must be, said indented under the property's own line.",
           "syntaxes": [
             {
               "syntax": "(it:it)? must {rule:must_rule}"

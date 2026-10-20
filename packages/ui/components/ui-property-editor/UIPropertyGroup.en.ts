@@ -1,8 +1,8 @@
 /**
  * The English vocabulary of `<ui-property-group>`:  every name the tag uses.
  * - Its own names first, then `<ui-section>`'s, which it PASSES THROUGH (it is one), where they mean the same.
- *   - Not passed through:  `source`, and what only works with it (`ui-load`, `:state(loaded)`, the load texts);
- *     its own `select` picks from the editor's `source` page instead.
+ *   - Not passed through:  `source`, and what only works with it (`ui-load`, `:state(loaded)`, the load texts).
+ *   - Its own `select` picks from the editor's `source` page instead.
  * - The shape is `E.ComponentVocabulary`.  Pure data.
  */
 

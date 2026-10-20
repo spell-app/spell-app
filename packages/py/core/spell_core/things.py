@@ -94,8 +94,9 @@ def prop(
       - stored, so `to_json()` writes it
     - `item_type`:  the class a LIST property holds, or its name, e.g. `"Task"` for `as a new list of tasks`.
       - for the saver (epic `people-and-orgs`), which needs each item's kind:  nothing checks it yet
-    - `rules`:  what its value must be, beyond its type (epic `property-editor` P9), e.g. `[{"type": "empty"}]` for
-      `- its title must not be empty`:  a value that breaks one warns, as a wrong type does (`prop_rules.py`)
+    - `rules`:  what its value must be, beyond its type (epic `property-editor` P9)
+      - e.g. `[{"type": "empty"}]` for `- its title must not be empty`
+      - a value that breaks one warns, as a wrong type does (`prop_rules.py`)
     - throws `TypeError` for a list, dict or set `default`:
       every thing would share that one object.  Pass `init=list` instead.
     """

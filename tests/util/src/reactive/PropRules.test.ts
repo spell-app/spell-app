@@ -12,8 +12,8 @@ import {
 } from "$/util"
 
 /**
- * PROP RULES (epic `property-editor` P9):  what a prop's value must be, beyond its type -- `PropRules.ts`;  and the
- * schema keeping them (`declareProp()`, `declareRules()`).
+ * PROP RULES:  what a prop's value must be, beyond its type (`PropRules.ts`, epic `property-editor` P9).
+ * - And the schema keeping them:  `declareProp()`, `declareRules()`.
  */
 
 afterEach(() => {

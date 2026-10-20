@@ -2,7 +2,11 @@ import { proto } from "$/util"
 import { classes } from "./classes.parser"
 import { TypeSpecifierTextKind } from "./TypeSpecifierTextKind"
 
-/** `outline_specifier_text_kind` rule:  `a url` / `an email` in an outline line -- see `type_specifier_text_kind`. */
+/**
+ * `outline_specifier_text_kind` rule:  in an outline line, makes a property text that must be a url or an email.
+ * - e.g. `- its email is an email`
+ * - As `type_specifier_text_kind`, without its `as`.
+ */
 export class OutlineSpecifierTextKind extends TypeSpecifierTextKind {
   @proto static alias = "outline_specifier"
 }

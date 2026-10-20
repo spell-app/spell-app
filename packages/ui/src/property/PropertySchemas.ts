@@ -5,7 +5,8 @@ import type * as V from "$/spell-solid/vocabulary.types"
 /****************
  * ### `PropertySchemas`
  * Turns what a thing is described with into what `<ui-property-editor>` reads, a `V.PropertySchema`:
- * its name, and its attributes, each an `AttributeSpec` (a component vocabulary's own shape, grown for forms).
+ * its name, and its attributes.
+ * - Each attribute is an `AttributeSpec`:  a component vocabulary's own shape, grown for forms.
  *
  * - The sources:
  *   - a component's vocabulary:  it IS one already (`fromVocabulary()`)
@@ -24,8 +25,11 @@ export class PropertySchemas {
 
   /**
    * A JSON Schema (an `object` schema), as a property schema named `name` (else its `title`).
-   * - Each property:  its type, `title` as the label, `description` as the tip,
-   *   `minimum` / `maximum` / `multipleOf` / `pattern`, `enum` as choices, `default`.
+   * - What each property reads:
+   *   - its type, and `default`
+   *   - `title` as the label, `description` as the tip
+   *   - `minimum` / `maximum` / `multipleOf` / `pattern`
+   *   - `enum` as choices
    * - A nested object is a `thing` with its own attributes;  an array, a `list` of its items' type.
    * - Keys starting with `$` are the file's own (`$type`, `$schema` ...):  never a property.
    * - throws a `TypeError` for a schema that isn't an object's
@@ -43,7 +47,8 @@ export class PropertySchemas {
 
   /**
    * A JSON block's properties, guessed from the values it holds:  for a block with no schema.
-   * - text, a number, yes / no;  an array is a `list` of its first item's type;  an object, a nested `thing`.
+   * - text, a number, yes / no
+   * - an array is a `list` of its first item's type;  an object, a nested `thing`
    * - `null` (or an empty array) says nothing of its type:  `data`, edited as JSON text.
    */
   static fromValues(block: Record<string, unknown>, name = ""): V.PropertySchema {
@@ -113,8 +118,8 @@ export class PropertySchemas {
   }
 
   /**
-   * A property's checks, as the form's rules:  what a spell type's rules write into its JSON Schema
-   * (epic `property-editor` P9), read back.
+   * A property's checks, as the form's rules.
+   * - What a spell type's rules write into its JSON Schema (epic `property-editor` P9), read back.
    * - `minLength` / `maxLength`, `format: "email"` / `"uri"`
    * - a `pattern` with VS Code's `patternErrorMessage`:  the rule with those words (a bare `pattern` is `pattern`)
    */

@@ -96,9 +96,12 @@
 
           <ui-section id="installation" label="Installation" sticky collapsible dividing>
             <ui-message state="info" header="Not published yet">
-              <code>@spell-app/ui</code> lives in the spell-app monorepo (<code>packages/ui</code>) and isn't on npm
-              yet. Once it is, the steps below apply. Until then: <code>yarn</code> in the monorepo, and
-              <code>yarn build</code> in <code>packages/ui</code> writes <code>dist/</code>.
+              <code>@spell-app/ui</code> isn't on npm yet:  the steps below apply once it is. Until then, build it in
+              the spell-app monorepo, where it lives:
+              <ul>
+                <li><code>yarn</code> in the monorepo</li>
+                <li>then <code>yarn build</code> in the ui package (<code>packages/ui</code>), which writes its dist folder</li>
+              </ul>
             </ui-message>
             <ui-markdown>
               <script type="text/markdown">

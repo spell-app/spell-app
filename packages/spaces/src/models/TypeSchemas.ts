@@ -3,20 +3,26 @@ import type * as VT from "$/spell-solid/vocabulary.types"
 
 /****************
  * ### `TypeSchemas`
- * A spell type's properties, from its project's compiled DECLARATIONS file (`<project>.declarations.json5`),
- * as what `<ui-property-editor>` reads:  a `PropertySchema` (epic `property-editor` P6, Q18).
+ * A spell type's properties, as what `<ui-property-editor>` reads (a `PropertySchema`),
+ * from its project's compiled DECLARATIONS file, `<project>.declarations.json5` (epic `property-editor` P6, Q18).
  *
- * - Why the declarations:  the spell editor and `spell check` have no running program, but every compiled
- *   project has them.  A running program's class says more (the app's `ClassSchemas`):  use it when there is one.
  * - What it reads:  each `{ "property": ..., "of": <type> }` statement:
- *   - its name, as javascript has it (`short_suit`):  what a form binds;  its label from how it was written
- *     (`asWritten`, `short suit` => `Short suit`)
+ *   - its name, as javascript has it (`short_suit`):  what a form binds
+ *   - its label, from how it was written (`asWritten`, `short suit` => `Short suit`)
  *   - `enumeration`:  a choice of those values
- *   - `datatype`:  `text`, `number`, `date`;  `choice` is a yes or no;  `list of texts` a list of text;
- *     `list of <things>` and a type's name, a nested thing
+ *   - `datatype`, as a form edits it:
+ *     - `text`, `number`, `date` as they are
+ *     - `choice`:  a yes or no
+ *     - `list of texts`:  a list of text
+ *     - `list of <things>`:  a list of nested things
+ *     - a type's name:  a nested thing
  *   - `constants` (a value worked out from others, `color`):  left out, a person can't set it
+ * - Why the declarations:  every compiled project has them,
+ *   and the spell editor and `spell check` have no running program.
+ *   - A running program's class says more (the app's `ClassSchemas`):  use it when there is one.
  * - NOTE: the declarations don't say which other properties are worked out (`name`, `short suit`):
- *   they're listed as any other.  Remove them from a page by hand;  the running class leaves them out.
+ *   they're listed as any other.
+ *   Remove them from a page by hand;  the running class leaves them out.
  * - Pure data:  safe in a browser and in node.
  * - STATIC and instance-free:  it keeps nothing between calls.
  ****************/
@@ -115,7 +121,7 @@ const VALUE_TYPES: Record<string, VT.ValueType> = {
   date: "date"
 }
 
-/** The property-only kind an attribute read from declarations gets, by its value's type. */
+/** The kind an attribute read from declarations gets, by its value's type:  property-only, never a CSS class word. */
 const KIND_FOR_TYPE: Record<VT.ValueType, VT.AttributeKind> = {
   text: "string",
   number: "number",

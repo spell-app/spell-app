@@ -1178,8 +1178,9 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * A comment saying the spell that made `node`:  `// - its "friend-lists" is a list of friend-lists`
-   * -- `undefined` when there's none (`spellOf()`).
+   * A comment saying the spell that made `node` (`spellOf()`):  a `//` line for each of its lines.
+   * - e.g. `// - its "friend-lists" is a list of friend-lists`
+   * - `undefined` when there's none.
    */
   spellComment(node: P.ASTNode): string | undefined {
     const spell = this.spellOf(node)

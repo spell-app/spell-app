@@ -161,11 +161,12 @@ export class TypeScope extends BlockScope {
   }
 
   /**
-   * Add `rules` to property `name`, said by `declaredBy`:  what its value must be, beyond its type
-   * (epic `property-editor` P9) -- see `P.ScopeVariable.rules`.
-   * - e.g. `- its title must not be empty`, a line of its own;  or the property's own line, `..., which must ...`.
-   * - Kept by statement:  `declaredBy` parsed again replaces what it said before, journaled, so an incremental parse
-   *   neither loses nor doubles them.
+   * Add `rules` to property `name`, said by `declaredBy`:  what its value must be, beyond its type.
+   * - See `P.ScopeVariable.rules` (epic `property-editor` P9).
+   * - Said on a line of its own, `- its title must not be empty`,
+   *   or on the property's own line, `..., which must ...`.
+   * - Kept by statement:  `declaredBy` parsed again replaces what it said before.
+   *   Journaled, so an incremental parse neither loses nor doubles them.
    * - Returns `false` when we have no property `name` (yet):  the caller says so.
    */
   addPropertyRules(name: string, rules: readonly PropRule[], declaredBy: P.Match): boolean {

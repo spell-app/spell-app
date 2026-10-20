@@ -2,7 +2,7 @@ import type { PropRule } from "$/util"
 import { P } from "$/parser"
 
 /**
- * `ScopeVariable` a variable defined within a `Scope`.
+ * `ScopeVariable`:  a variable defined within a `Scope`.
  */
 export class ScopeVariable {
   /** Pointer to the scope where this variable was defined. */
@@ -11,8 +11,8 @@ export class ScopeVariable {
   declare name: string
   /**
    * Variable output name in translated language.
-   * Use this to make an "alias" for the variable w/in its scope,
-   * e.g. to map spell: `its` to javascript: `this`.
+   * - Use this to make an "alias" for the variable within its scope,
+   *   e.g. to map spell's `its` to javascript's `this`.
    */
   declare output: string | undefined
   /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
@@ -28,8 +28,8 @@ export class ScopeVariable {
   /**
    * `true` if this is an implicit "alias" for another variable rather than a genuinely-declared one,
    * e.g. `it`/`its` mapped to `this` -- see `MethodScope` constructor.
-   * - Assigning to an alias' name declares a real variable in its place: the `assignment` rule (in
-   *   `$/spell`) treats it as `isNewVariable` and `variables.replace()`s it.
+   * - Assigning to an alias' name declares a real variable in its place:
+   *   the `assignment` rule (in `$/spell`) treats it as `isNewVariable` and `variables.replace()`s it.
    */
   declare isAlias: boolean
   /**
@@ -60,22 +60,23 @@ export class ScopeVariable {
    */
   declare exclusive: boolean | undefined
   /**
-   * A built-in member's READ template:  javascript which reads it,
-   * `{it}` standing for the value it's read from.
+   * A built-in member's READ template:
+   * javascript which reads it, `{it}` standing for the value it's read from.
    * - e.g. `{it}.length`, `{it}.getFullYear()` or `core.itemCountOf({it})`
    * - `undefined`:  a read compiles as plain `<object>.<name>`.
    * - From spell's table of built-in types -- see spell's `BUILT_IN_TYPE_TABLE`.
-   * - The ONE statement that sets it:  a VALUE kind's property, `Suit.color({it})`, as a value is plain text with
-   *   no properties of its own -- see `P.TypeScope.valueKind`.  Anything else a project declares compiles as its
-   *   own statements say.
+   * - The ONE statement that sets it:  a VALUE kind's property, `Suit.color({it})`,
+   *   as a value is plain text with no properties of its own -- see `P.TypeScope.valueKind`.
+   * - Anything else a project declares compiles as its own statements say.
    */
   declare readAs: string | undefined
   /**
-   * A property's RULES:  what its value must be, beyond its type, e.g. `[{ type: "empty" }]` for
-   * `- its title must not be empty` (epic `property-editor` P9) -- see `PropRule`.
-   * - Said by any statement about it, its own or another line:  `P.TypeScope.addPropertyRules()` keeps them by
-   *   statement (`ruleSources`), and this is them all, in order.
+   * A property's RULES:  what its value must be, beyond its type -- see `PropRule`.
+   * - e.g. `[{ type: "empty" }]` for `- its title must not be empty`
+   * - Said by any statement about it, on its own line or another.
+   *   - `P.TypeScope.addPropertyRules()` keeps them by statement (`ruleSources`);  this is them all, in order.
    * - Imported:  as its declaration says them.
+   * - Epic `property-editor` P9.
    */
   declare rules: readonly PropRule[] | undefined
   /** Which statement said which of `rules`, so a statement parsed again replaces its own. */
@@ -101,8 +102,8 @@ export type ScopeVariableProps = {
   name: string
   /**
    * Variable output name in translated language.
-   * Use this to make an "alias" for the variable w/in its scope, e.g. to map spell: `its` to
-   * javascript: `this`.
+   * - Use this to make an "alias" for the variable within its scope,
+   *   e.g. to map spell's `its` to javascript's `this`.
    */
   output?: string
   /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */

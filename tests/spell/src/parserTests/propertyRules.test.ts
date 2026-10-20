@@ -4,10 +4,14 @@ import { parseSpellProject } from "$/spell/test"
 
 /**
  * PROPERTY RULES (epic `property-editor` P9):  what a property's value must be, beyond its type, said on its type.
- * - Three places, the same rules:  a line of its own (`property_must`), the property's own line (`, which must ...`),
- *   and indented under it (`property_body_must`);  `as a url` / `as an email` bring one too.
- * - Each lands in the class's schema (`declareProp(..., { rules })` or `declareRules()`) and on the property's
- *   record, which its declarations write out.
+ * - Three places, the same rules:
+ *   - a line of its own (`property_must`)
+ *   - the property's own line (`, which must ...`)
+ *   - indented under it (`property_body_must`)
+ *   - `as a url` / `as an email` bring one too
+ * - Each lands in two places:
+ *   - the class's schema:  `declareProp(..., { rules })` or `declareRules()`
+ *   - the property's record, which its declarations write out
  */
 describe("property rules", () => {
   test("a line of its own:  `Card.declareRules(...)` after the class, and on the property's record", () => {

@@ -4,13 +4,15 @@ import type { AttributeSpec, PropertySchema, ValueType } from "$/ui/vocabulary"
  * ### `PropertyControls`
  * What `<ui-property-editor>` draws and reads by NAME, as `UI.propertyControls`:  one registry per page.
  * - Control KINDS, `<ui-property as="...">`:  the element each draws, and the value types it's the default for.
- *   - `add("date", { tag: "ui-calendar", types: ["date"] })` adds or replaces one;  the built-in kinds are below.
- * - CHOICE sources, `<ui-property options="fonts">` / an attribute's `choicesFrom`:  `addChoices(name, read)`,
- *   where `read()` returns the choices, or a promise of them ("every font installed").
+ *   - `add("date", { tag: "ui-calendar", types: ["date"] })` adds or replaces one.
+ *   - The built-in kinds are below.
+ * - CHOICE sources, `<ui-property options="fonts">` / an attribute's `choicesFrom`:
+ *   `addChoices(name, read)`, where `read()` returns the choices, or a promise of them ("every font installed").
  * - "On change" RULES, an attribute's `onChange`:  `addRule(name, rule)`, run after the property is written.
- * - SCHEMAS by name, `<ui-property-editor schema="ProjectSettings">`:  `addSchema(name, schema)`;
- *   a tag's own vocabulary is found without one.
- * - In the runtime's lazy chunk:  plain data, no DOM.  `<ui-property>` makes the elements.
+ * - SCHEMAS by name, `<ui-property-editor schema="ProjectSettings">`:  `addSchema(name, schema)`.
+ *   A tag's own vocabulary is found without one.
+ * - In the runtime's lazy chunk:  plain data, no DOM.
+ *   `<ui-property>` makes the elements.
  ****************/
 export class PropertyControls {
   /** Control kinds by name, the built-in ones first. */
@@ -58,7 +60,10 @@ export class PropertyControls {
     this.choiceSources.set(name, read)
   }
 
-  /** The choices of source `name`;  `undefined` when there's no such source.  NEVER throws:  a failing source is `[]`. */
+  /**
+   * The choices of source `name`;  `undefined` when there's no such source.
+   * - NEVER throws:  a failing source is `[]`.
+   */
   async choices(name: string): Promise<readonly Choice[] | undefined> {
     const read = this.choiceSources.get(name)
     if (!read) return undefined
@@ -103,8 +108,10 @@ export type PropertyControl = {
   /** The value types it's the default control for. */
   types?: readonly ValueType[]
   /**
-   * How its choices are drawn:  `items`, a `<ui-item value>` child each (a select);
-   * `radios`, the control itself once per choice (a `<ui-radio>` each);  none:  no choices.
+   * How its choices are drawn:
+   * - `items`:  a `<ui-item value>` child each (a select)
+   * - `radios`:  the control itself once per choice (a `<ui-radio>` each)
+   * - none:  no choices
    */
   choices?: "items" | "radios"
 }
@@ -117,7 +124,8 @@ export type ChoiceSource = () => readonly Choice[] | Promise<readonly Choice[]>
 
 /**
  * An "on change" rule, run after a property is written.
- * - `things`:  what the editor edits (one, or many);  `property`:  the attribute written, with its new `value`.
+ * - `things`:  what the editor edits (one, or many)
+ * - `property`:  the attribute written, with its new `value`
  * - It may change other properties of the things, or what another property offers.
  */
 export type PropertyRule = (change: { things: readonly object[]; property: AttributeSpec; value: unknown }) => void

@@ -184,7 +184,7 @@
                     </p>
                     <ui-message slot="description" size="small" state="warning"
                       >Tooltips use an element's <code>::before</code> and <code>::after</code> pseudo-elements, and
-                      screen readers don't reliably announce them: use them for hints only, and a
+                      screen readers don't reliably announce them. Use them for hints only, and a
                       <code>&lt;ui-popup&gt;</code> for anything that matters.</ui-message
                     >
                     <ui-button icon="plus" aria-label="Add users" data-tooltip="Add users to your feed"></ui-button>
@@ -268,9 +268,8 @@
                   <ui-docs-example>
                     <p slot="description">A tooltip can vary in size via the <code>data-variation</code> attribute.</p>
                     <ui-message slot="description" size="small" state="info"
-                      >The <code>data-variation</code> attribute takes several words, just like a class would: sizes,
-                      <code>basic</code>, <code>fixed</code>, <code>multiline</code>, <code>visible</code> and
-                      colours.</ui-message
+                      >The <code>data-variation</code> attribute takes several words, just like a class would:  sizes,
+                      basic, fixed, multiline, visible and colours.</ui-message
                     >
                     <ui-button data-tooltip="Add users to your feed" data-variation="mini">Mini</ui-button>
                     <ui-button data-tooltip="Add users to your feed" data-variation="tiny">Tiny</ui-button>
@@ -471,9 +470,8 @@
                   </p>
                   <ui-message slot="description" size="small" state="info"
                     >A popup's width is capped by its maximum width, so short content stays narrow even when it is
-                    <code>wide</code>. Add <code>fixed</code> to make it always that wide; the CSS-only tooltip takes
-                    <code>fixed</code>, <code>wide fixed</code> and <code>very wide fixed</code> in its
-                    <code>data-variation</code>.</ui-message
+                    <code>wide</code>. Add <code>fixed</code> to make it always that wide;  the CSS-only tooltip takes
+                    these in its <code>data-variation</code>:  fixed, wide fixed and very wide fixed.</ui-message
                   >
                   <ui-icon circular link name="heart" aria-label="Wide"></ui-icon>
                   <ui-popup
@@ -789,10 +787,9 @@
                 </script>
               </ui-markdown>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: <code>offset</code> / <code>data-offset</code>, <code>boundary</code>,
-                <code>scrollContext</code>, <code>lastResort</code> and the <code>transition</code> setting -- CSS
-                anchor positioning places and flips the popup; set the gap with <code>--ui-popup-distance</code> and
-                the motion with <code>--ui-popup-duration</code>.</ui-message
+                >Not ported: Fomantic's offset / data-offset, boundary, scrollContext, lastResort and transition
+                settings. CSS anchor positioning places and flips the popup:  set the gap with
+                <code>--ui-popup-distance</code>, and the motion with <code>--ui-popup-duration</code>.</ui-message
               >
             </ui-section>
 
@@ -850,9 +847,9 @@
                 </script>
               </ui-code>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's behaviors (<code>show</code>, <code>hide</code>, <code>toggle</code>,
-                <code>reposition</code> ...) and callbacks (<code>onShow</code>, <code>onHidden</code> ...) -- write
-                <code>visible</code>, and listen for <code>ui-open</code> / <code>ui-close</code>.</ui-message
+                >Not ported: Fomantic's behaviors (show, hide, toggle, reposition ...) and callbacks (onShow, onHidden
+                ...):  write <code>visible</code> instead. Listen for <code>ui-open</code> /
+                <code>ui-close</code>.</ui-message
               >
             </ui-section>
 

@@ -499,8 +499,8 @@ describe("<ui-section> sticky", () => {
   })
 
   /*
-   * A positioned child with a z-index (a step's arrow, a table's stuck header) scrolls under the stuck title:  the
-   * title still covers it, even when the page sets the title's z-index low (the docs:  4) or to nothing.
+   * A positioned child with a z-index (a step's arrow, a table's stuck header) scrolls under the stuck title:
+   * the title still covers it, even when the page sets the title's z-index low (the docs:  4) or to nothing.
    */
   it.each(["", "--ui-section-z-index: 2", "--ui-section-z-index: 0"])(
     "covers what scrolls under the stuck title, whatever its z-index (%s)",
@@ -1018,8 +1018,8 @@ describe("<ui-section> when its render throws", () => {
 describe("<ui-section> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const root = await ElementFixture.render(EXAMPLES[path]!)
-    // `heading-order` off:  the examples' `<h4>` labels sit between top-level sections' `<h2>`s, an artifact of the
-    // fragments (on a page they'd come under an `h1`), not of the component
+    // `heading-order` off:  the examples' `<h4>` labels sit between top-level sections' `<h2>`s,
+    // an artifact of the fragments (on a page they'd come under an `h1`), not of the component
     await expectAccessible(root, { rules: { "heading-order": { enabled: false } } })
   })
 })

@@ -166,7 +166,7 @@
               >
                 <ui-docs-example>
                   <p slot="description">
-                    By default each event fires only <b>the first time</b> its conditions are met.
+                    By default each event fires only <b>the first time</b> its conditions are met:
                     <code>once="false"</code> fires it each time its condition <b>becomes true</b>, and
                     <code>continuous</code> at every check while it holds. Each segment below counts its
                     <code>ui-top-visible</code> events: scroll them out of view and back.
@@ -188,7 +188,7 @@
               <ui-section id="examples-callbacks-standard-events" label="Standard Events" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    Events occur at the first check where their conditions turn true. Each is Fomantic's callback as a
+                    Events occur at the first check where their conditions turn true, each Fomantic's callback as a
                     <code>ui-*</code> event. The log below shows the demo's events as you scroll past it.
                   </p>
                   <ui-table slot="description" celled definition compact>
@@ -291,11 +291,11 @@
               >
                 <ui-docs-example>
                   <p slot="description">
-                    <code>type="image"</code> gives every <code>&lt;img data-src&gt;</code> inside its
-                    <code>data-src</code> as <code>src</code> once its top is on screen. Keep a placeholder in
-                    <code>src</code> so the content doesn't jump when an image loads, or leave it out and have the image
-                    appear. Images fade in by default: <code>animation</code>, every element's, names another (or
-                    <code>none</code>), and <code>duration</code> its length.
+                    <code>type="image"</code> lazy-loads every <code>&lt;img data-src&gt;</code> inside:  once its top is
+                    on screen, its data-src becomes its src;  keep a placeholder in src so the content doesn't jump when
+                    an image loads, or leave it out and have the image appear. Images fade in by default:
+                    <code>animation</code>, every element's, names another (or none), and <code>duration</code> its
+                    length.
                   </p>
                   <ui-visibility type="image" animation="fade" duration="1000">
                     <ui-items divided unstackable>
@@ -435,8 +435,8 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Gradual Changes -- per-pixel <code>onPassing</code> updates (checks happen at crossings
-                only); for a style that follows the scroll, use CSS scroll-driven animations (<code
+                >Not ported: Gradual Changes, per-pixel <code>onPassing</code> updates (checks happen at crossings
+                only). For a style that follows the scroll, use CSS scroll-driven animations (<code
                   >animation-timeline: view()</code
                 >), which need no script at all.</ui-message
               >

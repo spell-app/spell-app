@@ -17,8 +17,9 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 
 /**
- * What may follow a property's declaration:  a RULE on its line, `, which must not be empty`, and an indented body of
- * them, `- it must not be empty` (epic `property-editor` P9) -- see `DefinePropertyHas.rulesOf()`.
+ * What may follow a property's declaration:  its RULES -- see `DefinePropertyHas.rulesOf()` (epic `property-editor` P9).
+ * - one on its line:  `, which must not be empty`
+ * - an indented body of them:  `- it must not be empty`
  */
 const RULES = "(,? which must {rule:must_rule})? {nested_statements}?"
 
@@ -42,10 +43,12 @@ const RULES = "(,? which must {rule:must_rule})? {nested_statements}?"
  *     - `get name() { return this.getProp("name") }`
  *     - `set name(value) { this.setProp("name", value) }`
  * - An enumeration's values also go on the class, e.g. `static Suits = ["clubs", ...]` -- see `class_member`.
- * - Its RULES, what its value must be (epic `property-editor` P9):  `, which must ...` on its line, and an indented
- *   `- it must ...` under it (`property_body_must`), each a `must_rule`;  and `as a url` / `as an email` brings one.
- *   - They go in its declaration, `{ type: "text", rules: [{ type: "empty" }] }`, and on its record, for its
- *     declarations (`P.TypeScope.addPropertyRules()`).
+ * - Its RULES, what its value must be (epic `property-editor` P9):
+ *   - on its line:  `, which must ...`
+ *   - indented under it:  `- it must ...` (`property_body_must`)
+ *   - Both say a `must_rule`;  and `as a url` / `as an email` brings one.
+ *   - They go in its declaration, `{ type: "text", rules: [{ type: "empty" }] }`,
+ *     and on its record, for its declarations (`P.TypeScope.addPropertyRules()`).
  *   - A rule on a line of its own, `- its title must ...`, is `property_must`'s.
  */
 export class DefinePropertyHas extends SpellStatement<
@@ -130,8 +133,8 @@ export class DefinePropertyHas extends SpellStatement<
   }
 
   /**
-   * Our body, rules indented under us, is about our property:  `it` there is the property (`property_body_must`).
-   * - A `P.SubjectScope` declared by us, so its lines find us.
+   * The scope of our body, the rules indented under us:  a `P.SubjectScope` declared by us, so its lines find us.
+   * - `it` there is our property, not the type (`property_body_must`).
    */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.SubjectScope {
     return new P.SubjectScope({ parentScope: match.scope, subject: `${match.groups.type.value}`, declaredBy: match })

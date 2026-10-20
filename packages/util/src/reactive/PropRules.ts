@@ -1,13 +1,16 @@
 /**
- * PROP RULES:  what a prop's value must be, beyond its type -- "its title must not be empty" (epic `property-editor`
- * P9).
- * - Written in spell on the type, compiled into its class's schema:  `declareProp("title", { rules: [...] })`, or
- *   `Card.declareRules("title", [...])` for a rule on a line of its own.
+ * PROP RULES:  what a prop's value must be, beyond its type, e.g. "its title must not be empty".
+ * - Written in spell on the type, and compiled into its class's schema:
+ *   - with the property's declaration:  `declareProp("title", { rules: [...] })`
+ *   - for a rule on a line of its own:  `Card.declareRules("title", [...])`
  * - Each rule is Fomantic's object form, as Spell UI's form checks read it (`ui`'s `Validator`):
- *   `{ type: "minLength", value: "3", prompt: "Make it longer" }`.  So a form drawn for the type checks the same rules,
- *   in its own words.
- * - Here:  whether a value keeps them, for a setter's WARNING (never a refusal), and what to say when it doesn't.
+ *   `{ type: "minLength", value: "3", prompt: "Make it longer" }`.
+ *   So a form drawn for the type checks the same rules, in its own words.
+ * - This file says:
+ *   - whether a value keeps them, for a setter's WARNING (never a refusal)
+ *   - what to say when it doesn't
  * - GENERIC, as the rest of `$/util/reactive`:  no lodash, nothing spell-specific.
+ * - Epic `property-editor` P9.
  */
 
 /** The rules a prop may have, by Fomantic's names. */
@@ -38,17 +41,19 @@ export type PropRule = {
 
 /**
  * The first of `rules` that `value` breaks, else `undefined`.
- * - An empty value (`undefined`, `null`, `""`, an empty list) breaks only `empty`:  "must not be empty" is what says a
- *   value is required, so the others pass it, as a form's checks do.
- * - Lengths count a list's items, else the text's characters;  numbers are read from text too (`"7"`).
+ * - An empty value (`undefined`, `null`, `""`, an empty list) breaks only `empty`:
+ *   "must not be empty" is what says a value is required, so the others pass it, as a form's checks do.
+ * - Lengths count a list's items, else the text's characters.
+ * - Numbers are read from text too (`"7"`).
  */
 export function brokenRule(value: unknown, rules: readonly PropRule[] | undefined): PropRule | undefined {
   return rules?.find((rule) => !keepsRule(value, rule))
 }
 
 /**
- * What a setter warns when `property` breaks `rule`, before the value:  `title must not be empty`, or with its own
- * words, `title:  Write it like 1.2.3`.
+ * What a setter warns when `property` breaks `rule`;  the value it got follows.
+ * - e.g. `title must not be empty`
+ * - or in the rule's own words (its `prompt`):  `title:  Write it like 1.2.3`
  */
 export function ruleWarning(property: string, rule: PropRule): string {
   return rule.prompt ? `${property}:  ${rule.prompt}` : `${property} ${ruleText(rule)}`

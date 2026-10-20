@@ -103,9 +103,9 @@
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
                     >Not ported: styling the label as another component (Fomantic's
-                    <code>label class="ui purple button"</code>, <code>ui orange message</code>,
-                    <code>ui teal segment</code>) and <code>compact invisible</code> -- the label is in the shadow root,
-                    so it can't take another component's classes.</ui-message
+                    <code>label class="ui purple button"</code>, or an orange message or teal segment label), and
+                    <code>compact invisible</code>. The label is in the shadow root, so it can't take another
+                    component's classes.</ui-message
                   >
                   <ui-form>
                     <form>
@@ -353,8 +353,8 @@
               <ui-section id="examples-examples-two-values" label="Two Values" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    Ours, not Fomantic's: <code>off-value</code> is what a box submits while unchosen, so the form always
-                    hears one of two values (<code>panel=open</code> or <code>panel=closed</code>).
+                    Ours, not Fomantic's:  <code>off-value</code> is what a box submits while unchosen. So the form
+                    always hears one of two values, <code>panel=open</code> or <code>panel=closed</code>.
                   </p>
                   <ui-form>
                     <form>
@@ -374,10 +374,10 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Using Callbacks, Checking Conditions and Attaching Events to other Elements -- they are
-                jQuery behaviours (<code>check</code>, <code>set checked</code>, <code>beforeChecked</code>,
-                <code>attach events</code>). Set the <code>selected</code> property, listen for
-                <code>ui-change</code>, and wire other controls with a click listener (Usage tab).</ui-message
+                >Not ported: Using Callbacks, Checking Conditions and Attaching Events to other Elements, which are
+                jQuery behaviours (check, set checked, beforeChecked, attach events). Instead, set the
+                <code>selected</code> property and listen for <code>ui-change</code>. Wire other controls with a click
+                listener (Usage tab).</ui-message
               >
             </ui-section>
           </ui-tab>

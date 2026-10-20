@@ -5,17 +5,26 @@ import { classes } from "./classes.parser"
 import { RuleSuggestion } from "./RuleSuggestion"
 
 /**
- * `must_rule` rule:  what a property's value must be, the words after `must` -- a PROPERTY RULE
- * (epic `property-editor` P9).
- * - e.g. `not be empty`, `match "^\d+$"`, `be at least 3 letters long`, `be at most 40 letters long`,
- *   `be between 1 and 5`, `be at least 18`, `be at most 120`, `be an email`, `be a url`
- * - Then, if it likes, what to say when it's broken:  `with suggestion "..."` or `saying "..."` (`rule_suggestion`).
- * - Said by a line of its own, `- its title must not be empty` (`property_must`), and by the property's own
- *   statement:  `- it has a title as text, which must not be empty`, or indented under it, `- it must not be empty`
- *   (`define_property_has`).
+ * `must_rule` rule:  what a property's value must be, the words after `must`, e.g. `not be empty`.
+ * - A PROPERTY RULE.  Its forms:
+ *   - `not be empty`
+ *   - `match "^\d+$"`
+ *   - `be at least 3 letters long`, `be at most 40 letters long`
+ *   - `be between 1 and 5`, `be at least 18`, `be at most 120`
+ *   - `be an email`, `be a url`
+ * - Then, if it likes, what to say when it's broken (`rule_suggestion`):
+ *   `with suggestion "..."` or `saying "..."`.
+ * - Where it's said:
+ *   - on a line of its own (`property_must`):  `- its title must not be empty`
+ *   - in the property's own statement (`define_property_has`):  `- it has a title as text, which must not be empty`
+ *   - or indented under that statement:  `- it must not be empty`
  * - Compiles to the rule as data (`PropRule`), the shape Spell UI's form checks read:
- *   `{ type: "minLength", value: "3" }`.  A pattern is written as typed:  `"^\d+$"` means digits, not `d`s.
- * - A form drawn for the type checks it as you type;  a program setting a value that breaks it gets a warning.
+ *   `{ type: "minLength", value: "3" }`.
+ *   - A pattern is written as typed:  `"^\d+$"` means digits, not `d`s.
+ * - Where it's checked:
+ *   - a form drawn for the type checks it as you type
+ *   - a program setting a value that breaks it gets a warning
+ * - Epic `property-editor` P9.
  */
 export class MustRule extends P.Sequence<
   "empty?|suggestion?|pattern?|bound?|count?|min?|max?|limit?|kind?",

@@ -61,8 +61,8 @@
               <ui-section id="examples-types-root" label="Root" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    Put one around a page or an app. Each <code>ui-*</code> tag inside loads its component the first
-                    time it appears; nothing else is downloaded. Load just the root:
+                    Put one around a page or an app:  each <code>ui-*</code> tag inside loads its component the first
+                    time it appears, and nothing else is downloaded. Load just the root:
                     <code>import "@spell-app/ui/ui-root"</code>.
                   </p>
                   <ui-root>
@@ -148,10 +148,10 @@
               <ui-section id="examples-icons-and-emoji-icon-packs" label="Icon packs" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    <code>icons</code> adds packs for everything inside: built-in ids (<code>fa7-free</code>,
-                    <code>fa7-brands</code>, <code>fomantic</code>) or <code>pack.js</code> URLs, comma-separated, later
-                    wins. Outside a root, the page's packs (<code>UI.icons.use()</code>). The sparkle is only in the
-                    example's own pack: inside the root it draws, outside it doesn't.
+                    <code>icons</code> adds packs for everything inside, comma-separated, later wins:  built-in ids
+                    (fa7-free, fa7-brands, fomantic) or <code>pack.js</code> URLs. Outside a root, the page's packs apply
+                    (<code>UI.icons.use()</code>):  the sparkle is only in the example's own pack, so inside the root it
+                    draws, outside it doesn't.
                   </p>
                   <p>
                     Inside:

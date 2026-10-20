@@ -59,9 +59,8 @@
               <ui-section id="examples-types-table" label="Table" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A standard table: <code>&lt;ui-table&gt;</code> around a native <code>&lt;table&gt;</code>. Rows,
-                    cells and their class words (<code>positive</code>, <code>right aligned</code>,
-                    <code>collapsing</code> ...) stay plain HTML.
+                    A standard table:  <code>&lt;ui-table&gt;</code> around a native <code>&lt;table&gt;</code>. Rows,
+                    cells and their class words (positive, right aligned, collapsing ...) stay plain HTML.
                   </p>
                   <ui-message slot="description" state="positive" size="small"
                     >Tables will automatically stack their layouts for mobile devices. To disable this behavior, use
@@ -464,7 +463,7 @@
                 dividing
               >
                 <ui-docs-example
-                  description='A table keeps every native part:  a `<caption>`, row headers (`th scope="row"`), and the `full-width` class on `thead` / `tfoot`.'
+                  description='A table keeps every native part:  a `<caption>`, and row headers (`th scope="row"`).  The `full-width` class works on `thead` / `tfoot` too.'
                 >
                   <ui-table definition compact celled>
                     <table>
@@ -1376,7 +1375,7 @@
                 </ui-docs-example>
                 <ui-docs-example>
                   <ui-message slot="description" state="info" size="small"
-                    ><code>very basic</code> tables have loose padding unless they are also
+                    >Very basic tables have loose padding unless they are also
                     <a href="#examples-variations-sortable"><code>sortable</code></a> or <a href="#examples-variations-striped"><code>striped</code></a
                     >.</ui-message
                   >
@@ -2170,9 +2169,9 @@
                 <ui-docs-example>
                   <p slot="description">A table may allow a user to sort contents by clicking on a table header.</p>
                   <ui-message slot="description" state="info" size="small"
-                    >No plugin needed: a header click (or Enter / Space) fires <code>ui-sort</code> and marks the column
-                    (<code>sort-column</code>, <code>sort-direction</code>, <code>aria-sort</code>);
-                    <code>client-sort</code> also reorders the rows. Click a header to try it.</ui-message
+                    >No plugin needed:  a header click (or Enter / Space) fires <code>ui-sort</code>, and marks the column
+                    with sort-column, sort-direction and aria-sort. <code>client-sort</code> also reorders the rows;
+                    click a header to try it.</ui-message
                   >
                   <ui-table sortable celled client-sort>
                     <table>
@@ -2729,8 +2728,8 @@
                 </ui-docs-example>
                 <ui-docs-example>
                   <p slot="description">
-                    A scrolling table optionally supports predefined heights: <code>scrolling="long"</code>,
-                    <code>"very long"</code>, <code>"short"</code> and <code>"very short"</code>.
+                    A scrolling table optionally supports predefined heights:  <code>scrolling</code> is long, very long,
+                    short or very short.
                   </p>
                   <ui-table scrolling="long" unstackable celled aria-label="People, long">
                     <table>
@@ -2970,8 +2969,8 @@
               <ui-section id="examples-variations-stuck" label="Stuck" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A table can scroll horizontally having its <code>head</code>, <code>foot</code>,
-                    <code>first</code> or <code>last</code> column keep staying stuck.
+                    A table can scroll horizontally, with its head, foot, first or last column staying stuck
+                    (<code>stuck</code>).
                   </p>
                   <p slot="description">
                     You can freely stick any combination like <code>stuck="head first"</code>,

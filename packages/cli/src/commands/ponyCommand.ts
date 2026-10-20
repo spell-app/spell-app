@@ -1,8 +1,8 @@
 import { CLI } from "$/cli"
 
 /**
- * `spell pony [words...] [--gallop]`:  prints a pony in Spell's wizard hat, saying the words (else one of
- * `PONY_SAYINGS`).
+ * `spell pony [words...] [--gallop]`:  prints a pony in Spell's wizard hat, saying the words
+ * (else one of `PONY_SAYINGS`).
  * - Owen asked for a pony (epic `claude-design`, 2026-10-05;  its other pony is `brand/pony.html`).
  * - `--gallop` (epic `property-editor` P8):  her legs gallop.
  *   - In a terminal:  drawn in place, a few strides, then she stands.

@@ -11,18 +11,20 @@ import { FIELD_SELECTOR, type FieldApply } from "./UIForm.types"
  * each control shows its property of the object, and writes it back as the person changes it.
  *
  * - What a control binds to, its SCOPE:  the nearest scope holder at or above it.
- *   - a `<ui-repeat>` row's elements hold the row's item;  the `<ui-form>` holds its `value`
- *   - they say so through `FormBinding.hold()`;  `scopeAround()` finds one, so a nested `<ui-repeat>` reads its
- *     list from its own row's item
+ *   - the `<ui-form>` holds its `value`
+ *   - a `<ui-repeat>` row's elements hold the row's item
+ *   - they say so through `FormBinding.hold()`, and `scopeAround()` finds one:
+ *     so a nested `<ui-repeat>` reads its list from its own row's item
  * - MANY THINGS:  a scope that's a list (an array) binds each control to every thing in it.
- *   - a control shows the value they all agree on;  when they don't, it shows blank, its `<ui-field>` gets
- *     `mixed`, and the control a "Mixed" placeholder
+ *   - a control shows the value they all agree on
+ *   - when they don't, it shows blank:  its `<ui-field>` gets `mixed`, and the control a "Mixed" placeholder
  *   - a write sets the property on all of them
  * - Object => control:  one Solid effect per control, reading `scope[name]`.
  *   - So it follows whatever Solid can:  signals, Spell UI's reactive members,
  *     spell's objects (their page bridges spell cells into Solid)
- *   - a checkbox / toggle shows `!!value` (`selected`);  a radio is chosen while `value` is its own value;
- *     anything else shows `value` (`""` for nullish)
+ *   - a checkbox / toggle shows `!!value` (`selected`)
+ *   - a radio is chosen while `value` is its own value
+ *   - anything else shows `value` (`""` for nullish)
  * - A dotted `name` reaches into nested things:  `name="font.size"` shows and writes `scope.font.size`.
  * - Control => object:  a change from a bound control (`input`, `change`, `ui-change`) writes `scope[name]`,
  *   when its `<ui-field apply>` says (`applyOf()`):
@@ -34,13 +36,15 @@ import { FIELD_SELECTOR, type FieldApply } from "./UIForm.types"
  *     any other control keeps a number property a number while what's typed reads as one
  *   - never when equal (`===`);  showing a value sends no event, so nothing loops
  *   - never a value the form refuses (`canWrite`:  it fails validation)
- * - HELD edits (`<ui-form apply="on save">`, `isHolding`):  a write is kept, not made, until `save()`;
+ * - HELD edits (`<ui-form apply="on save">`, `isHolding`):  a write is kept, not made, until `save()`.
  *   `cancel()` drops them and shows the object again.
  * - Controls come and go (rows of a repeat, conditional fields):  `update()` binds the new ones
  *   and lets go of those gone.
  *   - a `ui-*` control whose family loads later (`<ui-root>` loads them on demand) is bound once its tag is defined
- * - Plain DOM plus Solid:  knows `<ui-form>` and `<ui-repeat>` only as scope holders, `<ui-field>` by its
- *   attributes, and reads controls the way `FormFields` does.
+ * - Plain DOM plus Solid.  What it knows of the rest:
+ *   - `<ui-form>` and `<ui-repeat>`:  only as scope holders
+ *   - `<ui-field>`:  by its attributes
+ *   - controls:  it reads them the way `FormFields` does
  ****************/
 export class FormBinding {
   /**
@@ -224,8 +228,8 @@ export class FormBinding {
   }
 
   /**
-   * `scope[name] = ` what the control holds now (on every thing, for many), unless that's what it holds already;
-   * held instead while the form holds edits.
+   * `scope[name] = ` what the control holds now (on every thing, for many), unless that's what it holds already.
+   * - Held instead while the form holds edits.
    * - NEVER throws:  a property that can't be set (a getter alone) warns.
    * - Untracked:  it reads the scope and the property to write them, never to follow them.
    */
@@ -397,7 +401,10 @@ export class FormBinding {
     return value
   }
 
-  /** What a dotted `name` writes to:  the thing holding its last key (`undefined` where the path meets nothing), and that key. */
+  /**
+   * What a dotted `name` writes to:  the thing holding its last key, and that key.
+   * - The thing is `undefined` where the path meets nothing.
+   */
   private static ownerOf(
     target: Record<PropertyKey, unknown>,
     name: string

@@ -7,11 +7,11 @@ import { editor, type EditorStore } from "$/app/editor"
 import { PropertyEditorFiles, type RunningCore } from "$/app/ui/PropertyEditorFiles"
 
 /**
- * A project's property editor pages (epic `property-editor` P6):  a type's schema, both ways, and the editor's
- * "New Property Editor..." writing one.
+ * A project's property editor pages (epic `property-editor` P6):
+ * a type's schema, both ways, and the editor's "New Property Editor..." writing one.
  * - In the browser:  the page is written on its `document`.
- * - The project is a stand-in, its declarations handed back by a spy on `SP.SpellProject.declarationsOf()`;
- *   the server is never asked:  `SPACES.ProjectFiles.create()` records what it was given.
+ * - The project is a stand-in, its declarations handed back by a spy on `SP.SpellProject.declarationsOf()`.
+ * - The server is never asked:  `SPACES.ProjectFiles.create()` records what it was given.
  */
 
 /** A compiled project's declarations:  a `Card` and a `Pile`. */

@@ -6,8 +6,9 @@
 import type { E } from "$/ui/core"
 
 /**
- * A vocabulary's names, minus `skip`'s and those `own` names already:  what an element PASSES THROUGH
- * from the element it's built on (the editor from `<ui-section>` and `<ui-form>`, the group from `<ui-section>`).
+ * What an element PASSES THROUGH from the element it's built on:
+ * a vocabulary's names, minus `skip`'s and those `own` names already.
+ * - The editor passes through `<ui-section>`'s and `<ui-form>`'s;  the group, `<ui-section>`'s.
  * - Its own come first, in their order;  then each base's, in theirs.
  */
 export function passThrough<T extends { name?: string; key?: string }>(

@@ -5,8 +5,8 @@ import { PropertySchemas } from "./PropertySchemas"
 
 /****************
  * ### `PropertyEditorPages`
- * EDITOR PAGES:  a property editor's layout saved as a file of plain markup, `Card.editor.html`
- * (epic `property-editor` P6), which `<ui-property-editor source>` loads as it is.
+ * EDITOR PAGES:  a property editor's layout saved as a file of plain markup, `Card.editor.html`,
+ * which `<ui-property-editor source>` loads as it is (epic `property-editor` P6).
  *
  * ```html
  * <ui-property-editor schema="Card" label="Card">
@@ -22,11 +22,14 @@ import { PropertySchemas } from "./PropertySchemas"
  *   - a property the page names that the schema dropped
  *   - an attribute of the schema the page doesn't name
  *   - a control (`as`) that no longer fits its type (`select` for a value that has no choices any more)
- * - `compile()`:  the page as ONE javascript module defining `<card-editor>` (epic `property-editor` P7):
- *   its layout and schema inlined, so it needs Spell UI's property editor and nothing else (no page loading,
- *   no spell parser).  `spell compile` writes it beside a program's own output, `Card.editor.js`.
- * - `fix()`:  the page put right:  dropped properties taken away, new ones added to an "Other" group,
- *   a control that no longer fits back to its type's own.
+ * - `compile()`:  the page as ONE javascript module defining `<card-editor>` (epic `property-editor` P7).
+ *   - Its layout and schema are inlined, so it needs Spell UI's property editor and nothing else:
+ *     no page loading, no spell parser.
+ *   - `spell compile` writes it beside a program's own output, `Card.editor.js`.
+ * - `fix()`:  the page put right:
+ *   - dropped properties taken away
+ *   - new ones added to an "Other" group
+ *   - a control that no longer fits back to its type's own
  * - DOM only, no Solid and no runtime:  a browser's DOM, or linkedom's under node (`spell check`).
  * - STATIC and instance-free:  it keeps nothing between calls.
  ****************/
@@ -76,7 +79,8 @@ export class PropertyEditorPages {
 
   /**
    * Put the page whose editor is `editor` right, against `schema` (see the class doc);  returns what it did.
-   * - SIDE EFFECT:  changes `editor` and what's in it;  `text()` writes it back.
+   * - SIDE EFFECT:  changes `editor` and what's in it.
+   *   `text()` writes it back.
    */
   static fix(editor: Element, schema: V.PropertySchema): PageProblem[] {
     const problems = PropertyEditorPages.check(editor, schema)
@@ -92,19 +96,23 @@ export class PropertyEditorPages {
 
   /**
    * An editor's markup as a page's text:  its start tag, then each child on its own lines, two spaces in.
-   * - Built from the elements (`outerHTML`), not from strings;  every element with elements inside it (a group)
-   *   on lines of its own, each a level further in.
+   * - Built from the elements (`outerHTML`), not from strings.
+   * - Every element with elements inside it (a group) is on lines of its own, each a level further in.
    */
   static text(editor: Element): string {
     return `${PropertyEditorPages.lines(editor, 0).join("\n")}\n`
   }
 
   /**
-   * The page whose editor is `editor`, compiled for `schema`:  a javascript module defining `<card-editor>`
-   * (`Card`'s, its tag from the schema's name), with its class's name and the module's text.
-   * - The element draws a `<ui-property-editor>` in its light DOM:  the page's editor's attributes (its own win),
-   *   the schema, and the page's layout;  `value`, `save()`, `cancel()` and `validate()` reach it.
-   * - `uiModule`:  what it imports for Spell UI's property editor;  a page that has it already passes another.
+   * The page whose editor is `editor`, compiled for `schema`:  a javascript module defining `<card-editor>`.
+   * - Its tag comes from the schema's name (`Card`'s).
+   * - Returns the tag, its class's name and the module's text.
+   * - The element draws a `<ui-property-editor>` in its light DOM, with:
+   *   - the page's editor's attributes (its own win)
+   *   - the schema, and the page's layout
+   *   - `value`, `save()`, `cancel()` and `validate()` reach it
+   * - `uiModule`:  what it imports for Spell UI's property editor.
+   *   A page that has it already passes another.
    * - Code made as text (as spell compiles programs), from the page's own markup (`text()`).
    */
   static compile(
@@ -218,8 +226,9 @@ export class PropertyEditorPages {
   }
 
   /**
-   * `element`'s lines, `depth` levels in:  one line when it has no element inside it (a property, a button);
-   * else its start tag, each child a level further in, and its end tag.
+   * `element`'s lines, `depth` levels in:
+   * - one line when it has no element inside it (a property, a button)
+   * - else its start tag, each child a level further in, and its end tag
    */
   private static lines(element: Element, depth: number): string[] {
     const indent = INDENT.repeat(depth)
@@ -249,7 +258,12 @@ export type CompiledPage = {
 
 /** One thing wrong with a page. */
 export type PageProblem = {
-  /** `dropped`:  the schema has no such property;  `missing`:  the page doesn't name one;  `control`:  `as` doesn't fit. */
+  /**
+   * What kind of wrong:
+   * - `dropped`:  the schema has no such property
+   * - `missing`:  the page doesn't name one
+   * - `control`:  `as` doesn't fit
+   */
   kind: "dropped" | "missing" | "control"
   /** The property. */
   name: string

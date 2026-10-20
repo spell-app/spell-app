@@ -1,9 +1,9 @@
 /**
- * Entry of the brand pages' bundle, `_assets/ui/brand-ui.js` (+ `brand-ui.css`):  the ONE script a `.spell.html`
- * page loads.
- * - Built by `yarn build` here (`scripts/build.ts`, config `vite.config.ts`) into `_assets/ui/`, NOT committed:  the
- *   page server builds it when it starts, if stale (`spell dev bundles`).  Edit THIS (and the sources), never
- *   `_assets/ui/`.
+ * Entry of the brand pages' bundle, `_assets/ui/brand-ui.js` (+ `brand-ui.css`):
+ * the ONE script a `.spell.html` page loads.
+ * - Built by `yarn build` here (`scripts/build.ts`, config `vite.config.ts`) into `_assets/ui/`, NOT committed:
+ *   the page server builds it when it starts, if stale (`spell dev bundles`).
+ * - Edit THIS (and the sources), never `_assets/ui/`.
  * - A page in the shared `brand/spell-design-system/` loads it as:
  *     <link rel="stylesheet" href="../../packages/brand/_assets/ui/brand-ui.css">
  *     <script type="module" src="../../packages/brand/_assets/ui/brand-ui.js"></script>
@@ -12,17 +12,17 @@
  *   0. `./hues`:  the brand's `accent` hue, added to Spell UI's `hues` before any element is defined
  *   1. the page CSS, extracted to `brand-ui.css`:
  *      - `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup)
- *      - the inspector's fields (`inspector.css`):  Spell UI's `<ui-field>` in a `<ui-panel>`, as Claude Design
- *        draws them
- *   2. `BuiltInPacks`:  pointed at `_assets/ui/icon-packs/` (a symlink to ui's packs) from THIS file's URL, so
- *      every Font Awesome 7 icon draws, offline
- *   3. (LAST, by `import()`:  after the hue, whatever the chunking)  every `ui-*` family (`$/ui`) and every
- *      `brand-*` element (`$/brand/components`), defined at once:  brand
- *      pages are small and use many families
+ *      - the inspector's fields (`inspector.css`):
+ *        Spell UI's `<ui-field>` in a `<ui-panel>`, as Claude Design draws them
+ *   2. `BuiltInPacks`:  pointed at `_assets/ui/icon-packs/` (a symlink to ui's packs) from THIS file's URL,
+ *      so every Font Awesome 7 icon draws, offline
+ *   3. (LAST, by `import()`:  after the hue, whatever the chunking)
+ *      every `ui-*` family (`$/ui`) and every `brand-*` element (`$/brand/components`), defined at once:
+ *      brand pages are small and use many families
  *   4. the `spell-brand` theme (`UI.themes.apply()`), then the site header (`defineSite()`)
  * - Lazy, by `import()`:  the runtime, the theme sheets, `<ui-code>`'s and `<ui-markdown>`'s engines, emoji names.
- * - `window.UI`:  the runtime, for poking in DevTools;  `window.Palette`:  the brand's colour math (`$/brand`), for
- *   the pages' own scripts.
+ * - `window.UI`:  the runtime, for poking in DevTools.
+ * - `window.Palette`:  the brand's colour math (`$/brand`), for the pages' own scripts.
  */
 import "./hues"
 import "$/ui/styles/ui.css"

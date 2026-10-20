@@ -42,14 +42,19 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
   }
 
   /**
-   * `apply="on save"`:  the held edits land in the bound `value`, after every field validates;
-   * `ui-saving` (cancelable) then `ui-saved`.  True when they landed.
+   * `apply="on save"`:  the held edits land in the bound `value`, after every field validates.
+   * - `ui-saving` (cancelable), then `ui-saved`.
+   * - True when they landed.
    */
   save(): boolean {
     return this.component?.save() ?? false
   }
 
-  /** `apply="on save"`:  drop the held edits;  `ui-cancelling` (cancelable) then `ui-cancelled`.  True when dropped. */
+  /**
+   * `apply="on save"`:  drop the held edits.
+   * - `ui-cancelling` (cancelable), then `ui-cancelled`.
+   * - True when dropped.
+   */
   cancel(): boolean {
     return this.component?.cancel() ?? false
   }
@@ -68,12 +73,13 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
 
 /****************
  * ### `UIForm`
- * The component behind `<ui-form>`:
- * a form's look, `<div class="ui … form" part="form"><slot></slot></div>`, and its VALIDATION, over a NATIVE form.
+ * The component behind `<ui-form>`:  a form's look and its VALIDATION, over a NATIVE form.
+ * - Its look:  `<div class="ui … form" part="form"><slot></slot></div>`.
  *
  * - Why not a form of its own:
- *   a form-associated control belongs to the nearest `<form>` ANCESTOR in its own tree,
- *   so a `<form>` in this shadow root would never own the slotted controls, and a custom element can't BE a form.
+ *   a form-associated control belongs to the nearest `<form>` ANCESTOR in its own tree.
+ *   - So a `<form>` in this shadow root would never own the slotted controls.
+ *   - And a custom element can't BE a form.
  *   - So `<ui-form>` works with a light-DOM `<form>`:  one slotted INSIDE it (`<ui-form><form>…`, preferred),
  *     else the one AROUND it (`<form><ui-form>…`).
  *   - It never creates or moves one:  frameworks own that DOM.
@@ -89,11 +95,13 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
  *     so the page's own submit handlers never see an invalid form, as natively.
  *   - Valid:  the cancelable `ui-success` (cancelled => no native submission).
  *
- * - Prompts:  each field's first control's `<ui-field>` (`:state(field)`) gets `showErrors()`;
- *   failing controls get `aria-invalid="true"` (removed when they pass).
- *   A field that shows an error validates again as it changes, whatever `validate` says.
- *   - `validate`:  `on save` (the default) validates on submit and `save()`;  `on leave` also as the cursor leaves
- *     a field;  `immediately` also as one changes.
+ * - Prompts:  each field's first control's `<ui-field>` (`:state(field)`) gets `showErrors()`.
+ *   - Failing controls get `aria-invalid="true"` (removed when they pass).
+ *   - A field that shows an error validates again as it changes, whatever `validate` says.
+ *   - `validate`, when fields validate:
+ *     - `on save` (the default):  on submit and `save()`
+ *     - `on leave`:  also as the cursor leaves a field
+ *     - `immediately`:  also as one changes
  *   - Each field's rules:  the form's `rules` for it, plus its `<ui-field rules>`.
  *
  * - `ui-valid` / `ui-invalid` fire per field validated.
@@ -102,17 +110,18 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
  * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect, reset or success.
  *
  * - `value`:  the form is BOUND to that object (`FormBinding`).
- *   - each named control shows its property, and writes it back as the person changes it;
- *     a control inside a `<ui-repeat>` row binds to that row's item instead
+ *   - each named control shows its property, and writes it back as the person changes it
+ *   - a control inside a `<ui-repeat>` row binds to that row's item instead
  *   - live both ways, for anything Solid follows (signals, reactive members, spell's objects)
  *   - after a reset or a clear, the object takes the controls' values
  *   - a LIST of things binds each control to all of them:  the value they agree on, else blank and `mixed`
  *   - each field writes when its `<ui-field apply>` says:  `immediately`, `delayed` after a pause, or `on leave`
  *   - a value that fails validation is never written
- *   - `apply="on save"`:  edits are held (`:state(changed)`) until `save()`;  `cancel()` drops them
+ *   - `apply="on save"`:  edits are held (`:state(changed)`) until `save()`, and `cancel()` drops them
  *   - without it, nothing is bound:  the form works as it always has
- * - `debug`:  below the content, a captioned box whose `<pre part="debug">` shows the bound `value` as JSON
- *   (its `toJSON()` counts), else `values`;  redrawn as they change.
+ * - `debug`:  below the content, a captioned box whose `<pre part="debug">` shows, redrawn as they change:
+ *   - the bound `value` as JSON (its `toJSON()` counts)
+ *   - else `values`
  *   - Why the box and caption:  bare JSON under a form reads as page text, and gets missed.
  *
  * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root,
@@ -360,8 +369,8 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /**
    * What `debug` shows:  the bound `value` as JSON (an object's own `toJSON()` counts), else `values`.
-   * - Tracked:  the JSON reads every property it shows, so a reactive object redraws it as it changes;
-   *   `changeCount` covers the rest (a plain object, `values` read from the DOM).
+   * - Tracked:  the JSON reads every property it shows, so a reactive object redraws it as it changes.
+   * - `changeCount` covers the rest (a plain object, `values` read from the DOM).
    */
   private get debugText(): string {
     const { value } = this
@@ -449,7 +458,8 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /**
    * Validate every field;  errors by field.
-   * - `"show"`:  prompts, `aria-invalid` and per-field events too;  the caller focuses the first invalid field.
+   * - `"show"`:  prompts, `aria-invalid` and per-field events too.
+   *   The caller focuses the first invalid field.
    * - `"silently"`:  the verdict alone.
    */
   private check(mode: CheckMode): Record<string, string[]> {
@@ -627,8 +637,8 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /**
    * A control changed (a light-DOM control's native `change` / `input`, an element's `ui-change`):
-   * write it back to `value` and redraw `debug` (both a microtask later),
-   * and validate it for `validate="immediately"`, or while it shows an error.
+   * - write it back to `value` and redraw `debug`, both a microtask later
+   * - validate it for `validate="immediately"`, or while it shows an error
    */
   @E.on("change")
   @E.on("input")
@@ -641,7 +651,11 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     if (this.fieldsShowingErrors.has(identifier) || this.validate === IMMEDIATELY) this.checkFieldSoon(identifier)
   }
 
-  /** A control lost focus:  write it back if its field writes `on leave`;  validate it for `validate="on leave"`. */
+  /**
+   * A control lost focus:
+   * - write it back if its field writes `on leave`
+   * - validate it for `validate="on leave"`
+   */
   @E.on("focusout")
   protected onFocusOut(event: FocusEvent) {
     this.binding.onLeave(event)
@@ -678,8 +692,9 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   }
 
   /**
-   * Server render:  the author's `<form>`, when it is the DOM element's only element child,
-   * unwrapped (its children take its place);  returns its attributes, else `undefined`.
+   * Server render:  unwrap the author's `<form>`, when it is the DOM element's only element child
+   * (its children take its place).
+   * - Returns its attributes, else `undefined`.
    * - STATIC:  it runs from a field initializer, before the instance is ready, and needs only the DOM element.
    */
   private static unwrapForm(domElement: Element): Record<string, string> | undefined {

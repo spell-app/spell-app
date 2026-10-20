@@ -56,16 +56,16 @@
           <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
-              The calculator example, with its debug pane open. Everything under the toolbar is a RunnerSplit: the app
+              The calculator example, with its debug pane open: everything under the toolbar is a RunnerSplit, the app
               above, the bar, the debug pane below. Drag the bar to move it; click Debug to close the bottom pane.
             </p>
             <ui-docs-example description="The app on top, the debug pane below, and the bar between them.">
               <spell-app project="@spell/examples/calculator" toolbar debug="explorer" height="560px"></spell-app>
             </ui-docs-example>
             <p class="meta">
-              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
-              >), which this set's pages load.
+              Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
+              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <code>yarn build:element</code>.
             </p>
           </ui-section>
 

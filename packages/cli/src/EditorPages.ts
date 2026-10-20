@@ -15,7 +15,8 @@ import { CLI } from "$/cli"
  * - The type's properties come from the project's declarations (`SPACES.TypeSchemas`),
  *   compiled just now, in memory:  so a page is checked against the source as it is.
  * - What's wrong with a page, and how to put it right, is Spell UI's `PropertyEditorPages`.
- *   This finds the pages, reads them into linkedom's DOM, and says where on the page each problem is.
+ *   This class finds the pages, reads each into a DOM (linkedom's, in node),
+ *   and says where on the page each problem is.
  * - Each problem is a `CLI.Problem`, so `spell check` prints it as it does any other (`path:line:col  message`).
  ****************/
 export class EditorPages {
@@ -104,9 +105,10 @@ export class EditorPages {
   }
 
   /**
-   * Compile each page into a module defining its `<type-editor>` (`PropertyEditorPages.compile()`), beside the
-   * project's own output:  `Card.editor.html` => `Card.editor.js` (epic `property-editor` P7, Q19).
-   * - Run after `spell compile` has compiled and SAVED the project:  each page's type from its declarations then.
+   * Compile each page into a module defining its `<type-editor>` (`PropertyEditorPages.compile()`),
+   * beside the project's own output:  `Card.editor.html` => `Card.editor.js` (epic `property-editor` P7, Q19).
+   * - Run it after `spell compile` has compiled and SAVED the project:
+   *   it reads each page's type from the declarations just saved.
    * - Returns the files written, and a note per page it couldn't compile (no editor, no such type).
    * - SIDE EFFECT:  writes the modules.
    */

@@ -37,8 +37,9 @@ vi.setConfig({ testTimeout: 30_000 })
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
 
 /**
- * Whether this checkout runs the epic engine:  spell-epic, through its `spell-epic` link, and the epic pages
- * (epic `epic-eject` I5).  Without them (CI), the tests of what `spell` hands on to `epic` are skipped.
+ * Whether this checkout runs the epic engine:
+ * spell-epic, through its `spell-epic` link, and the epic pages (epic `epic-eject` I5).
+ * - Without them (CI), the tests of what `spell` hands on to `epic` are skipped.
  */
 const HAS_ENGINE =
   existsSync(resolve(REPO_ROOT, "spell-epic", "bin", "epic")) && existsSync(resolve(REPO_ROOT, "epics"))
@@ -180,8 +181,8 @@ describe("spell dev", () => {
 })
 
 describe("spell dev pass-throughs", () => {
-  // the epic tools (`window`, `details`, the docs tools ...):  `epic`'s, spell-epic's;  here a fake `epic` in the
-  // checkout's `spell-epic` link, reporting what it was handed
+  // the epic tools (`window`, `details`, the docs tools ...):  `epic`'s, spell-epic's;
+  // here a fake `epic` in the checkout's `spell-epic` link, reporting what it was handed
   /** A fake checkout, each tool a script reporting what it got:  `{ tool, args, cwd, tsconfig }`, exiting 3. */
   const CHECKOUT = resolve(TEMP, "checkout")
   /** A folder inside it, to run from:  the tools must still be found. */

@@ -17,7 +17,10 @@ import propertyCSS from "./UIProperty.css?inline"
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMPropertyElement extends DOMFieldElement {
-  /** The schema's rules for it (`rules`, and `min` / `max` / `pattern` as rules):  `<ui-form>` adds them to the form's. */
+  /**
+   * The schema's rules for it:  its `rules`, and `min` / `max` / `pattern` as rules.
+   * - `<ui-form>` adds them to the form's.
+   */
   @E.untracked
   get schemaRules(): readonly E.ValidationRule[] | undefined {
     return (this.component as UIProperty | undefined)?.schemaRules
@@ -34,16 +37,19 @@ export class DOMPropertyElement extends DOMFieldElement {
  * ### `UIProperty`
  * The component behind `<ui-property>`:  one property of the thing its `<ui-property-editor>` edits.
  *
- * - It IS a `<ui-field>` (it extends `UIField`):  the label row, the tip, the hint, the error lines, `apply`, `mixed`,
- *   `rules`;  `<ui-form>` finds it as a field (`:state(field)`) and binds its control.
- * - What it knows of its property comes from the editor's SCHEMA (`spec`), found by `name` (a dotted name reaches into
- *   a nested thing's attributes):
+ * - It IS a `<ui-field>` (it extends `UIField`):
+ *   the label row, the tip, the hint, the error lines, `apply`, `mixed`, `rules`.
+ *   `<ui-form>` finds it as a field (`:state(field)`) and binds its control.
+ * - What it knows of its property comes from the editor's SCHEMA (`spec`), found by `name`
+ *   (a dotted name reaches into a nested thing's attributes):
  *   - the label (`labelOf()`:  its own, else made from the name) and the tip, unless the field's own say otherwise
  *   - its value's type, so its default control (`UI.propertyControls.kindFor()`)
  *   - its choices (`values`, a `choicesFrom` source), limits and rules
- * - Its CONTROL:  one it holds already (the author's), else one it MAKES, as `as` says (else the type's kind),
+ * - Its CONTROL:  one it holds already (the author's),
+ *   else one it MAKES, of the kind `as` says (else the type's kind),
  *   and adds to its own light DOM, as `<ui-repeat>` adds rows.
- *   - Made with `name` = the property's name, so the editor's form binds it;  its choices as children.
+ *   - Made with `name` = the property's name, so the editor's form binds it.
+ *   - Its choices go in as the control's children.
  *   - Made again when the kind or the choices change;  taken away when the author adds their own.
  *   - SIDE EFFECT:  adds and removes elements in its light DOM, marked `data-ui-made`.
  * - `readonly` nests:  its own, or a `readonly` group or editor around it, makes the control readonly.
@@ -152,7 +158,10 @@ export class UIProperty extends UIField {
   // ## The control it makes
   ////////////////
 
-  /** The kind of control it draws:  `as`, else its type's default.  `undefined` until the page's runtime is in. */
+  /**
+   * The kind of control it draws:  `as`, else its type's default.
+   * - `undefined` until the page's runtime has loaded.
+   */
   get controlKind(): string | undefined {
     if (!this.isReady) return undefined
     return this.requestedKind ?? UI.propertyControls.kindFor(this.valueType)

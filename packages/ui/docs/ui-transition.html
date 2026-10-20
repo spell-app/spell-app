@@ -232,9 +232,9 @@
 
             <ui-section id="examples-static-animations" label="Static Animations" sticky collapsible dividing>
               <ui-message size="small" state="info"
-                >Static (attention) animations run in place and leave the element as it was:
-                <code>command="--transition"</code> runs the element's <code>animation</code>, and
-                <code>looping pulsating</code> needs no command at all.</ui-message
+                >Static (attention) animations run in place, and leave the element as it was.
+                <code>command="--transition"</code> runs the element's <code>animation</code>, and looping pulsating
+                needs no command at all.</ui-message
               >
 
               <ui-section id="examples-static-animations-pulsating" label="Pulsating" sticky collapsible dividing>
@@ -349,9 +349,9 @@
               >
                 <ui-docs-example>
                   <p slot="description">
-                    After the animation queue finishes for an element, its final visibility state is determined. An
-                    outward transition leaves it hidden; an inward one leaves it visible. Without
-                    <code>visible</code> the content starts hidden: out of the page and the accessibility tree.
+                    Once an element's animation queue finishes, its final visibility is set:  an outward transition
+                    leaves it hidden, an inward one visible. Without <code>visible</code>, the content starts hidden:
+                    out of the page and the accessibility tree.
                   </p>
                   <ui-button size="small" commandfor="tr-hidden" command="--show">Show</ui-button>
                   <ui-button size="small" commandfor="tr-hidden" command="--close">Hide</ui-button>
@@ -413,10 +413,10 @@
             <ui-section id="examples-grouped-transitions" label="Grouped Transitions" sticky collapsible dividing>
               <!-- GAP I70:  no grouped transitions (Fomantic's `interval`, `reverse`);  each element animates on its own. -->
               <ui-message size="small" class="site-not-ported"
-                >Not yet: Animation Intervals, Animation Order and Forcing Order -- one
+                >Not yet: Animation Intervals, Animation Order and Forcing Order. One
                 <code>&lt;ui-transition&gt;</code> animates its own box, so a group that appears one after another
-                (<code>interval</code>, <code>reverse</code>) needs a script calling each element's
-                <code>transition()</code> in turn.</ui-message
+                (interval, reverse) needs a script calling each element's <code>transition()</code> in
+                turn.</ui-message
               >
             </ui-section>
 

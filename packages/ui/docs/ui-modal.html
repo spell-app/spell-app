@@ -164,16 +164,23 @@
                 <ui-docs-example>
                   <p slot="description">A modal can contain a row of actions: <code>&lt;ui-actions&gt;</code>.</p>
                   <ui-message slot="description" size="small" state="info"
-                    >Buttons anywhere inside act by Fomantic's classes: <code>approve</code> / <code>ok</code> /
-                    <code>positive</code> (or <code>&lt;ui-button positive&gt;</code>) approve, <code>deny</code> /
-                    <code>cancel</code> / <code>negative</code> (or <code>&lt;ui-button negative&gt;</code>) deny. Each
-                    fires the cancelable <code>ui-approve</code> / <code>ui-deny</code>, then closes the
+                    >Buttons anywhere inside act by Fomantic's classes:
+                    <ul>
+                      <li>
+                        approve:  <code>approve</code> / <code>ok</code> / <code>positive</code>, or
+                        <code>&lt;ui-button positive&gt;</code>
+                      </li>
+                      <li>
+                        deny:  <code>deny</code> / <code>cancel</code> / <code>negative</code>, or
+                        <code>&lt;ui-button negative&gt;</code>
+                      </li>
+                    </ul>
+                    Each fires the cancelable <code>ui-approve</code> / <code>ui-deny</code>, then closes the
                     modal.</ui-message
                   >
                   <ui-message slot="description" size="small" state="warning"
-                    >To keep a modal open after an action, call <code>preventDefault()</code> on its
-                    <code>ui-approve</code> / <code>ui-deny</code> event (Fomantic's callback returning
-                    <code>false</code>).</ui-message
+                    >To keep a modal open after an action, call <code>preventDefault()</code> on its approve or deny
+                    event. That's Fomantic's callback returning <code>false</code>.</ui-message
                   >
                   <ui-button commandfor="modal-content-actions" command="--show">Show</ui-button>
                   <ui-modal id="modal-content-actions" header="Header">
@@ -270,8 +277,8 @@
                 <ui-docs-example>
                   <p slot="description">A modal can be shown inverted: the dark scheme.</p>
                   <ui-message slot="description" size="small" class="site-not-ported"
-                    >Not ported: Fomantic's <code>inverted: true</code> setting (a white dimmer) -- the dimmer is the
-                    dialog's <code>::backdrop</code>; colour it with <code>--ui-modal-dimmer-background</code> (Theming
+                    >Not ported: Fomantic's <code>inverted: true</code> setting (a white dimmer). The dimmer is the
+                    dialog's <code>::backdrop</code>:  colour it with <code>--ui-modal-dimmer-background</code> (Theming
                     tab).</ui-message
                   >
                   <ui-button commandfor="modal-variations-inverted" command="--show">Show</ui-button>
@@ -509,8 +516,8 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's dimmer variations (<code>blurring</code>, <code>inverted</code>) and the
-                <code>transition</code> setting -- set
+                >Not ported: Fomantic's dimmer variations (<code>blurring</code>, <code>inverted</code>), and the
+                transition setting. Instead, set
                 <code>--ui-modal-dimmer-filter: blur(5px) grayscale(0.7)</code> or
                 <code>--ui-modal-dimmer-background</code> on the modal or above it (Theming tab).</ui-message
               >
@@ -620,10 +627,9 @@
                 </script>
               </ui-code>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Fomantic's behaviors (<code>show</code>, <code>hide</code>, <code>refresh</code>,
-                <code>attach events</code> ...) and its <code>allowMultiple: false</code> -- write <code>visible</code>,
-                use invoker commands, and close the first modal yourself when a second one should replace
-                it.</ui-message
+                >Not ported: Fomantic's behaviors (show, hide, refresh, attach events ...), and its
+                <code>allowMultiple: false</code>. Instead, write <code>visible</code>, use invoker commands, and close
+                the first modal yourself when a second one should replace it.</ui-message
               >
             </ui-section>
 

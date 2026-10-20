@@ -218,7 +218,7 @@
 
               <ui-section id="examples-content-chevron-turn" label="Chevron turn" sticky collapsible dividing>
                 <ui-docs-example
-                  description="The chevron points down while open and turns toward the title while folded.  `--ui-section-fold-icon-rotate` and `--ui-section-fold-icon-folded-rotate` set the two turns:  `180deg` and `0deg` point it up while open and down while folded, as the Spell Brand theme does.  Right to left, each turn is negated."
+                  description="The chevron points down while open, and turns toward the title while folded.  Two tokens set the turns, as the code below shows:  `180deg` and `0deg` point it up while open and down while folded, as the Spell Brand theme does.  Right to left, each turn is negated."
                 >
                   <div style="--ui-section-fold-icon-rotate: 180deg; --ui-section-fold-icon-folded-rotate: 0deg">
                     <ui-section label="Open" level="4" collapsible fold-icon="end" dividing>
@@ -473,10 +473,13 @@
             <ui-section id="usage-heading-levels" label="Heading levels" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  The title renders as `<h1>` ... `<h6>`. Without `level`, a section takes its enclosing section's level + 1, and a
-                  top-level one is an `h2` (under the page's `h1`), so nesting sections builds a correct outline by itself. Set
-                  `level` where the section sits under a heading that isn't a section (as the examples on this page do), or to
-                  restart the count. Levels stop at `h6`.
+                  The title renders as `<h1>` ... `<h6>`.
+
+                  - Without `level`, a section takes its enclosing section's level + 1, and a top-level one is an `h2`,
+                    under the page's `h1`. So nesting sections builds a correct outline by itself.
+                  - Set `level` where the section sits under a heading that isn't a section (as the examples on this page
+                    do), or to restart the count.
+                  - Levels stop at `h6`.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -484,15 +487,19 @@
             <ui-section id="usage-folding" label="Folding" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  `collapsible` makes the title fold and unfold the content. `collapsed` is CONTROLLED, as the accordion's `open`
-                  is: writing it folds or unfolds and fires nothing. When the USER activates the title, the cancelable `ui-opening` /
-                  `ui-closing` go first, with `{ open, section, originalEvent }`; `preventDefault()` keeps things as they were. The
-                  section folds with a height transition where the browser can animate to `auto` (`interpolate-size`); with reduced
-                  motion it snaps.
+                  `collapsible` makes the title fold and unfold the content.
 
-                  A folded section's content is `hidden="until-found"`: it stays in the page, so find-in-page (Ctrl / Cmd + F)
-                  finds text inside it and unfolds the section to show the match. That unfolding fires `ui-opening` with
-                  `cancelable: false`: the browser has already revealed the match, so it can't be vetoed.
+                  - `collapsed` is CONTROLLED, as the accordion's `open` is:  writing it folds or unfolds, and fires nothing.
+                  - When the USER activates the title, the cancelable `ui-opening` / `ui-closing` go first,
+                    with `{ open, section, originalEvent }`. `preventDefault()` keeps things as they were.
+                  - It folds with a height transition where the browser can animate to `auto` (`interpolate-size`);
+                    with reduced motion it snaps.
+
+                  A folded section's content is `hidden="until-found"`:  it stays in the page.
+
+                  - So find-in-page (Ctrl / Cmd + F) finds text inside it, and unfolds the section to show the match.
+                  - That unfolding fires `ui-opening` with `cancelable: false`:
+                    the browser has already revealed the match, so it can't be vetoed.
                 </script>
               </ui-markdown>
               <ui-code language="js">
@@ -509,18 +516,25 @@
             <ui-section id="usage-content-from-a-file" label="Content from a file" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  `source` names an HTML file whose `<body>` becomes the content, fetched the FIRST time the section unfolds
-                  -- by a click, by the page removing `collapsed` (a `#id` link), or at once when it starts unfolded. A long page
-                  can ship as titles alone and load each body when it's read. The body goes in the section's LIGHT DOM, so the
-                  page's CSS styles it; whatever was there (except slotted title pieces) is a placeholder it replaces. `select`
-                  takes only the first match of a CSS selector. Same origin only, fetched and cached as
-                  [`<ui-include>`](ui-include.html) fetches: scripts in the file don't run, relative URLs are rewritten.
+                  `source` names an HTML file whose `<body>` becomes the content.
+                  So a long page can ship as titles alone, and load each body when it's read.
 
-                  While the body is on its way the content stays closed, so the section unfolds once, onto the real content; a
-                  slow file (over 300 ms) shows the placeholder under the `loading` look instead. `ui-loaded` fires once the body
-                  is in (`:state(loaded)`); a failure fires the cancelable `ui-error` and shows an error line (`:state(error)`),
-                  and unfolding again tries again. `load()` fetches it now, folded or not; `reload()` fetches it again past the
-                  cache and replaces it.
+                  - It's fetched the FIRST time the section unfolds:
+                    by a click, by the page removing `collapsed` (a `#id` link), or at once when it starts unfolded.
+                  - The body goes in the section's LIGHT DOM, so the page's CSS styles it.
+                    Whatever was there (except slotted title pieces) is a placeholder it replaces.
+                  - `select` takes only the first match of a CSS selector.
+                  - Same origin only, fetched and cached as [`<ui-include>`](ui-include.html) fetches:
+                    scripts in the file don't run, and relative URLs are rewritten.
+
+                  While it loads, and after:
+
+                  - The content stays closed while the body is on its way, so the section unfolds once, onto the real content.
+                  - A slow file (over 300 ms) shows the placeholder under the `loading` look instead.
+                  - `ui-loaded` fires once the body is in (`:state(loaded)`).
+                  - A failure fires the cancelable `ui-error`, and shows an error line (`:state(error)`).
+                    Unfolding again tries again.
+                  - `load()` fetches it now, folded or not;  `reload()` fetches it again past the cache, and replaces it.
                 </script>
               </ui-markdown>
               <ui-docs-example description="Unfold Chapter 2:  its content comes from `examples/chapter.html`.">
@@ -542,15 +556,19 @@
             <ui-section id="usage-sticky-titles" label="Sticky titles" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  With `sticky`, the title bar sticks to the top of the scroll container while any of its section is on screen, and
-                  the end of the section pushes it out. A sticky section INSIDE another sticks just below its parent's title, so
-                  nested titles stack like breadcrumbs. `offset` (pixels) moves a TOP-LEVEL section's stuck title down, e.g. below
-                  a fixed page header; nested sections work theirs out. The hint scrolls away: only the title bar sticks.
-                  `:state(stuck)` is set while it is stuck.
+                  With `sticky`, the title bar sticks to the top of the scroll container while any of its section is on screen;
+                  the end of the section pushes it out.
 
-                  Stuck titles cover what scrolls under them, so a stuck title reserves its room on the scroll container as
-                  `scroll-padding-top`, as [`<ui-sticky>`](ui-sticky.html) does: Page Down, Space, focus and `scrollIntoView()`
-                  keep content out from under the stack instead of hiding the next line behind it.
+                  - A sticky section INSIDE another sticks just below its parent's title, so nested titles stack like breadcrumbs.
+                  - `offset` (pixels) moves a TOP-LEVEL section's stuck title down, e.g. below a fixed page header.
+                    Nested sections work theirs out.
+                  - Only the title bar sticks:  the hint scrolls away.
+                  - `:state(stuck)` is set while it is stuck.
+
+                  Stuck titles cover what scrolls under them, so a stuck title reserves its room on the scroll container
+                  (`scroll-padding-top`), as [`<ui-sticky>`](ui-sticky.html) does.
+                  So Page Down, Space, focus and `scrollIntoView()` keep content out from under the stack,
+                  instead of hiding the next line behind it.
                 </script>
               </ui-markdown>
               <ui-code language="css">
@@ -565,10 +583,12 @@
             <ui-section id="usage-slots" label="Slots" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  The default slot is the content: anything, nested sections included. `label`, `hint`, `icon` and `badge` each
-                  have an attribute for plain text and a slot for rich markup; the slot wins. `actions` has no attribute: its
-                  controls sit at the right of the title bar, OUTSIDE the fold button, so clicking one never folds the section, and
-                  they stay visible while it is folded.
+                  The default slot is the content:  anything, nested sections included.
+
+                  - `label`, `hint`, `description`, `icon` and `badge` each have an attribute for plain text,
+                    and a slot for rich markup;  the slot wins.
+                  - `actions` has no attribute:  its controls sit at the right of the title bar, OUTSIDE the fold button.
+                    So clicking one never folds the section, and they stay visible while it's folded.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -583,9 +603,11 @@
                   - `ui-opened` / `ui-closed` -- it has unfolded or folded, by any route: the user, `collapsed`, find-in-page.
                   - `ui-loading` / `ui-loaded` -- a `source` body is on its way, then in place.
 
-                  Old names, still sent (or read) until every page says the new ones: `ui-open` / `ui-close` / `ui-load`
-                  just after `ui-opening` / `ui-closing` / `ui-loaded`; the attributes and slots `header`, `subhead` and
-                  `info`; the states `in-section` and `in-sections` beside `nested` and `in-group`.
+                  Old names, still sent (or read) until every page says the new ones:
+
+                  - events:  `ui-open` / `ui-close` / `ui-load`, sent just after `ui-opening` / `ui-closing` / `ui-loaded`
+                  - attributes and slots:  `header`, `subhead` and `info`, for `label`, `hint` and `description`
+                  - states:  `in-section` and `in-sections`, beside `nested` and `in-group`
                 </script>
               </ui-markdown>
             </ui-section>
@@ -690,12 +712,19 @@
             <ui-section id="theming-tokens" label="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  Theme with the public `--ui-section-*` tokens: set one on the element, on any ancestor (`:root` for every
-                  section), or on the box through `::part(section)`. `basic` replaces the box, rule and tint whatever you set. Never
-                  set the `--_ui-section-*` names: they're the sheet's private plumbing.
+                  Theme with the public `--ui-section-*` tokens:
+                  set one on the element, on any ancestor (`:root` for every section), or on the box through `::part(section)`.
 
-                  Style the pieces with `::part()`: `title` (the bar that sticks), `heading`, `toggle` and `fold-icon` (with
-                  `collapsible`), `icon`, `header`, `badge`, `actions`, `subhead` and `content`.
+                  - `basic` replaces the box, rule and tint, whatever you set.
+                  - Never set the `--_ui-section-*` names:  they're the sheet's private plumbing.
+
+                  Style the pieces with `::part()`:
+
+                  - `title`:  the bar that sticks;  in it, `heading`, and with `collapsible`, `toggle` and `fold-icon`
+                  - `icon`, `header` (the title's text), `badge`, `actions`
+                  - `tip`:  the `description`, under the title bar
+                  - `subhead`:  the hint
+                  - `content`
                 </script>
               </ui-markdown>
               <ui-code language="css">

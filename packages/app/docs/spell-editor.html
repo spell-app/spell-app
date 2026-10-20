@@ -79,9 +79,9 @@
               </ui-grid>
             </ui-docs-example>
             <p class="meta">
-              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
-              >), which this set's pages load.
+              Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
+              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <code>yarn build:element</code>.
             </p>
           </ui-section>
 
@@ -137,8 +137,8 @@
                 other.
               </li>
               <li>
-                Its script API: <code>compile()</code>, <code>save()</code>, and <code>compiled</code>, what it last
-                compiled.
+                Its script API: <code>compile()</code> and <code>save()</code>. Its <code>compiled</code> holds what it
+                last compiled.
               </li>
               <li>
                 A page loads it as it loads
@@ -199,8 +199,8 @@
                 >: its tests
               </li>
               <li>
-                Its build: <code>yarn build:element</code>, into <code>dist-element/</code>, served at
-                <code>/element/</code>; its demo, <code>/demo/spell-editor.html</code> on the editor's server
+                Its build: <code title="writes packages/app/dist-element/">yarn build:element</code>, served at
+                <code>/element/</code>. Its demo: <code>/demo/spell-editor.html</code>, on the editor's server.
               </li>
             </ul>
           </ui-section>

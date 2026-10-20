@@ -4,11 +4,13 @@ import { Priority } from "$/spell/rules/rules.types"
 import { classes } from "./classes.parser"
 
 /**
- * `type_specifier_text_kind` rule:  `as a url` / `as an email` -- text that must be a web address, or an email
- * address (epic `property-editor` P9).
- * - Its datatype is `text`;  the property also gets the rule `must be a url` (or `an email`), as if it said so:
+ * `type_specifier_text_kind` rule:  makes a property text that must be a web address or an email address.
+ * - e.g. `as a url`, `as an email`
+ * - Its datatype is `text`.
+ * - The property also gets the rule `must be a url` (or `an email`), as if it said so:
  *   see `define_property_has`'s `rulesOf()`.
  * - `Priority.specific`, so it wins over `as a {type}`, which would take `url` for a type of the project's.
+ * - Epic `property-editor` P9.
  */
 export class TypeSpecifierTextKind extends P.Sequence<"kind"> {
   @proto static alias = "type_specifier"

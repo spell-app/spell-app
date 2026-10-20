@@ -26,16 +26,16 @@ import { Derivative } from "./Derivative"
  * Base class giving subclasses reactive `props` and `state`, on spell cells (`$/util/reactive`).
  * - A prop is a getter / setter pair over `getProp()` / `setProp()` -- what compiled spell emits, and what
  *   `@prop accessor` (`$/util/reactive`) makes for hand-written classes.  Same runtime shape either way.
- * - Reads and writes are SYNCHRONOUS:  a read right after a write sees it.  Readers -- Solid computations through
- *   the host's bridge, `observe()` -- re-run when a value they read REALLY changes:
- *   an `===` write notifies nobody.
+ * - Reads and writes are SYNCHRONOUS:  a read right after a write sees it.
+ * - Readers re-run when a value they read REALLY changes:  an `===` write notifies nobody.
+ *   - Readers:  Solid computations through the host's bridge, and `observe()`.
  * - "Normal" getters are reactive if they read a prop or state.  `derive()` / `@derived` memoize one, with an
  *   equality cutoff -- only for pure, worth-it ones.
  * - Each class has a schema (`Schema.ts`):  declared prop types win, undeclared ones are observed and widened.
  * - As for all classes, non-observable SHARED properties or defaults can be defined with `@proto`.
  * - NOTE: `delete this.prop` isn't trapped -- `deleteProp()`, or set it to `undefined`.
- * - NOTE: a plain field (`foo = 1`, or a constructor prop with no setter) is NOT spell state:  not reactive, not
- *   one of `keys()`.
+ * - NOTE: a plain field (`foo = 1`, or a constructor prop with no setter) is NOT spell state:
+ *   not reactive, not one of `keys()`.
  *
  * Props vs state:
  * - `props` are public:  `keys()` and `toJSON()` list them, in the order they were first set.
@@ -93,7 +93,7 @@ export class Observable<
 
   /**
    * Add `rules` to prop `name` of this class:  what its value must be, beyond its type -- see `PropRule`.
-   * - What compiled spell emits for a rule on a line of its own:  `Card.declareRules("title", [{ type: "empty" }])`.
+   * - What compiled spell calls for a rule on a line of its own:  `Card.declareRules("title", [{ type: "empty" }])`.
    */
   static declareRules(name: string, rules: readonly PropRule[]): void {
     declareRules(this, name, rules)
@@ -114,8 +114,8 @@ export class Observable<
   /**
    * Set prop `property` to `value` -- returns `value`.
    * - `undefined` deletes it instead;  `===` its current value does nothing.
-   * - A CHANGED value is checked against the class's schema:  its declaration, else its observed type -- see
-   *   `checkPropType()`.  Stored either way.
+   * - A CHANGED value is checked against the class's schema:  its declaration, else its observed type.
+   *   Stored either way;  see `checkPropType()`.
    */
   protected setProp<T>(property: string, value: T): T {
     if (extend.storeProp(this, property, value) && value !== undefined) {
@@ -140,9 +140,10 @@ export class Observable<
   }
 
   /**
-   * `value` was just set as declared prop `property`:  warn if it isn't what `info` declares, or breaks one of its
-   * rules.  Stored either way.
-   * - Here:  a dev warning, for hand-written classes.  `Thing` / `List` override it to warn on the program's console.
+   * `value` was just set as declared prop `property`:  warn if it isn't what `info` declares, or breaks one of its rules.
+   * - Stored either way.
+   * - Here:  a dev warning, for hand-written classes.
+   *   `Thing` / `List` override it to warn on the program's console.
    */
   protected checkPropType(property: string, value: unknown, info: PropInfo): void {
     if (import.meta.env?.PROD) return

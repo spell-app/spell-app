@@ -1,15 +1,17 @@
 /**
- * Entry point for `@spell-app/ui` -- everything:  every component family, registered, plus the foundation pages
- * reach for (`$/ui/util`, the runtime, styles, icons).
+ * Entry point for `@spell-app/ui` -- everything:
+ * every component family, registered, plus the foundation pages reach for (`$/ui/util`, the runtime, styles, icons).
  * - SIDE EFFECT:  each family's barrel (`$/ui/components/ui-<name>`) calls `define()` for its tags.
- * - Each family also has its own lib entry (`@spell-app/ui/ui-button` ...), and the shared code two more
- *   (`@spell-app/ui/core`, `@spell-app/ui/forms`), so a page can load one family alone.  See `vite.config.ts`.
- * - FLAT:  `UI` is the runtime instance (see `$/ui/runtime`);  `$/ui/styles`, `$/ui/icons` and the component classes
- *   carry their own suffixes or prefixes (`tokensCSS`, `IconName`, `UIButton`).
+ * - So a page can load one family alone, there are more lib entries (see `vite.config.ts`):
+ *   - one per family (`@spell-app/ui/ui-button` ...)
+ *   - two for the shared code (`@spell-app/ui/core`, `@spell-app/ui/forms`)
+ * - FLAT:  `UI` is the runtime instance (see `$/ui/runtime`).
+ *   `$/ui/styles`, `$/ui/icons` and the component classes carry their own suffixes or prefixes
+ *   (`tokensCSS`, `IconName`, `UIButton`).
  * - NOTE: ONE namespace here, `UIT` (the shared constants and types of `$/ui/components/components.types`).
- *   `E` (element core) and `V` (vocabulary) live in the `api` entry (`src/api.ts`,
- *   `@spell-app/ui/api`):  `export * as` here moved Rolldown's runtime helpers into a chunk every page loaded.
- *   The element core is also flat in `@spell-app/ui/core`.
+ *   - `E` (element core) and `V` (vocabulary) live in the `api` entry (`src/api.ts`, `@spell-app/ui/api`).
+ *   - Why:  `export * as` here moved Rolldown's runtime helpers into a chunk every page loaded.
+ *   - The element core is also flat in `@spell-app/ui/core`.
  */
 
 // Spell UI's settings for `$/spell-solid` (a side effect), here too:  `core`'s import of it is dropped by a bundler

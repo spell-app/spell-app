@@ -9,16 +9,19 @@ import { classes } from "./classes.parser"
 import { MustRule } from "./MustRule"
 
 /**
- * `property_must` rule:  a RULE for a property, on a line of its own:  what its value must be, beyond its type
- * (epic `property-editor` P9).
- * - e.g. `- its title must not be empty`, `- its version must match "^\d+\.\d+\.\d+$"`,
- *   `- its rating must be between 1 and 5, with suggestion "From 1 to 5 stars"` -- the words after `must` are
- *   `must_rule`'s
+ * `property_must` rule:  what a property's value must be, beyond its type, said on a line of its own.
+ * - e.g.
+ *   - `- its title must not be empty`
+ *   - `- its version must match "^\d+\.\d+\.\d+$"`
+ *   - `- its rating must be between 1 and 5, with suggestion "From 1 to 5 stars"`
+ * - The words after `must` are `must_rule`'s.
  * - In a type's outline body, with `its`, or with no subject:  `- title must not be empty`.
  * - Its property must be declared above it, on the type:  else a warning, and its declarations leave the rule out.
- * - Compiles to `Card.declareRules("title", [{ type: "empty" }])`, after the class:  the rules go in its class's
- *   schema beside the property's own declaration, whichever comes first (`declareRules()`).
+ * - Compiles to `Card.declareRules("title", [{ type: "empty" }])`, after the class.
+ *   - The rules go in its class's schema beside the property's own declaration,
+ *     whichever comes first (`declareRules()`).
  * - SIDE EFFECT:  the type's property records the rule, for its declarations -- see `P.TypeScope.addPropertyRules()`.
+ * - Epic `property-editor` P9.
  */
 export class PropertyMust extends SpellStatement<"type|property|rule"> {
   @proto static priority = Priority.declaration

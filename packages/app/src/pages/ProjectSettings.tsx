@@ -8,15 +8,17 @@ import { uiReady } from "$/app/solid/loadUI"
 
 /****************
  * ### `<ProjectSettings>`
- * A project's settings, in a dialog:  a `<ui-property-editor>` on `PROJECT_SETTINGS_SCHEMA`
- * (epic `property-editor` P5, its first real use).
+ * A project's settings, in a dialog.
+ * - It's a `<ui-property-editor>` on `PROJECT_SETTINGS_SCHEMA` (epic `property-editor` P5, its first real use).
  * - What it edits:  the project file's `title`, `version`, `targets` and `listsStartAt`,
  *   a copy of what the project's index says (`settingsOf()`).
  * - `apply="on save"`:  the editor holds every edit until Save, which validates first.
- *   - Save:  the project root writes them into the project file (`SPACES.SpellProjectRoot.saveSettings()`),
- *     and the dialog closes.  A server error shows, and the dialog stays.
+ *   - Save:  the project's group writes them into the project file (`SPACES.SpellProjectRoot.saveSettings()`),
+ *     and the dialog closes.
+ *   - A server error shows, and the dialog stays.
  *   - Cancel, or Escape:  the dialog closes, nothing written.
- * - Show it with `openProjectSettings()`, which mounts it and cleans up:  `editor.showProjectSettings()` does.
+ * - Show it with `openProjectSettings()`, which mounts it and cleans up after.
+ *   `editor.showProjectSettings()` calls it.
  ****************/
 export function ProjectSettings(props: ProjectSettingsProps) {
   let modal: HTMLElement | undefined
@@ -62,7 +64,7 @@ export function ProjectSettings(props: ProjectSettingsProps) {
     }
   }
 
-  /** Close the dialog (its shared `visible`):  `ui-hide` then calls `onDone()`. */
+  /** Close the dialog, by setting its `visible` false:  its `ui-hide` event then calls `onDone()`. */
   function hide() {
     if (modal) (modal as HTMLElement & { visible: boolean }).visible = false
   }
@@ -72,7 +74,7 @@ export function ProjectSettings(props: ProjectSettingsProps) {
 export type ProjectSettingsProps = {
   /** The project whose settings it edits. */
   project: SP.SpellProject
-  /** Its group, which saves them. */
+  /** The project's group (`SpellProjectRoot`), which saves its settings. */
   root: SPACES.SpellProjectRoot
   /** Called once the dialog has closed. */
   onDone: () => void

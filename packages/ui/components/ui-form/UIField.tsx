@@ -31,8 +31,8 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
   }
 
   /**
-   * The label it shows, `<ui-form>`'s name for it in a message ("Name must have a value"):  its `label`, else what its
-   * kind works out (a `<ui-property>`'s from its schema, or its name).
+   * The label it shows, and `<ui-form>`'s name for it in a message ("Name must have a value").
+   * - Its `label`, else what its kind works out:  a `<ui-property>`'s from its schema, or its name.
    */
   @E.untracked
   get shownLabel(): string | undefined {
@@ -49,33 +49,39 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
 /****************
  * ### `UIField`
  * The component behind `<ui-field>`:  one field of a form.
- * `<div class="… field" part="field">` holds the label row
- * (`.row`:  the label, then actions, the output, and the info icon with its tip),
- * the control (`.control`, the default slot), then the hint and the errors.
+ * Its box, `<div class="… field" part="field">`, holds:
+ * - the label row (`.row`):  the label, then actions, the output, and the info icon with its tip
+ * - the control (`.control`, the default slot)
+ * - then the hint and the errors
  *
  * - The label row is drawn only when it has something:  `label`, actions, `output` or `description`.
  *   - A field that slots its own `<label for>` with its control has no row, and no `.control` either:
  *     its markup is Fomantic's, as it always was (the static render's too).
  *   - `SlotContent` watches the light children for the rich slots.
  * - It names the control:  a slotted control with no `aria-label` or `aria-labelledby` of its own
- *   gets `aria-label` = `label` (a `<label for>` can't reach across the shadow boundary).
- *   A click on the label focuses it.
- * - The tip:  a CSS tooltip under the info icon, shown on hover and keyboard focus;  the icon is described by it.
+ *   gets `aria-label` = `label`.
+ *   - Why:  a `<label for>` can't reach across the shadow boundary.
+ *   - A click on the label focuses it.
+ * - The tip:  a CSS tooltip under the info icon, shown on hover and keyboard focus.
+ *   The icon is described by it.
  *
  * - Errors:  what `<ui-form>` asked for through `showErrors()`, else `error`.
- *   - Shown as plain lines under the control, with `role="alert"`;  either shows the `error` state.
+ *   - Shown as plain lines under the control, with `role="alert"`.
+ *   - Either shows the `error` state.
  *   - Failed validation shows `error` over the author's `state`, and clears back to it.
  *
- * - `apply`, `mixed` and `rules` are read by `<ui-form>`'s binding;  the field shows `mixed` as `:state(mixed)`.
+ * - `apply`, `mixed` and `rules` are read by `<ui-form>`'s binding.
+ *   The field shows `mixed` as `:state(mixed)`.
  * - `readonly`:  `:state(readonly)`.
  *
- * - The DOM element is `display: contents` (`UIForm.css`):  the root is the flex item of a `<ui-fields>` row,
- *   which hands it its width and gutter as inherited tokens.
+ * - The DOM element is `display: contents` (`UIForm.css`):
+ *   the root is the flex item of a `<ui-fields>` row, which hands it its width and gutter as inherited tokens.
  *   - `.control` has no box either (`display: contents`), so the controls lay out as they always did.
  * - It hands its controls inherited owner tokens (`InputOwnerTokens`):  full width, and its state's colours.
  *
  * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
- *   the root `inert`, so the slotted controls can't be used, and `aria-disabled`.
+ *   - the root `inert`, so the slotted controls can't be used
+ *   - and `aria-disabled`
  *   - The root also says `inert` itself, for the static render:  the base class's reaches only a browser.
  * - Always carries `:state(field)`, which is how `<ui-form>` finds a control's field.
  * - SIDE EFFECT:  writes `aria-label` on slotted controls (only ones that had no name).
@@ -93,7 +99,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   // ## The label row
   ////////////////
 
-  /** Light-DOM slot occupancy:  label, description, hint, output, actions. */
+  /** Which named slots have light-DOM content:  label, description, hint, output, actions. */
   readonly slots = new E.SlotContent(this.domElement)
 
   /** The label the row shows:  `label`;  a subclass may find another (a property's, from its schema). */
@@ -315,7 +321,8 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   /**
    * Give each slotted control without a name of its own `aria-label` = `label`.
    * - A slotted `<label>` is skipped:  it names its control itself.
-   * - SIDE EFFECT:  writes the controls' `aria-label`;  only ones this field named before are renamed or cleared.
+   * - SIDE EFFECT:  writes the controls' `aria-label`.
+   *   Only ones this field named before are renamed or cleared.
    */
   private nameControls(label: string | undefined) {
     for (const control of this.controlSlot?.assignedElements() ?? []) {

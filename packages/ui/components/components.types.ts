@@ -1263,9 +1263,9 @@ export type AccordionPanel = {
 }
 
 /**
- * A `<ui-section>`'s TITLE, as a page writes it:  the `label` attribute, else a `slot="label"` child;  or either by
- * its old name, `header` (epic `property-editor` P10, decision Q12).  For what reads a page's sections:  the toc, the
- * search outline.
+ * A `<ui-section>`'s TITLE, as a page writes it:  the `label` attribute, else a `slot="label"` child.
+ * - Or either by its old name, `header` (epic `property-editor` P10, decision Q12).
+ * - For what reads a page's sections:  the toc, the search outline.
  */
 export const SectionTitle = {
   /** The attribute and slot names, the new first. */

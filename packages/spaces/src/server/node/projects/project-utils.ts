@@ -364,8 +364,8 @@ export const request_getIndex = respondWithJSON(async (request) => {
 
 /**
  * The still-encoded rest of `request`'s path after `prefix`, e.g. `@spell/examples` for `/api/projects/list/...`.
- * - From the path AS IT ARRIVED (`originalUrl`):  a route's params are decoded whole, and a place is decoded part by
- *   part (`SP.SpellUrls`, rule 4).
+ * - From the path AS IT ARRIVED (`originalUrl`):
+ *   a route's params are decoded whole, and a place is decoded part by part (`SP.SpellUrls`, rule 4).
  */
 function tailOf(request: Request, prefix: string): string {
   const path = request.originalUrl.split(/[?#]/)[0]!
@@ -410,8 +410,9 @@ export function fileOrOldName(serverPath: string): string {
  * - Failure:
  *   - 404 (via `responseUtils.sendFile()`) if file not found
  *   - 400 if the URL names no project's file (no file after the project, an unknown group, a bad part)
- * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
- *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
+ * - NOTE: deliberately NOT wrapped in `respondWithJSON`:
+ *   that would send a JSON body on top of the file we already streamed.
+ *   We catch by hand instead, so a rejection can't go unhandled and hang the client.
  */
 export const request_getFile = async (request: Request, response: Response) => {
   let location: SP.SpellLocation
@@ -550,8 +551,9 @@ export async function setProjectTitle(projectId: string, title: string | null | 
 }
 
 /**
- * SIDE EFFECT:  project `projectId`'s file says `settings`, its comments and its `imports` kept.
- * - Only the settings a person edits (`SPACES.PROJECT_SETTINGS`), never its `imports`:  Project Settings, epic `property-editor` P5.
+ * SIDE EFFECT:  project `projectId`'s file says `settings`, its comments and its `imports` kept
+ * (Project Settings, epic `property-editor` P5).
+ * - Only the settings a person edits (`SPACES.PROJECT_SETTINGS`), never its `imports`.
  * - A setting that's `null`, `""` or `[]` is removed:  its default applies.
  * - A setting `settings` doesn't name is left as it is.
  * - Returns the settings the file says now.
@@ -642,8 +644,8 @@ function isGeneratedFileOf(name: string, projectName: string): boolean {
  * `DELETE /api/projects/remove/project` -- permanently delete a project.
  * - Client sends body: `{ projectId }`.
  *   - NOTE: a `DELETE` request carrying a JSON body, which `SpellProjectRoot.deleteApp()` on the client relies on.
- *   - It works because the routes' body parser (`SRV.parseBodies()`, in `cli.ts` and `appRoutes.ts`) reads a body
- *     for every verb, not just `POST`.
+ *   - It works because the routes' body parser (`SRV.parseBodies()`, in `cli.ts` and `appRoutes.ts`)
+ *     reads a body for every verb, not just `POST`.
  * - Returns: updated project list for `projectId`'s `projectRoot`.
  * - Failure: 500 if `projectId` is invalid.
  * - No confirmation/undo server-side:  deletion is immediate and permanent.

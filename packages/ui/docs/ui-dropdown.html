@@ -62,8 +62,8 @@
               <ui-section id="examples-types-dropdown" label="Dropdown" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A dropdown. Items are <code>&lt;ui-item&gt;</code>s; <code>description</code> sits at the end of a
-                    row, <code>icon</code> before the text.
+                    A dropdown, its items <code>&lt;ui-item&gt;</code>s. An item's <code>description</code> sits at the
+                    end of its row, and its <code>icon</code> before the text.
                   </p>
                   <ui-dropdown text="File">
                     <ui-item>New</ui-item>
@@ -83,13 +83,13 @@
               <ui-section id="examples-types-selection" label="Selection" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A dropdown can be used to select between choices in a form: <code>selection</code>, with a
-                    <code>name</code> and a <code>placeholder</code>.
+                    A dropdown can be used to select between choices in a form:  <code>selection</code>, with a name and
+                    a placeholder.
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
-                    >Not ported: initializing on a native <code>&lt;select&gt;</code> (write the
-                    <code>&lt;ui-item&gt;</code>s; the native fallback IS a <code>&lt;select&gt;</code>) and
-                    <code>scrollhint</code> (a touch-only scroll animation).</ui-message
+                    >Not ported: initializing on a native <code>&lt;select&gt;</code> (write the items instead:  the
+                    native fallback IS a select), and <code>scrollhint</code> (a touch-only scroll
+                    animation).</ui-message
                   >
                   <ui-dropdown selection name="pet" placeholder="Pet">
                     <ui-item value="0">Cat</ui-item>
@@ -234,7 +234,7 @@
                 <ui-docs-example>
                   <p slot="description">
                     Fomantic can ignore diacritics while searching (<code>ignoreDiacritics</code>). Ours matches them as
-                    typed: type <code>cafe</code> and only <code>cafetería</code> matches, not <code>café</code>.
+                    typed:  type <code>cafe</code>, and only <code>cafetería</code> matches, not café.
                   </p>
                   <ui-dropdown
                     search
@@ -1912,7 +1912,7 @@
             <ui-section id="examples-remote-content" label="Remote Content" sticky collapsible dividing>
               <ui-message size="small" class="site-not-ported"
                 >Not ported: Fomantic's API settings (<code>apiSettings</code>, <code>filterRemoteData</code>,
-                response mapping) -- fetch the data yourself on <code>ui-search</code> and set the
+                response mapping). Fetch the data yourself on <code>ui-search</code>, and set the
                 <code>options</code> property (Usage tab, "Rich data").</ui-message
               >
             </ui-section>
@@ -1937,7 +1937,7 @@
               >
                 <ui-docs-example>
                   <p slot="description">
-                    A dropdown shows the item whose value is its <code>value</code> on page load;
+                    A dropdown shows the item whose value is its <code>value</code> on page load.
                     <code>text</code> shows a text before the items (or <code>options</code>) arrive.
                   </p>
                   <ui-dropdown selection value="trash" placeholder="Folder">

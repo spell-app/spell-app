@@ -63,9 +63,9 @@
               <spell-app project="@spell/examples/todos" toolbar debug="things" height="480px"></spell-app>
             </ui-docs-example>
             <p class="meta">
-              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
-              >), which this set's pages load.
+              Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
+              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <code>yarn build:element</code>.
             </p>
           </ui-section>
 
@@ -105,8 +105,8 @@
               <li>With no <code>onPane</code>, or a single tab, the tabs just say what the pane is.</li>
               <li>Each tab has an id, a Fomantic icon name and a title: <code>sitemap</code>, "Type Explorer".</li>
               <li>
-                Its tabs are <code>&lt;ui-item&gt;</code>s in a <code>&lt;ui-menu&gt;</code>: whatever draws a runner
-                loads those tags, as <code>&lt;spell-app&gt;</code> does.
+                Its tabs are <code>&lt;ui-item&gt;</code>s in a <code>&lt;ui-menu&gt;</code>. So whatever draws a runner
+                loads those tags too, as <code>&lt;spell-app&gt;</code> does.
               </li>
               <li>
                 It sits in a

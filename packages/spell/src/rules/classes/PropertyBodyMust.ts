@@ -8,13 +8,15 @@ import { DefinePropertyHas } from "$/spell/rules/classes"
 import { classes } from "./classes.parser"
 
 /**
- * `property_body_must` rule:  a RULE for a property, indented under the property's own line:  what its value must be
- * (epic `property-editor` P9).
+ * `property_body_must` rule:  what a property's value must be, said indented under the property's own line.
  * - e.g. under `- it has a title as text`:  `- it must not be empty`, `- must be at most 40 letters long`
- * - `it` is the property here, not the type;  the words after `must` are `must_rule`'s.
+ * - `it` is the property here, not the type.
+ * - The words after `must` are `must_rule`'s.
  * - Only in a property's body:  anywhere else it isn't understood.
- * - Compiles to nothing itself:  its property's statement (`define_property_has`) puts its rule in the property's
- *   declaration, `declareProp("title", { type: "text", rules: [...] })`, and records it for its declarations.
+ * - Compiles to nothing itself.
+ *   Its property's statement (`define_property_has`) puts its rule in the property's declaration,
+ *   `declareProp("title", { type: "text", rules: [...] })`, and records it for its declarations.
+ * - Epic `property-editor` P9.
  */
 export class PropertyBodyMust extends SpellStatement<"it?|rule"> {
   @proto static priority = Priority.declaration

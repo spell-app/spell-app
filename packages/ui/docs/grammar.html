@@ -167,7 +167,7 @@
             </ui-section>
             <ui-section id="attribute-kinds-key-only" label="Key Only" sticky collapsible dividing>
               <ui-docs-example
-                description="A bare boolean emits its key:  `basic` => `ui basic button`, `raised` => `ui raised segment`."
+                description="A bare boolean emits its key.  `basic` => `ui basic button`.  `raised` => `ui raised segment`."
               >
                 <ui-button basic>basic</ui-button>
                 <ui-segment raised>raised</ui-segment>
@@ -189,7 +189,7 @@
               dividing
             >
               <ui-docs-example
-                description='`pointing` => `ui pointing label`;  `pointing="left"` => `ui left pointing label`.'
+                description='`pointing` => `ui pointing label`.  `pointing="left"` => `ui left pointing label`.'
               >
                 <ui-label pointing>pointing</ui-label>
                 <ui-label pointing="left">pointing="left"</ui-label>
@@ -211,7 +211,7 @@
             </ui-section>
             <ui-section id="attribute-kinds-alignment" label="Alignment" sticky collapsible dividing>
               <ui-docs-example
-                description='`text-align="center"` => `center aligned`;  `vertical-align="middle"` => `middle aligned`.'
+                description='`text-align="center"` => `center aligned`.  `vertical-align="middle"` => `middle aligned`.'
               >
                 <ui-segment text-align="center">text-align="center"</ui-segment>
                 <ui-grid columns="2" vertical-align="middle">
@@ -300,10 +300,9 @@
               </ui-docs-example>
             </ui-section>
             <ui-message size="small"
-              >Except <code>disabled</code> on a form control (<code>&lt;ui-button&gt;</code>,
-              <code>&lt;ui-input&gt;</code>, <code>&lt;ui-checkbox&gt;</code> ...): the browser disables a
-              form-associated element whenever the attribute is PRESENT, so <code>disabled="false"</code> still
-              disables it. Remove the attribute instead.</ui-message
+              >Except <code>disabled</code> on a form control, such as a button, an input or a checkbox: the browser
+              disables a form-associated element whenever the attribute is PRESENT, so <code>disabled="false"</code>
+              still disables it. Remove the attribute instead.</ui-message
             >
           </ui-section>
 

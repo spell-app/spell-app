@@ -13,7 +13,7 @@
  * - The spell declaration is the one description of a type.
  *   - Both read what the compiled class says of each property through ONE function, `kindOf()`,
  *     so they can't disagree.
- *   - What it says (`schemaOf()`):  its type, a list's item type, its legal values.
+ *   - What it says (`schemaOf()`):  its type, a list's item type, its legal values, its rules.
  * - The app, the people store and the `spell` command check with `checkEntry()`:  no JSON Schema library.
  * - JSON Schema is only MADE, for VS Code's own JSON checking, completion and hover text:
  *   never committed, never written by hand.
@@ -231,9 +231,12 @@ function kindSchema(kind: Kind): Record<string, unknown> {
 }
 
 /**
- * A property's rules (epic `property-editor` P9), as JSON Schema's keywords for the same:
- * - `must not be empty` => `minLength: 1`;  a pattern => `pattern`, its own words as `patternErrorMessage` (VS Code's)
- * - lengths => `minLength` / `maxLength`;  numbers => `minimum` / `maximum`;  `email` / `url` => `format`
+ * A property's rules, as JSON Schema's own keywords for the same (epic `property-editor` P9).
+ * - `must not be empty` => `minLength: 1`
+ * - a pattern => `pattern`, with its own words as `patternErrorMessage` (VS Code's)
+ * - lengths => `minLength` / `maxLength`
+ * - numbers => `minimum` / `maximum`
+ * - `email` / `url` => `format`
  */
 function rulesSchema(rules: readonly PropRule[] | undefined): Record<string, unknown> {
   const schema: Record<string, unknown> = {}

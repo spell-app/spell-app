@@ -1,11 +1,15 @@
 """PROPERTY RULES:  what a property's value must be, beyond its type (epic `property-editor` P9).
 
-- Written in spell on the type:  `- its title must not be empty`.  Compiled into its `prop(rules=[...])`, or
-  `Card.declare_rules("title", [...])` for a rule on a line of its own.
+- Written in spell on the type:  `- its title must not be empty`.
+- Compiled into the class:
+  - with the property's declaration:  `prop(rules=[...])`
+  - for a rule on a line of its own:  `Card.declare_rules("title", [...])`
 - Each rule is a dict in Fomantic's object form, as JavaScript's `PropRule` is:
   `{"type": "minLength", "value": "3", "prompt": "Make it longer"}`.
-- Here:  whether a value keeps them, for a setter's WARNING (never a refusal), and what to say when it doesn't.
-  The JavaScript side is `$/util`'s `PropRules.ts`:  the same rules, the same words.
+- This module says:
+  - whether a value keeps them, for a setter's WARNING (never a refusal)
+  - what to say when it doesn't
+- The JavaScript side is `$/util`'s `PropRules.ts`:  the same rules, the same words.
 """
 
 import re
@@ -18,9 +22,10 @@ PropRule = Mapping[str, str]
 def broken_rule(value: object, rules: Sequence[PropRule] | None) -> PropRule | None:
     """The first of `rules` that `value` breaks, else `None`.
 
-    - An empty value (`None`, `""`, an empty list) breaks only `empty`:  "must not be empty" is what says a value is
-      required, so the others pass it, as a form's checks do.
-    - Lengths count a list's items, else the text's characters;  numbers are read from text too (`"7"`).
+    - An empty value (`None`, `""`, an empty list) breaks only `empty`:
+      "must not be empty" is what says a value is required, so the others pass it, as a form's checks do.
+    - Lengths count a list's items, else the text's characters.
+    - Numbers are read from text too (`"7"`).
     """
     for rule in rules or ():
         if not _keeps_rule(value, rule):
@@ -29,8 +34,11 @@ def broken_rule(value: object, rules: Sequence[PropRule] | None) -> PropRule | N
 
 
 def rule_warning(property_name: str, rule: PropRule) -> str:
-    """What a setter warns when `property_name` breaks `rule`, before the value:  `title must not be empty`, or with
-    its own words, `title:  Write it like 1.2.3`.  JavaScript's `ruleWarning()`, word for word.
+    """What a setter warns when `property_name` breaks `rule`;  the value it got follows.
+
+    - e.g. `title must not be empty`
+    - or in the rule's own words (its `prompt`):  `title:  Write it like 1.2.3`
+    - JavaScript's `ruleWarning()`, word for word.
     """
     prompt = rule.get("prompt")
     return f"{property_name}:  {prompt}" if prompt else f"{property_name} {rule_text(rule)}"

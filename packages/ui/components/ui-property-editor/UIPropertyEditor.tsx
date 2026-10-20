@@ -35,21 +35,24 @@ export class DOMPropertyEditorElement extends DOMFormElement {
  * - It IS a `<ui-form>` (it extends `UIForm`):  bound to `value` (a thing, or a list of things), validation,
  *   `apply="on save"` with `save()` / `cancel()`, `validate`.
  *   Its `<ui-property>`s are fields of it, in its light DOM.
- * - It DRAWS a `<ui-section>` in its shadow root, around them, when it has a title (`label`, `slot="label"`;  or their old
- *   name, `header`):
- *   every section attribute it's given is passed on to it, and the section's named slots too.
- *   The section's events (`ui-open` / `ui-close`) come out of it, from the editor.
+ * - It DRAWS a `<ui-section>` in its shadow root, around them, when it has a title:
+ *   `label` or `slot="label"` (or their old name, `header`).
+ *   - Every section attribute it's given is passed on to the section, and the section's named slots too.
+ *   - The section's events (`ui-open` / `ui-close`) come out of it, from the editor.
  * - The SCHEMA (`schema`):  what its properties are.
  *   - A name:  one the page added (`UI.propertyControls.addSchema()`), else a tag's vocabulary (`ui-button`).
  *   - As a property:  a `PropertySchema`, or a component vocabulary.
  *   - Empty (no `<ui-property>` or group in it, and no `source`), it MAKES a `<ui-property>` per attribute,
  *     in the schema's order.
  *     SIDE EFFECT:  writes its light DOM, the made ones marked `data-ui-made`.
- * - Its LAYOUT from a saved page (`source`, epic `property-editor` P6):  an editor page's markup
- *   (`PropertyEditorPages`), loaded through `UI.sources` (same-origin);  the spell editor hands it a `/spaces/` URL.
- *   - Its groups and properties come into its light DOM;  the page's editor's attributes it doesn't have
- *     (as an attribute, or a property a script set), too.
- *   - `select`:  only the page's first match of that selector;  a group's `select`, its own part of the page.
+ * - Its LAYOUT can come from a saved page (`source`, epic `property-editor` P6):
+ *   an editor page's markup (`PropertyEditorPages`), loaded through `UI.sources` (same-origin).
+ *   The spell editor hands it a `/spaces/` URL.
+ *   - The page's groups and properties come into its light DOM.
+ *   - So do the attributes of the page's editor that it doesn't have yet
+ *     (as an attribute, or as a property a script set).
+ *   - `select`:  only the page's first match of that selector.
+ *   - A group's `select`:  that group's own part of the page.
  *   - `ui-loading`, then `ui-loaded`;  a page that doesn't load warns, and nothing changes.
  *   - SIDE EFFECT:  writes its light DOM (marked `data-ui-made="source"`) and its own missing attributes.
  * - When a property is written:  `ui-change` (from the editor and from the property), then the schema's
@@ -109,7 +112,10 @@ export class UIPropertyEditor extends UIForm {
     return [...this.domElement.children].some((child) => !child.hasAttribute(MADE_ATTRIBUTE) && !child.slot)
   }
 
-  /** Take away every property it made from `from` (its schema, or its source page).  SIDE EFFECT:  writes its light DOM. */
+  /**
+   * Take away every property it made from `from` (its schema, or its source page).
+   * - SIDE EFFECT:  writes its light DOM.
+   */
   @E.untracked
   private removeMadeProperties(from: string) {
     for (const child of [...this.domElement.children]) if (child.getAttribute(MADE_ATTRIBUTE) === from) child.remove()
@@ -223,7 +229,7 @@ export class UIPropertyEditor extends UIForm {
   // ## The section around it
   ////////////////
 
-  /** Light-DOM slot occupancy:  `slot="label"`, `slot="output"` ... */
+  /** Which of its named slots have light-DOM content:  `slot="label"`, `slot="output"` ... */
   readonly slots = new E.SlotContent(this.domElement)
 
   /** It has a title, so it draws a section:  `label` or `slot="label"`, or their old name, `header`. */

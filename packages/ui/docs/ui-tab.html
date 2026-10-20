@@ -63,9 +63,9 @@
                 <ui-docs-example>
                   <p slot="description">A basic tab.</p>
                   <ui-message slot="description" state="info" size="small"
-                    >Two tags: <code>&lt;ui-tab&gt;</code> is the pane (Fomantic's <code>.ui.tab</code>), and
-                    <code>&lt;ui-tabs&gt;</code> draws the tab menu from its panes' <code>label</code>s. A pane is
-                    hidden until it's the selected one; see the Usage tab.</ui-message
+                    >Two tags:  <code>&lt;ui-tab&gt;</code> is the pane (Fomantic's .ui.tab), and
+                    <code>&lt;ui-tabs&gt;</code> draws the tab menu from its panes' labels. A pane is hidden until it's
+                    the selected one;  see the Usage tab.</ui-message
                   >
                   <ui-tabs tabular attached aria-label="Tab demo">
                     <ui-tab label="Tab">
@@ -296,8 +296,8 @@
               <ui-section id="examples-basic-examples-basic-tabs" label="Basic Tabs" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    Each <code>&lt;ui-tab&gt;</code> inside a <code>&lt;ui-tabs&gt;</code> is a pane; its
-                    <code>label</code> becomes a tab. No script, and no <code>data-tab</code> paths to pair up.
+                    Each <code>&lt;ui-tab&gt;</code> inside a <code>&lt;ui-tabs&gt;</code> is a pane, and its label
+                    becomes a tab. No script, and no <code>data-tab</code> paths to pair up.
                   </p>
                   <ui-message slot="description" state="info" size="small"
                     >To have a tab visible on page load, give its pane <code>selected</code> (or set the tabs'
@@ -324,7 +324,7 @@
                     one's pane.
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
-                    >Not ported: Fomantic's <code>context</code> / <code>childrenOnly</code> settings -- a tab set only
+                    >Not ported: Fomantic's <code>context</code> / <code>childrenOnly</code> settings. A tab set only
                     ever owns its own <code>&lt;ui-tab&gt;</code> children, so groups can't contaminate each
                     other.</ui-message
                   >
@@ -406,9 +406,9 @@
                     <code>ui-show</code> and fill the pane when <code>event.detail.first</code> is true (see Usage).
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
-                    >Not ported: Fomantic's <code>auto</code> / <code>apiSettings</code> / <code>cache</code> loading --
-                    a fetch is a few lines in a <code>ui-show</code> listener, and the pane's <code>loading</code> shows
-                    the spinner meanwhile.</ui-message
+                    >Not ported: Fomantic's auto / apiSettings / cache loading. A fetch is a few lines in a
+                    <code>ui-show</code> listener, and the pane's <code>loading</code> shows the spinner
+                    meanwhile.</ui-message
                   >
                   <ui-tabs pointing secondary aria-label="Lazy demo">
                     <ui-tab label="First">
@@ -455,8 +455,8 @@
                 </script>
               </ui-code>
               <ui-message size="small" class="site-not-ported"
-                >Not ported: HTML5 state history (<code>historyType: 'state'</code>, <code>path</code>) -- it needs a
-                server route for every tab; <code>history</code> uses the hash only.</ui-message
+                >Not ported: HTML5 state history (<code>historyType: 'state'</code>, <code>path</code>). It needs a
+                server route for every tab:  <code>history</code> uses the hash only.</ui-message
               >
             </ui-section>
           </ui-tab>

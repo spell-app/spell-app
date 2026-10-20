@@ -175,9 +175,9 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Attached Position (<code>position: 'top attached'</code> /
-                <code>'bottom attached'</code>, full-width toasts like a phone's notifications) and Center Aligned
-                content (<code>class: 'center aligned'</code>) -- left out of the toast sheets on purpose.</ui-message
+                >Not ported: Attached Position (the top attached and bottom attached positions, full-width toasts like
+                a phone's notifications) and Center Aligned content (the center aligned class). Both are left out of
+                the toast sheets on purpose.</ui-message
               >
 
               <ui-section id="examples-variations-direction" label="Direction" sticky collapsible dividing>
@@ -196,10 +196,9 @@
               <ui-section id="examples-variations-duration" label="Duration" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    You can choose how long a toast should be displayed: <code>displayTime</code> (<code
-                      >display-time</code
-                    >
-                    on the element), in milliseconds. <code>0</code> keeps it until it's clicked, and <code>auto</code>
+                    You can choose how long a toast should be displayed, in milliseconds:  <code>displayTime</code>, or
+                    <code>display-time</code> on the element. <code>0</code> keeps it until it's clicked, and
+                    <code>auto</code>
                     calculates the time from the number of words (120 a minute, at least a second).
                   </p>
                   <template>
@@ -349,7 +348,7 @@
                     Define click actions on your toast with a text and/or icon, optional class and click handler.
                   </p>
                   <ui-message slot="description" size="small"
-                    >The default click handler closes the toast, so leave it out when the button should only close it. A
+                    >The default click handler closes the toast, so leave it out when the button should only close it;  a
                     handler returning <code>false</code> keeps the toast open. In the page, put
                     <code>&lt;ui-button slot="actions"&gt;</code>s in the toast: any activated one closes it unless its
                     click was <code>preventDefault()</code>ed.</ui-message
@@ -481,8 +480,8 @@
               </ui-section>
 
               <ui-message size="small" class="site-not-ported"
-                >Not ported: Image toasts (<code>showImage</code>, <code>classImage</code>) -- left out of the toast
-                sheet on purpose; slot an <code>&lt;ui-image avatar&gt;</code> into the content instead.</ui-message
+                >Not ported: Image toasts (<code>showImage</code>, <code>classImage</code>), left out of the toast
+                sheet on purpose. Slot an <code>&lt;ui-image avatar&gt;</code> into the content instead.</ui-message
               >
 
               <ui-section id="examples-examples-close-icon" label="Close Icon" sticky collapsible dividing>
@@ -525,8 +524,8 @@
                 <ui-docs-example>
                   <p slot="description">
                     Just like a modal, a toast ties approve / deny to any positive / approve, negative / deny or ok /
-                    cancel button: <code>ui-approve</code> and <code>ui-deny</code>, cancelable, so
-                    <code>preventDefault()</code> keeps it open.
+                    cancel button, with the cancelable <code>ui-approve</code> and <code>ui-deny</code>. Calling
+                    <code>preventDefault()</code> on one keeps it open.
                   </p>
                   <template>
                     <ui-toast id="toast-approve-deny" display-time="0" message="Want to close this DOM toast?">
@@ -601,9 +600,9 @@
               >
                 <ui-docs-example>
                   <p slot="description">
-                    Each <code>UI.toast()</code> call returns a handle: <code>closed</code> resolves when the toast is
-                    gone, <code>element</code> is the <code>&lt;ui-toast&gt;</code>, and
-                    <code>UI.toasts.dismiss(id)</code> closes it early.
+                    Each <code>UI.toast()</code> call returns a handle, and <code>UI.toasts.dismiss(id)</code> closes it
+                    early. The handle's <code>closed</code> resolves when the toast is gone, and its
+                    <code>element</code> is the toast itself.
                   </p>
                   <template>
                     <ui-button id="toast-handle">Show, then close it after a second</ui-button>

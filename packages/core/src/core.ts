@@ -90,7 +90,8 @@ export const coreMethods = defineCoreModule({
 
   /**
    * Warn if `value` fails `check` for `property`.
-   * - Its type, then its legal values, then its rules (`PropRule`, epic `property-editor` P9):  the first it fails.
+   * - Checks its type, then its legal values, then its rules (`PropRule`, epic `property-editor` P9):
+   *   warns of the first it fails.
    * - Returns whether it passed:  callers store `value` either way.
    * - Called by `Thing.setProp()` / `List.setProp()`, i.e. compiled property setters like
    *   `set title(value) { this.setProp('title', value, { type: 'text' }) }`.

@@ -60,13 +60,12 @@
               <ui-section id="examples-types-sidebar" label="Sidebar" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A sidebar: <code>&lt;ui-pushable&gt;</code> (the context) holds <code>&lt;ui-sidebar&gt;</code>s and
-                    one <code>&lt;ui-pusher&gt;</code> (the page beside them).
+                    A sidebar:  <code>&lt;ui-pushable&gt;</code>, the context, holds the sidebars and one
+                    <code>&lt;ui-pusher&gt;</code>, the page beside them.
                   </p>
                   <ui-message slot="description" state="warning" size="small"
-                    >Although sidebars can be used with any content, in most cases sidebars hold an
-                    <code>inverted</code> <code>vertical</code> <code>&lt;ui-menu&gt;</code>. See the Usage tab for more
-                    details.</ui-message
+                    >Although sidebars can be used with any content, in most cases sidebars hold an inverted vertical
+                    <code>&lt;ui-menu&gt;</code>. See the Usage tab for more details.</ui-message
                   >
                   <ui-pushable>
                     <ui-sidebar id="sidebar-simple" inverted aria-label="Site">
@@ -212,10 +211,8 @@
               <ui-section id="examples-variations-width" label="Width" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    A sidebar can specify its width: <code>width</code> is <code>very thin</code> (60px),
-                    <code>thin</code> (150px), 260px by default, <code>wide</code> (350px) or
-                    <code>very wide</code> (475px), or columns of the viewport (<code>4</code>, <code>1/4</code>,
-                    <code>25%</code>).
+                    A sidebar can specify its width:  <code>width</code> is very thin (60px), thin (150px), 260px by
+                    default, wide (350px) or very wide (475px). Or it's columns of the viewport:  4, 1/4, 25%.
                   </p>
                   <ui-message slot="description" size="small"
                     >A sidebar adjusts its animations to any width, the words' or your own
@@ -307,9 +304,9 @@
               <ui-section id="examples-more-examples-transitions" label="Transitions" sticky collapsible dividing>
                 <ui-docs-example>
                   <p slot="description">
-                    Not all sidebar transitions are available for every sidebar direction: <code>overlay</code>,
-                    <code>push</code> and <code>scale down</code> work on every edge; <code>uncover</code> (the default
-                    at the sides), <code>slide along</code> and <code>slide out</code> on the left and right only.
+                    Not all sidebar transitions are available for every sidebar direction. Overlay, push and scale down
+                    work on every edge;  uncover (the default at the sides), slide along and slide out on the left and
+                    right only.
                   </p>
                   <ui-message slot="description" size="small" class="site-not-ported"
                     >Not ported: Fomantic's <code>dimPage</code> setting -- a modal sidebar always dims the page beside
@@ -377,8 +374,7 @@
                 <ui-docs-example>
                   <p slot="description">
                     Multiple sidebars can be displayed at the same time when they are <code>persistent</code>, with a
-                    transition like <code>push</code> or <code>overlay</code>. A modal sidebar is a drawer: one at a
-                    time.
+                    transition like push or overlay. A modal sidebar is a drawer:  one at a time.
                   </p>
                   <ui-buttons>
                     <ui-button commandfor="sidebar-multiple-left" command="--toggle">Left</ui-button>

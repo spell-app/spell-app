@@ -356,8 +356,8 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
   }
 
   /**
-   * Save `project`'s settings into its project file:  `title`, `version`, `targets`, `listsStartAt`
-   * (Project Settings, epic `property-editor` P5).
+   * Save `project`'s settings into its project file (Project Settings, epic `property-editor` P5).
+   * - The settings:  `title`, `version`, `targets`, `listsStartAt`.
    * - A setting that's `null`, `""` or `[]` is removed from the file:  its default applies.
    * - SIDE EFFECT:  `project.contents` takes what the file says now, so its `title`, `targets` ... follow at once.
    * - throws on a server error

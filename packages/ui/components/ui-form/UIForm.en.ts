@@ -6,13 +6,13 @@
  *   `UIT` by value straight from `components.types`.
  * - The notes below are the whole family's:  `<ui-field>`, `<ui-fields>` and `<ui-repeat>` too.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-form size="large" state="error">` => `ui large error form`;
- *   `<ui-field width="4" required>` => `required four wide field`;
- *   `<ui-fields widths="2" inline>` => `inline two fields`, `widths="equal"` => `equal width fields`.
- *   Fields have no `ui` (Fomantic styles them inside `.ui.form`).
+ *   - `<ui-form size="large" state="error">` => `ui large error form`
+ *   - `<ui-field width="4" required>` => `required four wide field`
+ *   - `<ui-fields widths="2" inline>` => `inline two fields`, `widths="equal"` => `equal width fields`
+ *   - Fields have no `ui` (Fomantic styles them inside `.ui.form`).
  * - `state` is `kind: "valueOnly"`:  it emits its value alone (`error field`), a remap in `colors.css`.
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
- * - Binding too:  `value` is a PROPERTY (`json`), the object its named controls show and edit;
+ * - Binding too:  `value` is a PROPERTY (`json`), the object its named controls show and edit.
  *   `<ui-repeat name>` repeats its fields per item of one of its lists.
  */
 
@@ -22,8 +22,9 @@ import { FormApplyModes, STATE_STATES, ValidationTriggers } from "./UIForm.types
 
 /****************
  * ### `formVocabulary`
- * The names of `<ui-form>`, a form's look and its validation, around a NATIVE `<form>` (slotted inside it,
- * or around it):  `<div class="ui … form" part="form"><slot></slot></div>`.
+ * The names of `<ui-form>`:  a form's look and its validation,
+ * around a NATIVE `<form>` (slotted inside it, or around it).
+ * - Its shadow DOM:  `<div class="ui … form" part="form"><slot></slot></div>`.
  ****************/
 export const formVocabulary = {
   tag: "ui-form",

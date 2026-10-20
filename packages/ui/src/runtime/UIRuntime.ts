@@ -46,20 +46,21 @@ import { load } from "./load"
 /****************
  * ### `UIRuntime`
  * The shared `UI` runtime:  ONE instance per page, holding every service as a readonly field.
- * - The root of the runtime's LAZY chunk:  `load.ts` dynamic-imports this module;  nothing imports it statically
- *   (`import type` only), so components never carry the services.  It imports `$/ui/core` (already loaded by then)
- *   and `$/ui/styles` (the foundation's text), which lands in this chunk.
- * - Why one:  keyboard scopes, the overlay stack, scroll lock and the stylesheet registry only work if every
- *   component on the page talks to the SAME instance -- including components from a second copy of the
- *   package (duplicate bundles, micro-frontends).  So the instance lives on `globalThis[RUNTIME_KEY]`
- *   and `UIRuntime.instance` reuses whatever is there.
- * - Loaded lazily:  components call `UI.load()` (see `load.ts`) from `connectedCallback`, which
- *   dynamic-imports THIS module once, so the runtime is its own chunk and pages pay for it only when a
- *   component actually connects.
+ * - The root of the runtime's LAZY chunk:  `load.ts` dynamic-imports this module.
+ *   - Nothing imports it statically (`import type` only), so components never carry the services.
+ *   - It imports `$/ui/core` (already loaded by then),
+ *     and `$/ui/styles` (the foundation's text), which lands in this chunk.
+ * - Why one:  keyboard scopes, the overlay stack, scroll lock and the stylesheet registry only work
+ *   if every component on the page talks to the SAME instance.
+ *   - Including components from a second copy of the package (duplicate bundles, micro-frontends).
+ *   - So the instance lives on `globalThis[RUNTIME_KEY]`, and `UIRuntime.instance` reuses whatever is there.
+ * - Loaded lazily:  components call `UI.load()` (see `load.ts`) from `connectedCallback`,
+ *   which dynamic-imports THIS module once.
+ *   So the runtime is its own chunk, and pages pay for it only when a component actually connects.
  * - Constructs outside a browser too (SSR):  services touch the DOM only when used.
- * - NOTE: it holds the `Vocabulary` registry itself (`UI.vocabulary`), and registers the foundation stylesheets
- *   with `UI.styles` as it's constructed (`registerFoundation()`):  `$/ui/vocabulary` and `$/ui/styles` stay plain
- *   data, which never reach for the runtime.
+ * - NOTE: it holds the `Vocabulary` registry itself (`UI.vocabulary`),
+ *   and registers the foundation stylesheets with `UI.styles` as it's constructed (`registerFoundation()`).
+ *   So `$/ui/vocabulary` and `$/ui/styles` stay plain data, which never reach for the runtime.
  ****************/
 export class UIRuntime {
   /**
@@ -186,8 +187,8 @@ export class UIRuntime {
 }
 
 /**
- * Sheets every shadow root adopts BEFORE its own, by name, in cascade order:  `foundationCSS` (`$/ui/styles`)
- * less the utilities, which `Styles` adopts after a component's sheets.
+ * Sheets every shadow root adopts BEFORE its own, by name, in cascade order:
+ * `foundationCSS` (`$/ui/styles`) less the utilities, which `Styles` adopts after a component's sheets.
  */
 const FOUNDATION_SHEETS = {
   layers: layersCSS,
