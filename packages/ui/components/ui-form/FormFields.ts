@@ -80,7 +80,10 @@ export class FormFields {
     return values
   }
 
-  /** Human label of a field:  its controls' `<label>`s, else its `<ui-field>`'s label, else the identifier. */
+  /**
+   * Human label of a field:  its controls' `<label>`s, else its `<ui-field>`'s label (a `<label>` in it, else the one it
+   * draws), else the identifier.
+   */
   label({ identifier, controls }: Field): string {
     for (const control of controls) {
       const labels = (control as { labels?: NodeList | null }).labels
@@ -88,7 +91,9 @@ export class FormFields {
       if (text) return text
     }
     const field = controls[0]?.closest(FIELD_SELECTOR)
-    const fieldLabel = field?.querySelector(":scope > label")?.textContent?.trim()
+    const fieldLabel =
+      field?.querySelector(":scope > label")?.textContent?.trim() ||
+      (field as { shownLabel?: string } | null)?.shownLabel
     if (fieldLabel) return fieldLabel
     const own =
       controls.length === 1 && FormFields.isCheckable(controls[0]!) ? controls[0]!.textContent?.trim() : undefined

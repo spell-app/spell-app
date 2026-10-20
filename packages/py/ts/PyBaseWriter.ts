@@ -1424,6 +1424,12 @@ export class PyBaseWriter extends P.ProgramWriter {
     return String(this.write(node.member))
   }
 
+  /** A property's rules, from outside its class:  `Card.declare_rules("title", [{"type": "empty"}])`. */
+  ASTPropertyRules(node: P.ASTPropertyRules): string {
+    const name = this.quoted(this.nameOf(node.property.value, "property"))
+    return this.withSpell(node, `${this.write(node.type)}.declare_rules(${name}, ${this.bare(node.rules)})`)
+  }
+
   ////////////////
   // ## Settings
   ////////////////

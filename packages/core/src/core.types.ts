@@ -15,6 +15,7 @@ import type { jsonMethods } from "./json"
 import type { carryMethods } from "./carry"
 import type { classesMethods } from "./classes"
 import type { deprecatedMethods } from "./deprecated"
+import type { PropRule } from "$/util"
 
 // ## Importing core
 
@@ -100,6 +101,8 @@ export type PropCheck = {
    * e.g. `() => Deck.Suits`:  a value kind's list is on ANOTHER class, which may be defined after ours
    */
   oneOf?: readonly unknown[] | (() => readonly unknown[])
+  /** what its value must be, beyond its type, e.g. `[{ type: "empty" }]` -- see `PropRule` (epic `property-editor` P9) */
+  rules?: readonly PropRule[]
 }
 
 // ## Modules

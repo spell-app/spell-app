@@ -98,3 +98,23 @@ describe("PropertySchemas.typeOf() and .labelOf()", () => {
     expect(label("x", "Own label")).toBe("Own label")
   })
 })
+
+describe("PropertySchemas.fromJSONSchema():  rules (epic `property-editor` P9)", () => {
+  it("reads back what a spell type's rules write:  lengths, formats, a pattern with its own words", () => {
+    const schema = PropertySchemas.fromJSONSchema({
+      type: "object",
+      properties: {
+        name: { type: "string", minLength: 1, maxLength: 40 },
+        site: { type: "string", format: "uri" },
+        version: { type: "string", pattern: "^\\d+$", patternErrorMessage: "Digits only" },
+        code: { type: "string", pattern: "^[A-Z]+$" }
+      }
+    } satisfies JSONSchema)
+    const byName = Object.fromEntries(schema.attributes.map((spec) => [spec.name, spec]))
+    expect(byName.name!.rules).toEqual([{ type: "empty" }, { type: "maxLength", value: "40" }])
+    expect(byName.site!.rules).toEqual([{ type: "url" }])
+    expect(byName.version!.rules).toEqual([{ type: "regExp", value: "/^\\d+$/", prompt: "Digits only" }])
+    expect(byName.code).toMatchObject({ pattern: "^[A-Z]+$" })
+    expect(byName.code!.rules).toBeUndefined()
+  })
+})

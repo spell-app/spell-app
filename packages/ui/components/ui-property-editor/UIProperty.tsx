@@ -19,7 +19,7 @@ import propertyCSS from "./UIProperty.css?inline"
 export class DOMPropertyElement extends DOMFieldElement {
   /** The schema's rules for it (`rules`, and `min` / `max` / `pattern` as rules):  `<ui-form>` adds them to the form's. */
   @E.untracked
-  get schemaRules(): readonly string[] | undefined {
+  get schemaRules(): readonly E.ValidationRule[] | undefined {
     return (this.component as UIProperty | undefined)?.schemaRules
   }
 
@@ -117,11 +117,15 @@ export class UIProperty extends UIField {
     return spec ? PropertySchemas.typeOf(spec) : TEXT
   }
 
-  /** The schema's rules for it, as `<ui-form>` rule strings:  its `rules`, then its limits. */
-  get schemaRules(): readonly string[] | undefined {
+  /**
+   * The schema's rules for it, as `<ui-form>` rules:  its `rules`, then its pattern.
+   * - A rule may be an object with its own words, as a spell type's are:  `{ type: "empty", prompt: "Name it" }`.
+   */
+  get schemaRules(): readonly E.ValidationRule[] | undefined {
     const spec = this.spec
     if (!spec) return undefined
-    const rules = spec.rules === undefined ? [] : Array.isArray(spec.rules) ? [...spec.rules] : [spec.rules as string]
+    const rules: E.ValidationRule[] =
+      spec.rules === undefined ? [] : typeof spec.rules === "string" ? [spec.rules] : [...spec.rules]
     if (spec.pattern) rules.push(`regExp[/${spec.pattern}/]`)
     return rules.length ? rules : undefined
   }

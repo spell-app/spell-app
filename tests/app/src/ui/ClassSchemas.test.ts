@@ -44,3 +44,14 @@ describe("ClassSchemas.fromClass()", () => {
     expect(schema.attributes[5]!.type).toBe("date")
   })
 })
+
+describe("ClassSchemas.fromClass():  rules (epic `property-editor` P9)", () => {
+  class Release extends Observable {}
+  declareProp(Release, "version", { type: "text", rules: [{ type: "regExp", value: "/^\\d+$/", prompt: "Digits" }] })
+
+  it("passes a property's rules on, for the form to check", () => {
+    expect(ClassSchemas.fromClass(Release).attributes[0]!.rules).toEqual([
+      { type: "regExp", value: "/^\\d+$/", prompt: "Digits" }
+    ])
+  })
+})

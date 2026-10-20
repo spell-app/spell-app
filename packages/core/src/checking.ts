@@ -21,7 +21,7 @@
  * - A property holding a thing takes a reference to it, `{ "$ref": "Person#matt" }`, or the thing written whole,
  *   inside (`"$type"` first).
  */
-import { ITEMS_KEY, schemaOf, TYPE_KEY, type PropInfo } from "$/util"
+import { ITEMS_KEY, rulePattern, schemaOf, TYPE_KEY, type PropInfo, type PropRule } from "$/util"
 
 import { REF_KEY, upgradeEntry } from "./saving"
 
@@ -198,7 +198,8 @@ function thingSchema(Class: Function): Record<string, unknown> {
     $version: { type: "integer", minimum: 1, description: "The version of its type it was saved as" },
     [TYPE_KEY]: { const: Class.name }
   }
-  for (const [name, info] of declaredProps(Class)) properties[name] = kindSchema(kindOf(info))
+  for (const [name, info] of declaredProps(Class))
+    properties[name] = { ...kindSchema(kindOf(info)), ...rulesSchema(info.rules) }
   return { type: "object", properties, additionalProperties: false }
 }
 
@@ -227,6 +228,29 @@ function kindSchema(kind: Kind): Record<string, unknown> {
         ]
       }
   }
+}
+
+/**
+ * A property's rules (epic `property-editor` P9), as JSON Schema's keywords for the same:
+ * - `must not be empty` => `minLength: 1`;  a pattern => `pattern`, its own words as `patternErrorMessage` (VS Code's)
+ * - lengths => `minLength` / `maxLength`;  numbers => `minimum` / `maximum`;  `email` / `url` => `format`
+ */
+function rulesSchema(rules: readonly PropRule[] | undefined): Record<string, unknown> {
+  const schema: Record<string, unknown> = {}
+  for (const { type, value = "", prompt } of rules ?? []) {
+    const [min, max] = value.split("..")
+    if (type === "empty") schema.minLength = Math.max(Number(schema.minLength ?? 0), 1)
+    else if (type === "regExp") {
+      schema.pattern = rulePattern(value)?.source
+      if (prompt) schema.patternErrorMessage = prompt
+    } else if (type === "minLength") schema.minLength = Number(value)
+    else if (type === "maxLength") schema.maxLength = Number(value)
+    else if (type === "range") Object.assign(schema, { minimum: Number(min), maximum: Number(max) })
+    else if (type === "minValue") schema.minimum = Number(value)
+    else if (type === "maxValue") schema.maximum = Number(value)
+    else schema.format = type === "url" ? "uri" : "email"
+  }
+  return schema
 }
 
 /** A saved reference, `{ "$ref": "Person#matt" }`, as JSON Schema. */

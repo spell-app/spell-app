@@ -30,6 +30,15 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
     return this.component?.formErrors ?? []
   }
 
+  /**
+   * The label it shows, `<ui-form>`'s name for it in a message ("Name must have a value"):  its `label`, else what its
+   * kind works out (a `<ui-property>`'s from its schema, or its name).
+   */
+  @E.untracked
+  get shownLabel(): string | undefined {
+    return this.component?.labelText
+  }
+
   /** The placeholder `<ui-form>` shows in a control while its things disagree (`mixed`), in the page's language. */
   @E.untracked
   get mixedText(): string | undefined {

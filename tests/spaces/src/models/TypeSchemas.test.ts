@@ -33,3 +33,18 @@ describe("SPACES.TypeSchemas.fromDeclarations()", () => {
     expect(SPACES.TypeSchemas.typesIn(SOLITAIRE)).toEqual(expect.arrayContaining(["Card", "Deck", "Pile"]))
   })
 })
+
+describe("SPACES.TypeSchemas.fromDeclarations():  rules (epic `property-editor` P9)", () => {
+  const declarations = {
+    statements: [
+      { type: "Release", superType: "Thing" },
+      { property: "version", of: "Release", datatype: "text", rules: [{ type: "empty" }] },
+      { property: "stage", of: "Release", enumeration: ["alpha", "beta"], rules: [{ type: "empty" }] }
+    ]
+  }
+
+  it("passes a property's rules on, for the form to check", () => {
+    const release = SPACES.TypeSchemas.fromDeclarations(declarations, "Release")!
+    expect(release.attributes.map((spec) => spec.rules)).toEqual([[{ type: "empty" }], [{ type: "empty" }]])
+  })
+})

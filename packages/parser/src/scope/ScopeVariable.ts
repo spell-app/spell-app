@@ -1,3 +1,4 @@
+import type { PropRule } from "$/util"
 import { P } from "$/parser"
 
 /**
@@ -70,6 +71,16 @@ export class ScopeVariable {
    */
   declare readAs: string | undefined
   /**
+   * A property's RULES:  what its value must be, beyond its type, e.g. `[{ type: "empty" }]` for
+   * `- its title must not be empty` (epic `property-editor` P9) -- see `PropRule`.
+   * - Said by any statement about it, its own or another line:  `P.TypeScope.addPropertyRules()` keeps them by
+   *   statement (`ruleSources`), and this is them all, in order.
+   * - Imported:  as its declaration says them.
+   */
+  declare rules: readonly PropRule[] | undefined
+  /** Which statement said which of `rules`, so a statement parsed again replaces its own. */
+  declare ruleSources: ReadonlyArray<{ declaredBy: P.Match; rules: readonly PropRule[] }> | undefined
+  /**
    * Its docs as markdown, for a member with no source to read them from:  a built-in type's.
    * - Anything a project declares has its docstring above its declaring statement instead.
    */
@@ -116,6 +127,8 @@ export type ScopeVariableProps = {
   exclusive?: boolean
   /** See `ScopeVariable.readAs`. */
   readAs?: string
+  /** See `ScopeVariable.rules`. */
+  rules?: readonly PropRule[]
   /** See `ScopeVariable.docstring`. */
   docstring?: string
 }

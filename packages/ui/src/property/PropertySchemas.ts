@@ -102,12 +102,32 @@ export class PropertySchemas {
     if (schema.minimum !== undefined) spec.min = schema.minimum
     if (schema.maximum !== undefined) spec.max = schema.maximum
     if (schema.multipleOf !== undefined) spec.step = schema.multipleOf
-    if (schema.pattern) spec.pattern = schema.pattern
+    if (schema.pattern && !schema.patternErrorMessage) spec.pattern = schema.pattern
+    const rules = PropertySchemas.rulesOfJSONSchema(schema)
+    if (rules.length) spec.rules = rules
     if (isPlainDefault(schema.default)) spec.default = schema.default
     if (type === "list" && schema.items)
       spec.of = PropertySchemas.typeOfJSONSchema(PropertySchemas.withoutNull(schema.items))
     if (type === "thing") spec.attributesOf = PropertySchemas.attributesOfJSONSchema(schema)
     return spec
+  }
+
+  /**
+   * A property's checks, as the form's rules:  what a spell type's rules write into its JSON Schema
+   * (epic `property-editor` P9), read back.
+   * - `minLength` / `maxLength`, `format: "email"` / `"uri"`
+   * - a `pattern` with VS Code's `patternErrorMessage`:  the rule with those words (a bare `pattern` is `pattern`)
+   */
+  private static rulesOfJSONSchema(schema: JSONSchema): V.RuleSpec[] {
+    const rules: V.RuleSpec[] = []
+    if (schema.minLength)
+      rules.push(schema.minLength === 1 ? { type: "empty" } : { type: "minLength", value: `${schema.minLength}` })
+    if (schema.maxLength !== undefined) rules.push({ type: "maxLength", value: `${schema.maxLength}` })
+    if (schema.format === "email") rules.push({ type: "email" })
+    if (schema.format === "uri") rules.push({ type: "url" })
+    if (schema.pattern && schema.patternErrorMessage)
+      rules.push({ type: "regExp", value: `/${schema.pattern}/`, prompt: schema.patternErrorMessage })
+    return rules
   }
 
   /** A schema's type, as a form edits it. */
@@ -185,7 +205,11 @@ export type JSONSchema = {
   minimum?: number
   maximum?: number
   multipleOf?: number
+  minLength?: number
+  maxLength?: number
   pattern?: string
+  /** VS Code's own:  what to say when `pattern` fails. */
+  patternErrorMessage?: string
   default?: unknown
   /** A fixed value (`"$type": { "const": "Person" }`):  read by nothing here. */
   const?: unknown

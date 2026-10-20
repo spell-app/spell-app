@@ -698,6 +698,23 @@ A kind that says so is saved in a file of its own.
     - `quoted_type_expression`, `quoted_property_formula`
     - `its_quoted_property` (a `type_property` for `property_value_either`)
     - `saved_inline`, `saved_in_file`, and `list_guard`'s three (`- it can take a card if: ...`)
+- A property's RULES (epic `property-editor` P9):  what its value must be, beyond its type.
+  - The words after `must`:  [`must_rule`](src/rules/classes/MustRule.ts), e.g. `not be empty`, `match "^\d+$"`,
+    `be between 1 and 5`;  then, if it likes, `with suggestion "..."` (`rule_suggestion`).
+  - A pattern is `pattern_text`, NOT `text`:  `[a-z]` there is a set of letters, not a fill-in.
+  - Three places:
+    - a line of its own, `- its title must not be empty`:  [`property_must`](src/rules/classes/PropertyMust.ts)
+    - the property's own line, `- it has a title as text, which must not be empty`
+    - indented under it, `- it must not be empty`:  `property_body_must`
+  - The last is a property's own BODY, `{nested_statements}?` ending `define_property_has`'s syntaxes.
+    - Its scope is a `P.SubjectScope` the property statement declared:  `property_body_must` takes a line only there.
+    - The body compiles to nothing itself:  `DefinePropertyHas.rulesOf()` reads its lines.
+  - Each lands on the property's record, `P.TypeScope.addPropertyRules()`, kept by statement and journaled, so the
+    declarations write them (`rules`).
+    - From its body, in `mutateScopeFromBody()`;  a line of its own, in its `mutateScope()`, if the property is
+      declared above it (else a warning).
+  - And in the compiled class:  `declareProp("title", { type: "text", rules: [...] })`, or for a line of its own,
+    `P.ASTPropertyRules`:  `Card.declareRules(...)` after the class.
 - `subject_implied`:  the subject LEFT OUT (P8).
   - e.g. `- has a name as text`, `- "suit" is a suit`
   - A `SubjectRule` taking NO tokens (`zeroWidth`, see "Rules and matching").

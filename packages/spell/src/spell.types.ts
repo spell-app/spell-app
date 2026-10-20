@@ -6,6 +6,7 @@
  * - The `$/parser/rulex` registration is in `SpellParser.ts`, which every rule module imports anyway.
  */
 
+import type { PropRule } from "$/util"
 import type { P } from "$/parser"
 import type { SpellLocation } from "./SpellLocation"
 import type { SpellFile } from "./SpellFile"
@@ -537,6 +538,11 @@ export type SpellDeclaration = {
    * - Read-only:  see `P.ScopeVariable.exclusive`.
    */
   exclusive?: boolean
+  /**
+   * A `property`'s rules:  what its value must be, beyond its type, e.g. `[{ type: "empty" }]` for
+   * `- its title must not be empty` -- see `P.ScopeVariable.rules` (epic `property-editor` P9).
+   */
+  rules?: readonly PropRule[]
   /** Instance property it declares, e.g. `suit`. */
   property?: string
   /**

@@ -42,6 +42,8 @@ export class TypeSchemas {
   private static attributeOf(statement: DeclarationStatement): VT.AttributeSpec {
     const name = statement.property!
     const label = statement.asWritten ? TypeSchemas.sentence(statement.asWritten) : undefined
+    // what its value must be, as the type says in spell (epic `property-editor` P9)
+    const rules = statement.rules?.length ? statement.rules : undefined
     if (statement.enumeration) {
       return {
         name,
@@ -49,7 +51,8 @@ export class TypeSchemas {
         type: "choice",
         values: statement.enumeration.map(String),
         description: "",
-        ...(label && { label })
+        ...(label && { label }),
+        ...(rules && { rules })
       }
     }
     const { type, of } = TypeSchemas.typeOf(statement.datatype)
@@ -59,7 +62,8 @@ export class TypeSchemas {
       type,
       ...(of && { of }),
       description: "",
-      ...(label && { label })
+      ...(label && { label }),
+      ...(rules && { rules })
     }
   }
 
@@ -99,6 +103,8 @@ export type DeclarationStatement = {
   constants?: readonly unknown[]
   /** Its type, `text`, `number`, `choice`, `date`, `list of texts`, a type's name. */
   datatype?: string
+  /** What its value must be, `[{ type: "empty" }]`, as the type says in spell (epic `property-editor` P9). */
+  rules?: readonly VT.RuleSpec[]
 }
 
 /** Spell's value types, as a form edits them:  spell's `choice` is a yes or no. */

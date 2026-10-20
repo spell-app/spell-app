@@ -123,6 +123,7 @@ function declarationKinds(): Array<abstract new (...args: never[]) => P.ASTNode>
     P.ASTStaticDefinition,
     P.ASTStaticMethod,
     P.ASTPatchedMember,
+    P.ASTPropertyRules,
     P.ASTDocComment,
     P.ASTPreservedComment,
     P.ASTLineComment,

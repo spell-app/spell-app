@@ -165,6 +165,34 @@ describe("<ui-property-editor> groups and readonly", () => {
     expect(heard).toBe(true)
   })
 
+  it("checks a schema's rules as a spell type writes them, each in its own words (epic `property-editor` P9)", async () => {
+    const host = await ElementFixture.render<Editor>(`<ui-property-editor></ui-property-editor>`)
+    host.schema = {
+      name: "Release",
+      attributes: [
+        {
+          name: "version",
+          kind: "string",
+          type: "text",
+          description: "",
+          rules: [{ type: "empty" }, { type: "regExp", value: "/^\\d+$/", prompt: "Digits only" }]
+        }
+      ]
+    } satisfies PropertySchema
+    host.value = { version: "1.x" }
+    await settle(host)
+    expect(host.validate()).toBe(false)
+    await settle(host)
+    const property = host.querySelector("ui-property")!
+    expect(property.shadowRoot!.textContent).toContain("Digits only")
+    // a rule's own message, else the form's, naming the property by the label it shows
+    host.value = { version: "" }
+    await settle(host)
+    expect(host.validate()).toBe(false)
+    await settle(host)
+    expect(property.shadowRoot!.textContent).toContain("Version must have a value")
+  })
+
   it("draws a control kind a page added", async () => {
     UI.propertyControls.add("shout", { tag: "ui-input", attributes: { placeholder: "LOUD" } })
     const host = await editor(`<ui-property name="title" as="shout"></ui-property>`, { title: "" })

@@ -9,7 +9,7 @@
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
-import { flushCells } from "$/util"
+import { brokenRule, flushCells, ruleWarning } from "$/util"
 // Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
 import { assert } from "./assert"
 import { defineCoreModule, type PropCheck, type Core } from "./core.types"
@@ -90,6 +90,7 @@ export const coreMethods = defineCoreModule({
 
   /**
    * Warn if `value` fails `check` for `property`.
+   * - Its type, then its legal values, then its rules (`PropRule`, epic `property-editor` P9):  the first it fails.
    * - Returns whether it passed:  callers store `value` either way.
    * - Called by `Thing.setProp()` / `List.setProp()`, i.e. compiled property setters like
    *   `set title(value) { this.setProp('title', value, { type: 'text' }) }`.
@@ -102,6 +103,11 @@ export const coreMethods = defineCoreModule({
     const oneOf = typeof check?.oneOf === "function" ? check.oneOf() : check?.oneOf
     if (oneOf && !oneOf.includes(value)) {
       core.console.warn(`Expected ${property} to be one of '${oneOf}', got:`, value)
+      return false
+    }
+    const broken = brokenRule(value, check?.rules)
+    if (broken) {
+      core.console.warn(`${ruleWarning(property, broken)}, got:`, value)
       return false
     }
     return true

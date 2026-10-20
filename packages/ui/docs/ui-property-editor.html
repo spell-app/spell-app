@@ -95,6 +95,26 @@
                   </ui-property-editor>
                 </ui-docs-example>
               </ui-section>
+
+              <ui-section id="examples-types-rules" header="Rules" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A schema's `rules` are checked as you type, each in its own words when it has some:  what a spell type's rules come as (`- its version must match &quot;^\d+\.\d+\.\d+$&quot;, with suggestion &quot;Write it like 1.2.3&quot;`).  Clear the name, or type a letter into the version."
+                >
+                  <ui-property-editor
+                    header="Release"
+                    validate="on leave"
+                    style="max-width: 360px"
+                    schema='{"name": "Release", "attributes": [
+                      {"name": "name", "kind": "string", "type": "text", "description": "", "rules": [{"type": "empty"}]},
+                      {"name": "version", "kind": "string", "type": "text", "description": "", "rules": [
+                        {"type": "regExp", "value": "/^\\d+\\.\\d+\\.\\d+$/", "prompt": "Write it like 1.2.3"}
+                      ]},
+                      {"name": "stars", "kind": "number", "type": "number", "description": "", "rules": [{"type": "range", "value": "1..5"}]}
+                    ]}'
+                    value='{"name": "Sunrise", "version": "1.0.0", "stars": 4}'
+                  ></ui-property-editor>
+                </ui-docs-example>
+              </ui-section>
             </ui-section>
 
             <ui-section id="examples-pages" header="Pages" sticky collapsible dividing>

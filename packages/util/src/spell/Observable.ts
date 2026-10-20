@@ -6,13 +6,17 @@ import {
   PROPS,
   STATE,
   STATE_CELLS,
+  brokenRule,
   declareProp,
+  declareRules,
   extend,
+  ruleWarning,
   schemaOf,
   spellTypeOf,
   type Cell,
   type Derived,
   type PropInfo,
+  type PropRule,
   type Schema
 } from "$/util/reactive"
 
@@ -87,6 +91,14 @@ export class Observable<
     declareProp(this, name, info)
   }
 
+  /**
+   * Add `rules` to prop `name` of this class:  what its value must be, beyond its type -- see `PropRule`.
+   * - What compiled spell emits for a rule on a line of its own:  `Card.declareRules("title", [{ type: "empty" }])`.
+   */
+  static declareRules(name: string, rules: readonly PropRule[]): void {
+    declareRules(this, name, rules)
+  }
+
   ////////////////
   // ## Props
   ////////////////
@@ -128,7 +140,8 @@ export class Observable<
   }
 
   /**
-   * `value` was just set as declared prop `property`:  warn if it isn't what `info` declares.  Stored either way.
+   * `value` was just set as declared prop `property`:  warn if it isn't what `info` declares, or breaks one of its
+   * rules.  Stored either way.
    * - Here:  a dev warning, for hand-written classes.  `Thing` / `List` override it to warn on the program's console.
    */
   protected checkPropType(property: string, value: unknown, info: PropInfo): void {
@@ -138,6 +151,9 @@ export class Observable<
       console.warn(`${this.constructor.name}.${property}:  expected one of ${oneOf.join(", ")}, got`, value)
     } else if (info.type && !isOfType(value, info.type)) {
       console.warn(`${this.constructor.name}.${property}:  expected ${info.type}, got`, value)
+    } else {
+      const broken = brokenRule(value, info.rules)
+      if (broken) console.warn(`${this.constructor.name}.${ruleWarning(property, broken)}, got`, value)
     }
   }
 

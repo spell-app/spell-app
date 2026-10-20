@@ -140,8 +140,11 @@ export type AttributeSpec = {
   ordered?: boolean
   /** Its choices come from a source the page registers by this name (`fonts`), maybe async:  not `values`. */
   choicesFrom?: string
-  /** Validation rules, in `<ui-form rules>`'s shape:  `"email"`, `["notEmpty", "minLength[6]"]`. */
-  rules?: string | readonly string[]
+  /**
+   * Validation rules, in `<ui-form rules>`'s shape:  `"email"`, `["notEmpty", "minLength[6]"]`;  or each a `RuleSpec`,
+   * with its own words, as a spell type's rules come (`{ type: "empty", prompt: "Name it" }`).
+   */
+  rules?: string | readonly (string | RuleSpec)[]
   /** Named "on change" rules the page registers, run after a write:  setting it changes another, or its choices. */
   onChange?: readonly string[]
 }
@@ -504,4 +507,17 @@ export type EnumOptions = {
   attribute?: string
   /** Tag, for the dev-time warning. */
   tag?: string
+}
+
+/**
+ * One validation rule in its object form:  Fomantic's, as `<ui-form>` checks it (`ValidationRule`).
+ * - `type`:  the rule, `"minLength"`;  `value`:  its setting as text, `"3"`, `"1..5"`, `"/^\d+$/"`;
+ *   `prompt`:  what to say when it's broken, in place of the rule's own words
+ * - What a spell type's rules compile to (`- its title must not be empty`, epic `property-editor` P9):  `$/util`'s
+ *   `PropRule` has the same shape.
+ */
+export type RuleSpec = {
+  type: string
+  value?: string
+  prompt?: string
 }

@@ -344,13 +344,23 @@ export class SpellDeclarations {
     declaration: SP.SpellDeclaration,
     declaredAt: P.DeclaredAt | undefined
   ) {
-    const { property, asWritten, classVariable, of, datatype, initializer, enumeration, autoDeclared, exclusive } =
-      declaration
+    const {
+      property,
+      asWritten,
+      classVariable,
+      of,
+      datatype,
+      initializer,
+      enumeration,
+      autoDeclared,
+      exclusive,
+      rules
+    } = declaration
     const typeScope = of && names.has(of) ? scope.types.get(of, "LOCAL_ONLY") : undefined
     if (!typeScope) return
     if (property) {
       typeScope.variables.add(
-        definedOnly({ name: property, asWritten, datatype, initializer, autoDeclared, exclusive, declaredAt })
+        definedOnly({ name: property, asWritten, datatype, initializer, autoDeclared, exclusive, rules, declaredAt })
       )
     }
     if (classVariable) {
@@ -576,7 +586,7 @@ export class SpellDeclarations {
     typeScope: P.TypeScope,
     declared: unknown[]
   ): SP.SpellDeclaration {
-    const { name, asWritten, datatype, enumeration, initializer, autoDeclared, exclusive } = variable
+    const { name, asWritten, datatype, enumeration, initializer, autoDeclared, exclusive, rules } = variable
     const of = typeScope.name
     const derived = enumerationInitializer(enumeration)
     const ownInitializer = initializer === derived ? undefined : initializer
@@ -585,7 +595,7 @@ export class SpellDeclarations {
       (it) => it instanceof P.ScopeVariable && it !== variable && it.kind === "static" && it.name === name
     )
     if (isTwin) return {}
-    return { property: name, asWritten, of, datatype, autoDeclared, exclusive, initializer: ownInitializer }
+    return { property: name, asWritten, of, datatype, autoDeclared, exclusive, rules, initializer: ownInitializer }
   }
 
   /**
@@ -700,6 +710,7 @@ const PROP_ORDER = [
   "getter",
   "itemType",
   "exclusive",
+  "rules",
   "params",
   "returns",
   "waits",

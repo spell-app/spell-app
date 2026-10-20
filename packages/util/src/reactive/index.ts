@@ -4,7 +4,7 @@
  * - Spell cells (`cells.ts`, `Cell`, `Derived`, `Reaction`):  who read what, and telling them when it changed.
  * - The records (`extend.ts`):  each object's props and state, read and written synchronously -- `getProp()` /
  *   `setProp()`, `getState()` / `setState()`, `derive()`.
- * - `Schema`:  each class's declared prop types.
+ * - `Schema`:  each class's declared prop types.  Their rules (`PropRules`):  what a value must be, beyond its type.
  * - The decorators (`decorators.ts`):  `@prop`, `@state`, `@derived`.
  * - The bridges (`bridges.ts`):  `bridgeSolid()`, which the HOST calls with its Solid, and `observe()`.
  * - GENERIC:  no lodash, no Solid, nothing spell-specific, so any package may import it, Spell UI included (file by
@@ -19,5 +19,6 @@ export * from "./Derived"
 export * from "./Reaction"
 export * from "./bridges"
 export * from "./Schema"
+export * from "./PropRules"
 export * from "./extend"
 export * from "./decorators"

@@ -36,6 +36,8 @@ export class ClassSchemas {
     if (values) spec.values = values.map(String)
     if (isPlainDefault(info.default)) spec.default = info.default
     if (type === "list" && info.itemType) spec.of = ClassSchemas.typeOf(info.itemType)
+    // what its value must be, as the type says in spell (epic `property-editor` P9)
+    if (info.rules?.length) spec.rules = info.rules
     return spec
   }
 
