@@ -1,5 +1,5 @@
 ## Deck:  US standard card deck (without jokers) -- in the outline style
-// First in the project:  a card says `its "suit" is a suit of its deck`, so the deck's kinds come before it.
+// First in the project:  a card says `- suit is a suit of its deck`, so the deck's kinds come before it.
 // What a deck DOES uses the card's names, so it's in `Dealing.spell`, after `Card.spell`.
 a "deck" is a list of cards with:
 	- "suits" as one of clubs, diamonds, hearts or spades

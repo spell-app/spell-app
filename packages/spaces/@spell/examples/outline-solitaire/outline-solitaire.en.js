@@ -41,6 +41,7 @@ export const words = {
     },
     Pile: {
       name: "name",
+      droppable: "droppable",
       color: "color",
       value: "value",
       state: "state"
@@ -57,6 +58,7 @@ export const words = {
       draw: "draw a discard-pile"
     },
     Foundation: {
+      symbol: "symbol",
       draw: "draw a foundation"
     },
     Tableau: {
