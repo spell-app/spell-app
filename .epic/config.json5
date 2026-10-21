@@ -18,11 +18,12 @@
   // The branch worktrees start from and merge into.
   "baseBranch": "main",
 
-  // Where NEW worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`, beside the repo.
-  // The old ones in .claude/worktrees are still found, until they move (`epic worktree move`) or end.
-  // - The top repo's worktrees (`~/www/spell.worktrees/<epic>/`, each holding a worktree of every child repo) are
-  //   epic `repo-split` P9's:  until then a spell-app worktree goes beside the repo, as before.
-  "worktreesFolder": "../spell-app.worktrees",
+  // Where NEW worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`.
+  // - spell-app is a child repo of the kit (`~/www/spell`, whose `repos.json5` names it), so the KIT's
+  //   `worktreesFolder` wins (`EpicConfig.worktreesFolder`):  an epic's worktree is `~/www/spell.worktrees/<epic>/`,
+  //   holding a worktree of every child repo, spell-app's at `<epic>/spell-app` (epic `repo-split` P12).
+  // - This one is read only for the worktrees from before the kit:  the same folder, so it names no other place.
+  "worktreesFolder": "../../spell.worktrees",
 
   // What makes a new worktree ready to run, from its root (`/isolate`, `/epic`).
   "installCommand": "yarn install",
@@ -47,10 +48,12 @@
   // so every window's Claude panel lists every session.
   "linkSessionFolders": true,
 
-  // The content folder's folders every checkout links in at its root (`epic shared link`).
-  // - Only the logs and WWOD, `agents`, since epic `epic-eject` P12:  the instructions name `agents/...` from the checkout.
+  // The content folder's folders every checkout links in at its root (`epic shared link`):  none (epic `repo-split`
+  // P12).
+  // - `agents/` (WWOD and the three logs) is the KIT's since P9:  every install links it in at each child repo's root
+  //   (the kit's `postinstall`, `tools/repos.ts links`), so a link into the content folder here would be the wrong one.
   // - The rest (epics, guides, pages, brand, ui, goals, sagas) are found in the content folder itself.
-  "sharedFolders": ["agents"],
+  "sharedFolders": [],
 
   // The epic engine:  the spell-epic checkout, which every checkout links in at its root as `spell-epic`
   // (`epic shared link`, and the worktree hook through it;  only where `.gitignore` ignores `spell-epic`).

@@ -5,8 +5,10 @@
  * - The spell LANGUAGE only:  the docs and Review tabs, "Open Epic...", the window bridge and the handoff are
  *   spell-epic's own extension's (`spell-app.spell-epic`, built from spell-epic's `vscode/`;  epic `epic-eject` I7).
  * - Activates on the window's first spell file (`onLanguage:spell`):  a window without spell files runs no server.
- * - The server is the spell monorepo's own `packages/lsp/src/server.ts`, run by its `tsx` -- see `getRepoRoot()`.
- *   So the editor always runs spell as it is on disk:  restart the server to pick up a change.
+ * - The server is a spell-app checkout's own `lsp/src/server.ts`, run by its `tsx`.
+ *   - Which checkout:  the window's, found when the server starts (`findSpellApp()`), so one installed copy works
+ *     from the kit's main checkout and from every epic's worktree.
+ *   - So the editor always runs spell as it is on disk:  restart the server to pick up a change.
  * - The server asks to watch `project.json` / `.spell` files itself, so there's no `synchronize` here.
  */
 import { existsSync } from "fs"
@@ -20,6 +22,7 @@ import {
 } from "vscode-languageclient/node"
 
 import { RunnerPanel } from "./RunnerPanel"
+import { findSpellApp } from "./spellAppRoot"
 
 /** Scheme of the read-only documents showing a spell file's compiled code -- see `CompiledProvider`. */
 const COMPILED_SCHEME = "spell-compiled"
@@ -43,8 +46,11 @@ type CompiledTarget = keyof typeof COMPILED_TARGETS
 /** How long to wait after the last edit before refreshing an open compiled view, in msec. */
 const REFRESH_DELAY = 300
 
-/** Parser repo this extension was built in -- set by `build.mjs`. */
-declare const REPO_ROOT: string
+/**
+ * The spell-app checkout this extension was built in -- set by `build.mjs`.
+ * - Only the last place `findSpellApp()` looks:  the window's own checkout comes first.
+ */
+declare const BUILT_IN_SPELL_APP: string
 
 /** Client for the running language server, once `activate()` has started it. */
 let client: LanguageClient | undefined
@@ -56,20 +62,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 /**
  * Start the language server and register our commands -- once, for the window's first spell file.
- * - Shows an error, and does nothing else, if `spell.parserRoot` isn't the spell monorepo with its packages installed.
+ * - Shows an error, and does nothing else, if no spell-app checkout is found (`findSpellApp()`),
+ *   or its packages aren't installed.
  */
 async function startLanguageServer(context: vscode.ExtensionContext): Promise<void> {
-  const repoRoot = getRepoRoot()
+  const configured = vscode.workspace.getConfiguration("spell").get<string>("parserRoot")
+  const choice = findSpellApp({
+    configured,
+    workspaceFolders: (vscode.workspace.workspaceFolders ?? []).map(({ uri }) => uri.fsPath),
+    builtIn: BUILT_IN_SPELL_APP
+  })
+  if (!choice) {
+    const message = configured
+      ? `Spell:  no spell-app checkout at '${configured}'.  Fix \`spell.parserRoot\`, or clear it to use the window's.`
+      : "Spell:  no spell-app checkout in this window's folders.  Open one, or set `spell.parserRoot` to one."
+    void vscode.window.showErrorMessage(message)
+    return
+  }
+  const repoRoot = choice.root
   const tsx = findTsx(repoRoot)
   const lspDir = resolve(repoRoot, "lsp")
   const server = resolve(lspDir, "src/server.ts")
   if (!tsx || !existsSync(server)) {
-    const message = `Spell:  no language server in '${repoRoot}'.  Set \`spell.parserRoot\` to the spell monorepo, and run \`yarn\` there.`
+    const message = `Spell:  no language server in '${repoRoot}'.  Run \`yarn\` in its kit's folder, or set \`spell.parserRoot\`.`
     void vscode.window.showErrorMessage(message)
     return
   }
 
-  // `TransportKind.stdio` adds `--stdio` to `args`.  `cwd` so `tsx` finds the repo's `tsconfig.json` (for `~/`).
+  // `TransportKind.stdio` adds `--stdio` to `args`.  `cwd` so `tsx` finds lsp's `tsconfig.json` (for `$/`).
   const serverOptions: ServerOptions = {
     command: tsx,
     // then `$/` imports by each file's own repo (`spell-kit/toolchain/aliases`):  the server runs spell-lang's source too
@@ -82,6 +102,7 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
     documentSelector: [{ scheme: "file", language: "spell" }]
   }
   client = new LanguageClient("spell", "Spell", serverOptions, clientOptions)
+  client.info(`Language server from ${repoRoot}:  ${choice.reason}`)
   RunnerPanel.register(context, client, repoRoot)
 
   const compiled = new CompiledProvider(client)
@@ -102,18 +123,8 @@ export function deactivate(): Promise<void> | undefined {
 }
 
 /**
- * The spell monorepo whose server we run:  `spell.parserRoot` if set (named before the monorepo), else the one
- * we were built in.
- * - NOT `context.extensionPath`:  an installed copy lives in VS Code's extensions folder, away from the repo.
- */
-function getRepoRoot(): string {
-  const configured = vscode.workspace.getConfiguration("spell").get<string>("parserRoot")
-  return configured ? resolve(configured) : REPO_ROOT
-}
-
-/**
  * The repo's `tsx` executable, or `undefined` if no `yarn install` has run.
- * - Looks in `<repoRoot>/node_modules/.bin` and every parent:  yarn hoists tools to the monorepo root.  It's
+ * - Looks in `<repoRoot>/node_modules/.bin` and every parent:  yarn hoists tools to the kit's root.  It's
  *   `spell`'s `tsx`, pinned to 4.20.3 -- see `agents/PAPERCUTS.md`.
  */
 function findTsx(repoRoot: string): string | undefined {

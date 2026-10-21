@@ -1,8 +1,9 @@
 /**
- * Bundle the extension into `out/extension.js`, with the spell monorepo's path built in.
- * - `REPO_ROOT` is the monorepo this file sits in, so an INSTALLED copy of the extension (which lives in
- *   VS Code's extensions folder, not here) still knows whose language server to run.
- *   Move the monorepo and you must rebuild, or set `spell.parserRoot`.
+ * Bundle the extension into `out/extension.js`.
+ * - The installed extension finds the spell-app checkout to run when its server starts, from the window
+ *   (`findSpellApp()`, `src/spellAppRoot.ts`):  one build works from every checkout and worktree.
+ * - `BUILT_IN_SPELL_APP`, the spell-app checkout this file sits in, is only its last resort:
+ *   for a spell file opened in a window with no checkout in it.
  * - `esbuild` is the repo's own, found up the folder tree.
  * - Fails unless our `version` matches `spell`'s -- the two are pinned together.
  * - SIDE EFFECT: also builds `app`'s runner bundle, `dist-runner/`, for "Run Project".
@@ -35,7 +36,7 @@ await build({
   target: "node20",
   external: ["vscode"],
   sourcemap: true,
-  define: { REPO_ROOT: JSON.stringify(resolve(here, "..")) },
+  define: { BUILT_IN_SPELL_APP: JSON.stringify(resolve(here, "..")) },
   logLevel: "info"
 })
 

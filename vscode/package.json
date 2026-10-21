@@ -72,7 +72,7 @@
         "spell.parserRoot": {
           "type": "string",
           "default": "",
-          "description": "Folder of the spell monorepo whose language server to run.  Empty:  the one the extension was built in."
+          "description": "Folder of the spell-app checkout whose language server to run:  spell-app itself, the kit folder holding it, or any folder inside one.  Empty:  the window's own checkout."
         },
         "spell.compileOnSave": {
           "type": "boolean",

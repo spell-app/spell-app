@@ -90,6 +90,12 @@ More on some of them:
   - `spell dev vscode` builds and installs it.
   - Or its two steps:  `spell dev vscode build`, then `install`.
   - Its language server runs lsp's source with `tsx`, loading the run-time alias hook (below, "Aliases").
+  - Whose lsp:  the WINDOW's spell-app checkout, found when the server starts, so one install works everywhere:
+    - the `spell.parserRoot` setting, if set
+    - else the window's folders, the worktree's before the main checkout's
+      (a folder that is spell-app, holds it, or is inside one)
+    - else, last, the checkout it was built in
+    - The extension's output says which it picked;  the code is `findSpellApp()` ([spellAppRoot.ts](vscode/src/spellAppRoot.ts)).
   - The Review tab, the Epic Docs view and the window bridge are spell-epic's own extension, not this one.
 - page-server:  spell-app's own part of its page server, a route module on the kit's (`spell-kit/server`).
   - building the bundles it serves (`BundleBuild`, with spell's own CLI)
@@ -426,7 +432,8 @@ paths from this repo's root:
   - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
 - Only `agents/` is linked in at every checkout's root, a folder SYMLINK (epic `epic-eject` P12):
   the instructions name `agents/...` from the checkout.
-  - Since epic `repo-split` P9 it links to the kit's `../agents/` (the kit's `yarn clone` makes it):
+  - Since epic `repo-split` P9 it links to the kit's `../agents/`, made by every `yarn install` in the kit (its
+    `postinstall`):
     WWOD, tracked there, and links to the three logs in the content repo.
   - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
   - The rest (`epics`, `guides`, `pages`, `brand`, `ui`, `goals`, `sagas`) are found in the content folder itself:

@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process"
 import { createWriteStream, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
+import { stripVTControlCharacters } from "node:util"
 
 import { SRV } from "spell-kit/server"
 import environment from "$/spaces/server/node/environment"
@@ -65,7 +66,7 @@ export class EditorServer {
       log.write(data)
       if (ready) return
       output += data
-      if (!READY.test(output)) return
+      if (!READY.test(stripVTControlCharacters(output))) return
       ready = true
       if (this.child === child) this.record(`http://localhost:${port}/`, child)
     }
@@ -107,6 +108,8 @@ const VP = join(dirname(createRequire(join(APP_DIR, "package.json")).resolve("vi
 /**
  * What vite prints once it listens:  `➜  Local:   http://localhost:3000/`.
  * - NOT `ready in`:  `vp dev` prints `VITE+ v1.0.0` with no timing.
+ * - Tested on the output WITHOUT its colours:  with `CI` set (GitHub Actions), vite colours even into a pipe,
+ *   `Local\x1b[22m:` (epic `repo-split` P12).
  */
 const READY = /\bLocal:\s+http/
 

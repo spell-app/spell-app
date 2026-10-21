@@ -16,6 +16,7 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
+import { contentFolderOf } from "spell-kit/assembler/contentFolder"
 import { SRV } from "spell-kit/server"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { SP } from "spell-lang/spell"
@@ -43,6 +44,12 @@ const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
  */
 const HAS_ENGINE =
   existsSync(resolve(REPO_ROOT, "spell-epic", "bin", "epic")) && existsSync(resolve(REPO_ROOT, "epics"))
+/**
+ * Whether this checkout has the shared content folder's commands page data (`commands.json5`), which
+ * `spell dev commands` reads.
+ * - Without it (CI:  the content repo is local only), that command's test is skipped (epic `repo-split` P12).
+ */
+const HAS_COMMANDS = existsSync(resolve(contentFolderOf(REPO_ROOT) ?? REPO_ROOT, "guides/dev/commands/commands.json5"))
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
@@ -162,7 +169,7 @@ describe("spell dev", () => {
     }
   )
 
-  test("a command that loads spell runs through main.ts, as before", () => {
+  test.skipIf(!HAS_COMMANDS)("a command that loads spell runs through main.ts, as before", () => {
     const { status, stdout } = spell(["dev", "commands", "--json"], REPO_ROOT)
     expect(status).toBe(0)
     expect(JSON.parse(stdout).commands.length).toBeGreaterThan(10)

@@ -1,0 +1,84 @@
+# spell-app's checks on a push to `main`, a pull request, or by hand (Actions tab => "checks" => "Run workflow"):
+# its `yarn ts`, `yarn lint` and `yarn test`, in the layout it's worked on (epic `repo-split` P12).
+# - The kit, spell-kit, at the root:  the ONE install every repo stands on.
+#   At the branch under test when the kit has one, else at `main`:  a change across the kit and this repo is checked
+#   together.
+# - spell-app itself inside it, at its folder name:  the commit under test.
+# - The repos it needs (the kit's `repos.json5`), cloned by the kit's `yarn clone`, each likewise at the branch under
+#   test when it has one, else at its default branch:  spell-lang, spell-brand, spell-ui, and spell-epic, whose route modules its page server runs.
+# - The repos are public:  everything is cloned with no token.
+#   The secret SPELL_REPOS_TOKEN, if it's set, signs the clones in (a repo made private later;  epic `repo-split` J74).
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # the branch under test:  a pull request's own branch, else the pushed one
+  BRANCH: ${{ github.head_ref || github.ref_name }}
+  SPELL_REPOS_TOKEN: ${{ secrets.SPELL_REPOS_TOKEN }}
+  # the kit's lockfile lists every child repo, and only some are cloned here:  yarn must be free to drop the rest
+  YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "the kit's branch:  the one under test, if the kit has it, else main"
+        id: kit
+        run: |
+          url=https://github.com/spell-app/spell-kit.git
+          if [ -n "$SPELL_REPOS_TOKEN" ]; then url="https://x-access-token:$SPELL_REPOS_TOKEN@github.com/spell-app/spell-kit.git"; fi
+          if git ls-remote --exit-code --heads "$url" "refs/heads/$BRANCH" > /dev/null; then ref="$BRANCH"; else ref=main; fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "the kit at $ref"
+
+      - name: the kit, at the root
+        uses: actions/checkout@v4
+        with:
+          repository: spell-app/spell-kit
+          ref: ${{ steps.kit.outputs.ref }}
+          token: ${{ secrets.SPELL_REPOS_TOKEN || github.token }}
+
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+      # its Python (spell-folders' pytest and ruff run through uv);  uv fetches the Python each project pins
+      - uses: astral-sh/setup-uv@v6
+
+      # the kit's own install first:  `yarn clone` reads `repos.json5` with the kit's json5
+      - name: the kit's install
+        run: yarn install
+
+      - name: "spell-app, the commit under test, inside the kit"
+        uses: actions/checkout@v4
+        with:
+          path: "spell-app"
+
+      - name: the repos spell-app needs, then one install over all of them
+        run: yarn clone spell-app --branch "$BRANCH" --https --shallow
+
+      # browser tests run in a real chromium
+      - run: yarn playwright install --with-deps chromium
+
+      # tests that commit make throwaway git repos
+      - run: git config --global user.name CI && git config --global user.email ci@spell.invalid
+
+      - name: yarn ts
+        run: yarn ts
+        working-directory: "spell-app"
+      - name: yarn lint
+        run: yarn lint
+        working-directory: "spell-app"
+      - name: yarn test
+        run: yarn test
+        working-directory: "spell-app"
