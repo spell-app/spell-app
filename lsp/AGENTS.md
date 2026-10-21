@@ -25,7 +25,7 @@ when working with code in this folder, `lsp/` of the `spell-app` package (`spell
   ```sh
   yarn lsp:start                                     # runs the server over stdio
   yarn lsp:scopes [--compile] <projectId...>         # writes scope packs
-  yarn lsp:scopes --compile @spell/examples/solitaire   # e.g.
+  yarn lsp:scopes --compile @spell/examples/drawable-solitaire   # e.g.
   ```
 
 - `$/lsp` MUST stay BROWSER-SAFE (WWOD §8 › "Barrels").

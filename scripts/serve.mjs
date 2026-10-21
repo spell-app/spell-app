@@ -7,7 +7,7 @@
  * - The EDITOR (vite, the spell app):  the page server's child (`EditorServer`, in spaces' routes), started
  *   once the page server listens;  this waits for its record, `.spell-server.editor.json`, to answer.
  * - SPELL UI's docs:  static pages the page server itself serves at `/components/ui/` (no dev server):  the
- *   pages, `packages/ui/docs/`, with this branch's built `packages/ui/site/_assets/` laid over them;  this checks its
+ *   pages, spell-ui's `docs/`, with its built `site/_assets/` laid over them;  this checks its
  *   bundle answers (`/components/ui/_assets/site.js`:  not committed;  the page server builds it when it starts, if stale,
  *   and the request waits for that).
  * - Prints one row per server:  name, port, URL, state.  Exit code 1 if any didn't come up.
@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url"
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 /** This checkout's own `spell` CLI:  run with `node`, never the `spell` on `PATH` (maybe another checkout's). */
-const SPELL = join(ROOT, "packages", "cli", "bin", "spell.mjs")
+const SPELL = join(ROOT, "cli", "bin", "spell.mjs")
 
 /** Where the page server records its editor. */
 const EDITOR_FILE = join(ROOT, ".spell-server.editor.json")

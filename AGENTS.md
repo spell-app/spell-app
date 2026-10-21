@@ -80,7 +80,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [app](app/AGENTS.md) | `spell-app/app` | `$/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` are its scripts, at the repo's root;  App UI, the docs pages of its components, in `docs/` (at `/components/app/`) |
 | [spaces](spaces/AGENTS.md) | `spell-app/spaces` | `$/spaces` | `SPACES` | where projects and people live:  the built-in projects (`@spell/`), its models (`models/`, browser-safe:  spell's project groups and lists), projects on disk (`server/node/projects/`), and the servers that serve them, the editor's (`server/node/`) and Python's, `spell_quart` (`server/py/`, a uv project) |
 | [lsp](lsp/AGENTS.md) | `spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
-| [cli](cli/AGENTS.md) | `spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](cli/README.md) too |
+| [cli](cli/AGENTS.md) | `spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see the kit's [README-cli.md](../README-cli.md) too |
 | [page-server](page-server/AGENTS.md) | `spell-app/page-server` | `$/page-server` | `PS` | what only spell-app's page server does, as a route module on the kit's generic one (`spell-kit/server`):  building its bundles, the shared pages' bridges (below) |
 | `vscode/` | | | | the spell language's VS Code extension (below) |
 

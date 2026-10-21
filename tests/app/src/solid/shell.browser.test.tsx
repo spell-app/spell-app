@@ -170,12 +170,12 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
     flush()
     await ElementFixture.settle(host)
     const items = [...editing.querySelectorAll<HTMLElement>(":scope > ui-item")]
-    expect(items.map(text)).toEqual(["Todos", "Solitaire"])
+    expect(items.map(text)).toEqual(["Todos Form Based", "Drawable Solitaire"])
     expect(items[0].querySelector("ui-icon")!.getAttribute("name")).toBe("app store ios")
     items[1].click()
-    expect(showEditor).toHaveBeenCalledWith("@spell/examples/solitaire")
+    expect(showEditor).toHaveBeenCalledWith("@spell/examples/drawable-solitaire")
     host.querySelector<HTMLElement>("ui-menu.running > ui-item")!.click()
-    expect(showRunner).toHaveBeenCalledWith("@spell/examples/todos")
+    expect(showRunner).toHaveBeenCalledWith("@spell/examples/todos-form-based")
   })
 
   test("`<ProjectMenu>`:  a root that fails to load says so", async () => {
@@ -200,21 +200,21 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
     expect(dropdown.hasAttribute("loading")).toBe(true)
     expect(dropdown.querySelectorAll("ui-item")).toHaveLength(0)
 
-    editor.project = { path: "@spell/examples/todos" } as EditorStore["project"]
+    editor.project = { path: "@spell/examples/todos-form-based" } as EditorStore["project"]
     flush()
     await ElementFixture.settle(host)
     expect(dropdown.hasAttribute("loading")).toBe(false)
-    expect(dropdown.value).toBe("@spell/examples/todos")
+    expect(dropdown.value).toBe("@spell/examples/todos-form-based")
     const items = [...dropdown.querySelectorAll(":scope > ui-item")]
     expect(items.map((item) => [item.getAttribute("value"), text(item), item.getAttribute("icon")])).toEqual([
-      ["@spell/examples/todos", "Todos", "app store ios"],
-      ["@spell/examples/solitaire", "Solitaire", "app store ios"]
+      ["@spell/examples/todos-form-based", "Todos Form Based", "app store ios"],
+      ["@spell/examples/drawable-solitaire", "Drawable Solitaire", "app store ios"]
     ])
 
-    dropdown.dispatchEvent(new CustomEvent("ui-change", { detail: { value: "@spell/examples/solitaire" } }))
-    expect(showRunner).toHaveBeenCalledWith("@spell/examples/solitaire")
+    dropdown.dispatchEvent(new CustomEvent("ui-change", { detail: { value: "@spell/examples/drawable-solitaire" } }))
+    expect(showRunner).toHaveBeenCalledWith("@spell/examples/drawable-solitaire")
     // still showing `editor.project` until it changes
-    expect(dropdown.value).toBe("@spell/examples/todos")
+    expect(dropdown.value).toBe("@spell/examples/todos-form-based")
   })
 
   test("`<ProjectDropdown showLabel={false}>`:  no label", async () => {
@@ -234,7 +234,7 @@ function fakeRoot(isLoaded: boolean): SPACES.SpellProjectRoot & { load: ReturnTy
   return reactiveObject({
     path: "@spell/examples",
     isLoaded,
-    projectPaths: ["@spell/examples/todos", "@spell/examples/solitaire"],
+    projectPaths: ["@spell/examples/todos-form-based", "@spell/examples/drawable-solitaire"],
     icon: "app store ios",
     title: "Examples",
     Type: "Example",

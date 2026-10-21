@@ -1,4 +1,5 @@
 {
+  "description": "The same game, each card its own web component:  `a card is a drawable thing` with a `<css>` block draws as `<solitaire-card>`;  piles laid out by their children, a shuffled stock",
   "imports": [
     {
       "path": "/Card.spell",

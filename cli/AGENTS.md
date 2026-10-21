@@ -15,7 +15,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `yarn cli:install` links it onto your PATH:  the `spell` bin of spell-app's root `package.json`, where the
     script is too (epic `repo-split` P11).
   - The `epic` command is spell-epic's (its `bin/epic`), since epic `epic-eject` I5.
-  - [The README](README.md) has instructions, caveats and TODO.
+  - [The kit's README-cli.md](../../README-cli.md) has every command, its options and caveats, and what's coming.
 - Spell itself is NOT here.
   - It's the folders beside this one (lsp, spaces) and the packages below (`spell-lang`'s spell, parser and core;
     the kit's util).

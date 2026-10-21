@@ -61,6 +61,11 @@ export type ProjectFileJSON = {
    * default, the title made from the folder's name, `todos-form-based` => `Todos Form Based`.
    */
   title?: string
+  /**
+   * What it shows, one line for people, e.g. `"A to-do list:  yes/no properties ..."`.
+   * - The example apps' table, in spell-app's `README-examples.md`, is made from it (`yarn examples:readme`).
+   */
+  description?: string
   /** This project's semver, e.g. `"1.2.0"` -- copied into its declarations, for importers' `version` ranges. */
   version?: string
   /** Names it offers importers, e.g. `["Card", "Deck"]` -- default:  everything it declares. */
