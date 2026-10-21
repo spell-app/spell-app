@@ -6,11 +6,12 @@ import { appProjects } from "./app/vitest.config.ts"
 
 /**
  * ONE vitest run for every package of spell-app:  `yarn vitest` and the VS Code vitest extension read this
- * (`yarn test` runs each package's own `test` script instead, as every repo's root does).
+ * (`yarn test` runs each folder's own Vitest in turn instead, `spell-folders test`, as every repo's root does).
  * - Each package keeps its own `vitest.config.ts` (so `yarn test` in a package folder is unchanged);  this file
  *   only lists them as `projects`, each named for its folder, so `--project spaces` / `--project app:node` read
  *   clearly.
- * - The packages:  the root `package.json`'s `workspaces`, each a folder at the repo's root (epic `repo-split` P8).
+ * - The folders:  the root `package.json`'s `"spellFolders"`, each a folder at the repo's root (epic `repo-split` P11:
+ *   spell-app is ONE package, `spell-app`, its folders its sub-paths).
  *   Only a package whose config holds several projects of its own needs an entry in `SPECIAL` below, since vitest
  *   doesn't nest `projects`.
  * - Every project gets its own `root`, so its relative globs, `setupFiles` and aliases resolve per package.
@@ -26,11 +27,13 @@ const SPECIAL: Record<string, TestProjectConfiguration[]> = {
   app: appProjects({ prefix: "app:", root: resolve(ROOT, "app") })
 }
 
-/** Projects of every package folder, in the `workspaces` order. */
+/** Projects of every folder, in the `"spellFolders"` order. */
 function packageProjects(): TestProjectConfiguration[] {
-  const { workspaces } = JSON.parse(readFileSync(resolve(ROOT, "package.json"), "utf8")) as { workspaces: string[] }
+  const { spellFolders } = JSON.parse(readFileSync(resolve(ROOT, "package.json"), "utf8")) as {
+    spellFolders: Array<{ name: string }>
+  }
   const projects: TestProjectConfiguration[] = []
-  for (const folder of workspaces) {
+  for (const { name: folder } of spellFolders) {
     const root = resolve(ROOT, folder)
     const config = resolve(root, "vitest.config.ts")
     if (SPECIAL[folder]) projects.push(...SPECIAL[folder])

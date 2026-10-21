@@ -1,6 +1,6 @@
 import { Loading, createMemo } from "solid-js"
 
-import type { MD } from "@spell-app/markdown"
+import type { MD } from "spell-lang/markdown"
 
 /****************
  * ### `<Markdown>`
@@ -44,6 +44,6 @@ let markdown: Promise<typeof MD> | undefined
 
 /** Load `$/markdown` (once). */
 function loadMarkdown() {
-  markdown ??= import("@spell-app/markdown").then((module) => module.MD)
+  markdown ??= import("spell-lang/markdown").then((module) => module.MD)
   return markdown
 }

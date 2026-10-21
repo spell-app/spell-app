@@ -92,14 +92,15 @@ describe("CLI.newPack()", () => {
     )
     const pack = JSON.parse(read("packages/epics/package.json"))
     expect(pack).toMatchObject({
-      name: "@spell-app/epics",
+      // a pack's package is named for the pack, unscoped (epic `repo-split` P11, Q36)
+      name: "epics",
       spellPack: { prefix: "epic-" },
       scripts: {
         "pack:build": "spell-pack build",
         "pack:check": "spell-pack check"
       },
       // the pack tooling is the kit's `spell-pack` (epic `repo-split` P10);  its elements are written on Spell UI
-      devDependencies: { "@spell-app/ui": "workspace:*", "spell-kit": "workspace:*" }
+      devDependencies: { "spell-ui": "workspace:*", "spell-kit": "workspace:*" }
     })
     expect(pack.devDependencies["solid-js"]).toBe(JSON.parse(read("package.json")).resolutions["solid-js"])
     expect(read("packages/epics/vitest.config.ts")).toContain("export function epicsProjects(")
@@ -187,7 +188,7 @@ describe("CLI.newPack()", () => {
     const dir = join(root, "packages", "epics")
     mkdirSync(dir, { recursive: true })
     writeFileSync(join(dir, "README.md"), "mine\n")
-    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "@spell-app/epics", scripts: { ts: "mine" } }))
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "spell-epic", scripts: { ts: "mine" } }))
     const report = await CLI.newPack(root, "epics", { prefix: "epic-", build: false })
     expect(report.skipped).toContain("packages/epics/README.md")
     expect(read("packages/epics/README.md")).toBe("mine\n")

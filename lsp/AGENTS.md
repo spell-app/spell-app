@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell-app/lsp`.
+when working with code in this folder, `lsp/` of the `spell-app` package (`spell-app/lsp`).
 
 **READ the repo root's `AGENTS.md` and [WWOD](../agents/wwod/WWOD.md) FIRST:**
 - the root's:  the repo's layout
@@ -19,13 +19,13 @@ when working with code in this package, `@spell-app/lsp`.
   - `SpellDiskWorkspace`:  loads from disk, through spaces' disk reader (`installDiskFetch()`)
   - See "Language server" in [PARSING.md](../../spell-lang/spell/PARSING.md).
 - The VS Code extension that runs it is `../vscode`, its own yarn project.
-  - It runs THIS package's source.
-- The commands:
+  - It runs THIS folder's source.
+- The commands, the repo root's scripts (each `cd lsp && ...`;  `start:lsp` and `scopes` before epic `repo-split` P11):
 
   ```sh
-  yarn start:lsp                              # runs the server over stdio
-  yarn scopes [--compile] <projectId...>      # writes scope packs
-  yarn scopes --compile @spell/examples/solitaire   # e.g.
+  yarn lsp:start                                     # runs the server over stdio
+  yarn lsp:scopes [--compile] <projectId...>         # writes scope packs
+  yarn lsp:scopes --compile @spell/examples/solitaire   # e.g.
   ```
 
 - `$/lsp` MUST stay BROWSER-SAFE (WWOD §8 › "Barrels").

@@ -1,23 +1,86 @@
 {
   "name": "spell-app",
+  "version": "0.8.0",
   "private": true,
   "description": "Spell's editor and its servers:  the app, spaces, the language server, the spell CLI, the page server's Spell layer, and the spell language's VS Code extension",
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
-  "workspaces": [
-    "app",
-    "spaces",
-    "lsp",
-    "cli",
-    "page-server"
-  ],
   "type": "module",
+  "bin": {
+    "spell": "cli/bin/spell.mjs"
+  },
+  "spellFolders": [
+    {
+      "name": "spaces",
+      "node": true,
+      "python": "src/server/py"
+    },
+    {
+      "name": "lsp",
+      "node": true
+    },
+    {
+      "name": "app",
+      "lint": [
+        "src",
+        "components",
+        "tools",
+        "scripts"
+      ],
+      "node": true
+    },
+    {
+      "name": "cli",
+      "lint": [
+        "."
+      ]
+    },
+    {
+      "name": "page-server",
+      "node": true
+    }
+  ],
+  "exports": {
+    "./app": "./app/src/index.tsx",
+    "./spaces/models/projectGroups": "./spaces/src/models/projectGroups.ts",
+    "./spaces/server/node/environment": "./spaces/src/server/node/environment.ts",
+    "./spaces/server/node/projects/disk-fetch": "./spaces/src/server/node/projects/disk-fetch.ts",
+    "./lsp": "./lsp/src/index.ts",
+    "./cli": "./cli/src/index.ts",
+    "./page-server": "./page-server/src/index.ts",
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "ts": "spell-types --below && yarn workspaces foreach -W --exclude spell-app -pv --topological-dev -j 4 run ts",
-    "test": "yarn workspaces foreach -W --exclude spell-app -pv -j 4 run test",
-    "lint": "yarn workspaces foreach -W --exclude spell-app -pv -j 4 run lint",
-    "format": "yarn workspaces foreach -W --exclude spell-app -pv -j 4 run format",
-    "review": "yarn workspaces foreach -W --exclude spell-app -v run review",
+    "/////// CHECKS (spell-folders:  each folder in turn, \"spellFolders\")": "",
+    "ts": "spell-types --below && spell-folders ts",
+    "test": "spell-folders test",
+    "lint": "spell-folders lint",
+    "lint:fix": "spell-folders lint:fix",
+    "format": "spell-folders format",
+    "format:check": "spell-folders format:check",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "test:watch": "vp test",
+    "/////// THE EDITOR APP (app/)": "",
+    "start": "yarn && yarn workspace spell-kit server stop && cd app && node ../cli/bin/spell.mjs serve --headless",
+    "stop": "cd app && node scripts/stop.mjs",
+    "start:dev": "cd app && vp dev",
+    "start:server": "cd app && tsx watch --import spell-kit/toolchain/aliases ../spaces/src/server/node/routes/cli.ts",
+    "start:server:prod": "cd app && tsx --import spell-kit/toolchain/aliases ../spaces/src/server/node/routes/cli.ts",
+    "build": "cd app && tsc && vp build",
+    "build:runner": "cd app && vp build -c vite.solid.config.ts --outDir dist-runner && vp build -c vite.runner.config.ts",
+    "build:element": "cd app && vp build -c vite.solid.config.ts && vp build -c vite.element.config.ts && vp build -c vite.editor.config.ts && vp build -c vite.code.config.ts",
+    "build:page": "cd app && vp build -c vite.solid.config.ts --outDir dist-page && vp build -c vite.page.config.ts",
+    "preview": "cd app && vp preview",
+    "site:data": "cd app && tsx --import spell-kit/toolchain/aliases scripts/site-data.ts",
+    "site:pictures": "cd app && tsx --import spell-kit/toolchain/aliases scripts/site-pictures.ts",
+    "clean": "cd app && rm -rf ./.cache; rm -rf ./build",
+    "/////// THE LANGUAGE SERVER (lsp/)": "",
+    "lsp:start": "cd lsp && tsx --import spell-kit/toolchain/aliases src/server.ts --stdio",
+    "lsp:scopes": "cd lsp && tsx --import spell-kit/toolchain/aliases src/scopes.ts",
+    "/////// THE spell COMMAND (cli/)": "",
+    "spell": "node cli/bin/spell.mjs",
+    "cli:install": "node cli/scripts/install-cli.mjs",
+    "/////// REPO TOOLS (the spell command's)": "",
     "vscode": "node cli/bin/spell.mjs dev vscode",
     "vscode:build": "node cli/bin/spell.mjs dev vscode build",
     "vscode:install": "node cli/bin/spell.mjs dev vscode install",
@@ -36,14 +99,48 @@
     "dev": "SPELL=\"$PWD/cli/bin/spell.mjs\" && cd \"$INIT_CWD\" && node \"$SPELL\" run",
     "dev:ts": "SPELL=\"$PWD/cli/bin/spell.mjs\" && cd \"$INIT_CWD\" && node \"$SPELL\" run --target ts",
     "dev:py": "SPELL=\"$PWD/cli/bin/spell.mjs\" && cd \"$INIT_CWD\" && node \"$SPELL\" run --target py",
-    "commands:check": "node cli/bin/spell.mjs dev commands check",
-    "test:watch": "vp test"
+    "commands:check": "node cli/bin/spell.mjs dev commands check"
+  },
+  "dependencies": {
+    "@inkjs/ui": "^2",
+    "@solidjs/h": "2.0.0-rc.13",
+    "@solidjs/router": "2.0.0-next.35",
+    "@solidjs/web": "2.0.0-rc.13",
+    "chalk": "^5.6.0",
+    "commander": "^14",
+    "fs-extra": "^11.3.0",
+    "global": "^4.3.2",
+    "ink": "^5.2.1",
+    "json5": "^2.2.3",
+    "linkedom": "^0.18.13",
+    "lodash": "^4.17.21",
+    "monaco-editor": "^0.57.0",
+    "node-filter-async": "^3.0.0",
+    "react": "^18.2.0",
+    "solid-js": "2.0.0-rc.13",
+    "spell-kit": "workspace:*",
+    "spell-lang": "workspace:*",
+    "spell-ui": "workspace:*",
+    "tsx": "4.20.3",
+    "vscode-css-languageservice": "^6.3.10",
+    "vscode-languageserver": "^10.1.2",
+    "vscode-languageserver-textdocument": "^1.0.15",
+    "wrap-ansi": "^9"
   },
   "devDependencies": {
+    "@solidjs/vite-plugin": "3.0.0-next.47",
+    "@types/fs-extra": "^11.0.4",
+    "@types/lodash": "^4.17.17",
+    "@types/node": "^22.20.4",
+    "@types/react": "^18.2.56",
+    "@typescript/typescript6": "^6.0.2",
     "@vitest/browser-playwright": "catalog:",
+    "concurrently": "^8.2.2",
+    "esbuild": "^0.28.2",
+    "ink-testing-library": "^4",
     "playwright": "1.63.0",
     "pyright": "1.1.414",
-    "spell-kit": "workspace:*",
+    "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"

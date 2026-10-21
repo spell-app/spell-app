@@ -1,7 +1,7 @@
 import { isServer } from "@solidjs/web"
 
 /**
- * Loads `@spell-app/ui` for the app's Solid UI:  the ONE place the app does, imported by the `$/app/solid` barrel,
+ * Loads `spell-ui` for the app's Solid UI:  the ONE place the app does, imported by the `$/app/solid` barrel,
  * so any Solid component (which imports that barrel) has every `<ui-*>` it renders defined.
  * - SIDE EFFECT:  `$/ui`, its barrel, defines EVERY family as it's imported (as the docs' `spell-ui.js` does).
  *   Each element loads the `UI` runtime chunk on first connect;  starting it here lets us add icon packs first.
@@ -33,12 +33,12 @@ export const uiReady: Promise<void> = isServer ? Promise.resolve() : loadUI()
 export async function addAppIconsPageWide(): Promise<void> {
   if (isServer) return
   await uiReady
-  const { UI: SpellUI } = await import("@spell-app/ui")
+  const { UI: SpellUI } = await import("spell-ui")
   void SpellUI.icons.use("fomantic")
 }
 
 /** Import `$/ui` (defining every tag) and start its runtime. */
 async function loadUI() {
-  const { UI: SpellUI } = await import("@spell-app/ui")
+  const { UI: SpellUI } = await import("spell-ui")
   await SpellUI.load()
 }

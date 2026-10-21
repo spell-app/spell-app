@@ -14,7 +14,7 @@ import chalk from "chalk"
 import { format } from "util"
 
 import { bridgeSolid } from "spell-kit/util"
-import { App, core } from "@spell-app/core"
+import { App, core } from "spell-lang/core"
 import type { CLI } from "$/cli"
 
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec

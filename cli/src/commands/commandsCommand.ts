@@ -1,7 +1,7 @@
 import chalk from "chalk"
 import { existsSync, readFileSync, readdirSync } from "fs"
 import { homedir } from "os"
-import { join } from "path"
+import { join, resolve } from "path"
 
 import { CLI } from "$/cli"
 import { COMMANDS_JSON } from "$/cli/dev/dev.types"
@@ -78,8 +78,9 @@ function packageNames(root: string): Set<string> {
 /**
  * Each yarn package's `package.json` for checkout `root`, as `[page name, absolute path]`:  `root`'s own, then
  * - a monorepo's `packages/*` (spell-app before epic `repo-split` P8;  a test's made-up checkout), each by its folder
- * - else every package of every repo in the top repo `spell` beside it (`../spell-*`):  a repo's workspaces each by
- *   its folder (`app`, `parser`), a one-package repo by its package's name (`ui`, `brand`, `spell-element`, `epics`)
+ * - else every package of every repo in the top repo `spell` beside it (`../spell-*`), by its package's name:  each
+ *   repo is ONE package named after it since epic `repo-split` P11 (`spell-lang`, `spell-app`, `spell-ui` ...);  a
+ *   repo of workspaces (before P11) each by its folder (`app`, `parser`)
  * - and Spell UI's site, `ui-site`;  only the ones that are there
  */
 function packageManifests(root: string): Array<[string, string]> {
@@ -94,9 +95,10 @@ function packageManifests(root: string): Array<[string, string]> {
       .filter((name) => name.startsWith("spell-"))
       .sort()) {
       const file = join(top, repo, "package.json")
-      if (!existsSync(file)) continue
+      // the checkout itself is `root` (above):  one package since epic `repo-split` P11, not listed twice
+      if (!existsSync(file) || resolve(top, repo) === resolve(root)) continue
       const { name, workspaces } = JSON.parse(readFileSync(file, "utf8")) as { name: string; workspaces?: string[] }
-      if (!workspaces) found.push([name.replace(/^@spell-app\//, ""), file])
+      if (!workspaces) found.push([name, file])
       for (const folder of workspaces ?? []) found.push([folder, join(top, repo, folder, "package.json")])
     }
     found.push(["ui-site", join(top, "spell-ui", "site", "package.json")])

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { SP } from "@spell-app/spell"
+import type { SP } from "spell-lang/spell"
 import type { SPACES } from "$/spaces"
 import { openProjectSettings } from "$/app/pages/ProjectSettings"
 

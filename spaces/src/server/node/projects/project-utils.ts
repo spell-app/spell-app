@@ -13,8 +13,8 @@ import type { SRV } from "spell-kit/server"
 import { json5Edited } from "$/spaces/server/node/storage/json5"
 import environment from "$/spaces/server/node/environment"
 
-import { SP } from "@spell-app/spell"
-import { projectFileFor } from "@spell-app/spell/node/projectFile"
+import { SP } from "spell-lang/spell"
+import { projectFileFor } from "spell-lang/spell/node/projectFile"
 import { SPACES } from "$/spaces"
 
 import * as fileUtils from "./file-utils"

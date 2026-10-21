@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell-app/cli`.
+when working with code in this folder, `cli/` of the `spell-app` package (`spell-app/cli`).
 
 **READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../agents/wwod/WWOD.md) FIRST:**
 the repo's layout, and the house style every package shares.
@@ -9,16 +9,19 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
-- This package is the `spell` command-line tool, and nothing else.
+- This folder is the `spell` command-line tool, and nothing else.
   - [spell.mjs](bin/spell.mjs), in `bin/`, runs [main.ts](src/main.ts) through `tsx`.
   - For `spell dev ...` (and `spell epic ...`) it runs [devMain.ts](src/devMain.ts) instead (see below).
-  - `yarn cli:install` links it onto your PATH:  the package's `bin`.
+  - `yarn cli:install` links it onto your PATH:  the `spell` bin of spell-app's root `package.json`, where the
+    script is too (epic `repo-split` P11).
   - The `epic` command is spell-epic's (its `bin/epic`), since epic `epic-eject` I5.
   - [The README](README.md) has instructions, caveats and TODO.
 - Spell itself is NOT here.
-  - It's the spell-family packages beside this one:  lsp, spaces, spell, parser, core, util.
-  - As is ui, `@spell-app/ui`.
-  - `package.json` depends on spell, spaces and ui as workspaces (`workspace:*`), and the aliases reach the rest.
+  - It's the folders beside this one (lsp, spaces) and the packages below (`spell-lang`'s spell, parser and core;
+    the kit's util).
+  - As is ui, `spell-ui`.
+  - spell-app's root `package.json` depends on `spell-lang`, `spell-ui` and `spell-kit` as workspaces
+    (`workspace:*`), and the aliases reach the rest.
   - Their SOURCE runs, with no build:
     each alias (`$/lsp`, `$/spell`, `$/parser` ...) is its package's src folder, e.g. spell's.
   - `$/cli` is OUR src folder (namespace `CLI`).
@@ -55,7 +58,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - the repo's own tools, `spell dev <noun> <verb>`:  `spell dev commands`.
     Each finds the nearest checkout with `CLI.findCheckout()`.
   - `epic <verb> <epic>#<id> ...`:  the epic tools, a command of their own (epic `epic-workflow` P9).
-    - NOT this package's:  spell-epic's, its own repo, with its own tests (epic `epic-eject` P5, I5;
+    - NOT this folder's:  spell-epic's, its own repo, with its own tests (epic `epic-eject` P5, I5;
       the root `AGENTS.md`, "spell-epic").  `epic --help` lists its verbs.
     - Its old spellings here hand their arguments on to it, verbatim, until no caller is left
       (`runEpic()`, in [passThrough.ts](src/dev/passThrough.ts)):

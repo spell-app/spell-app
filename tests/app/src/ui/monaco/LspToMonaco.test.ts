@@ -12,7 +12,7 @@ import { CompletionItemInsertTextRule, MarkerSeverity } from "monaco-editor/edit
 
 import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
-import { fixturePath } from "@spell-app/spell/test"
+import { fixturePath } from "spell-lang/spell/test"
 import { LspToMonaco } from "$/app/ui/monaco/LspToMonaco"
 
 /**

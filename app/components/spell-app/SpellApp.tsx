@@ -2,9 +2,9 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "spell-kit/element"
-import { UIRoot, type RootVocabulary } from "@spell-app/ui/ui-root"
+import { UIRoot, type RootVocabulary } from "spell-ui/ui-root"
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
-import { SpellUrls } from "@spell-app/spell/SpellUrls"
+import { SpellUrls } from "spell-lang/spell/SpellUrls"
 // Import directly:  spell's project groups alone (for `@spell/examples/...`), without spaces' or spell's barrels
 import "$/spaces/models/projectGroups"
 // Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.

@@ -6,7 +6,7 @@ import { standardDecorators } from "spell-kit/toolchain/decorators"
 import { packageVersion } from "spell-kit/toolchain/packageVersion"
 
 /**
- * DOCME: vitest config for `@spell-app/lsp`.
+ * DOCME: vitest config for `spell-app/lsp`.
  * - Aliases (`$/util` ...) come from the repo root's `tsconfig.base.json`, through `resolve.tsconfigPaths`.
  * - `standardDecorators()` lowers standard decorators:  vite 8's own transform (oxc) doesn't.
  */

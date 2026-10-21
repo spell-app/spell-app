@@ -1,5 +1,5 @@
 import { $fetch, CONFIRM, getDier, KnownFormat } from "spell-kit/util"
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 
 /**
  * A project's FILE edits:  create, copy, rename and delete one of its files, as the editor asks.

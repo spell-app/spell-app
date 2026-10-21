@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeAll, afterEach, vi } from "vite-plus/test"
 
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { installDiskFetch } from "$/spaces/server/node/projects/disk-fetch"
-import { fixtureProjectId } from "@spell-app/spell/test"
+import { fixtureProjectId } from "spell-lang/spell/test"
 
 /**
  * `SpellProject` as an editor drives it:  which files it parses, and `updateText()` on each edit.

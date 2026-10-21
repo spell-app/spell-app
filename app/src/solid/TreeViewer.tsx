@@ -1,7 +1,7 @@
 import { Show, createMemo } from "solid-js"
 
-import { P } from "@spell-app/parser"
-import { SP } from "@spell-app/spell"
+import { P } from "spell-lang/parser"
+import { SP } from "spell-lang/spell"
 
 import { editor } from "$/app/editor"
 import { ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "$/app/solid"

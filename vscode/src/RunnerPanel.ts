@@ -285,14 +285,14 @@ export class RunnerPanel {
 
   /**
    * Webview HTML:  Semantic UI + Lato from `statics`, then the runner bundle from `runner`.
-   * - The runner draws in Solid on `@spell-app/ui`;  programs still draw with React + Semantic UI, so its CSS stays.
+   * - The runner draws in Solid on `spell-ui`;  programs still draw with React + Semantic UI, so its CSS stays.
    * - `<ui-root icons="fomantic">` around `#runner-root`:
    *   the runner's icon names are Fomantic's (as the web app's `index.html`).
-   *   Its packs load from `runner`'s `icon-packs/`, beside `@spell-app/ui`'s chunks.
+   *   Its packs load from `runner`'s `icon-packs/`, beside `spell-ui`'s chunks.
    * - CSP allows, all from `runner` (inside `localResourceRoots`):
    *   - `blob:` scripts:  how the runner imports its copy of the spell runtime and the project's javascript
    *   - scripts:  the bundle's lazy chunks
-   *     - `@spell-app/ui`'s families and runtime, emoji data, each icon pack's `pack.js`
+   *     - `spell-ui`'s families and runtime, emoji data, each icon pack's `pack.js`
    *   - fetching:  the runtime's source, for its copy, and the icons' SVG files
    *   - inline styles:  `core.installStyles()` adds them, and `<ui-*>` elements set inline styles
    *     (their sheets are constructable, adopted by their shadow roots)

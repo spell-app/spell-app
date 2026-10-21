@@ -3,7 +3,7 @@
   // Every package's `tsconfig.json` here extends it;  it extends the TypeScript settings every repo shares,
   // `spell-kit/toolchain`'s (spell-util's toolchain package).
   // - `$/name` is a package's barrel, `$/name/...` a file in its `src/`:  for INSIDE this repo only.
-  // - A package of ANOTHER repo is imported by its npm name (`@spell-app/ui/core`), an entry its `package.json`
+  // - A package of ANOTHER repo is imported by its npm name (`spell-ui/core`), an entry its `package.json`
   //   `exports` names;  `tsc` reads that repo's built declarations (its `exports`' `types`, epic `repo-split` I12),
   //   Vite, Vitest and `tsx` its source.
   // - MUST stay the only `paths` in the repo:  a package that sets its own `paths` REPLACES this table, never adds to it.

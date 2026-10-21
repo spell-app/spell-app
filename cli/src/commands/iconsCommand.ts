@@ -7,7 +7,7 @@ import { CLI } from "$/cli"
 const MAX_LISTED = 60
 
 /**
- * `spell icons [query]`:  find `@spell-app/ui` icons by name, alias or keyword -- see `iconSearch.ts`.
+ * `spell icons [query]`:  find `spell-ui` icons by name, alias or keyword -- see `iconSearch.ts`.
  * - A line each:  its name, its pack, and what else it's called.
  * - `--pack <id>`:  only that pack, e.g. `fa7-brands`.
  * - `--json`:  the icons found, as JSON.

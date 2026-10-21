@@ -6,10 +6,10 @@ import { pathToFileURL } from "url"
 import { describe, test, expect, beforeAll } from "vite-plus/test"
 
 import environment from "$/spaces/server/node/environment"
-import { P } from "@spell-app/parser"
-import { SP } from "@spell-app/spell"
+import { P } from "spell-lang/parser"
+import { SP } from "spell-lang/spell"
 import { installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
-import { describeParseErrors, fixturePath, tsxBinary } from "@spell-app/spell/test"
+import { describeParseErrors, fixturePath, tsxBinary } from "spell-lang/spell/test"
 
 /**
  * A project importing another, through `project.json` -- as `SpellProject` does it in the app.

@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import { UI as SpellUI } from "@spell-app/ui"
+import { UI as SpellUI } from "spell-ui"
 import { editor, type EditorStore } from "$/app/editor"
 import {
   Actions,

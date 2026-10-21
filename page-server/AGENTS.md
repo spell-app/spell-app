@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell-app/page-server`.
+when working with code in this folder, `page-server/` of the `spell-app` package (`spell-app/page-server`).
 
 **READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../agents/wwod/WWOD.md) FIRST:**
 the repo's layout, and the house style every package shares.
@@ -13,7 +13,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The page server itself is the kit's server's (`spell-kit/server`), and GENERIC:
     [its AGENTS.md](../../server/AGENTS.md).
     It names nothing of spell-app's or spell-epic's folders.
-  - This package is spell-app's own part of it:  one ROUTE MODULE on it, plus what that module runs.
+  - This folder is spell-app's own part of it:  one ROUTE MODULE on it, plus what that module runs.
   - When the repos split (P8):  the server package went to spell-server (the kit's `server/` since P9);  this one to
     spell-app.
 - What's in it:
@@ -51,7 +51,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   They're SETTINGS, in the root `package.json`'s `"pageServer"` (`componentSets`, `engineRoutes`), read by the generic
   server (epic `repo-split` Q3:  "stays in spell-app, configurable").
 - Commands:
-  - the usual five (node tests):
+  - the repo's usual five, at its root (node tests);  this folder's alone, `yarn spell-folders test page-server`:
 
     ```sh
     yarn review    yarn ts    yarn lint    yarn format    yarn test

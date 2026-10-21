@@ -47,7 +47,7 @@ export function appProjects({
         dir: TESTS,
         include: BROWSER_TESTS,
         // Spell UI's core first, as a page has it:  its settings for `$/spell-element` (`packages/ui/test/setup.ts`)
-        setupFiles: ["@spell-app/ui/test/setup.ts"],
+        setupFiles: ["spell-ui/test/setup.ts"],
         browser: {
           enabled: true,
           provider: playwright(),

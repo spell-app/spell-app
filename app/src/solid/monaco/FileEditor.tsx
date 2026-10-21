@@ -1,6 +1,6 @@
 import { createMemo } from "solid-js"
 
-import type { SP } from "@spell-app/spell"
+import type { SP } from "spell-lang/spell"
 
 import { SpellMonaco } from "$/app/ui/monaco"
 import { MonacoEditor, type MonacoEditorProps } from "./MonacoEditor"

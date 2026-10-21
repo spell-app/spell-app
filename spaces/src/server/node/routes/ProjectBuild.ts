@@ -6,8 +6,8 @@ import { createInterface } from "readline"
 import type { SRV } from "spell-kit/server"
 import environment from "$/spaces/server/node/environment"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
-import { SP } from "@spell-app/spell"
-import { hasProjectFile } from "@spell-app/spell/node/projectFile"
+import { SP } from "spell-lang/spell"
+import { hasProjectFile } from "spell-lang/spell/node/projectFile"
 
 /**
  * Builds spell projects when the API needs what they build:  their compiled output and scope packs are in `build/`

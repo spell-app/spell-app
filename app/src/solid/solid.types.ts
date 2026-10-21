@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 /**
  * Types for the app's Solid code.
- * - `<ui-*>` tags in Solid JSX:  `@spell-app/ui` ships no JSX types, so every `ui-*` tag takes the HTML attributes
+ * - `<ui-*>` tags in Solid JSX:  `spell-ui` ships no JSX types, so every `ui-*` tag takes the HTML attributes
  *   plus anything else, as a string-attribute or `prop:` form.  Loose ON PURPOSE until `ui` ships typed tags:  a
  *   misspelt attribute isn't caught here.
  * - Augments `"@solidjs/web/types/jsx.js"`, NOT `"@solidjs/web"` (that one only re-exports `JSX`;  see

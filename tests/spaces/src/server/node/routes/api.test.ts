@@ -598,7 +598,7 @@ describe("every URL spell builds is answered by the server and by spaces' disk r
   it("a file, a file in a folder, a spaced name, the index and the group's list", async () => {
     // the disk reader, in this process, pointed at the same folders as the server
     Object.assign(process.env, folders)
-    const { SP } = await import("@spell-app/spell")
+    const { SP } = await import("spell-lang/spell")
     const { diskFetch } = await import("$/spaces/server/node/projects/disk-fetch")
     const urls = [
       SP.SpellUrls.fileUrl(`${PROJECT}/top.spell`),

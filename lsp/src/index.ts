@@ -8,7 +8,7 @@
  * - Browser-safe:  NO node imports, so the app's editor uses the service in-process.
  * - NOTE: deliberately left out, as node-only or with side effects the moment they're imported:
  *   - `SpellDiskWorkspace`:  the stdio server's workspace, loading from disk
- *   - `server.ts`:  the process entry, `yarn start:lsp`
+ *   - `server.ts`:  the process entry, `yarn lsp:start`
  *   - `stdioGuard.ts`
  */
 export * as LSP from "./"

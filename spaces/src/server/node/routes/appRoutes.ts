@@ -1,5 +1,5 @@
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "@spell-app/spell/node/packageVersion.node"
+import "spell-lang/spell/node/packageVersion.node"
 
 import { existsSync, readFileSync } from "fs"
 import JSON5 from "json5"

@@ -15,9 +15,10 @@ import { fileURLToPath } from "url"
 
 const here = dirname(fileURLToPath(import.meta.url))
 
-// The extension's version is PINNED to spell's:  release them together.
+// The extension's version is PINNED to spell's (spell-lang's one version, epic `repo-split` P11):  release them
+// together.
 const { version } = readJson(resolve(here, "package.json"))
-const { version: parserVersion } = readJson(resolve(here, "../../spell-lang/spell/package.json"))
+const { version: parserVersion } = readJson(resolve(here, "../../spell-lang/package.json"))
 if (version !== parserVersion) {
   throw new Error(`vscode extension version ${version} !== spell version ${parserVersion}:  change them together.`)
 }

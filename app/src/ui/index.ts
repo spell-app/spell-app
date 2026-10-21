@@ -1,7 +1,7 @@
 /**
  * Barrel for `$/app/ui` (`UI`):  the types the app's UI shares.
  * - `ui.types.ts`:  editor selections, the explorers' saved state -- types only.
- * - NOT the app's own UI:  that's Solid, on `@spell-app/ui`, in `$/app/solid`.
+ * - NOT the app's own UI:  that's Solid, on `spell-ui`, in `$/app/solid`.
  *   Spell PROGRAMS draw with Spell UI's `<ui-*>` elements
  *   (epic `output-targets` P11 retired the React kit that lived here).
  * - NOTE: deliberately left out:

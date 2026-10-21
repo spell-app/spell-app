@@ -6,7 +6,7 @@ import { Actions, on, type UIElementAttributes } from "$/app/solid"
 import "./chrome.css"
 
 //
-//  ## App chrome on `@spell-app/ui`:  menus, sub-menus and the "..." dropdown.
+//  ## App chrome on `spell-ui`:  menus, sub-menus and the "..." dropdown.
 //  Same names and props as React's `$/app/ui/chrome.tsx` had.  Look:  `chrome.css`.
 //  - Menus are `<ui-menu>` of `<ui-item>`s;  a sub-menu is a `<ui-menu position>` inside one.
 //  - Hosts are `display: contents`:  style the boxes with `::part(menu)` / `::part(item)`, never the host.

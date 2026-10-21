@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import { P } from "@spell-app/parser"
+import { P } from "spell-lang/parser"
 import { editor, type EditorStore } from "$/app/editor"
 import { uiReady } from "$/app/solid"
 import type { SpellRuntime } from "$/app/runner"

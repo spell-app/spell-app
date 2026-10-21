@@ -22,7 +22,7 @@ import { CLI } from "$/cli"
  *   root files (`fixtures/monorepo/`).
  * - `packages/ui` is a link to Spell UI (the build needs its `baseConfig()`), and `node_modules` to the install's:
  *   the pack's `tsconfig.json` extends `spell-kit/toolchain/tsconfig.base.json`, and its elements
- *   import Spell UI by its npm name (`@spell-app/ui/core`)
+ *   import Spell UI by its npm name (`spell-ui/core`)
  * - the tests run in order
  */
 const ROOT = realpathSync(mkdtempSync(join(tmpdir(), "pack-build-")))
@@ -41,7 +41,7 @@ const MONOREPO = join(import.meta.dirname, "fixtures", "monorepo")
 /** The install `node_modules` this checkout runs on:  the nearest one above it (the top repo `spell`'s). */
 function installedModules(): string {
   for (let dir = CLI.REPO_ROOT; ; dir = dirname(dir)) {
-    if (existsSync(join(dir, "node_modules", "@spell-app"))) return join(dir, "node_modules")
+    if (existsSync(join(dir, "node_modules", "spell-ui"))) return join(dir, "node_modules")
     if (dirname(dir) === dir) throw new Error(`no node_modules above ${CLI.REPO_ROOT}`)
   }
 }
@@ -50,7 +50,7 @@ beforeAll(async () => {
   for (const file of ["package.json", "tsconfig.base.json"]) cpSync(join(MONOREPO, file), join(ROOT, file))
   mkdirSync(join(ROOT, "packages"))
   // Spell UI's folder, as the install has it (spell-ui, beside spell-app in the top repo)
-  symlinkSync(realpathSync(join(installedModules(), "@spell-app", "ui")), join(ROOT, "packages", "ui"))
+  symlinkSync(realpathSync(join(installedModules(), "spell-ui")), join(ROOT, "packages", "ui"))
   symlinkSync(installedModules(), join(ROOT, "node_modules"))
   await CLI.newPack(ROOT, "demo", { prefix: "demo-", build: false })
   await CLI.newElement(ROOT, "demo", "demo-card", { build: false })

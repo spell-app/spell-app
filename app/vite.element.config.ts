@@ -3,7 +3,7 @@ import { createRequire } from "node:module"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import { defineConfig, type Plugin } from "vite"
 
-import environment from "@spell-app/spaces/server/node/environment"
+import environment from "spell-app/spaces/server/node/environment"
 import { appConfig, sharedSolid } from "./vite.shared.ts"
 
 /**
@@ -13,7 +13,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   - `spell-runtime.js`:  what ONE app runs on, loaded afresh per element -- see `spellRuntime.ts`
  * - What both use goes in shared chunks.
  *   `core` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
- * - Solid, `ui`'s element core and `@spell-app/ui` are NOT bundled:
+ * - Solid, `ui`'s element core and `spell-ui` are NOT bundled:
  *   they come from `spell-solid.js` / `spell-ui.js` beside it, which `<spell-editor>` imports too --
  *   one Solid per page.
  *   - How:  `sharedSolid()`, through `spell-solid-shared.js` (on a docs page:  the page's own instead).

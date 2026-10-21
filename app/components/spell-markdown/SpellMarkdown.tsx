@@ -1,5 +1,5 @@
-import { E } from "@spell-app/ui/core"
-import { UIMarkdown, type MarkdownRendering } from "@spell-app/ui/ui-markdown"
+import { E } from "spell-ui/core"
+import { UIMarkdown, type MarkdownRendering } from "spell-ui/ui-markdown"
 import { spellMarkdownVocabulary } from "./SpellMarkdown.en"
 
 /****************

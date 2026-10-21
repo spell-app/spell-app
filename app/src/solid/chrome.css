@@ -1,5 +1,5 @@
 /*
- * Look of the app's Solid chrome (`chrome.tsx`):  React's `SUI-additions.css` menu rules, on `@spell-app/ui`.
+ * Look of the app's Solid chrome (`chrome.tsx`):  React's `SUI-additions.css` menu rules, on `spell-ui`.
  * - `<ui-menu>` / `<ui-item>` hosts are `display: contents`:  rules reach the boxes through `::part(menu)` and
  *   `::part(item)`.  A page's `::part()` rule beats the element's own sheet (outer tree wins), layers or not.
  */

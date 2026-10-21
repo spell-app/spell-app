@@ -10,7 +10,7 @@
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
-import "@spell-app/spell/node/packageVersion.node"
+import "spell-lang/spell/node/packageVersion.node"
 // types only:  erased, so it loads nothing ahead of `consoleGuard`
 import type { CliSession, GlobalOptions } from "$/cli"
 
@@ -198,7 +198,7 @@ program
 
 program
   .command("icons")
-  .description("find @spell-app/ui icons by name, alias or keyword -- --open shows them in a browser")
+  .description("find spell-ui icons by name, alias or keyword -- --open shows them in a browser")
   .argument("[query...]", "words to look for, e.g. bell -- none:  every icon")
   .option("--pack <id>", "only this pack:  fa7-free, fa7-brands or fomantic")
   .option("--json", "print the icons found as JSON")

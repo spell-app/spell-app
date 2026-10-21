@@ -2,9 +2,9 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import h from "@solidjs/h"
 
-import { core, App, Drawable, DrawableList } from "@spell-app/core"
-import { P } from "@spell-app/parser"
-import { E } from "@spell-app/ui/core"
+import { core, App, Drawable, DrawableList } from "spell-lang/core"
+import { P } from "spell-lang/parser"
+import { E } from "spell-ui/core"
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { installSpellElements, SpellElement } from "$/app/runner/SpellElement"
 

@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { reactiveObject } from "spell-kit/util"
-import type { SP } from "@spell-app/spell"
+import type { SP } from "spell-lang/spell"
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { editor, type EditorStore } from "$/app/editor"
 import type * as UIT from "$/app/ui/ui.types"

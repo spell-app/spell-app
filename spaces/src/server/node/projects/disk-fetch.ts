@@ -17,8 +17,8 @@ import { basename, dirname, resolve, sep } from "path"
 import { LoadableFile, type $FetchParams } from "spell-kit/util"
 // Deliberately not in the `$/util` barrel -- see its header.
 import { MissingResourceError } from "spell-kit/util/spell/ResponseErrors"
-import { SP } from "@spell-app/spell"
-import { hasProjectFile } from "@spell-app/spell/node/projectFile"
+import { SP } from "spell-lang/spell"
+import { hasProjectFile } from "spell-lang/spell/node/projectFile"
 
 import * as fileUtils from "./file-utils"
 import * as projectUtils from "./project-utils"

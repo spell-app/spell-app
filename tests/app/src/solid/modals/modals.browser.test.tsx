@@ -6,7 +6,7 @@ import { editor } from "$/app/editor"
 import { normalizeChooserOptions } from "$/app/solid/modals"
 
 /**
- * `editor`'s dialogs on `@spell-app/ui`, in the browser:
+ * `editor`'s dialogs on `spell-ui`, in the browser:
  * each resolves the right value when its buttons are clicked,
  * through `editor.alert()` ... `choose()` (so through the dynamic `import()` too).
  */

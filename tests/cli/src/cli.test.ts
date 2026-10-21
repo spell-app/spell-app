@@ -18,8 +18,8 @@ import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
 import { SRV } from "spell-kit/server"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
-import { SP } from "@spell-app/spell"
-import { fixturePath } from "@spell-app/spell/test"
+import { SP } from "spell-lang/spell"
+import { fixturePath } from "spell-lang/spell/test"
 
 /**
  * The real `spell` command, end to end:  `bin/spell.mjs` run as a separate process, as a user would.
@@ -542,7 +542,7 @@ describe("spell compile:  editor pages (epic property-editor P7, Q19)", () => {
     expect(status).toBe(0)
     expect(stderr).toContain("Card.editor.js")
     const module = readFileSync(resolve(compiled, "Card.editor.js"), "utf8")
-    expect(module).toContain('import "@spell-app/ui/ui-property-editor"')
+    expect(module).toContain('import "spell-ui/ui-property-editor"')
     expect(module).toContain('customElements.define("card-editor", CardEditor)')
     expect(module).not.toContain("source=")
   }, 30_000)

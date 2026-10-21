@@ -3,8 +3,8 @@ import { basename, join, relative } from "path"
 
 import environment from "$/spaces/server/node/environment"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
-import { SP } from "@spell-app/spell"
-import { projectFileFor } from "@spell-app/spell/node/projectFile"
+import { SP } from "spell-lang/spell"
+import { projectFileFor } from "spell-lang/spell/node/projectFile"
 import { LSP } from "$/lsp"
 
 /**
@@ -61,11 +61,11 @@ export async function staleBecause(project: SP.SpellProject): Promise<string | u
  * - spell-lang's by its packages' folders (`environment.packageFolder()`), never by a path into that repo
  */
 export const COMPILER_SOURCES = [
-  join(environment.packageFolder("@spell-app/parser"), "src"),
+  join(environment.packageFolder("spell-lang/parser"), "src"),
   environment.srcDir,
   join(environment.repoDir, "lsp", "src"),
-  join(environment.packageFolder("@spell-app/py"), "ts"),
-  join(environment.packageFolder("@spell-app/core"), "core.declarations.json5")
+  join(environment.packageFolder("spell-lang/py"), "ts"),
+  join(environment.packageFolder("spell-lang/core"), "core.declarations.json5")
 ]
 
 ////////////////

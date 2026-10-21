@@ -10,27 +10,28 @@ The code is in `src/`, imported as `$/cli`.
 - The `epic` command (the epic tools) is spell-epic's, its own repo (epic `epic-eject` I5):  see "The `epic` command".
 - See the header of [`main.ts`](src/main.ts).
 
-This package holds ONLY the command line.
-Spell itself is the spell-family packages beside this one in the monorepo, along with `ui`:
+This folder holds ONLY the command line:  `cli/` of the `spell-app` package (epic `repo-split` P11).
+Spell itself is the folders beside this one and the packages below it, along with Spell UI:
 the parser, the language, the language server, the runtime, and `spaces`, where the projects are.
 
 ```
-packages/
-  cli/         this package
-  spell/       the spell language:  its SOURCE runs, straight from `../../spell-lang/spell/src`
+spell-app/
+  cli/         this folder
   spaces/      where projects live:  the built-in ones (`@spell/`), and projects on disk
-  parser/      the generic parser
-  core/        the runtime compiled spell runs on, and its Python twin
   lsp/         the language server
-  ui/          `@spell-app/ui`
+spell-lang/    the package `spell-lang`:  its SOURCE runs, straight from its folders
+  spell/       the spell language
+  parser/      the generic parser
+  core/        the runtime compiled spell runs on;  py/, its Python twin
+spell-ui/      the package `spell-ui`
 ```
 
-- This package depends on spell, spaces and ui as workspaces, and the aliases reach the rest.
-  - `package.json` lists them as `workspace:*`.
-  - One `yarn` at the monorepo root installs everything.
-- `$/cli` is this package's `src/`.
-  The others' are alike, e.g. `$/spell` for spell's.
-  - One alias table for the whole monorepo:  [`tsconfig.base.json`](../tsconfig.base.json).
+- spell-app's root `package.json` depends on `spell-lang`, `spell-ui` and `spell-kit` as workspaces (`workspace:*`).
+  - One `yarn` at the kit's root installs everything.
+- `$/cli` is this folder's `src/`.
+  The other folders' here are alike, e.g. `$/spaces` for spaces';  another repo's package goes by its npm name,
+  `spell-lang/spell`.
+  - One alias table for the repo:  [`tsconfig.base.json`](../tsconfig.base.json).
 - Moved here from the parser's `CLI` branch (`26830ef1`) on 2026-09-30.
 
 
@@ -39,13 +40,13 @@ packages/
 ### Install
 
 ```sh
-yarn               # once, anywhere in the monorepo:  installs every package
-yarn cli:install   # links `spell` into the first writable folder on your PATH:  ~/.local/bin,
+yarn               # once, at the kit's root:  installs every repo's packages
+yarn cli:install   # in spell-app:  links `spell` into the first writable folder on your PATH:  ~/.local/bin,
                    # npm's global bin, /usr/local/bin, /opt/homebrew/bin.  Or:  SPELL_BIN_DIR=/some/dir yarn cli:install
 spell --help
 ```
 
-The link points at this checkout's [spell.mjs](bin/spell.mjs):  the package's `bin`.
+The link points at this checkout's [spell.mjs](bin/spell.mjs):  the `spell` bin of spell-app's root `package.json`.
 Edit the source, and the next `spell` runs the new code.
 `epic` is spell-epic's `bin/epic`, linked by its own README's "Install".
 
@@ -83,8 +84,8 @@ Longer notes on some of them follow the table.
 | `spell dev pack <verb> ...` | Component packs:  another package's custom elements (`<epic-*>` ...), which a page loads on demand through `<ui-root>`. |
 | `epic window <command> ...` | VS Code windows per package and worktree. |
 | `spell dev vscode [build\|install]` | The VS Code extension:  build it, install it, or (no verb) both. |
-| `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword. |
-| `spell static <pages...>` | `@spell-app/ui` pages as plain HTML, for crawlers and no-JS readers. |
+| `spell icons [query]` | Finds `spell-ui` icons by name, alias or keyword. |
+| `spell static <pages...>` | `spell-ui` pages as plain HTML, for crawlers and no-JS readers. |
 | `spell compile <projects...>` | Compiles each project, writing its output into `build/`, its declarations and words beside it. |
 | `spell check <projects...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <project> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
@@ -513,7 +514,7 @@ Longer notes on some of them follow the table.
     - its scope pack, for the Type Explorer
     - the compiled projects it imports
   - the first time in a checkout, it builds `<spell-app>`, which takes a few seconds:
-    `yarn build:element`, in app's package
+    `yarn build:element`, in spell-app
   - no live reload:  it serves what was compiled at the start
   - `SPELL_NO_BROWSER=1` prints the URL instead of opening a browser
 - Other browser-only code, e.g. touching `document` directly, will throw.
@@ -536,13 +537,13 @@ Longer notes on some of them follow the table.
   - A page server that already ran stays.
   - It stops no other servers, and runs no `yarn install`.
 - Refuses an editor port in use, rather than drifting to another.
-  - Ask for another, `spell serve --port 3100`, or stop what's there, `yarn stop` in app's package.
+  - Ask for another, `spell serve --port 3100`, or stop what's there, `yarn stop` in spell-app.
 - Opens only projects in the app's roots (`spell projects`):  a project in some other folder opens the chooser.
 - Their output is hidden unless `--verbose`, or one fails.
 
 ### `static`
 
-- Renders through `@spell-app/ui`'s static server render
+- Renders through `spell-ui`'s static server render
   (`$/ui/static`;  [its epic page](../../spell.epics/epics/seo/seo.plan.html)).
   - In a child process, [`renderStatic.ts`](src/runner/renderStatic.ts),
     on an SSR-only Vite server ([`StaticRenderer.ts`](../../spell-ui/tools/StaticRenderer.ts)).
@@ -553,7 +554,7 @@ Longer notes on some of them follow the table.
   Any other Spell UI tag, e.g. `ui-code` or `ui-markdown`, stays as it is, and is listed on stderr.
 - Removes the scripts that would load the elements:  on a static page they'd show the content twice.
   - A script, or a `<link rel="modulepreload">`, whose `src` or text names any of:
-    - `@spell-app/ui`, `$/ui`
+    - `spell-ui`, `$/ui`
     - Spell UI's `src/` or `dist/`, or a family folder
     - the docs' `spell-ui.js` bundle
   - Other scripts stay, import maps too.
@@ -591,7 +592,7 @@ Longer notes on some of them follow the table.
 - A side's runs combine as:  the mean of their averages, the lowest min, the highest max.
   - With 3 or more runs, ONE fluke -- an average 25% over the median -- is dropped.
 - `--against <ref>`:
-  - makes a temp `git worktree` of spell-lang (the repo of our `@spell-app/spell`) at the ref, and links the top
+  - makes a temp `git worktree` of spell-lang (the repo of our `spell-lang/spell`) at the ref, and links the top
     repo's `node_modules` into it -- a ref with different dependencies may not run
   - the runner times each side's spell `src/` (`speedTest.mts <spell src URL>`), its `$/` imports by that side's own
     alias table (the run-time alias hook)

@@ -12,7 +12,7 @@ import { describe, test, expect } from "vite-plus/test"
  * - Standard decorators MUST be lowered by `vite.decorators.ts` -- vite's own transformer passes them
  *   through raw, which no browser can run.
  * - `core` MUST be in `spell-runtime.js` alone -- the runtime programs run on -- NOT in the app's chunks.
- * - And `spell-runtime.js` holds no Solid or `@spell-app/ui`:  compiled spell draws with the APP's Solid, from a
+ * - And `spell-runtime.js` holds no Solid or `spell-ui`:  compiled spell draws with the APP's Solid, from a
  *   shared chunk (epic `output-targets` P10).  Only `@solidjs/h` is its own, a thin layer over that Solid.
  * - No React anywhere:  not in the app's chunks (P9), nor in what programs run on (epic `output-targets` P11).
  * - `ui`'s icon packs beside the chunk holding `BuiltInPacks`, where it looks (`appConfig({ iconPacks })`).
@@ -72,7 +72,7 @@ describe("production build", () => {
   }, 60_000)
 })
 
-/** Solid's packages and `@spell-app/ui`, as they appear in a sourcemap's `sources`. */
+/** Solid's packages and `spell-ui`, as they appear in a sourcemap's `sources`. */
 const SOLID_OR_UI = /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/spell-ui\/src\//
 
 /** React and what renders with it, as they appear in a sourcemap's `sources`. */

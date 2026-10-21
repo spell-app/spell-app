@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, test, vi } from "vite-plus/test"
 
-import { UI } from "@spell-app/ui/core"
+import { UI } from "spell-ui/core"
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { DOMCodeElement } from "@spell-app/ui/ui-code"
+import type { DOMCodeElement } from "spell-ui/ui-code"
 import { SpellLanguage } from "$/app/components/spell-code"
 
 /**

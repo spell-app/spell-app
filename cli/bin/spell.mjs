@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * `spell` command-line tool:  runs `src/main.ts` from THIS checkout, through `tsx` -- no build step.
- * - The parser's source runs the same way, from spell-lang's `spell` package (`@spell-app/spell`).
+ * - The parser's source runs the same way, from spell-lang's `spell` package (`spell-lang/spell`).
  * - `tsx` gets our `tsconfig.json` explicitly, so the CLI's settings hold from ANY current folder,
  *   while relative paths on the command line still resolve against the caller's.
  * - `$/` imports go by the importing file's own repo (`spell-kit/toolchain/aliases`, epic `repo-split` I12):  the

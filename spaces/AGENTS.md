@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell-app/spaces`.
+when working with code in this folder, `spaces/` of the `spell-app` package (`spell-app/spaces`).
 
 **READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../agents/wwod/WWOD.md) FIRST:**
 the repo's layout, and the house style every package shares.
@@ -40,7 +40,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - [api.ts](src/server/node/routes/api.ts) => [api.test.ts](../tests/spaces/src/server/node/routes/api.test.ts)
   - Python:  [the Python server's tests](../tests/spaces/src/server/py/tests/), found by its pytest (`testpaths`)
   - And the test projects:  `tests/spaces/@spell/test/` (see "Projects" below)
-- `yarn review` here covers both:
+- The repo's checks (`spell-folders`, this folder's `"python": "src/server/py"` in its `"spellFolders"`) cover both:
   - the TypeScript:  tsc, oxlint / oxfmt and vitest
   - then `spell_quart`:  ruff and pytest, through uv
 
@@ -74,10 +74,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | Name | Folder | Tests set it with |
   | --- | --- | --- |
   | `spaceFolders.builtins` | `spaces/` | `SPELL_BUILTINS_DIR` |
-  | `spaceFolders.tests`, `testsDir` | spell-lang's `tests/spaces/`, through the installed `@spell-app/spell` | `SPELL_TESTS_DIR` |
+  | `spaceFolders.tests`, `testsDir` | spell-lang's `tests/spaces/`, through the installed `spell-lang/spell` | `SPELL_TESTS_DIR` |
   | `spaceFolders.spaces`, `spellSpacesDir` | spell.spaces, `../spell.spaces` beside the main checkout | `SPELL_SPACES_DIR` |
   | `buildDir` | `build/` at the repo root | `SPELL_BUILD_DIR` |
-  | `repoDir`, `packagesDir` | this checkout's root (its packages are folders there) | |
+  | `repoDir`, `packagesDir` | this checkout's root (its folders are there) | |
   | `srcDir`, `coreDir`, `packageFolder()` | spell-lang's folders, found by package through `node_modules` | |
 
 - Projects on disk:  [projects/](src/server/node/projects/).
@@ -205,12 +205,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - runs its app under uv here, until `Ctrl-C`
 - cli's [quartApp.test.ts](../tests/cli/src/quartApp.test.ts) plays Solitaire through a compiled app,
   in headless Chromium.
-- The yarn scripts here run its checks:
+- The repo's checks run its own, from the repo's root (`spell-folders`):
 
   ```sh
-  uv run --directory src/server/py pytest -q                                                  # yarn test
-  uv run --directory src/server/py ruff check . ../../../../tests/spaces/src/server/py/tests  # yarn lint
-  uv run --directory src/server/py ruff format . ../../../../tests/spaces/src/server/py/tests # yarn format
+  uv run --directory spaces/src/server/py pytest -q                                                  # yarn test
+  uv run --directory spaces/src/server/py ruff check . ../../../../tests/spaces/src/server/py/tests  # yarn lint
+  uv run --directory spaces/src/server/py ruff format . ../../../../tests/spaces/src/server/py/tests # yarn format
   ```
 
 ## Imports

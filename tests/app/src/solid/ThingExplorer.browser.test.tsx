@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import { core, Thing, List } from "@spell-app/core"
+import { core, Thing, List } from "spell-lang/core"
 import type { ThingExplorerState } from "$/app/ui/ui.types"
 import { uiReady } from "$/app/solid/loadUI"
 import { ThingExplorer } from "$/app/solid/ThingExplorer"

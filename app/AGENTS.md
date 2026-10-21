@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell-app/app`.
+when working with code in this folder, `app/` of the `spell-app` package (`spell-app/app`).
 
 **READ the repo root's `AGENTS.md` and [WWOD](../agents/wwod/WWOD.md) FIRST:**
 - the root's:  the repo's layout
@@ -47,7 +47,7 @@ when working with code in this package, `@spell-app/app`.
   - the page, `index.html`
   - `demo/`, `static/`
   - the vite configs, `vite*.config.ts`
-- Scripts run HERE (`cd app`):
+- Its scripts are the repo root's, each `cd app && ...` (epic `repo-split` P11), so they run here too:
   - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child.
     - Spaces' [appRoutes.ts](../spaces/src/server/node/routes/appRoutes.ts) starts it (`EditorServer`)
       once the page server listens, and stops it with the page server.
@@ -96,7 +96,7 @@ when working with code in this package, `@spell-app/app`.
       It never takes `spell-ui.js`.
     - Pinned by `element.build.test.ts`.
   - `spell dev vscode` is NOT here:  it's the repo root's.
-  - `yarn start:lsp` and `yarn scopes` are lsp's:  run them in [its folder](../lsp/).
+  - `yarn lsp:start` and `yarn lsp:scopes` are [lsp](../lsp/)'s.
 - [The app's Monaco plumbing](src/ui/monaco/) (no UI).
   - Its language features call the SAME `LSP.SpellLanguageService`, in-process.
     So `$/lsp` stays browser-safe:  [lsp's AGENTS.md](../lsp/AGENTS.md).
@@ -126,7 +126,7 @@ when working with code in this package, `@spell-app/app`.
     - the `<spell-app>` web component, in `components/spell-app/`
       - built by `yarn build:element`, into `dist-element/`
       - its demo:  `/demo/spell-app.html`, on the dev server
-  - Solid (P7), on `@spell-app/ui`.
+  - Solid (P7), on `spell-ui`.
     - The runners import the Solid panes' FILES, never the `$/app/solid` barrel (it pulls in the editor).
       - e.g. `$/app/solid/ThingExplorer`, `.../ConsoleLines`, `.../loadUI`
     - `<spell-app>` is a root itself, with Fomantic's icons by default.
@@ -173,7 +173,7 @@ when working with code in this package, `@spell-app/app`.
         - the runtime exports it
         - `runCompiled()` points that name at the runtime too
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`):  no parser in the page.
-    - `yarn scopes [--compile] <projectId...>` (in `../lsp`) writes them.
+    - `yarn lsp:scopes [--compile] <projectId...>` writes them.
     - So does the language server, after each clean compile.
   - Its Thing Explorer reads the runtime copy's `core.things` (`ThingRegistry`).
     - Each `Thing`, and each instance of a `List` sub-class, registers itself as it's made.
@@ -252,7 +252,7 @@ when working with code in this package, `@spell-app/app`.
     - `_images/` (the pictures) and `_examples/` (snippets a page shows):
       they aren't frame or data, so they keep one `_`
   - Spell UI's page shape, on Spell UI's site bundle:  the page server lays its `_assets/` over the folder.
-    - the page server's `componentSets` setting, in the root [package.json](../../package.json)
+    - the page server's `componentSets` setting, in the root [package.json](../package.json)
   - Links are written as from the page's SERVED address (`/components/app/x.html`):
     - `../../` is the checkout's root
     - `../../spell-ui/ui-button.html` is a Spell UI page
@@ -303,11 +303,11 @@ when working with code in this package, `@spell-app/app`.
 
 - As WWOD §4, with our own source as `$/app` / `$/app/*`.
   - e.g. `import { UI } from "$/app/ui"`
-- Nothing imports THIS package except `cli`.
+- Nothing imports THIS folder except `cli`.
   And the `<script>` entries in its own pages:  `index.html` and the demos.
 - It may import spaces' models, `$/spaces` (the same repo, spell-app);  NEVER `$/spaces/server/node/...`, which is
   node only.
-  - Another repo's packages by npm name (`@spell-app/spell`, `@spell-app/ui/core` ...:  the root's `AGENTS.md`,
+  - Another repo's packages by npm name (`spell-lang/spell`, `spell-ui/core` ...:  the root's `AGENTS.md`,
     "Aliases and global types").
   - The editor ([editor.ts](src/editor.ts)) does:
     - a group's projects are `SPACES.SpellProjectRoot`
@@ -318,8 +318,8 @@ when working with code in this package, `@spell-app/app`.
     - typed by `SPACES.MeAnswer`
   - `<spell-app>` loads only the light files, without the parser:
     - `$/spaces/models/projectGroups`, which registers spell's project groups
-    - `@spell-app/spell/SpellSetup`
-    - `@spell-app/spell/SpellUrls`
+    - `spell-lang/spell/SpellSetup`
+    - `spell-lang/spell/SpellUrls`
   - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<project>/<file>`, compiled files too.
 
 ## Decorators

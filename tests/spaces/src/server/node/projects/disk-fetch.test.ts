@@ -4,8 +4,8 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 
 import environment from "$/spaces/server/node/environment"
-import { P } from "@spell-app/parser"
-import { SP } from "@spell-app/spell"
+import { P } from "spell-lang/parser"
+import { SP } from "spell-lang/spell"
 import {
   loadFixtureProject,
   parseSpellProject,
@@ -13,7 +13,7 @@ import {
   fixturePath,
   fixtureProjectId,
   FIXTURES_DIR
-} from "@spell-app/spell/test"
+} from "spell-lang/spell/test"
 import { SPACES } from "$/spaces"
 import { diskFetch, installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import { serverPathForRoot } from "$/spaces/server/node/projects/project-utils"
@@ -75,7 +75,7 @@ describe("diskFetch", () => {
       expect(serverPathForRoot("owen@spell")).toBe(environment.userFilesRoot)
       expect(serverPathForRoot("@spell/test")).toBe(environment.testFilesRoot)
       expect(environment.systemFilesRoot).toBe(resolve(environment.packagesDir, "spaces", "@spell"))
-      // spell's frozen test projects:  spell-lang's (epic `repo-split` C11), found through `@spell-app/spell`
+      // spell's frozen test projects:  spell-lang's (epic `repo-split` C11), found through `spell-lang/spell`
       expect(environment.testFilesRoot).toMatch(/[/\\]spell-lang[/\\]tests[/\\]spaces[/\\]@spell[/\\]test$/)
       expect(existsSync(resolve(environment.testFilesRoot, "solitaire", "__project.json5"))).toBe(true)
     })

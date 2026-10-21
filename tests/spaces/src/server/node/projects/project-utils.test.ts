@@ -4,7 +4,7 @@ import { tmpdir } from "os"
 import { resolve } from "path"
 
 import environment from "$/spaces/server/node/environment"
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 

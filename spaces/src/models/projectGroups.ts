@@ -1,6 +1,6 @@
-import type { SP } from "@spell-app/spell"
+import type { SP } from "spell-lang/spell"
 // Import directly:  `<spell-app>` loads this file alone, without spell's barrel and its parser
-import { SpellSetup } from "@spell-app/spell/SpellSetup"
+import { SpellSetup } from "spell-lang/spell/SpellSetup"
 
 /**
  * The person whose space this machine's own projects are in:  `owen@spell`, so Owen's Errors is

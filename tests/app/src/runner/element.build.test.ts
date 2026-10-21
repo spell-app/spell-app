@@ -16,8 +16,8 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  * `vite.solid.config.ts` first, then the rest beside it.
  * - ONE Solid per page:  two copies fail SILENTLY (`solid-2.md`).
  *   - Solid (`solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/h`) is in `spell-solid.js` ALONE,
- *     with `@spell-app/ui`'s element core (which `<spell-app>` and `<spell-editor>` are defined on).
- *   - The rest of `@spell-app/ui` is in `spell-ui.js` and its lazy chunks (`ui/`) alone.
+ *     with `spell-ui`'s element core (which `<spell-app>` and `<spell-editor>` are defined on).
+ *   - The rest of `spell-ui` is in `spell-ui.js` and its lazy chunks (`ui/`) alone.
  *   - `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
  *   - Through `spell-solid-shared.js`, which takes them from the PAGE instead when it has them
  *     (a docs page's `SpellUI.packModules`):  `sharedPage()` in `vite.solid.config.ts`.

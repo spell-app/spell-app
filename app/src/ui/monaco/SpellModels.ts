@@ -1,5 +1,5 @@
 import { observe } from "spell-kit/util"
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import type { LSP } from "$/lsp"
 import { monaco } from "./monaco"
 import { AppAddresses } from "./AppAddresses"

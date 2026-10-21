@@ -1,5 +1,5 @@
 /**
- * Barrel for `$/app/solid/modals`:  the app's dialogs, on `@spell-app/ui`.
+ * Barrel for `$/app/solid/modals`:  the app's dialogs, on `spell-ui`.
  * - `dialogs.ts`:  `alert()`, `confirm()`, `prompt()`, `promptForNumber()`, `choose()` -- what `editor`'s dialog
  *   methods call, through a dynamic `import()`.
  * - `Chooser.tsx`:  `<Chooser>` and `openChooser()`, behind `choose()`.

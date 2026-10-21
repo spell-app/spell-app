@@ -1,4 +1,4 @@
-import { UI as SpellUI, type ModalOptions } from "@spell-app/ui"
+import { UI as SpellUI, type ModalOptions } from "spell-ui"
 import { uiReady } from "$/app/solid/loadUI"
 import type { AlertModalProps, ChooserModalProps, ConfirmModalProps, PromptModalProps } from "$/app/solid/modals"
 
@@ -6,7 +6,7 @@ import { openChooser } from "./Chooser"
 
 /**
  * The app's dialogs, behind `editor.alert()` / `confirm()` / `prompt()` / `promptForNumber()` / `choose()`:
- * `@spell-app/ui`'s `UI.modals` for the first four, `<Chooser>` for `choose()`.
+ * `spell-ui`'s `UI.modals` for the first four, `<Chooser>` for `choose()`.
  * - Each builds its own `<ui-modal>` in `<body>` and removes it once hidden:  no `editor.modals` stack, no root
  *   component to mount.  Several at once stack in the top layer, newest on top.
  * - Each waits for `uiReady` first:  `UI.modals` throws until `<ui-modal>` has registered its provider.
@@ -84,7 +84,7 @@ function modalOptions(props: string | ConfirmModalProps): ModalOptions {
  * - HACK: `UI.modals.prompt()` takes no input type or attributes, so this reaches into the dialog it built:  its
  *   `ModalDialogs` appends the `<ui-modal>` to `<body>` SYNCHRONOUSLY, so it's `<body>`'s last child right after
  *   the call, and its markup (`<ui-content>` > `<label>` > `<input>`) is light DOM.  TODO: input options on
- *   `ModalOptions` in `@spell-app/ui`, then drop this.
+ *   `ModalOptions` in `spell-ui`, then drop this.
  * - Enter in the field clicks OK, so it's gated too.
  */
 function fitInput(field: PromptModalProps) {

@@ -20,5 +20,5 @@
  *   - the type check:  this file (`typecheck()` in spell's `node/typecheck.ts`)
  *   - the headless run, with no Spell UI:  a stand-in of the same shape, cli's `runner/spellElements.mjs`
  */
-export { E } from "@spell-app/ui/core"
+export { E } from "spell-ui/core"
 export { SpellElement } from "./SpellElement"

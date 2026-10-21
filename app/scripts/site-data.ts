@@ -14,7 +14,7 @@ import path from "node:path"
 import { parseArgs } from "node:util"
 
 import { keepingCommentsIn } from "spell-kit/util/node/json5"
-import { SiteDataBuilder } from "@spell-app/ui/tools/SiteDataBuilder"
+import { SiteDataBuilder } from "spell-ui/tools/SiteDataBuilder"
 
 import { AppUIDataBuilder } from "../tools/AppUIDataBuilder.ts"
 

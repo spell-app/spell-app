@@ -83,7 +83,7 @@ export async function speedCommand(
 
 /**
  * One side of the comparison.
- * - `spellSrc`:  the spell `src/` folder `speedTest.mts` times:  ours (spell-lang's, `@spell-app/spell`), or the
+ * - `spellSrc`:  the spell `src/` folder `speedTest.mts` times:  ours (spell-lang's, `spell-lang/spell`), or the
  *   temp checkout's
  * - `results`:  each run's, so far
  */
@@ -201,7 +201,7 @@ export function speedTable(totals: Pick<SideTotal, "label" | "average" | "min" |
 ////////////////
 
 /**
- * A temp git worktree of spell-lang (the repo of our `@spell-app/spell`) at `ref`, ready to time:  the top repo's
+ * A temp git worktree of spell-lang (the repo of our `spell-lang/spell`) at `ref`, ready to time:  the top repo's
  * `node_modules` linked in (epic `repo-split` P7:  one install for every repo), so its packages from the OTHER repos
  * (`spell-kit/util`) are ours, its own (`$/parser` ...) its own.
  * - A `ref` with different dependencies may not run.
@@ -231,7 +231,7 @@ function spellLangRepo(): string {
 /** The `node_modules` our spell is installed from:  the nearest one above spell's source (the top repo's). */
 function installedModules(): string {
   for (let dir = environment.srcDir; ; dir = dirname(dir)) {
-    if (existsSync(resolve(dir, "node_modules", "@spell-app"))) return resolve(dir, "node_modules")
+    if (existsSync(resolve(dir, "node_modules", "spell-lang"))) return resolve(dir, "node_modules")
     if (dirname(dir) === dir) throw new CLI.CliError(`no node_modules above ${environment.srcDir}`)
   }
 }

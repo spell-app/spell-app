@@ -4,7 +4,7 @@
  * - Change it, then `spell dev pack build __pack__`:  the pack's catalog is read from here.
  */
 
-import type { E } from "@spell-app/ui/core"
+import type { E } from "spell-ui/core"
 
 /****************
  * ### `__vocab__Vocabulary`

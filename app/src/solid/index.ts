@@ -1,7 +1,7 @@
 /**
- * Barrel for `$/app/solid`:  the app's UI, in Solid 2 on `@spell-app/ui`'s `<ui-*>` elements.
+ * Barrel for `$/app/solid`:  the app's UI, in Solid 2 on `spell-ui`'s `<ui-*>` elements.
  * - Plumbing:
- *   - `loadUI.ts`:  SIDE EFFECT, defines every `@spell-app/ui` `<ui-*>` and adds the app's icon packs
+ *   - `loadUI.ts`:  SIDE EFFECT, defines every `spell-ui` `<ui-*>` and adds the app's icon packs
  *     (`uiReady`).  The ONE place the app loads `$/ui`:  importing this barrel loads it.
  *   - `cellsBridge.ts`:  SIDE EFFECT, Solid follows spell cells (spell Things, `SP.*`, the editor).
  *   - `tracked()`:  a memo over a read of spell state.

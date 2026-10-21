@@ -1,5 +1,5 @@
 import { fileURLToPath } from "url"
-import { existsSync } from "fs"
+import { existsSync, readFileSync } from "fs"
 import { dirname, join, resolve } from "path"
 
 // The server's checkout finder, node built-ins only:  the main checkout from any worktree.
@@ -27,7 +27,7 @@ const packagesDir = repoDir
  */
 const buildDir = process.env.SPELL_BUILD_DIR ? resolve(process.env.SPELL_BUILD_DIR) : resolve(repoDir, "build")
 /**
- * The folder of an installed package's main entry, through `node_modules`:  `@spell-app/spell` => spell-lang's
+ * The folder of an installed package's main entry, through `node_modules`:  `spell-lang/spell` => spell-lang's
  * `spell/src/`.
  * - By package, never by a path into another repo:  spell-lang sits beside this repo only in the top repo `spell`.
  */
@@ -35,19 +35,25 @@ function entryFolder(name: string): string {
   return dirname(fileURLToPath(import.meta.resolve(name)))
 }
 /**
- * The folder of installed package `name`:  its `package.json`'s, above its main entry (`entryFolder()`).
- * - e.g. `@spell-app/py` => spell-lang's `py/`, whose `core/` is the Python core
+ * The folder of installed package `name`:  its `package.json`'s, above its main entry (`entryFolder()`);  for a
+ * sub-path of a package (`spell-lang/py`, epic `repo-split` P11:  spell-lang is ONE package, its folders its
+ * sub-paths), that folder in it.
+ * - e.g. `spell-lang/py` => spell-lang's `py/`, whose `core/` is the Python core;  `spell-ui` => spell-ui's root
  */
 function packageFolder(name: string): string {
   for (let dir = entryFolder(name); ; dir = dirname(dir)) {
-    if (existsSync(join(dir, "package.json"))) return dir
+    const manifest = join(dir, "package.json")
+    if (existsSync(manifest)) {
+      const own = (JSON.parse(readFileSync(manifest, "utf8")) as { name?: string }).name ?? name
+      return name.startsWith(`${own}/`) ? join(dir, name.slice(own.length + 1)) : dir
+    }
     if (dirname(dir) === dir) throw new Error(`environment:  no package.json above ${name}'s entry`)
   }
 }
 /** `spell`'s `src/` (spell-lang's). */
-const srcDir = entryFolder("@spell-app/spell")
+const srcDir = entryFolder("spell-lang/spell")
 /** `core`'s `src/` (spell-lang's):  the runtime, and its built-in types' scope pack (`core.scopes.js`). */
-const coreDir = entryFolder("@spell-app/core")
+const coreDir = entryFolder("spell-lang/core")
 /** `app`'s `static/`:  fonts and css the app serves. */
 const staticDir = resolve(packagesDir, "app", "static")
 
@@ -75,7 +81,7 @@ const spellSpacesDir = process.env.SPELL_SPACES_DIR
  * The folder holding each `SP.SpaceFolderBase` (`SP.SpellUrls.folderFor()`):
  * - `builtins`:  `spaces/`, holding the `@spell` space's built-in projects, `@spell/examples/` ...
  * - `tests`:  spell-lang's `tests/spaces/`, holding spell's frozen test projects, `@spell/test/` (epic `repo-split`
- *   C11:  spell's own tests read them, so they're spell-lang's;  found through the installed `@spell-app/spell`, whose
+ *   C11:  spell's own tests read them, so they're spell-lang's;  found through the installed `spell-lang/spell`, whose
  *   `src/index.ts` is two folders below spell-lang's root)
  * - `spaces`:  spell-spaces
  * - `SPELL_BUILTINS_DIR` / `SPELL_TESTS_DIR` set the first two:

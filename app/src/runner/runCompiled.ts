@@ -9,7 +9,7 @@
  *   it runs on the `core` of the runtime copy it's in -- see `spellRuntime.ts`'s `runApp()`.
  */
 
-import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "@spell-app/core"
+import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "spell-lang/core"
 
 /**
  * Run `compiled` spell javascript.

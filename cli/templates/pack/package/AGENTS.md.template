@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell-app/__pack__`.
+when working with code in this package, `__pack__`.
 
 **READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
 house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
@@ -34,7 +34,7 @@ house style every package shares.  Only what's local is below;  a section named 
   - `__pack__.entry.ts` -- the script's entry:  `SpellUI.registerPack({ name, prefix, catalog, define })`, where
     `define()` imports every family barrel
   - `__pack__.pack.js` -- the CLASSIC script (an IIFE) a page loads, minified;  Solid and Spell UI's shared
-    modules (`solid-js`, `@solidjs/web`, `@spell-app/ui/core`, `@spell-app/ui/forms`) are NOT in it:  it takes them from
+    modules (`solid-js`, `@solidjs/web`, `spell-ui/core`, `spell-ui/forms`) are NOT in it:  it takes them from
     `globalThis.SpellUI.packModules`, the docs bundle's, so a page has ONE Solid and one `UIComponent`
 
 ## Rules
@@ -43,8 +43,8 @@ house style every package shares.  Only what's local is below;  a section named 
   `spell dev pack build __pack__` (`yarn pack:build`), and commit `components/__pack/` in the same change.
   - `yarn pack:check` exits 1 while `components/__pack/` is stale, and `src/pack.test.ts` runs it:  so `yarn test` and
     `yarn review` fail until you build.
-- Elements import Spell UI's code ONLY from `@spell-app/ui/core` / `@spell-app/ui/forms` (as a Spell UI family does), and Solid from
-  `solid-js` / `@solidjs/web`:  the build fails on any other `@spell-app/ui/...` or Solid import, which the page couldn't
+- Elements import Spell UI's code ONLY from `spell-ui/core` / `spell-ui/forms` (as a Spell UI family does), and Solid from
+  `solid-js` / `@solidjs/web`:  the build fails on any other `spell-ui/...` or Solid import, which the page couldn't
   share.  Another shared module:  add it to Spell UI's `packModules` AND `PACK_MODULES` in the kit's
   `spell-kit/element/tools/packModules`.
 - Every tag starts `__prefix__`:  `<ui-root>` knows the pack's tags by that prefix.

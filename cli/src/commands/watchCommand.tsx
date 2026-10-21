@@ -4,8 +4,8 @@ import { render, type Instance } from "ink"
 import { basename, resolve } from "path"
 import { pathToFileURL } from "url"
 
-import { SP } from "@spell-app/spell"
-import { projectFileFor } from "@spell-app/spell/node/projectFile"
+import { SP } from "spell-lang/spell"
+import { projectFileFor } from "spell-lang/spell/node/projectFile"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 

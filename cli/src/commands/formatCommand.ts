@@ -3,7 +3,7 @@ import { sep } from "path"
 import type { TextEdit } from "vscode-languageserver"
 
 import environment from "$/spaces/server/node/environment"
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { CLI } from "$/cli"
 
 /**

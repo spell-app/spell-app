@@ -1,5 +1,5 @@
-import { E } from "@spell-app/ui/core"
-import { UICode } from "@spell-app/ui/ui-code"
+import { E } from "spell-ui/core"
+import { UICode } from "spell-ui/ui-code"
 import { spellCodeVocabulary } from "./SpellCode.en"
 
 /****************

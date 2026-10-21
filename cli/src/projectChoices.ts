@@ -9,7 +9,7 @@
 import { readdirSync } from "fs"
 import { relative, resolve } from "path"
 
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { CLI } from "$/cli"
 
 /**

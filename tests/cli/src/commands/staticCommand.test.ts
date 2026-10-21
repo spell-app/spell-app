@@ -57,9 +57,9 @@ describe("spell static", () => {
 
   test("drops the scripts that load the elements, keeps the rest", () => {
     const html = read("page.static.html")
-    expect(html).not.toContain("@spell-app/ui")
+    expect(html).not.toContain("spell-ui")
     expect(html).toContain('dataset.plain = "kept"')
-    expect(run.stderr).toContain("removed scripts:  inline, /node_modules/@spell-app/ui/dist/ui-button.js")
+    expect(run.stderr).toContain("removed scripts:  inline, /node_modules/spell-ui/dist/ui-button.js")
   })
 
   test("links the stylesheet first in <head>, before the page's own CSS", () => {

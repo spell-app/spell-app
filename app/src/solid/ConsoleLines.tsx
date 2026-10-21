@@ -3,7 +3,7 @@ import { For, Show, createContext, createMemo, useContext } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { Observable } from "spell-kit/util"
-import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "@spell-app/core/console"
+import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "spell-lang/core/console"
 
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { tracked } from "./tracked"

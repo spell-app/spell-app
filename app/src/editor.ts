@@ -1,9 +1,9 @@
 import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "spell-kit/util"
 
-import { P } from "@spell-app/parser"
-import { SP } from "@spell-app/spell"
+import { P } from "spell-lang/parser"
+import { SP } from "spell-lang/spell"
 import { SPACES } from "$/spaces"
-import type { SpellConsole } from "@spell-app/core/console"
+import type { SpellConsole } from "spell-lang/core/console"
 import type { SpellRuntime } from "$/app/runner"
 import type * as UIT from "$/app/ui/ui.types"
 import type { monaco } from "$/app/ui/monaco"
@@ -602,7 +602,7 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Get the user's answer to some question:  a `<ui-modal>` (`$/app/solid/modals`, on `@spell-app/ui`).
+   * Get the user's answer to some question:  a `<ui-modal>` (`$/app/solid/modals`, on `spell-ui`).
    * - `props`, or just the `message` string, for the other defaults:
    *   - `message` (required):  message to show
    *   - `header` (optional):  header for the dialog;  default:  no header

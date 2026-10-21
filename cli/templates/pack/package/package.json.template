@@ -1,5 +1,5 @@
 {
-  "name": "@spell-app/__pack__",
+  "name": "__pack__",
   "version": "0.0.0",
   "private": true,
   "description": "A component pack:  <__prefix__*> elements a page loads on demand through <ui-root> (spell dev pack)",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@solidjs/web": "__solid__",
-    "@spell-app/ui": "workspace:*",
+    "spell-ui": "workspace:*",
     "@types/node": "^22.20.4",
     "solid-js": "__solid__",
     "spell-kit": "workspace:*",

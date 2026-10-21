@@ -72,6 +72,6 @@ With the suffix, no tool reads them;  only `packNew.ts` does.
   - `packNew.ts` copies every `*.template` file it finds:  no list to update.
 - Change one:  just edit it.
   Packs and elements made AFTER get the change;  existing ones keep their files.
-- Then run `yarn test` in `packages/cli`.
+- Then run `yarn spell-folders test cli`, at spell-app's root.
   - [packNew.test.ts](../../tests/cli/src/dev/packNew.test.ts) writes a pack and an element from these templates
     into a temp folder, and checks every token was filled in.

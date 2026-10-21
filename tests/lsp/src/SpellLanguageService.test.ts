@@ -15,10 +15,10 @@ import {
   type TextEdit
 } from "vscode-languageserver"
 
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
-import { fixturePath } from "@spell-app/spell/test"
+import { fixturePath } from "spell-lang/spell/test"
 
 /**
  * The language service over a real project:  a temp copy of the Solitaire example,

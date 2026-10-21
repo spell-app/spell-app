@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal, omit } from "solid-js"
 
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { SPACES } from "$/spaces"
 import { editor } from "$/app/editor"
 import { DropdownLabel, PROJECT_ICON, on, tracked, type UIElementAttributes } from "$/app/solid"

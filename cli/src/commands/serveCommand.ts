@@ -4,7 +4,7 @@ import { join } from "path"
 import { SRV } from "spell-kit/server"
 import { PageServer } from "spell-kit/server/page"
 import environment from "$/spaces/server/node/environment"
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { CLI } from "$/cli"
 
 /** This checkout:  the page server's root. */

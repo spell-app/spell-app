@@ -2,7 +2,7 @@
 //  ## Shared types for the app's dialogs:  `editor.alert()` / `confirm()` / `prompt()` / `promptForNumber()` /
 //  `choose()`, and the `Actions` that show them (`DialogActionProps<AlertModalProps>` ...).
 //
-//  NOTE: TEXT only, no JSX:  `@spell-app/ui`'s `UI.modals` sets every string as text.  The React modals took
+//  NOTE: TEXT only, no JSX:  `spell-ui`'s `UI.modals` sets every string as text.  The React modals took
 //  `ReactNode`s and `SUI.ButtonProps`;  no caller passed anything but strings.
 //  NOTE: no index signature:  extra keys used to pass through to `SUI.Modal`;  nothing takes them now.
 //

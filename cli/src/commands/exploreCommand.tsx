@@ -4,7 +4,7 @@ import { render } from "ink"
 import { resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
-import { SP } from "@spell-app/spell"
+import { SP } from "spell-lang/spell"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 

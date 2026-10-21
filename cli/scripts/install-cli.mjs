@@ -1,6 +1,7 @@
 /**
- * `yarn cli:install`:  put `spell` on your `PATH`, as a symlink to `bin/spell.mjs` in this checkout (the package's
- * `bin`).
+ * `yarn cli:install`:  put `spell` on your `PATH`, as a symlink to `cli/bin/spell.mjs` in this checkout (the
+ * `spell-app` package's `bin`, in spell-app's root `package.json`:  `cli/` is a folder of that one package, epic
+ * `repo-split` P11).
  * - NOT `epic`:  spell-epic's own (its `bin/epic`;  its README's "Install"), since epic `epic-eject` I5.
  * - Links into the first of these that's on your `PATH` and writable:
  *   - `~/.local/bin`
@@ -28,12 +29,13 @@ import { homedir } from "node:os"
 import { delimiter, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+/** spell-app's root, the `spell-app` package:  this file is in `cli/scripts/`. */
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..")
 const onPath = (process.env.PATH ?? "").split(delimiter)
 const localBin = resolve(homedir(), ".local", "bin")
 const binDir = process.env.SPELL_BIN_DIR ?? chooseBinDir()
 
-/** The commands to link, by name:  the package's `bin`, `{ spell: "bin/spell.mjs" }`. */
+/** The commands to link, by name:  the package's `bin`, `{ spell: "cli/bin/spell.mjs" }`. */
 const COMMANDS = JSON.parse(readFileSync(resolve(packageRoot, "package.json"), "utf8")).bin
 
 mkdirSync(binDir, { recursive: true })

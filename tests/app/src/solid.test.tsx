@@ -2,14 +2,14 @@ import { describe, test, expect } from "vite-plus/test"
 import { createSignal, flush } from "solid-js"
 import { renderToString } from "@solidjs/web"
 
-import type { UIT } from "@spell-app/ui"
+import type { UIT } from "spell-ui"
 
 /**
  * Smoke test for the app's Solid tooling (`vite.shared.ts`), while React and Solid live side by side.
  * - This file has NO `@jsxImportSource react` marker, so it's Solid:  compiled by the Solid plugin, type-checked
  *   against `@solidjs/web`'s JSX.  A React file next to it (`ThingExplorer.test.tsx`) still runs under React.
  * - Node, so `@solidjs/web` is its server build:  `renderToString`, no DOM.
- * - `import type` from `$/ui`:  makes `tsc` check `@spell-app/ui`'s Solid source under the app's `tsconfig.json`.
+ * - `import type` from `$/ui`:  makes `tsc` check `spell-ui`'s Solid source under the app's `tsconfig.json`.
  */
 
 /** A Solid component around a `<ui-button>`:  its label from a prop, read where used. */

@@ -9,23 +9,23 @@ const SOLID_ENTRY = "\0spell-solid-entry"
 /** Virtual module of `SHARED_SOLID.ui`:  `ui`'s barrel, and `SpellUI.registerPack` for the page (`sharedEntries()`). */
 const UI_ENTRY = "\0spell-ui-entry"
 
-/** `@spell-app/ui`'s element core, `$/ui/core`:  in `SHARED_SOLID.solid`. */
+/** `spell-ui`'s element core, `$/ui/core`:  in `SHARED_SOLID.solid`. */
 const UI_CORE = fileURLToPath(new URL("../../spell-ui/src/core.ts", import.meta.url))
 
 /**
- * `@spell-app/ui`'s root family, `$/ui/components/ui-root`:  in `SHARED_SOLID.solid`, as `<spell-app>` is a root.
+ * `spell-ui`'s root family, `$/ui/components/ui-root`:  in `SHARED_SOLID.solid`, as `<spell-app>` is a root.
  * - Its loader imports every other family on demand:  each a lazy chunk of `ui/`.
  */
 const UI_ROOT = fileURLToPath(new URL("../../spell-ui/components/ui-root/index.ts", import.meta.url))
 
-/** `@spell-app/ui`'s barrel, `$/ui`:  in `SHARED_SOLID.ui`. */
+/** `spell-ui`'s barrel, `$/ui`:  in `SHARED_SOLID.ui`. */
 const UI_BARREL = fileURLToPath(new URL("../../spell-ui/src/index.ts", import.meta.url))
 
 /** An emoji data module of `ui`'s:  its set and chunk letter (as `ui`'s own `emojiChunkNames()`). */
 const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
 
 /**
- * The ONE Solid and `@spell-app/ui` every other bundle of ours imports,
+ * The ONE Solid and `spell-ui` every other bundle of ours imports,
  * so a page with `<spell-app>`s and a `<spell-editor>` loads one copy of each
  * (two Solids on a page fail silently -- `solid-2.md`).
  * - Built by `yarn build:element` (FIRST, it empties `dist-element/`) and `yarn build:runner` (`--outDir dist-runner`).

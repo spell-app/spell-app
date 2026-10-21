@@ -5,11 +5,11 @@ import { join, resolve } from "path"
 import { pathToFileURL } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "@spell-app/parser"
-import { PY } from "@spell-app/py"
-import { buildTsx } from "@spell-app/spell/node/buildTsx"
-import { SP } from "@spell-app/spell"
-import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixtureProjectNames } from "@spell-app/spell/test"
+import { P } from "spell-lang/parser"
+import { PY } from "spell-lang/py"
+import { buildTsx } from "spell-lang/spell/node/buildTsx"
+import { SP } from "spell-lang/spell"
+import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixtureProjectNames } from "spell-lang/spell/test"
 import { CLI } from "$/cli"
 
 /**

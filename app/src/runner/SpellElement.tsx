@@ -1,9 +1,9 @@
 import { createEffect } from "solid-js"
 import { insert, type JSX } from "@solidjs/web"
 
-import { E, UI } from "@spell-app/ui/core"
+import { E, UI } from "spell-ui/core"
 import { drawableAttributeFor } from "spell-kit/util"
-import type { ElementApi, Core } from "@spell-app/core"
+import type { ElementApi, Core } from "spell-lang/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 
 /****************

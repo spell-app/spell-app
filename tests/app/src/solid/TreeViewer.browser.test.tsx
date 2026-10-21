@@ -3,8 +3,8 @@ import { createSignal, flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { P } from "@spell-app/parser"
-import { spellParser } from "@spell-app/spell"
+import type { P } from "spell-lang/parser"
+import { spellParser } from "spell-lang/spell"
 import { uiReady } from "$/app/solid"
 import { TreeViewer } from "$/app/solid/TreeViewer"
 

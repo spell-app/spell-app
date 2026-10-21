@@ -1,5 +1,5 @@
 import type { LSP } from "$/lsp"
-import type { SP } from "@spell-app/spell"
+import type { SP } from "spell-lang/spell"
 import type { UI } from "$/app/ui"
 
 // ## Messages

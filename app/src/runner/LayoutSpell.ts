@@ -1,9 +1,9 @@
 import { createEffect, createRoot } from "solid-js"
 
 import { camelCase, snakeCase } from "spell-kit/util"
-import { P } from "@spell-app/parser"
-import { SP } from "@spell-app/spell"
-import type { Core } from "@spell-app/core"
+import { P } from "spell-lang/parser"
+import { SP } from "spell-lang/spell"
+import type { Core } from "spell-lang/core"
 import { SpellElement } from "./SpellElement"
 import {
   LAYOUT_HOLE as HOLE,

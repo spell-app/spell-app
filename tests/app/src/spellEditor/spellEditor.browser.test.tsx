@@ -3,7 +3,7 @@ import { createSignal, flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { SP } from "@spell-app/spell"
+import type { SP } from "spell-lang/spell"
 import { SPELL_COMPILED_EVENT } from "$/app/runner/runner.types"
 import { SpellEditorPane, type SpellEditorStatus } from "$/app/spellEditor/SpellEditorPane"
 import type { DOMSpellEditorElement } from "$/app/components/spell-editor"

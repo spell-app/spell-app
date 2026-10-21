@@ -16,7 +16,7 @@ for (const method of ["log", "info", "debug", "warn", "group", "groupCollapsed",
 // defines `__PACKAGE_VERSION__` before spell reads it
 const [spellSrc = "", module = ""] = process.argv.slice(2)
 await import(new URL("node/packageVersion.node.ts", spellSrc).href)
-const { SP } = (await import(new URL("index.ts", spellSrc).href)) as typeof import("@spell-app/spell")
+const { SP } = (await import(new URL("index.ts", spellSrc).href)) as typeof import("spell-lang/spell")
 
 const { failed, ...results } = SP.spellParser.speedTest(module)
 process.stdout.write(`${JSON.stringify({ ...results, failed: failed.length })}\n`)

@@ -16,8 +16,8 @@
 import { existsSync, statSync } from "fs"
 import { basename, dirname, extname, resolve } from "path"
 
-import { SP } from "@spell-app/spell"
-import { hasProjectFile } from "@spell-app/spell/node/projectFile"
+import { SP } from "spell-lang/spell"
+import { hasProjectFile } from "spell-lang/spell/node/projectFile"
 import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { CLI } from "$/cli"

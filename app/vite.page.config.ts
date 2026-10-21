@@ -9,7 +9,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   after `vite.solid.config.ts --outDir dist-page` (which empties the folder).
  * - One entry, to a FIXED name, so a page's import map can name it:
  *   `spell-page.js`, the page's `@spell/core` -- see `src/runner/spellPage.ts`.
- * - Solid and `@spell-app/ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`),
+ * - Solid and `spell-ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`),
  *   as in `dist-runner/`.
  * - `static/` is copied in, so Semantic UI and Lato sit beside it, for the page to link.
  * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.

@@ -1,6 +1,6 @@
 ---
 name: solid-2
-description: Solid 2 (rc.13) rules for this repo. Use BEFORE writing, reviewing or debugging Solid code or JSX in packages/app/src, core rendering (packages/core/src: element(), draw, Thing/List/App components), `$/util` reactivity (Observable, getProp/setProp, stores, spell cells), @spell-app/ui <ui-*> elements (packages/ui), or any React-to-Solid migration step. Also use when you see a Solid dev diagnostic code (REACTIVE_WRITE_IN_OWNED_SCOPE, REACTIVITY_HALTED, STRICT_READ_UNTRACKED...).
+description: Solid 2 (rc.13) rules for this repo. Use BEFORE writing, reviewing or debugging Solid code or JSX in packages/app/src, core rendering (packages/core/src: element(), draw, Thing/List/App components), `$/util` reactivity (Observable, getProp/setProp, stores, spell cells), spell-ui <ui-*> elements (packages/ui), or any React-to-Solid migration step. Also use when you see a Solid dev diagnostic code (REACTIVE_WRITE_IN_OWNED_SCOPE, REACTIVITY_HALTED, STRICT_READ_UNTRACKED...).
 ---
 
 # Solid 2 in the spell monorepo
@@ -29,4 +29,4 @@ Distrust patterns from both.
   - copy a script in `$(epic config contentFolder)/guides/solid/experiments/`
   - run it from a copy in a package of this repo, e.g. `packages/ui` (`node <file> dev`):  the shared repo has no
     `node_modules` ([spell-epic's AGENTS.md](spell-epic/src/AGENTS.md), "Experiments")
-- `@spell-app/ui` elements:  [ui's AGENTS.md](packages/ui/AGENTS.md) ("Solid authoring").
+- `spell-ui` elements:  [ui's AGENTS.md](packages/ui/AGENTS.md) ("Solid authoring").

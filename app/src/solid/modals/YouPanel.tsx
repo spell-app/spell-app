@@ -2,7 +2,7 @@ import { createSignal, For, Show } from "solid-js"
 import { render } from "@solidjs/web"
 
 import type { SPACES } from "$/spaces"
-import { UI as SpellUI } from "@spell-app/ui"
+import { UI as SpellUI } from "spell-ui"
 import { uiReady } from "$/app/solid/loadUI"
 
 import "./YouPanel.css"

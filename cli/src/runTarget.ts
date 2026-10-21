@@ -19,9 +19,9 @@ import { pathToFileURL } from "url"
 
 import { SRV } from "spell-kit/server"
 import environment from "$/spaces/server/node/environment"
-import { buildTsx } from "@spell-app/spell/node/buildTsx"
-import { SP } from "@spell-app/spell"
-import { PY } from "@spell-app/py"
+import { buildTsx } from "spell-lang/spell/node/buildTsx"
+import { SP } from "spell-lang/spell"
+import { PY } from "spell-lang/py"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 
@@ -208,7 +208,7 @@ async function ensurePageBuilt(session: CLI.CliSession): Promise<void> {
   const built = resolve(APP_DIR, "dist-page", "spell-page.js")
   const sources = [
     environment.coreDir,
-    join(environment.packageFolder("@spell-app/ui"), "src"),
+    join(environment.packageFolder("spell-ui"), "src"),
     resolve(APP_DIR, "src", "runner")
   ]
   if (existsSync(built) && statSync(built).mtimeMs >= Math.max(...sources.map(newestIn))) return

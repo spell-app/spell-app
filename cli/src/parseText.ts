@@ -4,8 +4,8 @@
  */
 import chalk from "chalk"
 
-import { SP } from "@spell-app/spell"
-import { P } from "@spell-app/parser"
+import { SP } from "spell-lang/spell"
+import { P } from "spell-lang/parser"
 
 /** Rules a line is tried as, in order, when no `--rule` is given -- `block` for several lines. */
 const LINE_RULES = ["statement", "expression"]

@@ -1,11 +1,11 @@
 /**
  * Types and constants of the app's node tools (`tools/`):  the App UI docs set's data, what `yarn site:data` builds.
  * - Pure data, at the bottom of the folder's imports:  types only, apart from the constants below.
- * - The data file's own shape is Spell UI's (`SiteDataFile`, `@spell-app/ui`'s docs components), so the set's pages
+ * - The data file's own shape is Spell UI's (`SiteDataFile`, `spell-ui`'s docs components), so the set's pages
  *   draw it with Spell UI's docs elements (`<ui-docs-nav>`, `<ui-docs-api>`).
  */
 
-import type { SiteDataBuilder } from "@spell-app/ui/tools/SiteDataBuilder"
+import type { SiteDataBuilder } from "spell-ui/tools/SiteDataBuilder"
 
 ////////////////
 // ## The data file

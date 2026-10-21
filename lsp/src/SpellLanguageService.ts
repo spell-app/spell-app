@@ -32,9 +32,9 @@ import {
 } from "vscode-languageserver"
 
 import { instanceCase, typeCase } from "spell-kit/util"
-import { P } from "@spell-app/parser"
-import { MD, type InlineNode } from "@spell-app/markdown"
-import { SP } from "@spell-app/spell"
+import { P } from "spell-lang/parser"
+import { MD, type InlineNode } from "spell-lang/markdown"
+import { SP } from "spell-lang/spell"
 import { LSP } from "$/lsp"
 
 /**
