@@ -21,7 +21,7 @@ const packagesDir = repoDir
  * - Each project's own folder there MIRRORS its path:  `buildFolderFor()`, in `projects/project-utils.ts`.
  *   - the frozen test projects (the `tests` space folder):  under `build/spaces/`, `build/spaces/@spell/test/fizzbuzz`
  *   - under this repo:  the same path under `build/`
- *     - `spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`
+ *     - `spaces/@spell/examples/drawable-solitaire` => `build/spaces/@spell/examples/drawable-solitaire`
  *   - under spell.spaces:  under `build/spell-spaces/`, `build/spell-spaces/@spell/owen@/errors`
  * - `SPELL_BUILD_DIR` sets it, e.g. the server's contract test's temporary folder.
  */
@@ -114,7 +114,7 @@ const environment = {
   /** the frozen test projects' space folder (`spaceFolders.tests`):  `buildFolderFor()` mirrors it into `build/spaces/` */
   testsDir: spaceFolders.tests,
   spaceFolders,
-  /** The built-in projects, e.g. `spaces/@spell/examples/solitaire` -- the `@spell/...` groups. */
+  /** The built-in projects, e.g. `spaces/@spell/examples/drawable-solitaire` -- the `@spell/...` groups. */
   systemFilesRoot: resolve(spaceFolders.builtins, "@spell"),
   /**
    * Frozen projects tests run against, e.g. `tests/spaces/@spell/test/solitaire` -- `@spell/test`.

@@ -114,7 +114,7 @@ const PACK = { name: "spell", prefix: "spell-" }
  *     <script type="module" src="/element/spell-ui.js"></script>
  *     <ui-root>
  *       <ui-components source="/element/spell.pack.js"></ui-components>
- *       <spell-app project="@spell/examples/solitaire" toolbar></spell-app>
+ *       <spell-app project="@spell/examples/drawable-solitaire" toolbar></spell-app>
  *     </ui-root>
  *
  * - A classic script calling `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs:

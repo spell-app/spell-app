@@ -85,7 +85,7 @@ export const SPELL_COMPILED_EVENT = "spell-compiled"
  *   Its `editor` attribute AND the editor's `app` attribute can both name it.
  */
 export type SpellCompiled = {
-  /** Project compiled, e.g. `@spell/examples/solitaire` -- where its imports and sources come from. */
+  /** Project compiled, e.g. `@spell/examples/drawable-solitaire` -- where its imports and sources come from. */
   projectId: string
   /** Its javascript, as `<Project>.spell.js` holds it. */
   compiled: string

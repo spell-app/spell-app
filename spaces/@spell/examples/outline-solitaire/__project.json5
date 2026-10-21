@@ -1,4 +1,5 @@
 {
+  "description": "Klondike solitaire in the outline style, `a \"deck\" is a list of cards with:` and its facts as bullets:  kinds (`one of clubs, diamonds ...`), derived properties, phrases, tests and `pause for`",
   "imports": [
     {
       "path": "/Deck.spell",

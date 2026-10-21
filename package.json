@@ -75,6 +75,7 @@
     "site:data": "cd app && tsx --import spell-kit/toolchain/aliases scripts/site-data.ts",
     "site:pictures": "cd app && tsx --import spell-kit/toolchain/aliases scripts/site-pictures.ts",
     "clean": "cd app && rm -rf ./.cache; rm -rf ./build",
+    "examples:readme": "tsx scripts/examples-readme.ts",
     "/////// THE LANGUAGE SERVER (lsp/)": "",
     "lsp:start": "cd lsp && tsx --import spell-kit/toolchain/aliases src/server.ts --stdio",
     "lsp:scopes": "cd lsp && tsx --import spell-kit/toolchain/aliases src/scopes.ts",

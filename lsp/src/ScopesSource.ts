@@ -32,9 +32,9 @@ export type ScopesSource = {
 
 /** How a `ScopesSource` from packs gets what they leave out -- see `scopesFromPacks()`. */
 export type ScopesSourceHooks = {
-  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/solitaire/Card.spell` -- if it can be had. */
+  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell` -- if it can be had. */
   loadSource?: (uri: string) => Promise<string | undefined>
-  /** Compiled javascript of project `projectId`, e.g. `@spell/examples/solitaire` -- if it can be had. */
+  /** Compiled javascript of project `projectId`, e.g. `@spell/examples/drawable-solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
   /**
    * Project `projectId`'s declarations, its `<Project>.declarations.json5` -- if it can be had:
@@ -352,7 +352,7 @@ function linesOf(source: string | undefined, line: ScopeLine): string | undefine
     .trimEnd()
 }
 
-/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/solitaire/Card.spell`. */
+/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell`. */
 function splitSpellUri(uri: string): { projectId: string; filePath: string } {
   const { projectId, rest } = SpellUrls.split(decodeURI(uri.replace(/^spell:\//, "")))
   return { projectId, filePath: rest && `/${rest}` }

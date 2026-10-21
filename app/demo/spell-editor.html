@@ -63,7 +63,7 @@
 
       <h2>Linked from the apps' side: two apps with <code>editor="#todos"</code></h2>
       <p>Neither app names a project: each waits for the editor's first compile.</p>
-      <spell-editor id="todos" project="@spell/examples/todos" height="360px"></spell-editor>
+      <spell-editor id="todos" project="@spell/examples/todos-form-based" height="360px"></spell-editor>
       <div class="side-by-side">
         <spell-app editor="#todos" toolbar></spell-app>
         <spell-app editor="#todos" toolbar></spell-app>
@@ -71,12 +71,18 @@
 
       <h2>A project of several files, with the Type Explorer following edits</h2>
       <spell-editor
-        project="@spell/examples/solitaire"
+        project="@spell/examples/drawable-solitaire"
         file="Card.spell"
         app="#solitaire"
         height="420px"
       ></spell-editor>
-      <spell-app id="solitaire" project="@spell/examples/solitaire" toolbar debug="explorer" height="640px"></spell-app>
+      <spell-app
+        id="solitaire"
+        project="@spell/examples/drawable-solitaire"
+        toolbar
+        debug="explorer"
+        height="640px"
+      ></spell-app>
     </ui-root>
   </body>
 </html>

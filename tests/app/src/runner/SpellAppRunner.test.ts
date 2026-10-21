@@ -6,12 +6,12 @@ import { editorCompiled, isEditor, pushedKey, pushedSource, type SpellAppSource 
 describe("<spell-app> fed by an editor", () => {
   const base: SpellAppSource = {
     name: "Solitaire",
-    compiledUrl: "/spaces/@spell/examples/solitaire/solitaire.spell.js",
-    scopesUrl: "/spaces/@spell/examples/solitaire/solitaire.scopes.js",
+    compiledUrl: "/spaces/@spell/examples/drawable-solitaire/drawable-solitaire.spell.js",
+    scopesUrl: "/spaces/@spell/examples/drawable-solitaire/drawable-solitaire.scopes.js",
     importUrl: (id) => `/spaces/${id}/compiled.spell.js`
   }
-  const scopes = { id: "@spell/examples/solitaire", entries: [] }
-  const pushed = { projectId: "@spell/examples/solitaire", compiled: "export const x = 1", scopes }
+  const scopes = { id: "@spell/examples/drawable-solitaire", entries: [] }
+  const pushed = { projectId: "@spell/examples/drawable-solitaire", compiled: "export const x = 1", scopes }
 
   describe("pushedSource()", () => {
     test("its project's source, with the pushed javascript and scope pack in memory", () => {
@@ -46,7 +46,13 @@ describe("<spell-app> fed by an editor", () => {
   })
 
   describe("pushedKey()", () => {
-    const app = { project: "@spell/examples/solitaire", src: undefined, scopes: null, name: "Mine", editor: "#ed" }
+    const app = {
+      project: "@spell/examples/drawable-solitaire",
+      src: undefined,
+      scopes: null,
+      name: "Mine",
+      editor: "#ed"
+    }
 
     test("a change to what it runs, or which editor, makes another key", () => {
       for (const attribute of ["project", "src", "scopes", "name", "editor"])

@@ -28,7 +28,7 @@ const START_TIMEOUT_MS = 90_000
  *   - one already running keeps its editor where it is
  *   - default 3000, else any free port
  * - Stops no other servers, and runs no `yarn install`.
- * - `project`:  opens the editor on it, e.g. `@spell/examples/solitaire`.
+ * - `project`:  opens the editor on it, e.g. `@spell/examples/drawable-solitaire`.
  *   - none:  the project here, if the app knows its root -- else the app's project chooser
  *   - only projects in the app's roots open:  not a `@local/<folder>` one
  * - `--headless`:  no browser, just the URL.
@@ -115,7 +115,7 @@ async function editorUrl(): Promise<string | undefined> {
 }
 
 /**
- * Where in the app to open `arg`:  its editor URL, e.g. `/edit/@spell/examples/solitaire` -- see `SpellLocation.editorUrl`.
+ * Where in the app to open `arg`:  its editor URL, e.g. `/edit/@spell/examples/drawable-solitaire` -- see `SpellLocation.editorUrl`.
  * - No `arg`:  the project here, if it's in one of the app's roots -- else `/`, the project chooser.
  * - A project the app can't reach -- in a `@local/<folder>` group -- says so, and opens the chooser.
  */

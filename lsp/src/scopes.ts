@@ -1,6 +1,6 @@
 /**
  * `yarn scopes`:  write scope packs -- what `<spell-app>`'s Type Explorer shows with no parser.  See `LSP.ScopePack`.
- * - `yarn scopes @spell/examples/solitaire @spell/examples/calculator ...`:  each project's `<Project>.scopes.js`,
+ * - `yarn scopes @spell/examples/drawable-solitaire @spell/examples/calculator ...`:  each project's `<Project>.scopes.js`,
  *   beside its compiled output, in its build folder (`build/`) -- parsing it, and the projects it imports, first.
  * - `yarn scopes --compile <projectId...>`:  compile each first, to `<Project>.spell.js` -- in the order given,
  *   so a project another imports goes first.
@@ -44,7 +44,7 @@ for (const arg of args) {
 process.exit(failed ? 1 : 0)
 
 /**
- * Write the scope pack of the project `arg` names -- a full id, or a root's alias, e.g. `@spell/examples/solitaire`.
+ * Write the scope pack of the project `arg` names -- a full id, or a root's alias, e.g. `@spell/examples/drawable-solitaire`.
  * - With `--compile`, compile it first -- throwing if it has parse errors, as the language server won't write
  *   its pack then either.
  */

@@ -1,5 +1,6 @@
 {
   "title": "Todos - Form Based",
+  "description": "A to-do list:  yes/no properties, phrases like `a task \"is complete\" if ...`, a list filtered with `where`, and a form drawn with click handlers written in spell",
   "imports": [
     {
       "path": "/todo.spell",

@@ -9,13 +9,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
-- This folder is spell-app's part of `spell`, the kit's command line ([the kit's cli/](../../cli/README.md)).
+- This folder is spell-app's part of `spell`, the kit's command line (the kit's `cli/`).
   Two things:
   - spell-app's OWN commands:  `spell app create | serve | vscode [build|install]`, and `spell projects`
   - the WORK behind spell-lang's commands (`spell compile`, `lint`, `run`, `test` ...), through spell-app's
     `"language"` hook:  they find projects the app's way, so their work is here until spell-lang can
     (epic `repo-split` P13)
-  - [The README](README.md) has instructions, caveats and TODO.
+  - [The kit's README-cli.md](../../README-cli.md) has every command, its options and caveats, and what's coming.
 - The program itself is NOT here any more:  arguments, help, finding commands, `spell dev` and its pass-throughs
   are the kit's, or gone (epic `repo-split` P13).
   - Spell UI's commands (`spell icon`, `ssr`, `pack`, `design`) are spell-ui's `cli/`.

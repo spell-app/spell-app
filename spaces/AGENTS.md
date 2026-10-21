@@ -17,7 +17,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     [its package section](../../spell.epics/epics/people-and-orgs/details/spaces-package.html).
 - Its folders:
   - [@spell/](@spell/):  the `@spell` space's built-in projects, committed (see "Projects" below)
-    - `examples/`:  the `@spell/examples` group (solitaire, todos ...)
+    - `examples/`:  the `@spell/examples` group (fizzbuzz, calculator ...)
     - `library/`:  the `@spell/library` group (cards, people)
       - `people/`, the people library (P7):  people, orgs and what they keep
       - compiled to `people.lib.ts` (the `ts/lib` target):
@@ -100,7 +100,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | --- | --- | --- |
   | the frozen test projects' `X` (spell-lang's `tests/spaces/X`) | `build/spaces/X` | `build/spaces/@spell/test/fizzbuzz/` |
   | this repo's `tests/X` | `build/X` | |
-  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/solitaire/` |
+  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/drawable-solitaire/` |
   | spell.spaces' `X` | `build/spell-spaces/X` | `build/spell-spaces/@spell/owen@/errors/` |
   | anywhere else | beside the source | |
 
@@ -151,7 +151,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Its handlers are our [project-utils.ts](src/server/node/projects/project-utils.ts)'s.
   - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
     [SpellUrls.ts](../../spell-lang/spell/src/SpellUrls.ts)):
-    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/solitaire/Card.spell`
+    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell`
     - and SAVED by `POST /api/projects/file/<project>/<file>`
     - a project's index:  `/api/projects/index/<project>`
     - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`

@@ -1,5 +1,6 @@
 {
   "title": "FizzBuzz",
+  "description": "Counting to 100 with fizz and buzz:  a loop, `if` and `otherwise`, and `print`, in eight lines",
   "imports": [
     {
       "path": "/FizzBuzz.spell",

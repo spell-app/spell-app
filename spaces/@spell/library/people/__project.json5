@@ -1,4 +1,5 @@
 {
+  "description": "People, orgs, notes and relationships, each saved in a readable JSON5 file;  compiled to TypeScript for the app's \"You\" panel and the people store",
   "version": "1.0.0",
   "targets": ["ts/lib"],
   "imports": [

@@ -104,7 +104,7 @@ export type HighlightSpan = {
 
 /** Answer to `spell/project`:  a project's spell files in parse order, with their error counts. */
 export type ProjectInfo = {
-  /** Project id, e.g. `@spell/examples/solitaire`. */
+  /** Project id, e.g. `@spell/examples/drawable-solitaire`. */
   project: string
   /** Active spell files, in the order they parse. */
   files: Array<{ uri: string; file: string; errors: number }>
@@ -436,7 +436,7 @@ const MEMBER_KINDS = SCOPE_MEMBER_GROUPS.flatMap(({ kinds }) => kinds)
 export type ScopePack = {
   /** Version of this FILE FORMAT, for readers -- NOT of the project.  `undefined` === 1. */
   format?: 1
-  /** What it describes, e.g. `@spell/examples/solitaire`, or `@spell/core` for the built-in types. */
+  /** What it describes, e.g. `@spell/examples/drawable-solitaire`, or `@spell/core` for the built-in types. */
   id: string
   /** What it adds to the tree, in tree order, each with its details -- e.g. its project and those it imports. */
   entries: ScopeEntry[]

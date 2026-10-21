@@ -1,7 +1,7 @@
 /**
  * The last few projects (or files) picked at the project prompt -- see `<ProjectPrompt>` -- newest first, so it can
  * offer them again first.
- * - Kept in `packages/cli/.recent-projects.json`, gitignored:  each checkout keeps its own.
+ * - Kept in spell-app's `cli/.recent-projects.json`, gitignored:  each checkout keeps its own.
  *   - Was `.recent-targets.json`, until compile targets took the word (epic `output-targets`, T6):  the first read
  *     renames an old file it finds beside it.
  * - Only what the prompt picked:  projects typed on the command line aren't remembered.

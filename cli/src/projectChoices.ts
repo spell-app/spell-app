@@ -1,9 +1,9 @@
 /**
  * Completions for a half-typed project or file, as a shell completes a path -- for `<ProjectPrompt>`:
  * - nothing typed past a group yet:  recent picks, then the project groups, e.g. `@spell/examples/`
- * - a group and `/`:  its projects, e.g. `@spell/examples/solitaire/`
- * - a project and `/`:  "entire project" (`@spell/examples/solitaire`) first, then its `.spell` files,
- *   e.g. `@spell/examples/solitaire/Card.spell`
+ * - a group and `/`:  its projects, e.g. `@spell/examples/drawable-solitaire/`
+ * - a project and `/`:  "entire project" (`@spell/examples/drawable-solitaire`) first, then its `.spell` files,
+ *   e.g. `@spell/examples/drawable-solitaire/Card.spell`
  * - Each level is filtered by what's typed after it, ignoring case.
  */
 import { readdirSync } from "fs"
@@ -65,7 +65,7 @@ export function commonPrefix(values: string[]): string {
   return prefix
 }
 
-/** Project name of `id`, e.g. `solitaire` for `@spell/examples/solitaire`. */
+/** Project name of `id`, e.g. `solitaire` for `@spell/examples/drawable-solitaire`. */
 function nameOf(id: string): string {
   return id.slice(id.lastIndexOf("/") + 1)
 }
