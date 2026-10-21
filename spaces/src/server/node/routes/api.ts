@@ -12,7 +12,7 @@
 import chalk from "chalk"
 import JSON5 from "json5"
 
-import { SRV } from "@spell-app/server"
+import { SRV } from "spell-kit/server"
 import * as peopleRoutes from "$/spaces/server/node/people/peopleRoutes"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import * as responseUtils from "$/spaces/server/node/projects/response-utils"

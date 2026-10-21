@@ -4,7 +4,7 @@
  * - Started by `speedCommand.ts` as `node --import tsx/esm --import <aliases> speedTest.mts <spell src URL> [module]`.
  *   One process per run, so each run starts cold.
  * - `<spell src URL>`:  the spell `src/` folder to time (a `file:` URL, ending `/`):  ours, or `--against`'s temp
- *   checkout of spell-lang;  its own `$/` imports go by its checkout's alias table (`@spell-app/toolchain/aliases`).
+ *   checkout of spell-lang;  its own `$/` imports go by its checkout's alias table (`spell-kit/toolchain/aliases`).
  *   Never `$/cli`.
  * - `.mts`, so it loads as an ES module wherever it's copied -- see `PAPERCUTS.md`.
  * - `failed` is a count, not the list.

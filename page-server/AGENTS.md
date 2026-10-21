@@ -10,10 +10,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## Overview
 
 - What only spell-app's page server does:  `$/page-server` (`PS`), since epic `repo-split` P4.
-  - The page server itself is the server package's, and GENERIC:  [server's AGENTS.md](../../spell-server/server/AGENTS.md).
+  - The page server itself is the kit's server's (`spell-kit/server`), and GENERIC:
+    [its AGENTS.md](../../server/AGENTS.md).
     It names nothing of spell-app's or spell-epic's folders.
   - This package is spell-app's own part of it:  one ROUTE MODULE on it, plus what that module runs.
-  - When the repos split (P8):  the server package goes to the bottom repo, spell-server;  this one to spell-app.
+  - When the repos split (P8):  the server package went to spell-server (the kit's `server/` since P9);  this one to
+    spell-app.
 - What's in it:
   - [pageServerRoutes.ts](src/pageServerRoutes.ts) -- the route module, listed FIRST in the root `package.json`'s
     `"pageServer": { "routes": [...] }`;  the page server loads it by path, so NO package imports it.  As it's set up:

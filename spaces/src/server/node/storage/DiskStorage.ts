@@ -2,7 +2,7 @@ import { existsSync, watch, type FSWatcher } from "fs"
 import { readdir, readFile } from "fs/promises"
 import { relative, sep } from "path"
 
-import { SRV } from "@spell-app/server"
+import { SRV } from "spell-kit/server"
 import type { SpaceStorage } from "$/spaces/models/SpaceStorage"
 
 /****************

@@ -3,7 +3,7 @@ import path from "node:path"
 
 import { describe, expect, test } from "vite-plus/test"
 
-import { keepingCommentsIn } from "@spell-app/util/node/json5"
+import { keepingCommentsIn } from "spell-kit/util/node/json5"
 import { SiteDataBuilder } from "@spell-app/ui/tools/SiteDataBuilder"
 
 import { AppUIDataBuilder } from "../../../app/tools/AppUIDataBuilder.ts"

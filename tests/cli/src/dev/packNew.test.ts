@@ -4,7 +4,7 @@ import { dirname, join } from "path"
 import { afterAll, beforeEach, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
-import { DataFile } from "@spell-app/assembler/DataFile"
+import { DataFile } from "spell-kit/assembler/DataFile"
 
 /**
  * A throwaway checkout per test:

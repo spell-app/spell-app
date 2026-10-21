@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { describe, expect, test } from "vite-plus/test"
 
-import { AS } from "@spell-app/assembler"
+import { AS } from "spell-kit/assembler"
 
 import { CliError } from "$/cli/cli.types"
 import { bundlesCommand } from "$/cli/commands/bundlesCommand"

@@ -1,12 +1,12 @@
 {
-  "extends": ["@spell-app/toolchain/tsconfig.base.json", "../../tsconfig.base.json"],
+  "extends": ["spell-kit/toolchain/tsconfig.base.json", "../../tsconfig.base.json"],
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "jsx": "preserve",
     "jsxImportSource": "@solidjs/web",
     // the toolchain's global types:  the repo's ambient helpers (`Prettify` ...), used bare (WWOD §9)
-    "types": ["vite/client", "node", "@spell-app/toolchain/types"]
+    "types": ["vite/client", "node", "spell-kit/toolchain/types"]
   },
   "include": ["src", "components", "vite.config.ts", "vitest.config.ts"],
   // `components/__pack/` is generated (`spell dev pack build __pack__`):  not ours to check

@@ -84,8 +84,8 @@ describe("SpellProject imports", () => {
       })
     )
     const tsx = tsxBinary()
-    // `$/` imports by each file's own repo (the core's and util's source):  `@spell-app/toolchain/aliases`
-    return spawnSync(tsx, ["--import", "@spell-app/toolchain/aliases", "--import", hooks, runner], {
+    // `$/` imports by each file's own repo (the core's and util's source):  `spell-kit/toolchain/aliases`
+    return spawnSync(tsx, ["--import", "spell-kit/toolchain/aliases", "--import", hooks, runner], {
       cwd: resolve(environment.srcDir, ".."),
       encoding: "utf8",
       env: {

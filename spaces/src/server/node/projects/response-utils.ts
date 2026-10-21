@@ -7,7 +7,7 @@
 //  that use these.
 //
 //----------------------------
-import type { SRV } from "@spell-app/server"
+import type { SRV } from "spell-kit/server"
 
 /** Express's names, kept so every handler reads as before. */
 type Request = SRV.Request

@@ -1,9 +1,9 @@
 import { defineConfig } from "vite-plus"
 
-import { fmtConfig, packageLint } from "@spell-app/toolchain/lint"
+import { fmtConfig, packageLint } from "spell-kit/toolchain/lint"
 
 /**
- * `__pack__`'s Vite+ config:  only the `lint` / `fmt` blocks (`vp lint`, `vp fmt`), from the toolchain's settings (`@spell-app/toolchain/lint`).
+ * `__pack__`'s Vite+ config:  only the `lint` / `fmt` blocks (`vp lint`, `vp fmt`), from the toolchain's settings (`spell-kit/toolchain/lint`).
  * - The pack's BUILD is Spell UI's, the same for every pack:  `spell-ui-pack build` (`yarn pack:build`,
  *   `packages/ui/tools/ComponentPack.ts`), on Spell UI's `baseConfig()`.
  * - Tests:  `vitest.config.ts` beside this.

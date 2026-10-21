@@ -2,7 +2,7 @@ import { existsSync } from "fs"
 import { join } from "path"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
-import { contentFolderOf } from "@spell-app/assembler/contentFolder"
+import { contentFolderOf } from "spell-kit/assembler/contentFolder"
 import { CliError } from "$/cli/cli.types"
 import { DESIGN_VERBS, TOOLS, runTool } from "$/cli/dev/passThrough"
 import { findCheckout } from "$/cli/findCheckout"

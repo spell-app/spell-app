@@ -23,17 +23,14 @@
     "test:watch": "vp test"
   },
   "dependencies": {
-    "@spell-app/assembler": "workspace:*",
-    "@spell-app/server": "workspace:*",
     "@spell-app/spell": "workspace:*",
-    "@spell-app/util": "workspace:*",
     "chalk": "^5.6.0",
     "fs-extra": "^11.3.0",
     "json5": "^2.1.1",
-    "node-filter-async": "^3.0.0"
+    "node-filter-async": "^3.0.0",
+    "spell-kit": "workspace:*"
   },
   "devDependencies": {
-    "@spell-app/toolchain": "workspace:*",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.20.4",
     "tsx": "4.20.3",

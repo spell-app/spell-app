@@ -17,7 +17,7 @@ import { tmpdir } from "os"
 import { join, resolve } from "path"
 import { pathToFileURL } from "url"
 
-import { SRV } from "@spell-app/server"
+import { SRV } from "spell-kit/server"
 import environment from "$/spaces/server/node/environment"
 import { buildTsx } from "@spell-app/spell/node/buildTsx"
 import { SP } from "@spell-app/spell"

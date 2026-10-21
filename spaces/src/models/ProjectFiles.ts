@@ -1,4 +1,4 @@
-import { $fetch, CONFIRM, getDier, KnownFormat } from "@spell-app/util"
+import { $fetch, CONFIRM, getDier, KnownFormat } from "spell-kit/util"
 import { SP } from "@spell-app/spell"
 
 /**

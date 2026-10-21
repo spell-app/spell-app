@@ -31,7 +31,7 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { instanceCase, typeCase } from "@spell-app/util"
+import { instanceCase, typeCase } from "spell-kit/util"
 import { P } from "@spell-app/parser"
 import { MD, type InlineNode } from "@spell-app/markdown"
 import { SP } from "@spell-app/spell"

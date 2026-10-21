@@ -40,10 +40,10 @@
     "test:watch": "vp test"
   },
   "devDependencies": {
-    "@spell-app/toolchain": "workspace:*",
     "@vitest/browser-playwright": "catalog:",
     "playwright": "1.63.0",
     "pyright": "1.1.414",
+    "spell-kit": "workspace:*",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"

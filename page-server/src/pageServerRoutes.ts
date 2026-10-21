@@ -1,4 +1,4 @@
-import { componentSets, pageServerSettings, type RouteModule } from "@spell-app/server/page"
+import { componentSets, pageServerSettings, type RouteModule } from "spell-kit/server/page"
 import { BundleBuild, HIGHLIGHT_JS, MOVED_FOLDERS, MOVED_OUT } from "$/page-server"
 
 /**

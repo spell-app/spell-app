@@ -61,7 +61,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | `@spell/test` | spell-lang's `tests/spaces/@spell/test/`, committed and frozen (epic `repo-split` C11) |
   | `owen@spell` | spell.spaces' `@spell/owen@/`, outside git |
 
-  - spell.spaces:  `<main checkout>/../spell.spaces` (in the top repo `spell`;  `../spell-spaces` before epic `repo-split` P8), ONE folder for main and every worktree.
+  - spell.spaces:  `<main checkout>/../spell.spaces` (in the kit `spell-kit`;  `../spell-spaces` before epic `repo-split` P8), ONE folder for main and every worktree.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`:  who this machine's person is, until a machine can have more than one person.
@@ -110,7 +110,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - a project's files:  `new SPACES.ProjectFiles(project)`, to create, duplicate, rename and delete them
   - `SpellProject` itself only reads, compiles and saves (decision Q20).
 - Lint and format leave the projects alone:  `spaces/@spell` (and spell-lang's `tests/spaces/@spell`).
-  - Their ignore list is in the toolchain's [lint.ts](../../spell-util/toolchain/src/lint.ts).
+  - Their ignore list is in the toolchain's [lint.ts](../../toolchain/src/lint.ts).
 
 ## People
 
@@ -121,7 +121,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It keeps each folder's list, and one recursive watcher drops a folder's when anyone changes it.
   - JSON5 is read and written in ONE place, [json5.ts](src/server/node/storage/json5.ts), on json5-writer:
     an edit writes the whole value back, every comment where it was;  double quotes, no trailing commas.
-    - The editing itself, `json5Edited()`, is the assembler's ([json5.ts](../../spell-server/assembler/src/json5.ts)):
+    - The editing itself, `json5Edited()`, is the kit's util's ([json5.ts](../../util/src/node/json5.ts)):
       the component sets' site data writers use it too, and ui may import no spell-family package
       (epic `epic-workflow` P20).
   - The page server's `--spaces <dir>` points it elsewhere (`SPELL_SPACES_DIR`).
@@ -164,7 +164,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       own (`SP.SpellUrls.split()`, decision Q41).
   - [api.test.ts](../tests/spaces/src/server/node/routes/api.test.ts) pins its behaviour over HTTP.
 - [appRoutes.ts](src/server/node/routes/appRoutes.ts):  the app on the PAGE server.
-  - A route module ([server's AGENTS.md](../../spell-server/server/AGENTS.md)):  the page server loads it by its path,
+  - A route module ([the kit's server AGENTS.md](../../server/AGENTS.md)):  the page server loads it by its path,
     from the root `package.json`'s `"pageServer": { "routes": [...] }`.
   - What it serves (vite's proxy passes the first three on to it, from the editor):
     - `/api`
@@ -232,7 +232,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 As WWOD §12, plus:
 
-- Our `vitest.config.ts` uses the toolchain's `@spell-app/toolchain/decorators`:
+- Our `vitest.config.ts` uses the toolchain's `spell-kit/toolchain/decorators`:
   the routes load spell, whose rules use decorators.
 
 ## Types / Exports

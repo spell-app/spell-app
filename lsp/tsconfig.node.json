@@ -1,5 +1,5 @@
 {
-  "extends": "@spell-app/toolchain/tsconfig.base.json",
+  "extends": "spell-kit/toolchain/tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2023"],

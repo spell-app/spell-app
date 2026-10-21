@@ -305,7 +305,7 @@ const PACKAGES = {
 }
 
 /** The component base class, every set's:  `$/spell-element`'s, which Spell UI's core carries. */
-const UI_COMPONENT = /\/spell-element\/src\/UIComponent\.tsx$/
+const UI_COMPONENT = /\/element\/src\/UIComponent\.tsx$/
 
 /** `ui`'s root component, which `<spell-app>` extends. */
 const UI_ROOT = /\/spell-ui\/components\/ui-root\/UIRoot\.tsx$/

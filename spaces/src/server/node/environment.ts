@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "path"
 // The server's checkout finder, node built-ins only:  the main checkout from any worktree.
 // By the server package's npm name, as every import from another repo is (WWOD §4);  here it has to be, too:
 // app's `vite.config.ts` loads this file, and Vite loads a config with no alias table.
-import { checkoutOf } from "@spell-app/server/checkout"
+import { checkoutOf } from "spell-kit/server/checkout"
 
 /** spaces' `src/`:  this file is in `src/server/node/`. */
 const spacesSrcDir = resolve(fileURLToPath(import.meta.url), "..", "..", "..")

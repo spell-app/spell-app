@@ -16,7 +16,7 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
-import { SRV } from "@spell-app/server"
+import { SRV } from "spell-kit/server"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { SP } from "@spell-app/spell"
 import { fixturePath } from "@spell-app/spell/test"
@@ -188,17 +188,13 @@ describe("spell dev pass-throughs", () => {
   /** A folder inside it, to run from:  the tools must still be found. */
   const INSIDE = resolve(CHECKOUT, "app")
   beforeAll(() => {
-    // a tool's path from the checkout:  inside it, or beside it (`../spell-server/...`, epic `repo-split` P8)
+    // a tool's path from the checkout:  inside it, or beside it (`../server/...`, the kit's, epic `repo-split` P8, P9)
     const report = `const url = import.meta.url
 const tool = url.includes("/checkout/") ? url.split("/checkout/")[1] : "../" + url.split("/${basename(TEMP)}/")[1]
 console.log(JSON.stringify({ tool, args: process.argv.slice(2), cwd: process.cwd(), tsconfig: process.env.TSX_TSCONFIG_PATH }))
 process.exit(3)
 `
-    for (const tool of [
-      "scripts/serve.mjs",
-      "../spell-server/server/src/page/cli.ts",
-      "spell-epic/src/tools/design.js"
-    ]) {
+    for (const tool of ["scripts/serve.mjs", "../server/src/page/cli.ts", "spell-epic/src/tools/design.js"]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
       writeFileSync(resolve(CHECKOUT, tool), report)
     }
@@ -210,9 +206,9 @@ process.exit(3)
 process.exit(3)
 `
     )
-    writeFileSync(resolve(CHECKOUT, "../spell-server/server/tsconfig.json"), "{}")
+    writeFileSync(resolve(CHECKOUT, "../server/tsconfig.json"), "{}")
     // a repo beside the checkout is ES modules, as every repo's package is ("type": "module")
-    writeFileSync(resolve(CHECKOUT, "../spell-server/server/package.json"), `{ "type": "module" }`)
+    writeFileSync(resolve(CHECKOUT, "../server/package.json"), `{ "type": "module" }`)
     mkdirSync(INSIDE, { recursive: true })
   })
 
@@ -257,12 +253,12 @@ process.exit(3)
     const status = passThrough(["server", "status", "--root", "."])
     expect(status).toMatchObject({
       status: 3,
-      tool: "../spell-server/server/src/page/cli.ts",
+      tool: "../server/src/page/cli.ts",
       args: ["status", "--root", "."]
     })
-    expect(status.tsconfig).toBe(resolve(CHECKOUT, "../spell-server/server/tsconfig.json"))
+    expect(status.tsconfig).toBe(resolve(CHECKOUT, "../server/tsconfig.json"))
     expect(passThrough(["server", "start"])).toMatchObject({
-      tool: "../spell-server/server/src/page/cli.ts",
+      tool: "../server/src/page/cli.ts",
       args: ["start"]
     })
     expect(passThrough(["server", "start", "--all"])).toMatchObject({ status: 3, tool: "scripts/serve.mjs", args: [] })

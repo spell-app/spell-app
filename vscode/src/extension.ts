@@ -72,8 +72,8 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
   // `TransportKind.stdio` adds `--stdio` to `args`.  `cwd` so `tsx` finds the repo's `tsconfig.json` (for `~/`).
   const serverOptions: ServerOptions = {
     command: tsx,
-    // then `$/` imports by each file's own repo (`@spell-app/toolchain/aliases`):  the server runs spell-lang's source too
-    args: ["--import", "@spell-app/toolchain/aliases", server],
+    // then `$/` imports by each file's own repo (`spell-kit/toolchain/aliases`):  the server runs spell-lang's source too
+    args: ["--import", "spell-kit/toolchain/aliases", server],
     transport: TransportKind.stdio,
     // `tsx` reads `tsconfig.json` (the aliases) where it runs
     options: { cwd: lspDir }

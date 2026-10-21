@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { CustomError } from "@spell-app/util"
+import { CustomError } from "spell-kit/util"
 import { editor } from "$/app/editor"
 import { on, tracked } from "$/app/solid"
 

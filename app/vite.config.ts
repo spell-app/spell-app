@@ -1,6 +1,6 @@
 import { defineConfig } from "vite-plus"
 
-import { fmtConfig, packageLint } from "@spell-app/toolchain/lint"
+import { fmtConfig, packageLint } from "spell-kit/toolchain/lint"
 import environment from "@spell-app/spaces/server/node/environment"
 import { TOP_REPO, appConfig } from "./vite.shared.ts"
 

@@ -84,7 +84,7 @@ export type FileDropdownProps = {
 /**
  * The dropdown's `ui-change`:  click the item chosen -- a file's opens it, an action's runs it.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.file`'s DURING the event, so the dropdown keeps ours:
- *   the host decides (`requestChange()` on a `@controlled` member, `packages/spell-element/src/Reactive.ts`).
+ *   the host decides (`requestChange()` on a `@controlled` member, the kit's `element/src/Reactive.ts`).
  * - Opening the file then moves it on.
  */
 function choose(event: CustomEvent<{ value: string }>) {

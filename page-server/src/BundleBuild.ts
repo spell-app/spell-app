@@ -3,14 +3,14 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createInterface } from "node:readline"
 
-import type { Handler } from "@spell-app/server"
+import type { Handler } from "spell-kit/server"
 import {
   componentSetPath,
   componentSets,
   folderUrl,
   pageServerSettings,
   type ComponentSet
-} from "@spell-app/server/page"
+} from "spell-kit/server/page"
 import { BUNDLE_WAIT_MS } from "$/page-server"
 
 /**

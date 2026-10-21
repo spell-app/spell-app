@@ -14,7 +14,7 @@ const RUNNER = resolve(CLI_SRC_DIR, "runner", "speedTest.mts")
 /** spell's `src/` in a checkout of spell-lang, the repo whose parser is timed (epic `repo-split` P8). */
 const SPELL_SRC_IN_CHECKOUT = "spell/src"
 /** The run-time alias hook:  the runner's spell resolves its `$/parser` ... by ITS checkout's own table. */
-const ALIASES = import.meta.resolve("@spell-app/toolchain/aliases")
+const ALIASES = import.meta.resolve("spell-kit/toolchain/aliases")
 
 /** A run whose average is this much over the others' median is a fluke, e.g. the machine was busy. */
 const FLUKE_RATIO = 1.25
@@ -203,7 +203,7 @@ export function speedTable(totals: Pick<SideTotal, "label" | "average" | "min" |
 /**
  * A temp git worktree of spell-lang (the repo of our `@spell-app/spell`) at `ref`, ready to time:  the top repo's
  * `node_modules` linked in (epic `repo-split` P7:  one install for every repo), so its packages from the OTHER repos
- * (`@spell-app/util`) are ours, its own (`$/parser` ...) its own.
+ * (`spell-kit/util`) are ours, its own (`$/parser` ...) its own.
  * - A `ref` with different dependencies may not run.
  * - `removeCheckout()` when done.
  */

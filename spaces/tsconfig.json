@@ -5,7 +5,7 @@
     "target": "ES2020",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "types": ["node", "@spell-app/toolchain/types"]
+    "types": ["node", "spell-kit/toolchain/types"]
   },
   "include": ["src"],
   // Python's web server, a uv project:  its `.venv` holds other people's code

@@ -21,10 +21,9 @@
     "test:watch": "vp test"
   },
   "dependencies": {
-    "@spell-app/server": "workspace:*"
+    "spell-kit": "workspace:*"
   },
   "devDependencies": {
-    "@spell-app/toolchain": "workspace:*",
     "@types/node": "^22.20.4",
     "tsx": "4.20.3",
     "typescript": "^7.0.2",

@@ -3,8 +3,8 @@ import path from "node:path"
 import solid from "@solidjs/vite-plugin"
 import type { Plugin, PluginOption, UserConfig } from "vite"
 
-import { standardDecorators } from "@spell-app/toolchain/decorators"
-import { packageVersion } from "@spell-app/toolchain/packageVersion"
+import { standardDecorators } from "spell-kit/toolchain/decorators"
+import { packageVersion } from "spell-kit/toolchain/packageVersion"
 import { packModuleKey } from "@spell-app/ui/tools/packModules"
 import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "@spell-app/ui/vite.config.ts"
 
@@ -179,7 +179,7 @@ export const SHARED_DEFAULTS: Readonly<Record<string, string>> = { [H_PACKAGE]: 
 const SHARED_H = "\0spell-shared-h"
 
 /** Any other import from Solid's or `ui`'s packages:  `sharedSolid()` refuses it, as the shared files may lack it. */
-const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/(ui|spell-element))(\/|$)|^\$\/(ui|spell-element)\//
+const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/ui|spell-kit\/element)(\/|$)|^\$\/(ui|spell-element)\//
 
 /**
  * For a build that takes Solid and `@spell-app/ui` from `SHARED_SOLID`'s files beside it, instead of bundling its own:

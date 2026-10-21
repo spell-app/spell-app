@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "@spell-app/spell-element"
+import { E } from "spell-kit/element"
 import { UIRoot, type RootVocabulary } from "@spell-app/ui/ui-root"
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
 import { SpellUrls } from "@spell-app/spell/SpellUrls"

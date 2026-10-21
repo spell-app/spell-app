@@ -8,7 +8,7 @@
  * - Pure data:  `import type` only, so node can read it (the component pack's catalog, `vite.element.config.ts`).
  */
 
-import type { E } from "@spell-app/spell-element"
+import type { E } from "spell-kit/element"
 
 /****************
  * ### `<spell-app>`

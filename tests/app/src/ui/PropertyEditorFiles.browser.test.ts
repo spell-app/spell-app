@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
-import { declareProp, Observable } from "@spell-app/util"
+import { declareProp, Observable } from "spell-kit/util"
 import { SP } from "@spell-app/spell"
 import { SPACES } from "$/spaces"
 import { editor, type EditorStore } from "$/app/editor"

@@ -25,7 +25,7 @@ describe("spell language server over stdio", () => {
   const packageDir = resolve(import.meta.dirname, "../../../lsp")
   const child = spawn(
     tsxBinary(),
-    ["--import", "@spell-app/toolchain/aliases", resolve(packageDir, "src/server.ts"), "--stdio"],
+    ["--import", "spell-kit/toolchain/aliases", resolve(packageDir, "src/server.ts"), "--stdio"],
     {
       cwd: packageDir,
       stdio: ["pipe", "pipe", "pipe"]

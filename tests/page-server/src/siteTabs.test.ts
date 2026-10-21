@@ -1,8 +1,8 @@
 import { resolve } from "node:path"
 import { describe, expect, it } from "vite-plus/test"
 
-import { pageServerSettings } from "@spell-app/server/page/settings"
-import { litTab } from "@spell-app/server/site/site.types"
+import { pageServerSettings } from "spell-kit/server/page/settings"
+import { litTab } from "spell-kit/server/site/site.types"
 
 /**
  * The site header's tabs, as this repo's page server names them:  its root `package.json`'s `"pageServer"`

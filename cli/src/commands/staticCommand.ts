@@ -223,12 +223,12 @@ function href(output: string, file: string): string {
  * - Its stderr (Vite's warnings) is collected, for when it stops early -- or, with `verbose`, shown as it comes.
  */
 function renderInChild(job: CLI.StaticMessage, verbose: boolean) {
-  // then `$/` imports by each file's own repo (`@spell-app/toolchain/aliases`, epic `repo-split` I12)
+  // then `$/` imports by each file's own repo (`spell-kit/toolchain/aliases`, epic `repo-split` I12)
   const args = [
     "--import",
     import.meta.resolve("tsx/esm"),
     "--import",
-    import.meta.resolve("@spell-app/toolchain/aliases"),
+    import.meta.resolve("spell-kit/toolchain/aliases"),
     RUNNER
   ]
   const env = { ...process.env, TSX_TSCONFIG_PATH: resolve(CLI_SRC_DIR, "..", "tsconfig.json") }

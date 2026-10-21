@@ -1,8 +1,8 @@
 import { readFileSync } from "fs"
 import { join } from "path"
 
-import { SRV } from "@spell-app/server"
-import { PageServer } from "@spell-app/server/page"
+import { SRV } from "spell-kit/server"
+import { PageServer } from "spell-kit/server/page"
 import environment from "$/spaces/server/node/environment"
 import { SP } from "@spell-app/spell"
 import { CLI } from "$/cli"

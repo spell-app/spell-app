@@ -14,7 +14,7 @@ import { existsSync } from "fs"
 import { resolve } from "path"
 import { fileURLToPath } from "url"
 
-import { SRV } from "@spell-app/server"
+import { SRV } from "spell-kit/server"
 import environment from "$/spaces/server/node/environment"
 import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"

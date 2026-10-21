@@ -27,7 +27,7 @@ export const TOOLS = {
   "design bundle": { tool: "spell-epic/src/tools/bundle-spell-ui.js", cwd: "spell-epic" },
   "design check": { tool: "spell-epic/src/tools/check-design-bundle.js", cwd: "spell-epic" },
   "design sync": { tool: "spell-epic/src/tools/design.js" },
-  server: { tool: "../spell-server/server/src/page/cli.ts", tsx: "../spell-server/server/tsconfig.json" },
+  server: { tool: "../server/src/page/cli.ts", tsx: "../server/tsconfig.json" },
   serve: { tool: "scripts/serve.mjs" }
 } satisfies Record<string, ToolSpec>
 
@@ -106,11 +106,11 @@ function realOrSelf(path: string): string {
 export const TSX_LOADER = import.meta.resolve("tsx/esm")
 
 /**
- * The run-time alias hook (`@spell-app/toolchain/aliases`, epic `repo-split` I12), loaded after `tsx`:  a tool's
+ * The run-time alias hook (`spell-kit/toolchain/aliases`, epic `repo-split` I12), loaded after `tsx`:  a tool's
  * `$/` imports go by the importing file's own repo, so a tool of another repo (spell-server's page server) runs with
  * its own aliases, and the route modules it loads from this repo and spell-epic with theirs.
  */
-export const ALIASES = import.meta.resolve("@spell-app/toolchain/aliases")
+export const ALIASES = import.meta.resolve("spell-kit/toolchain/aliases")
 
 /**
  * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code.

@@ -1,4 +1,4 @@
-import { JSON5File, CONFIRM, $fetch, getDier, KnownFormat } from "@spell-app/util"
+import { JSON5File, CONFIRM, $fetch, getDier, KnownFormat } from "spell-kit/util"
 import { SP } from "@spell-app/spell"
 
 import { LOCAL_PERSON } from "./projectGroups"

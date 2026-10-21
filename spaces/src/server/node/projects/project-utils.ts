@@ -9,7 +9,7 @@
 import { existsSync } from "fs"
 import { isAbsolute, relative, resolve, sep } from "path"
 
-import type { SRV } from "@spell-app/server"
+import type { SRV } from "spell-kit/server"
 import { json5Edited } from "$/spaces/server/node/storage/json5"
 import environment from "$/spaces/server/node/environment"
 

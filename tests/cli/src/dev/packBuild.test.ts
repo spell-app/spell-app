@@ -21,7 +21,7 @@ import { CLI } from "$/cli"
  * ONE throwaway checkout, with a tiny pack in it:  `pack new` + `pack element` (unbuilt), on copies of a monorepo's
  *   root files (`fixtures/monorepo/`).
  * - `packages/ui` is a link to Spell UI (the build needs its `baseConfig()`), and `node_modules` to the install's:
- *   the pack's `tsconfig.json` extends `@spell-app/toolchain/tsconfig.base.json`, and its elements
+ *   the pack's `tsconfig.json` extends `spell-kit/toolchain/tsconfig.base.json`, and its elements
  *   import Spell UI by its npm name (`@spell-app/ui/core`)
  * - the tests run in order
  */

@@ -3,8 +3,8 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { PageServer } from "@spell-app/server/page"
-import { ask } from "@spell-app/server/test/serve"
+import { PageServer } from "spell-kit/server/page"
+import { ask } from "spell-kit/server/test/serve"
 import { HIGHLIGHT_JS, movedFolderPath } from "$/page-server"
 import pageServerRoutes from "$/page-server/pageServerRoutes"
 

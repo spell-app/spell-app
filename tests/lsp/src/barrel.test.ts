@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { $fetch, LoadableFile } from "@spell-app/util"
+import { $fetch, LoadableFile } from "spell-kit/util"
 import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 

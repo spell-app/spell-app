@@ -526,7 +526,7 @@ Longer notes on some of them follow the table.
 
 ### `serve`
 
-- Starts this checkout's PAGE SERVER if it isn't running:  [spell-server's `server`](../../spell-server/server/), on port 4747, else any free one.
+- Starts this checkout's PAGE SERVER if it isn't running:  [the kit's `server`](../../server/), on port 4747, else any free one.
   - Its route modules serve the app's `/api` (spaces' `appRoutes.ts`), docs, epics and Spell UI's docs.
 - Runs the app's own `yarn start:dev` (vite), in its own process group, passing `/api` on to the page server.
   - Records it in `.spell-server.editor.json`,

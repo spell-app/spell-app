@@ -12,6 +12,6 @@
 
 import { enableExternalSource, flush } from "solid-js"
 
-import { bridgeSolid } from "@spell-app/util"
+import { bridgeSolid } from "spell-kit/util"
 
 bridgeSolid({ enableExternalSource, flush })

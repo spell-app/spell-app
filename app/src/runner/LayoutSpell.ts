@@ -1,6 +1,6 @@
 import { createEffect, createRoot } from "solid-js"
 
-import { camelCase, snakeCase } from "@spell-app/util"
+import { camelCase, snakeCase } from "spell-kit/util"
 import { P } from "@spell-app/parser"
 import { SP } from "@spell-app/spell"
 import type { Core } from "@spell-app/core"

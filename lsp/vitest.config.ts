@@ -2,8 +2,8 @@ import { resolve } from "node:path"
 
 import { defineConfig } from "vite-plus"
 
-import { standardDecorators } from "@spell-app/toolchain/decorators"
-import { packageVersion } from "@spell-app/toolchain/packageVersion"
+import { standardDecorators } from "spell-kit/toolchain/decorators"
+import { packageVersion } from "spell-kit/toolchain/packageVersion"
 
 /**
  * DOCME: vitest config for `@spell-app/lsp`.

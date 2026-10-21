@@ -1,5 +1,5 @@
 {
-  // Linting is oxlint, via Vite+ (the `lint` block of the root's `vite.config.ts`, from the toolchain's `@spell-app/toolchain/lint`);
+  // Linting is oxlint, via Vite+ (the `lint` block of the root's `vite.config.ts`, from the toolchain's `spell-kit/toolchain/lint`);
   // the ESLint extension is no longer used here.
   "oxc.enable": true,
   // Spell's `.json5` files open as "JSON with comments":  VS Code has no JSON5 mode, and checks a file against its

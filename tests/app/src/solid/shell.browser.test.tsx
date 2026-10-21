@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { getPref, reactiveObject, resetPref, setPref } from "@spell-app/util"
+import { getPref, reactiveObject, resetPref, setPref } from "spell-kit/util"
 import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
 import type { SPACES } from "$/spaces"
 import { editor, type EditorStore } from "$/app/editor"

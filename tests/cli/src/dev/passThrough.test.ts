@@ -45,7 +45,7 @@ describe("toolArgs()", () => {
       CLI.TSX_LOADER,
       "--import",
       CLI.ALIASES,
-      "/spell-server/server/src/page/cli.ts"
+      "/server/src/page/cli.ts"
     ])
   })
   test("the engine's design tools:  spell-epic's, through the checkout's link", () => {

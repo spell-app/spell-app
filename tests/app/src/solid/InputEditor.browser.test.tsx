@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { reactiveObject } from "@spell-app/util"
+import { reactiveObject } from "spell-kit/util"
 import type { SP } from "@spell-app/spell"
 import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
 import { editor, type EditorStore } from "$/app/editor"

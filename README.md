@@ -40,7 +40,7 @@ Around the language are the tools to write and run it:
 | [`packages/vscode`](packages/vscode)                         | `spell-language`       | The VS Code extension that runs the language server:  its own yarn project, not a workspace                      |
 | [`packages/ui`](packages/ui/README.md)                       | `@spell-app/ui`            | Fomantic UI's vocabulary as modern-CSS web components on Solid 2, for any framework or plain HTML                |
 | [`packages/cli`](packages/cli/README.md)                     | `@spell-app/cli`           | The `spell` command line:  compile, check, explore, watch, run and test spell projects                           |
-| [`packages/util`](packages/util/README.md)                   | `@spell-app/util`          | Small generic helpers shared by the others (`@proto`, class, string and DOM utilities);  imported as `$/util`    |
+| [`packages/util`](packages/util/README.md)                   | `spell-kit/util`          | Small generic helpers shared by the others (`@proto`, class, string and DOM utilities);  imported as `$/util`    |
 
 The epic engine -- epic pages' `<epic-*>` elements, the `epic` command, every docs page's tooling, and the Claude Code
 plugin of hooks and skills -- is NOT a package here:  it's spell-epic, a repo of its own beside this one

@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@solidjs/web": "__solid__",
-    "@spell-app/toolchain": "workspace:*",
+    "spell-kit/toolchain": "workspace:*",
     "@spell-app/ui": "workspace:*",
     "@types/node": "^22.20.4",
     "solid-js": "__solid__",

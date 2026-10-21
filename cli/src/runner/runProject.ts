@@ -13,7 +13,7 @@
 import chalk from "chalk"
 import { format } from "util"
 
-import { bridgeSolid } from "@spell-app/util"
+import { bridgeSolid } from "spell-kit/util"
 import { App, core } from "@spell-app/core"
 import type { CLI } from "$/cli"
 

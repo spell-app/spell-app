@@ -130,7 +130,7 @@ beforeAll(async () => {
   baseUrl = `http://localhost:${port}`
   server = spawn(
     process.execPath,
-    ["--import", "tsx", "--import", "@spell-app/toolchain/aliases", "src/server/node/routes/cli.ts"],
+    ["--import", "tsx", "--import", "spell-kit/toolchain/aliases", "src/server/node/routes/cli.ts"],
     {
       cwd: spacesDir,
       env: { ...process.env, PORT: String(port), ...folders },

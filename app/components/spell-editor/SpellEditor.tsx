@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "@spell-app/spell-element"
+import { E } from "spell-kit/element"
 import { SP } from "@spell-app/spell"
 import { LSP } from "$/lsp"
 import type * as UIT from "$/app/ui/ui.types"

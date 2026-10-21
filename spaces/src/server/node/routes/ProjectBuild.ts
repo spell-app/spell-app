@@ -3,7 +3,7 @@ import { existsSync } from "fs"
 import { join } from "path"
 import { createInterface } from "readline"
 
-import type { SRV } from "@spell-app/server"
+import type { SRV } from "spell-kit/server"
 import environment from "$/spaces/server/node/environment"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { SP } from "@spell-app/spell"

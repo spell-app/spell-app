@@ -3,7 +3,7 @@ import { createWriteStream, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
 
-import { SRV } from "@spell-app/server"
+import { SRV } from "spell-kit/server"
 import environment from "$/spaces/server/node/environment"
 
 /**

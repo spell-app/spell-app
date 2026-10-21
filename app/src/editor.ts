@@ -1,4 +1,4 @@
-import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "@spell-app/util"
+import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "spell-kit/util"
 
 import { P } from "@spell-app/parser"
 import { SP } from "@spell-app/spell"

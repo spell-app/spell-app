@@ -268,7 +268,7 @@ function runChild(spec: CLI.RunSpec, capture: boolean): Promise<ChildResult> {
     import.meta.resolve("tsx/esm"),
     // `$/` imports by each file's own repo:  the runner runs spell-lang's runtime and Spell UI's too (epic `repo-split` I12)
     "--import",
-    import.meta.resolve("@spell-app/toolchain/aliases"),
+    import.meta.resolve("spell-kit/toolchain/aliases"),
     "--import",
     pathToFileURL(resolve(runner, "hooks.mjs")).href,
     resolve(runner, "runProject.ts")

@@ -1,6 +1,6 @@
 import chalk from "chalk"
 
-import { SRV } from "@spell-app/server"
+import { SRV } from "spell-kit/server"
 import { CLI } from "$/cli"
 
 /** Most icons listed as text:  the rest are counted.  `--json` and `--open` show them all. */

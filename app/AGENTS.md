@@ -51,7 +51,7 @@ when working with code in this package, `@spell-app/app`.
   - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child.
     - Spaces' [appRoutes.ts](../spaces/src/server/node/routes/appRoutes.ts) starts it (`EditorServer`)
       once the page server listens, and stops it with the page server.
-      - It's a route module ([server's AGENTS.md](../../spell-server/server/AGENTS.md)).
+      - It's a route module ([the kit's server AGENTS.md](../../server/AGENTS.md)).
     - So `spell dev server` (repo root) runs the API AND the editor.
       - its URL:  in `.spell-server.editor.json`, at the checkout's root
       - its output:  in `.spell-server.editor.log`
@@ -193,7 +193,7 @@ when working with code in this package, `@spell-app/app`.
     - `<Name>.en.ts`:  the vocabulary
     - `<Name>.tsx`:  two classes
       - the DOM element class, with its script API (`DOMSpellAppElement`)
-      - then the component, on `E.UIComponent` (`import { E } from "$/spell-element"`).
+      - then the component, on `E.UIComponent` (`import { E } from "spell-kit/element"`).
         `<spell-app>`'s is on `UIRoot`.
     - Held to Spell UI's patterns by the lint guard, as every set's elements are (`spell-ui/*`:
       [ui's AGENTS.md](../../spell-ui/AGENTS.md), "The lint guard";  since epic `people-and-orgs` P17).
@@ -238,7 +238,7 @@ when working with code in this package, `@spell-app/app`.
       - `spell-language.js` ([spellLanguage.ts](src/spellLanguage.ts)):  ONLY `spell` registered, no element,
         on a page with Spell UI of its own
         - what the page server adds to the docs pages it serves (its `"pageScripts"`:
-          [server's AGENTS.md](../../spell-server/server/AGENTS.md)), so epic pages and guides colour spell (Q23)
+          [the kit's server AGENTS.md](../../server/AGENTS.md)), so epic pages and guides colour spell (Q23)
         - it needs only the page's core, so any docs bundle will do
     - Compiled spell's `<markdown>` blocks stay `<ui-markdown>` (marked):  they're plain text in a drawing
       (`LayoutSpell.ts`, `MarkdownBlock`).
@@ -326,7 +326,7 @@ when working with code in this package, `@spell-app/app`.
 
 As WWOD §12, plus:
 
-- The toolchain's decorator pre-pass, `@spell-app/toolchain/decorators`, is used by every vite config here,
+- The toolchain's decorator pre-pass, `spell-kit/toolchain/decorators`, is used by every vite config here,
   `vitest.config.ts` included.
   - The server is fine, as `tsx` is esbuild already.
 
