@@ -5,7 +5,7 @@ import h from "@solidjs/h"
 import { core, App, Drawable, DrawableList } from "@spell-app/core"
 import { P } from "@spell-app/parser"
 import { E } from "@spell-app/ui/core"
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { installSpellElements, SpellElement } from "$/app/runner/SpellElement"
 
 import "$/app/solid/cellsBridge"

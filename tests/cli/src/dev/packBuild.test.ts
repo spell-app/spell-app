@@ -57,8 +57,8 @@ beforeAll(async () => {
 })
 
 /**
- * `spell dev pack build` / `check`, through the CLI:  Spell UI's pack tooling (`ComponentPack`, its own tests in
- * `tests/ui/tools/`) on a pack found by name in a checkout, its paths relative to the checkout.
+ * `spell dev pack build` / `check`, through the CLI:  the kit's pack tooling (`ComponentPack`, its own tests in
+ * the kit's `tests/element/tools/`) on a pack found by name in a checkout, its paths relative to the checkout.
  */
 describe("CLI.buildPack() / CLI.checkPack()", () => {
   test("an unbuilt pack is STALE:  every generated file missing", async () => {

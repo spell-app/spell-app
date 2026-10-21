@@ -19,7 +19,7 @@ house style every package shares.  Only what's local is below;  a section named 
   ```
 
 - Made by `spell dev pack new __pack__ --prefix __prefix__`.
-- Its build and check are Spell UI's own pack tooling (`spell-ui-pack`, `packages/ui/tools/packModules.ts`), so
+- Its build and check are the kit's pack tooling (`spell-pack`, `spell-kit/element/tools/ComponentPack`), so
   every pack builds and checks the same way, in any repo.
 - `components/<tag>/` (`$/__pack__/components`) -- one folder per element family, written exactly like a Spell UI
   family (`packages/ui/AGENTS.md`, "Overview" and "Solid authoring"), every file named for its COMPONENT:
@@ -45,8 +45,8 @@ house style every package shares.  Only what's local is below;  a section named 
     `yarn review` fail until you build.
 - Elements import Spell UI's code ONLY from `@spell-app/ui/core` / `@spell-app/ui/forms` (as a Spell UI family does), and Solid from
   `solid-js` / `@solidjs/web`:  the build fails on any other `@spell-app/ui/...` or Solid import, which the page couldn't
-  share.  Another shared module:  add it to Spell UI's `packModules` AND `PACK_MODULES` in
-  `packages/ui/tools/packModules.ts`.
+  share.  Another shared module:  add it to Spell UI's `packModules` AND `PACK_MODULES` in the kit's
+  `spell-kit/element/tools/packModules`.
 - Every tag starts `__prefix__`:  `<ui-root>` knows the pack's tags by that prefix.
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):  those pages load `main`'s
   `components/__pack/`, through the main checkout's page server.  So:
@@ -55,9 +55,9 @@ house style every package shares.  Only what's local is below;  a section named 
 
 ## Commands
 
-- `yarn pack:build` ~== `spell-ui-pack build` ~== `spell dev pack build __pack__` -- the catalog, the entry and the
+- `yarn pack:build` ~== `spell-pack build` ~== `spell dev pack build __pack__` -- the catalog, the entry and the
   script, into `components/__pack/`
-- `yarn pack:check` ~== `spell-ui-pack check` ~== `spell dev pack check __pack__` -- exits 1 while
+- `yarn pack:check` ~== `spell-pack check` ~== `spell dev pack check __pack__` -- exits 1 while
   `components/__pack/` is stale
 - `yarn test` -- `node` (`src/`) and `browser` (`components/`, chromium);  the root's `yarn test` runs them as
   `__pack__:node` / `__pack__:browser`

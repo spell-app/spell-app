@@ -6,7 +6,7 @@ import { expect, test } from "vite-plus/test"
 const PACKAGE = fileURLToPath(new URL("../../../packages/__pack__/", import.meta.url))
 
 test("`components/__pack/` is CURRENT:  built from the vocabularies and sources as they are -- `yarn pack:build` if not", () => {
-  // its own script:  Spell UI's pack tooling (`spell-ui-pack check`)
+  // its own script:  the kit's pack tooling (`spell-pack check`)
   const check = spawnSync("yarn", ["pack:check"], { cwd: PACKAGE, encoding: "utf8" })
   expect(check.status, check.stdout + check.stderr).toBe(0)
 }, 30_000)

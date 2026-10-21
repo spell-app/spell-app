@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
 import type { SPACES } from "$/spaces"
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { openYouPanel } from "$/app/solid/modals"
 
 /**

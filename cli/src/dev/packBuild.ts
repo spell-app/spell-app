@@ -4,13 +4,13 @@ import { join, relative } from "path"
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT } from "$/cli/cli.types"
 import type { PackBuildReport, PackCheckReport } from "$/cli/dev/dev.types"
-import { ComponentPack } from "@spell-app/ui/tools/ComponentPack"
-import { ComponentPackError } from "@spell-app/ui/tools/tools.types"
+import { ComponentPack } from "spell-kit/element/tools/ComponentPack"
+import { ComponentPackError } from "spell-kit/element/tools/tools.types"
 
 /**
- * `spell dev pack build <pack>`:  pack `name` of checkout `root` built by Spell UI's own pack tooling,
- * `ComponentPack` (`packages/ui/tools/ComponentPack.ts`, epic `repo-split` P5), which spell-epic and the brand run
- * themselves (`spell-ui-pack build`).
+ * `spell dev pack build <pack>`:  pack `name` of checkout `root` built by the kit's pack tooling,
+ * `ComponentPack` (`spell-kit/element/tools/ComponentPack`;  Spell UI's from epic `repo-split` P5 to P10), which
+ * spell-epic and the brand run themselves (`spell-pack build`).
  * - What this adds:  the pack found BY NAME in the checkout (`readPack()`), paths relative to it, `CliError`s.
  * - Node built-ins, `ComponentPack` and (only while building) Vite:  no spell, so it runs on the lean `spell dev` entry.
  * - Throws `CliError` for a package that isn't a pack, a tag without the pack's prefix, or an import of Spell UI or

@@ -27,7 +27,6 @@ export const COMMANDS_JSON = "guides/dev/commands/commands.json5"
  * - `tool`:  the script, relative to a checkout's root
  * - `tsx`:  the `tsconfig.json` it runs under `tsx` with, relative to a checkout's root;  none:  plain `node`
  * - `cwd`:  the folder it runs in, relative to a checkout's root;  none:  the caller's
- *   - the engine's design tools run in spell-epic (`spell-epic`, the checkout's link), as its scripts run them
  */
 export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
 
@@ -51,7 +50,7 @@ export type AgentRulesReport = { sections: number; rules: number; files: number;
 /**
  * The component pack `spell dev pack new` / `element` writes into:  `packages/<name>/`, which may not be a pack yet.
  * - `prefix`:  every tag's, e.g. `epic-`;  `dir`:  the package, absolute:  the folder of its `components/`
- * - A pack that's there is Spell UI's `ComponentPack` (`readPack()`), which has these too.
+ * - A pack that's there is the kit's `ComponentPack` (`readPack()`), which has these too.
  */
 export type PackInfo = { name: string; prefix: string; dir: string }
 

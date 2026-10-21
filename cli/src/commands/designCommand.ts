@@ -13,11 +13,13 @@ import { findCheckout } from "$/cli/findCheckout"
  * - `build [--out <dir>]`:  `packages/ui`'s `yarn design:build` (`scripts/design-build.ts`), which writes the system's
  *   files to `<dir>/project/` (default `packages/ui/build/design-system/`);  with the checkout's brand
  *   (`designBuildArgs()`), which Spell UI never finds by itself
- * - `bundle [--out <dir>] [--skip-ui-build]`:  the epic engine's `yarn design:bundle`, the system's `bundle.js`
- * - `check [bundle] [outDir]`:  the engine's `yarn design:check`, the bundle proved inlined and on a Design board
- * - `pull <board.dc.html> <page.html>`, `changed`, `pushed`, `state`:  the engine's `src/tools/design.js`
- * - The engine's tools are spell-epic's, through the checkout's `spell-epic` link (epic `epic-eject` I5).
- * - Runs in the current folder (`bundle` / `check` in spell-epic's):  a relative path is relative to it.
+ * - `bundle [--out <dir>] [--skip-ui-build]`:  spell-brand's `yarn design:bundle`, the system's `bundle.js`
+ * - `check [bundle] [outDir]`:  spell-brand's `yarn design:check`, the bundle proved inlined and on a Design board
+ *   - both spell-epic's until epic `repo-split` P10 (Q32)
+ * - `pull <board.dc.html> <page.html>`, `changed`, `pushed`, `state`:  the epic engine's `src/tools/design.js`,
+ *   through the checkout's `spell-epic` link (epic `epic-eject` I5)
+ * - Runs in the current folder:  a relative path is relative to it (`bundle` / `check` are told it, `INIT_CWD`, as
+ *   `yarn` tells a script).
  * - Throws `CliError` for no verb, or another one.
  * - Returns the tool's exit code.
  */
@@ -29,8 +31,8 @@ export function designCommand(args: string[]): Promise<number> {
   }
   if (verb === "build")
     return runTool("design build", [...designBuildArgs(findCheckout(TOOLS["design build"].tool)), ...rest])
-  if (verb === "bundle") return runTool("design bundle", ["--design", ...rest])
-  if (verb === "check") return runTool("design check", rest)
+  if (verb === "bundle") return runTool("design bundle", rest, { INIT_CWD: process.cwd() })
+  if (verb === "check") return runTool("design check", rest, { INIT_CWD: process.cwd() })
   return runTool("design sync", [verb!, ...rest])
 }
 

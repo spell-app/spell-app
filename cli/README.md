@@ -239,14 +239,14 @@ Longer notes on some of them follow the table.
   - Lists snapshot entries neither side had, to review.
   - `--json`.
 - `dev pack`:  component packs, found by name in the checkout.
-  - `build` and `check` run Spell UI's own pack tooling ([`ComponentPack.ts`](../../spell-ui/tools/ComponentPack.ts)):
-    the same as each pack's `yarn pack:build` and `yarn pack:check` (`spell-ui-pack build | check`), there.
+  - `build` and `check` run the kit's pack tooling ([`ComponentPack.ts`](../../element/tools/ComponentPack.ts)):
+    the same as each pack's `yarn pack:build` and `yarn pack:check` (`spell-pack build | check`), there.
   - `new <name> [--prefix x-]`:  makes `packages/<name>/` from the package templates, and wires it into the checkout.
     - Only the files it lacks;  `package.json` is merged.
     - The templates:  [the package templates](templates/pack/package/).
   - `element <pack> <tag>`:  adds one family, from [the element templates](templates/pack/element/).
   - `build <pack>`:  writes `components/__pack/`.
-    - the catalog, from the vocabularies, by Spell UI's [`RootCatalog.ts`](../../spell-ui/tools/RootCatalog.ts)
+    - the catalog, from the vocabularies, by the kit's [`RootCatalog.ts`](../../element/tools/RootCatalog.ts)
     - the entry
     - ONE classic script, `<pack>.pack.js`
   - `check [<pack>]`:  exits 1 when `components/__pack/` is stale.  No pack:  every pack.
@@ -480,9 +480,10 @@ Longer notes on some of them follow the table.
   - A file named `gitignore.template` becomes `.gitignore`.
   - How they're filled, and how to add one:  [the templates README](templates/README.md).
 - A pack is a package whose `package.json` has `"spellPack": { "prefix": "epic-" }`.
-- `build` and `check` are Spell UI's own pack tooling, `ComponentPack` ([`../spell-ui/tools/ComponentPack.ts`](../../spell-ui/tools/ComponentPack.ts), epic
-  `repo-split` P5):  spell-epic and the brand run it as `spell-ui-pack`, without this CLI.
-- The build runs Vite in-process (`configFile: false`), on Spell UI's `baseConfig()`.
+- `build` and `check` are the kit's pack tooling, `ComponentPack`
+  ([`element/tools/ComponentPack.ts`](../../element/tools/ComponentPack.ts);  Spell UI's from epic `repo-split` P5 to
+  P10):  spell-epic and the brand run it as `spell-pack`, without this CLI.
+- The build runs Vite in-process (`configFile: false`), on the kit's `elementBaseConfig()`.
   - Only Solid and Spell UI's core and forms stay external (`PACK_MODULES`):
 
     ```

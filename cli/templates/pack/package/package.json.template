@@ -6,8 +6,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "pack:build": "spell-ui-pack build",
-    "pack:check": "spell-ui-pack check",
+    "pack:build": "spell-pack build",
+    "pack:check": "spell-pack check",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p ../../tests/__pack__ && echo '<< TSC PASSED\n'",
@@ -19,10 +19,10 @@
   },
   "devDependencies": {
     "@solidjs/web": "__solid__",
-    "spell-kit/toolchain": "workspace:*",
     "@spell-app/ui": "workspace:*",
     "@types/node": "^22.20.4",
     "solid-js": "__solid__",
+    "spell-kit": "workspace:*",
     "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"

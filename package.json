@@ -206,7 +206,9 @@
       "/_epic/assets/": "../spell-epic/src/tools/_assets",
       "/_epic/pack/": "../spell-epic/src/components/__pack",
       "/templates/": "../spell-epic/templates",
-      "/packages/brand/components/__pack/": "../spell-brand/components/__pack"
+      "/packages/brand/components/__pack/": "../spell-brand/components/__pack",
+      "/packages/brand/_assets/": "../spell-brand/_assets",
+      "/_brand/assets/": "../spell-brand/assets"
     }
   },
   "shared": {

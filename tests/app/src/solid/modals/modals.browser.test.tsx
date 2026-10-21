@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { editor } from "$/app/editor"
 import { normalizeChooserOptions } from "$/app/solid/modals"
 

@@ -18,8 +18,8 @@ there (`SpellUI.registerPack()`) and takes Solid and Spell UI's shared code from
 
 If you find yourself writing a second copy of any of these, stop and reuse.
 
-- the pack's build, catalog and staleness check:  Spell UI's, `spell-ui-pack` (`packages/ui/tools/packModules.ts`)
-- reading a vocabulary's tag and skeleton:  Spell UI's `RootCatalog` (`packages/ui/tools/RootCatalog.ts`)
+- the pack's build, catalog and staleness check:  the kit's, `spell-pack` (`spell-kit/element/tools/ComponentPack`)
+- reading a vocabulary's tag and skeleton:  the kit's `RootCatalog` (`spell-kit/element/tools/RootCatalog`)
 - the element authoring API:  `@spell-app/ui/core`
 
 ## Files

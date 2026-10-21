@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { getPref, reactiveObject, resetPref, setPref } from "spell-kit/util"
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import type { SPACES } from "$/spaces"
 import { editor, type EditorStore } from "$/app/editor"
 import { ProjectDropdown, ProjectMenu, SpellPage, SplitPane, SplitPanel, normalizeSizes, uiReady } from "$/app/solid"

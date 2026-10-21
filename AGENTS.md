@@ -100,8 +100,8 @@ More on some of them:
     - Epic UI:  [spell-epic's docs/](../spell-epic/src/docs/), at `/components/epics/`
     - App UI:  [app's docs/](app/docs/), at `/components/app/`:  this repo's only one
     - Brand UI:  [spell-brand's docs/](../spell-brand/docs/), at `/components/brand/`
-  - A set that's a component PACK (epics, brand) is built by Spell UI's own pack tooling, `spell-ui-pack build`
-    ([ComponentPack.ts](../spell-ui/tools/ComponentPack.ts)):  each pack's `yarn pack:build`.
+  - A set that's a component PACK (epics, brand) is built by the kit's pack tooling, `spell-pack build`
+    ([ComponentPack.ts](../element/tools/ComponentPack.ts)):  each pack's `yarn pack:build`.
     `spell dev pack build <pack>` calls the same tool, and finds the brand's pack in `../spell-brand/`.
   - The top bar's Spell/UI, Epic/UI and App/UI tabs;  the brand's set lights the Brand tab.
     - The tabs are settings too:  `siteTabs`, in the root `package.json`'s `"pageServer"`, in the bar's order, each
@@ -196,7 +196,7 @@ any package here -> any repo below      (by npm name:  @spell-app/spell, @spell-
   `spell-kit/toolchain/decorators`, `spell-kit/toolchain/packageVersion`.
 - A string that only NAMES a module keeps its `$/` name:  a page's `SpellUI.packModules` keys (`"$/ui/core"`),
   the run-time names every page and spell-epic's bundles share (`packModuleKey()`,
-  [packModules.ts](../spell-ui/tools/packModules.ts)).
+  the kit's [packModules.ts](../element/tools/packModules.ts)).
 
 ### Folders beside the checkout
 
@@ -205,7 +205,8 @@ paths from this repo's root:
 
 - component sets' pages and Spell UI's site bundle:  `../spell-ui/docs`, `../spell-ui/site/_assets`,
   `../spell-brand/docs`, `../spell-epic/src/docs`
-- engine routes:  `/_epic/assets/` from `../spell-epic/src/tools/_assets`, `/_epic/pack/`, `/templates/`
+- engine routes:  `/_epic/assets/` from `../spell-epic/src/tools/_assets`, `/_epic/pack/`, `/templates/`;
+  `/_brand/assets/` from `../spell-brand/assets` (the brand's logo, fonts and reference images, epic `repo-split` P10)
 - route modules:  `../spell-epic/src/tools/detailsRoutes.ts` ...
 - bundles:  `../spell-ui/site/_assets`, `../spell-brand/_assets/ui`
 - How they're served:  the kit's page server (`spell-kit/server`) mounts each folder outside the checkout on its own, at
@@ -587,7 +588,8 @@ paths from this repo's root:
   - `spell dev docs <verb>` is `epic pages <verb>`
   - `choices`, `comments`, `notes`, `agents`, `airplane`, `window`, `session`, `worktree`, `park`, `stock`, `shared`:
     the same verb of `epic`;  and `spell epic <verb>` is `epic <verb>`
-  - `spell dev design bundle | check | <sync verb>` run the engine's design tools straight from the link.
+  - `spell dev design <sync verb>` runs the engine's design tool straight from the link;  `design bundle | check` run
+    spell-brand's (epic `repo-split` P10).
 - The generated files `epic worktree merge-main` rebuilds are this repo's own list, each branch's own:
   [the generators list](.epic/generators.json5) (T4).
   - The engine's own (the docs bundle, the epics pack, Epic UI's data) are spell-epic's to build.
@@ -647,7 +649,7 @@ paths from this repo's root:
     - Today `.bin/tsc` is the root's 7, but only by luck of the hoister
       ([the papercuts log](agents/PAPERCUTS.md), "## ui").
 - NEVER hard-code `<package>/node_modules/<dep>`:  yarn hoists to the kit's `node_modules`.
-  - Node code resolves the package instead (in `ui`:  [NodePackage](../spell-ui/tools/NodePackage.ts)).
+  - Node code resolves the package instead (the kit's [NodePackage](../element/tools/NodePackage.ts)).
   - Nor `<repo>/node_modules`:  this repo has none, the install is the kit's.
 - Lint / format settings:  the toolchain's, `spell-kit/toolchain/lint` ([lint.ts](../toolchain/src/lint.ts)).
   - Every `vite.config.ts` spreads it, in its lint and fmt blocks, the root's too.

@@ -12,20 +12,20 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * The repo tools `spell dev` passes straight through to, by command:  each as its yarn script ran it.
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
- * - `design bundle` / `design check`:  the epic engine's `design:bundle` (`bundle-spell-ui.js --design`) /
- *   `design:check`, in spell-epic, through the checkout's `spell-epic` link (`ENGINE`)
+ * - `design bundle` / `design check`:  spell-brand's `design:bundle` / `design:check` (epic `repo-split` P10, Q32),
+ *   under `tsx`, in the caller's folder (`designCommand()` tells them, `INIT_CWD`)
  * - `design sync`:  the engine's `src/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
  * - NOTE: `vscode` runs yarn itself (`vscodeSteps()`)
  * - NOT here:  the epic tools, the docs tools (`spell dev docs`) among them.
  *   - They're spell-epic's (epic `epic-eject` I5), run by the `epic` command (`epicBin()`):
  *     `spell dev docs <verb>` is `epic pages <verb>`, `spell dev details` is `epic ask` ... (`devProgram.ts`).
- *   - The design tools above are the exception, for now:  `epic` has no verb for them, so they run straight from
- *     spell-epic's folder (a later move to `ui`, with the design system's own build).
+ *   - `design sync` is the exception, for now:  `epic` has no verb for it, so it runs straight from spell-epic's
+ *     folder.
  */
 export const TOOLS = {
   "design build": { tool: "../spell-ui/scripts/design-build.ts", tsx: "../spell-ui/scripts/tsconfig.json" },
-  "design bundle": { tool: "spell-epic/src/tools/bundle-spell-ui.js", cwd: "spell-epic" },
-  "design check": { tool: "spell-epic/src/tools/check-design-bundle.js", cwd: "spell-epic" },
+  "design bundle": { tool: "../spell-brand/scripts/design-bundle.ts", tsx: "../spell-brand/tsconfig.json" },
+  "design check": { tool: "../spell-brand/scripts/design-check.ts", tsx: "../spell-brand/tsconfig.json" },
   "design sync": { tool: "spell-epic/src/tools/design.js" },
   server: { tool: "../server/src/page/cli.ts", tsx: "../server/tsconfig.json" },
   serve: { tool: "scripts/serve.mjs" }
@@ -68,16 +68,12 @@ export function runTool(name: ToolName, args: string[], env: NodeJS.ProcessEnv =
 
 /**
  * What an engine tool run through checkout `root`'s `spell-epic` link needs to work on THAT checkout, as `epic` tells
- * its tools:  `EPIC_CHECKOUT`, its data;  `SPELL_UI_DIR`, its Spell UI (the design bundle's, not spell-epic's own
- * `.spell-app`'s);  `SPELL_BRAND_DIR`, its brand (the design bundle's `<brand-*>` elements:  read once spell-epic
- * stops finding the brand beside Spell UI, epic `repo-split` P5).
+ * its tools:  `EPIC_CHECKOUT`, its data.
+ * - No `SPELL_UI_DIR` / `SPELL_BRAND_DIR` since the design bundle went to spell-brand (epic `repo-split` P10):  only
+ *   it read them.
  */
 export function engineEnv(root: string): NodeJS.ProcessEnv {
-  return {
-    EPIC_CHECKOUT: root,
-    SPELL_UI_DIR: join(root, "..", "spell-ui"),
-    SPELL_BRAND_DIR: join(root, "..", "spell-brand")
-  }
+  return { EPIC_CHECKOUT: root }
 }
 
 /**

@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, test } from "vite-plus/test"
 
 import { UI } from "@spell-app/ui/core"
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import type { DOMMarkdownElement } from "@spell-app/ui/ui-markdown"
 
 import "$/app/components/spell-markdown"

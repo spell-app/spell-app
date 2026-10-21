@@ -105,12 +105,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Importing `$/cli` there would load spell into every `spell dev` call.
     - `TOOLS`, in [passThrough.ts](src/dev/passThrough.ts), says how each tool runs:
       a child node process, under `tsx` when it needs aliases.
-      - `design bundle`, `check` and its sync verbs:  the engine's design tools, through the `spell-epic` link.
+      - `design bundle` and `check`:  spell-brand's `design:bundle` / `design:check` (epic `repo-split` P10).
+      - `design`'s sync verbs:  the engine's `src/tools/design.js`, through the `spell-epic` link.
   - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`.
     - That's [packCommand.ts](src/commands/packCommand.ts),
       on [packNew.ts](src/dev/packNew.ts) / [packBuild.ts](src/dev/packBuild.ts), which import no barrel.
-    - `build` and `check` are Spell UI's own pack tooling (`$/ui/tools/ComponentPack`, epic `repo-split` P5),
-      which spell-epic and the brand run without this CLI (`spell-ui-pack`).
+    - `build` and `check` are the kit's pack tooling (`spell-kit/element/tools/ComponentPack`;  Spell UI's from epic
+      `repo-split` P5 to P10), which spell-epic and the brand run without this CLI (`spell-pack`).
       [packBuild.ts](src/dev/packBuild.ts) only finds the pack by name in the checkout, and turns its errors into ours.
 - [templates/](templates/):  files commands write from, `*.template` with `__token__`s.
   - [pack/](templates/pack/):  for `spell dev pack new` / `element`.

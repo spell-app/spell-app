@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import type { SpellCompiled } from "$/app/runner/runner.types"
 import type { DOMSpellAppElement } from "$/app/components/spell-app"
 import type { P } from "@spell-app/parser"

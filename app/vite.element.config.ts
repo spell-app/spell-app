@@ -1,5 +1,6 @@
 import { readFileSync } from "fs"
-import { fileURLToPath } from "node:url"
+import { createRequire } from "node:module"
+import { fileURLToPath, pathToFileURL } from "node:url"
 import { defineConfig, type Plugin } from "vite"
 
 import environment from "@spell-app/spaces/server/node/environment"
@@ -88,13 +89,13 @@ function builtInsPack(): Plugin {
 const COMPONENTS = fileURLToPath(new URL("components", import.meta.url))
 
 /**
- * Spell UI's `RootCatalog` (`packages/ui/tools/RootCatalog.ts`), which reads a catalog from vocabularies.
- * - Imported as the build runs, by URL:
- *   a static import would have `tsc -p tsconfig.node.json` check `ui`'s source,
- *   whose `$/ui/...` aliases this config doesn't have.
+ * The kit's `RootCatalog` (`spell-kit/element/tools/RootCatalog`, Spell UI's until epic `repo-split` P10), which reads
+ * a catalog from vocabularies.
+ * - Imported as the build runs, by URL, found through the kit's `exports` (never a path into another repo):
+ *   a static import would have `tsc -p tsconfig.node.json` check the kit's source.
  * - Node runs its `.ts` files as they are (type stripping).
  */
-const ROOT_CATALOG = new URL("../../spell-ui/tools/RootCatalog.ts", import.meta.url).href
+const ROOT_CATALOG = pathToFileURL(createRequire(import.meta.url).resolve("spell-kit/element/tools/RootCatalog")).href
 
 /** What `RootCatalog` knows of a tag:  `RootCatalogEntry` (its folder, its skeleton). */
 type CatalogEntry = { readonly folder: string; readonly skeleton?: unknown }
@@ -118,7 +119,7 @@ const PACK = { name: "spell", prefix: "spell-" }
  *
  * - A classic script calling `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs:
  *   `spell-ui.js` (`vite.solid.config.ts`) puts `registerPack` there.
- * - Its `catalog` is read from the families' vocabularies by Spell UI's own `RootCatalog`,
+ * - Its `catalog` is read from the families' vocabularies by the kit's `RootCatalog`,
  *   as `spell dev pack build` reads a pack's.
  * - Its `define()` imports each family's ES module beside it (`spell-app.js`, `spell-editor.js` ...;
  *   `spell-code.js` and `spell-markdown.js` are `vite.code.config.ts`'s):

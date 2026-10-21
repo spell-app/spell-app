@@ -10,7 +10,7 @@ import { DataFile } from "spell-kit/assembler/DataFile"
 import { COMMANDS_JSON, type PackInfo, type PackScaffoldReport } from "$/cli/dev/dev.types"
 import { buildPack, readPack } from "$/cli/dev/packBuild"
 import { REPO_ROOT } from "$/cli/findCheckout"
-import { ComponentPack, PACK_FOLDER } from "@spell-app/ui/tools/ComponentPack"
+import { ComponentPack, PACK_FOLDER } from "spell-kit/element/tools/ComponentPack"
 
 /**
  * `spell dev pack new <name> [--prefix x-]`:

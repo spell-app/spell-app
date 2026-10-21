@@ -7,7 +7,7 @@ const MODULES = import.meta.glob<Record<string, unknown>>("../../../app/componen
   eager: true
 })
 
-// as Spell UI's own (`tests/ui/test/vocabularies.test.ts`):  each set checks its own vocabularies
+// as Spell UI's own (`spell-ui/tests/test-helpers/vocabularies.test.ts`):  each set checks its own vocabularies
 describe("app vocabulary getters vs base members", () => {
   it("no attribute is named like a member of UIComponent or FormComponent (the base would hide its getter)", async () => {
     const { vocabularies, clashes } = await MemberClashes.find(MODULES)

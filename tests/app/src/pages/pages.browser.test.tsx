@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 import { memoryHistory, type MemoryHistoryAdapter } from "@solidjs/router"
 
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { SPACES } from "$/spaces"
 import { editor, type EditorStore } from "$/app/editor"
 import { uiReady } from "$/app/solid"

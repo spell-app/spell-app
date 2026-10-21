@@ -48,8 +48,12 @@ describe("toolArgs()", () => {
       "/server/src/page/cli.ts"
     ])
   })
-  test("the engine's design tools:  spell-epic's, through the checkout's link", () => {
-    expect(CLI.toolArgs(CLI.TOOLS["design bundle"], "/wt")).toEqual(["/wt/spell-epic/src/tools/bundle-spell-ui.js"])
+  test("the engine's design sync:  spell-epic's, through the checkout's link", () => {
+    expect(CLI.toolArgs(CLI.TOOLS["design sync"], "/wt")).toEqual(["/wt/spell-epic/src/tools/design.js"])
+  })
+  test("the design bundle and its check:  spell-brand's, beside the checkout, under tsx", () => {
+    expect(CLI.toolArgs(CLI.TOOLS["design bundle"], "/wt").slice(-1)).toEqual(["/spell-brand/scripts/design-bundle.ts"])
+    expect(CLI.toolArgs(CLI.TOOLS["design check"], "/wt").slice(-1)).toEqual(["/spell-brand/scripts/design-check.ts"])
   })
 })
 

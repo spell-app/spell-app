@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/tes
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { ElementFixture } from "@spell-app/ui/test/ElementFixture"
+import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { core, Thing, List } from "@spell-app/core"
 import type { ThingExplorerState } from "$/app/ui/ui.types"
 import { uiReady } from "$/app/solid/loadUI"

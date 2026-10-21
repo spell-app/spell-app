@@ -7,7 +7,8 @@ const SRC = resolve(import.meta.dirname, "../../../cli/src")
 
 /**
  * Packages whose loading means spell is loaded:  the language and what it stands on.
- * - not `$/ui/tools/...`:  node tools `spell dev pack` imports, which `devProgram.ts` brings along
+ * - not the kit's element tools (`spell-kit/element/tools/...`):  node tools `spell dev pack` imports, which
+ *   `devProgram.ts` brings along
  */
 const SPELL_PACKAGES = /^\$\/(spell|lsp|parser|core)(\/|$)/
 
