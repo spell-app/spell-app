@@ -1,7 +1,7 @@
 /**
- * Child process of `spell speed`:  times the parser's rule tests once (`SP.spellParser.speedTest()`),
+ * Child process of `spell speedtest`:  times the parser's rule tests once (`SP.spellParser.speedTest()`),
  * and prints the results as JSON, the last line on stdout.
- * - Started by `speedCommand.ts` as `node --import tsx/esm --import <aliases> speedTest.mts <spell src URL> [module]`.
+ * - Started by `speedtestCommand.ts` as `node --import tsx/esm --import <aliases> speedTest.mts <spell src URL> [module]`.
  *   One process per run, so each run starts cold.
  * - `<spell src URL>`:  the spell `src/` folder to time (a `file:` URL, ending `/`):  ours, or `--against`'s temp
  *   checkout of spell-lang;  its own `$/` imports go by its checkout's alias table (`spell-kit/toolchain/aliases`).

@@ -1,6 +1,7 @@
 import { execFileSync } from "child_process"
 import { readFileSync } from "fs"
-import { resolve } from "path"
+import { createRequire } from "module"
+import { dirname, resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
 import { checkEntry, Loader, Saver } from "spell-lang/core/model"
@@ -12,12 +13,14 @@ import { checkEntry, Loader, Saver } from "spell-lang/core/model"
  */
 const REPO = resolve(import.meta.dirname, "../../../..")
 const LIBRARY = resolve(REPO, "spaces/@spell/library/people/people.lib.ts")
+/** The kit's `spell`, by package:  `spell-kit`'s `cli/bin/spell.mjs`. */
+const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "cli/bin/spell.mjs")
 
 describe("the people library", () => {
   test("its committed people.lib.ts is what its spell compiles to now:  else `spell compile @spell/library/people`", () => {
     const compiled = execFileSync(
       process.execPath,
-      [resolve(REPO, "cli/bin/spell.mjs"), "compile", "@spell/library/people", "--target", "ts/lib", "--stdout"],
+      [SPELL, "compile", "@spell/library/people", "--target", "ts/lib", "--stdout"],
       { cwd: REPO, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
     )
     expect(compiled.trim()).toBe(readFileSync(LIBRARY, "utf8").trim())

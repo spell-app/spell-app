@@ -18,7 +18,7 @@ import type * as VT from "spell-kit/element/vocabulary.types"
  *     - a type's name:  a nested thing
  *   - `constants` (a value worked out from others, `color`):  left out, a person can't set it
  * - Why the declarations:  every compiled project has them,
- *   and the spell editor and `spell check` have no running program.
+ *   and the spell editor and `spell lint` have no running program.
  *   - A running program's class says more (the app's `ClassSchemas`):  use it when there is one.
  * - NOTE: the declarations don't say which other properties are worked out (`name`, `short suit`):
  *   they're listed as any other.

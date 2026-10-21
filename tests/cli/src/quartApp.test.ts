@@ -1,8 +1,9 @@
 import { spawn, spawnSync, type ChildProcess } from "child_process"
 import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "fs"
+import { createRequire } from "module"
 import { createServer } from "net"
 import { tmpdir } from "os"
-import { join, resolve } from "path"
+import { dirname, join, resolve } from "path"
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright"
 import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 
@@ -15,7 +16,8 @@ import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
  * - The page side, `packages/app/dist-page/`, is built first (`yarn build:page`, a few seconds):  never a stale one.
  */
 const REPO = resolve(import.meta.dirname, "../../..")
-const SPELL = resolve(REPO, "cli/bin/spell.mjs")
+/** The kit's `spell`, by package:  `spell-kit`'s `cli/bin/spell.mjs` (spell-app's own until epic `repo-split` P13). */
+const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "cli/bin/spell.mjs")
 const SPELL_QUART = resolve(REPO, "spaces/src/server/py")
 /** spell's frozen test projects:  spell-lang's (epic `repo-split` C11), beside this repo in the top repo `spell`. */
 const FIXTURES = resolve(import.meta.dirname, "../../../../spell-lang/tests/spaces/@spell/test")

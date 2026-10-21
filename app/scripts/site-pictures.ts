@@ -4,7 +4,7 @@
  * - For the Solid components that can't be drawn alone on a docs page (they need the whole editor around them):
  *   the editor's page shell, its panes and editors, its menus, dialogs and notices.
  *   The runner's pieces and the explorers are drawn LIVE on their pages instead, inside a `<spell-app>`.
- * - Needs this checkout's editor running:  `spell dev server start` (repo root) starts it,
+ * - Needs this checkout's editor running:  `spell server start` (repo root) starts it,
  *   and writes its URL to `.spell-server.editor.json`.
  * - Rerun after changing how one of them looks, then look at the pictures and commit them.
  * - Headless Playwright, never a real browser window.

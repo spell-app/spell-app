@@ -39,7 +39,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
       - Spell UI's site:  [ui's site/_assets/](../../spell-ui/site/), every component set's (one build since epic `epic-engine`)
       - the brand pages':  [brand's _assets/ui/](../../spell-brand/)
-    - As the server starts, it runs the checkout's own `spell dev bundles build --stale`, as a child.
+    - As the server starts, it runs the checkout's own `spell bundle --stale`, as a child.
       `$/assembler`'s `Bundle` does the work;  this only spawns it.
     - It logs that child's output (`bundles:  ...`).
     - A request for a MISSING file in one of those folders waits for it (`BUNDLE_WAIT_MS`);

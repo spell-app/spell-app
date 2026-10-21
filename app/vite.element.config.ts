@@ -120,10 +120,10 @@ const PACK = { name: "spell", prefix: "spell-" }
  * - A classic script calling `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs:
  *   `spell-ui.js` (`vite.solid.config.ts`) puts `registerPack` there.
  * - Its `catalog` is read from the families' vocabularies by the kit's `RootCatalog`,
- *   as `spell dev pack build` reads a pack's.
+ *   as `spell pack build` reads a pack's.
  * - Its `define()` imports each family's ES module beside it (`spell-app.js`, `spell-editor.js` ...;
  *   `spell-code.js` and `spell-markdown.js` are `vite.code.config.ts`'s):
- *   NOT one script holding them, as `spell dev pack build` makes,
+ *   NOT one script holding them, as `spell pack build` makes,
  *   because the elements need what a classic script can't have --
  *   Monaco and the parser as lazy chunks, `spell-runtime.js` loaded afresh per app.
  * - The modules take Solid and Spell UI's core from the page when it has its own

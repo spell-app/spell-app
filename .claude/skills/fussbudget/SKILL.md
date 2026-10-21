@@ -16,7 +16,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 - The rules are WWOD §6, "Comments & docs" ([WWOD.md](agents/wwod/WWOD.md)),
   and its long before / afters, [writing.md](agents/wwod/writing.md).
   This skill says how to run a pass;  those files say what good looks like.
-- Its checker:  `spell dev docs fuss <paths...> | --branch [--json]`.
+- Its checker:  `epic pages fuss <paths...> | --branch [--json]`.
   - It lists the mechanical misses by file and line, and exits 1 on any:
     - `phrase-split`:  a line ending in the first 1-4 words of a new phrase
     - `dense`:  a docstring paragraph or bullet of 3+ sentences
@@ -86,8 +86,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 3. The scope, as "Forms" says:  a list of files.
    - Drop what "What it rewrites" says never to touch.
 4. The checker, for the mechanical list, and its count BEFORE:
-   - `spell dev docs fuss <paths...> --json`, or `spell dev docs fuss --branch --json`
-   - an epic page:  `spell dev docs fuss <content>/epics/<name>/parts --json` (`<content>` as in "Forms")
+   - `epic pages fuss <paths...> --json`, or `epic pages fuss --branch --json`
+   - an epic page:  `epic pages fuss <content>/epics/<name>/parts --json` (`<content>` as in "Forms")
    - In HTML it checks everything but `phrase-split`:  the formatter wraps those lines.
 5. Big scope:  fan out ("Fanning out").  Else the session does it itself.
 6. Each file, top to bottom:
@@ -161,7 +161,7 @@ Short, in this order:
 3. The checker:  `<before> -> <after>` misses;  any left, and why.
 4. 2-3 before / afters for Owen to judge FIRST:  the boldest changes, where a fact moved or a name changed.
    - Each a short `before` / `after` pair, in fenced blocks.
-5. Where to review:  Source Control (code);  an epic page:  its link, `spell dev docs link <epic page> --review`.
+5. Where to review:  Source Control (code);  an epic page:  its link, `epic pages link <epic page> --review`.
 - Fanned out:  each agent's notice, as it arrives, gets a short reply,
   its first line bold, by itself:  `**Agent <full name> came back with:**` (the root `CLAUDE.md`).
   - The full report above comes once the last one is back.

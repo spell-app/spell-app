@@ -87,8 +87,8 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 More on some of them:
 - The VS Code extension, [vscode/](vscode/), is its own yarn project, NOT part of the `spell-app` package:
   its own `package.json` and `yarn.lock`.
-  - `spell dev vscode` builds and installs it.
-  - Or its two steps:  `spell dev vscode build`, then `install`.
+  - `spell app vscode` builds and installs it.
+  - Or its two steps:  `spell app vscode build`, then `install`.
   - Its language server runs lsp's source with `tsx`, loading the run-time alias hook (below, "Aliases").
   - Whose lsp:  the WINDOW's spell-app checkout, found when the server starts, so one install works everywhere:
     - the `spell.parserRoot` setting, if set
@@ -117,7 +117,7 @@ More on some of them:
     - Brand UI:  [spell-brand's docs/](../spell-brand/docs/), at `/components/brand/`
   - A set that's a component PACK (epics, brand) is built by the kit's pack tooling, `spell-pack build`
     ([ComponentPack.ts](../element/tools/ComponentPack.ts)):  each pack's `yarn pack:build`.
-    `spell dev pack build <pack>` calls the same tool, and finds the brand's pack in `../spell-brand/`.
+    `spell pack build <pack>` calls the same tool, and finds the brand's pack in `../spell-brand/`.
   - The top bar's Spell/UI, Epic/UI and App/UI tabs;  the brand's set lights the Brand tab.
     - The tabs are settings too:  `siteTabs`, in the root `package.json`'s `"pageServer"`, in the bar's order, each
       naming what lights it (epic `repo-split` I4;  [the kit's server AGENTS.md](../server/AGENTS.md)).
@@ -197,9 +197,9 @@ any folder here -> any repo below       (by npm name:  spell-lang/spell, spell-u
   - `tsx` and node read its source too, but `tsx` reads ONE tsconfig for every file it runs.
     - So every `tsx` program here loads the RUN-TIME ALIAS HOOK, `spell-kit/toolchain/aliases`:
       a node resolve hook that resolves each `$/` import by the importing file's OWN repo's table.
-    - The CLI's [bin/spell.mjs](cli/bin/spell.mjs), after `tsx`'s `register()`.
-    - Every child process it starts (the runner, `spell speed`, the static renderer, the repo tools of
-      `spell dev`):  `--import tsx/esm --import <the hook>`.
+    - The kit's `spell` (its `cli/bin/spell.mjs`), after `tsx`'s `register()`:  it runs this repo's commands too.
+    - Every child process it starts (the runner, `spell speedtest`, the static renderer, the repo tools):
+      `--import tsx/esm --import <the hook>`.
     - The page server's background process (the kit's `PageServer.ensure()`), which loads spell-epic's and
       spaces' route modules.
     - The root's scripts:  `cd app && tsx --import spell-kit/toolchain/aliases scripts/site-data.ts`.
@@ -248,14 +248,14 @@ paths from this repo's root:
     "goal", "goals page" -- a saga (an epic of epics), a saga page
 - Names only code reads keep the old words:
   - `<epic-id>.plan.html`, `PlanDoc`, `plan-doc.md`
-  - the `spell dev plan-doc` spelling
+  - the `epic plan-doc` spelling (the tool in its own order)
   - So does the record:  log entries, quotes, commit messages.
 - Pointing at a saga, an epic or an item (epic `epic-workflow` P15, J32):
   - In Owen's prompts, "saga drawable-spell" names a saga, and a SHORT ADDRESS names a saga, an epic or an item:
     `SAGA:/drawable-spell` (the saga page), `SAGA:/drawable-spell/python-target#T1` (item T1 of that epic).
     - The colon form (`SAGA:/drawable-spell:python-target#T1`) means the same;  ids in any case.
   - Resolve one with the openers, which take an address:
-    `spell dev docs open SAGA:/...` shows it, `spell dev docs link SAGA:/... --show` gives its links.
+    `epic pages open SAGA:/...` shows it, `epic pages link SAGA:/... --show` gives its links.
   - In pages, write `<epic-link epic="python-target" item="T1"></epic-link>`, not a path;
     a plain `<a href="SAGA:/...">` works too.  The rules:  [spell-epic's AGENTS.md](../spell-epic/src/AGENTS.md), "Links".
 
@@ -343,13 +343,13 @@ paths from this repo's root:
 - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
 - `epic window` works in a fresh worktree, before its `yarn install`.
   - The `spell` link runs the MAIN checkout's CLI, which has its packages.
-  - `yarn window` couldn't:  yarn runs no script there before `yarn install`.
+  - `yarn` couldn't run it:  yarn runs no script there before `yarn install`.
 - A doc shown while the move is pending waits, then shows beside the session in the window it moved to.
   - That's `epic open <name> --review` or `epic window show`.
 - A running epic's epic page is shared (see "Shared content"):  ONE file, the same in every checkout.
   - So the MAIN checkout's page server shows it too,
     listed on the Epics list page with the merged ones.
-  - `spell dev server url` gives that URL ([the page server guide](../spell.epics/guides/server.html), "Running epics").
+  - `spell server url` gives that URL ([the page server guide](../spell.epics/guides/server.html), "Running epics").
 - NEVER `code --add` / `--remove`:
   they act on the focused window, and a one-folder window restarts its extensions, Claude panel included.
 - NEVER `code -r`:  it restarts the session.
@@ -376,7 +376,7 @@ paths from this repo's root:
     - the brand pages':  `_assets/ui/`, in [spell-brand](../spell-brand/)
     - They're git-ignored.
       The page server builds the stale ones when it starts, and a page waits for them.
-    - By hand:  `spell dev bundles build [--stale]`, or `check`.
+    - By hand:  `spell bundle [--stale]`, or `check`.
     - The code:  `Bundle`, in the kit's `spell-kit/assembler`.
     - A merge untracks any `main` still commits.
   - It reports snapshot entries with a value NEITHER side had:
@@ -544,9 +544,10 @@ paths from this repo's root:
 - Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.
 - Their map, one row per operation:  [the commands page](../spell.epics/guides/dev/commands/commands.html).
   - Its data:  `commands.json5` beside it.
-  - Shown by the page server:  `spell dev docs open guides/dev/commands/commands.html`.
+  - Shown by the page server:  `epic pages open guides/dev/commands/commands.html`.
 - Target:  the CLI drives everything.
-  - Repo tools are `spell dev <noun> <verb>`.
+  - Repo tools are `spell <noun> <verb>`:  the kit's `spell`, every repo's commands under one name
+    (`spell server start`, `spell pack build`, `spell app vscode`).
   - Skills keep judgement and dialog, and call it.
   - Yarn keeps each folder's own scripts (at the root:  the app's unprefixed, the others' prefixed, `lsp:start`),
     and aliases the rest.
@@ -554,15 +555,17 @@ paths from this repo's root:
   - READ [the commands guide](../spell.epics/guides/dev/commands/commands.md).
   - Then SUGGEST, before building:  where it belongs, its name, what it replaces,
     which roadmap move it advances.
-- MUST keep the page true in the same change:  `commands.json5`, then `spell dev commands check`.
+- MUST keep the page true in the same change:  `commands.json5`, then `spell commands check`.
   - `commands.json5` and `commands.md` are shared, but the check reads each branch's CLI.
   - So a branch adding a command can make main's check fail until it merges
     ([the code-debt log](agents/CODE-DEBT.md), "docs").
 - Tools are TypeScript (or node JS in [the docs tools](../spell-epic/src/tools/)), never python:  one language.
-- Skills reach them as `spell dev ...`.
-  - `spell` is the link `yarn cli:install` makes (at this repo's root:  the `spell` bin is the root's), once per
-    machine.
-  - Without it:  `node cli/bin/spell.mjs dev ...` from a checkout's root.
+- Skills reach them as `spell ...` (and the epic tools as `epic ...`).
+  - `spell` is the link `yarn cli:install` makes, once per machine, at the KIT's root:  the kit's `cli/bin/spell.mjs`
+    (epic `repo-split` P13;  this repo's `cli/` until then).
+  - Without it:  `node ../cli/bin/spell.mjs ...` from this repo's root.
+  - This repo's own commands are its `cli/commands.ts`:  `spell app create | serve | vscode`, `spell projects`;
+    the language commands' work (`spell compile`, `run`, `lint` ...) is here too, behind a hook.
 
 ### spell-epic
 
@@ -593,8 +596,9 @@ paths from this repo's root:
     `.gitignore` ignores `spell-epic`:  a branch cut before the switch runs its own copy.
   - The main checkout:  `ln -s ../spell-epic spell-epic`, once (or `epic shared link` there).
   - Through the link:
-    - the CLI's `epic` (`epicBin()`) and the engine's design tools (`spell dev design ...`)
-    - the commands page's check (`spell dev commands`):  `epic`'s verbs and the plugin's skills
+    - the old URL bridges
+  - The kit's `spell` reaches spell-epic as a child repo of the kit, not through the link:  `epic` itself
+    (`epicBin()`), the engine's design tools (`spell design ...`), the commands page's check (`spell commands`)
   - Beside it, by the settings:
     - the page server's epic route modules and the folders it watches (the root `package.json`'s `"pageServer"`)
     - the engine's routes, `/_epic/assets/` and `/_epic/pack/`, and Epic UI at `/components/epics/`
@@ -602,12 +606,9 @@ paths from this repo's root:
     - its route modules run with their own aliases (`$/epics`, `$/server` through its `.spell-app`), by the
       run-time alias hook;  this repo's table has no `$/epics` since epic `repo-split` P8
   - A checkout without spell-epic beside it (CI) loads no epic routes;  the tests that need the engine skip themselves.
-- `spell dev` keeps the old spellings, hidden, each handed on to `epic` (`runEpic()` in the CLI's `passThrough.ts`):
-  - `spell dev plan-doc <tool order>` is `epic plan-doc`;  `spell dev details` is `epic ask`
-  - `spell dev docs <verb>` is `epic pages <verb>`
-  - `choices`, `comments`, `notes`, `agents`, `airplane`, `window`, `session`, `worktree`, `park`, `stock`, `shared`:
-    the same verb of `epic`;  and `spell epic <verb>` is `epic <verb>`
-  - `spell dev design <sync verb>` runs the engine's design tool straight from the link;  `design bundle | check` run
+- `spell dev` and its old spellings of the epic verbs are gone (epic `repo-split` P13):  callers say `epic <verb>`
+  (`epic pages <verb>` for the docs tools, `epic ask` for details pages).
+  - `spell design <sync verb>` (Spell UI's command) runs the engine's design tool;  `design bundle | check` run
     spell-brand's (epic `repo-split` P10).
 - The generated files `epic worktree merge-main` rebuilds are this repo's own list, each branch's own:
   [the generators list](.epic/generators.json5) (T4).

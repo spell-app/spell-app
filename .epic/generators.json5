@@ -13,16 +13,17 @@
 //   - `pages.json5` (hand-kept)
 //   - the other repos' (Spell UI's and brand's site data, the brand pack, spell's syntax table):  each repo's own list
 //   - the bundles the page server builds on demand, which aren't committed:
-//     Spell UI's site and the brand pages (`spell dev bundles`)
+//     Spell UI's site and the brand pages (`spell bundle`)
 //   - the epic engine's (the docs bundle, the epics pack, Epic UI's data):  spell-epic's own, built there
-// - A new component pack's line is added by `spell dev pack new`.
+// - A new component pack's line is added by `spell pack create`.
 {
   "generators": [
     {
       "name": "spell libraries",
       "outputs": ["spaces/@spell/library/**/*.lib.ts"],
       "cwd": ".",
-      "run": ["node", "cli/bin/spell.mjs", "compile", "@spell/library"]
+      // the kit's `spell` (spell-app sits inside the kit, epic `repo-split` P13)
+      "run": ["node", "../cli/bin/spell.mjs", "compile", "@spell/library"]
     },
     {
       "name": "App UI data",

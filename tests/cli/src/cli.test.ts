@@ -11,45 +11,35 @@ import {
   statSync,
   writeFileSync
 } from "fs"
+import { createRequire } from "module"
 import { createServer } from "net"
 import { tmpdir } from "os"
-import { basename, resolve } from "path"
+import { basename, dirname, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
-import { contentFolderOf } from "spell-kit/assembler/contentFolder"
 import { SRV } from "spell-kit/server"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { SP } from "spell-lang/spell"
 import { fixturePath } from "spell-lang/spell/test"
 
 /**
- * The real `spell` command, end to end:  `bin/spell.mjs` run as a separate process, as a user would.
+ * The real `spell` command, end to end:  the kit's `cli/bin/spell.mjs` run as a separate process, as a user would,
+ * with every installed repo's commands:  spell-lang's (their work this repo's, through its `"language"` hook), and
+ * this repo's own (`spell app ...`, `spell projects`).
  * - No terminal:  stdin / stdout are pipes, so nothing asks questions or draws screens.
  * - NEVER writes into a fixture:  compiles use `--stdout`.
  *   Projects to break live in a temp folder -- see `tempProject()`.
+ * - The kit's own commands' tests are the kit's (`tests/cli/`), Spell UI's are Spell UI's.
  */
-const SPELL = resolve(import.meta.dirname, "../../../cli/bin/spell.mjs")
+const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "cli/bin/spell.mjs")
 
 // each `spell` run starts node and loads spell's source through `tsx`, ~2s;
 // a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
 vi.setConfig({ testTimeout: 30_000 })
 
-/** This checkout:  its page server is the one `spell serve` uses. */
+/** This checkout:  its page server is the one `spell app serve` uses. */
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
 
-/**
- * Whether this checkout runs the epic engine:
- * spell-epic, through its `spell-epic` link, and the epic pages (epic `epic-eject` I5).
- * - Without them (CI), the tests of what `spell` hands on to `epic` are skipped.
- */
-const HAS_ENGINE =
-  existsSync(resolve(REPO_ROOT, "spell-epic", "bin", "epic")) && existsSync(resolve(REPO_ROOT, "epics"))
-/**
- * Whether this checkout has the shared content folder's commands page data (`commands.json5`), which
- * `spell dev commands` reads.
- * - Without it (CI:  the content repo is local only), that command's test is skipped (epic `repo-split` P12).
- */
-const HAS_COMMANDS = existsSync(resolve(contentFolderOf(REPO_ROOT) ?? REPO_ROOT, "guides/dev/commands/commands.json5"))
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
@@ -110,177 +100,33 @@ describe("spell help", () => {
   })
 })
 
-// the old spelling of `epic plan-doc`, spell-epic's:  the `epic` command's own tests are spell-epic's
-describe.skipIf(!HAS_ENGINE)("spell dev plan-doc", () => {
-  test("alone, lists the tool's commands", () => {
-    const { status, stderr } = spell(["dev", "plan-doc"])
-    expect(status).toBe(2)
-    expect(stderr).toMatch(/usage: .*plan-doc <command> <name>/)
+describe("every repo's commands, under one name (epic repo-split P13)", () => {
+  test("help lists each installed repo's commands under its name:  the language's, and the app's under app", () => {
+    const { stdout } = spell(["help"])
+    for (const repo of ["spell-kit", "spell-lang", "spell-app"]) expect(stdout).toMatch(new RegExp(`^${repo}:$`, "m"))
+    for (const command of ["lint", "speedtest", "app", "projects"])
+      expect(stdout).toMatch(new RegExp(`^ {2}${command} `, "m"))
+    expect(spell(["help", "app"]).stdout).toMatch(/^ {2}create \[options\] <name>/m)
   })
 
-  test("summarizes an epic page", () => {
-    const { status, stdout } = spell(["dev", "plan-doc", "summary", "unified-server"])
-    expect(status).toBe(0)
-    expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
-  })
-
-  test("spell plan-doc, the old top-level alias, is gone", () => {
-    expect(spell(["plan-doc", "summary", "unified-server"]).status).not.toBe(0)
-  })
-
-  test("spell epic <verb>, the epic command's own old spelling, runs it", () => {
-    expect(spell(["epic", "summary", "unified-server"]).stdout).toMatch(/^Unified Server\n/)
-  })
-})
-
-describe("spell dev", () => {
-  test("--help lists the plumbing, the pass-throughs too, and points to epic for the epic tools", () => {
-    const { status, stdout } = spell(["dev", "--help"])
-    expect(status).toBe(0)
-    for (const noun of ["docs", "server", "vscode", "commands", "wwod"]) {
-      expect(stdout).toMatch(new RegExp(`^ {2}${noun} `, "m"))
-    }
-    // the old spellings still run, but aren't listed
-    const moved = ["plan-doc", "goals", "details", "choices", "comments", "notes", "agents", "airplane"]
-    // epic `epic-eject` P5
-    moved.push("window", "session", "worktree", "park", "stock", "shared")
-    for (const noun of moved) {
-      expect(stdout).not.toMatch(new RegExp(`^ {2}${noun} `, "m"))
-    }
-    expect(stdout).toContain("The epic tools moved to their own command, `epic` (epic --help)")
-  })
-
-  test("spell --help lists dev, and epic as moved", () => {
-    const { stdout } = spell(["--help"])
-    expect(stdout).toMatch(/^ {2}dev /m)
-    expect(stdout).toMatch(/^ {2}epic .*moved to their own command/m)
-    expect(stdout).not.toMatch(/^ {2}plan-doc /m)
-  })
-
-  test.skipIf(!HAS_ENGINE)(
-    "the epic verbs' old spellings run epic:  spell dev worktree status, spell dev session bogus",
-    () => {
-      const { status, stdout } = spell(["dev", "worktree", "status", "no-such-name-at-all"], REPO_ROOT)
-      expect(status).toBe(0)
-      expect(JSON.parse(stdout)).toMatchObject({ name: "no-such-name-at-all", worktree: null })
-      const bogus = spell(["dev", "session", "bogus"])
-      expect(bogus.status).toBe(1)
-      expect(bogus.stderr).toContain("epic session bogus?  no such verb.")
-    }
-  )
-
-  test.skipIf(!HAS_COMMANDS)("a command that loads spell runs through main.ts, as before", () => {
-    const { status, stdout } = spell(["dev", "commands", "--json"], REPO_ROOT)
-    expect(status).toBe(0)
-    expect(JSON.parse(stdout).commands.length).toBeGreaterThan(10)
-  })
-
-  test("docs:  no verb, or an unknown one, lists the verbs", () => {
-    for (const args of [
-      ["dev", "docs"],
-      ["dev", "docs", "nope"]
-    ]) {
-      const { status, stderr } = spell(args)
-      expect(status).toBe(2)
-      expect(stderr).toContain("update, index, new, open, link")
+  test("the old spellings are gone:  spell dev, spell epic, spell check, spell new, spell serve, spell explore", () => {
+    for (const command of ["dev", "epic", "check", "new", "serve", "explore", "speed", "icons", "static"]) {
+      const { status, stderr } = spell([command])
+      expect(status, command).not.toBe(0)
+      expect(stderr, command).toContain(`unknown command '${command}'`)
     }
   })
 })
 
-describe("spell dev pass-throughs", () => {
-  // the epic tools (`window`, `details`, the docs tools ...):  `epic`'s, spell-epic's;
-  // here a fake `epic` in the checkout's `spell-epic` link, reporting what it was handed
-  /** A fake checkout, each tool a script reporting what it got:  `{ tool, args, cwd, tsconfig }`, exiting 3. */
-  const CHECKOUT = resolve(TEMP, "checkout")
-  /** A folder inside it, to run from:  the tools must still be found. */
-  const INSIDE = resolve(CHECKOUT, "app")
-  beforeAll(() => {
-    // a tool's path from the checkout:  inside it, or beside it (`../server/...`, the kit's, epic `repo-split` P8, P9)
-    const report = `const url = import.meta.url
-const tool = url.includes("/checkout/") ? url.split("/checkout/")[1] : "../" + url.split("/${basename(TEMP)}/")[1]
-console.log(JSON.stringify({ tool, args: process.argv.slice(2), cwd: process.cwd(), tsconfig: process.env.TSX_TSCONFIG_PATH }))
-process.exit(3)
-`
-    for (const tool of ["scripts/serve.mjs", "../server/src/page/cli.ts", "spell-epic/src/tools/design.js"]) {
-      mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
-      writeFileSync(resolve(CHECKOUT, tool), report)
-    }
-    // `bin/epic` has no extension:  plain CommonJS, which node runs either way
-    mkdirSync(resolve(CHECKOUT, "spell-epic/bin"), { recursive: true })
-    writeFileSync(
-      resolve(CHECKOUT, "spell-epic/bin/epic"),
-      `console.log(JSON.stringify({ tool: __filename.split("/checkout/")[1], args: process.argv.slice(2), cwd: process.cwd() }))
-process.exit(3)
-`
-    )
-    writeFileSync(resolve(CHECKOUT, "../server/tsconfig.json"), "{}")
-    // a repo beside the checkout is ES modules, as every repo's package is ("type": "module")
-    writeFileSync(resolve(CHECKOUT, "../server/package.json"), `{ "type": "module" }`)
-    mkdirSync(INSIDE, { recursive: true })
-  })
-
-  /** Run `spell dev ...args` in `INSIDE`:  its exit code, and what the fake tool reported. */
-  function passThrough(args: string[]) {
-    const { status, stdout, stderr } = spell(["dev", ...args], INSIDE)
-    return { status, stderr, ...(stdout ? JSON.parse(stdout) : {}) }
-  }
-
-  test("docs <verb>:  epic pages <verb>, the checkout's spell-epic, in THIS folder (epic-eject I5)", () => {
-    const open = passThrough(["docs", "open", "solid/solid-2", "--vs"])
-    expect(open).toMatchObject({
-      status: 3,
-      tool: "spell-epic/bin/epic",
-      args: ["pages", "open", "solid/solid-2", "--vs"]
-    })
-    expect(realpathSync(open.cwd)).toBe(INSIDE)
-    const fuss = passThrough(["docs", "fuss", "src", "--json"])
-    expect(fuss).toMatchObject({ status: 3, args: ["pages", "fuss", "src", "--json"] })
-  })
-
-  test("the epic verbs' old spellings:  epic <verb>, their arguments verbatim", () => {
-    expect(passThrough(["plan-doc", "add", "seo", "judgement", "A call", "--calm"])).toMatchObject({
-      status: 3,
-      tool: "spell-epic/bin/epic",
-      args: ["plan-doc", "add", "seo", "judgement", "A call", "--calm"]
-    })
-    expect(passThrough(["details", "new", "x", "--all"])).toMatchObject({ args: ["ask", "new", "x", "--all"] })
-    expect(passThrough(["worktree", "status", "seo"])).toMatchObject({ args: ["worktree", "status", "seo"] })
-    const { status, stdout } = spell(["--verbose", "epic", "summary", "seo"], INSIDE)
-    expect(status).toBe(3)
-    expect(JSON.parse(stdout)).toMatchObject({ tool: "spell-epic/bin/epic", args: ["summary", "seo"] })
-  })
-
-  test("design sync:  the engine's design tool, through the link, in THIS folder", () => {
-    const sync = passThrough(["design", "pushed", "a.html"])
-    expect(sync).toMatchObject({ status: 3, tool: "spell-epic/src/tools/design.js", args: ["pushed", "a.html"] })
-    expect(realpathSync(sync.cwd)).toBe(INSIDE)
-  })
-
-  test("server <verb>:  the page server's cli, under tsx;  start --all:  serve.mjs", () => {
-    const status = passThrough(["server", "status", "--root", "."])
-    expect(status).toMatchObject({
-      status: 3,
-      tool: "../server/src/page/cli.ts",
-      args: ["status", "--root", "."]
-    })
-    expect(status.tsconfig).toBe(resolve(CHECKOUT, "../server/tsconfig.json"))
-    expect(passThrough(["server", "start"])).toMatchObject({
-      tool: "../server/src/page/cli.ts",
-      args: ["start"]
-    })
-    expect(passThrough(["server", "start", "--all"])).toMatchObject({ status: 3, tool: "scripts/serve.mjs", args: [] })
-  })
-})
-
-describe("spell icons", () => {
+describe("spell icon (Spell UI's)", () => {
   test("finds icons by name, with their packs", () => {
-    const { status, stdout } = spell(["icons", "bell", "slash", "--pack", "fomantic"])
+    const { status, stdout } = spell(["icon", "bell", "slash", "--pack", "fomantic"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^bell slash +fomantic {2}also alarm mute\nbell slash outline {2}fomantic\n$/)
   })
 
   test("--open serves a gallery until interrupted -- the page, and each icon's svg", async () => {
-    const child = spawn(process.execPath, [SPELL, "icons", "bell", "--open"], {
+    const child = spawn(process.execPath, [SPELL, "icon", "bell", "--open"], {
       cwd: TEMP,
       env: { ...process.env, SPELL_NO_BROWSER: "1" },
       stdio: ["ignore", "pipe", "pipe"]
@@ -299,7 +145,7 @@ describe("spell icons", () => {
   }, 30_000)
 })
 
-describe("spell serve", () => {
+describe("spell app serve", () => {
   // one retry:  vite's first start, in a busy run, once timed out (epic page I3)
   const options = { timeout: 180_000, retry: 1 }
   test(
@@ -312,7 +158,7 @@ describe("spell serve", () => {
       const port = 3700 + Math.floor(Math.random() * 200) * 2
       const child = spawn(
         process.execPath,
-        [SPELL, "serve", "@spell/test/solitaire", "--headless", "--port", String(port)],
+        [SPELL, "app", "serve", "@spell/test/solitaire", "--headless", "--port", String(port)],
         {
           cwd: TEMP,
           stdio: ["ignore", "pipe", "pipe"]
@@ -335,7 +181,7 @@ describe("spell serve", () => {
 
       child.kill("SIGINT")
       expect(await new Promise((done) => child.on("exit", done))).toBe(0)
-      // the editor stops with the page server -- if `spell serve` started it;  else both run on
+      // the editor stops with the page server -- if `spell app serve` started it;  else both run on
       let editorUp = true
       for (let tries = 0; editorUp === !running && tries < 40; tries++) {
         await new Promise((done) => setTimeout(done, 250))
@@ -349,12 +195,12 @@ describe("spell serve", () => {
   )
 
   test("a port in use:  refused, when it would start the page server", async (context) => {
-    // with the page server running, `--port` doesn't apply:  `spell serve` would just run
+    // with the page server running, `--port` doesn't apply:  `spell app serve` would just run
     if (await new SRV.PidFile(REPO_ROOT).status()) context.skip()
     const busy = createServer()
     await new Promise<void>((done) => busy.listen(0, done))
     const port = (busy.address() as { port: number }).port
-    const { status, stderr } = spell(["serve", "--headless", "--port", String(port)], TEMP)
+    const { status, stderr } = spell(["app", "serve", "--headless", "--port", String(port)], TEMP)
     busy.close()
     expect(status).toBe(2)
     expect(stderr).toContain(`Port ${port} is in use`)
@@ -364,14 +210,14 @@ describe("spell serve", () => {
 describe("no project named", () => {
   test("in a project's folder:  that project -- for every command", () => {
     const here = tempProject("Here", 'print "here"\n')
-    expect(spell(["check"], here).stderr).toContain("✓ @local/")
+    expect(spell(["lint"], here).stderr).toContain("✓ @local/")
     expect(spell(["compile"], here).stderr).toContain("wrote Here.spell.js")
     expect(spell(["run"], here).stdout).toBe("here\n")
     expect(spell(["describe"], here).stdout).toMatch(/^Here\n/)
   })
 
   test("outside a project, with no terminal to ask on:  says to name one", () => {
-    const { status, stderr } = spell(["check"], TEMP)
+    const { status, stderr } = spell(["lint"], TEMP)
     expect(status).toBe(2)
     expect(stderr).toContain("No spell project here -- name one")
   })
@@ -443,7 +289,7 @@ describe("spell compile", () => {
   })
 })
 
-describe("spell check", () => {
+describe("spell lint", () => {
   /** A project with one bad line. */
   let broken: string
   beforeAll(() => {
@@ -451,28 +297,28 @@ describe("spell check", () => {
   })
 
   test("a clean project:  nothing on stdout, exit 0", () => {
-    const { status, stdout, stderr } = spell(["check", "@spell/test/solitaire"])
+    const { status, stdout, stderr } = spell(["lint", "@spell/test/solitaire"])
     expect(stderr).toContain("✓ @spell/test/solitaire")
     expect(stdout).toBe("")
     expect(status).toBe(0)
   })
 
   test("errors on stdout as path:line:col, exit 1", () => {
-    const { status, stdout, stderr } = spell(["check", "."], broken)
+    const { status, stdout, stderr } = spell(["lint", "."], broken)
     expect(stderr).toContain("1 error")
     expect(stdout).toBe('Broken.spell:2:1  Don\'t understand "flibbertigibbet the wombat"\n')
     expect(status).toBe(1)
   })
 
   test("--json", () => {
-    const { stdout } = spell(["check", "Broken.spell", "--json"], broken)
+    const { stdout } = spell(["lint", "Broken.spell", "--json"], broken)
     expect(JSON.parse(stdout)).toEqual([
       expect.objectContaining({ path: resolve(broken, "Broken.spell"), line: 2, column: 1 })
     ])
   })
 })
 
-describe("spell check:  editor pages (epic property-editor P6, Q17)", () => {
+describe("spell lint:  editor pages (epic property-editor P6, Q17)", () => {
   /** A project declaring `Card`, whose editor page names a gone property, misses one, and has a misfit `as`. */
   let paged: string
   beforeAll(() => {
@@ -485,7 +331,7 @@ describe("spell check:  editor pages (epic property-editor P6, Q17)", () => {
   })
 
   test("lists each problem as path:line:col, at its property's name or the editor, exit 1;  writes nothing", () => {
-    const { status, stdout, stderr } = spell(["check", "."], paged)
+    const { status, stdout, stderr } = spell(["lint", "."], paged)
     expect(stderr).toContain("(editor pages)  1 page · 3 errors")
     expect(stdout).toBe(
       [
@@ -501,7 +347,7 @@ describe("spell check:  editor pages (epic property-editor P6, Q17)", () => {
   })
 
   test("--fix puts the page right and says what it did, exit 0;  then a check is clean", () => {
-    const { status, stdout } = spell(["check", ".", "--fix"], paged)
+    const { status, stdout } = spell(["lint", ".", "--fix"], paged)
     expect(stdout).toBe(
       [
         "Card.editor.html:3:16  fixed:  `as=\"select\"` doesn't fit `label`, a text -- took its `as` off, back to its type's own control",
@@ -516,7 +362,7 @@ describe("spell check:  editor pages (epic property-editor P6, Q17)", () => {
     expect(fixed).not.toContain("suit")
     expect(fixed).toContain('<ui-property name="count"></ui-property>')
 
-    const again = spell(["check", "."], paged)
+    const again = spell(["lint", "."], paged)
     expect(again.stderr).toContain("(editor pages)  1 page\n")
     expect(again.stdout).toBe("")
     expect(again.status).toBe(0)
@@ -525,7 +371,7 @@ describe("spell check:  editor pages (epic property-editor P6, Q17)", () => {
   test("a page whose schema names no type of the project:  one problem, which --fix can't fix", () => {
     const typo = tempProject("TypoPage", "a card is a thing\na card has a label as text\n")
     writeFileSync(resolve(typo, "Card.editor.html"), CARD_PAGE.replace('schema="Card"', 'schema="Crad"'))
-    const { status, stdout } = spell(["check", ".", "--fix", "--json"], typo)
+    const { status, stdout } = spell(["lint", ".", "--fix", "--json"], typo)
     expect(JSON.parse(stdout)).toEqual([
       expect.objectContaining({
         path: resolve(typo, "Card.editor.html"),
@@ -854,9 +700,9 @@ describe("spell format", () => {
   })
 })
 
-describe("spell speed", () => {
+describe("spell speedtest", () => {
   test("times one module's rules:  a table and the pass count", () => {
-    const { status, stdout } = spell(["speed", "if", "--runs", "1"])
+    const { status, stdout } = spell(["speedtest", "if", "--runs", "1"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^\| +\| Average \|.*\n.*\n\| \*\*Current\*\* \| +\d+ \|/)
     expect(stdout).toMatch(/Current: {2}\d+ passed, 0 failed\n$/)
@@ -936,9 +782,9 @@ describe("spell explain", () => {
   })
 })
 
-describe("spell new", () => {
+describe("spell app create", () => {
   test("makes a project that runs -- and won't overwrite it", () => {
-    const { status, stdout } = spell(["new", "Snake", "--in", TEMP])
+    const { status, stdout } = spell(["app", "create", "Snake", "--in", TEMP])
     expect(status).toBe(0)
     expect(stdout).toBe(`${resolve(TEMP, "Snake")}\n`)
     expect(JSON.parse(readFileSync(resolve(TEMP, "Snake", SP.PROJECT_FILE), "utf8"))).toEqual({
@@ -946,13 +792,13 @@ describe("spell new", () => {
     })
     expect(spell(["run", "."], resolve(TEMP, "Snake")).stdout).toBe("hello from Snake\n")
 
-    const again = spell(["new", "Snake", "--in", TEMP])
+    const again = spell(["app", "create", "Snake", "--in", TEMP])
     expect(again.status).toBe(2)
     expect(again.stderr).toContain("already holds a project")
   })
 
   test("a name spell can't use", () => {
-    expect(spell(["new", "9 lives", "--in", TEMP]).status).toBe(2)
+    expect(spell(["app", "create", "9 lives", "--in", TEMP]).status).toBe(2)
   })
 })
 

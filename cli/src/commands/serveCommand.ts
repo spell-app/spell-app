@@ -17,7 +17,8 @@ const EDITOR_FILE = join(REPO_ROOT, ".spell-server.editor.json")
 const START_TIMEOUT_MS = 90_000
 
 /**
- * `spell serve [project]`:  run EVERYTHING -- the page server of this checkout, with the app's API, the editor UI,
+ * `spell app serve [project]` (`spell serve` until epic `repo-split` P13):  run EVERYTHING --
+ * the page server of this checkout, with the app's API, the editor UI,
  * docs, epics, goals and Spell UI -- and open the editor in a browser.
  * - The PAGE SERVER (`yarn server`, `$/server/page`), started if it isn't running.
  *   - The editor is ITS child:  `app`'s route module starts vite once the page server listens,
@@ -45,7 +46,7 @@ export async function serveCommand(
     // free on IPv4 AND IPv6:  on macOS `::` binds even while another process holds `0.0.0.0:<port>`
     const free = (await SRV.isFree(port, "0.0.0.0")) && (await SRV.isFree(port, "::"))
     if (!(await new SRV.PidFile(REPO_ROOT).status()) && !free) {
-      throw new CLI.CliError(`Port ${port} is in use -- \`spell serve --port <another>\``)
+      throw new CLI.CliError(`Port ${port} is in use -- \`spell app serve --port <another>\``)
     }
     // a page server started below inherits it:  `PageServer.ensure()` passes our environment on
     process.env.SPELL_EDITOR_PORT = String(port)
@@ -69,7 +70,7 @@ export async function serveCommand(
   if (!editor) {
     const why = page.launched
       ? "see .spell-server.editor.log"
-      : "the page server was already running without one -- restart it:  `yarn server stop`, then `spell serve`"
+      : "the page server was already running without one -- restart it:  `yarn server stop`, then `spell app serve`"
     status.done(row, "failed", `the editor didn't answer:  ${why}`)
     status.finish()
     if (page.launched) await new SRV.PidFile(REPO_ROOT).stop()

@@ -1,14 +1,26 @@
 /**
- * Shared types for the `spell` command-line tool -- see `main.ts`.
- * - Runtime-light:  `import type` only, plus the small `CliError` class and `EXIT` codes.
+ * Shared types for spell-app's `spell` commands (`cli/commands.ts`) and the language commands' work (`cli/hooks.ts`).
+ * - Runtime-light:  types, plus `normalizedName()`.
+ * - The kit's (`spell-kit/cli`) and the language's (`spell-lang/cli`) are re-exported here, so every file of this
+ *   folder says `CLI.CliError`, `CLI.CompileOptions` ...:  ONE `CliError` class for every repo's commands.
  */
 import type { SP } from "spell-lang/spell"
-import type {
-  StaticCoverage,
-  StaticDocumentOptions,
-  StaticDocumentResult,
-  StaticStylesheetResult
-} from "spell-ui/tools/tools.types"
+import type { GlobalOptions } from "spell-kit/cli"
+
+export { CliError, EXIT, type GlobalOptions } from "spell-kit/cli"
+export type {
+  CompileOptions,
+  DescribeOptions,
+  ExplainOptions,
+  FormatOptions,
+  LintOptions,
+  ParseOptions,
+  RunOptions,
+  SeedOptions,
+  SpeedtestOptions,
+  TestOptions,
+  WatchOptions
+} from "spell-lang/cli"
 
 ////////////////
 // ## Projects
@@ -34,52 +46,6 @@ export type ResolvedProject = Exclude<CliProject, { kind: "root" }>
 ////////////////
 
 /**
- * Flags every command takes.
- * - `verbose`:  let spell's own logging through, to stderr.
- * - `all`:  a bare root means ALL its projects, rather than asking which.
- */
-export type GlobalOptions = {
-  verbose?: boolean
-  all?: boolean
-}
-
-/**
- * `spell compile` flags.
- * - `stdout`:  print a project's compiled output rather than writing `<Project>.spell.js`.
- * - `force`:  recompile the projects it imports, too, even those already compiled
- * - `stale`:  compile only the projects whose build is missing or out of date -- see `CLI.staleBecause()`
- */
-export type CompileOptions = GlobalOptions & {
-  stdout?: boolean
-  force?: boolean
-  stale?: boolean
-  /** Compile to this target, this run, instead of the project file's -- see `SP.TARGETS`. */
-  target?: string
-}
-
-/**
- * `spell describe` flags.
- * - `inherited`:  list members types inherit, too
- * - `compiled`:  show the javascript something compiles to -- when describing ONE thing
- * - `json`:  print the explorer's own data, rather than text
- */
-export type DescribeOptions = GlobalOptions & {
-  inherited?: boolean
-  compiled?: boolean
-  json?: boolean
-}
-
-/**
- * `spell check` flags.
- * - `json`:  print problems as a JSON array of `Problem`s, rather than lines
- * - `fix`:  put each editor page right, and write it back -- see `EditorPages`
- */
-export type CheckOptions = GlobalOptions & {
-  json?: boolean
-  fix?: boolean
-}
-
-/**
  * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a word's capital all one space.
  * - So `stock pile` finds `StockPile` (a type's name since epic `drawable-thing` P11),
  *   and `short-suit` finds `short_suit` and `shortSuit`.
@@ -93,55 +59,6 @@ export function normalizedName(name: string): string {
 }
 
 /**
- * `spell watch` flags.
- * - `checkOnly`:  re-check on each change, rather than recompile -- writes nothing
- * - `test`:  run each project's tests after each rebuild with no errors -- `spell test --watch`
- * - `name`:  with `test`, only tests whose names contain it
- */
-export type WatchOptions = GlobalOptions & {
-  checkOnly?: boolean
-  test?: boolean
-  name?: string
-}
-
-/**
- * `spell run` flags.
- * - `browser`:
- *   - `true` opens the project in a browser even if it shows no UI
- *   - `false` never does
- *   - left out:  only if it tried to show one
- * - `seed`:  see `SeedOptions`
- */
-export type RunOptions = GlobalOptions &
-  SeedOptions & {
-    browser?: boolean
-    /** `ts` or `py` (or a target's full name):  run as that target compiles it -- see `runTarget()` */
-    target?: string
-  }
-
-/**
- * `spell test` flags.
- * - `name`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`
- * - `watch`:  run them again whenever the project changes -- `spell watch --test`
- * - `seed`:  see `SeedOptions`
- */
-export type TestOptions = GlobalOptions &
-  SeedOptions & {
-    name?: string
-    watch?: boolean
-  }
-
-/**
- * The flag `spell run` and `spell test` share.
- * - `seed`:  start the program's random numbers from it, so every run deals the same cards --
- *   a whole number from 1 to 2147483646, see `core.seedRandom()`.
- *   Left out:  a different deal each run.
- */
-export type SeedOptions = {
-  seed?: number
-}
-
-/**
  * `spell projects` flags.
  * - `json`:  print the list as JSON
  */
@@ -150,53 +67,7 @@ export type ProjectsOptions = GlobalOptions & {
 }
 
 /**
- * `spell speed` flags.
- * - `runs`:  how many runs per side, each a fresh process -- default 3
- * - `against`:  a git ref, e.g. `HEAD`, to time as well, as "Previous"
- * - `json`:  print each side's combined results as JSON
- */
-export type SpeedOptions = GlobalOptions & {
-  runs?: number
-  against?: string
-  json?: boolean
-}
-
-/**
- * `spell format` flags.
- * - `check`:  write nothing:  list the files that would change, and exit 1 if any would
- */
-export type FormatOptions = GlobalOptions & {
-  check?: boolean
-}
-
-/**
- * `spell parse` flags.
- * - `rule`:  parse as this rule only, e.g. `expression`
- * - `in`:  parse inside this project's scope, e.g. `@spell/test/solitaire`
- * - `json`:  print the result as JSON
- * - `tree`:  print the spell tree (what it means), not the match tree
- * - `html`:  with `tree`, print it as a `<ui-tree-diagram>` for a docs page
- */
-export type ParseOptions = GlobalOptions & {
-  rule?: string
-  in?: string
-  json?: boolean
-  tree?: boolean
-  html?: boolean
-}
-
-/**
- * `spell explain` flags.
- * - `in`:  look in this project, too, e.g. `@spell/test/solitaire`
- * - `json`:  print what was found as JSON
- */
-export type ExplainOptions = GlobalOptions & {
-  in?: string
-  json?: boolean
-}
-
-/**
- * `spell serve` flags.
+ * `spell app serve` flags.
  * - `port`:  the editor's port -- default 3000;  its server's is the next one up
  * - `headless`:  don't open a browser
  */
@@ -206,49 +77,7 @@ export type ServeOptions = GlobalOptions & {
 }
 
 /**
- * `spell icons` flags.
- * - `pack`:  only this pack, e.g. `fa7-brands`
- * - `json`:  print the icons found as JSON
- * - `open`:  show them in a browser, as pictures
- */
-export type IconsOptions = GlobalOptions & {
-  pack?: string
-  json?: boolean
-  open?: boolean
-}
-
-/**
- * `spell dev commands` flags.
- * - `json`:  print every command, and the problems, as JSON
- */
-export type CommandsOptions = GlobalOptions & {
-  json?: boolean
-}
-
-/**
- * `spell static` flags.
- * - `output`:  `-o`:  the page to write, for one input;  a FOLDER to write into, for several
- * - `inline`:  the stylesheet in a `<style>` in the page, rather than a file beside it
- * - `css`:  ONE stylesheet for every page, written here, rather than one per page
- * - `minify`:  `false` (`--no-minify`) leaves the stylesheet readable
- */
-export type StaticOptions = GlobalOptions & {
-  output?: string
-  inlineCss?: boolean
-  css?: string
-  minify?: boolean
-}
-
-/**
- * `spell pony` flags.
- * - `gallop`:  her legs gallop (epic `property-editor` P8)
- */
-export type PonyOptions = GlobalOptions & {
-  gallop?: boolean
-}
-
-/**
- * `spell new` flags.
+ * `spell app create` flags (`spell new` until epic `repo-split` P13).
  * - `in`:  make the project in this folder -- default `owen@spell`'s, your space's (`<spell-spaces>/@spell/owen@/`)
  */
 export type NewOptions = GlobalOptions & {
@@ -293,39 +122,6 @@ export type RunReport = {
   skipped: string[]
 }
 
-/**
- * One shared stylesheet of a `spell static` job:
- * where it goes, the pages that link it (indices in the job),
- * and what the sheet already there covered (its first line), for the build to keep.
- */
-export type StaticSheetJob = {
-  path: string
-  pages: number[]
-  coverage?: StaticCoverage
-}
-
-/**
- * What `spell static` and its child process, `runner/renderStatic.ts`, say to each other over IPC, in order:
- * - `ready`:  child to parent, once its Vite server is up
- * - `job`:  parent to child, once:  each page's HTML and stylesheet options,
- *   and the shared stylesheets (`sheets`) to build afterwards, `minify`d or not
- * - `page`:  child to parent, one per page in `job` order (`index`):  its `result`, or the `error` that stopped it
- * - `stylesheet`:  child to parent, after the pages, one per `sheets` entry (`path`)
- * - `done`, or `failed` with the error that stopped the whole job
- */
-export type StaticMessage =
-  | { kind: "ready" }
-  | {
-      kind: "job"
-      pages: { html: string; options: StaticDocumentOptions }[]
-      sheets: StaticSheetJob[]
-      minify: boolean
-    }
-  | { kind: "page"; index: number; result?: StaticDocumentResult; error?: string }
-  | { kind: "stylesheet"; path: string; result: StaticStylesheetResult }
-  | { kind: "done" }
-  | { kind: "failed"; error: string }
-
 ////////////////
 // ## Places
 ////////////////
@@ -345,7 +141,7 @@ export type DeclaredAt = {
 ////////////////
 
 /**
- * One error in the spell, as `spell check` reports it -- see `CliSession.problems()`.
+ * One error in the spell, as `spell lint` reports it -- see `CliSession.problems()`.
  * - Or a warning, which says so in `severity` -- see `CliSession.warnings()`.
  * - `project`:  its project's id
  * - `path`:  absolute path of the file it's in -- none if the whole parse crashed
@@ -379,60 +175,4 @@ export type StatusRow = {
   state: StatusState
   note?: string
   details?: string[]
-}
-
-////////////////
-// ## Errors
-////////////////
-
-/** Process exit codes. */
-export const EXIT = {
-  /** all went well */
-  OK: 0,
-  /** the spell had errors, e.g. a line that doesn't parse */
-  ERRORS: 1,
-  /** the command line itself was wrong, e.g. an unknown project */
-  USAGE: 2
-} as const
-
-/**
- * A problem to tell the user about in plain words, then exit -- NOT a crash, so no stack trace.
- * - `exitCode` defaults to `EXIT.USAGE`.
- */
-export class CliError extends Error {
-  exitCode: number
-  constructor(message: string, exitCode: number = EXIT.USAGE) {
-    super(message)
-    this.exitCode = exitCode
-  }
-}
-
-/**
- * `spell dev wwod` flags.
- * - `json`:  `check` prints the report as JSON
- */
-export type WwodOptions = GlobalOptions & {
-  json?: boolean
-}
-
-/**
- * `spell dev pack` flags.
- * - `prefix`:  `new`:  every tag's prefix, e.g. `epic-`;  default the package's own, else `<name>-`
- * - `build`:  `new`, `element`:  build the pack after writing the files;  `--no-build` sets it `false`
- * - `json`:  print the report as JSON
- */
-export type PackOptions = GlobalOptions & {
-  prefix?: string
-  build?: boolean
-  json?: boolean
-}
-
-/**
- * `spell dev bundles` flags.
- * - `stale`:  `build`:  only the bundles that need it
- * - `json`:  print the report as JSON
- */
-export type BundlesOptions = GlobalOptions & {
-  stale?: boolean
-  json?: boolean
 }

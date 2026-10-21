@@ -74,8 +74,8 @@ right one.
 cd ~/www/spell && yarn     # once, at the kit's root:  every repo's packages
 cd spell-app
 yarn start                 # the web app and its server
-yarn cli:install           # put `spell` on your PATH
-spell dev vscode           # build and install the VS Code extension (needs `spell`, above)
+(cd .. && yarn cli:install) # put `spell` on your PATH:  the kit's
+spell app vscode           # build and install the VS Code extension (needs `spell`, above)
 ```
 
 The scripts are the root's, wherever you run them:  the folders have no `package.json` of their own.

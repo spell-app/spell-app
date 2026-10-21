@@ -1,6 +1,7 @@
 /**
- * A small local web server, for what `spell` shows in a browser -- `spell icons --open`, a UI project's
- * `spell run` -- on `$/server`'s `WebServer`.
+ * A small local web server, for what `spell` shows in a browser -- a UI project's `spell run` -- on `$/server`'s
+ * `WebServer`.
+ * - Spell UI has its own copy, for `spell icon --open` (epic `repo-split` P13).
  * - `routes(path)` answers each GET:  text, a file on disk, or `undefined` for 404.  Nothing else is served.
  * - Listens on loopback only, on a free port unless told one.
  * - Opening a browser and waiting for `Ctrl-C`:  `SRV.openBrowser()` (`SPELL_NO_BROWSER=1` only prints the URL)

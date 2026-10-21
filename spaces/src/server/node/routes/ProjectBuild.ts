@@ -1,6 +1,7 @@
 import { spawn as nodeSpawn, type ChildProcess, type SpawnOptions } from "child_process"
 import { existsSync } from "fs"
-import { join } from "path"
+import { createRequire } from "module"
+import { dirname, join } from "path"
 import { createInterface } from "readline"
 
 import type { SRV } from "spell-kit/server"
@@ -54,9 +55,9 @@ export class ProjectBuild {
     this.spawn = spawn
   }
 
-  /** `<root>/cli/bin/spell.mjs`:  the checkout's own CLI, never the `spell` on `PATH` (maybe main's) */
-  get cli(): string {
-    return join(this.root, "cli", "bin", "spell.mjs")
+  /** the checkout's own `spell`:  the kit's `cli/bin/spell.mjs`, as `root`'s install resolves it (`kitSpell()`) */
+  get cli(): string | undefined {
+    return kitSpell(this.root)
   }
 
   /** Is the startup build running? */
@@ -138,11 +139,12 @@ export class ProjectBuild {
    * - its own process group (`detached`), so `stop()` ends what it starts too
    */
   private run(args: string[]): Promise<void> {
-    if (!existsSync(this.cli)) return Promise.resolve()
+    const cli = this.cli
+    if (!cli || !existsSync(cli)) return Promise.resolve()
     console.log(`projects:  spell ${args.join(" ")}`)
     let child: ChildProcess
     try {
-      child = this.spawn(process.execPath, [this.cli, ...args], {
+      child = this.spawn(process.execPath, [cli, ...args], {
         cwd: this.root,
         // not this server's `TSX_TSCONFIG_PATH`:  the CLI registers its own `tsconfig.json`
         env: { ...process.env, INIT_CWD: this.root, TSX_TSCONFIG_PATH: undefined },
@@ -199,4 +201,19 @@ async function within(work: Promise<void>, deadline: number): Promise<void> {
   const timedOut = new Promise<void>((done) => (timer = setTimeout(done, Math.max(0, deadline - Date.now()))))
   await Promise.race([work, timedOut])
   clearTimeout(timer)
+}
+
+/**
+ * The kit's `spell` command (`spell-kit`'s `cli/bin/spell.mjs`), as checkout `root`'s install resolves the kit:
+ * the checkout's OWN, never the `spell` on `PATH` (maybe main's);  `undefined` when its install has no kit.
+ * - By package, never a path into the kit (the root `AGENTS.md`, "Imports across repos").
+ * - NOTE: page-server's `BundleBuild` keeps a twin of this:  page-server may not import spaces (the one-way rule, `tsconfig.base.json`)
+ */
+function kitSpell(root: string): string | undefined {
+  try {
+    const kit = dirname(createRequire(join(root, "package.json")).resolve("spell-kit/package.json"))
+    return join(kit, "cli", "bin", "spell.mjs")
+  } catch {
+    return undefined
+  }
 }

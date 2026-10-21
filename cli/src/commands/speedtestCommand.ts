@@ -20,7 +20,7 @@ const ALIASES = import.meta.resolve("spell-kit/toolchain/aliases")
 const FLUKE_RATIO = 1.25
 
 /**
- * `spell speed [module]`:  time the parser's rule tests, `SP.spellParser.speedTest()` -- warm-up, then 20 runs --
+ * `spell speedtest [module]`:  time the parser's rule tests, `SP.spellParser.speedTest()` -- warm-up, then 20 runs --
  * in `--runs` fresh processes (default 3), and print the combined times as a table.
  * - `module`:  only that module's rules, e.g. `if`.
  * - `--against <ref>`, e.g. `HEAD`:  time that commit too, as "Previous", in a temp git worktree
@@ -31,10 +31,10 @@ const FLUKE_RATIO = 1.25
  * - `--json`:  each side's combined results instead.
  * - Returns the exit code:  `EXIT.ERRORS` if a run crashed.
  */
-export async function speedCommand(
+export async function speedtestCommand(
   session: CLI.CliSession,
   args: string[],
-  options: CLI.SpeedOptions
+  options: CLI.SpeedtestOptions
 ): Promise<number> {
   const [module = ""] = args
   const runs = options.runs ?? 3

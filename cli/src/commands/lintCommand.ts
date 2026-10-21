@@ -2,7 +2,8 @@ import { SP } from "spell-lang/spell"
 import { CLI } from "$/cli"
 
 /**
- * `spell check [projects...]`:  parse each project or file and list its errors -- writes nothing of its own.
+ * `spell lint [projects...]`:  parse each project or file and list its errors -- writes nothing of its own.
+ * - `spell check` until epic `repo-split` P13.
  * - Errors go to STDOUT, one per line (`path:line:col  message`), so they can be piped, e.g. to `grep`.
  *   `--json` prints them as a JSON array of `CLI.Problem`s instead.
  * - Progress and a count per project go to stderr.
@@ -16,11 +17,7 @@ import { CLI } from "$/cli"
  *   see `CliSession.compileImports()`.
  * - Returns the exit code:  `EXIT.ERRORS` if there were any.
  */
-export async function checkCommand(
-  session: CLI.CliSession,
-  args: string[],
-  options: CLI.CheckOptions
-): Promise<number> {
+export async function lintCommand(session: CLI.CliSession, args: string[], options: CLI.LintOptions): Promise<number> {
   const resolvedProjects = await session.projects(args)
   const status = new CLI.StatusReporter(session.isInteractive)
   const problems: CLI.Problem[] = []
@@ -75,7 +72,7 @@ async function checkPages(
   session: CLI.CliSession,
   project: SP.SpellProject,
   status: CLI.StatusReporter,
-  { fix }: CLI.CheckOptions
+  { fix }: CLI.LintOptions
 ): Promise<CLI.EditorPageResults> {
   const editorPages = new CLI.EditorPages(session, project)
   if (!editorPages.paths.length) return { pages: 0, problems: [], fixes: [] }

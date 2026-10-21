@@ -1,6 +1,7 @@
 import { spawn as nodeSpawn, type ChildProcess, type SpawnOptions } from "node:child_process"
 import { existsSync } from "node:fs"
-import { join } from "node:path"
+import { createRequire } from "node:module"
+import { dirname, join } from "node:path"
 import { createInterface } from "node:readline"
 
 import type { Handler } from "spell-kit/server"
@@ -17,7 +18,8 @@ import { BUNDLE_WAIT_MS } from "$/page-server"
  * Builds the bundles spell-app's page server serves, when the server starts (`pageRoutes`, its route module).
  * - the bundles:  the Spell UI docs site's, the brand pages';  built on demand, never committed
  *   - `folders`:  the root `package.json`'s `"pageServer": { "bundles": [...] }`
- * - `start()`:  runs `spell dev bundles build --stale` in the background, with the checkout's OWN CLI
+ * - `start()`:  runs `spell bundle --stale` in the background, with the checkout's OWN `spell` (the kit's, as its
+ *   install resolves it)
  *   - it builds only the bundles whose sources changed since their last build (the logic:  `$/assembler` `Bundle`)
  *   - so a start with nothing changed builds nothing
  * - its output goes to the server's log, each line prefixed `bundles:  `
@@ -63,9 +65,9 @@ export class BundleBuild {
     return this.child !== undefined
   }
 
-  /** `<root>/cli/bin/spell.mjs`:  the checkout's own CLI, never the `spell` on `PATH` (maybe main's) */
-  get cli(): string {
-    return join(this.root, "cli", "bin", "spell.mjs")
+  /** the checkout's own `spell`:  the kit's `cli/bin/spell.mjs`, as `root`'s install resolves it (`kitSpell()`) */
+  get cli(): string | undefined {
+    return kitSpell(this.root)
   }
 
   /**
@@ -74,9 +76,10 @@ export class BundleBuild {
    * - NEVER throws:  a failed build is logged, and leaves its bundle stale for the next start
    */
   start(): this {
-    if (this.child || !existsSync(this.cli)) return this
-    const args = [this.cli, "dev", "bundles", "build", "--stale"]
-    console.log(`bundles:  checking (spell dev bundles build --stale)`)
+    const cli = this.cli
+    if (this.child || !cli || !existsSync(cli)) return this
+    const args = [cli, "bundle", "--stale"]
+    console.log(`bundles:  checking (spell bundle --stale)`)
     let child: ChildProcess
     try {
       child = this.spawn(process.execPath, args, {
@@ -172,3 +175,18 @@ export type SpawnBuild = (command: string, args: string[], options: SpawnOptions
  * - `spawn`:  starts the child (default `node:child_process`'s);  tests pass a stub
  */
 export type BundleBuildProps = { root: string; timeout?: number; spawn?: SpawnBuild }
+
+/**
+ * The kit's `spell` command (`spell-kit`'s `cli/bin/spell.mjs`), as checkout `root`'s install resolves the kit:
+ * the checkout's OWN, never the `spell` on `PATH` (maybe main's);  `undefined` when its install has no kit.
+ * - By package, never a path into the kit (the root `AGENTS.md`, "Imports across repos").
+ * - NOTE: spaces' `ProjectBuild` keeps a twin of this:  page-server may not import spaces (the one-way rule, `tsconfig.base.json`)
+ */
+function kitSpell(root: string): string | undefined {
+  try {
+    const kit = dirname(createRequire(join(root, "package.json")).resolve("spell-kit/package.json"))
+    return join(kit, "cli", "bin", "spell.mjs")
+  } catch {
+    return undefined
+  }
+}

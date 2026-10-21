@@ -8,7 +8,7 @@ In your own words, without jargon, narrate each step in the order it actually ha
 
 When a question needs a picture to decide, or more than the AskUserQuestion modal holds (4 options per question, 4
 questions), use `/details` (spell-epic's plugin, `spell-epic/skills/details/`):  a page in VS Code's right side bar that Owen answers on.
-Naming any docs page in a reply:  `spell dev docs link <page> --hash <id> --show`, and paste its side bar link +
+Naming any docs page in a reply:  `epic pages link <page> --hash <id> --show`, and paste its side bar link +
 `• 🌐` (browser) link:  `Title • 🌐`.
 
 Delegated work (epic `skillz`, Owen, 2026-10-07):  every agent you start is NAMED and LISTED, as `/bg` does it
@@ -24,7 +24,7 @@ Tooling requests (epic `epic-workflow`, Owen, 2026-10-11):  when Owen asks for a
 this session builds, SEND it, don't do it:  `/send` (`spell-epic/skills/send/`) writes it into the tooling home's epic
 (`epic home`) and wakes that epic's session;  reply one line, "sent to `<home>` as r3", and carry on.
 - How he works:  the epic page, its comments and marks, the Review tab, details pages, every skill and hook,
-  windows, worktrees, the page server, `spell dev` / `epic`.  "Comment mechanism doesn't look right", a
+  windows, worktrees, the page server, the repo's `spell` commands / `epic`.  "Comment mechanism doesn't look right", a
   screenshot of the Review tab, "fix this in the plan doc" about how the page draws.
 - NOT this session's own epic's content ("fix P4's file list"):  that's its job.  Unsure:  ask in the modal.
 - The tooling home's own session (`🚧 <home>`) does tooling work itself.

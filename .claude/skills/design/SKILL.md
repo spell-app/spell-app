@@ -9,17 +9,17 @@ argument-hint: "[push | pull <design link> [page] | new \"<title>\" | page <page
 Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design draws with the real `<ui-*>` elements.
 - Epic `claude-design`;  [its epic page](../spell-app.epics/epics/claude-design/claude-design.plan.html).
 - Claude Design can't reach this laptop.
-  This skill carries things across with the Artifact tool, and `spell dev design ...` does the local half.
+  This skill carries things across with the Artifact tool, and `spell design ...` does the local half.
 
-- The system:  the link in the shared record, `spell dev design state`.
+- The system:  the link in the shared record, `spell design state`.
   - The record is `brand/design-system.json`, in `../spell-app-dev`.
   - Private:  only Owen can open it, until he shares it.
 - What it holds:  the system's project folder, in ui's build (`packages/ui/build/design-system/project/`, git-ignored).
-  - Written by `spell dev design build`:
+  - Written by `spell design build`:
     - the README, `tokens.json`, `components/index.d.ts`
     - a README + live `preview.html` per family
     - the cover
-  - And by `spell dev design bundle`:  `components/bundle.js`.
+  - And by `spell design bundle`:  `components/bundle.js`.
     - ONE classic script, `window.SpellUI`
     - every Font Awesome Free icon
     - the code and markdown engines
@@ -38,11 +38,11 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
 1. A vocabulary changed:  `yarn site:data` in `packages/ui` first.
    The cards and `index.d.ts` read its output.
 2. Build, bundle, check:
-   - `spell dev design build`
-   - then `spell dev design bundle`:  a few minutes, since it builds ui first
-   - then `spell dev design check`:  must pass.
+   - `spell design build`
+   - then `spell design bundle`:  a few minutes, since it builds ui first
+   - then `spell design check`:  must pass.
      It checks the bundle inlined in a srcdoc frame, and on a Design board.
-3. `spell dev design changed --json`:  `{ root, url, changed, removed }`.
+3. `spell design changed --json`:  `{ root, url, changed, removed }`.
    - The index (`project/design-system.json`) is last.
    - Nothing changed:  say so and stop.
 4. No `url` yet (first push):  create the system ONCE, with the Artifact tool:
@@ -61,7 +61,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
      - The generator rewrites it each build, so drop it from `files` unless you mean to change those.
    - Refused because someone saved meanwhile:  read the named files, and redo, once.
      Then tell Owen.
-6. `spell dev design pushed --url <link>`:  the record now matches claude.ai.
+6. `spell design pushed --url <link>`:  the record now matches claude.ai.
 7. Tell Owen:  what changed, the link, "reload the design in Claude Design".
    - A Design made earlier holds its own COPY of the system (`project/ds/<folder>/`).
    - `/design new` designs pick up the new bundle.
@@ -76,7 +76,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
    Else `$(epic config contentFolder)/brand/<slug>.html` for a brand page, `.../guides/<slug>.html` for a guide.
 
    ```sh
-   spell dev design pull <saved board> <page> --from <design link>
+   spell design pull <saved board> <page> --from <design link>
    ```
 
    - It writes the page:  the `<ui-*>` markup, and the bundle and site header for its depth.
@@ -85,7 +85,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
    - Fix those by hand:  real text for holes, a small script for behaviour.
 4. Finish:  as [spell-epic's AGENTS.md](spell-epic/src/AGENTS.md), "Finishing a page".
    - `doc-links`, `vp fmt`, `check-spell`, and LOOK at the screenshots.
-   - Then show it:  `spell dev docs link <page> --show`.
+   - Then show it:  `epic pages link <page> --show`.
    - It's shared content:  committed for you.
 
 ## `/design new "<title>"`:  a Design on the Spell system
@@ -126,13 +126,13 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
 
 1. Read the system's rules and the elements' shapes LOCALLY:
    - [the system's README](packages/ui/build/design-system/project/README.md), in ui's build
-     (run `spell dev design build` if it's missing)
+     (run `spell design build` if it's missing)
    - then each card you'll use (`components/<Family>/README.md`), and `components/index.d.ts`
    - VS Code autocompletes `<ui-*>` tags and attributes
      from [html-custom-data.json](packages/ui/site/_data/html-custom-data.json), in ui's site data.
-2. Start the page from a template (`spell dev docs new ...`),
+2. Start the page from a template (`epic pages new ...`),
    or as `/design pull` writes one (the bundle, and the site header for its depth).
    - Write plain `<ui-*>` markup:  every component the system has.
    - `--ui-*` tokens for colour and spacing.
-3. Show it live:  `spell dev docs open <page> --vs` (the page server reloads it on every save).
+3. Show it live:  `epic pages open <page> --vs` (the page server reloads it on every save).
    Check it as "Finishing a page" says.

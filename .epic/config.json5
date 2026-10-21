@@ -79,6 +79,6 @@
   "app": {
     "path": "/editor/",
     "urlFile": ".spell-server.editor.json",
-    "start": "node cli/bin/spell.mjs dev server ensure"
+    "start": "node ../cli/bin/spell.mjs server start"
   }
 }

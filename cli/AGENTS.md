@@ -3,123 +3,73 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this folder, `cli/` of the `spell-app` package (`spell-app/cli`).
 
-**READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../agents/wwod/WWOD.md) FIRST:**
+**READ the repo root's [AGENTS.md](../AGENTS.md) and [WWOD](../agents/wwod/WWOD.md) FIRST:**
 the repo's layout, and the house style every package shares.
 Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
-- This folder is the `spell` command-line tool, and nothing else.
-  - [spell.mjs](bin/spell.mjs), in `bin/`, runs [main.ts](src/main.ts) through `tsx`.
-  - For `spell dev ...` (and `spell epic ...`) it runs [devMain.ts](src/devMain.ts) instead (see below).
-  - `yarn cli:install` links it onto your PATH:  the `spell` bin of spell-app's root `package.json`, where the
-    script is too (epic `repo-split` P11).
-  - The `epic` command is spell-epic's (its `bin/epic`), since epic `epic-eject` I5.
+- This folder is spell-app's part of `spell`, the kit's command line ([the kit's cli/](../../cli/README.md)).
+  Two things:
+  - spell-app's OWN commands:  `spell app create | serve | vscode [build|install]`, and `spell projects`
+  - the WORK behind spell-lang's commands (`spell compile`, `lint`, `run`, `test` ...), through spell-app's
+    `"language"` hook:  they find projects the app's way, so their work is here until spell-lang can
+    (epic `repo-split` P13)
   - [The README](README.md) has instructions, caveats and TODO.
+- The program itself is NOT here any more:  arguments, help, finding commands, `spell dev` and its pass-throughs
+  are the kit's, or gone (epic `repo-split` P13).
+  - Spell UI's commands (`spell icon`, `ssr`, `pack`, `design`) are spell-ui's `cli/`.
+  - The `epic` command is spell-epic's (its `bin/epic`), since epic `epic-eject` I5.
+- How the kit finds this folder:  `package.json`'s
+  `"spell": { "commands": "./cli/commands.ts", "hooks": "./cli/hooks.ts" }`.
+  - [commands.ts](commands.ts):  spell-app's commands, their names, arguments, flags and help.
+    - Under `app` ON PURPOSE (Owen's names, 2026-10-21), not only on a clash.
+    - The kit's `spell commands` check reads its TEXT:  keep each name a literal at its `.command("...")` call,
+      and each group (`app`, `vscode`) a `const`.
+  - [hooks.ts](hooks.ts):  the `"language"` hook, and `loadApp()`, which both files load the work through.
+  - Both MUST load fast:  `spell help` loads every repo's list.
+    So they import nothing of spell up front:  `loadApp()` imports it when a command runs.
+- `loadApp()` loads [consoleGuard.ts](src/consoleGuard.ts) FIRST, then the parser's version
+  (`__PACKAGE_VERSION__`), then [languageCommands.ts](src/languageCommands.ts):  spell logs as its modules load.
+  - `languageCommands`:  spell-lang's `LanguageCommands` (its `spell-lang/cli` types), each on a new `CliSession`.
+  - `appCommands`:  `create`, `serve`, `projects`, the same way.
+  - `spell app vscode` loads no spell:  [vscodeCommand.ts](src/commands/vscodeCommand.ts), imported directly.
 - Spell itself is NOT here.
   - It's the folders beside this one (lsp, spaces) and the packages below (`spell-lang`'s spell, parser and core;
     the kit's util).
-  - As is ui, `spell-ui`.
   - spell-app's root `package.json` depends on `spell-lang`, `spell-ui` and `spell-kit` as workspaces
-    (`workspace:*`), and the aliases reach the rest.
-  - Their SOURCE runs, with no build:
-    each alias (`$/lsp`, `$/spell`, `$/parser` ...) is its package's src folder, e.g. spell's.
-  - `$/cli` is OUR src folder (namespace `CLI`).
+    (`workspace:*`).
+  - Their SOURCE runs, with no build:  `spell` runs every repo's source through `tsx`, each file's `$/` imports by
+    its own repo's alias table (the kit's run-time alias hook).
+  - `$/cli` is OUR src folder (namespace `CLI`), from this repo's [tsconfig.base.json](../tsconfig.base.json).
     So a file `foo.ts` in it is `$/cli/foo`.
-  - That's set ONCE, in the repo root's [tsconfig.base.json](../tsconfig.base.json):
-    one alias table for every package.
-    - The TypeScript compiler and `tsx` read it through `tsconfig.json`.
-    - `vitest` reads it through `resolve.tsconfigPaths`.
-  - `tsconfig.json` extends that table, since the other packages' files compile through it.
-    So `yarn ts` here reports their type errors too.
   - Something the command line needs OF spell or its tools is a change in THAT package,
     e.g. `SpellProject.compile(parentScope, { save })`.
 - Projects load the language server's way (`SpellDiskWorkspace`), from spaces' folders on disk.
-  - Where they are, and the build folder:  spaces' `environment` and `project-utils`.
-    - in `$/spaces/server/node/...`
-    - they also register spell's project groups
+  - Where they are, and the build folder:  spaces' `environment` and `project-utils`,
+    in `$/spaces/server/node/...`;  they also register spell's project groups.
   - Questions about them go to its `SpellLanguageService` and `ScopeExplorer`,
     so the command line sees what an editor does.
 - Ink (React for terminals) draws its screens, in `src/ui/`.
-  - `console.*` is SILENCED:  output goes to `process.stdout` / stderr.
-    See [consoleGuard.ts](src/consoleGuard.ts).
+  - `console.*` is SILENCED:  output goes to `process.stdout` / stderr ([consoleGuard.ts](src/consoleGuard.ts)).
   - An Ink screen MUST render with `patchConsole: false`, or Ink puts `console.*` back on screen.
   - Ink is pinned at 5:  6+ needs React 19.
+  - `tsx` runs every repo's commands under the KIT's `cli/tsconfig.json`, which has `jsx: react-jsx` for them.
 - `src/runner/` holds CHILD processes:
   - [runProject.ts](src/runner/runProject.ts):  `spell run` / `spell test`
-  - [speedTest.mts](src/runner/speedTest.mts):  `spell speed`
-  - [renderStatic.ts](src/runner/renderStatic.ts):  `spell static` (ui's server render, through Vite)
-  - They NEVER import `$/cli`'s values:  they need only spell (or `ui`).
+  - [speedTest.mts](src/runner/speedTest.mts):  `spell speedtest`
+  - They NEVER import `$/cli`'s values:  they need only spell.
   - `speedTest.mts` is copied into other checkouts (`--against`), so it imports nothing of ours at all.
-- Each command is a file in [commands/](src/commands/), `<name>Command.ts`, wired up in [main.ts](src/main.ts).
-  - Its shape:  `(session, args, options) => Promise<exitCode>`.
-- Three kinds of command:
-  - the spell LANGUAGE's, bare:  `spell compile`
-  - the repo's own tools, `spell dev <noun> <verb>`:  `spell dev commands`.
-    Each finds the nearest checkout with `CLI.findCheckout()`.
-  - `epic <verb> <epic>#<id> ...`:  the epic tools, a command of their own (epic `epic-workflow` P9).
-    - NOT this folder's:  spell-epic's, its own repo, with its own tests (epic `epic-eject` P5, I5;
-      the root `AGENTS.md`, "spell-epic").  `epic --help` lists its verbs.
-    - Its old spellings here hand their arguments on to it, verbatim, until no caller is left
-      (`runEpic()`, in [passThrough.ts](src/dev/passThrough.ts)):
-      - `spell dev plan-doc <verb> <name> <id> ...`:  the tool's own order, no `#` (`epic plan-doc`, hidden);
-        older checkouts and scripts call it
-      - `spell dev details` (`epic ask`), `choices`, `comments`, `notes`, `agents`, `airplane`
-      - `spell dev window`, `worktree`, `park`, `session`, `stock`, `shared` (since P5)
-      - `spell dev docs <verb>` (`epic pages <verb>`), still listed in `spell dev --help`:  the skills call it
-      - the rest hidden from `spell dev --help`, in [devProgram.ts](src/devProgram.ts)
-      - `spell epic <verb>`:  [spell.mjs](bin/spell.mjs) sends it to [devMain.ts](src/devMain.ts), so it starts lean
-    - Which `epic`:  the nearest checkout's `spell-epic` link's `bin/epic` (`epicBin()`), else the one on the `PATH`.
-    - NEVER import the engine (`$/epics/...`):  a checkout without spell-epic (CI) must still compile,
-      and one copy of `$/server` must run.
-      [devMain.test.ts](../tests/cli/src/devMain.test.ts) checks it, import by import.
-  - A new or renamed command:
-    FIRST [the commands guide](../../spell.epics/guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
-    - Suggest where it belongs.
-    - Then add it to the commands page's `commands.json5`, and run `spell dev commands check`.
-  - `spell dev commands` reads the TEXT of the command trees, for each `<receiver>.command(...)` call.
-    - The files:  [main.ts](src/main.ts), [devProgram.ts](src/devProgram.ts), and spell-epic's
-      [EpicProgram.ts](../../spell-epic/src/command/EpicProgram.ts), through the checkout's `spell-epic` link.
-    - The skills:  this repo's `.claude/skills/`, and the plugin's, `spell-epic/skills/`.
-    - The calls:
-
-      ```ts
-      program.command(...)    dev.command(...)    epic.command(...)
-      ```
-
-    - So keep those receivers' names, and each verb's name a literal at its call.
-  - `spell dev` starts LEAN:  the bin script runs [devMain.ts](src/devMain.ts).
-    - That loads commander and [devProgram.ts](src/devProgram.ts) (the `dev` tree),
-      never the `$/cli` barrel, which loads spell (~0.5s).
-    - A dev command that needs the barrel (`commands`, `wwod`) hands over to [main.ts](src/main.ts).
-  - A pass-through is `(args) => Promise<exitCode>`.
-    - The pass-throughs:
-
-      ```
-      design  server  vscode
-      ```
-
-    - It imports what it needs DIRECTLY, never the barrel:
-
-      ```ts
-      $/cli/dev/passThrough    $/cli/cli.types    $/cli/findCheckout
-      ```
-
-    - Importing `$/cli` there would load spell into every `spell dev` call.
-    - `TOOLS`, in [passThrough.ts](src/dev/passThrough.ts), says how each tool runs:
-      a child node process, under `tsx` when it needs aliases.
-      - `design bundle` and `check`:  spell-brand's `design:bundle` / `design:check` (epic `repo-split` P10).
-      - `design`'s sync verbs:  the engine's `src/tools/design.js`, through the `spell-epic` link.
-  - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`.
-    - That's [packCommand.ts](src/commands/packCommand.ts),
-      on [packNew.ts](src/dev/packNew.ts) / [packBuild.ts](src/dev/packBuild.ts), which import no barrel.
-    - `build` and `check` are the kit's pack tooling (`spell-kit/element/tools/ComponentPack`;  Spell UI's from epic
-      `repo-split` P5 to P10), which spell-epic and the brand run without this CLI (`spell-pack`).
-      [packBuild.ts](src/dev/packBuild.ts) only finds the pack by name in the checkout, and turns its errors into ours.
-- [templates/](templates/):  files commands write from, `*.template` with `__token__`s.
-  - [pack/](templates/pack/):  for `spell dev pack new` / `element`.
-  - Change a template, and every pack made after gets it;  existing packs keep their files.
-  - How they're filled, and how to add one:  [the templates README](templates/README.md).
+- Each command's work is a file in [commands/](src/commands/), `<name>Command.ts`:
+  `(session, args, options) => Promise<exitCode>`.
+  - `lintCommand` was `checkCommand`, `speedtestCommand` `speedCommand`, until P13.
+  - A mistake throws `CLI.CliError`:  the kit's class, re-exported by [cli.types.ts](src/cli.types.ts),
+    so the kit's `runCommand()` prints just its message.
+- A new or renamed command:
+  FIRST [the commands guide](../../spell.epics/guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
+  - Suggest where it belongs:  a language command is spell-lang's list (its `cli/commands.ts`), with its work here
+    behind the hook while it needs the app;  an app command is [commands.ts](commands.ts)'s.
+  - Then add it to the commands page's `commands.json5`, and run `spell commands check`.
 
 ## Imports
 
@@ -129,10 +79,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   import { CLI } from "$/cli"
   ```
 
+- The kit's base by its npm name, `spell-kit/cli` (its namespace is `CLI` too);  the language commands' types,
+  `spell-lang/cli`.  Our [cli.types.ts](src/cli.types.ts) re-exports what we use of both, so the rest of the
+  folder says `CLI.CliError`, `CLI.CompileOptions`.
 - NOT in the barrel (WWOD §8 › "Barrels"):
-  - The two entry points and the console guard:  importing any has side effects.
-    - [main.ts](src/main.ts), [devMain.ts](src/devMain.ts), [consoleGuard.ts](src/consoleGuard.ts)
-  - Nor `devProgram.ts`:  the lean entry builds on it, and it must load without the barrel.
+  - [consoleGuard.ts](src/consoleGuard.ts):  importing it silences `console.*`
+  - [languageCommands.ts](src/languageCommands.ts):  `loadApp()` loads it after `consoleGuard`
+  - [commands.ts](commands.ts) and [hooks.ts](hooks.ts), outside `src/`:  the kit loads them by path
 
 ## Tests
 
@@ -141,16 +94,14 @@ As WWOD §20, plus:
 - They live in the repo's [tests/cli/](../tests/cli/), at the same paths as the code.
   - E.g. the core contract's test is [contract.test.ts](../tests/cli/src/contract.test.ts), in its `src/`.
   - The core contract's pinned outputs too:  one `<Project>.out.txt` each, in that folder's `__snapshots__/contract/`.
-- They read spell's frozen test projects, [tests/spaces/@spell/test/](../tests/spaces/@spell/test/)
-  (`@test/<Project>`).
+- They read spell's frozen test projects, spell-lang's `tests/spaces/@spell/test/` (`@test/<Project>`).
   See "Projects live in spaces" in [spell's AGENTS.md](../../spell-lang/spell/AGENTS.md).
   - NEVER write into one, nor into its build folder (`build/spaces/@spell/test/...`).
     Compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
-- [cli.test.ts](../tests/cli/src/cli.test.ts) runs the real bin script (`spell.mjs`),
-  as separate processes, with no terminal.
-  - What it hands on to `epic`:  a fake `spell-epic/bin/epic` in a temp checkout, reporting what it got.
-  - The tests that need the real engine (`spell dev plan-doc summary ...`) skip themselves without it (CI).
-- [devMain.test.ts](../tests/cli/src/devMain.test.ts) proves `spell dev` starts lean:
-  nothing [devMain.ts](src/devMain.ts) imports up front reaches the barrel, spell or the epic engine.
+- [cli.test.ts](../tests/cli/src/cli.test.ts) runs the real `spell`:  the KIT's `cli/bin/spell.mjs`, found by
+  package (`spell-kit`), as separate processes, with no terminal.
+  - Every installed repo's command list loads, so it runs spell-lang's commands through our hook, end to end.
+  - It checks the old spellings are gone:  `spell dev`, `spell epic`, `check`, `new`, `serve`, `explore` ...
+- The kit's own commands' tests are the kit's (its `tests/cli/`);  Spell UI's are spell-ui's.
 - The epic command's own tests are spell-epic's (`tests/command/`, `EpicProgram.test.ts`).
 - Screens render through `ink-testing-library`, at a fixed `size`.

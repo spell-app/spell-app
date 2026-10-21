@@ -1,5 +1,7 @@
 /**
- * Helpers for walking the Type Explorer's tree (`LSP.ScopeNode`) -- shared by `spell describe` and `spell explore`.
+ * Helpers for walking the Type Explorer's tree (`LSP.ScopeNode`), for `spell describe`.
+ * - The full-screen `spell explore` used them too, and its tree view's rows (`treeRows()`), until epic `repo-split`
+ *   P13 deleted it.
  * - Pure:  they only read the tree.
  * - The tree's LAST top-level child is the project it was built for;  before it come spell's built-in types,
  *   then the projects that one imports.  See `ScopeExplorer.tree()`.
@@ -46,54 +48,4 @@ export function declaredAt(
   const uri = details?.uri ?? trailTo(tree, path).at(-1)?.uri
   if (!uri || details?.line === undefined) return undefined
   return { uri, line: LSP.firstLine(details.line) }
-}
-
-/**
- * Rows a tree view of `tree` shows, top to bottom -- NOT `tree` itself:  its children are the top level.
- * - Without `filter`:  each node, and the children of those whose `path` is in `expanded`.
- * - With `filter`:  every node whose name holds it -- see `CLI.normalizedName()` -- and their ancestors,
- *   all expanded, so you see where each one is.
- */
-export function treeRows(tree: LSP.ScopeNode, expanded: ReadonlySet<string>, filter = ""): TreeRow[] {
-  const wanted = CLI.normalizedName(filter)
-  const rows: TreeRow[] = []
-  for (const child of tree.children) addRows(child, 0)
-  return rows
-
-  /**
-   * Add rows for `node` at `depth`, and whatever below it shows.
-   * - Returns whether it -- or anything below it -- matches `filter`.
-   */
-  function addRows(node: LSP.ScopeNode, depth: number): boolean {
-    const hasChildren = node.children.length > 0
-    if (!wanted) {
-      const isOpen = hasChildren && expanded.has(node.path)
-      rows.push({ node, depth, hasChildren, isOpen })
-      if (isOpen) for (const child of node.children) addRows(child, depth + 1)
-      return true
-    }
-    // filtering:  add ourselves, then take ourselves back out if nothing here matched
-    const at = rows.push({ node, depth, hasChildren, isOpen: true }) - 1
-    const matches = node.children.map((child) => addRows(child, depth + 1)).some(Boolean)
-    const isMatch = CLI.normalizedName(node.name).includes(wanted)
-    if (!isMatch && !matches) {
-      rows.splice(at)
-      return false
-    }
-    rows[at]!.isOpen = matches
-    return true
-  }
-}
-
-/**
- * One row of a tree view -- see `treeRows()`.
- * - `depth`:  0 for the top level
- * - `hasChildren`:  can it open?
- * - `isOpen`:  are its children the rows below it?
- */
-export type TreeRow = {
-  node: LSP.ScopeNode
-  depth: number
-  hasChildren: boolean
-  isOpen: boolean
 }

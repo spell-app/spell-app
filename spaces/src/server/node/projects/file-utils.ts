@@ -329,8 +329,8 @@ export function loadFiles(paths: string[], format: EncodingFormat, optional?: "O
  * Write `fileData` to disk at server `path` according to file `format` (`SRV.FileOperations.save()`).
  * - Creates any intervening folders as necessary, and writes the whole file at once.
  * - Resolves with `true` on success.
- * - Under `SRV.FileLock`:  writers that cooperate (the app's saves, the page server's page edits, `spell dev plan-doc`,
- *   `spell dev goals`) take turns on the same file.
+ * - Under `SRV.FileLock`:  writers that cooperate (the app's saves, the page server's page edits, `epic`)
+ *   take turns on the same file.
  * - SIDE EFFECT: overwrites any existing file at `path` with no merge/conflict check:  the last save wins.
  * - throws `TypeError` unless `fileData` is text or bytes, e.g. a JSON body parsed into an object
  */

@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { combined, speedTable } from "$/cli/commands/speedCommand"
+import { combined, speedTable } from "$/cli/commands/speedtestCommand"
 
 /** One run's results, as `speedTest.mts` prints them. */
 function run(average: number, min: number, max: number) {

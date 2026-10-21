@@ -52,11 +52,11 @@ when working with code in this folder, `app/` of the `spell-app` package (`spell
     - Spaces' [appRoutes.ts](../spaces/src/server/node/routes/appRoutes.ts) starts it (`EditorServer`)
       once the page server listens, and stops it with the page server.
       - It's a route module ([the kit's server AGENTS.md](../../server/AGENTS.md)).
-    - So `spell dev server` (repo root) runs the API AND the editor.
+    - So `spell server` (repo root) runs the API AND the editor.
       - its URL:  in `.spell-server.editor.json`, at the checkout's root
       - its output:  in `.spell-server.editor.log`
     - `SPELL_NO_EDITOR=1` skips it.
-  - `yarn start`:  restarts the page server, then runs `spell serve --headless`,
+  - `yarn start`:  restarts the page server, then runs `spell app serve --headless`,
     which waits for the editor and prints its URL.
     - `yarn stop` stops vite:  an orphan, or the page server's (then restart the page server).
     - `yarn start:server` / `start:server:prod` still run the API alone,
@@ -95,7 +95,7 @@ when working with code in this folder, `app/` of the `spell-app` package (`spell
     - `spell-runtime.js` takes Solid and `h` through it too, since compiled spell draws with Solid.
       It never takes `spell-ui.js`.
     - Pinned by `element.build.test.ts`.
-  - `spell dev vscode` is NOT here:  it's the repo root's.
+  - `spell app vscode` is NOT here:  it's the repo root's.
   - `yarn lsp:start` and `yarn lsp:scopes` are [lsp](../lsp/)'s.
 - [The app's Monaco plumbing](src/ui/monaco/) (no UI).
   - Its language features call the SAME `LSP.SpellLanguageService`, in-process.
@@ -212,7 +212,7 @@ when working with code in this folder, `app/` of the `spell-app` package (`spell
     - under a `<ui-root>`, once Spell UI is loaded (`spell-ui.js`)
       - `<ui-components source="/element/spell.pack.js">`
       - e.g. the editor demo:  its editors sit beside the apps, outside any `<spell-app>`
-  - The pack is NOT `spell dev pack build`'s one classic script.
+  - The pack is NOT `spell pack build`'s one classic script.
     - [vite.element.config.ts](vite.element.config.ts) writes it, with `componentPack()`:  a classic `spell.pack.js`.
     - Its `define()` imports each family's ES module beside it, one per folder of `components/`.
       - One that won't load is a warning, and the rest still define:

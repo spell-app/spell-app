@@ -10,10 +10,10 @@ import environment from "$/spaces/server/node/environment"
 /**
  * The editor UI -- vite's dev server for `packages/app` (what `yarn start:dev` runs), with hot reload -- as a child
  * of the PAGE server:  it starts when the page server listens, and stops when it stops (`appRoutes.ts`).  So however
- * the page server starts -- `spell dev server`, `spell serve`, an opener, VS Code -- the site header's "Editor" works.
+ * the page server starts -- `spell server`, `spell app serve`, an opener, VS Code -- the site header's "Editor" works.
  * - Port:  `SPELL_EDITOR_PORT`, else `VITE_PORT`, else 3000, if free;  taken (another checkout's editor):  any free
  *   one.  The real URL goes in `<root>/.spell-server.editor.json` (`EDITOR_FILE`) once it answers, where `/editor`
- *   and `spell serve` find it.
+ *   and `spell app serve` find it.
  * - It reaches the page server's `/api` through vite's proxy, by IP:  `localhost` may be ::1 first, where the page
  *   server doesn't listen.
  * - Its output goes to `<root>/.spell-server.editor.log`, through a pipe:  the record is written when vite itself
@@ -93,7 +93,7 @@ export class EditorServer {
   }
 }
 
-/** Where the editor is recorded, relative to the checkout:  read by `appRoutes.ts`'s `/editor` and `spell serve`. */
+/** Where the editor is recorded, relative to the checkout:  read by `appRoutes.ts`'s `/editor` and `spell app serve`. */
 export const EDITOR_FILE = ".spell-server.editor.json"
 
 /** `packages/app`, where vite runs (its `vite.config.ts`), and its builds are:  `dist/`, `dist-element/` ... */

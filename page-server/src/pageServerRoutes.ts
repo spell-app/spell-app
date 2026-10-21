@@ -4,7 +4,7 @@ import { BundleBuild, HIGHLIGHT_JS, MOVED_FOLDERS, MOVED_OUT } from "$/page-serv
 /**
  * What only spell-app's page server does, on the generic one (`$/server/page`'s `PageServer`):  a ROUTE MODULE,
  * listed FIRST in the repo root's `package.json` `"pageServer": { "routes": [...] }` (epic `repo-split` P4).
- * - builds the bundles it serves, which aren't committed (`BundleBuild`):  `spell dev bundles build --stale`,
+ * - builds the bundles it serves, which aren't committed (`BundleBuild`):  `spell bundle --stale`,
  *   as it starts;  a request for a missing file of one waits while that runs
  * - swaps the cdnjs highlight.js tag on every page for the engine's copy (`localHighlight()`):  pages load offline
  * - the bridges for the SHARED pages, which every checkout shows:

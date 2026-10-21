@@ -1,6 +1,6 @@
 import type { ChildProcess } from "node:child_process"
 import { EventEmitter } from "node:events"
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { PassThrough } from "node:stream"
@@ -56,14 +56,21 @@ const SETTINGS = JSON.stringify({ pageServer: { bundles: BUNDLES, componentSets:
 ////////////////
 
 describe("BundleBuild", () => {
-  const root = mkdtempSync(join(tmpdir(), "page-server-bundles-"))
+  // its REAL path:  on macOS `tmpdir()` is a symlink, and the kit is found by package, by its real path
+  const root = realpathSync(mkdtempSync(join(tmpdir(), "page-server-bundles-")))
   let web: SRV.WebServer | undefined
   let build: BundleBuild
   let child: FakeChild
 
   beforeAll(() => {
     put(root, "package.json", SETTINGS)
-    put(root, "cli/bin/spell.mjs", "")
+    // a fake kit in its install:  its `spell`, found by package (`kitSpell()`)
+    put(
+      root,
+      "node_modules/spell-kit/package.json",
+      JSON.stringify({ name: "spell-kit", exports: { "./package.json": "./package.json" } })
+    )
+    put(root, "node_modules/spell-kit/cli/bin/spell.mjs", "")
     put(root, "packages/brand/_assets/ui/brand-ui.js", "export const OLD = 1")
     put(root, "guides/page.html", "<p>page</p>")
   })
@@ -86,13 +93,13 @@ describe("BundleBuild", () => {
 
   afterAll(() => rmSync(root, { recursive: true, force: true }))
 
-  test("runs the checkout's OWN CLI, `dev bundles build --stale`, in a process group of its own", () => {
+  test("runs the checkout's OWN `spell`, the kit's (`spell bundle --stale`), in a process group of its own", () => {
     vi.spyOn(console, "log").mockImplementation(() => {})
     const spawn = spawnOf(new FakeChild())
     new BundleBuild({ root, spawn }).start()
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
-      [join(root, "cli/bin/spell.mjs"), "dev", "bundles", "build", "--stale"],
+      [join(root, "node_modules/spell-kit/cli/bin/spell.mjs"), "bundle", "--stale"],
       expect.objectContaining({ cwd: root, detached: true })
     )
   })
@@ -139,7 +146,7 @@ describe("BundleBuild", () => {
     child.stderr.write("building ui-site ...\n")
     await vi.waitFor(() => expect(log).toHaveBeenCalledTimes(3))
     expect(log.mock.calls.map(([line]) => line)).toEqual([
-      "bundles:  checking (spell dev bundles build --stale)",
+      "bundles:  checking (spell bundle --stale)",
       "bundles:  built brand in 1.5s",
       "bundles:  building ui-site ..."
     ])

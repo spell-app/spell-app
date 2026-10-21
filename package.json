@@ -6,8 +6,9 @@
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
   "type": "module",
-  "bin": {
-    "spell": "cli/bin/spell.mjs"
+  "spell": {
+    "commands": "./cli/commands.ts",
+    "hooks": "./cli/hooks.ts"
   },
   "spellFolders": [
     {
@@ -61,7 +62,7 @@
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "test:watch": "vp test",
     "/////// THE EDITOR APP (app/)": "",
-    "start": "yarn && yarn workspace spell-kit server stop && cd app && node ../cli/bin/spell.mjs serve --headless",
+    "start": "yarn && spell server stop && cd app && spell app serve --headless",
     "stop": "cd app && node scripts/stop.mjs",
     "start:dev": "cd app && vp dev",
     "start:server": "cd app && tsx watch --import spell-kit/toolchain/aliases ../spaces/src/server/node/routes/cli.ts",
@@ -77,29 +78,21 @@
     "/////// THE LANGUAGE SERVER (lsp/)": "",
     "lsp:start": "cd lsp && tsx --import spell-kit/toolchain/aliases src/server.ts --stdio",
     "lsp:scopes": "cd lsp && tsx --import spell-kit/toolchain/aliases src/scopes.ts",
-    "/////// THE spell COMMAND (cli/)": "",
-    "spell": "node cli/bin/spell.mjs",
-    "cli:install": "node cli/scripts/install-cli.mjs",
+    "/////// THE spell COMMAND (the kit's bin;  this repo's own commands:  cli/commands.ts)": "",
+    "spell": "spell",
     "/////// REPO TOOLS (the spell command's)": "",
-    "vscode": "node cli/bin/spell.mjs dev vscode",
-    "vscode:build": "node cli/bin/spell.mjs dev vscode build",
-    "vscode:install": "node cli/bin/spell.mjs dev vscode install",
-    "docs:update": "node cli/bin/spell.mjs dev docs update",
-    "docs:index": "node cli/bin/spell.mjs dev docs index",
-    "docs:new": "node cli/bin/spell.mjs dev docs new",
-    "docs:open": "node cli/bin/spell.mjs dev docs open",
+    "vscode": "spell app vscode",
+    "vscode:build": "spell app vscode build",
+    "vscode:install": "spell app vscode install",
     "epic": "epic",
     "ask": "epic ask",
-    "plan-doc": "node cli/bin/spell.mjs dev plan-doc",
-    "details": "node cli/bin/spell.mjs dev details",
-    "docs:link": "node cli/bin/spell.mjs dev docs link",
-    "window": "node cli/bin/spell.mjs dev window",
-    "server": "node cli/bin/spell.mjs dev server",
-    "serve": "node cli/bin/spell.mjs dev server start --all",
-    "dev": "SPELL=\"$PWD/cli/bin/spell.mjs\" && cd \"$INIT_CWD\" && node \"$SPELL\" run",
-    "dev:ts": "SPELL=\"$PWD/cli/bin/spell.mjs\" && cd \"$INIT_CWD\" && node \"$SPELL\" run --target ts",
-    "dev:py": "SPELL=\"$PWD/cli/bin/spell.mjs\" && cd \"$INIT_CWD\" && node \"$SPELL\" run --target py",
-    "commands:check": "node cli/bin/spell.mjs dev commands check"
+    "window": "epic window",
+    "server": "spell server",
+    "serve": "spell server start all",
+    "dev": "cd \"$INIT_CWD\" && spell run",
+    "dev:ts": "cd \"$INIT_CWD\" && spell run --target ts",
+    "dev:py": "cd \"$INIT_CWD\" && spell run --target py",
+    "commands:check": "spell commands check"
   },
   "dependencies": {
     "@inkjs/ui": "^2",

@@ -1,5 +1,0 @@
-{
-  // __pack__'s tests:  __pack__'s own settings (packages/__pack__/tsconfig.json), over this folder
-  "extends": "../../packages/__pack__/tsconfig.json",
-  "include": ["."]
-}

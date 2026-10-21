@@ -8,7 +8,7 @@ import { CLI } from "$/cli"
 
 /****************
  * ### `EditorPages`
- * A project's EDITOR PAGES, checked against its types, for `spell check` (epic `property-editor` P6, decision Q17).
+ * A project's EDITOR PAGES, checked against its types, for `spell lint` (epic `property-editor` P6, decision Q17).
  * - An editor page is a property editor's layout, saved as plain markup:  `Card.editor.html`.
  *   - Its root is `<ui-property-editor schema="Card">`, whose `schema` names one of the project's types.
  *   - Inside:  a `<ui-property name>` per property, in `<ui-property-group>`s or not.
@@ -17,7 +17,7 @@ import { CLI } from "$/cli"
  * - What's wrong with a page, and how to put it right, is Spell UI's `PropertyEditorPages`.
  *   This class finds the pages, reads each into a DOM (linkedom's, in node),
  *   and says where on the page each problem is.
- * - Each problem is a `CLI.Problem`, so `spell check` prints it as it does any other (`path:line:col  message`).
+ * - Each problem is a `CLI.Problem`, so `spell lint` prints it as it does any other (`path:line:col  message`).
  ****************/
 export class EditorPages {
   /** The run. */
