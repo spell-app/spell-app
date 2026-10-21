@@ -104,6 +104,9 @@ More on some of them:
     ([ComponentPack.ts](../spell-ui/tools/ComponentPack.ts)):  each pack's `yarn pack:build`.
     `spell dev pack build <pack>` calls the same tool, and finds the brand's pack in `../spell-brand/`.
   - The top bar's Spell/UI, Epic/UI and App/UI tabs;  the brand's set lights the Brand tab.
+    - The tabs are settings too:  `siteTabs`, in the root `package.json`'s `"pageServer"`, in the bar's order, each
+      naming what lights it (epic `repo-split` I4;  [spell-server's server AGENTS.md](../spell-server/server/AGENTS.md)).
+      spell-server's header names none of them;  `tests/page-server/src/siteTabs.test.ts` pins them.
   - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found" (Q30).
 
 ### The other repos

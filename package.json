@@ -114,6 +114,94 @@
         "assets": "../spell-ui/site/_assets"
       }
     },
+    "siteTabs": [
+      {
+        "name": "Guides",
+        "path": "guides/index.html",
+        "areas": [
+          "guides"
+        ]
+      },
+      {
+        "name": "Sagas",
+        "path": "sagas/index.html",
+        "areas": [
+          "sagas",
+          "goals"
+        ]
+      },
+      {
+        "name": "Epics",
+        "path": "epics/index.html",
+        "areas": [
+          "epics"
+        ]
+      },
+      {
+        "name": "Epic/UI",
+        "path": "/components/epics/",
+        "serverOnly": true,
+        "sets": [
+          "epics"
+        ],
+        "paths": [
+          "/packages/epics/docs/",
+          "/spell-epic/src/docs/"
+        ]
+      },
+      {
+        "name": "Spell/UI",
+        "path": "/components/ui/",
+        "serverOnly": true,
+        "sets": [
+          "ui"
+        ],
+        "paths": [
+          "/packages/ui/docs/",
+          "/packages/ui/site/"
+        ]
+      },
+      {
+        "name": "App",
+        "path": "/editor/",
+        "serverOnly": true,
+        "ownTab": true,
+        "paths": [
+          "^/editor(/|$)"
+        ]
+      },
+      {
+        "name": "App/UI",
+        "path": "/components/app/",
+        "serverOnly": true,
+        "sets": [
+          "app"
+        ],
+        "paths": [
+          "/packages/app/docs/"
+        ]
+      },
+      {
+        "name": "Brand",
+        "path": "brand/index.html",
+        "areas": [
+          "brand"
+        ],
+        "sets": [
+          "brand"
+        ],
+        "paths": [
+          "/packages/brand/docs/"
+        ]
+      },
+      {
+        "name": "Templates",
+        "path": "templates/index.html",
+        "areas": [
+          "templates"
+        ]
+      }
+    ],
     "engineRoutes": {
       "/_epic/assets/": "../spell-epic/src/tools/_assets",
       "/_epic/pack/": "../spell-epic/src/components/__pack",
