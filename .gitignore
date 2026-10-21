@@ -64,3 +64,6 @@ dist-types/
 # the MAIN checkout's marker:  worktree windows hide its folder's files (spell-epic's window script, `filesExclude()`)
 /.spell-main
 *.code-workspace
+
+# graphify's knowledge graph:  rebuilt on demand, never committed
+graphify-out/
