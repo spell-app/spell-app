@@ -412,10 +412,14 @@ yarn ts    yarn lint    yarn format    yarn test    yarn review
 - `yarn review` runs them all, and FIXES lint and formatting as it goes.
 - `yarn test` is one Vitest run, a project per folder, then spaces' Python tests (pytest).
   - One folder's:  `yarn vp test run --project spaces`.
-    The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`.
+    The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`.
 - Tests live in `tests/<folder>/`, at the same paths as the code they test:
   [projectGroups.ts](src/spaces/models/projectGroups.ts) is tested by
   [projectGroups.test.ts](tests/spaces/models/projectGroups.test.ts).
+- [tests/spell/](tests/spell/) checks the language on the frozen test projects, [spaces/@spell/test/](spaces/@spell/test/):
+  each one's snapshots, what `tsc` and pyright say of it, whole-project parsing.
+  - `yarn spell:test:fixtures` runs the snapshot tests;  `yarn spell:test:fixtures:bless` rewrites the snapshots,
+    and the diff is the review.
   The app's browser tests (`*.browser.test.tsx`, and `.ts`) run in headless Chromium.
 - App UI, the docs pages of the app's components, is at `http://127.0.0.1:4747/components/app/`
   while the page server runs:  one page per component, with live examples and pictures.

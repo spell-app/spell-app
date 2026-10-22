@@ -116,21 +116,19 @@ export function isBuiltFile(location: SP.SpellLocation): boolean {
 /**
  * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`:
  * its path MIRRORED under `build/` at the repo root (epic `people-and-orgs` P11).
- * - The frozen test projects (the `tests` space folder, spell-lang's `tests/spaces/`):  under `build/spaces/`
- *   - `<spell-lang>/tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  * - Under the repo (its packages, its `tests/`):  the same path under `build/`
  *   - `spaces/@spell/examples/drawable-solitaire` => `build/spaces/@spell/examples/drawable-solitaire`
+ *   - the frozen test projects too:  `spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  * - Under spell-spaces:  under `build/spell-spaces/`, so each checkout builds its own
  *   - `<spell-spaces>/@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
  * - A project anywhere else -- a temporary `@local/<folder>` group, a VS Code workspace elsewhere:
  *   `projectFolder` itself, beside its source, as before `build/`.
  *   - NEVER a `build/` inside its root's folder:  that would list as one of its projects.
- * - `folders`:  where the packages, the test projects, spell.spaces and `build/` are.
+ * - `folders`:  where the packages, spell.spaces and `build/` are.
  *   - `environment`'s by default;  tests pass their own.
  */
 export function buildFolderFor(projectFolder: string, folders: BuildFolders = environment): string {
   const mirrors: Array<[string | undefined, string]> = [
-    [folders.testsDir, resolve(folders.buildDir, "spaces")],
     [folders.repoDir && resolve(folders.repoDir, "tests"), folders.buildDir],
     [folders.packagesDir, folders.buildDir],
     [folders.spellSpacesDir, resolve(folders.buildDir, "spell-spaces")]
@@ -147,14 +145,12 @@ export function buildFolderFor(projectFolder: string, folders: BuildFolders = en
  * Where `buildFolderFor()` mirrors from, and to.
  * - `packagesDir`, `buildDir`:  where the repo's packages are (its root, epic `repo-split` P8) and its `build/`
  * - `repoDir`:  the checkout, whose `tests/` mirror too
- * - `testsDir`:  the `tests` space folder, the frozen test projects' (spell-lang's `tests/spaces/`):  under `build/spaces/`
  * - `spellSpacesDir`:  spell-spaces, mirrored under `build/spell-spaces/`
  */
 export type BuildFolders = {
   packagesDir: string
   buildDir: string
   repoDir?: string
-  testsDir?: string
   spellSpacesDir?: string
 }
 

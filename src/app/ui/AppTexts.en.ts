@@ -110,7 +110,7 @@ export const APP_TEXTS = {
   "Type.fixture": "Fixture",
   "theType.fixture": "the fixture",
   "title.fixture": "Test fixtures",
-  "description.fixture": "Frozen projects tests run against -- edit one, then `yarn test:fixtures:bless`",
+  "description.fixture": "Frozen projects tests run against -- edit one, then `yarn spell:test:fixtures:bless`",
 
   ////////////////
   // ## Notices and errors (`editor.ts`)

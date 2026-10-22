@@ -117,7 +117,7 @@ const APP_TEXTS_ES: AppTextPack = {
   "theType.fixture": "el proyecto de prueba",
   "title.fixture": "Proyectos de prueba",
   "description.fixture":
-    "Proyectos congelados contra los que corren las pruebas:  edita uno, y luego `yarn test:fixtures:bless`",
+    "Proyectos congelados contra los que corren las pruebas:  edita uno, y luego `yarn spell:test:fixtures:bless`",
 
   ////////////////
   // ## Notices and errors

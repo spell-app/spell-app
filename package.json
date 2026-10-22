@@ -55,6 +55,10 @@
       "spell-app-source": "./src/spaces/index.ts",
       "default": "./src/spaces/index.ts"
     },
+    "./spaces/test": {
+      "spell-app-source": "./src/spaces/test/index.ts",
+      "default": "./src/spaces/test/index.ts"
+    },
     "./lsp": {
       "spell-app-source": "./src/lsp/index.ts",
       "default": "./src/lsp/index.ts"
@@ -94,6 +98,9 @@
     "format:check": "vp fmt --check && uv run --directory src/spaces/server/py ruff format --check . ../../../../tests/spaces/server/py/tests",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "test:watch": "vp test",
+    "/////// SPELL'S FROZEN TEST PROJECTS (spaces/@spell/test/;  their tests:  tests/spell/)": "",
+    "spell:test:fixtures": "vp test run --project spell tests/spell/test/fixtures.test.ts tests/spell/test/typescript.test.ts tests/spell/test/python.test.ts",
+    "spell:test:fixtures:bless": "vp test run --project spell tests/spell/test/fixtures.test.ts tests/spell/test/typescript.test.ts tests/spell/test/python.test.ts --update=all",
     "/////// THE EDITOR APP (src/app/;  its build:  app/)": "",
     "start": "yarn && spell server stop && cd app && spell app serve --headless",
     "stop": "cd app && node scripts/stop.mjs",

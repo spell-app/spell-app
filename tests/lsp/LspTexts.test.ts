@@ -5,7 +5,7 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 
 import { SP } from "spell-lang/spell"
-import { fixturePath } from "spell-lang/spell/test"
+import { fixturePath } from "spell-app/spaces/test"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
 

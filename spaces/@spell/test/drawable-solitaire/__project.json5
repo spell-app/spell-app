@@ -1,0 +1,24 @@
+{
+  "imports": [
+    {
+      "path": "/Card.spell",
+      "active": true
+    },
+    {
+      "path": "/Deck.spell",
+      "active": true
+    },
+    {
+      "path": "/Pile.spell",
+      "active": true
+    },
+    {
+      "path": "/Solitaire.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

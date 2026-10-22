@@ -11,7 +11,7 @@ import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { scopesFromPacks } from "spell-app/lsp/ScopesSource"
-import { compiledFixture, fixtureDeclarations, fixturePath } from "spell-lang/spell/test"
+import { compiledFixture, fixtureDeclarations, fixturePath } from "spell-app/spaces/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */
 describe("ScopeExplorer", () => {

@@ -24,6 +24,7 @@
     // node-only:  tsconfig.node.json's
     "src/app/tools",
     "src/spaces/server",
+    "src/spaces/test",
     "src/lsp/SpellDiskWorkspace.ts",
     "src/lsp/scopes.ts",
     "src/lsp/server.ts",

@@ -22,9 +22,9 @@ const packagesDir = repoDir
 /**
  * Where compiled output goes, `build/` at the repo root (epic `people-and-orgs` P11):  never committed.
  * - Each project's own folder there MIRRORS its path:  `buildFolderFor()`, in `projects/project-utils.ts`.
- *   - the frozen test projects (the `tests` space folder):  under `build/spaces/`, `build/spaces/@spell/test/fizzbuzz`
  *   - under this repo:  the same path under `build/`
  *     - `spaces/@spell/examples/drawable-solitaire` => `build/spaces/@spell/examples/drawable-solitaire`
+ *     - the frozen test projects too:  `spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  *   - under spell.spaces:  under `build/spell-spaces/`, `build/spell-spaces/@spell/owen@/errors`
  * - `SPELL_BUILD_DIR` sets it, e.g. the server's contract test's temporary folder.
  */
@@ -78,19 +78,14 @@ const spellSpacesDir = process.env.SPELL_SPACES_DIR
 
 /**
  * The folder holding each `SP.SpaceFolderBase` (`SP.SpellUrls.folderFor()`):
- * - `builtins`:  `spaces/`, holding the `@spell` space's built-in projects, `@spell/examples/` ...
- * - `tests`:  spell-lang's `tests/spaces/`, holding spell's frozen test projects, `@spell/test/` (epic `repo-split`
- *   C11:  spell's own tests read them, so they're spell-lang's;  found through the installed `spell-lang/spell`, whose
- *   `src/index.ts` is two folders below spell-lang's root)
+ * - `builtins`:  `spaces/`, holding the `@spell` space's projects:  the built-in groups (`@spell/examples/` ...) and the
+ *   frozen test projects, `@spell/test/` (spell-lang's `tests/spaces/` until epic `spanish` P18)
  * - `spaces`:  spell-spaces
- * - `SPELL_BUILTINS_DIR` / `SPELL_TESTS_DIR` set the first two:
+ * - `SPELL_BUILTINS_DIR` sets the first:
  *   so the server's contract test (`api.test.ts`) can point the server at a temporary copy, and never write into the repo.
  */
 const spaceFolders = {
   builtins: process.env.SPELL_BUILTINS_DIR ? resolve(process.env.SPELL_BUILTINS_DIR) : resolve(packagesDir, "spaces"),
-  tests: process.env.SPELL_TESTS_DIR
-    ? resolve(process.env.SPELL_TESTS_DIR)
-    : resolve(srcDir, "..", "..", "tests", "spaces"),
   spaces: spellSpacesDir
 }
 
@@ -110,16 +105,14 @@ const environment = {
   staticDir,
   spellSpacesDir,
   packageFolder,
-  /** the frozen test projects' space folder (`spaceFolders.tests`):  `buildFolderFor()` mirrors it into `build/spaces/` */
-  testsDir: spaceFolders.tests,
   spaceFolders,
   /** The built-in projects, e.g. `spaces/@spell/examples/drawable-solitaire` -- the `@spell/...` groups. */
   systemFilesRoot: resolve(spaceFolders.builtins, "@spell"),
   /**
-   * Frozen projects tests run against, e.g. `tests/spaces/@spell/test/solitaire` -- `@spell/test`.
-   * See `spell-lang/spell/test`.
+   * Frozen projects tests run against, e.g. `spaces/@spell/test/solitaire` -- `@spell/test`.
+   * See `spell-app/spaces/test`.
    */
-  testFilesRoot: resolve(spaceFolders.tests, "@spell", "test"),
+  testFilesRoot: resolve(spaceFolders.builtins, "@spell", "test"),
   /**
    * This machine's person's own projects, e.g. `<spell-spaces>/@spell/owen@/errors` -- `owen@spell`.
    * - MUST be the folder of `SPACES.LOCAL_PERSON`'s space (a test checks).
@@ -127,7 +120,5 @@ const environment = {
    */
   userFilesRoot: resolve(spellSpacesDir, "@spell", "owen@")
 }
-
-console.warn({ environment })
 
 export default environment

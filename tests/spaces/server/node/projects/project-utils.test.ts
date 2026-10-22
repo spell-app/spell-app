@@ -67,9 +67,8 @@ describe("buildFolderFor()", () => {
     )
   })
 
-  test("a frozen test project, in the `tests` space folder (spell-lang's):  under `build/spaces/`", () => {
-    const withTests = { ...folders, testsDir: "/spell-lang/tests/spaces" }
-    expect(projectUtils.buildFolderFor("/spell-lang/tests/spaces/@spell/test/Proj", withTests)).toBe(
+  test("a frozen test project, beside the built-in groups (`spaces/@spell/test/`):  the same path under `build/`", () => {
+    expect(projectUtils.buildFolderFor("/repo/packages/spaces/@spell/test/Proj", folders)).toBe(
       "/repo/build/spaces/@spell/test/Proj"
     )
   })

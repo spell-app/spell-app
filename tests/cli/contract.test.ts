@@ -15,7 +15,7 @@ import {
   fixtureImports,
   fixtureLanguage,
   fixtureProjectNames
-} from "spell-lang/spell/test"
+} from "spell-app/spaces/test"
 import { CLI } from "spell-app/cli"
 
 /**

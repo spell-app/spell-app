@@ -1,0 +1,128 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Person",
+    "DatedEvent",
+    "Note",
+    "Relationship",
+    "FriendList"
+  ],
+  "statements": [
+    {
+      "type": "Person",
+      "superType": "Thing",
+      "defined": "/People.spell:296-451"
+    },
+    {
+      "property": "name",
+      "of": "Person",
+      "datatype": "text",
+      "defined": "/People.spell:326-347"
+    },
+    {
+      "property": "nickname",
+      "of": "Person",
+      "datatype": "text",
+      "defined": "/People.spell:351-376"
+    },
+    {
+      "property": "emails",
+      "of": "Person",
+      "datatype": "list of texts",
+      "defined": "/People.spell:380-410"
+    },
+    {
+      "property": "dates",
+      "of": "Person",
+      "datatype": "list of datedevents",
+      "defined": "/People.spell:414-451"
+    },
+    {
+      "type": "DatedEvent",
+      "superType": "Thing",
+      "defined": "/People.spell:453-558"
+    },
+    {
+      "property": "label",
+      "of": "DatedEvent",
+      "datatype": "text",
+      "defined": "/People.spell:488-510"
+    },
+    {
+      "property": "day",
+      "of": "DatedEvent",
+      "datatype": "date",
+      "defined": "/People.spell:514-536"
+    },
+    {
+      "type": "Note",
+      "superType": "Thing",
+      "defined": "/People.spell:560-609"
+    },
+    {
+      "property": "body",
+      "of": "Note",
+      "datatype": "text",
+      "defined": "/People.spell:588-609"
+    },
+    {
+      "type": "Relationship",
+      "superType": "Thing",
+      "defined": "/People.spell:611-733"
+    },
+    {
+      "property": "kind",
+      "of": "Relationship",
+      "datatype": "text",
+      "defined": "/People.spell:647-668"
+    },
+    {
+      "property": "person",
+      "of": "Relationship",
+      "datatype": "Person",
+      "defined": "/People.spell:672-699"
+    },
+    {
+      "property": "notes",
+      "of": "Relationship",
+      "datatype": "list of notes",
+      "defined": "/People.spell:703-733"
+    },
+    {
+      "type": "FriendList",
+      "superType": "Thing",
+      "defined": "/People.spell:735-841"
+    },
+    {
+      "property": "name",
+      "of": "FriendList",
+      "datatype": "text",
+      "defined": "/People.spell:770-791"
+    },
+    {
+      "property": "relationships",
+      "of": "FriendList",
+      "datatype": "list of relationships",
+      "defined": "/People.spell:795-841"
+    }
+  ],
+  "codeLines": [
+    10,
+    11,
+    16,
+    21,
+    26,
+    32,
+    35,
+    40,
+    46,
+    47,
+    53,
+    54,
+    59,
+    64,
+    70,
+    71,
+    76
+  ]
+}
