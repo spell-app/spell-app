@@ -95,6 +95,12 @@ describe("grammar probes", () => {
     )
   })
 
+  test("P2c+ `unicode 1F0A0 +` takes the sum, but stops before a comparison (epic `spanish` P11)", () => {
+    expect(probe("print unicode 1F0A0 + x * 2 is y")).toMatchInlineSnapshot(
+      `"core.console.log(core.unicode(0x1F0A0 + x * 2) == y)"`
+    )
+  })
+
   test("P2d  `draw_thing` at precedence 100", () => {
     expect(probe("draw the cards of the deck")).toMatchInlineSnapshot(`"core.drawItems(deck)"`)
   })

@@ -19,7 +19,7 @@
     {
       "type": "Card",
       "superType": "Thing",
-      "defined": "/Card.spell:175-3632"
+      "defined": "/Card.spell:175-3423"
     },
     {
       "property": "suit",
@@ -220,23 +220,23 @@
       "asWritten": "picture column",
       "of": "Card",
       "datatype": "number",
-      "defined": "/Card.spell:2672-2791"
+      "defined": "/Card.spell:2311-2430"
     },
     {
       "property": "picture",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2795-2871"
+      "defined": "/Card.spell:2434-2662"
     },
     {
       "property": "front",
       "of": "Card",
-      "defined": "/Card.spell:2924-3079"
+      "defined": "/Card.spell:2715-2870"
     },
     {
       "property": "back",
       "of": "Card",
-      "defined": "/Card.spell:3083-3290"
+      "defined": "/Card.spell:2874-3081"
     },
     {
       "syntax": "turn {thisArg:expression} face up",
@@ -250,7 +250,7 @@
       "kind": "method",
       "name": "turn it face up",
       "waits": true,
-      "defined": "/Card.spell:3387-3452"
+      "defined": "/Card.spell:3178-3243"
     },
     {
       "syntax": "turn {thisArg:expression} face down",
@@ -264,7 +264,7 @@
       "kind": "method",
       "name": "turn it face down",
       "waits": true,
-      "defined": "/Card.spell:3456-3525"
+      "defined": "/Card.spell:3247-3316"
     },
     {
       "syntax": "turn {thisArg:expression} over",
@@ -278,43 +278,43 @@
       "kind": "method",
       "name": "turn it over",
       "waits": true,
-      "defined": "/Card.spell:3529-3632"
+      "defined": "/Card.spell:3320-3423"
     },
     {
       "type": "Joker",
       "superType": "Card",
-      "defined": "/Card.spell:3718-4073"
+      "defined": "/Card.spell:3509-3864"
     },
     {
       "property": "color",
       "of": "Joker",
       "datatype": "Color",
-      "defined": "/Card.spell:3815-3837"
+      "defined": "/Card.spell:3606-3628"
     },
     {
       "property": "name",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:3841-3876"
+      "defined": "/Card.spell:3632-3667"
     },
     {
       "property": "short_name",
       "asWritten": "short name",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:3910-3934"
+      "defined": "/Card.spell:3701-3725"
     },
     {
       "property": "state",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:3938-3990"
+      "defined": "/Card.spell:3729-3781"
     },
     {
       "property": "picture",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:3994-4073"
+      "defined": "/Card.spell:3785-3864"
     },
     {
       "type": "Suit",
@@ -338,13 +338,6 @@
       "of": "Suit",
       "datatype": "text",
       "defined": "/Card.spell:495-630"
-    },
-    {
-      "property": "picture_row",
-      "asWritten": "picture row",
-      "of": "Suit",
-      "datatype": "number",
-      "defined": "/Card.spell:2410-2668"
     },
     {
       "type": "Rank",
@@ -395,7 +388,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spell:4085-5436"
+      "defined": "/Card.spell:3876-5227"
     },
     {
       "syntax": "test jokers",
@@ -404,7 +397,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "jokers",
-      "defined": "/Card.spell:5438-6155"
+      "defined": "/Card.spell:5229-5946"
     },
     {
       "type": "Deck",
@@ -528,40 +521,39 @@
     82,
     87,
     91,
-    95,
-    101,
-    106,
-    116,
-    129,
-    134,
-    139,
-    160,
-    162,
-    168,
+    104,
+    110,
+    118,
+    128,
+    141,
+    146,
+    151,
     172,
-    176,
+    174,
     180,
-    187,
+    184,
     188,
-    193,
-    211,
+    192,
+    199,
+    200,
+    205,
+    213,
+    214,
+    218,
     222,
-    223,
-    227,
-    231,
-    291,
-    328,
-    332,
-    338,
+    282,
+    319,
+    323,
+    329,
+    341,
     350,
-    359,
-    384,
-    404,
-    408,
-    414,
-    419,
-    425,
-    435,
-    438
+    375,
+    395,
+    399,
+    405,
+    410,
+    416,
+    426,
+    429
   ]
 }

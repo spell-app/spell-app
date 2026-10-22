@@ -53,16 +53,14 @@ a "card" is a thing where:
 	// The block is a grid:  a row for each suit, and in each row, a column for each rank.
 	// - The rows start at 1F0A0 (spades), 1F0B0 (hearts), 1F0C0 (diamonds) and 1F0D0 (clubs).
 	// - The columns run ace 1, 2 ... 10, jack B, then a knight our deck doesn't have, C, then queen D and king E.
-	// NOTE:  each row's start is in decimal, its hex beside it:  spell can't add to a hex number yet
-	- the "picture row" of a suit is:
-		127136 if it is spades                      // 1F0A0
-		127152 if it is hearts                      // 1F0B0
-		127168 if it is diamonds                    // 1F0C0
-		127184 otherwise                            // 1F0D0, clubs
 	- its "picture column" is:
 		its value + 1 if it is a queen or it is a king      // past the knight
 		its value otherwise
-	- its "picture" is: unicode (the picture row of its suit + its picture column)
+	- its "picture" is:
+		unicode 1F0A0 + its picture column if it is a spade
+		unicode 1F0B0 + its picture column if it is a heart
+		unicode 1F0C0 + its picture column if it is a diamond
+		unicode 1F0D0 + its picture column otherwise
 
 	## drawing:  its picture, face up or face down
 	- to "draw its front":

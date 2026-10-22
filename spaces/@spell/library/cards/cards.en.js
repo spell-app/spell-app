@@ -39,8 +39,7 @@ export const words = {
     },
     Suit: {
       color: "color",
-      symbol: "symbol",
-      pictureRow: "picture row"
+      symbol: "symbol"
     },
     Rank: {
       isAFaceCard: "is a face card"
