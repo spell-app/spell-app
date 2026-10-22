@@ -80,8 +80,14 @@ export async function runTarget(
   }
 }
 
-/** One project `project` imports, as written for a target:  its file's URL, and its drawing half's file, if any. */
-type WrittenImport = { url: string; module: string; elements?: string }
+/**
+ * One project a program imports, as written beside it for a target -- see `writeImports()`.
+ * - `file`:  its code's file name, in that folder, e.g. `cards.py`
+ * - `url`:  that file's URL
+ * - `module`:  the module the program's drawing half imports it as, e.g. `@spell/project/@spell/library/cards`
+ * - `elements`:  its drawing half's file name, in that folder, if it draws, e.g. `cards.elements.spell.js`
+ */
+export type WrittenImport = { file: string; url: string; module: string; elements?: string }
 
 /**
  * SIDE EFFECT:  each project `project` imports, and each they import,
@@ -89,8 +95,10 @@ type WrittenImport = { url: string; module: string; elements?: string }
  * - Python:  a module of the project's name, `cards.py`, beside the program:  `from cards import Card`;
  *   and its drawing half, `cards.elements.spell.js`, which the app serves.
  * - TypeScript:  built (`buildTsx()`) to `<Project>.spell.mjs`.
+ * - `spell run --target` writes them into its temp folder;
+ *   `spell compile` writes Python's into the program's build folder (`importsBeside()`).
  */
-async function writeImports(
+export async function writeImports(
   project: SP.SpellProject,
   target: SP.Target,
   folder: string,
@@ -103,13 +111,13 @@ async function writeImports(
     const name = imported.projectName ?? imported.projectId
     let code = imported.outputFileFor(target).contents ?? ""
     let file: string
-    if (target.name === "py") file = `${PY.PyWriter.projectModule(module)}.py`
+    if (importsBeside(target)) file = `${PY.PyWriter.projectModule(module)}.py`
     else {
       code = await buildTsx(code, { filename: `${name}${target.suffix}` })
       file = `${name}.spell.mjs`
     }
     writeFileSync(join(folder, file), code)
-    const entry: WrittenImport = { url: pathToFileURL(join(folder, file)).href, module }
+    const entry: WrittenImport = { file, url: pathToFileURL(join(folder, file)).href, module }
     const elements = imported.elementsFileFor(target)?.contents
     if (elements && target.elementsSuffix) {
       entry.elements = `${PY.PyWriter.projectModule(module)}${target.elementsSuffix}`
@@ -119,6 +127,15 @@ async function writeImports(
     await writeImports(imported, target, folder, written)
   }
   return written
+}
+
+/**
+ * Does `target`'s code import other projects from files beside it?
+ * - Python does, `from cards import Card`:  so compiling writes each one there too (`writeImports()`).
+ * - javascript and TypeScript import them by module name, `@spell/project/...`, which a runner or `tsc` resolves.
+ */
+export function importsBeside(target: SP.Target): boolean {
+  return target.name === "py"
 }
 
 /**
