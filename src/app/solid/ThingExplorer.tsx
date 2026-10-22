@@ -15,26 +15,29 @@ import "./ThingExplorer.css"
  * ### `<ThingExplorer>`
  * Things the running program has made:  a tree of them on the left -- its top-level things, then all of them --
  * and the selected thing's properties and actions on the right, live as the program changes them.
- * - `things` is the registry of the runtime copy the program runs on, e.g. `loaded.runtime.core.things` --
- *   NEVER the page's own `core`, see `spellRuntime.ts`.  Only a TYPE import here, so it stays out of
- *   the runner's bundle.  A different registry starts the tree afresh (state kept).
- * - Lists all of them in the order they were made, or under each type they are -- the buttons in its header
- *   switch.  See `UI.ThingOrder`.
+ * - `things` is the registry of the runtime copy the program runs on, e.g. `loaded.runtime.core.things`:
+ *   NEVER the page's own `core`, see `spellRuntime.ts`.
+ *   - Only a TYPE import here, so it stays out of the runner's bundle.
+ *   - A different registry starts the tree afresh (state kept).
+ * - Lists all of them in the order they were made, or under each type they are:
+ *   the buttons in its header switch.  See `UI.ThingOrder`.
  * - Shows each property and action in spell's words, e.g. `move (a card) to (a pile)`, when `words` has them:
  *   the program's `<Project>.en.js` (`SP.SpellWords`).  Else by its name, e.g. `move to pile` for `moveToPile`.
- * - Keeps what's selected and open as a `UI.ThingExplorerState` through `state` + `onStateChange` -- else just
- *   while it's showing.  `state` is read ONCE, as it mounts:  echoing `onStateChange` back into it is fine.
+ * - Keeps what's selected and open as a `UI.ThingExplorerState` through `state` + `onStateChange`,
+ *   else just while it's showing.
+ *   `state` is read ONCE, as it mounts:  echoing `onStateChange` back into it is fine.
  * - LIVE, and narrowly:  each piece reads the program's things (spell cells) through its OWN accessor, so a
  *   change redraws just what read it:
  *   - the tree's lists:  the registry's `version` (things made and dropped), through `tracked()`
- *   - each row's label;  each property's value;  a list's items:  through `tracked()` too.  Reading them runs the
- *     PROGRAM's code, e.g. a card's computed `name`:  Solid re-reads on its own schedule, never mid-write -- a
- *     microtask after the change, or `core.flush()`
+ *   - each row's label;  each property's value;  a list's items:  through `tracked()` too
+ *     - Reading them runs the PROGRAM's code, e.g. a card's computed `name`.
+ *     - Solid re-reads on its own schedule, never mid-write:  a microtask after the change, or `core.flush()`.
  *   - NEVER a Solid store:  a store would wrap the things in proxies, and `===` breaks.
  * - (React's version re-read a whole snapshot in a microtask, `watchLive()`, and redrew it all.)
- * - NOTE: imports its peers directly, NOT the `spell-app/app/solid` barrel:  a runner's bundle would get the whole editor
- *   through it (`Actions.tsx`).  So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.  Not
- *   imported here:  `spell-ui` can't load under node (`customElements`), and the `node` tests render this.
+ * - NOTE: imports its peers directly, NOT the `spell-app/app/solid` barrel:
+ *   a runner's bundle would get the whole editor through it (`Actions.tsx`).
+ *   - So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.
+ *   - Not imported here:  `spell-ui` can't load under node (`customElements`), and the `node` tests render this.
  * - SEE:  its App UI components page, `app/docs/ThingExplorer.html` (`/components/app/ThingExplorer.html`).
  ****************/
 export function ThingExplorer(props: ThingExplorerProps) {
@@ -323,11 +326,11 @@ function ThingIcon(props: { isList: boolean }) {
 
 /****************
  * ### `<ThingDetails>`
- * Selected thing:  what it's called, its types, its properties -- computed ones too -- its actions, and its
- * items, if it's a list.
+ * Selected thing:  what it's called, its types, its properties (computed ones too), its actions,
+ * and its items, if it's a list.
  * - Each property's value is its own `tracked()`, so a changed one redraws just its cell.
- * - The property LIST re-reads as the registry changes, or a prop is first set:  an undeclared property is a plain
- *   field, NOT observable.
+ * - The property LIST re-reads as the registry changes, or a prop is first set:
+ *   an undeclared property is a plain field, NOT observable.
  * - An action which takes no arguments, e.g. `turn over`, has a ▶ to do it -- see `ThingRegistry.perform()`.
  * - Each property and action in spell's words, if `words` has them:  see `memberWords()`.
  ****************/
@@ -441,8 +444,8 @@ type ThingDetailsProps = {
 /****************
  * ### `<ThingValue>`
  * One value in `<ThingDetails>`:  plain values as spell writes them, a thing we can select as a link.
- * - A list opens in place to show its items -- a native `<details>`, so it needs no state, and stays open as
- *   its value changes.
+ * - A list opens in place to show its items, in a native `<details>`:
+ *   so it needs no state, and stays open as its value changes.
  ****************/
 function ThingValue(props: ThingValueProps) {
   return (

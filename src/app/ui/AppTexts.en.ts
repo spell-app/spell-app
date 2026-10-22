@@ -2,8 +2,8 @@
  * The editor's own texts, in English:  every word the app shows people, by key (epic `spanish` P13).
  * - Read through `appTexts.text(key, params)` (`AppTexts.ts`), never written inline.
  * - `{name}` is a placeholder, filled from the params.
- *   - A project group's words are params too:  `{type}` (`example`), `{Type}` (`Example`), `{theType}`
- *     (`the example`) -- see `AppTexts.groupWords()`.
+ *   - A project group's words are params too (see `AppTexts.groupWords()`):
+ *     `{type}` (`example`), `{Type}` (`Example`), `{theType}` (`the example`)
  *   - Each language writes the sentence its own way, with the ones it needs.
  * - Other languages:  a file beside it each, `AppTexts.<lang>.ts`, with every key (its type says so).
  * - Pure data, no imports:  the editor's entry, the runner and `<spell-app>` all carry it.

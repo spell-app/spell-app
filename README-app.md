@@ -27,8 +27,8 @@ the web app where you write Spell on one side and watch it run on the other.
 It's [Solid](https://docs.solidjs.com/) 2 on [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s components,
 with [Monaco](https://microsoft.github.io/monaco-editor/) for the text.
 
-Its server isn't in this folder:  it's [spaces'](README-spaces.md#the-servers--an-api-that-nothing-starts),
-a route module on the page server.
+Its server isn't in this folder:
+it's [spaces'](README-spaces.md#the-servers--an-api-that-nothing-starts), a route module on the page server.
 Vite builds the app from [app/](app/), which also holds the demo pages and App UI's docs pages;
 the rules for working in either are [app's AGENTS.md](src/app/AGENTS.md).
 
@@ -87,7 +87,7 @@ _From the two demo pages, [spell-app.html](app/demo/spell-app.html) and [spell-e
 their styles and headings left out._
 
 - `/element/...` is the page server's:  it serves the app's `dist-element/`, which `yarn build:element` builds.
-  The epic server serves it too (the settings' `engineRoutes`), so App UI's pages find `spell.pack.js` there.
+  It serves it under every worktree's address too (the settings' `engineRoutes`), so App UI's pages find `spell.pack.js` there.
 - The demos are on the editor's own server, port 3000 when it's free:
   `/demo/spell-app.html`, `/demo/spell-editor.html`, and two more below.
   To see them, from spell-app's folder:  `yarn build:element`, then `yarn start`.
@@ -97,8 +97,8 @@ their styles and headings left out._
   Two apps may follow one editor;  an app that names only its editor waits for the editor's first compile.
 - On a page with Spell UI of its own, like a docs page, they use that page's Solid and Spell UI core:
   never a second copy.
-  How a component pack loads, and why one Solid matters:  [the element framework](https://github.com/spell-app/spell-kit/blob/main/README-element.md),
-  "Packs and `<ui-root>`".
+  How a component pack loads, and why one Solid matters:
+  [the element framework](https://github.com/spell-app/spell-kit/blob/main/README-element.md), "Packs and `<ui-root>`".
 
 Where it stops:
 - **An editor saves.**
@@ -317,19 +317,19 @@ export class CardElement extends SpellElement<Card> {
     { name: "rank", kind: "string", description: "Its rank." }
   ])
 
-  isARank(rank: Rank) {
+  isARank(rank: (typeof Card.Ranks)[number]) {
     return this.currentThing?.isARank(rank)
   }
 
-  isTheRankOfSuit(rank: Rank, suit: Suit) {
+  isTheRankOfSuit(rank: (typeof Card.Ranks)[number], suit: (typeof Card.Suits)[number]) {
     return this.currentThing?.isTheRankOfSuit(rank, suit)
   }
 }
 core.useElement(Card, CardElement)
 ```
 
-_Trimmed from `spell compile --stdout --target ts/solid`:  the card's members, its types and its JSX declaration
-left out._
+_Trimmed from `spell compile --stdout --target ts/solid`:
+the card's members, its types and its JSX declaration left out._
 
 - The element is a Spell UI component, [SpellElement](src/app/runner/SpellElement.tsx):
   a shadow root with the page's theme, then the type's own `<css>` block.
@@ -473,8 +473,10 @@ A Spanish browser gets "Guardar" where an English one gets "Save":
   - Read with `appTexts.text(key, params)` ([AppTexts.ts](src/app/ui/AppTexts.ts)), through Spell UI's `UI.i18n`.
   - A sentence that names something takes it as a param:  `Created {type} {name}.`, `Se creó {theType} {name}.`
 - Spanish is [AppTexts.es.ts](src/app/ui/AppTexts.es.ts), with every key:  a chunk only a Spanish page loads.
-  - `<spell-app>`'s and `<spell-editor>`'s own texts are beside them, `SpellApp.es.ts`, `SpellEditor.es.ts`.
-  - It makes Spell UI speak Spanish too, so its dialogs' buttons match.
+  - The web components' own Spanish is beside each one:
+    - [SpellApp.es.ts](src/app/components/spell-app/SpellApp.es.ts)
+    - [SpellEditor.es.ts](src/app/components/spell-editor/SpellEditor.es.ts)
+  - A Spanish page loads Spell UI's own Spanish too, so its dialogs' buttons match.
 - The language server's labels follow the PROJECT's language instead ([README-lsp.md](README-lsp.md)):
   a Spanish program's hover says "declarado en" in any editor.
 - Still English:  the spaces' prompts (a new project's name), Monaco's own menus, the dev-only dialog demos.
@@ -551,8 +553,8 @@ It's 31 pages in seven groups, from the four web components through the panes an
   - Its test fails while they're stale, while a listed page is missing or unlinked from the home page,
     or while a component's banner doesn't point at its page.
     So rerun it after changing a documented component's banner, props or uses.
-- What needs the whole editor around it is shown by pictures:  `yarn site:pictures [name...]`,
-  headless screenshots of this checkout's running editor, into `app/docs/_images/`.
+- What needs the whole editor around it is shown by pictures:
+  `yarn site:pictures [name...]`, headless screenshots of this checkout's running editor, into `app/docs/_images/`.
   - Check `git status` after:  opening the editor compiles its project,
     which may rewrite its declarations and words files.
 - The web components and the runner's pieces are shown live, inside a `<spell-app>`:

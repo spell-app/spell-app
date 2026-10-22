@@ -8,8 +8,9 @@ import { uiReady } from "spell-app/app/solid/loadUI"
 import { TypeExplorer } from "spell-app/app/solid/TypeExplorer"
 
 /**
- * The editor in Spanish (epic `spanish` P13):  a page whose `lang` is `es` reads every text of the app in Spanish,
- * through Spell UI's `UI.i18n`, once `appTexts.load()` has fetched the Spanish chunk.
+ * The editor in Spanish (epic `spanish` P13):
+ * a page whose `lang` is `es` reads every text of the app in Spanish, through Spell UI's `UI.i18n`,
+ * once `appTexts.load()` has fetched the Spanish chunk.
  * - Its own file:  the page's language is page-wide, and Spell UI keeps Spanish once it has loaded it.
  * - English, under node:  `AppTexts.test.ts`.
  */

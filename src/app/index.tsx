@@ -12,12 +12,13 @@ import "./debug"
 // Solid follows spell cells:  BEFORE anything renders
 import "spell-app/app/solid/cellsBridge"
 
-// The editor speaks the page's language:  the browser's, when `index.html` names none.  BEFORE anything draws, so
-// `<ui-root>` loads Spell UI's words in it too.
+// The editor speaks the page's language:  the browser's, when `index.html` names none.
+// BEFORE anything draws, so `<ui-root>` loads Spell UI's words in it too.
 AppTexts.namePageLanguage()
 
-// Programs run on the runtime `editor` loads -- start loading it now.  It registers the `UI` / `SUI` tags spell JSX
-// draws with, NOT the editor's `spell-app/app/solid`.  NEVER import `spell-lang/core` here:  see `spellRuntime.ts`.
+// Programs run on the runtime `editor` loads -- start loading it now.
+// - It registers the `UI` / `SUI` tags spell JSX draws with, NOT the editor's `spell-app/app/solid`.
+// - NEVER import `spell-lang/core` here:  see `spellRuntime.ts`.
 void editor.loadRuntime()
 
 // The editor's icon names are Fomantic's, page-wide too:  its dialogs open on `<body>`, outside `index.html`'s `<ui-root>`.
@@ -26,8 +27,8 @@ void addAppIconsPageWide()
 /**
  * Draw the app, in Solid, into `#app-root` (inside `index.html`'s `<ui-root icons="fomantic">`).
  * - `<Routes>` picks `<ProjectChooser>` / `<SpellEditor>` / `<SpellRunner>` by URL.
- * - `<Notice>` / `<ErrorNotice>` show `editor.notice` / `editor.error` over every page.  Dialogs need no root:  each
- *   `editor.alert()` / `choose()` ... opens its own `<ui-modal>`.
+ * - `<Notice>` / `<ErrorNotice>` show `editor.notice` / `editor.error` over every page.
+ * - Dialogs need no root:  each `editor.alert()` / `choose()` ... opens its own `<ui-modal>`.
  * - A running program draws with the page's Solid, in its own root on `<AppRoot>`'s element:
  *   see `editor.setAppRoot()`.
  */

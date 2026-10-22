@@ -27,7 +27,7 @@ The kit merges every installed repo's part as the server starts, each read from 
 | `routes` | the app's route module, [appRoutes.ts](src/spaces/server/node/routes/appRoutes.ts):  the editor, its API, the built-in projects' build (below) |
 | `pageScripts` | `spell-language.js`, which colours blocks of Spell on the docs pages;  not on the component sets' pages, and only while its file exists, so a checkout that hasn't run `yarn build:element` gets no 404 |
 | `componentSets` | App UI, the docs pages of the app's components, from [app/docs/](app/docs/), at `/components/app/` ([README-app.md](README-app.md)) |
-| `engineRoutes` | the editor's element bundles at `/element/`, from `app/dist-element/`, so the epic server serves them too, not only `appRoutes` |
+| `engineRoutes` | the editor's element bundles at `/element/`, from `app/dist-element/`, so the page server serves them under every worktree's address too, not only through `appRoutes` |
 
 spell-app names no other repo's routes:  spell-epic, Spell UI and the content repo each declare their own.
 
@@ -35,8 +35,16 @@ spell-app names no other repo's routes:  spell-epic, Spell UI and the content re
 
 ```sh
 curl -s http://127.0.0.1:4747/hello
-# {"message":"Hello from the API!"}
 ```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+{"message":"Hello from the API!"}
+```
+
+</details>
 
 It answers the editor's API under `/api/`, a project's files at `/spaces/<project>/<file>`, the editor's element
 bundles at `/element/`, the header's `/editor` link, and `/hello`.

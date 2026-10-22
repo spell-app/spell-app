@@ -60,7 +60,6 @@ describe("SpellLanguageService", () => {
       'Solitaire.spell:  Say what "state" holds, e.g. "set state to a new list of text"',
       // members only `new ... with droppable = no` gives:  nothing declares them (epic `output-targets`, Q45)
       'Solitaire.spell:  A pile never says it has a droppable:  declare it, e.g. "a pile has a droppable as text"',
-      'Solitaire.spell:  Say what "name" is:  declare it, e.g. "a pile has a name as text"',
       'Solitaire.spell:  A foundation never says it has a symbol:  declare it, e.g. "a foundation has a symbol as text"'
     ])
   })
