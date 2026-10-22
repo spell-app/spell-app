@@ -1,6 +1,7 @@
 import { lazy, type Component } from "solid-js"
 
 import { editor } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import type { FileEditorProps, MonacoEditorProps } from "spell-app/app/solid/monaco"
 
 /**
@@ -24,7 +25,7 @@ export const LazyMonaco = {
   })),
   /** What to show while Monaco loads. */
   Loading() {
-    return <div class="MonacoEditor">Loading editor…</div>
+    return <div class="MonacoEditor">{appTexts.text("loadingEditor")}</div>
   }
 }
 

@@ -87,6 +87,7 @@ _From the two demo pages, [spell-app.html](app/demo/spell-app.html) and [spell-e
 their styles and headings left out._
 
 - `/element/...` is the page server's:  it serves the app's `dist-element/`, which `yarn build:element` builds.
+  The epic server serves it too (the settings' `engineRoutes`), so App UI's pages find `spell.pack.js` there.
 - The demos are on the editor's own server, port 3000 when it's free:
   `/demo/spell-app.html`, `/demo/spell-editor.html`, and two more below.
   To see them, from spell-app's folder:  `yarn build:element`, then `yarn start`.
@@ -385,7 +386,7 @@ the running app, its compiled JavaScript and the Spell tree of the cursor's line
 Here is the whole of the Restart button over the App pane, and the whole of what it calls:
 
 ```tsx
-<Action title="Restart" icon="redo" onClick={() => editor.restartApp()} {...props} />
+<Action title={appTexts.text("restart")} icon="redo" onClick={() => editor.restartApp()} {...props} />
 ```
 
 ```ts
@@ -459,6 +460,28 @@ The editor's keys, with Command on a Mac or Control elsewhere (either works on b
 </details>
 
 <details>
+<summary>The editor's words, in the page's language</summary>
+
+The editor speaks the page's language:  the document's `lang`, else the browser's.
+A Spanish browser gets "Guardar" where an English one gets "Save":
+
+```tsx
+<Action title={appTexts.text("save")} icon="cloud upload" onClick={() => editor.saveFile()} {...props} />
+```
+
+- Every word the app shows people is a key in [AppTexts.en.ts](src/app/ui/AppTexts.en.ts):  menus, panes, notices.
+  - Read with `appTexts.text(key, params)` ([AppTexts.ts](src/app/ui/AppTexts.ts)), through Spell UI's `UI.i18n`.
+  - A sentence that names something takes it as a param:  `Created {type} {name}.`, `Se creó {theType} {name}.`
+- Spanish is [AppTexts.es.ts](src/app/ui/AppTexts.es.ts), with every key:  a chunk only a Spanish page loads.
+  - `<spell-app>`'s and `<spell-editor>`'s own texts are beside them, `SpellApp.es.ts`, `SpellEditor.es.ts`.
+  - It makes Spell UI speak Spanish too, so its dialogs' buttons match.
+- The language server's labels follow the PROJECT's language instead ([README-lsp.md](README-lsp.md)):
+  a Spanish program's hover says "declarado en" in any editor.
+- Still English:  the spaces' prompts (a new project's name), Monaco's own menus, the dev-only dialog demos.
+
+</details>
+
+<details>
 <summary>Monaco, and the language service in the page</summary>
 
 - [src/app/ui/monaco/](src/app/ui/monaco/) wires Monaco to Spell:  the colours, and the errors, hover, completion
@@ -493,8 +516,8 @@ What each bundle costs is the other half of the design:
   `spell-app.css` is 8 KB, `spell-editor.css` 188 KB.
 - `spell-language.js` is 611 bytes:  it registers Spell's colours with the page's `<ui-code>`, no element,
   and fetches Spell's parser to colour with the first time a Spell block appears.
-  [The page server's settings](README-page-server.md) add it to the docs pages it serves,
-  so epic pages and guides colour their Spell.
+  spell-app's part of the page server's settings ([README-page-server.md](README-page-server.md)) adds it to the docs
+  pages the server serves, so epic pages and guides colour their Spell.
 - `spell-page.js` is the page's `@spell/core` for a Python Spell app:
   it exports what `spell-runtime.js` does, and a test fails on one it leaves out.
 - The build tests pin all of it:  no React in any chunk, the runtime's included;  one Solid;
@@ -519,7 +542,8 @@ You pay for that split at build time:  `yarn build:element` is four Vite builds 
 ## App UI:  a page for every component
 
 The app's own components have docs pages, in Spell UI's page shape:
-App UI, at `/components/app/` on the page server, from [app/docs/](app/docs/).
+App UI, at `/components/app/` on the page server, from [app/docs/](app/docs/), a component set spell-app's settings
+declare ([README-page-server.md](README-page-server.md)).
 It's 31 pages in seven groups, from the four web components through the panes and dialogs to the runner's pieces.
 
 - Each page's props, attributes and "Used in" tables are made from the code:  `yarn site:data`.

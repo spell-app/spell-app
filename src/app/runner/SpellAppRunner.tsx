@@ -3,6 +3,7 @@ import { Match, Show, Switch, createEffect, createSignal, onSettled, untrack } f
 import type { LSP } from "spell-app/lsp"
 import type { SP } from "spell-lang/spell"
 import type { ThingExplorerState, TypeExplorerState } from "spell-app/app/ui/ui.types"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the `spell-app/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "spell-app/app/solid/TypeExplorer"
 import { ThingExplorer } from "spell-app/app/solid/ThingExplorer"
@@ -156,7 +157,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
         onSplit={setSplit}
         showBottom={debugOpen()}
         bottom={
-          <RunnerPane tabs={debugTabs().map((id) => DEBUG_TABS[id])} pane={showing()} onPane={setPane}>
+          <RunnerPane tabs={debugTabs().map(debugTab)} pane={showing()} onPane={setPane}>
             <Switch>
               <Match when={showing() === "explorer"}>{explorer()}</Match>
               <Match when={showing() === "things"}>{things()}</Match>
@@ -167,7 +168,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       >
         {appPane}
         <Show when={!hasApp()}>
-          <RunnerPane tabs={[DEBUG_TABS.console]} pane="console">
+          <RunnerPane tabs={[debugTab("console")]} pane="console">
             {output()}
           </RunnerPane>
         </Show>
@@ -206,7 +207,16 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     if (layout) unslot = slotsFromIn(layout)
     const keepThings = how === "keep things" && isSameProgram(lastSource, source)
     lastSource = source
-    const ran = await runProgram(copy, source, appRoot, { layout: !!layout, keepThings })
+    // its own words first:  their `messages` are what the core says as it runs, e.g. its tests' lines in Spanish
+    // - awaited only when there are some to load:  else the last run's app goes at once, in the same tick, as before
+    const own = source.words || !source.wordsUrl ? source.words : await ownWords(source)
+    // a program in another language draws with that language's tags (`<es-boton>`):  Spell UI defines them first
+    if (own?.lang && own.lang !== "en") {
+      const { RootLoader } = await import("spell-ui/components/ui-root")
+      // oxlint-disable-next-line react-hooks/rules-of-hooks -- Spell UI's `useLanguage()` is no React hook
+      await RootLoader.useLanguage(own.lang)
+    }
+    const ran = await runProgram(copy, source, appRoot, { layout: !!layout, keepThings, messages: own?.messages })
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
@@ -218,6 +228,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     }
     const loaded = await loadWords(
       source,
+      own,
       [...ran.compiled.keys()].filter((id) => id !== MAIN_PROJECT)
     )
     // a newer source's run may have started meanwhile:  its words are its own
@@ -325,11 +336,14 @@ export type SpellAppSource = {
   importUrl: (projectId: string) => string
   /** URL of the declarations of project `projectId`, which it imports -- if it may have them. */
   importDeclarationsUrl?: (projectId: string) => string
-  /** URL of its words, `<Project>.en.js`, if it may have them:  the Thing Explorer's labels -- see `SP.SpellWords`. */
+  /**
+   * URL of its words, `<Project>.en.js`, if it may have them:  the Thing Explorer's labels -- see `SP.SpellWords`.
+   * - `{lang}` in it is the project's language, from its declarations:  `<Project>.{lang}.js` => `Solitario.es.js`.
+   */
   wordsUrl?: string
   /** Its words, in memory -- used instead of loading `wordsUrl`, e.g. fresh from an editor. */
   words?: SP.SpellWordsData
-  /** URL of the words of project `projectId`, which it imports -- if it may have them. */
+  /** URL of the words of project `projectId`, which it imports -- if it may have them;  `{lang}` as in `wordsUrl`. */
   importWordsUrl?: (projectId: string) => string
   /** URL of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell` -- if its sources can be had. */
   sourceUrl?: (uri: string) => string
@@ -355,7 +369,7 @@ function SpellAppToolbar(props: SpellAppToolbarProps) {
       <ui-item type="header">{props.name}</ui-item>
       <ui-item link="" class="restart" onClick={() => props.onRestart()}>
         <ui-icon name="redo" />
-        Restart
+        {appTexts.text("restart")}
       </ui-item>
       <Show when={props.error}>
         <ui-item class="error">
@@ -366,7 +380,7 @@ function SpellAppToolbar(props: SpellAppToolbarProps) {
       <ui-menu position="right">
         <ui-item link="" class="debug" selected={props.debugOpen} onClick={() => props.onToggleDebug()}>
           <ui-icon name="bug" />
-          Debug
+          {appTexts.text("debug")}
         </ui-item>
       </ui-menu>
     </ui-menu>
@@ -403,7 +417,7 @@ async function runProgram(
   copy: LoadedRuntime,
   source: SpellAppSource,
   appRoot: HTMLElement,
-  { layout, keepThings }: { layout: boolean; keepThings: boolean }
+  { layout, keepThings, messages }: { layout: boolean; keepThings: boolean; messages?: Record<string, string> }
 ): Promise<Ran> {
   const compiled = new Map<string, string>()
   try {
@@ -413,6 +427,7 @@ async function runProgram(
       appRoot,
       layout,
       keepThings,
+      messages,
       coreUrl: copy.coreUrl,
       loadImport: async (projectId) => {
         const imported = await fetchText(source.importUrl(projectId))
@@ -486,20 +501,52 @@ async function loadScopes(
 }
 
 /**
- * The Thing Explorer's words for `source`, as one:  its own, then those of each project it imported (`importIds`).
- * - Its own:  `source.words` if set, else loaded from `source.wordsUrl`.
+ * `source`'s own words:  `source.words` if set, else loaded from `source.wordsUrl`, in its language.
+ * - `undefined` if it has none.
+ * - NEVER throws:  words are optional, as a scope pack is.
+ */
+async function ownWords(source: SpellAppSource): Promise<SP.SpellWordsData | undefined> {
+  const ownDeclarations = async () => source.declarations ?? fetchJSON<CompiledDeclarations>(source.declarationsUrl)
+  return source.words ?? wordsAt(await inLanguage(source.wordsUrl, ownDeclarations))
+}
+
+/**
+ * The Thing Explorer's words for `source`, as one:  its own (`own`), then those of each project it imported (`importIds`).
  * - `undefined` if none of them has any.
  * - NEVER throws:  words are optional, as a scope pack is.
  */
-async function loadWords(source: SpellAppSource, importIds: string[]): Promise<SP.SpellWordsData | undefined> {
-  const { importWordsUrl } = source
-  return mergedWords(
-    await Promise.all([
-      source.words ?? wordsAt(source.wordsUrl),
-      ...importIds.map((id) => wordsAt(importWordsUrl?.(id)))
-    ])
+async function loadWords(
+  source: SpellAppSource,
+  own: SP.SpellWordsData | undefined,
+  importIds: string[]
+): Promise<SP.SpellWordsData | undefined> {
+  const { importWordsUrl, importDeclarationsUrl } = source
+  const imported = await Promise.all(
+    importIds.map(async (id) =>
+      wordsAt(await inLanguage(importWordsUrl?.(id), () => fetchJSON(importDeclarationsUrl?.(id))))
+    )
   )
+  return mergedWords([own, ...imported])
 }
+
+/**
+ * `url` with `{lang}` filled in:  the language its project's declarations name, English (`en`) if none.
+ * - Declarations are read only when the URL asks for a language.
+ * - NEVER throws:  no declarations, English.
+ */
+async function inLanguage(
+  url: string | undefined,
+  declarations: () => Promise<CompiledDeclarations | undefined>
+): Promise<string | undefined> {
+  if (!url?.includes(LANG)) return url
+  const language = await declarations()
+    .then((it) => it?.language)
+    .catch(() => undefined)
+  return url.replace(LANG, language ?? "en")
+}
+
+/** Where a words file's URL takes its project's language:  `<Project>.{lang}.js`. */
+const LANG = "{lang}"
 
 ////////////////
 // ## Fed by an editor
@@ -586,11 +633,17 @@ function orIfBadSelector<T>(find: () => T, fallback: T): T {
 // ## Helpers
 ////////////////
 
-/** Each debug pane tab. */
-const DEBUG_TABS: Record<DebugPane, RunnerTab<DebugPane>> = {
-  explorer: { id: "explorer", icon: "sitemap", title: "Type Explorer" },
-  things: { id: "things", icon: "cubes", title: "Thing Explorer" },
-  console: { id: "console", icon: "terminal", title: "Console" }
+/** Each debug pane tab's icon, and its title's key. */
+const DEBUG_TABS: Record<DebugPane, { icon: string; text: AppTextKey }> = {
+  explorer: { icon: "sitemap", text: "typeExplorer" },
+  things: { icon: "cubes", text: "thingExplorer" },
+  console: { icon: "terminal", text: "console" }
+}
+
+/** Debug pane tab `id`, titled in the page's language. */
+function debugTab(id: DebugPane): RunnerTab<DebugPane> {
+  const { icon, text } = DEBUG_TABS[id]
+  return { id, icon, title: appTexts.text(text) }
 }
 
 /** Debug pane's height to start, in px, when `fluid` -- until dragged. */

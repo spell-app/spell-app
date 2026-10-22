@@ -5,6 +5,7 @@ import { SP } from "spell-lang/spell"
 import { LSP } from "spell-app/lsp"
 import type * as UIT from "spell-app/app/ui/ui.types"
 import type { monaco } from "spell-app/app/ui/monaco"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the `spell-app/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.
 import type { SpellCompiled } from "spell-app/app/runner/runner.types"
 import { adoptShadowStyles } from "spell-app/app/runner/shadowStyles"
@@ -88,6 +89,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
     const assets = new URL(this.assets ?? BUNDLE, document.baseURI).href
     void adoptShadowStyles(this.domElement.renderRoot, assets, EDITOR_CSS)
     this.domElement.addReleaseCallback(() => this.closeProject())
+    // the page language's texts, before our status line says anything
+    void appTexts.load()
   }
 
   ////////////////
@@ -369,13 +372,13 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
     // `addAction()`, NOT `addCommand()`:  Monaco keeps commands for the page, so with several editors, the last wins
     editor.addAction({
       id: "spell.save",
-      label: "Save",
+      label: appTexts.text("save"),
       keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
       run: () => void this.save()
     })
     editor.addAction({
       id: "spell.compile",
-      label: "Compile and run",
+      label: appTexts.text("compileAndRun"),
       keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
       run: () => void this.compile()
     })

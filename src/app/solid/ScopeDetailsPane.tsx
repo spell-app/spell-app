@@ -13,6 +13,7 @@ import {
   scopeSegment
 } from "spell-app/lsp/lsp.types"
 import type { ScopeOrder } from "spell-app/app/ui/ui.types"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import { Markdown } from "./Markdown"
 
 /****************
@@ -114,7 +115,7 @@ function DetailsBody(props: DetailsBodyProps) {
   return (
     <Show
       when={details() !== undefined && details() !== "loading"}
-      fallback={<div class="DetailsBody loading">Loading…</div>}
+      fallback={<div class="DetailsBody loading">{appTexts.text("loading")}</div>}
     >
       <div class="DetailsBody">
         <Show when={loaded()}>
@@ -128,7 +129,13 @@ function DetailsBody(props: DetailsBodyProps) {
           )}
         </Show>
         <Show when={props.order === "document" && props.members.length > 0}>
-          <Section title="Members" class="MemberGroup" openSections={props.openSections} onToggle={toggleSection}>
+          <Section
+            name="Members"
+            title={appTexts.text("members")}
+            class="MemberGroup"
+            openSections={props.openSections}
+            onToggle={toggleSection}
+          >
             <For each={props.members} keyed={memberKey}>
               {(member, index) => (
                 <>
@@ -150,7 +157,8 @@ function DetailsBody(props: DetailsBodyProps) {
               return (
                 <Show when={inGroup().length}>
                   <Section
-                    title={group.label}
+                    name={group.label}
+                    title={memberGroupTitle(group.label)}
                     class="MemberGroup"
                     openSections={props.openSections}
                     onToggle={toggleSection}
@@ -168,13 +176,14 @@ function DetailsBody(props: DetailsBodyProps) {
         <Show when={loaded()?.spell}>
           {(spell) => (
             <Section
-              title="Spell"
+              name="Spell"
+              title={appTexts.text("spell")}
               aside={
                 <Show when={location()}>
                   {(location) => (
                     <a
                       href={location().href}
-                      title="Show where it's defined"
+                      title={appTexts.text("showWhereDefined")}
                       onClick={(event) => {
                         event.preventDefault()
                         props.onOpen(location().href)
@@ -194,7 +203,12 @@ function DetailsBody(props: DetailsBodyProps) {
         </Show>
         <Show when={loaded()?.rules?.length ? loaded()!.rules : undefined}>
           {(rules) => (
-            <Section title="Rules" openSections={props.openSections} onToggle={toggleSection}>
+            <Section
+              name="Rules"
+              title={appTexts.text("rules")}
+              openSections={props.openSections}
+              onToggle={toggleSection}
+            >
               <For each={rules()}>
                 {(rule) => (
                   <div class="Rule">
@@ -208,7 +222,12 @@ function DetailsBody(props: DetailsBodyProps) {
         </Show>
         <Show when={loaded()?.compiled}>
           {(compiled) => (
-            <Section title="Compiled Output" openSections={props.openSections} onToggle={toggleSection}>
+            <Section
+              name="Compiled Output"
+              title={appTexts.text("compiledOutput")}
+              openSections={props.openSections}
+              onToggle={toggleSection}
+            >
               <pre class="code javascript">{compiled()}</pre>
             </Section>
           )}
@@ -223,9 +242,9 @@ function DetailsBody(props: DetailsBodyProps) {
     return it === "loading" ? undefined : it
   }
 
-  /** Open / close section `title`, for every node. */
-  function toggleSection(title: string) {
-    props.onToggleSection(title)
+  /** Open / close section `name`, for every node. */
+  function toggleSection(name: string) {
+    props.onToggleSection(name)
   }
 
   /** Row for `member`:  its name -- click to select it -- and its `▶`, to show its own details here. */
@@ -295,9 +314,9 @@ type DetailsBodyProps = {
   members: ScopeMember[]
   /** Order to list `members` in. */
   order: ScopeOrder
-  /** Titles of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`. */
+  /** Names of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`. */
   openSections: ReadonlySet<string>
-  /** Open / close section `title`. */
+  /** Open / close section `name`. */
   onToggleSection: (title: string) => void
   /** Select `node` in the tree, e.g. a breadcrumb or member clicked. */
   onSelect: (node: ScopeNode) => void
@@ -391,10 +410,10 @@ function Description(props: DescriptionProps) {
             onKeyDown={onKeyDown}
           />
           <ui-button size="mini" primary="" onClick={save}>
-            Save
+            {appTexts.text("save")}
           </ui-button>
           <ui-button size="mini" onClick={() => setEditing(undefined)}>
-            Cancel
+            {appTexts.text("cancel")}
           </ui-button>
         </div>
       }
@@ -402,12 +421,12 @@ function Description(props: DescriptionProps) {
       <Show when={text() || editable()}>
         <div
           class={["Description", { editable: editable(), empty: !text() }]}
-          title={editable() ? "Click to edit" : undefined}
+          title={editable() ? appTexts.text("clickToEdit") : undefined}
           onClick={() => {
             if (editable()) setEditing(text())
           }}
         >
-          <Show when={text()} fallback="Add a description…">
+          <Show when={text()} fallback={appTexts.text("addDescription")}>
             {(text) => <Markdown text={text()} onOpen={props.onOpen} />}
           </Show>
         </div>
@@ -444,15 +463,16 @@ type DescriptionProps = {
 
 /****************
  * ### `<Section>`
- * Collapsible section of `<DetailsBody>`:  closed until opened -- by its `title`, the same for every node.
+ * Collapsible section of `<DetailsBody>`:  closed until opened -- by its `name`, the same for every node.
+ * - `name` is the section's id, in English whatever the page's language:  the open ones are saved by it.
  * - `aside` shows at the right of its heading;  clicking it does NOT open / close the section.
  * - `children` are made only while it's open.
  ****************/
 function Section(props: SectionProps) {
-  const isOpen = () => props.openSections.has(props.title)
+  const isOpen = () => props.openSections.has(props.name)
   return (
     <div class={["DetailsSection", props.class, { open: isOpen() }]}>
-      <div class="DetailsSectionTitle" onClick={() => props.onToggle(props.title)}>
+      <div class="DetailsSectionTitle" onClick={() => props.onToggle(props.name)}>
         <span class="toggle">{isOpen() ? "▼" : "▶"}</span>
         {props.title}
         <Show when={props.aside}>
@@ -470,16 +490,18 @@ function Section(props: SectionProps) {
 
 /** Props for `<Section>`. */
 type SectionProps = {
-  /** Heading. */
+  /** Its id, e.g. `Rules`:  English in every language, as `openSections` remembers it. */
+  name: string
+  /** Heading, in the page's language. */
   title: string
   /** Extra class. */
   class?: string
   /** Shown at the right of the heading, e.g. a link. */
   aside?: JSX.Element
-  /** Titles of the sections open. */
+  /** Names of the sections open. */
   openSections: ReadonlySet<string>
-  /** Open / close section `title`. */
-  onToggle: (title: string) => void
+  /** Open / close section `name`. */
+  onToggle: (name: string) => void
   /** Content. */
   children: JSX.Element
 }
@@ -487,6 +509,14 @@ type SectionProps = {
 ////////////////
 // ## Helpers
 ////////////////
+
+/**
+ * A group of a type's members, titled in the page's language:  `Properties`, `Propiedades`.
+ * - `label`:  the group's id, `LSP.SCOPE_MEMBER_GROUPS`' English, which the tree's paths are made of.
+ */
+export function memberGroupTitle(label: string): string {
+  return appTexts.text(`members.${label}` as AppTextKey)
+}
 
 /**
  * Icon name for each kind of scope-tree node -- Fomantic's names, from the app's `fomantic` icon pack (see

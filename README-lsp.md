@@ -223,6 +223,9 @@ The service is a set of readers over that record.
 The one reader that isn't the parser:  VS Code paints the first colours from a TextMate grammar,
 before the server answers, and the server's colours repaint them
 ([the kit's VS Code page](https://github.com/spell-app/spell-kit/blob/main/README-vscode.md)).
+- Its keyword lists come from the language packs, every language in one:
+  [vscode-grammar.ts](scripts/vscode-grammar.ts) writes them (`yarn tsx scripts/vscode-grammar.ts`),
+  and a test fails when they're out of date.
 
 ## One queue:  an answer never sees old text
 
@@ -295,6 +298,7 @@ A capability goes into the server's reply to `initialize` only once it works;  t
 | colours | `semanticTokens`, whole, range or delta | each rule's `highlightAs`, refined by the parse:  a call to the project's own method is a function, an argument a parameter, a name where it's declared a declaration |
 | quick fix | `codeAction` | for a whole line that didn't parse, "Define `to <phrase>`";  not for a line that's only unfinished, like `set x to` |
 | format | `formatting`, `rangeFormatting` | whitespace only:  tabs, one space between words, one after `,` and `:`;  it gives up rather than change anything else |
+| accents, as you type | `onTypeFormatting`, on a space or a new line | in Spanish, a keyword typed without its written accent gets it back, `el numero de` => `el número de`, once its line parses;  only where that's unambiguous, so never `si` (`if`) to `sí`, nor a name a person chose |
 
 On the card, the outline the server sends is one type, `Card` (detail `drawable thing`),
 holding `suit`, `color` and `rank` as properties and the three quoted phrases as methods.
@@ -448,10 +452,12 @@ yarn vp test run --project lsp                           # its tests:  131, in f
 
 | File | What's in it |
 | --- | --- |
-| [SpellLanguageService.ts](src/lsp/SpellLanguageService.ts) | every answer:  diagnostics, hover, completion and the rest, one method per request, in 2,255 lines;  safe in a browser |
+| [SpellLanguageService.ts](src/lsp/SpellLanguageService.ts) | every answer:  diagnostics, hover, completion and the rest, one method per request, in 2,304 lines;  safe in a browser |
 | [SpellLanguageServer.ts](src/lsp/SpellLanguageServer.ts) | wires the service and a workspace to an LSP connection:  the queue, the 50 ms wait, Spell's own requests |
 | [SpellDiskWorkspace.ts](src/lsp/SpellDiskWorkspace.ts) | loads projects from disk, through [spaces'](README-spaces.md) disk reader, and follows changes on disk;  node only |
 | [SpellCSS.ts](src/lsp/SpellCSS.ts) | the `<css>` blocks in a file, answered as CSS |
+| [LspTexts.ts](src/lsp/LspTexts.ts), [LspTexts.en.ts](src/lsp/LspTexts.en.ts), [LspTexts.es.ts](src/lsp/LspTexts.es.ts) | the labels it shows people (`declared in`, `statement` ...), in the PROJECT's language:  `LspTexts.of(scope)` |
+| [SpellKeywords.ts](src/lsp/SpellKeywords.ts) | a language pack's keywords, as editors want them:  the accent fixes, the VS Code grammar's keyword lists, the `else` that goes back out a level |
 | [ScopeExplorer.ts](src/lsp/ScopeExplorer.ts) | the tree of what a project declares, for the Type Explorer and `spell describe` |
 | [ScopesSource.ts](src/lsp/ScopesSource.ts) | `ScopesSource` and `ScopePack`:  the same tree, read from scope packs on a page with no parser |
 | [lsp.types.ts](src/lsp/lsp.types.ts) | the shared types:  `FileAddresses`, the custom requests' shapes, the scope tree's |

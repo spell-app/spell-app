@@ -316,7 +316,8 @@ Each model asks the server, and throws with what it was doing ("renaming file") 
 If you know Express, the editor's API will look familiar:  a router, `api.get("/projects/list/*", ...)`.
 What's different is that nothing starts it.
 It's a ROUTE MODULE:  a file the [page server](https://github.com/spell-app/spell-kit/blob/main/README-server.md) loads by its path,
-named in [spell-app's page server settings](README-page-server.md), and the page server is the one program running.
+named in spell-app's own part of the page server's settings ([README-page-server.md](README-page-server.md)),
+and the page server is the one program running.
 
 | Path | What [appRoutes.ts](src/spaces/server/node/routes/appRoutes.ts) serves there |
 | --- | --- |

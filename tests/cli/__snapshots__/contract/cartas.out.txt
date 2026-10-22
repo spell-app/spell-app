@@ -1,0 +1,40 @@
+✅ test la carta
+  ▶️ Ejecutando   `la carta es una nueva carta cuyo rango es reina, palo es espadas y dirección es arriba`
+  ✅ Como se esperaba, `el rango de la carta` es `reina`
+  ✅ Como se esperaba, `el palo de la carta` es `espadas`
+  ✅ Como se esperaba, `el nombre de la carta` es `"reina-de-espadas"`
+  ✅ Como se esperaba, `el color de la carta` es `negro`
+  ✅ Como se esperaba, `el valor de la carta` es `12`
+  ✅ Como se esperaba, `el palo corto de la carta` es `"♠️"`
+  ✅ Como se esperaba, `el rango corto de la carta` es `"R"`
+  ✅ Como se esperaba, `el nombre corto de la carta` es `"R♠️"`
+  ✅ Como se esperaba, `la carta está boca arriba` es `sí`
+  ✅ Como se esperaba, `la carta está boca abajo` es `no`
+  ✅ Como se esperaba, `la carta es una figura` es `sí`
+  ✅ Como se esperaba, `la carta no es una figura` es `falso`
+  ✅ Como se esperaba, `la carta es una espada` es `verdadero`
+  ✅ Como se esperaba, `la carta es un trébol` es `falso`
+  ✅ Como se esperaba, `la carta es una reina` es `verdadero`
+  ✅ Como se esperaba, `la carta es un as` es `falso`
+  ✅ Como se esperaba, `la carta es un 2` es `falso`
+  ✅ Como se esperaba, `la carta es la reina de espadas` es `verdadero`
+  ✅ Como se esperaba, `la carta es la reina de tréboles` es `falso`
+  ✅ Como se esperaba, `la carta no es el 2 de diamantes` es `verdadero`
+  ▶️ Ejecutando   `voltear la carta boca abajo`
+  ✅ Como se esperaba, `la dirección de la carta` es `abajo`
+  ▶️ Ejecutando   `dar la vuelta a la carta`
+  ✅ Como se esperaba, `la carta está boca arriba` es `verdadero`
+✅ test la creación del mazo
+  ▶️ Ejecutando   `el mazo es un nuevo mazo`
+  ▶️ Ejecutando   `preparar el mazo`
+  ✅ Como se esperaba, `el número de cartas en el mazo` es `52`
+  ▶️ Ejecutando   `preparar el mazo`
+  ✅ Como se esperaba, `el número de cartas en el mazo` es `52`
+  ▶️ Ejecutando   `poner las reinas a las cartas en el mazo donde el rango de la carta es "reina"`
+  ✅ Como se esperaba, `el número de cartas en las reinas` es `4`
+  ✅ Como se esperaba, `el nombre de la carta de abajo del mazo` es `"rey-de-espadas"`
+  ✅ Como se esperaba, `el nombre corto de la carta de arriba del mazo` es `"A♣️"`
+  el mazo antes de barajar:
+  ▶️ Ejecutando   `mostrar el mazo`
+  mazo: A♣️, A♦️, A♥️, A♠️, 2♣️, 2♦️, 2♥️, 2♠️, 3♣️, 3♦️, 3♥️, 3♠️, 4♣️, 4♦️, 4♥️, 4♠️, 5♣️, 5♦️, 5♥️, 5♠️, 6♣️, 6♦️, 6♥️, 6♠️, 7♣️, 7♦️, 7♥️, 7♠️, 8♣️, 8♦️, 8♥️, 8♠️, 9♣️, 9♦️, 9♥️, 9♠️, 10♣️, 10♦️, 10♥️, 10♠️, J♣️, J♦️, J♥️, J♠️, R♣️, R♦️, R♥️, R♠️, R♣️, R♦️, R♥️, R♠️
+  ✅ Como se esperaba, `la primera carta del mazo es el as de tréboles` es `sí`

@@ -3,6 +3,7 @@ import { Show } from "solid-js"
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { editor, runtimeConsole } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { Actions, ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
 import { ConsoleInspectorContext, ConsoleLines, type ConsoleInspector } from "./ConsoleLines"
 
@@ -39,7 +40,7 @@ export function ConsoleToolbar() {
   return (
     <PanelMenu>
       <Submenu left spring>
-        <MenuHeader>Program Output</MenuHeader>
+        <MenuHeader>{appTexts.text("programOutput")}</MenuHeader>
       </Submenu>
       <Submenu right spring>
         <Actions.alert title="" header="Header" message="Yo!" />

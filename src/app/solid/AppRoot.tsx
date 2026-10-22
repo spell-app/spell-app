@@ -1,6 +1,7 @@
 import { Show, onCleanup } from "solid-js"
 
 import { editor } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { Actions, MenuHeader, MoreMenu, PanelMenu, Submenu } from "spell-app/app/solid"
 import { AppContainer } from "./AppContainer"
 
@@ -53,7 +54,7 @@ export function AppToolbar() {
   return (
     <PanelMenu>
       <Submenu left spring>
-        <MenuHeader>App</MenuHeader>
+        <MenuHeader>{appTexts.text("appMenu")}</MenuHeader>
       </Submenu>
       <Submenu right spring>
         <Actions.restartApp />

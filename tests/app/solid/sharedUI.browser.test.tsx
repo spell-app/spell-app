@@ -110,7 +110,7 @@ describe("chrome + Actions", () => {
     expect(text(showEditor)).toBe("Edit Project")
     expect(saveFile.hasAttribute("selected")).toBe(false)
 
-    editor.projectRoot = { Type: "Example" } as EditorStore["projectRoot"]
+    editor.projectRoot = { type: "example", Type: "Example" } as EditorStore["projectRoot"]
     editor.file = { isDirty: true } as EditorStore["file"]
     flush()
     expect(text(showEditor)).toBe("Edit Example")

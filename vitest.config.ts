@@ -37,8 +37,7 @@ export default defineConfig({
       { extends: true, test: { name: "spaces", dir: "tests/spaces", environment: "node" } },
       { extends: true, test: { name: "lsp", dir: "tests/lsp" } },
       ...appProjects(),
-      { extends: true, test: { name: "cli", dir: "tests/cli" } },
-      { extends: true, test: { name: "page-server", dir: "tests/page-server", environment: "node" } }
+      { extends: true, test: { name: "cli", dir: "tests/cli" } }
     ]
   }
 })

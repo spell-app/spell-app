@@ -3,6 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import { CustomError } from "spell-kit/util"
 import { editor } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { on, tracked } from "spell-app/app/solid"
 
 /****************
@@ -38,12 +39,14 @@ export function ErrorDisplay(props: ErrorDisplayProps) {
         >
           <p>{info().message}</p>
           <Show when={info().context}>
-            <p>Context: {info().context}</p>
+            <p>
+              {appTexts.text("errorContext")} {info().context}
+            </p>
           </Show>
           <Show when={info().params}>
             {(params) => (
               <>
-                <p>Params:</p>
+                <p>{appTexts.text("errorParams")}</p>
                 <ul>
                   <For each={params()}>{(param) => <li>{param}</li>}</For>
                 </ul>
@@ -99,7 +102,7 @@ function describeError(error: Error): ErrorInfo {
   const context = custom?.props?.context
   const entries = params ? Object.entries(params) : []
   return {
-    header: custom?.header || error.constructor.name || "Error",
+    header: custom?.header || error.constructor.name || appTexts.text("error"),
     message: error.message,
     context: context ? `${context}` : undefined,
     params: entries.length ? entries.map(([key, value]) => `${key}: ${value}`) : undefined

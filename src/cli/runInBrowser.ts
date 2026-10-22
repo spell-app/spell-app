@@ -48,7 +48,8 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
       const wordsPath = new SP.SpellProject(id).wordsFile.location.serverPath
       return [
         [`/app/${name}${SP.COMPILED_JS_SUFFIX}`, fileURLToPath(url)],
-        [`/app/${name}${SP.WORDS_JS_SUFFIX}`, wordsPath]
+        // by its own name, in its own language:  `cards.en.js`
+        [`/app/${wordsPath.slice(wordsPath.lastIndexOf("/") + 1)}`, wordsPath]
       ]
     })
   )
@@ -59,7 +60,8 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
     if (path === `/app/${name}${SP.COMPILED_JS_SUFFIX}`) return { text: compiled, type: "text/javascript" }
     if (path === `/app/${name}${SP.SCOPES_JS_SUFFIX}`) return { text: scopes, type: "text/javascript" }
     if (path === `/app/${name}${SP.DECLARATIONS_JSON_SUFFIX}`) return { text: declarations, type: "application/json" }
-    if (path === `/app/${name}${SP.WORDS_JS_SUFFIX}`) return { text: words, type: "text/javascript" }
+    if (path === `/app/${name}${SP.wordsSuffixFor(project.language.lang)}`)
+      return { text: words, type: "text/javascript" }
     const imported = imports.get(path)
     if (imported) return { file: imported }
     return element(path)

@@ -31,7 +31,6 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { instanceCase, typeCase } from "spell-kit/util"
 import { P } from "spell-lang/parser"
 import { MD, type InlineNode } from "spell-lang/markdown"
 import { SP } from "spell-lang/spell"
@@ -256,13 +255,13 @@ export class SpellLanguageService {
     const { kind, name, nameMatch, of, detail } = declaration
     return {
       symbol: {
-        name: kind === "type" ? typeCase(name) : name,
+        name: kind === "type" ? P.typeCase(name) : name,
         kind: SpellLanguageService.SYMBOL_KINDS[kind],
         detail,
         range,
         selectionRange: this.rangeOf(file, nameMatch) ?? range
       },
-      typeName: of && typeCase(of)
+      typeName: of && P.typeCase(of)
     }
   }
 
@@ -593,7 +592,7 @@ export class SpellLanguageService {
     ]
     // an outline body's line, as the sentence style says it -- see `SP.SpellStatement.getLongForm()`
     const longForm = statement?.rule instanceof SP.SpellStatement ? statement.rule.getLongForm(statement) : undefined
-    if (longForm) sections.unshift(`**Reads as**  \`${longForm}\``)
+    if (longForm) sections.unshift(`**${LSP.LspTexts.for(file.project.language).text("readsAs")}**  \`${longForm}\``)
     if (subject) sections.push(this.describeSubject(subject))
     const compiled = statement && SpellLanguageService.compileQuietly(statement)
     if (compiled) sections.push(["```js", SpellLanguageService.truncateLines(compiled, 20), "```"].join("\n"))
@@ -608,65 +607,82 @@ export class SpellLanguageService {
    */
   private describeRule(match: P.Match): string {
     const { rule } = match
+    const texts = LSP.LspTexts.of(match.scope)
     const syntax = SpellLanguageService.truncate(rule.toRulexSyntax(), 160)
     const lines = [syntax ? `**${rule.name}** \`${syntax}\`` : `**${rule.name}**`]
     const example = SpellLanguageService.firstExample(rule)
-    if (example) lines.push(`e.g. \`${example}\``)
+    if (example) lines.push(`${texts.text("forExample")} \`${example}\``)
     const members = rule.name ? SP.builtInMembersOfRule(rule.name) : []
     const builtIn = members.map(({ type, member }) =>
-      [`built in:  **${member.words}** of ${type.name}`, member.docstring].filter(Boolean).join("\n\n")
+      [texts.text("builtIn", { words: member.words, type: type.name }), member.docstring].filter(Boolean).join("\n\n")
     )
     return [lines.join("  \n"), ...builtIn].join("\n\n")
   }
 
-  /** Markdown for what `subject` is, and where it was declared. */
+  /** Markdown for what `subject` is, and where it was declared -- in its program's language (`textsFor()`). */
   private describeSubject(subject: LSP.SpellSubject): string {
+    const texts = SpellLanguageService.textsFor(subject)
     const lines: string[] = []
     if (subject.kind === "variable") {
       const { name, output, kind, datatype, isAlias } = subject.record
       // what it holds, e.g. `card: Card` for an argument `(a card)`, a loop's item, `it` in a method
-      const bits = [`variable **${name}**${datatype ? `: ${datatype}` : ""}`]
-      if (output && output !== name) bits.push(`as \`${output}\``)
+      const bits = [`${texts.text("variable")} **${name}**${datatype ? `: ${datatype}` : ""}`]
+      if (output && output !== name) bits.push(`${texts.text("as")} \`${output}\``)
       if (kind) bits.push(kind)
-      if (isAlias) bits.push("alias")
+      if (isAlias) bits.push(texts.text("alias"))
       lines.push(bits.join(" · "))
     } else if (subject.kind === "type") {
       const { name, superType, stub, classVariables } = subject.record
-      lines.push(`type **${name}**${superType ? ` is a ${superType}` : ""}${stub ? " (stub)" : ""}`)
+      const isA = superType ? texts.text("isA", { superType }) : ""
+      lines.push(`${texts.text("type")} **${name}**${isA}${stub ? ` ${texts.text("stub")}` : ""}`)
       const properties = SpellLanguageService.propertiesOf(subject.record).map((it) =>
         SpellLanguageService.memberWords(it.name, it)
       )
-      if (properties.length) lines.push(`properties:  ${properties.join(", ")}`)
+      if (properties.length) lines.push(`${texts.text("properties")}:  ${properties.join(", ")}`)
       const enumerations = classVariables.get().map((variable) => variable.name)
-      if (enumerations.length) lines.push(`enumerations:  ${enumerations.join(", ")}`)
+      if (enumerations.length) lines.push(`${texts.text("enumerations")}:  ${enumerations.join(", ")}`)
     } else if (subject.kind === "constant") {
-      lines.push(`constant **${subject.record.name}** as \`${subject.record.output}\``)
+      lines.push(
+        `${texts.text("constant")} **${subject.record.name}** ${texts.text("as")} \`${subject.record.output}\``
+      )
     } else if (subject.kind === "method") {
       const declaration =
         subject.record.declaredBy && subject.record.declaredBy.rule.getDeclaration(subject.record.declaredBy)
-      lines.push(`${declaration?.kind ?? "method"} **${declaration?.name ?? subject.record.name}**`)
+      const kind = declaration?.kind === "function" ? texts.text("function") : texts.text("method")
+      lines.push(`${kind} **${declaration?.name ?? subject.record.name}**`)
       const { syntax } = subject.record.definition
-      if (syntax) lines.push(`matches \`${[syntax].flat().join("` or `")}\``)
-      if (declaration?.detail) lines.push(`compiles to \`${declaration.detail}\``)
+      const or = ` ${texts.text("or")} `
+      if (syntax) lines.push(`${texts.text("matches")} \`${[syntax].flat().join(`\`${or}\``)}\``)
+      if (declaration?.detail) lines.push(`${texts.text("compilesTo")} \`${declaration.detail}\``)
     } else {
       const { record, owner } = subject
       const type = record?.scope instanceof P.TypeScope ? record.scope : owner
       const words = SpellLanguageService.memberWords(subject.name, record)
-      const bits = [`property **${words}**${type ? ` of ${type.name}` : ""}`]
-      if (record?.datatype) bits.push(`a ${record.datatype}`)
-      if (record?.autoDeclared) bits.push("declared where it's first set")
+      const bits = [`${texts.text("property")} **${words}**${type ? texts.text("ofType", { type: type.name }) : ""}`]
+      if (record?.datatype) bits.push(texts.text("aDatatype", { datatype: record.datatype }))
+      if (record?.autoDeclared) bits.push(texts.text("autoDeclared"))
       // `the pile of a card`:  from `a card belongs to one pile`, which "declared in" links to
-      if (record?.exclusive) bits.push(`the ${record.datatype} holding it, read-only:  it belongs to one at a time`)
+      if (record?.exclusive) bits.push(texts.text("exclusive", { datatype: record.datatype ?? "" }))
       lines.push(bits.join(" · "))
     }
     const declared = this.declarationsOf(subject)
       .map((it) => this.linkTo(it))
       .join(", ")
-    if (declared) lines.push(`declared in ${declared}`)
+    if (declared) lines.push(texts.text("declaredIn", { where: declared }))
     // docstring as its own paragraph, just under the name
     const [title, ...rest] = lines
     const docs = this.docsOf(subject)
     return [title, docs, rest.join("  \n")].filter(Boolean).join("\n\n")
+  }
+
+  /**
+   * The labels for `subject`, in the language its program is written in (`LSP.LspTexts.of()`).
+   * - The scope it's declared in:  a type's own, else its record's, else where its name was matched.
+   */
+  private static textsFor(subject: LSP.SpellSubject): LSP.LspTexts {
+    const record = "record" in subject ? (subject.record as RecordScopes | P.TypeScope | undefined) : undefined
+    const scope = record instanceof P.Scope ? record : (record?.scope ?? record?.declaredBy?.scope)
+    return LSP.LspTexts.of(scope ?? (subject.nameMatch as P.Match | undefined)?.scope)
   }
 
   /**
@@ -1005,7 +1021,7 @@ export class SpellLanguageService {
   }
 
   /** A word a rename can produce:  what `identifier` / `type` / `constant` rules match. */
-  static RENAMABLE_WORD = /^[A-Za-z][\w-]*$/
+  static RENAMABLE_WORD = P.ALPHANUMERIC_WORD_WITH_DASHES
 
   /** Every occurrence of `subject`, declaration included, if they can ALL be renamed -- see `prepareRename()`. */
   private renamable(subject: LSP.SpellSubject): LSP.FileMatch[] | undefined {
@@ -1290,9 +1306,9 @@ export class SpellLanguageService {
     if (cssItems) return cssItems
     if (!file.match) return []
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
-    const tagItems = this.tagItems(lineText)
+    const tagItems = this.tagItems(lineText, LSP.LspTexts.for(file.project.language))
     if (tagItems) return tagItems
-    const atStatementStart = /^\s*[\w-]*$/.test(lineText)
+    const atStatementStart = /^\s*[\p{L}\p{M}\d_-]*$/u.test(lineText)
     if (!atStatementStart) {
       const expected = this.expectedNext(file, position)
       if (expected.length) return expected
@@ -1305,8 +1321,9 @@ export class SpellLanguageService {
       ...this.methodItems(file, scope, offset, atStatementStart ? "statement" : "expression")
     ]
     if (atStatementStart && scope.parser) {
+      const statement = LSP.LspTexts.for(file.project.language).text("statement")
       for (const word of this.statementWords(scope.parser, file.project)) {
-        items.push({ label: word, kind: CompletionItemKind.Keyword, detail: "statement" })
+        items.push({ label: word, kind: CompletionItemKind.Keyword, detail: statement })
       }
     }
     return items
@@ -1318,12 +1335,12 @@ export class SpellLanguageService {
    * - The web's own tags aren't offered.
    * - A tag is a `<` right before a word:  `x < y` isn't one.
    */
-  private tagItems(lineText: string): CompletionItem[] | undefined {
+  private tagItems(lineText: string, texts: LSP.LspTexts): CompletionItem[] | undefined {
     if (!JSX_TAG_TYPED.test(lineText)) return undefined
     return [...SP.SPELL_TAG_NAMES].map(([tag, webTag]) => ({
       label: tag,
       kind: CompletionItemKind.Keyword,
-      detail: `spell's word for <${webTag}>`
+      detail: texts.text("spellWordFor", { tag: webTag })
     }))
   }
 
@@ -1347,7 +1364,7 @@ export class SpellLanguageService {
     const offset = this.offsetAt(file, position)
     const text = file.parseText
     const beforeCursor = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
-    const typed = /[\w-]*$/.exec(beforeCursor)![0]
+    const typed = /[\p{L}\p{M}\d_-]*$/u.exec(beforeCursor)![0]
     const input = beforeCursor.slice(0, beforeCursor.length - typed.length).trim()
     const scope = this.scopeAt(file, offset)
     if (!input || !scope.parser) return []
@@ -1395,9 +1412,10 @@ export class SpellLanguageService {
     }
     // Words from categories too, e.g. `{expression}` => `the`, `a`, `its`... -- NOT `Card` when there's `card`
     const words = new Set(SpellLanguageService.firstWords(rule, parser, new Set(), true))
+    const next = LSP.LspTexts.for(file.project.language).text("next")
     for (const word of words) {
       if (word !== word.toLowerCase() && words.has(word.toLowerCase())) continue
-      items.push([2, { label: word, kind: CompletionItemKind.Keyword, detail: "next" }])
+      items.push([2, { label: word, kind: CompletionItemKind.Keyword, detail: next }])
     }
     return items
   }
@@ -1551,7 +1569,7 @@ export class SpellLanguageService {
       const newText = `${signature}:\n\t// TODO\n\n`
       const position = this.positionAt(file, at)
       actions.push({
-        title: `Define \`${signature}\``,
+        title: LSP.LspTexts.of(scope).text("define", { signature }),
         kind: CodeActionKind.QuickFix,
         diagnostics: diagnostic ? [diagnostic] : undefined,
         isPreferred: true,
@@ -1645,7 +1663,10 @@ export class SpellLanguageService {
     return SpellLanguageService.visible(scope.variables).flatMap((variable) => {
       if (this.isLater(file, offset, variable.declaredBy)) return []
       const { name, kind, output } = variable
-      const detail = [kind ?? "variable", output && output !== name ? `as ${output}` : ""].filter(Boolean).join(" ")
+      const texts = LSP.LspTexts.of(scope)
+      const detail = [kind ?? texts.text("variable"), output && output !== name ? `${texts.text("as")} ${output}` : ""]
+        .filter(Boolean)
+        .join(" ")
       const documentation = this.markdown(this.docsOfRecord(variable))
       return [{ label: SpellLanguageService.asWritten(name), kind: CompletionItemKind.Variable, detail, documentation }]
     })
@@ -1657,7 +1678,8 @@ export class SpellLanguageService {
       if (this.isLater(file, offset, type.declaredBy)) return []
       const label = SpellLanguageService.asWritten(type.instanceName)
       const documentation = this.markdown(this.docsOfRecord(type))
-      return [{ label, kind: CompletionItemKind.Class, detail: `type ${type.name}`, documentation }]
+      const detail = LSP.LspTexts.of(scope).text("typeNamed", { name: type.name })
+      return [{ label, kind: CompletionItemKind.Class, detail, documentation }]
     })
   }
 
@@ -1682,7 +1704,7 @@ export class SpellLanguageService {
       return {
         label,
         kind: CompletionItemKind.Property,
-        detail: `property of ${of.map((it) => it.type).join(", ")}`,
+        detail: LSP.LspTexts.of(scope).text("propertyOf", { types: of.map((it) => it.type).join(", ") }),
         ...(docs.length ? { documentation: this.markdown(docs.join("\n\n")) } : {})
       }
     })
@@ -1692,7 +1714,9 @@ export class SpellLanguageService {
   private constantItems(file: SP.SpellFile, scope: P.Scope, offset: number): CompletionItem[] {
     return SpellLanguageService.visible(scope.constants).flatMap((constant) => {
       if (this.isLater(file, offset, constant.declaredBy)) return []
-      return [{ label: constant.name, kind: CompletionItemKind.EnumMember, detail: "constant" }]
+      return [
+        { label: constant.name, kind: CompletionItemKind.EnumMember, detail: LSP.LspTexts.of(scope).text("constant") }
+      ]
     })
   }
 
@@ -1787,7 +1811,7 @@ export class SpellLanguageService {
     const text = file.contents ?? ""
     if (!text.trim()) return []
     const formatter = new P.TokenFormatter({
-      tokenizer: SP.spellParser.tokenizer,
+      tokenizer: file.project.language.parser.tokenizer,
       indent: "\t",
       trimFinalBlankLines: !range && !!options.trimFinalNewlines,
       ...SpellLanguageService.FORMAT_SPACING
@@ -1811,6 +1835,56 @@ export class SpellLanguageService {
   /** Edit replacing `file`'s text from offset `start` to `end` with `newText`. */
   private editFor(file: SP.SpellFile, start: number, end: number, newText: string): TextEdit {
     return { range: { start: this.positionAt(file, start), end: this.positionAt(file, end) }, newText }
+  }
+
+  ////////////////
+  // ## Accent fixes
+  ////////////////
+
+  /**
+   * What the editor asks `onTypeFormatting()` after:  a space, or a new line.
+   * - VS Code asks only with `editor.formatOnType` on:  the extension turns it on for spell.
+   */
+  static ON_TYPE_TRIGGERS = [" ", "\n"]
+
+  /**
+   * Edits as `typed` goes in at `position`:  the accent fixes of what's just been finished (epic `spanish` P10).
+   * - A space:  the line so far;  a new line:  the line just ended too.
+   * - So `el numero de cartas` becomes `el número de cartas` once its line parses, with nothing to do --
+   *   see `accentEdits()`.
+   * - A line that doesn't parse yet is left alone:  only a parse says a word is a keyword.
+   */
+  onTypeFormatting(file: SP.SpellFile, position: Position, typed: string): TextEdit[] {
+    const offset = this.offsetAt(file, position)
+    const text = file.parseText
+    const lineStart = text.lastIndexOf("\n", offset - 1) + 1
+    const from = typed === "\n" ? text.lastIndexOf("\n", lineStart - 2) + 1 : lineStart
+    return this.accentEdits(file, from, offset)
+  }
+
+  /**
+   * Edits putting back the written accent of each keyword typed without it, from offset `from` to `to` of `file`:
+   * `numero` => `número`, `esta` => `está`.
+   * - Only words its language's parse matched as one of its own keywords, and only where that's unambiguous --
+   *   see `LSP.SpellKeywords.accentFixFor()`.
+   *   So a person's name `numero`, or `si` (`if`, as well as an unaccented `sí`), stays as typed.
+   * - None in a language with no such keywords, e.g. English.
+   */
+  accentEdits(file: SP.SpellFile, from = 0, to = Infinity): TextEdit[] {
+    if (!file.match) return []
+    const keywords = LSP.SpellKeywords.of(file.project.language)
+    if (!keywords.hasAccentFixes) return []
+    const text = file.parseText
+    const edits = new Map<number, TextEdit>()
+    this.walk(file.match, (match) => {
+      if (match.end === undefined || match.start === undefined || match.end < from || match.start > to) return
+      for (const token of match.matched) {
+        if (!(token instanceof P.WordToken) || token.start < from || token.end > to || edits.has(token.start)) continue
+        const fixed = keywords.accentFixFor(match.rule, text.slice(token.start, token.end))
+        if (fixed) edits.set(token.start, this.editFor(file, token.start, token.end, fixed))
+      }
+    })
+    return [...edits.values()]
   }
 
   ////////////////
@@ -1859,7 +1933,7 @@ export class SpellLanguageService {
     return sequence.rules
       .filter((rule): rule is P.Subrule => rule instanceof P.Subrule)
       .map((slot) => {
-        if (slot.matchGroup === "thisArg" && method?.of) return instanceCase(method.of)
+        if (slot.matchGroup === "thisArg" && method?.of) return P.instanceCase(method.of)
         return params[param++]?.name ?? slot.matchGroup ?? slot.rule
       })
   }
@@ -2099,7 +2173,7 @@ export class SpellLanguageService {
         words = SpellLanguageService.firstWords(target, parser, visited, followGroups)
       }
     }
-    return words.filter((word) => /^[a-z][\w-]*$/i.test(word))
+    return words.filter((word) => P.ALPHANUMERIC_WORD_WITH_DASHES.test(word))
   }
 
   /** Kinds of NAME a completion can offer, by the `highlightAs` of the rule that matches them -- see `firstKinds()`. */
@@ -2253,3 +2327,6 @@ type CommentStyle = {
 
 /** A JSX tag being typed at the end of a line:  `<` right before a word, after a space, `>`, `(` or `{`, e.g. `<div><chi`. */
 const JSX_TAG_TYPED = /(?:^|[\s>({])<[a-z][\w-]*$/
+
+/** Where a scope record says it's declared:  its scope, or the match declaring it (a method's). */
+type RecordScopes = { scope?: P.Scope; declaredBy?: P.Match }

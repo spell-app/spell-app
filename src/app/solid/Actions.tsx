@@ -3,6 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import type { UIButtonAttributes } from "spell-ui/jsx"
 import { editor, runtimeConsole } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import type * as Modals from "spell-app/app/solid/modals"
 import { tracked } from "spell-app/app/solid"
 
@@ -76,52 +77,85 @@ export const Actions = {
   ////////////////
 
   aboutSpell: (props: ActionProps) => (
-    <Action title="About Spell" icon="wizard" onClick={() => editor.aboutSpell()} {...props} />
+    <Action title={appTexts.text("aboutSpell")} icon="wizard" onClick={() => editor.aboutSpell()} {...props} />
   ),
   showEditor: (props: ActionProps) => {
-    const appType = trackAppType()
-    return <Action title={`Edit ${appType()}`} icon="edit outline" onClick={() => editor.showEditor()} {...props} />
+    const groupWords = trackGroupWords()
+    return (
+      <Action
+        title={appTexts.text("editApp", groupWords())}
+        icon="edit outline"
+        onClick={() => editor.showEditor()}
+        {...props}
+      />
+    )
   },
   showRunner: (props: ActionProps) => (
-    <Action title="Preview" icon="hand point up" onClick={() => editor.showRunner()} {...props} />
+    <Action title={appTexts.text("preview")} icon="hand point up" onClick={() => editor.showRunner()} {...props} />
   ),
   showProjectSettings: (props: ActionProps) => (
-    <Action title="Settings" icon="setting" onClick={() => editor.showProjectSettings()} {...props} />
+    <Action title={appTexts.text("settings")} icon="setting" onClick={() => editor.showProjectSettings()} {...props} />
   ),
   showProjectChooser: (props: ActionProps) => (
-    <Action title="Open or Create..." icon="app store ios" onClick={() => editor.showProjectChooser()} {...props} />
+    <Action
+      title={appTexts.text("openOrCreate")}
+      icon="app store ios"
+      onClick={() => editor.showProjectChooser()}
+      {...props}
+    />
   ),
   showDocs: (props: ActionProps) => (
-    <Action title="Docs" icon="newspaper outline" onClick={() => editor.showDocs()} {...props} />
+    <Action title={appTexts.text("docs")} icon="newspaper outline" onClick={() => editor.showDocs()} {...props} />
   ),
   showHelp: (props: ActionProps) => (
-    <Action title="Help" icon="help circle" onClick={() => editor.showHelp()} {...props} />
+    <Action title={appTexts.text("help")} icon="help circle" onClick={() => editor.showHelp()} {...props} />
   ),
-  you: (props: ActionProps) => <Action title="You" icon="user outline" onClick={() => editor.showYou()} {...props} />,
+  you: (props: ActionProps) => (
+    <Action title={appTexts.text("you")} icon="user outline" onClick={() => editor.showYou()} {...props} />
+  ),
 
   ////////////////
   // ## App actions -- work on `editor.project`, create according to `editor.projectRoot`
   ////////////////
 
   createApp: (props: ActionProps) => {
-    const appType = trackAppType()
-    return <Action title={`Create ${appType()}`} icon="pencil" onClick={() => editor.createApp()} {...props} />
+    const groupWords = trackGroupWords()
+    return (
+      <Action
+        title={appTexts.text("createApp", groupWords())}
+        icon="pencil"
+        onClick={() => editor.createApp()}
+        {...props}
+      />
+    )
   },
   duplicateApp: (props: ActionProps) => {
-    const appType = trackAppType()
+    const groupWords = trackGroupWords()
     return (
-      <Action title={`Duplicate ${appType()}`} icon="clone outline" onClick={() => editor.duplicateApp()} {...props} />
+      <Action
+        title={appTexts.text("duplicateApp", groupWords())}
+        icon="clone outline"
+        onClick={() => editor.duplicateApp()}
+        {...props}
+      />
     )
   },
   renameApp: (props: ActionProps) => {
-    const appType = trackAppType()
-    return <Action title={`Rename ${appType()}`} icon="edit outline" onClick={() => editor.renameApp()} {...props} />
-  },
-  deleteApp: (props: ActionProps) => {
-    const appType = trackAppType()
+    const groupWords = trackGroupWords()
     return (
       <Action
-        title={`Delete ${appType()}`}
+        title={appTexts.text("renameApp", groupWords())}
+        icon="edit outline"
+        onClick={() => editor.renameApp()}
+        {...props}
+      />
+    )
+  },
+  deleteApp: (props: ActionProps) => {
+    const groupWords = trackGroupWords()
+    return (
+      <Action
+        title={appTexts.text("deleteApp", groupWords())}
         icon="trash alternate outline"
         onClick={() => editor.deleteApp()}
         {...props}
@@ -129,7 +163,7 @@ export const Actions = {
     )
   },
   appSettings: (props: ActionProps) => (
-    <Action title="Settings" icon="setting" onClick={() => editor.showProjectSettings()} {...props} />
+    <Action title={appTexts.text("settings")} icon="setting" onClick={() => editor.showProjectSettings()} {...props} />
   ),
   compileApp: (props: ActionProps) => {
     const needsCompiling = tracked(() => {
@@ -140,7 +174,7 @@ export const Actions = {
     })
     return (
       <Action
-        title="Compile"
+        title={appTexts.text("compile")}
         active={needsCompiling()}
         color="blue"
         icon="paper plane"
@@ -151,10 +185,10 @@ export const Actions = {
     )
   },
   publishApp: (props: ActionProps) => (
-    <Action title="Publish" icon="world" onClick={() => editor.publishApp()} {...props} />
+    <Action title={appTexts.text("publish")} icon="world" onClick={() => editor.publishApp()} {...props} />
   ),
   restartApp: (props: ActionProps) => (
-    <Action title="Restart" icon="redo" onClick={() => editor.restartApp()} {...props} />
+    <Action title={appTexts.text("restart")} icon="redo" onClick={() => editor.restartApp()} {...props} />
   ),
 
   ////////////////
@@ -162,7 +196,7 @@ export const Actions = {
   ////////////////
 
   createProject: (props: ActionProps) => (
-    <Action title="New Project" icon="pencil" onClick={() => editor.createProject()} {...props} />
+    <Action title={appTexts.text("newProject")} icon="pencil" onClick={() => editor.createProject()} {...props} />
   ),
 
   ////////////////
@@ -170,7 +204,7 @@ export const Actions = {
   ////////////////
 
   createExample: (props: ActionProps) => (
-    <Action title="New Example" icon="pencil" onClick={() => editor.createExample()} {...props} />
+    <Action title={appTexts.text("newExample")} icon="pencil" onClick={() => editor.createExample()} {...props} />
   ),
 
   ////////////////
@@ -178,7 +212,7 @@ export const Actions = {
   ////////////////
 
   createGuide: (props: ActionProps) => (
-    <Action title="New Guide" icon="pencil" onClick={() => editor.createGuide()} {...props} />
+    <Action title={appTexts.text("newGuide")} icon="pencil" onClick={() => editor.createGuide()} {...props} />
   ),
 
   ////////////////
@@ -186,30 +220,40 @@ export const Actions = {
   ////////////////
 
   createFile: (props: ActionProps) => (
-    <Action title="New File" icon="pencil" onClick={() => editor.createFile()} {...props} />
+    <Action title={appTexts.text("newFile")} icon="pencil" onClick={() => editor.createFile()} {...props} />
   ),
   createPropertyEditor: (props: ActionProps) => (
     <Action
-      title="New Property Editor..."
+      title={appTexts.text("newPropertyEditor")}
       icon="sliders horizontal"
       onClick={() => editor.createPropertyEditor()}
       {...props}
     />
   ),
   duplicateFile: (props: ActionProps) => (
-    <Action title="Duplicate File" icon="clone outline" onClick={() => editor.duplicateFile()} {...props} />
+    <Action
+      title={appTexts.text("duplicateFile")}
+      icon="clone outline"
+      onClick={() => editor.duplicateFile()}
+      {...props}
+    />
   ),
   renameFile: (props: ActionProps) => (
-    <Action title="Rename File" icon="edit outline" onClick={() => editor.renameFile()} {...props} />
+    <Action title={appTexts.text("renameFile")} icon="edit outline" onClick={() => editor.renameFile()} {...props} />
   ),
   deleteFile: (props: ActionProps) => (
-    <Action title="Delete File" icon="trash alternate outline" onClick={() => editor.deleteFile()} {...props} />
+    <Action
+      title={appTexts.text("deleteFile")}
+      icon="trash alternate outline"
+      onClick={() => editor.deleteFile()}
+      {...props}
+    />
   ),
   saveFile: (props: ActionProps) => {
     const fileIsDirty = tracked(() => !!editor.file?.isDirty)
     return (
       <Action
-        title="Save"
+        title={appTexts.text("save")}
         active={fileIsDirty()}
         color="green"
         icon="cloud upload"
@@ -222,7 +266,7 @@ export const Actions = {
     const fileIsDirty = tracked(() => !!editor.file?.isDirty)
     return (
       <Action
-        title="Reload"
+        title={appTexts.text("reload")}
         active={fileIsDirty()}
         color="red"
         icon="cloud download"
@@ -240,7 +284,7 @@ export const Actions = {
     const consoleIsEmpty = tracked(() => !runtimeConsole()?.lines.length)
     return (
       <Action
-        title="Clear Console"
+        title={appTexts.text("clearConsole")}
         disabled={consoleIsEmpty()}
         icon="ban"
         onClick={() => runtimeConsole()?.clear()}
@@ -257,19 +301,34 @@ export const Actions = {
   ////////////////
 
   alert: (props: DialogActionProps<Modals.AlertModalProps>) => (
-    <DialogAction props={props} title="Alert" icon="warning sign" show={(modal) => editor.alert(modal)} />
+    <DialogAction
+      props={props}
+      title={appTexts.text("alert")}
+      icon="warning sign"
+      show={(modal) => editor.alert(modal)}
+    />
   ),
   confirm: (props: DialogActionProps<Modals.ConfirmModalProps>) => (
-    <DialogAction props={props} title="Confirm" icon="question circle" show={(modal) => editor.confirm(modal)} />
+    <DialogAction
+      props={props}
+      title={appTexts.text("confirm")}
+      icon="question circle"
+      show={(modal) => editor.confirm(modal)}
+    />
   ),
   prompt: (props: DialogActionProps<Modals.PromptModalProps>) => (
-    <DialogAction props={props} title="Prompt" icon="edit" show={(modal) => editor.prompt(modal)} />
+    <DialogAction props={props} title={appTexts.text("prompt")} icon="edit" show={(modal) => editor.prompt(modal)} />
   ),
   promptForNumber: (props: DialogActionProps<Modals.PromptModalProps>) => (
-    <DialogAction props={props} title="Prompt Number" icon="hashtag" show={(modal) => editor.promptForNumber(modal)} />
+    <DialogAction
+      props={props}
+      title={appTexts.text("promptNumber")}
+      icon="hashtag"
+      show={(modal) => editor.promptForNumber(modal)}
+    />
   ),
   choose: (props: DialogActionProps<Modals.ChooserModalProps>) => (
-    <DialogAction props={props} title="Choose" icon="list" show={(modal) => editor.choose(modal)} />
+    <DialogAction props={props} title={appTexts.text("choose")} icon="list" show={(modal) => editor.choose(modal)} />
   ),
 
   ////////////////
@@ -310,11 +369,11 @@ export type DialogActionProps<P> = P & {
 }
 
 /**
- * `editor.appType` as an accessor, for the app actions' titles.
+ * The words of `editor.projectRoot`'s group (`Example`, `ejemplo` ...) as an accessor, for the app actions' titles.
  * - Call in a component body:  `tracked()` disposes with the component.
  */
-function trackAppType() {
-  return tracked(() => editor.appType)
+function trackGroupWords() {
+  return tracked(() => appTexts.groupWords(editor.projectRoot))
 }
 
 /****************

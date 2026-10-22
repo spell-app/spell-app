@@ -3,6 +3,7 @@ import { render } from "@solidjs/web"
 // Import parser bits
 import "spell-lang/parser"
 import { editor } from "spell-app/app/editor"
+import { AppTexts } from "spell-app/app/ui/AppTexts"
 import { ErrorNotice, Notice, addAppIconsPageWide } from "spell-app/app/solid"
 import { Routes } from "spell-app/app/pages/routes"
 
@@ -10,6 +11,10 @@ import { Routes } from "spell-app/app/pages/routes"
 import "./debug"
 // Solid follows spell cells:  BEFORE anything renders
 import "spell-app/app/solid/cellsBridge"
+
+// The editor speaks the page's language:  the browser's, when `index.html` names none.  BEFORE anything draws, so
+// `<ui-root>` loads Spell UI's words in it too.
+AppTexts.namePageLanguage()
 
 // Programs run on the runtime `editor` loads -- start loading it now.  It registers the `UI` / `SUI` tags spell JSX
 // draws with, NOT the editor's `spell-app/app/solid`.  NEVER import `spell-lang/core` here:  see `spellRuntime.ts`.

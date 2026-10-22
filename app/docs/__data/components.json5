@@ -2453,13 +2453,13 @@
           "name": "openSections",
           "type": "ReadonlySet<string>",
           "required": true,
-          "description": "Titles of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`."
+          "description": "Names of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`."
         },
         {
           "name": "onToggleSection",
           "type": "(title: string) => void",
           "required": true,
-          "description": "Open / close section `title`."
+          "description": "Open / close section `name`."
         },
         {
           "name": "onSelect",

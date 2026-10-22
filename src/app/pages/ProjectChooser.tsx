@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
-import type { JSX } from "@solidjs/web"
 
 import { SPACES } from "spell-app/spaces"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { Actions, AppMenu, MoreMenu, ProjectMenu, SpellPage, Submenu } from "spell-app/app/solid"
 
 /****************
@@ -25,43 +25,35 @@ export function ProjectChooser() {
           <ui-grid relaxed="very" padded="" columns="equal">
             <ui-row>
               <ui-column>
-                <h1>Welcome to Spell!</h1>
+                <h1>{appTexts.text("welcome")}</h1>
               </ui-column>
             </ui-row>
 
             <ui-row>
-              <RootColumn heading={projects.title}>
-                <p>{projects.description}</p>
-              </RootColumn>
-              <RootColumn heading={examples.title}>
-                <p>{examples.description}</p>
-              </RootColumn>
-              <RootColumn heading={guides.title}>
-                <p>{guides.description}</p>
-              </RootColumn>
+              <RootColumn projectRoot={projects} />
+              <RootColumn projectRoot={examples} />
+              <RootColumn projectRoot={guides} />
               <Show when={showFixtures}>
-                <RootColumn heading={fixtures.title}>
-                  <p>{fixtures.description}</p>
-                </RootColumn>
+                <RootColumn projectRoot={fixtures} />
               </Show>
             </ui-row>
 
             <ui-row>
               <ui-column>
-                <h4>Open Project</h4>
+                <h4>{appTexts.text("openGroup", appTexts.groupWords(projects))}</h4>
                 <ProjectMenu vertical="" fluid="" projectRoot={projects} />
               </ui-column>
               <ui-column>
-                <h4>Open Example</h4>
+                <h4>{appTexts.text("openGroup", appTexts.groupWords(examples))}</h4>
                 <ProjectMenu vertical="" fluid="" projectRoot={examples} useRunner />
               </ui-column>
               <ui-column>
-                <h4>Open Guide</h4>
+                <h4>{appTexts.text("openGroup", appTexts.groupWords(guides))}</h4>
                 <ProjectMenu vertical="" fluid="" projectRoot={guides} useRunner />
               </ui-column>
               <Show when={showFixtures}>
                 <ui-column>
-                  <h4>Open Fixture</h4>
+                  <h4>{appTexts.text("openGroup", appTexts.groupWords(fixtures))}</h4>
                   <ProjectMenu vertical="" fluid="" projectRoot={fixtures} />
                 </ui-column>
               </Show>
@@ -69,13 +61,13 @@ export function ProjectChooser() {
 
             <ui-row>
               <ui-column>
-                <Actions.createProject button title="Create a New Project" fluid="" />
+                <Actions.createProject button title={appTexts.text("createNewProject")} fluid="" />
               </ui-column>
               <ui-column>
-                <Actions.createExample button title="Create a New Example" fluid="" />
+                <Actions.createExample button title={appTexts.text("createNewExample")} fluid="" />
               </ui-column>
               <ui-column>
-                <Actions.createGuide button title="Create a New Guide" fluid="" />
+                <Actions.createGuide button title={appTexts.text("createNewGuide")} fluid="" />
               </ui-column>
               <Show when={showFixtures}>
                 <ui-column />
@@ -90,13 +82,14 @@ export function ProjectChooser() {
 
 /****************
  * ### `<RootColumn>`
- * One column of `<ProjectChooser>`'s top row:  a project root's title over `children`.
+ * One column of `<ProjectChooser>`'s top row:  a project root's title over what's in it, in the page's language.
  ****************/
-function RootColumn(props: { heading: string; children?: JSX.Element }) {
+function RootColumn(props: { projectRoot: SPACES.SpellProjectRoot }) {
+  const words = () => appTexts.groupWords(props.projectRoot)
   return (
     <ui-column>
-      <h3>{props.heading}</h3>
-      {props.children}
+      <h3>{words().title}</h3>
+      <p>{words().description}</p>
     </ui-column>
   )
 }

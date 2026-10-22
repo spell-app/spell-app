@@ -12,7 +12,7 @@ import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
 
 /**
  * The app on the page server:  a ROUTE MODULE (`spell-kit/server/page`'s `RouteModule`),
- * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
+ * spell-app's part of the kit's page server settings:  `"pageServer": { "routes": [...] }` in its `package.json`.
  * - What `spell app serve` runs everything on.
  * - It's spaces' (epic `people-and-orgs` P14):  where projects live, and the servers that serve them.
  * - What it serves:

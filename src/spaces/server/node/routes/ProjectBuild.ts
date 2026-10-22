@@ -14,7 +14,7 @@ import { hasProjectFile } from "spell-lang/spell/node/projectFile"
  * Builds spell projects when the API needs what they build:  their compiled output and scope packs are in `build/`
  * (epic `people-and-orgs` P11), never committed, so a fresh checkout or worktree has none.
  * - `start()`:  when the page server starts, compiles the built-in projects that are out of date, in the background:
- *   `spell compile --stale --all @spell/examples @spell/library` (`STARTUP_PROJECTS`), as page-server's `BundleBuild` builds the bundles
+ *   `spell compile --stale --all @spell/examples @spell/library` (`STARTUP_PROJECTS`), as the kit's page server's `BundleBuild` builds the bundles
  * - `builtFirst()`:  a route's handler.
  *   A request for a built file that isn't there (`/spaces/<project>/<file>`) compiles its project first,
  *   `spell compile <projectId>`, then goes on to be served:
@@ -207,7 +207,7 @@ async function within(work: Promise<void>, deadline: number): Promise<void> {
  * The kit's `spell` command (`spell-kit`'s `bin/spell.mjs`), as checkout `root`'s install resolves the kit:
  * the checkout's OWN, never the `spell` on `PATH` (maybe main's);  `undefined` when its install has no kit.
  * - By package, never a path into the kit (the root `AGENTS.md`, "Imports across repos").
- * - NOTE: page-server's `BundleBuild` keeps a twin of this:  page-server may not import spaces (the one-way rule, `tsconfig.base.json`)
+ * - NOTE: the kit's `BundleBuild` (`spell-kit/server/page`) keeps a twin of this:  the kit imports no repo above it
  */
 function kitSpell(root: string): string | undefined {
   try {

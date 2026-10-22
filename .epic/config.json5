@@ -72,13 +72,13 @@
   // The app, the editor:  what the docs' top bar's App tab opens on the epic server (spell-epic's `RepoApp`,
   // epic `epic-engine` I49), at `/editor/` as on this repo's page server (spaces' `appRoutes.ts`).
   // - Up:  redirected to, at the URL its record holds:  the page server writes `.spell-server.editor.json` once the
-  //   editor answers (spaces' `EditorServer`).
+  //   editor answers (spaces' `EditorServer`), at ITS root:  the kit's, above this repo (epic `repo-split` P16).
   // - Not up:  the epic server runs "start" from the main checkout, in the background (its output in
   //   `~/.spell-epic/app-spell-app.log`):  the page server, which starts the editor with it;  a "Starting ..." page
   //   goes to the editor once it answers.
   "app": {
     "path": "/editor/",
-    "urlFile": ".spell-server.editor.json",
+    "urlFile": "../.spell-server.editor.json",
     "start": "node ../bin/spell.mjs server start"
   }
 }

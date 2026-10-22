@@ -432,6 +432,32 @@ describe("ScopeExplorer built-in types", () => {
   })
 })
 
+/** The scope tree of a project written in Spanish:  a temp copy of the frozen `cartas` project. */
+describe("ScopeExplorer in Spanish", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "spell-scopes-es-"))
+  cpSync(fixturePath("cartas"), resolve(dir, "cartas"), { recursive: true })
+  const cartaPath = resolve(dir, "cartas/Carta.spell")
+  const cartaUri = pathToFileURL(cartaPath).href
+  const workspace = new SpellDiskWorkspace()
+  const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(workspace))
+  let project: SP.SpellProject
+
+  beforeAll(async () => {
+    await workspace.update(cartaUri, readFileSync(cartaPath, "utf8"))
+    project = workspace.fileFor(cartaUri)!.project as SP.SpellProject
+  })
+
+  test("its types come from Spanish's built-in types, and show their rules in Spanish", () => {
+    const tree = explorer.tree(project)
+    expect(find(tree, "Carta").super).toBe("type:Thing")
+    expect(find(tree, "Mazo").super).toBe("type:List")
+    expect(explorer.details(project, "type:List/method:number of (items) in (a list)")!.rules).toContainEqual({
+      name: "list_count",
+      syntax: "(el|la)? (número|numero|cantidad) de {list:operand}"
+    })
+  })
+})
+
 /** `node` and everything below it, with no `uri`s -- which a pack makes portable. */
 function withoutUris(node: LSP.ScopeNode): LSP.ScopeNode {
   const { uri: _uri, children, ...rest } = node

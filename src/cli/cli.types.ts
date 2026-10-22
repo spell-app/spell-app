@@ -101,6 +101,8 @@ export type NewOptions = GlobalOptions & {
  * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
  * - `seed`:  start its random numbers from it, before it loads -- see `core.seedRandom()`.
  *   Left out:  random, as in a browser.
+ * - `messages`:  what the core says, e.g. a test's lines, in the project's language (epic `spanish` P12) --
+ *   see `core.useMessages()`.  Left out:  English.
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -112,6 +114,7 @@ export type RunSpec = {
   filter?: string
   dom?: boolean
   seed?: number
+  messages?: Record<string, string>
 }
 
 /**

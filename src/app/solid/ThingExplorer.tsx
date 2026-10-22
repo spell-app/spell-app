@@ -3,6 +3,7 @@ import { For, Match, Show, Switch, createEffect, createMemo, createSignal, untra
 import type { ThingAction, ThingLike, ThingRegistry } from "spell-lang/core/things"
 import type { SP } from "spell-lang/spell"
 import type { ThingExplorerState, ThingOrder } from "spell-app/app/ui/ui.types"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import { tracked } from "./tracked"
 import { SCOPE_ICONS, SectionMarker, sectionStartsAt } from "./ScopeDetailsPane"
 import { TreeRow } from "./TypeExplorer"
@@ -98,21 +99,21 @@ function ThingExplorerView(props: ThingExplorerViewProps) {
   return (
     <Show
       when={!isEmpty()}
-      fallback={<div class="TypeExplorer ThingExplorer empty">Run the project to see its things.</div>}
+      fallback={<div class="TypeExplorer ThingExplorer empty">{appTexts.text("runToSeeThings")}</div>}
     >
       <div class="TypeExplorer ThingExplorer">
         <div class="ScopesPane">
           <div class="PaneHeader">
-            Things
+            {appTexts.text("things")}
             <span class="tools">
               <For each={ORDERS}>
                 {(it) => (
                   <ui-icon
                     name={it.icon}
                     link=""
-                    label={it.title}
+                    label={appTexts.text(it.text)}
                     class={["order", { active: order() === it.id }]}
-                    title={it.title}
+                    title={appTexts.text(it.text)}
                     onClick={() => props.onChange({ order: it.id })}
                   />
                 )}
@@ -123,7 +124,7 @@ function ThingExplorerView(props: ThingExplorerViewProps) {
             <Show when={topLevel().length}>
               <GroupRow
                 groupKey={TOP_LEVEL}
-                label="Top level"
+                label={appTexts.text("topLevel")}
                 count={topLevel().length}
                 isOpen={open().has(TOP_LEVEL)}
                 onToggle={toggle}
@@ -138,7 +139,7 @@ function ThingExplorerView(props: ThingExplorerViewProps) {
                 <>
                   <GroupRow
                     groupKey={ALL}
-                    label="All things"
+                    label={appTexts.text("allThings")}
                     count={all().length}
                     isOpen={open().has(ALL)}
                     onToggle={toggle}
@@ -182,12 +183,12 @@ function ThingExplorerView(props: ThingExplorerViewProps) {
           </div>
         </div>
         <div class="DetailsPane">
-          <div class="PaneHeader">Details</div>
+          <div class="PaneHeader">{appTexts.text("details")}</div>
           <div class="PaneBody">
             <Show
               when={selected()}
               keyed
-              fallback={<div class="ScopeDetails empty">Select a thing to see its properties.</div>}
+              fallback={<div class="ScopeDetails empty">{appTexts.text("selectThing")}</div>}
             >
               {(thing) => <ThingDetails things={props.things} words={props.words} thing={thing} onSelect={select} />}
             </Show>
@@ -317,7 +318,7 @@ type ThingRowProps = {
 
 /** Icon for a thing:  a list, or any other thing. */
 function ThingIcon(props: { isList: boolean }) {
-  return <ui-icon name={props.isList ? LIST_ICON : THING_ICON} title={props.isList ? "list" : "thing"} />
+  return <ui-icon name={props.isList ? LIST_ICON : THING_ICON} title={appTexts.text(props.isList ? "list" : "thing")} />
 }
 
 /****************
@@ -352,7 +353,7 @@ function ThingDetails(props: ThingDetailsProps) {
       </div>
       <div class="TypeChain">{typeChain()}</div>
       <Show when={names().length > 0}>
-        <div class="DetailsSectionTitle">Properties</div>
+        <div class="DetailsSectionTitle">{appTexts.text("properties")}</div>
         <table class="ThingValues">
           <tbody>
             <For each={names()}>{(name) => propertyRow(name)}</For>
@@ -360,7 +361,7 @@ function ThingDetails(props: ThingDetailsProps) {
         </table>
       </Show>
       <Show when={actions().length > 0}>
-        <div class="DetailsSectionTitle">Actions</div>
+        <div class="DetailsSectionTitle">{appTexts.text("actions")}</div>
         <table class="ThingValues">
           <tbody>
             <For each={actions()}>{(action) => actionRow(action)}</For>
@@ -385,7 +386,7 @@ function ThingDetails(props: ThingDetailsProps) {
     const value = tracked(() => propertyValue(props.things, props.thing, name))
     return (
       <tr>
-        <th title={computed().has(name) ? "computed" : undefined}>
+        <th title={computed().has(name) ? appTexts.text("computed") : undefined}>
           <ui-icon name={SCOPE_ICONS.property} />
           {memberWords(props.words, types(), name) ?? name}
         </th>
@@ -414,8 +415,8 @@ function ThingDetails(props: ThingDetailsProps) {
               link=""
               color="green"
               class="perform"
-              label={`Do it:  ${action.name}()`}
-              title={`Do it:  ${action.name}()`}
+              label={appTexts.text("doIt", { action: action.name })}
+              title={appTexts.text("doIt", { action: action.name })}
               onClick={() => props.things.perform(props.thing, action.name)}
             />
           </Show>
@@ -447,7 +448,7 @@ function ThingValue(props: ThingValueProps) {
   return (
     <Switch fallback={<span class={["ThingValue", props.value.kind]}>{textOf(props.value)}</span>}>
       <Match when={props.value.kind === "empty"}>
-        <span class="ThingValue empty">empty</span>
+        <span class="ThingValue empty">{appTexts.text("empty")}</span>
       </Match>
       <Match when={ofKind(props.value, "thing")}>
         {(value) => (
@@ -542,14 +543,15 @@ export function shownValue(things: ThingRegistry, value: unknown, depth = 0): Sh
     case "bigint":
       return { kind: typeof value as "number" | "boolean" | "bigint", text: String(value) }
     case "function":
-      return { kind: "other", text: "action" }
+      return { kind: "other", text: appTexts.text("action") }
   }
   if (things.isThing(value) && thingKey(things, value)) {
     return { kind: "thing", label: things.labelOf(value), thing: value }
   }
   const items = Array.isArray(value) ? (value as unknown[]) : things.isThing(value) ? things.itemsOf(value) : undefined
   if (!items) return { kind: "other", text: `${constructorName(value)} {…}` }
-  const summary = `${things.isThing(value) ? value.type : "list"} of ${items.length}`
+  const type = things.isThing(value) ? value.type : appTexts.text("list")
+  const summary = appTexts.text("listOf", { type, count: items.length })
   if (!items.length || depth >= MAX_DEPTH) return { kind: "list", summary }
   return { kind: "list", summary, items: items.map((item) => shownValue(things, item, depth + 1)) }
 }
@@ -606,10 +608,10 @@ const LIST_ICON = "list"
 /** Icon for any other thing, e.g. a `Card`. */
 const THING_ICON = "dot circle outline"
 
-/** Each order the tree can be in, as a button in its header -- see `UI.ThingOrder`. */
-const ORDERS: Array<{ id: ThingOrder; icon: string; title: string }> = [
-  { id: "document", icon: "list ol", title: "In the order they were made" },
-  { id: "type", icon: SCOPE_ICONS.type, title: "By type, sub-types included" }
+/** Each order the tree can be in, as a button in its header -- see `UI.ThingOrder`;  `text` its title's key. */
+const ORDERS: Array<{ id: ThingOrder; icon: string; text: AppTextKey }> = [
+  { id: "document", icon: "list ol", text: "thingsInOrderMade" },
+  { id: "type", icon: SCOPE_ICONS.type, text: "thingsByType" }
 ]
 
 /** Key of type `type`'s tree row, e.g. `type:Card`. */

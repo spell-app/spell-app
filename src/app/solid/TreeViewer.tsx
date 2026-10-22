@@ -2,8 +2,8 @@ import { Show, createMemo } from "solid-js"
 
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
-
 import { editor } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
 
 import "./TreeViewer.css"
@@ -43,7 +43,7 @@ export function TreeToolbar() {
   return (
     <PanelMenu>
       <Submenu left spring>
-        <MenuHeader>Spell Tree</MenuHeader>
+        <MenuHeader>{appTexts.text("spellTree")}</MenuHeader>
       </Submenu>
       <Submenu right spring>
         <MoreMenu stub />
@@ -71,7 +71,7 @@ export function TreeViewer(props: TreeViewerProps) {
   return (
     <div class="TreeViewer">
       <ErrorBoundary onError={(error) => props.showError?.(error)}>
-        <Show when={tree()} fallback={<p class="TreeViewer-hint">Put the cursor on a line to see its spell tree.</p>}>
+        <Show when={tree()} fallback={<p class="TreeViewer-hint">{appTexts.text("spellTreeHint")}</p>}>
           <ui-tree-diagram prop:tree={tree()} />
         </Show>
       </ErrorBoundary>
