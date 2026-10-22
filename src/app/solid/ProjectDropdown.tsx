@@ -76,7 +76,7 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
         <ui-dropdown
           class="ProjectDropdown"
           loading={!ready()}
-          prop:value={selected()}
+          value={selected()}
           ref={on<{ value: string }>("ui-change", choose)}
         >
           <Show when={ready()}>

@@ -38,8 +38,8 @@ export function ProjectSettings(props: ProjectSettingsProps) {
       <ui-content>
         <ui-property-editor
           apply="on save"
-          prop:schema={PROJECT_SETTINGS_SCHEMA}
-          prop:value={settings}
+          schema={PROJECT_SETTINGS_SCHEMA}
+          value={settings}
           ref={(editor: HTMLElement) => {
             editor.addEventListener("ui-saved", () => void save())
             editor.addEventListener("ui-cancelled", () => hide())

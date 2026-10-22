@@ -72,7 +72,7 @@ export function TreeViewer(props: TreeViewerProps) {
     <div class="TreeViewer">
       <ErrorBoundary onError={(error) => props.showError?.(error)}>
         <Show when={tree()} fallback={<p class="TreeViewer-hint">Put the cursor on a line to see its spell tree.</p>}>
-          <ui-tree-diagram prop:tree={tree()} />
+          <ui-tree-diagram tree={tree()} />
         </Show>
       </ErrorBoundary>
     </div>
