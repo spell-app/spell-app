@@ -152,7 +152,8 @@
     "configurationDefaults": {
       "[spell]": {
         "editor.insertSpaces": false,
-        "editor.detectIndentation": false
+        "editor.detectIndentation": false,
+        "editor.formatOnType": true
       },
       "editor.semanticTokenColorCustomizations": {
         "rules": {

@@ -10,6 +10,7 @@ import "spell-app/spaces/models/projectGroups"
 // Import directly, NOT through the `spell-app/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "spell-app/app/runner/runner.types"
 import { adoptShadowStyles } from "spell-app/app/runner/shadowStyles"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import {
   SpellAppRunner,
   PUSHED_FOR,
@@ -293,9 +294,11 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
           when={this.source}
           fallback={
             <div class="SpellAppError">
-              {this.editor
-                ? this.translationForKey("waitingForEditor", { editor: this.editor })
-                : this.translationForKey("nothingToRun")}
+              {appTexts.inLanguage(() =>
+                this.editor
+                  ? this.translationForKey("waitingForEditor", { editor: this.editor })
+                  : this.translationForKey("nothingToRun")
+              )}
             </div>
           }
         >
@@ -392,8 +395,11 @@ const SCOPES_JS = ".scopes.js"
 /** End of a project's declarations file's name:  `SP.DECLARATIONS_JSON_SUFFIX`. */
 const DECLARATIONS_JSON = ".declarations.json5"
 
-/** End of a project's words file's name:  `SP.WORDS_JS_SUFFIX`. */
-const WORDS_JS = ".en.js"
+/**
+ * End of a project's words file's name, in its own language:  `SP.wordsSuffixFor()`, e.g. `.en.js`, `.es.js`.
+ * - `{lang}` is filled in from its declarations when the words load (`SpellAppRunner`'s `inLanguage()`).
+ */
+const WORDS_JS = ".{lang}.js"
 
 /** `width` / `height` attribute `value` as a CSS size:  `""` for `fluid`, or none. */
 function cssSize(value: string | null | undefined): string {

@@ -1,6 +1,7 @@
 import { Show, onCleanup } from "solid-js"
 
 import { editor } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { Actions, MenuHeader, MoreMenu, PanelMenu, Submenu } from "spell-app/app/solid"
 import { AppContainer } from "./AppContainer"
 
@@ -9,8 +10,8 @@ import "./AppRoot.css"
 /****************
  * ### `<AppRoot>`
  * The running program in the editor's pages:  an optional `<AppToolbar>` above an `<AppContainer>`.
- * - SIDE EFFECT:  its container is where `editor` runs programs (`editor.setAppRoot()`), until it goes
- *   (`editor.releaseAppRoot()`).
+ * - SIDE EFFECT:  its container is where `editor` runs programs (`editor.setAppRoot()`),
+ *   until it goes (`editor.releaseAppRoot()`).
  * - SEE:  its App UI components page, `app/docs/AppRoot.html` (`/components/app/AppRoot.html`).
  ****************/
 export function AppRoot(props: AppRootProps) {
@@ -53,7 +54,7 @@ export function AppToolbar() {
   return (
     <PanelMenu>
       <Submenu left spring>
-        <MenuHeader>App</MenuHeader>
+        <MenuHeader>{appTexts.text("appMenu")}</MenuHeader>
       </Submenu>
       <Submenu right spring>
         <Actions.restartApp />

@@ -3,6 +3,7 @@ import { render } from "@solidjs/web"
 
 import type { SPACES } from "spell-app/spaces"
 import { UI as SpellUI } from "spell-ui"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { uiReady } from "spell-app/app/solid/loadUI"
 
 import "./YouPanel.css"
@@ -34,7 +35,7 @@ export function YouPanel(props: YouPanelProps) {
       class="YouPanel"
       size="small"
       closedby="closerequest"
-      header={`You:  ${props.me.person.address}`}
+      header={appTexts.text("youHeader", { address: props.me.person.address })}
       visible=""
       ref={(element: HTMLElement) => {
         modal = element
@@ -44,7 +45,7 @@ export function YouPanel(props: YouPanelProps) {
     >
       <ui-content>
         <Show when={props.me.problems.length > 0}>
-          <ui-message state="warning" size="small" header="Your file has problems:  read anyway">
+          <ui-message state="warning" size="small" header={appTexts.text("fileProblems")}>
             <ul>
               <For each={props.me.problems}>
                 {(problem) => (
@@ -58,27 +59,32 @@ export function YouPanel(props: YouPanelProps) {
         </Show>
         <ui-form>
           <ui-field>
-            <label for="YouPanel-names">Names</label>
+            <label for="YouPanel-names">{appTexts.text("names")}</label>
             <ui-input id="YouPanel-names" name="names" value={props.me.person.names} />
           </ui-field>
           <ui-field>
-            <label for="YouPanel-nickname">Nickname</label>
+            <label for="YouPanel-nickname">{appTexts.text("nickname")}</label>
             <ui-input id="YouPanel-nickname" name="nickname" value={props.me.person.nickname} />
           </ui-field>
           <ui-field>
-            <label for="YouPanel-emails">Emails, one a line</label>
+            <label for="YouPanel-emails">{appTexts.text("emails")}</label>
             <ui-textarea id="YouPanel-emails" name="emails" rows="2" value={props.me.person.emails.join("\n")} />
           </ui-field>
           <ui-field>
-            <label>Dates</label>
+            <label>{appTexts.text("dates")}</label>
             <For each={dates()}>
               {(date) => (
                 <div class="date">
-                  <ui-input class="label" aria-label="What" placeholder="birthday" value={date.label} />
-                  <ui-input class="day" aria-label="Day" type="date" value={date.day} />
+                  <ui-input
+                    class="label"
+                    aria-label={appTexts.text("dateWhat")}
+                    placeholder={appTexts.text("datePlaceholder")}
+                    value={date.label}
+                  />
+                  <ui-input class="day" aria-label={appTexts.text("dateDay")} type="date" value={date.day} />
                   <ui-button
                     icon="trash alternate outline"
-                    aria-label="Remove"
+                    aria-label={appTexts.text("dateRemove")}
                     basic=""
                     onClick={() => setDates(dates().filter((each) => each !== date))}
                   />
@@ -86,12 +92,12 @@ export function YouPanel(props: YouPanelProps) {
               )}
             </For>
             <ui-button icon="plus" basic="" size="small" onClick={() => setDates([...dates(), { label: "", day: "" }])}>
-              Add a date
+              {appTexts.text("addDate")}
             </ui-button>
           </ui-field>
         </ui-form>
-        <h4>Your orgs</h4>
-        <Show when={props.me.orgs.length > 0} fallback={<p>None yet.</p>}>
+        <h4>{appTexts.text("yourOrgs")}</h4>
+        <Show when={props.me.orgs.length > 0} fallback={<p>{appTexts.text("noneYet")}</p>}>
           <ui-list>
             <For each={props.me.orgs}>
               {(org) => (
@@ -106,7 +112,7 @@ export function YouPanel(props: YouPanelProps) {
       <ui-actions>
         <ui-button class="cancel">{SpellUI.i18n.t("cancel")}</ui-button>
         <ui-button class="approve" primary="" onClick={save}>
-          Save
+          {appTexts.text("save")}
         </ui-button>
       </ui-actions>
     </ui-modal>

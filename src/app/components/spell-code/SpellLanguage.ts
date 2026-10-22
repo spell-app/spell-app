@@ -54,10 +54,19 @@ const ALIASES = ["sp"]
 const DEFAULT_VARIANT = "en"
 
 /**
- * Each translation's highlighter, imported on first use:  ONE lazy chunk, spell's parser and rules.
- * - English only today;  a translation will bring its own parser.
+ * Each translation's highlighter, imported on first use:  ONE lazy chunk, spell's parser and rules, every language.
+ * - Each colours with its own language pack's parser, so its words colour as theirs do:
+ *   ```` ```spell/es ```` reads `si`, `para cada`, `el número de` as Spanish keywords.
+ * - A new language pack:  add its code here.
  */
 const TRANSLATIONS: Record<string, () => Promise<Omit<E.CodeLanguage, "load">>> = {
-  en: () =>
-    import("spell-lang/spell").then(({ SP }) => ({ highlight: (code: string) => SP.SpellHighlighter.spans(code) }))
+  en: () => highlighterFor("en"),
+  es: () => highlighterFor("es")
+}
+
+/** The highlighter of language `lang`'s spell, from its pack:  `SP.SpellHighlighter` with its parser. */
+async function highlighterFor(lang: string): Promise<Omit<E.CodeLanguage, "load">> {
+  const { SP } = await import("spell-lang/spell")
+  const { parser } = SP.Language.for(lang)
+  return { highlight: (code: string) => SP.SpellHighlighter.spans(code, parser) }
 }

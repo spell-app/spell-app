@@ -12,7 +12,11 @@ when working with code in this folder, `src/lsp/` of the `spell-app` package (`s
 ## Overview
 
 - Spell's language server, `spell-app/lsp` (`LSP`):
-  - `SpellLanguageService`:  diagnostics, hover, completion, definition, references, rename, outline, folding, formatting
+  - `SpellLanguageService`:  diagnostics, hover, completion, definition, references, rename, outline, folding, formatting,
+    accent fixes as you type
+  - `LspTexts`:  the labels it shows people, in the project's language (epic `spanish` P13)
+    - read through `LspTexts.of(scope)`
+  - `SpellKeywords`:  a language pack's keywords, as editors want them (accent fixes, the VS Code grammar's keywords)
   - `SpellLanguageServer`:  wires it to an LSP connection
   - `ScopeExplorer`
   - `ScopesSource` / `ScopePack`:  the scope packs, `<Project>.scopes.js`
@@ -33,7 +37,9 @@ when working with code in this folder, `src/lsp/` of the `spell-app` package (`s
   - Why:  the app's Monaco editor ([the app's Monaco plumbing](../app/ui/monaco/))
     calls the SAME `LSP.SpellLanguageService`, in-process.
   - The node-only files the barrel leaves out (see the barrel's header):
-    `SpellDiskWorkspace.ts`, `server.ts`, `stdioGuard.ts`.
+    - `SpellDiskWorkspace.ts`
+    - `server.ts`
+    - `stdioGuard.ts`
 - It depends on `spell-lang/spell` (and below).
   - Its node-only files also import spaces' (`spell-app/spaces/server/node/...`):
     where projects are on disk, and spaces' disk reader, which registers spell's project groups.

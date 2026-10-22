@@ -11,7 +11,7 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
   "is a (suit)": [
     {
       "name": "is_a_$suit",
-      "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
+      "syntax": "{operator:is_or_is_not_a} (expression:club|diamond|heart|spade)",
     },
   ],
 }
@@ -72,6 +72,7 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
     method draw (a thing)
   type List (counts from 1)
     property id (text)
+    property name (text)
     property length (number)
     property size (number)
     method (a list) can give up (a thing)
@@ -148,6 +149,7 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
     method draw (a thing)
   type List (counts from 1)
     property id (text)
+    property name (text)
     property length (number)
     property size (number)
     method (a list) can give up (a thing)

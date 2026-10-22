@@ -52,6 +52,8 @@ export type CompiledDeclarations = {
   statements: MarkerDeclaration[]
   /** Where each statement's code starts in the compiled javascript:  its line, from 0. */
   codeLines?: number[]
+  /** The human language the project is written in, e.g. `es`;  missing for English. */
+  language?: string
 }
 
 /**

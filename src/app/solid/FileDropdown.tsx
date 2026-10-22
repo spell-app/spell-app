@@ -1,6 +1,7 @@
 import { For, Show } from "solid-js"
 
 import { editor } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { Actions, DropdownLabel, FILE_ICON, on, tracked } from "spell-app/app/solid"
 
 import "./FileDropdown.css"
@@ -37,7 +38,7 @@ export function FileDropdown(props: FileDropdownProps) {
         {/* HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>` */}
         <DropdownLabel>
           <ui-icon name={FILE_ICON} />
-          File:
+          {appTexts.text("fileLabel")}
         </DropdownLabel>
       </Show>
       <ui-item class="FileDropdown">

@@ -2,6 +2,7 @@ import { For, Show, createComponent, omit } from "solid-js"
 
 import type { SP } from "spell-lang/spell"
 import type { monaco } from "spell-app/app/ui/monaco"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 
 import "./SpellEditorPane.css"
 
@@ -29,7 +30,7 @@ export function SpellEditorPane(props: SpellEditorPaneProps) {
               >
                 {it.file ?? it.path}
                 <Show when={props.isDirty(it)}>
-                  <span class="dirty" title="Edited since it was saved"></span>
+                  <span class="dirty" title={appTexts.text("editedSinceSaved")}></span>
                 </Show>
               </button>
             )}
@@ -37,7 +38,10 @@ export function SpellEditorPane(props: SpellEditorPaneProps) {
         </div>
       </Show>
       <div class="SpellEditorBody">
-        <Show when={props.monaco && props.file} fallback={<div class="SpellEditorLoading">Loading editor…</div>}>
+        <Show
+          when={props.monaco && props.file}
+          fallback={<div class="SpellEditorLoading">{appTexts.text("loadingEditor")}</div>}
+        >
           <LazyEditor
             module={props.monaco!}
             model={props.monaco!.SpellMonaco.models.modelFor(props.file!)}
@@ -48,7 +52,7 @@ export function SpellEditorPane(props: SpellEditorPaneProps) {
       </div>
       <div class={["SpellEditorStatus", props.status.state]}>
         <span class="message">{statusText(props.status)}</span>
-        <span class="keys">⌘S save · ⌘↵ run</span>
+        <span class="keys">{appTexts.text("editorKeys")}</span>
       </div>
     </div>
   )
@@ -107,19 +111,19 @@ export type SpellEditorStatus =
   | { state: "errors"; errors: number }
   | { state: "failed"; message: string }
 
-/** What the status line says for `status`. */
+/** What the status line says for `status`, in the page's language. */
 function statusText(status: SpellEditorStatus): string {
   switch (status.state) {
     case "loading":
-      return "Loading…"
+      return appTexts.text("loading")
     case "compiling":
-      return "Compiling…"
+      return appTexts.text("compiling")
     case "compiled":
-      return "Compiled"
+      return appTexts.text("compiled")
     case "saved":
-      return "Saved"
+      return appTexts.text("saved")
     case "errors":
-      return `${status.errors} parse ${status.errors === 1 ? "error" : "errors"} -- not run`
+      return appTexts.text(status.errors === 1 ? "parseError" : "parseErrors", { count: status.errors })
     case "failed":
       return status.message
   }

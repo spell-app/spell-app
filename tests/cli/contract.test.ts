@@ -9,7 +9,13 @@ import { P } from "spell-lang/parser"
 import { PY } from "spell-lang/py"
 import { buildTsx } from "spell-lang/spell/node/buildTsx"
 import { SP } from "spell-lang/spell"
-import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixtureProjectNames } from "spell-lang/spell/test"
+import {
+  PYTHON_FIXTURES,
+  compiledFixture,
+  fixtureImports,
+  fixtureLanguage,
+  fixtureProjectNames
+} from "spell-lang/spell/test"
 import { CLI } from "spell-app/cli"
 
 /**
@@ -53,6 +59,8 @@ async function printed(name: string, target: string, code = compiledFixture(name
       capture: true,
       dom: true,
       seed: CONTRACT_SEED,
+      // a test's lines in the fixture's language, as `spell run` prints them:  `cartas`'s in Spanish
+      messages: SP.SpellWords.messagesFor(fixtureLanguage(name)),
       // only what's printed matters:  Python needn't wait at a pause (javascript's run as they are)
       pauses: false
     })

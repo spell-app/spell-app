@@ -4,11 +4,13 @@ import type { JSX } from "@solidjs/web"
 // Import directly, NOT through the `spell-app/lsp` barrel, which would pull the language service into the bundle.
 import { SCOPE_MEMBER_GROUPS, type ScopeDetails, type ScopeMember, type ScopeNode } from "spell-app/lsp/lsp.types"
 import type { ScopeOrder, TypeExplorerState } from "spell-app/app/ui/ui.types"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import {
   SCOPE_ICONS,
   ScopeDetailsPane,
   SectionMarker,
   alphabetical,
+  memberGroupTitle,
   sectionStartsAt,
   type DescriptionAt
 } from "./ScopeDetailsPane"
@@ -22,17 +24,18 @@ import "./TypeExplorer.css"
  * - Keeps what's selected and open by node `path` as new trees come in, e.g. after each run.
  * - Selecting a node, e.g. from the breadcrumbs, opens the tree down to it.
  * - Details sections are closed to start, and open or closed alike for every node.
- * - Lists things in document order, with a marker for each heading they're under, or alphabetically -- the
- *   buttons left of Refresh switch.  See `UI.ScopeOrder`.
+ * - Lists things in document order, with a marker for each heading they're under, or alphabetically:
+ *   the buttons left of Refresh switch.  See `UI.ScopeOrder`.
  * - Remembers all that as a `UI.TypeExplorerState` through `state` + `onStateChange`, e.g. in the VS Code runner's
  *   `settings.json5` -- else in `localStorage`.
  *   - `state` is read ONCE, as it mounts:  after that, ours is the truth, and `onStateChange` hears each change.
  *     So a caller echoing `onStateChange` back into `state` is fine.
  * - A node's details are asked for with `loadDetails()` when first shown, and kept until a new `tree` comes.
  * - `readonly`, e.g. embedded in a page by `<spell-app>`:  descriptions can't be edited, whatever `onSaveDescription`.
- * - NOTE: imports its peers directly, NOT the `spell-app/app/solid` barrel:  a runner's bundle would get the whole editor
- *   through it (`Actions.tsx`).  So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.  Not
- *   imported here:  `spell-ui` can't load under node (`customElements`), and the `node` tests render this.
+ * - NOTE: imports its peers directly, NOT the `spell-app/app/solid` barrel:
+ *   a runner's bundle would get the whole editor through it (`Actions.tsx`).
+ *   - So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.
+ *   - Not imported here:  `spell-ui` can't load under node (`customElements`), and the `node` tests render this.
  * - SEE:  its App UI components page, `app/docs/TypeExplorer.html` (`/components/app/TypeExplorer.html`).
  ****************/
 export function TypeExplorer(props: TypeExplorerProps) {
@@ -62,21 +65,21 @@ export function TypeExplorer(props: TypeExplorerProps) {
   const shown = createMemo(() => ({ path: selected()?.path }), { equals: (a, b) => a.path === b.path })
 
   return (
-    <Show when={currentTree()} fallback={<div class="TypeExplorer empty">Run the project to see its scopes.</div>}>
+    <Show when={currentTree()} fallback={<div class="TypeExplorer empty">{appTexts.text("runToSeeScopes")}</div>}>
       {(tree) => (
         <div class="TypeExplorer">
           <div class="ScopesPane">
             <div class="PaneHeader">
-              Scopes
+              {appTexts.text("scopes")}
               <span class="tools">
                 <For each={ORDERS}>
                   {(it) => (
                     <ui-icon
                       name={it.icon}
                       link=""
-                      label={it.title}
+                      label={appTexts.text(it.text)}
                       class={["order", { active: order() === it.id }]}
-                      title={it.title}
+                      title={appTexts.text(it.text)}
                       onClick={() => update({ order: it.id })}
                     />
                   )}
@@ -85,9 +88,9 @@ export function TypeExplorer(props: TypeExplorerProps) {
                   <ui-icon
                     name="refresh"
                     link=""
-                    label="Refresh the scopes"
+                    label={appTexts.text("refreshScopes")}
                     class="refresh"
-                    title="Refresh the scopes"
+                    title={appTexts.text("refreshScopes")}
                     onClick={() => props.onRefresh?.()}
                   />
                 </Show>
@@ -106,7 +109,7 @@ export function TypeExplorer(props: TypeExplorerProps) {
             </div>
           </div>
           <div class="DetailsPane">
-            <div class="PaneHeader">Details</div>
+            <div class="PaneHeader">{appTexts.text("details")}</div>
             <div class="PaneBody">
               <Show when={shown()} keyed>
                 {(current) => (
@@ -218,8 +221,8 @@ export type TypeExplorerProps = {
  * ### `<ScopeTreeNode>`
  * One node in the "Scopes" tree, and its children if it's open.
  * - Click its arrow, or left of it, to open / close it -- anywhere right of that selects it.
- * - The root, "Spell", is always open:  no arrow.  Its children stay in tree order, whatever `order`:  the built-ins,
- *   then the projects, ours last.
+ * - The root, "Spell", is always open:  no arrow.
+ *   Its children stay in tree order, whatever `order`:  the built-ins, then the projects, ours last.
  * - Anything else's children come in `order`:
  *   - `document`:  as declared, with a `<SectionMarker>` for each heading they're under -- a type's members too
  *   - `alphabetical`:  a type's members under collapsible "Properties", "Actions" ... rows
@@ -301,7 +304,7 @@ function ScopeTreeNode(props: ScopeTreeNodeProps) {
           onClick={() => props.onToggle(path())}
         >
           <span class="label">
-            {group.label} <span class="detail">{members().length}</span>
+            {memberGroupTitle(group.label)} <span class="detail">{members().length}</span>
           </span>
         </TreeRow>
         <Show when={isGroupOpen()}>
@@ -404,10 +407,10 @@ const ROW_PADDING = 8
 /** How far a `<SectionMarker>` sits right of the rows it heads, in px -- past their arrows. */
 const MARKER_INSET = 14
 
-/** Each order the lists can be in, as a button left of Refresh -- see `UI.ScopeOrder`. */
-const ORDERS: Array<{ id: ScopeOrder; icon: string; title: string }> = [
-  { id: "document", icon: "list ol", title: "Document order, under their headings" },
-  { id: "alphabetical", icon: "sort alphabet down", title: "Alphabetical" }
+/** Each order the lists can be in, as a button left of Refresh -- see `UI.ScopeOrder`;  `text` its title's key. */
+const ORDERS: Array<{ id: ScopeOrder; icon: string; text: AppTextKey }> = [
+  { id: "document", icon: "list ol", text: "orderDocument" },
+  { id: "alphabetical", icon: "sort alphabet down", text: "orderAlphabetical" }
 ]
 
 /** Tree row path of group `label` of `type`'s members, e.g. its "Properties". */
@@ -445,8 +448,8 @@ const STATE_KEY = "spell.typeExplorer"
 /**
  * `<TypeExplorer>` state as last saved in `localStorage` -- empty if nothing's saved, or there's no storage.
  * - Per viewer:  a convenience, so any failure just starts afresh.
- * - NOTE: a VS Code webview's `localStorage` is its own, and may not outlive it -- the runner passes `state`
- *   instead, from the project's `settings.json5`.
+ * - NOTE: a VS Code webview's `localStorage` is its own, and may not outlive it:
+ *   the runner passes `state` instead, from the project's `settings.json5`.
  */
 function loadState(): TypeExplorerState {
   try {

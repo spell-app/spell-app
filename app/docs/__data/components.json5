@@ -1280,7 +1280,7 @@
         "panes"
       ],
       "aka": [],
-      "description": "`runtimeConsole()`'s lines, in a scrolling box -- the console of the runtime programs run on, which shows once it's loaded.",
+      "description": "`runtimeConsole()`'s lines, in a scrolling box: the console of the runtime programs run on, which shows once it's loaded.",
       "noun": "ConsoleViewer",
       "attributes": [],
       "slots": [],
@@ -2466,7 +2466,7 @@
         "panes"
       ],
       "aka": [],
-      "description": "\"Details\" of scope-tree `node`:  breadcrumbs of where it is in the tree -- click one to select it -- then `<DetailsBody>`.",
+      "description": "\"Details\" of scope-tree `node`:  breadcrumbs of where it is in the tree, then `<DetailsBody>`.",
       "noun": "ScopeDetailsPane",
       "attributes": [],
       "slots": [],
@@ -2485,13 +2485,13 @@
           "name": "openSections",
           "type": "ReadonlySet<string>",
           "required": true,
-          "description": "Titles of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`."
+          "description": "Names of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`."
         },
         {
           "name": "onToggleSection",
           "type": "(title: string) => void",
           "required": true,
-          "description": "Open / close section `title`."
+          "description": "Open / close section `name`."
         },
         {
           "name": "onSelect",
@@ -2560,7 +2560,7 @@
         "panes"
       ],
       "aka": [],
-      "description": "Marker in a list in document order, for the heading what follows is under, e.g. `actions` -- see `sectionStartsAt()`.  A plain rule if there's none, e.g. after a type's own members.",
+      "description": "Marker in a list in document order, for the heading what follows is under, e.g. `actions`: see `sectionStartsAt()`.",
       "noun": "SectionMarker",
       "attributes": [],
       "slots": [],

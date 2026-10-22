@@ -11,7 +11,7 @@ import type { SpellModels } from "./SpellModels"
  * the same service the VS Code extension talks to over the Language Server Protocol.
  * - Hover, completion, signature help, quick fixes, definition / type definition,
  *   references, highlights, rename, outline,
- *   folding, expand selection, formatting and semantic colouring.
+ *   folding, expand selection, formatting, accent fixes as you type, and semantic colouring.
  * - Answers from each file's current parse, kept up to date by `SpellModels` + `project.updateText()`.
  *   Asks nothing of a model whose file hasn't parsed, or whose text isn't its file's.
  * - A rename saves every file it touched -- see `SpellModels.saveAfterEdit()`.
@@ -86,6 +86,10 @@ export class SpellLanguageFeatures {
       }),
       languages.registerDocumentRangeFormattingEditProvider(language, {
         provideDocumentRangeFormattingEdits: (model, range, options) => this.formatting(model, options, range)
+      }),
+      languages.registerOnTypeFormattingEditProvider(language, {
+        autoFormatTriggerCharacters: LSP.SpellLanguageService.ON_TYPE_TRIGGERS,
+        provideOnTypeFormattingEdits: (model, position, typed) => this.onTypeFormatting(model, position, typed)
       }),
       editor.registerEditorOpener({
         openCodeEditor: (source, resource, selectionOrPosition) => this.openAt(resource, selectionOrPosition, source)
@@ -255,6 +259,18 @@ export class SpellLanguageFeatures {
     if (!file) return []
     const { tabSize, insertSpaces } = options
     const edits = this.service.formatting(file, { tabSize, insertSpaces }, range && LspToMonaco.lspRange(range))
+    return edits.map((edit) => LspToMonaco.textEdit(edit))
+  }
+
+  /** Edits as `typed` goes in at `position`:  a Spanish keyword's accent put back, `numero` => `número`. */
+  private onTypeFormatting(
+    model: monaco.editor.ITextModel,
+    position: monaco.Position,
+    typed: string
+  ): monaco.languages.TextEdit[] {
+    const file = this.fileOf(model)
+    if (!file) return []
+    const edits = this.service.onTypeFormatting(file, LspToMonaco.lspPosition(position), typed)
     return edits.map((edit) => LspToMonaco.textEdit(edit))
   }
 

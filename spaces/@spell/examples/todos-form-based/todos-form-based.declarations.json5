@@ -24,7 +24,7 @@
       "defined": "/todo.spell:65-109"
     },
     {
-      "syntax": "{operator:is} complete",
+      "syntax": "{operator:is_or_is_not} complete",
       "output": "is_complete",
       "rule": "method_postfix",
       "of": "Task",
@@ -34,7 +34,7 @@
       "defined": "/todo.spell:110-154"
     },
     {
-      "syntax": "{operator:is} active",
+      "syntax": "{operator:is_or_is_not} active",
       "output": "is_active",
       "rule": "method_postfix",
       "of": "Task",

@@ -38,9 +38,8 @@ PARKED-*.md
 # `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json5`):  ignored by the shared
 # content repo's own `.gitignore` (`../spell.epics`);  here the whole folders are ignored (below)
 
-# shared:start  (epics shared-content, claude-design P4 / P6:  links into ../spell.epics, the shared content repo;  never tracked)
+# `agents/`:  a link to the kit's agents/ (WWOD and the three logs), made by the kit's every `yarn install` (epic repo-split P9, P12, I64)
 /agents
-# shared:end
 
 # the shared content folders a checkout linked in at its root until epic epic-eject P12:  the page server and the tools
 # find them in the content folder itself now (`contentFolder` in .epic/config.json5), and `epic shared link` removes the

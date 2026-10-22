@@ -39,6 +39,8 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
   carryAfterFailure = undefined
   unmountApp()
   core.resetRuntime()
+  // what the core says, e.g. a test's lines, in the program's language:  English with none
+  core.useMessages(options.messages)
   if (!options.keepConsole) core.console.clear()
   if (isNewStart) core.console.info(`Started afresh:  the program's start changed, in the file that starts its app.`)
   // what's on the console now:  put back if the run starts again afresh, below
@@ -129,6 +131,11 @@ export type RunCompiledOptions = {
    * - Never for Restart, which starts afresh on purpose (Q25), nor for another program.
    */
   keepThings?: boolean
+  /**
+   * The program's words for what the core says to the person running it, e.g. a test's lines:
+   * its words file's `messages` (epic `spanish` P12) -- English with none.
+   */
+  messages?: Record<string, string>
 }
 
 /**

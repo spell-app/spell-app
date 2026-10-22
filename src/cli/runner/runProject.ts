@@ -26,6 +26,8 @@ else headless()
 core.resetRuntime()
 // `--seed`, and the core contract:  the same random numbers every run, so a shuffle deals the same cards
 if (spec.seed !== undefined) core.seedRandom(spec.seed)
+// a test's lines in the project's language, e.g. Spanish:  English when it has no messages
+core.useMessages(spec.messages)
 // a dump of a thing (`print the card`) to stderr, so stdout holds only the program's data
 // (epic page python-target, Q17);  at call time, so `quiet()` silences it too
 core.console.printDump = (...message) => console.error(...message)
@@ -139,7 +141,7 @@ function report({ name, passed, output, threw }: TestResult) {
 
 /**
  * How one test went.
- * - `output`:  what it logged -- each `expect` a `[icon, ...words]` array, see `core.expect()`
+ * - `output`:  what it logged -- each `expect` an `[icon, message]` array, see `core.expect()`
  * - `threw`:  what it threw, if it didn't finish
  */
 type TestResult = {

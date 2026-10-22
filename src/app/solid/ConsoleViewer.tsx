@@ -3,6 +3,7 @@ import { Show } from "solid-js"
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { editor, runtimeConsole } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { Actions, ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
 import { ConsoleInspectorContext, ConsoleLines, type ConsoleInspector } from "./ConsoleLines"
 
@@ -39,7 +40,7 @@ export function ConsoleToolbar() {
   return (
     <PanelMenu>
       <Submenu left spring>
-        <MenuHeader>Program Output</MenuHeader>
+        <MenuHeader>{appTexts.text("programOutput")}</MenuHeader>
       </Submenu>
       <Submenu right spring>
         <Actions.alert title="" header="Header" message="Yo!" />
@@ -70,10 +71,11 @@ export function ConsoleToolbar() {
 
 /****************
  * ### `<ConsoleViewer>`
- * `runtimeConsole()`'s lines, in a scrolling box -- the console of the runtime programs run on, which shows once
- * it's loaded.
- * - Lines are spell cells:  read through `tracked()`.  Logging REPLACES the console's `lines` array with one more
- *   line, and `<ConsoleLines>` keys rows by line, so only the new line's row is drawn.
+ * `runtimeConsole()`'s lines, in a scrolling box:
+ * the console of the runtime programs run on, which shows once it's loaded.
+ * - Lines are spell cells:  read through `tracked()`.
+ * - Logging REPLACES the console's `lines` array with one more line,
+ *   and `<ConsoleLines>` keys rows by line, so only the new line's row is drawn.
  * - An error drawing the lines shows in place of them (`<ErrorBoundary>`), and goes to `showError`.
  * - SEE:  its App UI components page, `app/docs/ConsoleViewer.html` (`/components/app/ConsoleViewer.html`).
  ****************/

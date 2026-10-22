@@ -40,8 +40,16 @@ async function runPython(
     capture,
     seed,
     pauses = true,
-    dom = false
-  }: { projects: Record<string, string>; capture: boolean; seed?: number; pauses?: boolean; dom?: boolean }
+    dom = false,
+    messages
+  }: {
+    projects: Record<string, string>
+    capture: boolean
+    seed?: number
+    pauses?: boolean
+    dom?: boolean
+    messages?: Record<string, string>
+  }
 ): Promise<ChildResult> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
@@ -52,6 +60,12 @@ async function runPython(
     if (seed !== undefined) args.push("--seed", String(seed))
     if (!pauses) args.push("--no-pauses")
     if (dom) args.push("--page")
+    // what the core says in the project's language:  a words file of messages alone, as `load_words()` reads one
+    if (messages) {
+      const words = resolve(folder, `${name}.py.words.json5`)
+      writeFileSync(words, JSON.stringify({ types: {}, messages }))
+      args.push("--words", words)
+    }
     const env = { ...process.env, PYTHONPATH: [...new Set(imports)].join(delimiter) }
     const stdio: ("ignore" | "pipe" | "inherit")[] = capture
       ? ["ignore", "pipe", "pipe"]
@@ -165,7 +179,8 @@ export async function runCompiled(
 ): Promise<ChildResult> {
   const name = project.projectName ?? project.projectId
   const code = project.outputFile.contents ?? ""
-  return runCode(mode, name, code, { ...options, projects: importedOutputs(project), capture })
+  const messages = SP.SpellWords.messagesFor(project.language.lang)
+  return runCode(mode, name, code, { ...options, projects: importedOutputs(project), capture, messages })
 }
 
 /**
@@ -177,6 +192,7 @@ export async function runCompiled(
  * - `dom`:  in a fake page, printing what it draws -- see `CLI.RunSpec`.
  * - `seed`:  its random numbers start from it -- see `CLI.RunSpec`.
  * - `pauses`:  `false`, a pause doesn't wait -- Python only, so far (`runPython()`).
+ * - `messages`:  what the core says, in the project's language, e.g. a test's lines -- see `CLI.RunSpec`.
  * - A `.py` (the `py` target's Python) runs under Python instead -- see `runPython()`.
  * - Used by the core contract test, `contract.test.ts`, to run each target's code the same way.
  */
@@ -190,6 +206,7 @@ export async function runCode(
     capture = false,
     dom,
     pauses,
+    messages,
     ...options
   }: CLI.TestOptions & {
     extension?: string
@@ -197,9 +214,10 @@ export async function runCode(
     capture?: boolean
     dom?: boolean
     pauses?: boolean
+    messages?: Record<string, string>
   } = {}
 ): Promise<ChildResult> {
-  if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed, pauses, dom })
+  if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed, pauses, dom, messages })
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
     if (extension === TSX) {
@@ -217,7 +235,8 @@ export async function runCode(
       verbose: options.verbose,
       filter: options.name,
       dom,
-      seed: options.seed
+      seed: options.seed,
+      messages
     }
     return await runChild(spec, capture)
   } finally {

@@ -3,6 +3,7 @@ import { For, Show, createEffect, createMemo, createSignal, omit } from "solid-j
 import { SP } from "spell-lang/spell"
 import { SPACES } from "spell-app/spaces"
 import { editor } from "spell-app/app/editor"
+import { appTexts, type GroupWords } from "spell-app/app/ui/AppTexts"
 import { DropdownLabel, PROJECT_ICON, on, tracked, type UIElementAttributes } from "spell-app/app/solid"
 
 import "./ProjectDropdown.css"
@@ -11,7 +12,7 @@ import "./ProjectDropdown.css"
  * ### `<ProjectMenu>`
  * Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-menu>` of links;
  * choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
- * - SIDE EFFECT:  loads `projectRoot` if it isn't yet, showing "Loading..." until it is (or "Couldn't load").
+ * - SIDE EFFECT:  loads `projectRoot` if it isn't yet, showing "Loading..." until it is (or "Couldn't load"), in the page's language.
  * - Every other prop goes to the `<ui-menu>`, e.g. `vertical=""`, `fluid=""`.
  ****************/
 export function ProjectMenu(props: ProjectMenuProps) {
@@ -20,9 +21,13 @@ export function ProjectMenu(props: ProjectMenuProps) {
     <ui-menu {...omit(props, "projectRoot", "useRunner", "class")} class={["ProjectMenu", props.class]}>
       <Show
         when={root().loaded}
-        fallback={<ui-item>{root().failed ? `Couldn't load ${root().title}` : "Loading..."}</ui-item>}
+        fallback={
+          <ui-item>
+            {root().failed ? appTexts.text("couldNotLoadGroup", root().words) : appTexts.text("loadingGroup")}
+          </ui-item>
+        }
       >
-        <For each={root().projects} fallback={<ui-item>{`No ${root().title} yet!`}</ui-item>}>
+        <For each={root().projects} fallback={<ui-item>{appTexts.text("nothingInGroup", root().words)}</ui-item>}>
           {(project) => (
             // HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>`
             <ui-item link="" value={project.path} onClick={() => open(project.path, props.useRunner)}>
@@ -55,8 +60,7 @@ export type ProjectMenuProps = UIElementAttributes & {
  *   choosing sets it back during the event, and shows the project chosen, which then becomes `editor.project`.
  * - `showLabel` (default `true`):  a `<DropdownLabel>` first, e.g. "Example:".
  * - Sits in a menu:  wrapped in a `<ui-item class="ProjectDropdown">`.  Look:  `ProjectDropdown.css`.
- * - SEE:  its App UI components page, `app/docs/ProjectDropdown.html`
- *   (`/components/app/ProjectDropdown.html`).
+ * - SEE:  `app/docs/ProjectDropdown.html`, its App UI components page (`/components/app/ProjectDropdown.html`).
  ****************/
 export function ProjectDropdown(props: ProjectDropdownProps) {
   const root = trackProjectRoot(() => props.projectRoot)
@@ -69,7 +73,7 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
         {/* HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>` */}
         <DropdownLabel>
           <ui-icon name={PROJECT_ICON} />
-          {`${root().Type || "Project"}:`}
+          {appTexts.text("groupLabel", root().words)}
         </DropdownLabel>
       </Show>
       <ui-item class="ProjectDropdown">
@@ -114,10 +118,8 @@ type ProjectRootState = {
   projects: { path: string; name: string }[]
   /** Its icon name. */
   icon?: string
-  /** Its title, e.g. "Examples". */
-  title?: string
-  /** What its projects are called, e.g. "Example". */
-  Type?: string
+  /** Its words, in the page's language:  its title (`Examples`), what its projects are called (`Example`) ... */
+  words: GroupWords
 }
 
 /**
@@ -155,8 +157,7 @@ function readProjectRoot(projectRoot: SPACES.SpellProjectRoot | undefined): Omit
         projectRoot!.projectPaths.map((path) => ({ path, name: new SP.SpellProject(path).title }))
       : [],
     icon: projectRoot?.icon,
-    title: projectRoot?.title,
-    Type: projectRoot?.Type
+    words: appTexts.groupWords(projectRoot)
   }
 }
 
