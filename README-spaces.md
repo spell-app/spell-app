@@ -97,7 +97,7 @@ The groups, and where each one's folder is:
 | `@spell/examples` | Examples | [spaces/@spell/examples/](spaces/@spell/examples/), committed | the five example apps ([README-examples.md](README-examples.md)) |
 | `@spell/library` | Libraries | [spaces/@spell/library/](spaces/@spell/library/), committed | projects other projects import:  cards, and people |
 | `@spell/guides` | Guides | none yet | nothing:  the editor's "New Guide" makes its folder, `spaces/@spell/guides/` |
-| `@spell/test` | Test fixtures, listed only in dev | spell-lang's [tests/spaces/@spell/test/](https://github.com/spell-app/spell-lang/tree/main/tests/spaces/@spell/test), frozen | the 11 projects spell-lang's tests compile and compare against snapshots |
+| `@spell/test` | Test fixtures, listed only in dev | spell-lang's [tests/spaces/@spell/test/](https://github.com/spell-app/spell-lang/tree/main/tests/spaces/@spell/test), frozen | the 12 projects spell-lang's tests compile and compare against snapshots |
 
 - `spell projects` lists them, with how many projects each holds ([README-cli.md](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app)).
 - A project in no group still runs:  `spell` makes up a group for it on the spot, `@local/<folder>`,
@@ -171,8 +171,8 @@ What each printed on a real run is under it.
    spell app serve owen@spell/hello
    # ✓ Starting the page server  http://127.0.0.1:4747/
    # ✓ Starting the editor  http://localhost:3000/  (/api on the page server)
-   # The spell app is at http://localhost:3000/edit/owen@spell/hello;  docs, epics, goals and Spell UI at http://127.0.0.1:4747/ -- Ctrl-C to stop
    # http://localhost:3000/edit/owen@spell/hello
+   # The spell app is at http://localhost:3000/edit/owen@spell/hello;  docs, epics, goals and Spell UI at http://127.0.0.1:4747/ -- Ctrl-C to stop
    ```
 
    - It opens your browser at `http://localhost:3000/edit/owen@spell/hello`;  `Ctrl-C` stops what it started.

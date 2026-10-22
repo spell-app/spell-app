@@ -544,7 +544,7 @@ spell app create Flashcards
 # Made Flashcards:  try  spell run <your space>/Flashcards
 ```
 
-- It writes a project file and Flashcards.spell, whose one line prints "hello from Flashcards".
+- It writes a project file and Flashcards.spell, a comment and one line that prints "hello from Flashcards".
 - With no `--in`, it goes in your own space:  [setting one up](README-spaces.md#setting-up-spaces-for-your-own-project)
   says where that is, and how a project imports a library.
 - Then, in its folder, `spell app serve` opens the editor on it.

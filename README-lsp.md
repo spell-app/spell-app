@@ -436,7 +436,7 @@ yarn lsp:start                                           # the server, over stdi
 yarn lsp:scopes [--compile] <address...>                 # write projects' scope packs
 yarn lsp:scopes --compile @spell/examples/drawable-solitaire
 yarn lsp:scopes --builtins                               # the built-in types' pack, in spell-lang
-yarn vp test run --project lsp                           # its tests:  131, in five files
+yarn vp test run --project lsp                           # its tests:  149, in seven files
 ```
 
 - `--compile` compiles each project first, in the order given, so a project another imports goes first;
@@ -452,7 +452,7 @@ yarn vp test run --project lsp                           # its tests:  131, in f
 
 | File | What's in it |
 | --- | --- |
-| [SpellLanguageService.ts](src/lsp/SpellLanguageService.ts) | every answer:  diagnostics, hover, completion and the rest, one method per request, in 2,304 lines;  safe in a browser |
+| [SpellLanguageService.ts](src/lsp/SpellLanguageService.ts) | every answer:  diagnostics, hover, completion and the rest, one method per request, in about 2,330 lines;  safe in a browser |
 | [SpellLanguageServer.ts](src/lsp/SpellLanguageServer.ts) | wires the service and a workspace to an LSP connection:  the queue, the 50 ms wait, Spell's own requests |
 | [SpellDiskWorkspace.ts](src/lsp/SpellDiskWorkspace.ts) | loads projects from disk, through [spaces'](README-spaces.md) disk reader, and follows changes on disk;  node only |
 | [SpellCSS.ts](src/lsp/SpellCSS.ts) | the `<css>` blocks in a file, answered as CSS |
