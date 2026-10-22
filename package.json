@@ -294,6 +294,7 @@
       }
     ],
     "engineRoutes": {
+      "/element/": "app/dist-element",
       "/_epic/assets/": "../spell-epic/src/tools/_assets",
       "/_epic/pack/": "../spell-epic/src/components/__pack",
       "/templates/": "../spell-epic/templates",

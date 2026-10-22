@@ -71,7 +71,7 @@ A short excerpt:
 | `pageScripts` | scripts added to every page:  `spell-language.js`, which colours spell blocks |
 | `componentSets` | each set of elements and their docs pages, served at `/components/<set>/`, with Spell UI's site laid over at `_assets/` |
 | `siteTabs` | the top bar's tabs, in order, and which pages light each one |
-| `engineRoutes` | addresses served straight from another repo's folder:  `/_epic/assets/`, `/_epic/pack/`, `/templates/`, `/_brand/assets/` |
+| `engineRoutes` | addresses served straight from a folder:  `/element/` (the app's bundles), `/_epic/assets/`, `/_epic/pack/`, `/templates/`, `/_brand/assets/`;  the epic server serves them too |
 
 - The component sets:
 

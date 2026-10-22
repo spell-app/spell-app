@@ -90,7 +90,8 @@ Put one on a page either way:
 <ui-components source="/element/spell.pack.js"></ui-components>
 ```
 
-- `/element/...` is served by the page server, from the app's `dist-element/`.
+- `/element/...` is served by the page server, from the app's `dist-element/`  (its `engineRoutes` setting, so the epic
+  server serves it too:  App UI's pages load `spell.pack.js` from there).
   Build it with `yarn build:element`.
 - A page with only `<spell-app>`s never downloads the editor:
   each tag loads its own script the first time it appears.
