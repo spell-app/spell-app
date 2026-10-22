@@ -105,7 +105,7 @@
       "defined": "/Deck.spell:461-511"
     },
     {
-      "syntax": "{operator:is} a face card",
+      "syntax": "{operator:is_or_is_not_a} face card",
       "output": "is_a_face_card",
       "rule": "method_postfix",
       "of": "Rank",
@@ -142,7 +142,7 @@
       "defined": "/Card.spell:163-195"
     },
     {
-      "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
+      "syntax": "{operator:is_or_is_not_a} (expression:club|diamond|heart|spade)",
       "output": "is_a_$suit",
       "rule": "quoted_property",
       "of": "Card",
@@ -159,7 +159,7 @@
       "defined": "/Card.spell:200-216"
     },
     {
-      "syntax": "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
+      "syntax": "{operator:is_or_is_not_a} (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
       "output": "is_a_$rank",
       "rule": "quoted_property",
       "of": "Card",
@@ -185,7 +185,7 @@
       "defined": "/Card.spell:271-287"
     },
     {
-      "syntax": "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
+      "syntax": "{operator:is_or_is_not} {definite_article} (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
       "output": "is_the_$rank_of_$suits",
       "rule": "quoted_property",
       "of": "Card",
@@ -217,7 +217,7 @@
       "defined": "/Card.spell:342-371"
     },
     {
-      "syntax": "{operator:is} a face card",
+      "syntax": "{operator:is_or_is_not_a} face card",
       "output": "is_a_face_card",
       "rule": "method_postfix",
       "of": "Card",
@@ -227,7 +227,7 @@
       "defined": "/Card.spell:425-471"
     },
     {
-      "syntax": "{operator:is} a number card",
+      "syntax": "{operator:is_or_is_not_a} number card",
       "output": "is_a_number_card",
       "rule": "method_postfix",
       "of": "Card",
@@ -237,7 +237,7 @@
       "defined": "/Card.spell:475-521"
     },
     {
-      "syntax": "{operator:is} a wild card",
+      "syntax": "{operator:is_or_is_not_a} wild card",
       "output": "is_a_wild_card",
       "rule": "method_postfix",
       "of": "Card",
@@ -257,7 +257,7 @@
       "defined": "/Card.spell:580-607"
     },
     {
-      "syntax": "{operator:is} face up",
+      "syntax": "{operator:is_or_is_not} face up",
       "output": "is_face_up",
       "rule": "method_postfix",
       "of": "Card",
@@ -267,7 +267,7 @@
       "defined": "/Card.spell:611-649"
     },
     {
-      "syntax": "{operator:is} face down",
+      "syntax": "{operator:is_or_is_not} face down",
       "output": "is_face_down",
       "rule": "method_postfix",
       "of": "Card",
@@ -407,7 +407,7 @@
       "defined": "/Card.spell:2906-2925"
     },
     {
-      "syntax": "{operator:is} a face card",
+      "syntax": "{operator:is_or_is_not_a} face card",
       "output": "is_a_face_card",
       "rule": "method_postfix",
       "of": "Joker",
