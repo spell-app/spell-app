@@ -29,7 +29,7 @@ _One editor store holds what the app shows;  the runner runs each compile on its
 ## The editor store
 
 All of the app's state, and everything it does, lives in ONE object, `editor`
-([editor.ts](app/src/editor.ts)):  think of it as the app's controller and its store in one.
+([editor.ts](src/app/editor.ts)):  think of it as the app's controller and its store in one.
 
 - What it holds:  the project group, the project, the file, the selection, notices and errors.
 - What it does:
@@ -50,7 +50,7 @@ The runner takes what a compile wrote and runs it, the same way in all three pla
 3. the `<spell-app>` element
 
 How it works:
-- `runCompiled()` ([runCompiled.ts](app/src/runner/runCompiled.ts)) points the program's imports at real addresses:
+- `runCompiled()` ([runCompiled.ts](src/app/runner/runCompiled.ts)) points the program's imports at real addresses:
   - `@spell/core` at the runtime
   - another project, `@spell/project/<address>`, at that project's compiled file
   - no import map:  each program gets its own
@@ -60,7 +60,7 @@ How it works:
   - It starts afresh when you press Restart, when the edit changed the line that starts the app,
     or when a thing can't come over.
 - A drawable thing draws as its own element, with its `<css>` inside it
-  ([SpellElement.tsx](app/src/runner/SpellElement.tsx)).
+  ([SpellElement.tsx](src/app/runner/SpellElement.tsx)).
   So `a card is a drawable thing` draws as `<solitaire-card>`.
   - Each drawn thing has its own error boundary:
     one that fails shows an error in its place, and the rest keeps drawing.
@@ -70,7 +70,7 @@ How it works:
 
 ## The components
 
-Spell UI-style web components, each in [app/components/](app/components/), each with its own docs page.
+Spell UI-style web components, each in [src/app/components/](src/app/components/), each with its own docs page.
 
 | Tag | What it is |
 | --- | --- |
@@ -154,7 +154,7 @@ The editor's shortcuts, with Command on a Mac or Control elsewhere:
 <details>
 <summary>The Monaco plumbing</summary>
 
-- [app/src/ui/monaco/](app/src/ui/monaco/) wires Monaco to spell:
+- [src/app/ui/monaco/](src/app/ui/monaco/) wires Monaco to spell:
   the language's colours, and its errors, hover, completion and the rest,
   from the [language service](README-lsp.md), called in the page itself.
 - That's why the language service must stay safe to run in a browser.
@@ -170,8 +170,8 @@ The editor's shortcuts, with Command on a Mac or Control elsewhere:
   The editor is Vite, so an edit to the app's code shows at once.
 - Its tests are in [tests/app/](tests/app/):
   node tests, and browser tests (`*.browser.test.tsx`) in headless Chromium.
-  `yarn spell-folders test app` runs them.
-- The rules for working in the folder:  [app's AGENTS.md](app/AGENTS.md).
+  `yarn vp test run --project app:node --project app:browser` runs them.
+- The rules for working in the folder:  [app's AGENTS.md](src/app/AGENTS.md).
 
 ## See also
 

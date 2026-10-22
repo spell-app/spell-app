@@ -5,9 +5,9 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
 /**
  * Build spell's code and markdown elements:  `yarn build:element` => `dist-element/`, after `vite.solid.config.ts`.
  * - Three entries:
- *   - `spell-code.js`:  `<spell-code>`, and `spell` registered with the page's `UI.code` (`components/spell-code/`)
- *   - `spell-markdown.js`:  `<spell-markdown>`, spell's markdown engine (`components/spell-markdown/`)
- *   - `spell-language.js`:  ONLY `spell` registered, for a page with Spell UI of its own (`src/spellLanguage.ts`):
+ *   - `spell-code.js`:  `<spell-code>`, and `spell` registered with the page's `UI.code` (`src/app/components/spell-code/`)
+ *   - `spell-markdown.js`:  `<spell-markdown>`, spell's markdown engine (`src/app/components/spell-markdown/`)
+ *   - `spell-language.js`:  ONLY `spell` registered, for a page with Spell UI of its own (`src/app/spellLanguage.ts`):
  *     what the page server adds to the docs pages it serves
  * - The component pack, `spell.pack.js` (`vite.element.config.ts`), imports the first two too.
  * - Its own build, not more entries of `vite.element.config.ts`:
@@ -24,7 +24,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *     `spell-ui-shared.js` (`SHARED_FAMILIES`).
  *   - Both the page's own, on a page with Spell UI of its own (a docs page):  one Solid, one Spell UI.
  * - Fixed names:  the pack and the page server name the entries.
- * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
+ * - Plugins, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
  *   `keepNames` MUST stay on:  the parser looks rules up by class name (`parser/build.test.ts`).
  */
 const shared = appConfig()
@@ -41,9 +41,9 @@ export default defineConfig({
     sourcemap: true,
     rolldownOptions: {
       input: {
-        "spell-code": "components/spell-code/index.ts",
-        "spell-markdown": "components/spell-markdown/index.ts",
-        "spell-language": "src/spellLanguage.ts"
+        "spell-code": "../src/app/components/spell-code/index.ts",
+        "spell-markdown": "../src/app/components/spell-markdown/index.ts",
+        "spell-language": "../src/app/spellLanguage.ts"
       },
       output: {
         entryFileNames: "[name].js",

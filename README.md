@@ -200,16 +200,21 @@ what's in this repo, setting it up, and where to start.
 
 ## The folders
 
-spell-app is one npm package, `spell-app`, of five folders, each its own TypeScript program;
-the VS Code extension sits beside them as a project of its own.
+spell-app is one npm package, `spell-app`:  all its code is in ONE [src/](src/), a folder each;
+the VS Code extension sits beside it as a project of its own.
+- A file's import name is the package's name, then its path under `src/`, no extension:
+  `spell-app/app/solid` (a folder's `index.ts`), `spell-app/spaces/models/projectGroups`.
+- The same name inside spell-app and from anywhere else.
+- Beside `src/`:  the app's build folder [app/](app/) (its Vite configs, `index.html`, its docs pages and builds), the
+  `@spell` space's built-in projects in [spaces/](spaces/), the tests in [tests/](tests/), the configs.
 
 | Folder | Imported as | What it is | Its page |
 | --- | --- | --- | --- |
-| [app](app/) | `spell-app/app` | the editor web app, the runners, and four web components:  `<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>` | [README-app.md](README-app.md) |
-| [spaces](spaces/) | `spell-app/spaces` | where projects and people live:  the built-in projects, the models, the editor's server and Python's | [README-spaces.md](README-spaces.md) |
-| [lsp](lsp/) | `spell-app/lsp` | the language server, and the folder of projects on disk it reads | [README-lsp.md](README-lsp.md) |
-| [cli](cli/) | `spell-app/cli` | spell-app's commands for the `spell` command line, `spell app create \| serve \| vscode` and `spell projects`;  and the work behind spell-lang's commands, which find projects the app's way | [the kit's README-cli.md](../README-cli.md) |
-| [page-server](page-server/) | `spell-app/page-server` | spell-app's layer on the kit's page server:  the bundles it builds, its settings | [README-page-server.md](README-page-server.md) |
+| [app](src/app/) | `spell-app/app` | the editor web app, the runners, and four web components:  `<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>` | [README-app.md](README-app.md) |
+| [spaces](src/spaces/) | `spell-app/spaces` | where projects and people live:  the models, the editor's server and Python's;  the built-in projects are in `spaces/@spell/`, beside `src/` | [README-spaces.md](README-spaces.md) |
+| [lsp](src/lsp/) | `spell-app/lsp` | the language server, and the folder of projects on disk it reads | [README-lsp.md](README-lsp.md) |
+| [cli](src/cli/) | `spell-app/cli` | spell-app's commands for the `spell` command line, `spell app create \| serve \| vscode` and `spell projects`;  and the work behind spell-lang's commands, which find projects the app's way | [the kit's README-cli.md](../README-cli.md) |
+| [page-server](src/page-server/) | `spell-app/page-server` | spell-app's layer on the kit's page server:  the bundles it builds, its settings | [README-page-server.md](README-page-server.md) |
 | [vscode](vscode/) | the extension `spell-language` | the Spell language for VS Code:  colours, the language server, Run Project | [the kit's README-vscode.md](../README-vscode.md) |
 
 Dependencies flow one way, down:
@@ -231,8 +236,8 @@ _Each folder uses only what's to its right;  the page server loads spell-app's l
 - spell-app is the highest repo:  it uses spell-lang, spell-brand, Spell UI and the kit, and nothing uses it.
 - It RUNS spell-epic's page routes through its page server's settings, but never imports it.
 - Each folder's `AGENTS.md` holds the rules for working in it:
-  [app](app/AGENTS.md), [spaces](spaces/AGENTS.md), [lsp](lsp/AGENTS.md), [cli](cli/AGENTS.md),
-  [page-server](page-server/AGENTS.md);  the repo's own, [AGENTS.md](AGENTS.md).
+  [app](src/app/AGENTS.md), [spaces](src/spaces/AGENTS.md), [lsp](src/lsp/AGENTS.md), [cli](src/cli/AGENTS.md),
+  [page-server](src/page-server/AGENTS.md);  the repo's own, [AGENTS.md](AGENTS.md).
 
 ## Setup from zero
 
@@ -277,7 +282,7 @@ yarn vscode         # builds the Spell extension for VS Code and installs it
   `SPELL_BIN_DIR=<folder>` picks the folder instead.
   - The folders it tries, in turn:  `~/.local/bin`, npm's global folder, `/usr/local/bin`, `/opt/homebrew/bin`.
   - Then `spell app serve` does what `yarn start` does, and opens your browser.
-- `spell` is the kit's command;  spell-app adds its own commands to it, from its `cli/` folder.
+- `spell` is the kit's command;  spell-app adds its own commands to it, from its `src/cli/` folder.
 - The Python parts (the Python output target, and its web server) need [uv](https://docs.astral.sh/uv/),
   which fetches the Python they ask for (3.12 or later).
   spell-app's `yarn test` and `yarn lint` run them.
@@ -286,18 +291,19 @@ yarn vscode         # builds the Spell extension for VS Code and installs it
 
 ## Working on it
 
-- The checks, at spell-app's root, each run folder by folder:
+- The checks, at spell-app's root, each over the whole repo:
 
   ```sh
   yarn ts    yarn lint    yarn format    yarn test    yarn review
   ```
 
   - `yarn review` runs them all, and FIXES lint and formatting as it goes.
-  - One folder's, or a few:  `yarn spell-folders test spaces lsp`.
-  - `yarn vitest` is one run over every folder;  `yarn vitest --project spaces` one folder's.
+  - `yarn test` is one Vitest run, a project per folder, then spaces' Python tests (pytest).
+  - One folder's:  `yarn vp test run --project spaces` (`spaces`, `lsp`, `app:node`, `app:browser`, `cli`,
+    `page-server`).
 - Tests live in `tests/<folder>/`, at the same paths as the code they test:
-  [projectGroups.ts](spaces/src/models/projectGroups.ts) is tested by
-  [projectGroups.test.ts](tests/spaces/src/models/projectGroups.test.ts).
+  [projectGroups.ts](src/spaces/models/projectGroups.ts) is tested by
+  [projectGroups.test.ts](tests/spaces/models/projectGroups.test.ts).
   The app's browser tests (`*.browser.test.tsx`) run in headless Chromium.
 - App UI, the docs pages of the app's components, is at `http://127.0.0.1:4747/components/app/`
   while the page server runs:  one page per component, with live examples and pictures.
@@ -313,7 +319,7 @@ All of them are spell-app's root `package.json`'s, run from its root (the folder
 
 | Script | What it does |
 | --- | --- |
-| `ts`, `test`, `lint`, `lint:fix`, `format`, `format:check` | each check, folder by folder (`spell-folders`) |
+| `ts`, `test`, `lint`, `lint:fix`, `format`, `format:check` | each check, over the whole repo (and spaces' Python, through uv) |
 | `review` | `ts`, `lint:fix`, `format` and `test`, in turn |
 | `test:watch` | Vitest in watch mode, over every folder |
 | `start` | stop any page server, then `spell app serve --headless`:  the page server and the editor, printing the editor's address |

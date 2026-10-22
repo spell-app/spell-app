@@ -1,4 +1,4 @@
-import { fileURLToPath } from "node:url"
+import { createRequire } from "node:module"
 import { defineConfig, type Plugin } from "vite"
 
 import { SHARED_DEFAULTS, SHARED_FAMILIES, SHARED_SOLID, SHARED_SPECIFIERS, appConfig } from "./vite.shared.ts"
@@ -9,17 +9,17 @@ const SOLID_ENTRY = "\0spell-solid-entry"
 /** Virtual module of `SHARED_SOLID.ui`:  `ui`'s barrel, and `SpellUI.registerPack` for the page (`sharedEntries()`). */
 const UI_ENTRY = "\0spell-ui-entry"
 
-/** `spell-ui`'s element core, `$/ui/core`:  in `SHARED_SOLID.solid`. */
-const UI_CORE = fileURLToPath(new URL("../../spell-ui/src/core.ts", import.meta.url))
+/** `spell-ui`'s element core, `spell-ui/core`:  in `SHARED_SOLID.solid`. */
+const UI_CORE = sourceOf("spell-ui/core.ts")
 
 /**
- * `spell-ui`'s root family, `$/ui/components/ui-root`:  in `SHARED_SOLID.solid`, as `<spell-app>` is a root.
+ * `spell-ui`'s root family, `spell-ui/components/ui-root`:  in `SHARED_SOLID.solid`, as `<spell-app>` is a root.
  * - Its loader imports every other family on demand:  each a lazy chunk of `ui/`.
  */
-const UI_ROOT = fileURLToPath(new URL("../../spell-ui/components/ui-root/index.ts", import.meta.url))
+const UI_ROOT = sourceOf("spell-ui/components/ui-root")
 
-/** `spell-ui`'s barrel, `$/ui`:  in `SHARED_SOLID.ui`. */
-const UI_BARREL = fileURLToPath(new URL("../../spell-ui/src/index.ts", import.meta.url))
+/** `spell-ui`'s barrel, `spell-ui`:  in `SHARED_SOLID.ui`. */
+const UI_BARREL = sourceOf("spell-ui")
 
 /** An emoji data module of `ui`'s:  its set and chunk letter (as `ui`'s own `emojiChunkNames()`). */
 const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
@@ -30,7 +30,7 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * (two Solids on a page fail silently -- `solid-2.md`).
  * - Built by `yarn build:element` (FIRST, it empties `dist-element/`) and `yarn build:runner` (`--outDir dist-runner`).
  * - `spell-solid.js`:  `solid-js` and `@solidjs/web` (and `@solidjs/signals` under them),
- *   `ui`'s element core, `$/ui/core` (`UIComponent`, `DOMElement` ...), and its root family (`UIRoot`),
+ *   `ui`'s element core, `spell-ui/core` (`UIComponent`, `DOMElement` ...), and its root family (`UIRoot`),
  *   which `<spell-app>` and `<spell-editor>` are defined on,
  *   and `@solidjs/h` (as `h`), which compiled spell draws with (`spell-runtime.js`).
  *   - Each is re-exported WHOLE:  the other builds can't tell this one which names they use.
@@ -55,8 +55,8 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *   `sharedSolid()` in `vite.shared.ts`, which also lists what they may import.
  * - Icon packs (`appConfig({ iconPacks })`):  beside the chunk holding `BuiltInPacks`, wherever it lands.
  * - Fixed entry names, no hashes:  the other bundles name them.
- * - `keepNames` MUST stay on:  `ui` reads custom element class names (`packages/ui/vite.config.ts`).
- * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
+ * - `keepNames` MUST stay on:  `ui` reads custom element class names (`spell-ui/vite.config.ts`).
+ * - Plugins, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
  */
 const shared = appConfig({ iconPacks: true })
 export default defineConfig({
@@ -222,4 +222,13 @@ function uiChunkNames(chunk: { facadeModuleId: string | null; moduleIds: readonl
   if (chunk.facadeModuleId === UI_ENTRY) return SHARED_SOLID.ui
   const data = EMOJI_DATA.exec(chunk.facadeModuleId ?? chunk.moduleIds[0] ?? "")
   return data ? `ui/emoji/${data[1]}/${data[2]}.js` : "ui/[name].js"
+}
+
+/**
+ * The source file of `name`, an entry of another repo's `package.json` `exports`:  by package, never by a path into
+ * that repo (the kit's `AGENTS.md`, "Imports across repos").
+ * - A file (not a folder's barrel) by its name WITH `.ts`:  node's resolver adds no extension (its `"./*.ts"` entry).
+ */
+function sourceOf(name: string): string {
+  return createRequire(import.meta.url).resolve(name)
 }

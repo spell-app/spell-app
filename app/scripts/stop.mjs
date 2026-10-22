@@ -17,12 +17,19 @@ const monorepo = resolve(root, "../..")
 const ours = new RegExp(
   `(${escapeRegExp(root)}|${escapeRegExp(monorepo)})/node_modules/(concurrently/|vite/|tsx/|\\.bin/tsx|vite-plus/bin/vp dev\\b)`
 )
-const languageServer = "/lsp/src/server.ts"
+// the language server, as a checkout runs it (epic `repo-split` P14)
+const languageServers = ["/src/lsp/server.ts"]
 
 const candidates = []
 for (const line of execFileSync("ps", ["-Ao", "pid=,command="], { encoding: "utf8" }).split("\n")) {
   const [, pid, command] = /^\s*(\d+)\s+(.*)$/.exec(line) ?? []
-  if (!pid || Number(pid) === process.pid || !ours.test(command) || command.includes(languageServer)) continue
+  if (
+    !pid ||
+    Number(pid) === process.pid ||
+    !ours.test(command) ||
+    languageServers.some((server) => command.includes(server))
+  )
+    continue
   candidates.push(pid)
 }
 

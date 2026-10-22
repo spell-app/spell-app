@@ -63,7 +63,7 @@ here     = "@here"                       on the command line:  the project in th
   - `owen@spell` to a person at that organization
 - Each group's folder comes from its address, so nothing needs looking up beyond the group.
 - A page of a running app, `owen@spell/solitaire/rules`, has neither a dot nor a slash at the end:  it's not a file.
-- The full rules:  `SpellLocation`, in [spell-lang's SpellLocation.ts](../spell-lang/spell/src/SpellLocation.ts).
+- The full rules:  `SpellLocation`, in [spell-lang's SpellLocation.ts](../spell-lang/src/spell/SpellLocation.ts).
 
 ### Your own projects group
 
@@ -72,7 +72,7 @@ Your own projects live in your own group, `<you>@spell`:
 
 - Today the name is fixed, `owen@spell`, after the maintainer:
   one person per machine, until a machine can have more than one.
-  - The code:  `LOCAL_PERSON`, in [projectGroups.ts](spaces/src/models/projectGroups.ts).
+  - The code:  `LOCAL_PERSON`, in [projectGroups.ts](src/spaces/models/projectGroups.ts).
 - So on your machine, your projects' addresses start `owen@spell/` too, in your own folder:
   nobody else's files are in it.
 
@@ -143,7 +143,7 @@ A new checkout doesn't have it yet, so make it first.
 <summary>The project file's fields</summary>
 
 `__project.json5`, at the top of the project's folder (spaces' `ProjectFileJSON`,
-in [server.types.ts](spaces/src/server/node/projects/server.types.ts)):
+in [server.types.ts](src/spaces/server/node/projects/server.types.ts)):
 
 | Field | What it is | Default |
 | --- | --- | --- |
@@ -167,7 +167,7 @@ Each entry of `imports`:
 
 ## The models
 
-The editor makes and changes projects through spaces' models, in [spaces/src/models/](spaces/src/models/):
+The editor makes and changes projects through spaces' models, in [src/spaces/models/](src/spaces/models/):
 plain classes, safe in a browser, imported as `spell-app/spaces`.
 
 | Model | What it does |
@@ -188,7 +188,7 @@ The editor saves and loads through the page server:
 spaces adds its routes there, as a ROUTE MODULE
 (a file the [page server](../README-server.md) loads by its path, from spell-app's settings).
 
-- [appRoutes.ts](spaces/src/server/node/routes/appRoutes.ts) serves:
+- [appRoutes.ts](src/spaces/server/node/routes/appRoutes.ts) serves:
   - `/api/...`:  the app's API, below
   - `/spaces/<address>`:  reading a file
   - `/element/...`:  the web components, from the app's `dist-element/`
@@ -205,8 +205,8 @@ spaces adds its routes there, as a ROUTE MODULE
 <details>
 <summary>The API's routes</summary>
 
-Each route's contract is on its handler, in [project-utils.ts](spaces/src/server/node/projects/project-utils.ts);
-the table is [api.ts](spaces/src/server/node/routes/api.ts).
+Each route's contract is on its handler, in [project-utils.ts](src/spaces/server/node/projects/project-utils.ts);
+the table is [api.ts](src/spaces/server/node/routes/api.ts).
 
 | Route | What it does |
 | --- | --- |
@@ -262,7 +262,7 @@ The tests set the first four, so they never write into the repo.
 
 A spell program can be compiled to Python and served as a web app,
 with the page drawn in the browser and the program running on the server:
-`spell_quart`, in spaces' [Python folder](spaces/src/server/py/).
+`spell_quart`, in spaces' [Python folder](src/spaces/server/py/).
 
 ```sh
 spell run @spell/examples/outline-solitaire --target py
@@ -309,7 +309,7 @@ written in spell and compiled to TypeScript the app imports.
   - an organization, `Org#spell`:  `__org.json5` in its, with its members inside it,
     each a person and a role (guest, member, admin or spell-admin)
 - A person keeps notes, dated events and lists of friends;  a friend is saved as a reference, never into their file.
-- The people store ([PeopleStore.ts](spaces/src/server/node/people/PeopleStore.ts)) reads and writes them,
+- The people store ([PeopleStore.ts](src/spaces/server/node/people/PeopleStore.ts)) reads and writes them,
   one file at a time, keeping every comment.
   - The first time, it writes a starter `__me.json5` from git's name and email.
 - The editor's "You" panel shows and edits this machine's person, through `/api/people/me`.

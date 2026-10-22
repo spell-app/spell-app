@@ -42,11 +42,11 @@ _One service, three places it runs;  on node, it reads projects from disk the sa
 
 | Piece | What it does |
 | --- | --- |
-| [`SpellLanguageService`](lsp/src/SpellLanguageService.ts) | answers every question:  diagnostics, hover, completion and the rest;  safe in a browser |
-| [`SpellLanguageServer`](lsp/src/SpellLanguageServer.ts) | wires the service and a workspace to an LSP connection |
-| [`SpellDiskWorkspace`](lsp/src/SpellDiskWorkspace.ts) | loads projects from disk, through [spaces'](README-spaces.md) disk reader;  node only |
-| [`ScopeExplorer`](lsp/src/ScopeExplorer.ts) | the tree of what a project declares, for the Type Explorer and `spell describe` |
-| [`ScopesSource`, `ScopePack`](lsp/src/ScopesSource.ts) | scope packs, `<Project>.scopes.js`:  the same tree, for a page with no parser |
+| [`SpellLanguageService`](src/lsp/SpellLanguageService.ts) | answers every question:  diagnostics, hover, completion and the rest;  safe in a browser |
+| [`SpellLanguageServer`](src/lsp/SpellLanguageServer.ts) | wires the service and a workspace to an LSP connection |
+| [`SpellDiskWorkspace`](src/lsp/SpellDiskWorkspace.ts) | loads projects from disk, through [spaces'](README-spaces.md) disk reader;  node only |
+| [`ScopeExplorer`](src/lsp/ScopeExplorer.ts) | the tree of what a project declares, for the Type Explorer and `spell describe` |
+| [`ScopesSource`, `ScopePack`](src/lsp/ScopesSource.ts) | scope packs, `<Project>.scopes.js`:  the same tree, for a page with no parser |
 
 - The server runs every document change through ONE queue, in order:
   a request waits for the changes before it, so it always sees the text you see.
@@ -64,7 +64,7 @@ yarn lsp:start
 
 - It talks the protocol on standard input and output, so it prints nothing for a person to read;
   an editor starts it and talks to it.
-- The language service, [`SpellLanguageService`](lsp/src/SpellLanguageService.ts), is in this folder,
+- The language service, [`SpellLanguageService`](src/lsp/SpellLanguageService.ts), is in this folder,
   imported as `spell-app/lsp`.
   - It moves to spell-lang with the work behind the language's commands, since `spell lint` and `spell describe`
     need it there:  still to come, after epic `repo-split` P13 moved the commands themselves.
@@ -94,10 +94,10 @@ yarn lsp:scopes --compile @spell/examples/drawable-solitaire
 - It must stay safe to run in a browser:  the editor's Monaco calls the same service in the page.
   The node-only files (the disk workspace, the server's process) are left out of its entry.
 - It uses spell-lang and spaces;  it never imports the app or the command line.
-- Its tests are in [tests/lsp/](tests/lsp/);  `yarn spell-folders test lsp` runs them.
-- The rules for working in the folder:  [lsp's AGENTS.md](lsp/AGENTS.md).
+- Its tests are in [tests/lsp/](tests/lsp/);  `yarn vp test run --project lsp` runs them.
+- The rules for working in the folder:  [lsp's AGENTS.md](src/lsp/AGENTS.md).
 - How parsing works, which the service stands on:
-  "Language server" in [spell-lang's PARSING.md](../spell-lang/spell/PARSING.md).
+  "Language server" in [spell-lang's PARSING.md](../spell-lang/src/spell/PARSING.md).
 
 ## See also
 

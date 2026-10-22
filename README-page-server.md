@@ -5,7 +5,7 @@ and knows nothing of Spell's repos.
 spell-app makes it Spell's, two ways:
 - the SETTINGS in spell-app's [package.json](package.json), its `"pageServer"` block:
   which component sets it serves and where, the routes of the other repos, the top bar's tabs
-- the [page-server](page-server/) folder:
+- the [page-server](src/page-server/) folder:
   one ROUTE MODULE (a file the server loads by its path, from those settings),
   which builds the bundles the server serves, and keeps pages loading offline
 
@@ -28,13 +28,13 @@ _The page server reads the settings once, as it starts;  each setting names fold
 
 ## What this module does
 
-[pageServerRoutes.ts](page-server/src/pageServerRoutes.ts), listed first in the routes,
+[pageServerRoutes.ts](src/page-server/pageServerRoutes.ts), listed first in the routes,
 does three things as the page server starts:
 
 1. **Builds the bundles** it serves, which aren't committed:
    Spell UI's site bundle (every component set's pages load it) and the brand pages'.
    - It runs this checkout's own bundle build (`spell bundle --stale`) as a child process
-     ([BundleBuild.ts](page-server/src/BundleBuild.ts)), logging its output as `bundles:  ...`.
+     ([BundleBuild.ts](src/page-server/BundleBuild.ts)), logging its output as `bundles:  ...`.
    - A request for a file of a bundle that isn't built yet waits for it, up to two minutes.
    - When the build ends, live reload reloads the pages that load it.
 2. **Keeps pages loading offline:**  every page's highlight.js tag, from a CDN, is pointed at a local copy.
@@ -85,7 +85,7 @@ A short excerpt:
 - Folders outside spell-app are named from its root (`../spell-ui/docs`),
   and the server mounts each one on its own:  never the whole kit.
 - A checkout without spell-epic beside it (as in CI) loads no epic routes.
-- The tabs are pinned by a test, [siteTabs.test.ts](tests/page-server/src/siteTabs.test.ts).
+- The tabs are pinned by a test, [siteTabs.test.ts](tests/page-server/siteTabs.test.ts).
 
 ## Commands
 
@@ -108,9 +108,9 @@ Spell servers of ~/www/spell/spell-app:
 
 ## Working on it
 
-- Its tests are in [tests/page-server/](tests/page-server/):  `yarn spell-folders test page-server`.
+- Its tests are in [tests/page-server/](tests/page-server/):  `yarn vp test run --project page-server`.
 - It uses the kit's server (`spell-kit/server`), and nothing imports it:  the page server loads it by its path.
-- The rules for working in the folder:  [page-server's AGENTS.md](page-server/AGENTS.md).
+- The rules for working in the folder:  [page-server's AGENTS.md](src/page-server/AGENTS.md).
 - The page server itself (routes, live reload, editing in place, the site header):
   [the kit's server page](../README-server.md).
 
