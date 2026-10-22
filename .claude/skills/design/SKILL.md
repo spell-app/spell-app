@@ -129,7 +129,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
      (run `spell design build` if it's missing)
    - then each card you'll use (`components/<Family>/README.md`), and `components/index.d.ts`
    - VS Code autocompletes `<ui-*>` tags and attributes
-     from [html-custom-data.json](../spell-ui/site/_data/html-custom-data.json), in Spell UI's site data.
+     from [html-custom-data.json](../../../../spell-ui/docs/__data/html-custom-data.json), in Spell UI's site data.
 2. Start the page from a template (`epic pages create ...`),
    or as `/design pull` writes one (the bundle, and the site header for its depth).
    - Write plain `<ui-*>` markup:  every component the system has.

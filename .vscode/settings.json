@@ -48,6 +48,12 @@
     "../spell-ui/docs/__data/html-custom-data.json",
     "../spell-brand/docs/__data/html-custom-data.json"
   ],
+  // And in `.css` files, their custom properties (`--ui-button-padding-block`), parts (`::part(icon)`) and custom
+  // states (`:state(open)`), from the same `yarn site:data`.
+  "css.customData": [
+    "../spell-ui/docs/__data/css-custom-data.json",
+    "../spell-brand/docs/__data/css-custom-data.json"
+  ],
 
   // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.  Generated files (the root's
   // `.gitattributes` `linguist-generated` list), Spell UI's 2,000+ icon SVGs and visual-test screenshots, graphify's
