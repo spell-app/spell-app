@@ -22,7 +22,7 @@ export default function appCommands(spell: Command): void {
     .command("create")
     .description("make a spell project:  <name>/__project.json5 and a starter <name>.spell")
     .argument("<name>", "the project's name, e.g. Snake")
-    .option("--in <folder>", "make it in this folder -- default owen@spell's, your space in spell-spaces")
+    .option("--in <folder>", "make it in this folder -- default owen@spell's, your space in spell.spaces")
     .action((name: string, _options, command: Command) =>
       CLI.runCommand(async () => (await loadApp()).appCommands.create([name], command.optsWithGlobals()))
     )

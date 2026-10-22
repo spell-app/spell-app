@@ -151,6 +151,26 @@ describe("project-utils", () => {
     expect(index.imports.map((it) => it.path)).toEqual(["/Paged.spell", `/Card${SP.EDITOR_PAGE_SUFFIX}`])
   })
 
+  // the bug of 2026-10-22:  a project copied to a folder of another name read its old words file as spell
+  test("a words file is never one of a project's files, whatever its name:  an old name's is left out", async () => {
+    const projectId = project("calc2")
+    const folder = resolve(workspace, "calc2")
+    const words = SP.SpellWords.script({ lang: "en", types: { Calculator: { clear: "clear (a calculator)" } } }, "x")
+    writeFileSync(resolve(folder, "calc2.en.js"), words)
+    writeFileSync(resolve(folder, "calculator.en.js"), words)
+    writeFileSync(resolve(folder, "Calculator.es.js"), words)
+    // a helper whose name looks like one, but isn't:  still listed
+    writeFileSync(resolve(folder, "socket.io.js"), "export const io = 1\n")
+
+    const index = await projectUtils.getIndex(projectId)
+    expect(index.imports.map((it) => it.path)).toEqual(["/calc2.spell", "/socket.io.js"])
+    expect(Object.keys(index.manifest).map((path) => path.split("/").pop())).toEqual(["calc2.spell", "socket.io.js"])
+    expect((await projectUtils.loadProjectFile(projectId)).imports.map((it) => it.path)).toEqual([
+      "/calc2.spell",
+      "/socket.io.js"
+    ])
+  })
+
   // the suspected bug of 2026-10-13:  renaming or duplicating a project moved only its source folder
   test("renaming a project deletes what was built for the old name:  NOTHING of it is served for the new", async () => {
     const projectId = await built("Old")

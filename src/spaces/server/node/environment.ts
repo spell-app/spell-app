@@ -59,7 +59,7 @@ const staticDir = resolve(packagesDir, "app", "static")
 /**
  * The MAIN checkout's root, from this checkout's:  the one a worktree's git shares (`SRV.checkoutOf()`).
  * - found wherever the worktree's folder is
- * - spell-spaces sits beside it, so every worktree reads the same spaces.
+ * - spell.spaces sits in the kit, so every worktree reads the same spaces.
  */
 const mainRepoDir = checkoutOf(repoDir)?.main ?? repoDir
 
@@ -80,7 +80,7 @@ const spellSpacesDir = process.env.SPELL_SPACES_DIR
  * The folder holding each `SP.SpaceFolderBase` (`SP.SpellUrls.folderFor()`):
  * - `builtins`:  `spaces/`, holding the `@spell` space's projects:  the built-in groups (`@spell/examples/` ...) and the
  *   frozen test projects, `@spell/test/` (spell-lang's `tests/spaces/` until epic `spanish` P18)
- * - `spaces`:  spell-spaces
+ * - `spaces`:  spell.spaces
  * - `SPELL_BUILTINS_DIR` sets the first:
  *   so the server's contract test (`api.test.ts`) can point the server at a temporary copy, and never write into the repo.
  */
@@ -114,7 +114,7 @@ const environment = {
    */
   testFilesRoot: resolve(spaceFolders.builtins, "@spell", "test"),
   /**
-   * This machine's person's own projects, e.g. `<spell-spaces>/@spell/owen@/errors` -- `owen@spell`.
+   * This machine's person's own projects, e.g. `<spell.spaces>/@spell/owen@/errors` -- `owen@spell`.
    * - MUST be the folder of `SPACES.LOCAL_PERSON`'s space (a test checks).
    *   - It can't import that name:  this file imports nothing, since vite's configs load it too.
    */

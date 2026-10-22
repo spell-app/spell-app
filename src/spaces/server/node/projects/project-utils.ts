@@ -216,7 +216,8 @@ export const request_getProjectList = respondWithJSON(async (request) => {
 /**
  * Ends of the names of files spell WRITES, which are never one of a project's own files.
  * - Listed, `getIndex()` would make a `.js` one an import of the project, and parse the rest as spell.
- * - Its words files, e.g. `Solitaire.en.js`, are left out by `SP.SpellWords.isWordsFile()`.
+ * - Its words files, e.g. `Solitaire.en.js`, are left out by `SP.SpellWords.isWordsFile()`;
+ *   another name's, e.g. `calculator.en.js` in a copy named `calc2`, by `isWordsFileOnDisk()`.
  * - The old names are here too (`OLD_BUILT_SUFFIXES`).
  */
 const GENERATED_SUFFIXES = [
@@ -244,6 +245,21 @@ export function isManifestFile(name: string, projectName = "") {
 /** Given a file `name`, return `true` if we should preload it (fetch `contents` eagerly in `getIndex()`). */
 function isPreloadFile(name: string) {
   return manifestExtensions.some((extension) => name.endsWith(extension))
+}
+
+/**
+ * Is file `name`, in folder `folder`, ANY project's words file -- e.g. `calculator.en.js`, left in a copy named `calc2`?
+ * - `isManifestFile()` knows the project's own by its name;  an old name's needs its text read.
+ * - Named as one (`SP.SpellWords.isWordsFile()`), and written as one (`SP.SpellWords.isWordsScript()`):
+ *   a helper with a name like one, `socket.io.js`, still lists.
+ * - Left where it is, never deleted:  it may be the only copy of that project's words.
+ *   Compiling writes the new name's.
+ * - NEVER throws:  a file it can't read lists.
+ */
+async function isWordsFileOnDisk(folder: string, name: string): Promise<boolean> {
+  if (!SP.SpellWords.isWordsFile(name)) return false
+  const text = await fileUtils.loadTextFile(resolve(folder, name), "OPTIONAL").catch(() => null)
+  return text !== null && SP.SpellWords.isWordsScript(text)
 }
 
 /**
@@ -286,8 +302,10 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 
   // Get non-hidden files in project which the front-end knows how to deal with
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
-  let fileNames = (await fileUtils.getFolderContents(location.serverPath, options)) //
+  const listed = (await fileUtils.getFolderContents(location.serverPath, options)) //
     .filter((name) => isManifestFile(name, location.projectName))
+  const isWords = await Promise.all(listed.map((name) => isWordsFileOnDisk(location.serverPath, name)))
+  let fileNames = listed.filter((_name, index) => !isWords[index])
 
   // HACKY: make sure we have at least one valid file by creating a default file
   if (!fileNames.length) {
