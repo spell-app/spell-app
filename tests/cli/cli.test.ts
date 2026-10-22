@@ -18,6 +18,7 @@ import { basename, dirname, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
 import { SRV } from "spell-kit/server"
+import { pageServerRoot } from "spell-kit/server/page/settings"
 import { buildFolderFor } from "spell-app/spaces/server/node/projects/project-utils"
 import { SP } from "spell-lang/spell"
 import { fixturePath } from "spell-lang/spell/test"
@@ -39,6 +40,9 @@ vi.setConfig({ testTimeout: 30_000 })
 
 /** This checkout:  its page server is the one `spell app serve` uses. */
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..")
+
+/** The page server's root, where its pid file is:  the kit around this repo (epic `repo-split` P16). */
+const SERVER_ROOT = pageServerRoot(REPO_ROOT)
 
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
@@ -153,7 +157,7 @@ describe("spell app serve", () => {
     options,
     async () => {
       // the editor is the page server's child:  a page server already running (a developer's) keeps its own port
-      const running = Boolean(await new SRV.PidFile(REPO_ROOT).status())
+      const running = Boolean(await new SRV.PidFile(SERVER_ROOT).status())
       // well away from the app's own 3000, so a running `yarn start` doesn't clash
       const port = 3700 + Math.floor(Math.random() * 200) * 2
       const child = spawn(
@@ -196,7 +200,7 @@ describe("spell app serve", () => {
 
   test("a port in use:  refused, when it would start the page server", async (context) => {
     // with the page server running, `--port` doesn't apply:  `spell app serve` would just run
-    if (await new SRV.PidFile(REPO_ROOT).status()) context.skip()
+    if (await new SRV.PidFile(SERVER_ROOT).status()) context.skip()
     const busy = createServer()
     await new Promise<void>((done) => busy.listen(0, done))
     const port = (busy.address() as { port: number }).port

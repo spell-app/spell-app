@@ -3,7 +3,7 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this folder, `src/lsp/` of the `spell-app` package (`spell-app/lsp`).
 
-**READ the repo root's `AGENTS.md` and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
+**READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
 - the root's:  the repo's layout
 - WWOD:  the house style every package shares
 - Only what's local is below.
@@ -21,9 +21,10 @@ when working with code in this folder, `src/lsp/` of the `spell-app` package (`s
   - `ScopesSource` / `ScopePack`:  the scope packs, `<Project>.scopes.js`
   - `SpellDiskWorkspace`:  loads from disk, through spaces' disk reader (`installDiskFetch()`)
   - See "Language server" in [PARSING.md](../../../spell-lang/src/spell/PARSING.md).
-- The VS Code extension that runs it is `../vscode`, its own yarn project.
+- The VS Code extension that runs it is the repo's [vscode/](../../vscode/), its own yarn project.
   - It runs THIS folder's source.
-- The commands, the repo root's scripts (each `cd lsp && ...`;  `start:lsp` and `scopes` before epic `repo-split` P11):
+- The commands:  the repo root's scripts, which run this folder's files with `tsx`.
+  - Named `start:lsp` and `scopes` before epic `repo-split` P11.
 
   ```sh
   yarn lsp:start                                     # runs the server over stdio

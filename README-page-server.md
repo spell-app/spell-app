@@ -91,7 +91,7 @@ Read the right-hand column first:  when an address misbehaves, it says where to 
 | `/_beside/<folder>/` | each folder beside spell-app that the settings name, mounted alone:  `/_beside/spell-ui/docs/` | the kit, from the settings |
 | `/saga/<saga>[/<epic>]` | a redirect to that saga's or epic's page, keeping the `#id` | `linkRoutes` |
 | `/spaces/<project>/<file>` | a project's file, by its address | spaces' `appRoutes` |
-| `/element/...` | the editor's element bundles, from `app/dist-element/` | `appRoutes` |
+| `/element/...` | the editor's element bundles, from `app/dist-element/` | `appRoutes`;  on the epic server, the settings' `engineRoutes` |
 | `/editor` | a redirect to the running editor;  while it isn't up, a 503 page that says so | `appRoutes` |
 | `/hello` | `{"message":"Hello from the API!"}`:  is the API up? | `appRoutes` |
 | `/ui/...` | a 404 with the new address, never a redirect | spell-app's `pageServerRoutes` |
@@ -128,7 +128,7 @@ the rest of `/api/` is the editor's:  spaces' module is listed last, and sees ev
 - Every write from a page needs the server's per-run token and the server's own origin.
   The editor's API is the exception, with no token:
   [its one check](README-spaces.md#the-servers--an-api-that-nothing-starts) is the origin.
-- What epic pages, details pages and comments are:  [spell-epic's pages](../spell-epic/README-pages.md).
+- What epic pages, details pages and comments are:  [spell-epic's pages](https://github.com/spell-app/spell-epic/blob/main/README-pages.md).
 
 ## spell-app's own module:  bundles, and pages that load on a plane
 
@@ -191,13 +191,13 @@ A route is a file and one line.
    `spell-kit/server/page`.
    `setup()` runs once, before the server listens, and gets the router, the write guard, live reload and the server.
    - spell-app's own, above, is the shortest real one.
-   - Everything `setup()` gets:  [the kit's page server](../README-server.md).
+   - Everything `setup()` gets:  [the kit's page server](https://github.com/spell-app/spell-kit/blob/main/README-server.md).
 2. Put it with the code it serves, and add its path to `routes` in spell-app's [package.json](package.json),
    written from spell-app's folder.
    - The editor's API lives in spaces, `src/spaces/server/node/routes/`;  page serving in `src/page-server/`.
    - Routes run in list order, all before any file:  an early module can shadow a later one's address.
    - A module in another repo is a path beside spell-app (`../spell-epic/...`).
-     spell-epic is in spell-app's `runs` in the kit's [repos.json5](../repos.json5), so `yarn clone spell-app`
+     spell-epic is in spell-app's `runs` in the kit's [repos.json5](https://github.com/spell-app/spell-kit/blob/main/repos.json5), so `yarn clone spell-app`
      brings it, and so does CI;  a route from another repo needs the same.
 3. Restart the server.
    The next `spell server start`, or anything that opens a page, restarts a server older than its code:
@@ -229,7 +229,7 @@ Most of what the server serves is a setting, not code:  one entry, then a restar
 | a folder served under a fixed prefix | one entry in `engineRoutes`:  the prefix, then the folder | the same copy is served under every worktree's address |
 | a script on every page | one entry in `pageScripts`:  its URL, its file, the prefixes to skip | it's added only while its file exists |
 | a folder pages may save into | one entry in `writable` | a folder of the content folder |
-| a bundle built on demand | its output folder in `bundles` | and its build in [the kit's bundle list](../src/server/server.types.ts):  a folder no bundle builds into is an error |
+| a bundle built on demand | its output folder in `bundles` | and its build in [the kit's bundle list](https://github.com/spell-app/spell-kit/blob/main/src/server/server.types.ts):  a folder no bundle builds into is an error |
 
 </details>
 
@@ -253,7 +253,7 @@ Spell servers of ~/www/spell/spell-app:
 - `start all` and `stop all` find spell-app from anywhere in the kit;  plain `spell server start` doesn't look,
   so from the kit's root it starts the kit's own server, the generic one at the top of this page.
 - The rest, `stop`, `status`, `url <file>`, and building the bundles by hand with `spell bundle`:
-  [the kit's commands](../README-cli.md#the-kit).
+  [the kit's commands](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#the-kit).
 
 ## Where it stops
 
@@ -270,7 +270,7 @@ All three come from one fact:  a setting is a path, read from the checkout the s
 ## The settings, key by key
 
 Everything else the server serves is a value in the same block.
-The kit's `pageServerSettings()` reads it as the server starts;  [the kit's page server](../README-server.md) says
+The kit's `pageServerSettings()` reads it as the server starts;  [the kit's page server](https://github.com/spell-app/spell-kit/blob/main/README-server.md) says
 what each key means for any checkout.
 These are spell-app's values, from its [package.json](package.json), which holds the full list:
 
@@ -295,13 +295,13 @@ These are spell-app's values, from its [package.json](package.json), which holds
 
 | Id | Name | Served at | Its pages |
 | --- | --- | --- | --- |
-| `ui` | Spell UI | `/components/ui/` | [spell-ui's docs/](../spell-ui/docs/) |
-| `epics` | Epic UI | `/components/epics/` | [spell-epic's src/docs/](../spell-epic/src/docs/) |
+| `ui` | Spell UI | `/components/ui/` | [spell-ui's docs/](https://github.com/spell-app/spell-ui/tree/main/docs) |
+| `epics` | Epic UI | `/components/epics/` | [spell-epic's src/docs/](https://github.com/spell-app/spell-epic/tree/main/src/docs) |
 | `app` | App UI | `/components/app/` | [app/docs/](app/docs/), this repo's own ([README-app.md](README-app.md)) |
 
 - Every set's site bundle is Spell UI's, `../spell-ui/site/_assets`:
   its pages load `site.js` and `site.css` from their own `_assets/`.
-  What's in it:  [Spell UI's site](../spell-ui/README-site.md).
+  What's in it:  [Spell UI's site](https://github.com/spell-app/spell-ui/blob/main/README-site.md).
 - `/components/ui` without its slash redirects to `/components/ui/`, so the pages' relative links hold.
 
 </details>
@@ -339,9 +339,9 @@ These are spell-app's values, from its [package.json](package.json), which holds
 
 ## See also
 
-- [The kit's page server](../README-server.md):  every setting in general, a request's path, live reload,
+- [The kit's page server](https://github.com/spell-app/spell-kit/blob/main/README-server.md):  every setting in general, a request's path, live reload,
   editing in place, and everything a route module's `setup()` gets
 - [Spaces](README-spaces.md):  the editor's API, the last route module in the list, call by call
-- [spell-epic's pages](../spell-epic/README-pages.md):  what the ten epic route modules are for
-- [The command line](../README-cli.md):  every verb and flag of `spell server` and `spell bundle`
-- [Working on Spell](../README-development.md):  worktrees, the checks, and where to hack on what
+- [spell-epic's pages](https://github.com/spell-app/spell-epic/blob/main/README-pages.md):  what the ten epic route modules are for
+- [The command line](https://github.com/spell-app/spell-kit/blob/main/README-cli.md):  every verb and flag of `spell server` and `spell bundle`
+- [Working on Spell](https://github.com/spell-app/spell-kit/blob/main/README-development.md):  worktrees, the checks, and where to hack on what

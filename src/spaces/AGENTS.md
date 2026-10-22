@@ -62,7 +62,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | `@spell/test` | spell-lang's `tests/spaces/@spell/test/`, committed and frozen (epic `repo-split` C11) |
   | `owen@spell` | spell.spaces' `@spell/owen@/`, outside git |
 
-  - spell.spaces:  `<main checkout>/../spell.spaces` (in the kit `spell-kit`;  `../spell-spaces` before epic `repo-split` P8), ONE folder for main and every worktree.
+  - spell.spaces:  `<main checkout>/../spell.spaces`, in the kit `spell-kit`:  ONE folder for main and every worktree.
+    - It was `../spell-spaces` before epic `repo-split` P8.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`:  who this machine's person is, until a machine can have more than one person.
@@ -148,7 +149,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - [api.ts](server/node/routes/api.ts):  two `SRV.Router` route tables.
   - `api`:  the app's API, `/api/...`
   - `spaceFiles`:  reading a file, `/spaces/...`
-  - On the server package's Express-shaped router and web server (it was Express):  `SRV.Router` and `SRV.WebServer`.
+  - On the kit's server's Express-shaped router and web server (it was Express):  `SRV.Router`, `SRV.WebServer`.
   - Its handlers are our [project-utils.ts](server/node/projects/project-utils.ts)'s.
   - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
     [SpellUrls.ts](../../../spell-lang/src/spell/SpellUrls.ts)):
@@ -223,7 +224,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - it may import `spell-lang/core` and `spell-kit/util`
   - [projectGroups.ts](models/projectGroups.ts) imports spell's light `spell-lang/spell/SpellSetup` alone.
     So `<spell-app>` can load it by path, `spell-app/spaces/models/projectGroups`, without the parser.
-- NEVER the app, lsp or cli packages:  they import it.
+- NEVER the app, lsp or cli folders:  they import it.
 - `spell` NEVER imports it.
 - NOT in the barrel (WWOD §8 › "Barrels"):  everything under `server/`.
   - [cli.ts](server/node/routes/cli.ts) and [appRoutes.ts](server/node/routes/appRoutes.ts)

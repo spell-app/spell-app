@@ -9,19 +9,23 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
-- This folder is spell-app's part of `spell`, the kit's command line (the kit's `cli/`).
+- This folder is spell-app's part of `spell`, the kit's command line (the kit's `src/cli/`).
   Two things:
   - spell-app's OWN commands:  `spell app create | serve | vscode [build|install]`, and `spell projects`
-  - the WORK behind spell-lang's commands (`spell compile`, `lint`, `run`, `test` ...), through spell-app's
-    `"language"` hook:  they find projects the app's way, so their work is here until spell-lang can
-    (epic `repo-split` P13)
+  - the WORK behind spell-lang's commands (`spell compile`, `lint`, `run`, `test` ...),
+    through spell-app's `"language"` hook:
+    they find projects the app's way, so their work is here until spell-lang can (epic `repo-split` P13)
   - [The kit's README-cli.md](../../../README-cli.md) has every command, its options and caveats, and what's coming.
 - The program itself is NOT here any more:  arguments, help, finding commands, `spell dev` and its pass-throughs
   are the kit's, or gone (epic `repo-split` P13).
   - Spell UI's commands (`spell icon`, `ssr`, `pack`, `design`) are spell-ui's `src/cli/`.
   - The `epic` command is spell-epic's (its `bin/epic`), since epic `epic-eject` I5.
-- How the kit finds this folder:  `package.json`'s
-  `"spell": { "commands": "./src/cli/commands.ts", "hooks": "./src/cli/hooks.ts" }`.
+- How the kit finds this folder:  the root `package.json` names its two files.
+
+  ```json
+  "spell": { "commands": "./src/cli/commands.ts", "hooks": "./src/cli/hooks.ts" }
+  ```
+
   - `commands.ts` beside `commands/`, the commands' work:  so the folder's barrel, `index.ts`, names that folder's
     barrel in full, `spell-app/cli/commands/index` (`./commands` would be the file).
   - [commands.ts](commands.ts):  spell-app's commands, their names, arguments, flags and help.
@@ -41,15 +45,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     the kit's util).
   - spell-app's root `package.json` depends on `spell-lang`, `spell-ui` and `spell-kit` as workspaces
     (`workspace:*`).
-  - Their SOURCE runs, with no build:  `spell` runs every repo's source through `tsx`, each import by its package
-    name.
+  - Their SOURCE runs, with no build:
+    `spell` runs every repo's source through `tsx`, each import by its package name.
   - `spell-app/cli` is THIS folder (namespace `CLI`):  a file `foo.ts` in it is `spell-app/cli/foo`
     (the package's `exports`, the root's `AGENTS.md`).
   - Something the command line needs OF spell or its tools is a change in THAT package,
     e.g. `SpellProject.compile(parentScope, { save })`.
 - Projects load the language server's way (`SpellDiskWorkspace`), from spaces' folders on disk.
-  - Where they are, and the build folder:  spaces' `environment` and `project-utils`,
-    in `spell-app/spaces/server/node/...`;  they also register spell's project groups.
+  - Where they are, and the build folder:
+    spaces' `environment` and `project-utils`, in `spell-app/spaces/server/node/...`.
+  - Those also register spell's project groups.
   - Questions about them go to its `SpellLanguageService` and `ScopeExplorer`,
     so the command line sees what an editor does.
 - Ink (React for terminals) draws its screens, in [ui/](ui/).
@@ -70,8 +75,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     so the kit's `runCommand()` prints just its message.
 - A new or renamed command:
   FIRST [the commands guide](../../../spell.epics/guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
-  - Suggest where it belongs:  a language command is spell-lang's list (its `src/cli/commands.ts`), with its work here
-    behind the hook while it needs the app;  an app command is [commands.ts](commands.ts)'s.
+  - Suggest where it belongs:
+    - a language command is in spell-lang's list ([its commands.ts](../../../spell-lang/src/cli/commands.ts)),
+      with its work here behind the hook while it needs the app
+    - an app command is in [commands.ts](commands.ts)
   - Then add it to the commands page's `commands.json5`, and run `spell commands check`.
 
 ## Imports
@@ -82,9 +89,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   import { CLI } from "spell-app/cli"
   ```
 
-- The kit's base by its npm name, `spell-kit/cli` (its namespace is `CLI` too);  the language commands' types,
-  `spell-lang/cli`.  Our [cli.types.ts](cli.types.ts) re-exports what we use of both, so the rest of the
-  folder says `CLI.CliError`, `CLI.CompileOptions`.
+- The kit's base by its npm name, `spell-kit/cli` (its namespace is `CLI` too).
+- The language commands' types:  `spell-lang/cli`.
+- Our [cli.types.ts](cli.types.ts) re-exports what we use of both,
+  so the rest of the folder says `CLI.CliError`, `CLI.CompileOptions`.
 - NOT in the barrel (WWOD §8 › "Barrels"):
   - [consoleGuard.ts](consoleGuard.ts):  importing it silences `console.*`
   - [languageCommands.ts](languageCommands.ts):  `loadApp()` loads it after `consoleGuard`
@@ -101,10 +109,13 @@ As WWOD §20, plus:
   See "Projects live in spaces" in [spell's AGENTS.md](../../../spell-lang/src/spell/AGENTS.md).
   - NEVER write into one, nor into its build folder (`build/spaces/@spell/test/...`).
     Compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
-- [cli.test.ts](../../tests/cli/cli.test.ts) runs the real `spell`:  the KIT's `bin/spell.mjs`, found by
-  package (`spell-kit`), as separate processes, with no terminal.
+- [cli.test.ts](../../tests/cli/cli.test.ts) runs the real `spell`:
+  the KIT's [spell.mjs](../../../bin/spell.mjs), found by package (`spell-kit`),
+  as separate processes, with no terminal.
   - Every installed repo's command list loads, so it runs spell-lang's commands through our hook, end to end.
   - It checks the old spellings are gone:  `spell dev`, `spell epic`, `check`, `new`, `serve`, `explore` ...
 - The kit's own commands' tests are the kit's (its `tests/cli/`);  Spell UI's are spell-ui's.
-- The epic command's own tests are spell-epic's (`tests/command/`, `EpicProgram.test.ts`).
+- The epic command's own tests are spell-epic's:
+  - [EpicProgram.test.ts](../../../spell-epic/tests/cli/EpicProgram.test.ts)
+  - [tests/command/](../../../spell-epic/tests/command/)
 - Screens render through `ink-testing-library`, at a fixed `size`.

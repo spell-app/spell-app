@@ -2,23 +2,23 @@ import { readFileSync } from "fs"
 import { join } from "path"
 
 import { SRV } from "spell-kit/server"
-import { PageServer } from "spell-kit/server/page"
+import { PageServer, pageServerRoot } from "spell-kit/server/page"
 import environment from "spell-app/spaces/server/node/environment"
 import { SP } from "spell-lang/spell"
 import { CLI } from "spell-app/cli"
 
-/** This checkout:  the page server's root. */
-const REPO_ROOT = environment.repoDir
+/** The page server's root:  the kit this checkout is in (`pageServerRoot()`, epic `repo-split` P16), else this checkout. */
+const SERVER_ROOT = pageServerRoot(environment.repoDir)
 
-/** Where the page server records its editor (`app`'s `EditorServer.ts` `EDITOR_FILE`). */
-const EDITOR_FILE = join(REPO_ROOT, ".spell-server.editor.json")
+/** Where the page server records its editor (`app`'s `EditorServer.ts` `EDITOR_FILE`):  at its root. */
+const EDITOR_FILE = join(SERVER_ROOT, ".spell-server.editor.json")
 
 /** How long to wait for the editor to answer:  vite may be building its dependency cache. */
 const START_TIMEOUT_MS = 90_000
 
 /**
  * `spell app serve [project]` (`spell serve` until epic `repo-split` P13):  run EVERYTHING --
- * the page server of this checkout, with the app's API, the editor UI,
+ * the kit's page server, with the app's API, the editor UI,
  * docs, epics, goals and Spell UI -- and open the editor in a browser.
  * - The PAGE SERVER (`yarn server`, `spell-kit/server/page`), started if it isn't running.
  *   - The editor is ITS child:  `app`'s route module starts vite once the page server listens,
@@ -45,7 +45,7 @@ export async function serveCommand(
     // the port is ours to choose only for a page server we're about to start;
     // free on IPv4 AND IPv6:  on macOS `::` binds even while another process holds `0.0.0.0:<port>`
     const free = (await SRV.isFree(port, "0.0.0.0")) && (await SRV.isFree(port, "::"))
-    if (!(await new SRV.PidFile(REPO_ROOT).status()) && !free) {
+    if (!(await new SRV.PidFile(SERVER_ROOT).status()) && !free) {
       throw new CLI.CliError(`Port ${port} is in use -- \`spell app serve --port <another>\``)
     }
     // a page server started below inherits it:  `PageServer.ensure()` passes our environment on
@@ -57,7 +57,7 @@ export async function serveCommand(
   const pageRow = status.start("Starting the page server")
   let page: Awaited<ReturnType<typeof PageServer.ensure>>
   try {
-    page = await PageServer.ensure(REPO_ROOT)
+    page = await PageServer.ensure(SERVER_ROOT)
     status.done(pageRow, "ok", `${page.base}/${page.launched ? "" : "  (already running)"}`)
   } catch (error) {
     status.done(pageRow, "failed", error instanceof Error ? error.message : String(error))
@@ -73,7 +73,7 @@ export async function serveCommand(
       : "the page server was already running without one -- restart it:  `yarn server stop`, then `spell app serve`"
     status.done(row, "failed", `the editor didn't answer:  ${why}`)
     status.finish()
-    if (page.launched) await new SRV.PidFile(REPO_ROOT).stop()
+    if (page.launched) await new SRV.PidFile(SERVER_ROOT).stop()
     return CLI.EXIT.ERRORS
   }
   status.done(row, "ok", `${editor}  (/api on the page server)`)
@@ -95,7 +95,7 @@ export async function serveCommand(
     process.once("SIGTERM", () => done())
   })
   clearInterval(keepAlive)
-  if (page.launched) await new SRV.PidFile(REPO_ROOT).stop()
+  if (page.launched) await new SRV.PidFile(SERVER_ROOT).stop()
   return CLI.EXIT.OK
 }
 
