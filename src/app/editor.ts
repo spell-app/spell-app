@@ -10,6 +10,7 @@ import type { monaco } from "spell-app/app/ui/monaco"
 // NOTE: types only:  the dialogs themselves load on first use, see `dialogs()`.
 import type * as Modals from "spell-app/app/solid/modals"
 import { navigate } from "spell-app/app/pages/navigation"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 
 ////////////////
 // ## The editor
@@ -40,10 +41,6 @@ export class EditorStore extends Observable {
   accessor projectRoot: SPACES.SpellProjectRoot | undefined
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
   lastProjectForRoot = lastProjectForRoot
-  /** Human-readable type of current `projectRoot`, e.g. `"Example"` -- falls back to `"Project"` if none selected. */
-  get appType(): string {
-    return editor.projectRoot?.Type || "Project"
-  }
 
   /**
    * Current `SP.SpellProject` shown in `SpellEditor`.
@@ -79,7 +76,7 @@ export class EditorStore extends Observable {
       navigate(new SP.SpellLocation(path!).editorUrl)
       void editor.compileApp()
     } catch {
-      editor.showError(`Path '${path}' is invalid!`)
+      editor.showError(appTexts.text("pathInvalid", { path: String(path) }))
     }
   }
 
@@ -93,7 +90,7 @@ export class EditorStore extends Observable {
       navigate(new SP.SpellLocation(path!).runnerUrl)
       void editor.compileApp()
     } catch {
-      editor.showError(`Path '${path}' is invalid!`)
+      editor.showError(appTexts.text("pathInvalid", { path: String(path) }))
     }
   }
 
@@ -263,7 +260,7 @@ export class EditorStore extends Observable {
       const project = await projectRoot.createApp(projectId)
       if (project) {
         editor.showEditor(project.path)
-        editor.showNotice(`Created ${project.type} ${project.title}.`)
+        editor.showNotice(appTexts.text("createdApp", { ...appTexts.groupWords(projectRoot), name: project.title }))
       }
     } catch (e) {
       editor.showError(e)
@@ -277,7 +274,7 @@ export class EditorStore extends Observable {
       // console.warn({ newProject })
       if (newProject) {
         editor.showEditor(newProject.path)
-        editor.showNotice(`${newProject.Type} duplicated.`)
+        editor.showNotice(appTexts.text("duplicatedApp", appTexts.groupWords(editor.projectRoot)))
       }
     } catch (e) {
       editor.showError(e)
@@ -289,7 +286,7 @@ export class EditorStore extends Observable {
       const project = await editor.projectRoot!.renameApp(editor.project!.projectId, newProjectId)
       if (project) {
         editor.showEditor(project.path)
-        editor.showNotice(`${project.Type} renamed.`)
+        editor.showNotice(appTexts.text("renamedApp", appTexts.groupWords(editor.projectRoot)))
       }
     } catch (e) {
       editor.showError(e)
@@ -303,7 +300,7 @@ export class EditorStore extends Observable {
       if (removed) {
         // Navigate to nextProject, or the projectRoot, which will select another project
         editor.showEditor(projectRoot!.path)
-        editor.showNotice(`${projectRoot!.Type} removed.`)
+        editor.showNotice(appTexts.text("removedApp", appTexts.groupWords(projectRoot)))
       }
     } catch (e) {
       editor.showError(e)
@@ -321,14 +318,14 @@ export class EditorStore extends Observable {
     const output = (await editor.loadRuntime()).core.console
     output.clear()
     try {
-      output.group("Compiling", project)
+      output.group(appTexts.text("consoleCompiling"), project)
 
       editor.clearCompileAppSoon()
       await project.compile()
       const { compiled } = project
 
       if (compiled) {
-        output.groupCollapsed("Compiled to javascript:")
+        output.groupCollapsed(appTexts.text("consoleCompiledTo"))
         const lines = compiled
           .replace(/\t/g, "   ")
           .split("\n")
@@ -376,7 +373,8 @@ export class EditorStore extends Observable {
     if (!project || !compiled) return
     const runtime = await editor.loadRuntime()
     const output = runtime.core.console
-    output.group(`Executing ${project.type}`)
+    const words = appTexts.groupWords(editor.projectRoot)
+    output.group(appTexts.text("consoleExecuting", words))
     const keepThings = !editor.startAfresh && editor.lastExecutedPath === project.path
     editor.startAfresh = false
     editor.lastExecutedPath = project.path
@@ -388,8 +386,8 @@ export class EditorStore extends Observable {
       loadImport: fetchCompiled
     })
     output.groupEnd()
-    if (error) output.error(`${project.Type} failed with error:`, error)
-    else output.info(`${project.Type} executed without errors.`)
+    if (error) output.error(appTexts.text("consoleFailed", words), error)
+    else output.info(appTexts.text("consoleExecuted", words))
   }
 
   /** Timer id for a pending `compileAppSoon()`, if any. */
@@ -502,7 +500,7 @@ export class EditorStore extends Observable {
       const newFile = await new SPACES.ProjectFiles(editor.project!).create(filePath, contents)
       if (newFile) {
         editor.showEditor(newFile.path)
-        editor.showNotice("File created.")
+        editor.showNotice(appTexts.text("fileCreated"))
       }
     } catch (e) {
       editor.showError(e)
@@ -515,7 +513,7 @@ export class EditorStore extends Observable {
       const newFile = await new SPACES.ProjectFiles(editor.project!).duplicate(editor.file!.filePath!, newPath)
       if (newFile) {
         editor.showEditor(newFile.path)
-        editor.showNotice("File duplicated.")
+        editor.showNotice(appTexts.text("fileDuplicated"))
       }
     } catch (e) {
       editor.showError(e)
@@ -528,7 +526,7 @@ export class EditorStore extends Observable {
       const renamedFile = await new SPACES.ProjectFiles(editor.project!).rename(editor.file!.filePath!, newPath)
       if (renamedFile) {
         editor.showEditor(renamedFile.path)
-        editor.showNotice("File renamed.")
+        editor.showNotice(appTexts.text("fileRenamed"))
       }
     } catch (e) {
       editor.showError(e)
@@ -549,7 +547,7 @@ export class EditorStore extends Observable {
       if (removed) {
         // select the nextFile, or the project (which will select another file)
         editor.showEditor(nextFile?.path || project.path)
-        editor.showNotice("File removed.")
+        editor.showNotice(appTexts.text("fileRemoved"))
       }
     } catch (e) {
       editor.showError(e)
@@ -569,22 +567,24 @@ export class EditorStore extends Observable {
   async createPropertyEditor(type?: string): Promise<void> {
     const { project } = editor
     if (!project) return
+    // its group's words, for the errors:  `Example Solitaire has no types yet`
+    const named = { ...appTexts.groupWords(editor.projectRoot), name: project.title }
     try {
       const { PropertyEditorFiles } = await import("spell-app/app/ui/PropertyEditorFiles")
       if (!type) {
         const types = await PropertyEditorFiles.typesOf(project)
-        if (!types.length) throw new UIError(`${project.Type} ${project.title} has no types yet:  compile it first.`)
+        if (!types.length) throw new UIError(appTexts.text("noTypesYet", named))
         type = (await editor.choose({
-          header: "New Property Editor",
-          message: "Make a property editor for which type?",
+          header: appTexts.text("propertyEditorHeader"),
+          message: appTexts.text("propertyEditorMessage"),
           options: types,
           defaultValue: types[0],
-          ok: "Create"
+          ok: appTexts.text("create")
         })) as string | undefined
         if (!type) return
       }
       const schema = await PropertyEditorFiles.schemaForType(project, type)
-      if (!schema) throw new UIError(`${project.Type} ${project.title} has no type \`${type}\`.`)
+      if (!schema) throw new UIError(appTexts.text("noSuchType", { ...named, typeName: type }))
       await editor.createFile(PropertyEditorFiles.fileNameFor(project, type), PropertyEditorFiles.pageFor(schema))
     } catch (e) {
       editor.showError(e)

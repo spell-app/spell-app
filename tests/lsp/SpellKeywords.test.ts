@@ -129,10 +129,10 @@ describe("SpellLanguageService, in Spanish", () => {
     expect(words).not.toContain("return")
   })
 
-  test("hover over a type names it", () => {
+  test("hover over a type names it, in the project's language (P13)", () => {
     const line = mazoText.split("\n").findIndex((it) => it.startsWith("un mazo es una lista de cartas"))
     const hover = service.hover(mazo, { line, character: 4 })
-    expect(JSON.stringify(hover?.contents)).toMatch(/type \*\*Mazo\*\*/)
+    expect(JSON.stringify(hover?.contents)).toMatch(/tipo \*\*Mazo\*\*/)
   })
 
   describe("accent fixes", () => {

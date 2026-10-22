@@ -1,15 +1,18 @@
+import { untrack } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { UI as SpellUI } from "spell-ui"
 import type { V } from "spell-ui/api"
 import { SP } from "spell-lang/spell"
 import { SPACES } from "spell-app/spaces"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { uiReady } from "spell-app/app/solid/loadUI"
 
 /****************
  * ### `<ProjectSettings>`
  * A project's settings, in a dialog.
- * - It's a `<ui-property-editor>` on `PROJECT_SETTINGS_SCHEMA` (epic `property-editor` P5, its first real use).
+ * - It's a `<ui-property-editor>` on `projectSettingsSchema()` (epic `property-editor` P5, its first real use).
+ * - In the page's language:  its title, labels and tips are `appTexts`'.
  * - What it edits:  the project file's `title`, `version`, `targets` and `listsStartAt`,
  *   a copy of what the project's index says (`settingsOf()`).
  * - `apply="on save"`:  the editor holds every edit until Save, which validates first.
@@ -23,12 +26,14 @@ import { uiReady } from "spell-app/app/solid/loadUI"
 export function ProjectSettings(props: ProjectSettingsProps) {
   let modal: HTMLElement | undefined
   const settings = settingsOf(props.project)
+  // read once, as it opens:  a new schema would start the editor afresh
+  const schema = untrack(projectSettingsSchema)
   return (
     <ui-modal
       class="ProjectSettings"
       size="small"
       closedby="closerequest"
-      label={`${props.project.title} settings`}
+      label={appTexts.text("projectSettings", { title: props.project.title })}
       visible=""
       ref={(element: HTMLElement) => {
         modal = element
@@ -38,14 +43,14 @@ export function ProjectSettings(props: ProjectSettingsProps) {
       <ui-content>
         <ui-property-editor
           apply="on save"
-          prop:schema={PROJECT_SETTINGS_SCHEMA}
+          prop:schema={schema}
           prop:value={settings}
           ref={(editor: HTMLElement) => {
             editor.addEventListener("ui-saved", () => void save())
             editor.addEventListener("ui-cancelled", () => hide())
           }}
         >
-          <ui-property name="title" hint="Its folder's name, as words, when left empty."></ui-property>
+          <ui-property name="title" hint={appTexts.text("titleHint")}></ui-property>
           <ui-property name="version" apply="on leave"></ui-property>
           <ui-property name="targets" as={CHOICES}></ui-property>
           <ui-property name="listsStartAt" as="buttons"></ui-property>
@@ -133,55 +138,57 @@ function settingsOf(project: SP.SpellProject): SPACES.ProjectSettings {
 const CHOICES = "choices"
 
 /**
- * A project's settings, as `<ui-property-editor>` reads them.
+ * A project's settings, as `<ui-property-editor>` reads them, labelled in the page's language.
  * - Its targets:  every one spell has but `js/solid`, which it always compiles to.
  */
-const PROJECT_SETTINGS_SCHEMA: V.PropertySchema = {
-  name: "ProjectSettings",
-  attributes: [
-    {
-      name: "title",
-      kind: "string",
-      type: "text",
-      description: "",
-      tip: "The project's name for people, in the project list and the editor's title bar."
-    },
-    {
-      name: "version",
-      kind: "string",
-      type: "text",
-      description: "",
-      pattern: "^(\\d+\\.\\d+\\.\\d+)?$",
-      tip: "Its version, as `1.2.0`:  stamped on what it declares, for projects that import it."
-    },
-    {
-      name: "targets",
-      kind: "json",
-      type: "list",
-      of: "choice",
-      values: Object.keys(SP.TARGETS).filter((name) => name !== SP.RUNNING_TARGET),
-      description: "",
-      label: "Also compiles to",
-      tip: "Languages it compiles to as well as JavaScript, which it always does."
-    },
-    {
-      name: "listsStartAt",
-      kind: "enum",
-      type: "choice",
-      values: ["1", "0"],
-      description: "",
-      label: "Lists start at",
-      tip: "Where its lists start counting:  1 as spell does, or 0 as JavaScript and Python do."
-    },
-    {
-      name: "language",
-      kind: "enum",
-      type: "choice",
-      // every language spell reads, by its code:  `en`, `es` ...
-      values: [...SP.Language.all.keys()],
-      description: "",
-      label: "Written in",
-      tip: "The human language its spell is written in:  its rules, and the words its Thing Explorer shows."
-    }
-  ]
+function projectSettingsSchema(): V.PropertySchema {
+  return {
+    name: "ProjectSettings",
+    attributes: [
+      {
+        name: "title",
+        kind: "string",
+        type: "text",
+        description: "",
+        tip: appTexts.text("titleTip")
+      },
+      {
+        name: "version",
+        kind: "string",
+        type: "text",
+        description: "",
+        pattern: "^(\\d+\\.\\d+\\.\\d+)?$",
+        tip: appTexts.text("versionTip")
+      },
+      {
+        name: "targets",
+        kind: "json",
+        type: "list",
+        of: "choice",
+        values: Object.keys(SP.TARGETS).filter((name) => name !== SP.RUNNING_TARGET),
+        description: "",
+        label: appTexts.text("targetsLabel"),
+        tip: appTexts.text("targetsTip")
+      },
+      {
+        name: "listsStartAt",
+        kind: "enum",
+        type: "choice",
+        values: ["1", "0"],
+        description: "",
+        label: appTexts.text("listsStartAtLabel"),
+        tip: appTexts.text("listsStartAtTip")
+      },
+      {
+        name: "language",
+        kind: "enum",
+        type: "choice",
+        // every language spell reads, by its code:  `en`, `es` ...
+        values: [...SP.Language.all.keys()],
+        description: "",
+        label: appTexts.text("languageLabel"),
+        tip: appTexts.text("languageTip")
+      }
+    ]
+  }
 }

@@ -3,6 +3,7 @@ import { Match, Show, Switch, createEffect, createSignal, onSettled, untrack } f
 import type { LSP } from "spell-app/lsp"
 import type { SP } from "spell-lang/spell"
 import type { ThingExplorerState, TypeExplorerState } from "spell-app/app/ui/ui.types"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the `spell-app/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "spell-app/app/solid/TypeExplorer"
 import { ThingExplorer } from "spell-app/app/solid/ThingExplorer"
@@ -156,7 +157,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
         onSplit={setSplit}
         showBottom={debugOpen()}
         bottom={
-          <RunnerPane tabs={debugTabs().map((id) => DEBUG_TABS[id])} pane={showing()} onPane={setPane}>
+          <RunnerPane tabs={debugTabs().map(debugTab)} pane={showing()} onPane={setPane}>
             <Switch>
               <Match when={showing() === "explorer"}>{explorer()}</Match>
               <Match when={showing() === "things"}>{things()}</Match>
@@ -167,7 +168,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       >
         {appPane}
         <Show when={!hasApp()}>
-          <RunnerPane tabs={[DEBUG_TABS.console]} pane="console">
+          <RunnerPane tabs={[debugTab("console")]} pane="console">
             {output()}
           </RunnerPane>
         </Show>
@@ -367,7 +368,7 @@ function SpellAppToolbar(props: SpellAppToolbarProps) {
       <ui-item type="header">{props.name}</ui-item>
       <ui-item link="" class="restart" onClick={() => props.onRestart()}>
         <ui-icon name="redo" />
-        Restart
+        {appTexts.text("restart")}
       </ui-item>
       <Show when={props.error}>
         <ui-item class="error">
@@ -378,7 +379,7 @@ function SpellAppToolbar(props: SpellAppToolbarProps) {
       <ui-menu position="right">
         <ui-item link="" class="debug" selected={props.debugOpen} onClick={() => props.onToggleDebug()}>
           <ui-icon name="bug" />
-          Debug
+          {appTexts.text("debug")}
         </ui-item>
       </ui-menu>
     </ui-menu>
@@ -631,11 +632,17 @@ function orIfBadSelector<T>(find: () => T, fallback: T): T {
 // ## Helpers
 ////////////////
 
-/** Each debug pane tab. */
-const DEBUG_TABS: Record<DebugPane, RunnerTab<DebugPane>> = {
-  explorer: { id: "explorer", icon: "sitemap", title: "Type Explorer" },
-  things: { id: "things", icon: "cubes", title: "Thing Explorer" },
-  console: { id: "console", icon: "terminal", title: "Console" }
+/** Each debug pane tab's icon, and its title's key. */
+const DEBUG_TABS: Record<DebugPane, { icon: string; text: AppTextKey }> = {
+  explorer: { icon: "sitemap", text: "typeExplorer" },
+  things: { icon: "cubes", text: "thingExplorer" },
+  console: { icon: "terminal", text: "console" }
+}
+
+/** Debug pane tab `id`, titled in the page's language. */
+function debugTab(id: DebugPane): RunnerTab<DebugPane> {
+  const { icon, text } = DEBUG_TABS[id]
+  return { id, icon, title: appTexts.text(text) }
 }
 
 /** Debug pane's height to start, in px, when `fluid` -- until dragged. */

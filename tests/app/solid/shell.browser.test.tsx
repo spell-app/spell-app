@@ -245,6 +245,8 @@ function fakeRoot(isLoaded: boolean): SPACES.SpellProjectRoot & { load: ReturnTy
     projectPaths: ["@spell/examples/todos-form-based", "@spell/examples/drawable-solitaire"],
     icon: "app store ios",
     title: "Examples",
+    // the key of its words in the editor's texts (`appTexts.groupWords()`)
+    type: "example",
     Type: "Example",
     load: vi.fn(() => Promise.resolve())
   }) as unknown as SPACES.SpellProjectRoot & { load: ReturnType<typeof vi.fn> }

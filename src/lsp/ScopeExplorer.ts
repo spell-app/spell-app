@@ -150,7 +150,8 @@ export class ScopeExplorer {
     this.addBuiltIns(tree, project.contents?.listsStartAt)
     const builtIns = tree.entries
     tree.entries = []
-    projects.forEach((it, index) => this.addProject(it, tree, index < projects.length - 1 ? "imported" : undefined))
+    const importedDetail = LSP.LspTexts.for(project.language).text("imported")
+    projects.forEach((it, index) => this.addProject(it, tree, index < projects.length - 1 ? importedDetail : undefined))
     this.#details.set(project, tree.details)
     return { builtIns, projects: tree.entries }
   }
@@ -262,7 +263,7 @@ export class ScopeExplorer {
     const path = ScopeExplorer.projectPath(project)
     const { scope } = project
     if (!scope) {
-      tree.entries.push({ path, detail: "not parsed" })
+      tree.entries.push({ path, detail: LSP.LspTexts.for(project.language).text("notParsed") })
       return
     }
     tree.entries.push(detail ? { path, detail } : { path })
@@ -329,7 +330,7 @@ export class ScopeExplorer {
     const superPath = parent && tree.typePaths.get(this.sourceType(parent, tree))
     const entry: LSP.ScopeEntry = { path }
     if (superPath) entry.super = superPath
-    else if (type.superType) entry.detail = `is a ${type.superType}`
+    else if (type.superType) entry.detail = LSP.LspTexts.of(type).text("typeIsA", { superType: type.superType })
     const section = this.sectionOf(type.declaredBy)
     if (section) entry.section = section
     tree.entries.push(entry)

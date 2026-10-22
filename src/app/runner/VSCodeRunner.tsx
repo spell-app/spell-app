@@ -3,6 +3,7 @@ import { Match, Show, Switch, createSignal, onCleanup, onSettled } from "solid-j
 import type { LSP } from "spell-app/lsp"
 import type { SP } from "spell-lang/spell"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "spell-app/app/runner"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the `spell-app/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "spell-app/app/solid/TypeExplorer"
 import { ThingExplorer } from "spell-app/app/solid/ThingExplorer"
@@ -246,7 +247,7 @@ function VSCodeRunnerToolbar(props: VSCodeRunnerToolbarProps) {
     <ui-menu attached="top" size="small" class="VSCodeRunnerToolbar">
       <ui-item link="" class="restart" onClick={() => props.onRestart()}>
         <ui-icon name="redo" />
-        Restart
+        {appTexts.text("restart")}
       </ui-item>
       <Show when={props.error}>
         <ui-item class="error">
@@ -258,7 +259,7 @@ function VSCodeRunnerToolbar(props: VSCodeRunnerToolbarProps) {
         <ui-menu position="right">
           <ui-item link="" class="console" selected={!!props.showConsole} onClick={() => props.onToggleConsole()}>
             <ui-icon name="terminal" />
-            {props.showConsole ? "Hide Console" : "Show Console"}
+            {appTexts.text(props.showConsole ? "hideConsole" : "showConsole")}
           </ui-item>
         </ui-menu>
       </Show>
@@ -278,14 +279,14 @@ type VSCodeRunnerToolbarProps = {
   onToggleConsole: () => void
 }
 
-/** Icon and title of each tab of the runner's panes. */
-const PANE_TABS: Record<RunnerPaneId, Omit<RunnerTab<RunnerPaneId>, "id">> = {
-  types: { icon: "sitemap", title: "Type Explorer" },
-  things: { icon: "cubes", title: "Thing Explorer" },
-  output: { icon: "terminal", title: "Program Output" }
+/** Icon of each tab of the runner's panes, and its title's key. */
+const PANE_TABS: Record<RunnerPaneId, { icon: string; text: AppTextKey }> = {
+  types: { icon: "sitemap", text: "typeExplorer" },
+  things: { icon: "cubes", text: "thingExplorer" },
+  output: { icon: "terminal", text: "programOutput" }
 }
 
-/** Tabs `ids` for a `<RunnerPane>`, in order. */
+/** Tabs `ids` for a `<RunnerPane>`, in order, titled in the page's language. */
 function tabsFor(...ids: RunnerPaneId[]): RunnerTab<RunnerPaneId>[] {
-  return ids.map((id) => ({ id, ...PANE_TABS[id] }))
+  return ids.map((id) => ({ id, icon: PANE_TABS[id].icon, title: appTexts.text(PANE_TABS[id].text) }))
 }

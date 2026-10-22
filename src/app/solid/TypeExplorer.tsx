@@ -4,11 +4,13 @@ import type { JSX } from "@solidjs/web"
 // Import directly, NOT through the `spell-app/lsp` barrel, which would pull the language service into the bundle.
 import { SCOPE_MEMBER_GROUPS, type ScopeDetails, type ScopeMember, type ScopeNode } from "spell-app/lsp/lsp.types"
 import type { ScopeOrder, TypeExplorerState } from "spell-app/app/ui/ui.types"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import {
   SCOPE_ICONS,
   ScopeDetailsPane,
   SectionMarker,
   alphabetical,
+  memberGroupTitle,
   sectionStartsAt,
   type DescriptionAt
 } from "./ScopeDetailsPane"
@@ -62,21 +64,21 @@ export function TypeExplorer(props: TypeExplorerProps) {
   const shown = createMemo(() => ({ path: selected()?.path }), { equals: (a, b) => a.path === b.path })
 
   return (
-    <Show when={currentTree()} fallback={<div class="TypeExplorer empty">Run the project to see its scopes.</div>}>
+    <Show when={currentTree()} fallback={<div class="TypeExplorer empty">{appTexts.text("runToSeeScopes")}</div>}>
       {(tree) => (
         <div class="TypeExplorer">
           <div class="ScopesPane">
             <div class="PaneHeader">
-              Scopes
+              {appTexts.text("scopes")}
               <span class="tools">
                 <For each={ORDERS}>
                   {(it) => (
                     <ui-icon
                       name={it.icon}
                       link=""
-                      label={it.title}
+                      label={appTexts.text(it.text)}
                       class={["order", { active: order() === it.id }]}
-                      title={it.title}
+                      title={appTexts.text(it.text)}
                       onClick={() => update({ order: it.id })}
                     />
                   )}
@@ -85,9 +87,9 @@ export function TypeExplorer(props: TypeExplorerProps) {
                   <ui-icon
                     name="refresh"
                     link=""
-                    label="Refresh the scopes"
+                    label={appTexts.text("refreshScopes")}
                     class="refresh"
-                    title="Refresh the scopes"
+                    title={appTexts.text("refreshScopes")}
                     onClick={() => props.onRefresh?.()}
                   />
                 </Show>
@@ -106,7 +108,7 @@ export function TypeExplorer(props: TypeExplorerProps) {
             </div>
           </div>
           <div class="DetailsPane">
-            <div class="PaneHeader">Details</div>
+            <div class="PaneHeader">{appTexts.text("details")}</div>
             <div class="PaneBody">
               <Show when={shown()} keyed>
                 {(current) => (
@@ -301,7 +303,7 @@ function ScopeTreeNode(props: ScopeTreeNodeProps) {
           onClick={() => props.onToggle(path())}
         >
           <span class="label">
-            {group.label} <span class="detail">{members().length}</span>
+            {memberGroupTitle(group.label)} <span class="detail">{members().length}</span>
           </span>
         </TreeRow>
         <Show when={isGroupOpen()}>
@@ -404,10 +406,10 @@ const ROW_PADDING = 8
 /** How far a `<SectionMarker>` sits right of the rows it heads, in px -- past their arrows. */
 const MARKER_INSET = 14
 
-/** Each order the lists can be in, as a button left of Refresh -- see `UI.ScopeOrder`. */
-const ORDERS: Array<{ id: ScopeOrder; icon: string; title: string }> = [
-  { id: "document", icon: "list ol", title: "Document order, under their headings" },
-  { id: "alphabetical", icon: "sort alphabet down", title: "Alphabetical" }
+/** Each order the lists can be in, as a button left of Refresh -- see `UI.ScopeOrder`;  `text` its title's key. */
+const ORDERS: Array<{ id: ScopeOrder; icon: string; text: AppTextKey }> = [
+  { id: "document", icon: "list ol", text: "orderDocument" },
+  { id: "alphabetical", icon: "sort alphabet down", text: "orderAlphabetical" }
 ]
 
 /** Tree row path of group `label` of `type`'s members, e.g. its "Properties". */

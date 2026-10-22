@@ -36,7 +36,8 @@ and in the app's build folder, `app/` at the repo's root.
 - `src/` is the app:
   - `solid/`:  the UI
   - `pages/`:  the pages and the router
-  - `ui/`:  `UI`, shared UI types, and Monaco's plumbing
+  - `ui/`:  `UI`, shared UI types, the editor's words (`AppTexts`:  README-app.md, "The editor's words"), and
+    Monaco's plumbing
   - `runner/`:  runs compiled spell (below)
   - `spellEditor/`:  `<spell-editor>`'s pane (below)
   - `editor.ts`:  the editor's state and actions, ONE `editor` for the page

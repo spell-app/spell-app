@@ -10,6 +10,7 @@ import "spell-app/spaces/models/projectGroups"
 // Import directly, NOT through the `spell-app/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "spell-app/app/runner/runner.types"
 import { adoptShadowStyles } from "spell-app/app/runner/shadowStyles"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import {
   SpellAppRunner,
   PUSHED_FOR,
@@ -293,9 +294,11 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
           when={this.source}
           fallback={
             <div class="SpellAppError">
-              {this.editor
-                ? this.translationForKey("waitingForEditor", { editor: this.editor })
-                : this.translationForKey("nothingToRun")}
+              {appTexts.inLanguage(() =>
+                this.editor
+                  ? this.translationForKey("waitingForEditor", { editor: this.editor })
+                  : this.translationForKey("nothingToRun")
+              )}
             </div>
           }
         >
