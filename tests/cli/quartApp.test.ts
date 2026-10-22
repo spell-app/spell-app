@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
  * A Python spell app in a real browser (epic `python-target` P20):
  * Solitaire compiled to `py`, served on Quart by the app compiling writes (`Solitaire.app.py`),
  * and played in headless Chromium.
- * - A temp copy of the fixture:  tests never write into `tests/spaces/@spell/test/`.
+ * - A temp copy of the fixture:  tests never write into `spaces/@spell/test/`.
  * - Seeded (`$SPELL_SEED`), so its deal is the javascript run's, the core contract's snapshot.
  * - The page side, `app/dist-page/`, is built first (`yarn build:page`, a few seconds):  never a stale one.
  */
@@ -19,8 +19,8 @@ const REPO = resolve(import.meta.dirname, "../..")
 /** The kit's `spell`, by package:  `spell-kit`'s `bin/spell.mjs` (spell-app's own until epic `repo-split` P13). */
 const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "bin/spell.mjs")
 const SPELL_QUART = resolve(REPO, "src/spaces/server/py")
-/** spell's frozen test projects:  spell-lang's (epic `repo-split` C11), beside this repo in the top repo `spell`. */
-const FIXTURES = resolve(import.meta.dirname, "../../../spell-lang/tests/spaces/@spell/test")
+/** spell's frozen test projects, beside the built-in groups:  `spaces/@spell/test/`. */
+const FIXTURES = resolve(REPO, "spaces/@spell/test")
 
 let folder: string
 let server: ChildProcess

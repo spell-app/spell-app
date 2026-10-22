@@ -29,6 +29,10 @@ const APP_TESTS = "tests/app"
  *       (without it, the client build).
  *   - `app:browser`:  `BROWSER_TESTS`, in chromium (Vitest browser mode + Playwright):
  *     Solid's client build, so staged writes, effects and `flush()` behave as in the app.
+ * - `spell`:  spell-lang's language on the frozen test projects (`spaces/@spell/test/`), in `tests/spell/`, at the
+ *   same paths their tests had in spell-lang (epic `spanish` P18):  the projects' snapshots, `tsc` and pyright on them,
+ *   whole-project parsing.
+ *   - No folder of `src/` of its own:  it tests spell-lang's `spell`, by package, on this repo's projects.
  * - The VS Code extension's tests (`vscode/tests/`) are a project of their own, `vscode`, by ITS config:
  *   `vscode/vitest.config.ts`.
  * - Python's tests (spaces' web server, `tests/spaces/server/py/`) are pytest's:  `yarn test` runs them after.
@@ -41,6 +45,7 @@ export default defineConfig({
       { extends: true, test: { name: "lsp", dir: "tests/lsp" } },
       ...appProjects(),
       { extends: true, test: { name: "cli", dir: "tests/cli" } },
+      { extends: true, test: { name: "spell", dir: "tests/spell" } },
       // the VS Code extension's:  its own yarn project, so its own config (a stand-in `vscode`)
       "vscode/vitest.config.ts"
     ]

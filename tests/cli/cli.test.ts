@@ -21,7 +21,7 @@ import { SRV } from "spell-kit/server"
 import { pageServerRoot } from "spell-kit/server/page/settings"
 import { buildFolderFor } from "spell-app/spaces/server/node/projects/project-utils"
 import { SP } from "spell-lang/spell"
-import { fixturePath } from "spell-lang/spell/test"
+import { fixturePath } from "spell-app/spaces/test"
 
 /**
  * The real `spell` command, end to end:  the kit's `bin/spell.mjs` run as a separate process, as a user would,

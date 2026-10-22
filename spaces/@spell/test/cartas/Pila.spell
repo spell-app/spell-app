@@ -1,0 +1,18 @@
+## Pila de cartas
+una pila es una lista de cartas
+// una carta está en una sola pila a la vez:  ponerla en otra pila la quita de esta
+una carta pertenece a una pila
+
+el color de una pila es:
+	si la pila está vacía devolver "ninguno"
+	devolver el color de su última carta
+
+el valor de una pila es:
+	si la pila está vacía devolver 0
+	devolver el valor de su última carta
+
+el estado de una pila es:
+	poner estado a (el nombre de la pila o "pila") + ":"
+	para cada carta en la pila
+		poner estado a estado + " " + el estado de la carta
+	devolver estado

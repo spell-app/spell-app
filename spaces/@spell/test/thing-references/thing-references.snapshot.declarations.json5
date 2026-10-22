@@ -1,0 +1,45 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Pile",
+    "Tableau",
+    "Foundation",
+    "DiscardPile"
+  ],
+  "statements": [
+    {
+      "type": "Pile",
+      "superType": "List",
+      "itemType": "thing",
+      "defined": "/ThingReferences.spell:182-208"
+    },
+    {
+      "property": "name",
+      "of": "Pile",
+      "datatype": "text",
+      "defined": "/ThingReferences.spell:209-234"
+    },
+    {
+      "type": "Tableau",
+      "superType": "Pile",
+      "defined": "/ThingReferences.spell:235-254"
+    },
+    {
+      "type": "Foundation",
+      "superType": "Pile",
+      "defined": "/ThingReferences.spell:255-277"
+    },
+    {
+      "type": "DiscardPile",
+      "superType": "Pile",
+      "defined": "/ThingReferences.spell:278-302"
+    }
+  ],
+  "codeLines": [
+    8,
+    11,
+    16,
+    17,
+    18
+  ]
+}

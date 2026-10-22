@@ -53,7 +53,7 @@ working with code in this repository, `spell-app`.
       and ONE [vitest.config.ts](vitest.config.ts), a project per folder.
     - Beside `src/`:
       - the app's build folder `app/`:  its Vite configs, `index.html`, `scripts/`, docs pages and builds
-      - the `@spell` space's built-in projects, in `spaces/@spell/`
+      - the `@spell` space's built-in projects, in `spaces/@spell/`, the frozen test projects among them
       - `tests/`, `scripts/`
   - The checks, at the root, each over the whole repo (below, "Toolchain"):
 
@@ -67,13 +67,19 @@ working with code in this repository, `spell-app`.
   - With their snapshots and test data;  the repo's `yarn test`, `yarn ts`, lint and format cover them.
   - They import by package name too:  `import { SPACES } from "spell-app/spaces"`.
   - [vitest.config.ts](vitest.config.ts) has a project per folder, over its tests:
-    the app's two are `app:node` and `app:browser`.
+    the app's two are `app:node` and `app:browser`;  and `spell`, below.
   - [The tests' tsconfig](tests/tsconfig.json) checks them with node's settings;
     [the app's tests' one](tests/app/tsconfig.json), with the app's (Solid's JSX).
-  - Spell's frozen test projects (`@spell/test`) are NOT here since P8:
-    they're [spell-lang's](../spell-lang/tests/spaces/@spell/test/).
-    - spell's own tests read them, and a lower repo may not read a higher one's files.
-    - spaces reads them DOWN, through the installed `spell-lang/spell` (its environment's `tests` space folder).
+  - Spell's frozen test projects (`@spell/test`) are HERE, beside the other `@spell` groups:
+    [spaces/@spell/test/](spaces/@spell/test/) (spell-lang's from epic `repo-split` P8 until epic `spanish` P18).
+    - Owen, 2026-10-22:  "Seems like all of the @spell/ packages should live in spell-app":
+      so a test project may import the card library.
+    - The tests that compile them whole are here too, in [tests/spell/](tests/spell/), the `spell` project:
+      their snapshots, `tsc` and pyright on them, whole-project parsing.
+      - The same paths they had in spell-lang:  `tests/spell/test/fixtures.test.ts`, `tests/spell/parserTests/...`.
+      - Their helpers:  [spell-app/spaces/test](src/spaces/test/index.ts) (`loadFixtureProject()`, `compiledFixture()` ...).
+      - `yarn spell:test:fixtures` runs the snapshot tests;  `yarn spell:test:fixtures:bless` rewrites the snapshots.
+    - spell-lang's own tests write their projects inline, and never read these.
 - This file holds what's about THIS repo:  its folders, the other repos it reaches, its commands and toolchain.
   - The house style every repo shares is WWOD (`agents/wwod/`, above).
   - Each folder's `AGENTS.md` holds only what's local to it.
@@ -171,7 +177,7 @@ or in a repo of its own beside this one inside the kit (`~/www/spell/<repo>/`).
 | Repo | What it holds | Its rules |
 | --- | --- | --- |
 | spell-kit (the kit) | `spell-kit`:  the helpers, the toolchain, the server, the element base and its tools, the `spell` program;  and WWOD.  Its folders:  the kit's AGENTS.md, "The kit's folders" | [AGENTS.md](../AGENTS.md) |
-| spell-lang | `spell-lang`:  `spell-lang/parser`, `markdown`, `core`, `py` and `spell`:  the parser, the language, its runtime and its writers;  and spell's frozen test projects | [AGENTS.md](../spell-lang/AGENTS.md) |
+| spell-lang | `spell-lang`:  `spell-lang/parser`, `markdown`, `core`, `py` and `spell`:  the parser, the language, its runtime and its writers | [AGENTS.md](../spell-lang/AGENTS.md) |
 | spell-ui | `spell-ui`:  Spell UI, Fomantic UI reborn as `ui-*` custom elements, and its docs site | [AGENTS.md](../spell-ui/AGENTS.md) |
 | spell-brand | `spell-brand`:  Claude Design's pages and tokens, their Spell UI copies, the `<brand-*>` pack | [AGENTS.md](../spell-brand/AGENTS.md) |
 | spell-epic | `spell-epic`:  the epic engine, a Claude Code plugin (below, "spell-epic") | [AGENTS.md](../spell-epic/AGENTS.md) |
@@ -203,7 +209,7 @@ any folder here -> any repo below       (by npm name:  spell-lang/spell, spell-u
     so every program that reads a spell path loads spaces first ([spaces' AGENTS.md](src/spaces/AGENTS.md)).
   - Owen's own projects are NOT in git:  they're in spell.spaces, `../spell.spaces` beside this repo in the kit,
     one folder for main and every worktree (`SPELL_SPACES_DIR` sets it;  `../spell-spaces` before epic `repo-split` P8).
-  - Folders of other repos it needs at run time (spell's `src/`, the core's, the frozen test projects) it finds by
+  - Folders of other repos it needs at run time (spell's `src/`, the core's) it finds by
     PACKAGE, through `node_modules` (`environment.packageFolder("spell-lang/py")` ...), never by a path into that repo.
 - A package of ANOTHER repo is imported by its npm name too (`spell-lang/spell`, `spell-ui/core` ...),
   never by a `../` path:  the rules are the kit's ([AGENTS.md](../AGENTS.md), "Imports across repos", "Tests").
@@ -346,7 +352,7 @@ As the kit's ([AGENTS.md](../AGENTS.md), "Toolchain:  Vite+"), plus:
   - `lint`:  oxlint over `src`, `tests`, `scripts` and `app`, then ruff;  `format`:  oxfmt, then ruff format.
     - spaces' Python is a uv project, `src/spaces/server/py/`:  `uv run --directory src/spaces/server/py ...`.
   - One folder's tests:  `yarn vp test run --project spaces`.
-    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`;
+    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`;
       and `vscode`, the extension's, by its own [config](vscode/vitest.config.ts).
   - No more `yarn workspaces foreach`, nor `vp run -F`:  the repo is one workspace of the kit's install.
 - `yarn vitest` here (and the VS Code vitest extension) reads the same [vitest.config.ts](vitest.config.ts).

@@ -18,7 +18,7 @@ import {
 import { SP } from "spell-lang/spell"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
-import { fixturePath } from "spell-lang/spell/test"
+import { fixturePath } from "spell-app/spaces/test"
 
 /**
  * The language service over a real project:  a temp copy of the Solitaire example,

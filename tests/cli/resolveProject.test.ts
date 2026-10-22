@@ -5,7 +5,7 @@ import { describe, test, expect } from "vite-plus/test"
 
 import { SP } from "spell-lang/spell"
 import { CLI } from "spell-app/cli"
-import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from "spell-lang/spell/test"
+import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from "spell-app/spaces/test"
 
 /** What `arg` names, reduced to `kind` + id for comparing. */
 async function named(arg: string, cwd?: string) {

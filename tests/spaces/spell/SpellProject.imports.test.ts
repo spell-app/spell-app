@@ -9,7 +9,8 @@ import environment from "spell-app/spaces/server/node/environment"
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
-import { describeParseErrors, fixturePath, tsxBinary } from "spell-lang/spell/test"
+import { describeParseErrors, tsxBinary } from "spell-lang/spell/test"
+import { fixturePath } from "spell-app/spaces/test"
 
 /**
  * A project importing another, through `project.json` -- as `SpellProject` does it in the app.

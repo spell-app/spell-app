@@ -586,9 +586,9 @@ Made Flashcards:  try  spell run <your space>/Flashcards
 
 ## The frozen test projects
 
-FizzBuzz, the to-do list and both solitaires have frozen twins in spell-lang,
-[`@spell/test`](https://github.com/spell-app/spell-lang/tree/main/tests/spaces/@spell/test),
-which Spell's own tests compile and compare line for line
+FizzBuzz, the to-do list and both solitaires have frozen twins beside them,
+[`@spell/test`](spaces/@spell/test/),
+which the tests in [tests/spell/](tests/spell/) compile and compare line for line
 ([how they're checked](https://github.com/spell-app/spell-lang/blob/main/README-spell.md#the-frozen-test-projects)).
 Open them like any other project (`/edit/@spell/test/fizzbuzz`), but change the examples here instead:
 even `spell format` leaves the test projects alone.

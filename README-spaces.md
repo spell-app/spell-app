@@ -42,21 +42,18 @@ flowchart LR
     examples["@spell/examples"]
     library["@spell/library"]
     guides["@spell/guides, empty so far"]
-  end
-  subgraph lang["spell-lang's tests/spaces/:  frozen"]
-    tests["@spell/test"]
+    tests["@spell/test, frozen"]
   end
   subgraph yours["spell.spaces/, beside the repos:  in no repo"]
     own["owen@spell, your own"]
   end
   server --> app
-  server --> lang
   server --> yours
   %% the Spell look:  yarn mermaid:pretty
   classDef default fill:#EFECFB,stroke:#6550CA,stroke-width:1.5px,color:#1A1C27,rx:8px,ry:8px
 ```
 
-_Five groups in three folders, and one way in:  the server takes an address and works out the folder itself._
+_Five groups in two folders, and one way in:  the server takes an address and works out the folder itself._
 
 ## Addresses:  the folder is in the name
 
@@ -97,7 +94,7 @@ The groups, and where each one's folder is:
 | `@spell/examples` | Examples | [spaces/@spell/examples/](spaces/@spell/examples/), committed | the five example apps ([README-examples.md](README-examples.md)) |
 | `@spell/library` | Libraries | [spaces/@spell/library/](spaces/@spell/library/), committed | projects other projects import:  cards, and people |
 | `@spell/guides` | Guides | none yet | nothing:  the editor's "New Guide" makes its folder, `spaces/@spell/guides/` |
-| `@spell/test` | Test fixtures, listed only in dev | spell-lang's [tests/spaces/@spell/test/](https://github.com/spell-app/spell-lang/tree/main/tests/spaces/@spell/test), frozen | the 12 projects spell-lang's tests compile and compare against snapshots |
+| `@spell/test` | Test fixtures, listed only in dev | [spaces/@spell/test/](spaces/@spell/test/), committed and frozen | the 12 projects the tests in [tests/spell/](tests/spell/) compile and compare against snapshots |
 
 - `spell projects` lists them, with how many projects each holds ([README-cli.md](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app)).
 - A project in no group still runs:  `spell` makes up a group for it on the spot, `@local/<folder>`,
@@ -429,8 +426,7 @@ the table is [api.ts](src/spaces/server/node/routes/api.ts), and
 | Variable | What it sets | Default |
 | --- | --- | --- |
 | `SPELL_SPACES_DIR` | the spaces folder;  the page server's `--spaces <dir>` sets it too | `spell.spaces`, beside the main checkout |
-| `SPELL_BUILTINS_DIR` | the built-in projects' folder | spell-app's `spaces/` |
-| `SPELL_TESTS_DIR` | the frozen test projects' folder | spell-lang's `tests/spaces/` |
+| `SPELL_BUILTINS_DIR` | the built-in projects' folder, the frozen test projects' too | spell-app's `spaces/` |
 | `SPELL_BUILD_DIR` | where compiled output goes | spell-app's `build/` |
 | `SPELL_EDITOR_PORT` | the editor's port;  `spell app serve --port` sets it | 3000, else any free one |
 | `SPELL_NO_EDITOR` | `1`:  the page server doesn't start the editor | |

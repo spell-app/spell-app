@@ -1,0 +1,87 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Card",
+    "Pile",
+    "Table"
+  ],
+  "statements": [
+    {
+      "type": "Card",
+      "superType": "Drawable",
+      "defined": "/CardTable.spell:108-134"
+    },
+    {
+      "property": "rank",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/CardTable.spell:135-160"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a card",
+      "defined": "/CardTable.spell:162-224"
+    },
+    {
+      "type": "Pile",
+      "superType": "DrawableList",
+      "itemType": "Card",
+      "defined": "/CardTable.spell:283-317"
+    },
+    {
+      "property": "name",
+      "of": "Pile",
+      "datatype": "text",
+      "defined": "/CardTable.spell:318-343"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Pile",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a pile",
+      "defined": "/CardTable.spell:345-471"
+    },
+    {
+      "type": "Table",
+      "superType": "App",
+      "defined": "/CardTable.spell:473-490"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Table",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a table",
+      "defined": "/CardTable.spell:806-958"
+    }
+  ],
+  "codeLines": [
+    5,
+    8,
+    13,
+    19,
+    23,
+    28,
+    36,
+    41
+  ]
+}

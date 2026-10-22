@@ -1,7 +1,8 @@
 {
   // spell-app's TypeScript settings for its node-only code (see `tsconfig.json` for the rest):
   // - the `spell` commands' work (`src/cli/`):  Ink's terminal screens, so React's JSX here
-  // - spaces' servers (`src/spaces/server/node/`), the app's route module on the kit's page server among them
+  // - spaces' servers (`src/spaces/server/node/`), the app's route module on the kit's page server among them;
+  //   its test helpers (`src/spaces/test/`:  the frozen test projects)
   // - the language server's process (`src/lsp/server.ts` ...), the app's docs-data tools (`src/app/tools/`)
   // - the scripts and configs, at the root and in `app/` (the app's build)
   // What they import from the browser folders is checked again here, with node's types.
@@ -22,6 +23,7 @@
     "app/*.ts",
     "src/cli",
     "src/spaces/server/node",
+    "src/spaces/test",
     "src/app/tools",
     "src/lsp/SpellDiskWorkspace.ts",
     "src/lsp/scopes.ts",

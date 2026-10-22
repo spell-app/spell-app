@@ -1,0 +1,379 @@
+import { For } from "solid-js"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, position, on } from "@spell/core"
+import { Card, Deck, Pile } from "@spell/project/@spell/test/cards"
+
+core.heading("Klondike Solitaire Card Game")
+//////////////////////////////////
+// ## Klondike Solitaire Card Game
+//////////////////////////////////
+//-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
+
+core.heading("Game bits")
+/** Game bits */
+export class Game extends App {
+  static description = "A game of **Klondike**:  its piles, and its score."
+
+  // a game has a score as a number
+  @prop({ type: "number" })
+  accessor score!: number
+
+  //## actions
+
+  @derived get state() {
+    const state: any /* spell: list */ = []
+    allPiles.forEach((pile) => core.append(state, pile.state))
+    return state
+  }
+
+  @drawn draw() {
+    return (
+      <div class="ui container">
+        <div class="board">
+          <table class="ui table fixed">
+            <thead>
+              <tr>
+                <th class="left aligned" colspan="2">Klondike Solitaire</th>
+                <th class="right aligned">{`Score: ${this.score}`}</th>
+                <th>
+                  <div class="tiny fluid ui button compact" onClick={() => autoPlay()}>AutoPlay</div>
+                </th>
+                <th>
+                  <div class="tiny fluid ui button compact" onClick={() => cheat()}>Cheat</div>
+                </th>
+                <th>
+                  <div class="tiny fluid ui button compact" onClick={() => debugTheGame()}>Debug</div>
+                </th>
+                <th>
+                  <div class="tiny fluid ui button compact" onClick={() => resetTheGame()}>Restart</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{stock.draw()}</td>
+                <td>{discards.draw()}</td>
+                <td />
+                <td>{foundations.firstItem?.draw()}</td>
+                <td>{foundations.getItem(1)?.draw()}</td>
+                <td>{foundations.getItem(2)?.draw()}</td>
+                <td>{foundations.getItem(3)?.draw()}</td>
+              </tr>
+              <tr>
+                <td>{tableaus.firstItem?.draw()}</td>
+                <td>{tableaus.getItem(1)?.draw()}</td>
+                <td>{tableaus.getItem(2)?.draw()}</td>
+                <td>{tableaus.getItem(3)?.draw()}</td>
+                <td>{tableaus.getItem(4)?.draw()}</td>
+                <td>{tableaus.getItem(5)?.draw()}</td>
+                <td>{tableaus.getItem(6)?.draw()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="rules">
+          <ui-markdown>
+            {`## How to play\nBuild each tableau **down**, alternating colours, and each foundation *up* from its ace.\nScore:  **${this.score}**`}
+          </ui-markdown>
+        </div>
+      </div>
+    )
+  }
+}
+
+/** set up stock pile: unplayed cards */
+export class StockPile extends Pile {
+  canGiveUp(card: Card) {
+    return card === this.lastItem
+  }
+
+  @drawn draw() {
+    return (
+      <div class="Pile Stock stacked">
+        <div class="Placeholder ui button basic compact fluid" onClick={() => playFromTheStockPile()} />
+        {this.lastItem?.draw()}
+      </div>
+    )
+  }
+}
+
+/** set up discards: where played cards go when turning over stock */
+export class DiscardPile extends Pile {
+  canGiveUp(card: Card) {
+    return card === this.lastItem
+  }
+
+  @drawn draw() {
+    return <div class="Pile Discards stacked">{this.lastItem?.draw()}</div>
+  }
+}
+
+/** set up foundation piles: where we build up from ace => king */
+export class Foundation extends Pile {
+  canGiveUp(card: Card) {
+    return false
+  }
+
+  /** one card at a time:  the last of its pile */
+  canTake(card: Card) {
+    if (card !== card.pile.lastItem) return false
+    return this.name == card.suit && this.value + 1 === card.value
+  }
+
+  //##############
+  //## rendering the bits
+
+  // note: tableaus just draw as a (vertical) list of cards
+
+  @drawn draw() {
+    const color = () => this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
+    return (
+      <div class="Pile Foundation stacked">
+        <div class={`Placeholder ui button basic compact fluid ${color()} ${this.name}`}>
+          <div class={`suit ${this.name}`}>{this.symbol}</div>
+        </div>
+        {this.lastItem?.draw()}
+      </div>
+    )
+  }
+
+  declare symbol: string
+}
+
+/** set up tableau piles: vertical piles where we arrange from king to ace */
+export class Tableau extends Pile {
+  canGiveUp(card: Card) {
+    return card.isFaceUp
+  }
+
+  canTake(card: Card) {
+    if (this.isEmpty) return card.isARank("king")
+    return this.color != card.color && this.value === card.value + 1
+  }
+
+  @drawn draw() {
+    return (
+      <div class="Pile Tableau staggered">
+        <For each={this.items}>{(item) => item.draw()}</For>
+      </div>
+    )
+  }
+}
+
+export const game = new Game()
+core.console.log(game)
+
+core.heading("set up all piles")
+/** set up all piles */
+export const allPiles = new List<Pile>({ instanceType: "Pile" })
+export const foundations = new List<Pile>({ instanceType: "Pile" })
+export const tableaus = new List<Pile>({ instanceType: "Pile" })
+
+export const stock = new StockPile({ name: "stock", droppable: false })
+allPiles.append(stock)
+
+export const discards = new DiscardPile({ name: "discards", droppable: false })
+allPiles.append(discards)
+
+const it = new Foundation({
+  name: "clubs",
+  symbol: "♣️",
+  droppable: true
+})
+foundations.append(it)
+const it2 = new Foundation({
+  name: "diamonds",
+  symbol: "♦️",
+  droppable: true
+})
+foundations.append(it2)
+const it3 = new Foundation({
+  name: "hearts",
+  symbol: "♥️",
+  droppable: true
+})
+foundations.append(it3)
+const it4 = new Foundation({
+  name: "spades",
+  symbol: "♠️",
+  droppable: true
+})
+foundations.append(it4)
+foundations.forEach((pile) => allPiles.append(pile))
+
+core.getRange(1, 7).forEach((number) => {
+  const it5 = new Tableau({ name: `T${number}`, droppable: true })
+  tableaus.append(it5)
+  allPiles.append(it5)
+})
+
+/** set up deck of cards */
+export const deck = new Deck()
+deck.setUp()
+// start with cards in the stock pile
+deck.forEach((card) => stock.append(card))
+
+core.heading("actions")
+export function debugTheGame() {
+  core.map(game.state, (line) => core.console.log(line))
+}
+
+export function resetTheStockPile() {
+  const cards = discards.clone()
+  cards.reverse()
+  cards.forEach((card) => {
+    stock.append(card)
+    card.turnFaceDown()
+  })
+}
+
+export async function playFromTheStockPile() {
+  if (core.processIsRunning("play_from_the_stock_pile")) return
+  core.startProcess("play_from_the_stock_pile", "EXCLUSIVE")
+  try {
+    if (stock.isEmpty) await resetTheStockPile()
+
+    const it5 = stock.lastItem
+    it5?.turnFaceUp()
+    // pause for 150 msec
+    core.move(it5!, discards)
+  }
+  finally {
+    core.stopProcess("play_from_the_stock_pile")
+  }
+}
+
+export async function dealTheCards() {
+  if (core.processIsRunning("deal_the_cards")) return
+  core.startProcess("deal_the_cards", "EXCLUSIVE")
+  try {
+    /** pull all cards into stock with a nice animation */
+    const cards = allPiles.merged(Pile)
+    cards.reverse()
+    for (const card of cards) {
+      const startPile = card.pile
+      card.turnFaceDown()
+      if (startPile !== stock) {
+        stock.append(card)
+        await core.pauseFor(50, "msec")
+      }
+    }
+    stock.randomize()
+
+    // deal cards into tableaus
+    for (const row of core.getRange(1, 7)) {
+      stock.lastItem?.turnFaceUp()
+      for (const column of core.getRange(row, 7)) {
+        tableaus.getItem(position(column))?.append(stock.lastItem!)
+        await core.pauseFor(50, "msec")
+      }
+    }
+
+    await playFromTheStockPile()
+  }
+  finally {
+    core.stopProcess("deal_the_cards")
+  }
+}
+
+declare module "@spell/project/@spell/test/cards" {
+  interface Card { play(): Promise<boolean | undefined> }
+}
+Card.prototype.play = async function (this: Card) {
+  const startPile = this.pile
+  if (!core.canGiveUp(startPile, this)) return false
+
+  if (startPile === stock) {
+    playFromTheStockPile()
+    return
+  }
+
+  const endPile = allPiles.filter((pile) => pile.droppable && core.canTake(pile, this)).firstItem
+  if (endPile === undefined) return false
+
+  const cardsToMove = startPile.startingWith(this)
+  cardsToMove.name = startPile.name
+  core.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
+
+  cardsToMove.forEach((card) => core.move(card, endPile))
+
+  if (startPile instanceof Tableau && !startPile.isEmpty) {
+    await core.pauseFor(200, "msec")
+    const it = startPile.lastItem
+    core.console.log(`turning over (${startPile.name}: ${it?.state})`)
+    it?.turnFaceUp()
+  }
+
+  if (endPile instanceof Foundation) game.score = game.score + 10
+  else if (startPile === discards) game.score = game.score + 5
+  return true
+}
+
+on<{ card: Card }>("card-click", ({ card }) => card.play())
+
+export async function autoPlay() {
+  let anythingChanged: boolean = false
+  if (!discards.isEmpty) {
+    const testCard = discards.lastItem
+    if (await testCard?.play()) {
+      anythingChanged = true
+      await core.pauseFor(500, "msec")
+    }
+  }
+
+  // attempt to move bottom card of tableaus to foundations
+  for (const pile of tableaus) {
+    if (pile.isEmpty) continue
+    const testCard = pile.lastItem!
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
+    if (core.canTake(foundation!, testCard)) {
+      anythingChanged = true
+      await testCard.play()
+      await core.pauseFor(100, "msec")
+    }
+  }
+
+  // attempt to move the entire pile of face-up cards
+  for (const pile of tableaus) {
+    const faceUpCards = pile.filter((card) => card.isFaceUp)
+    if (faceUpCards.isEmpty) continue
+    const testCard = faceUpCards.firstItem!
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
+      anythingChanged = true
+      await core.pauseFor(500, "msec")
+    }
+  }
+
+  // call auto-play again if anything actually changed
+  if (anythingChanged) await autoPlay()
+}
+
+export function resetTheGame() {
+  game.score = 0
+  dealTheCards()
+}
+
+export async function cheat() {
+  const remainingPiles = tableaus.filter((pile) => !pile.isEmpty && pile.firstItem?.isFaceDown)
+  if (remainingPiles.isEmpty) return
+  const pile = remainingPiles.randomItem()
+  const unplaidCards = pile?.filter((card) => card.isFaceDown)
+  const card = unplaidCards?.randomItem()
+  card?.turnFaceUp()
+  await core.pauseFor(30, "ticks")
+  core.move(card!, discards)
+}
+
+core.heading("rendering the bits")
+resetTheGame()
+if (!core.isCarryingOver) game.start()
+// -----------
+core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
+declare module "@spell/project/@spell/test/cards" {
+  interface Pile {
+    droppable: boolean
+    canGiveUp(card: Card): boolean
+    canTake(card: Card): boolean
+  }
+}
+

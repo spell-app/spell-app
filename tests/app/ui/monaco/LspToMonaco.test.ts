@@ -12,8 +12,8 @@ import { CompletionItemInsertTextRule, MarkerSeverity } from "monaco-editor/edit
 
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
-import { fixturePath } from "spell-lang/spell/test"
 import { LspToMonaco } from "spell-app/app/ui/monaco/LspToMonaco"
+import { fixturePath } from "spell-app/spaces/test"
 
 /**
  * LSP => Monaco conversions, alone and on real `SpellLanguageService` answers.
