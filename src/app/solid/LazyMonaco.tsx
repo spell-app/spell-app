@@ -5,14 +5,17 @@ import { appTexts } from "spell-app/app/ui/AppTexts"
 import type { FileEditorProps, MonacoEditorProps } from "spell-app/app/solid/monaco"
 
 /**
- * The app's Solid Monaco editor components, loaded on first use:  Monaco is most of the app's code, and only
- * the editor page needs it.  Each MUST go inside a `<Loading>`, whose fallback shows while it loads, e.g.
- * `<Loading fallback={<LazyMonaco.Loading />}>`.
- * - SIDE EFFECT, once loaded:  listens to the editor -- edits compile soon, "go to definition" in another
- *   file shows it -- and puts `SpellMonaco` / `monaco` on `globalThis` for console debugging, as `debug.ts` does
- *   for everything else.
- * - NOTE: `spell-app/app/solid/monaco` is NOT in the `spell-app/app/solid` barrel:  anything importing it statically would pull
- *   Monaco into the main bundle again.  Import its TYPES only, elsewhere.
+ * The app's Solid Monaco editor components, loaded on first use:
+ * Monaco is most of the app's code, and only the editor page needs it.
+ * - Each MUST go inside a `<Loading>`, whose fallback shows while it loads,
+ *   e.g. `<Loading fallback={<LazyMonaco.Loading />}>`.
+ * - SIDE EFFECT, once loaded:  listens to the editor, so edits compile soon,
+ *   and "go to definition" in another file shows that file.
+ * - SIDE EFFECT, once loaded:  puts `SpellMonaco` / `monaco` on `globalThis` for console debugging,
+ *   as `debug.ts` does for everything else.
+ * - NOTE: `spell-app/app/solid/monaco` is NOT in the `spell-app/app/solid` barrel:
+ *   anything importing it statically would pull Monaco into the main bundle again.
+ *   Import its TYPES only, elsewhere.
  */
 export const LazyMonaco = {
   /** `<MonacoEditor>` -- see `spell-app/app/solid/monaco/MonacoEditor`. */

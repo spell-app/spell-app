@@ -1,6 +1,6 @@
 /**
- * The language server's words, in English:  the labels around what a hover, a completion or the Type Explorer shows
- * (epic `spanish` P13).
+ * The language server's words, in English:
+ * the labels around what a hover, a completion or the Type Explorer shows (epic `spanish` P13).
  * - Read through `LspTexts.of(scope).text(key, params)` (`LspTexts.ts`):
  *   the PROJECT's language, not the editor's -- a Spanish program reads Spanish in an English editor.
  * - `{name}` is a placeholder, filled from the params.

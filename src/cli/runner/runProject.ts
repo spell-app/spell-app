@@ -26,7 +26,7 @@ else headless()
 core.resetRuntime()
 // `--seed`, and the core contract:  the same random numbers every run, so a shuffle deals the same cards
 if (spec.seed !== undefined) core.seedRandom(spec.seed)
-// a test's lines in the project's language, e.g. Spanish:  English without
+// a test's lines in the project's language, e.g. Spanish:  English when it has no messages
 core.useMessages(spec.messages)
 // a dump of a thing (`print the card`) to stderr, so stdout holds only the program's data
 // (epic page python-target, Q17);  at call time, so `quiet()` silences it too

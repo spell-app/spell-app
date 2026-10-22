@@ -1850,7 +1850,7 @@ export class SpellLanguageService {
   /**
    * Edits as `typed` goes in at `position`:  the accent fixes of what's just been finished (epic `spanish` P10).
    * - A space:  the line so far;  a new line:  the line just ended too.
-   * - So `el numero de cartas` becomes `el número de cartas` once its line parses, with nothing to do --
+   * - So `el numero de cartas` becomes `el número de cartas` once its line parses, with nothing for you to do:
    *   see `accentEdits()`.
    * - A line that doesn't parse yet is left alone:  only a parse says a word is a keyword.
    */
@@ -1865,9 +1865,9 @@ export class SpellLanguageService {
   /**
    * Edits putting back the written accent of each keyword typed without it, from offset `from` to `to` of `file`:
    * `numero` => `número`, `esta` => `está`.
-   * - Only words its language's parse matched as one of its own keywords, and only where that's unambiguous --
+   * - Only words its language's parse matched as one of its own keywords, and only where that's unambiguous:
    *   see `LSP.SpellKeywords.accentFixFor()`.
-   *   So a person's name `numero`, or `si` (`if`, as well as an unaccented `sí`), stays as typed.
+   *   - So a person's name `numero`, or `si` (`if`, as well as an unaccented `sí`), stays as typed.
    * - None in a language with no such keywords, e.g. English.
    */
   accentEdits(file: SP.SpellFile, from = 0, to = Infinity): TextEdit[] {

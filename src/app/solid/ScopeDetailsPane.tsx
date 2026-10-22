@@ -18,12 +18,11 @@ import { Markdown } from "./Markdown"
 
 /****************
  * ### `<ScopeDetailsPane>`
- * "Details" of scope-tree `node`:  breadcrumbs of where it is in the tree -- click one to select it -- then
- * `<DetailsBody>`.
- * - Remounted per node `path` by `<TypeExplorer>` (a keyed `<Show>`), so what's expanded, or an edit, resets on
- *   selecting another node.
- * - SEE:  its App UI components page, `app/docs/ScopeDetailsPane.html`
- *   (`/components/app/ScopeDetailsPane.html`).
+ * "Details" of scope-tree `node`:  breadcrumbs of where it is in the tree, then `<DetailsBody>`.
+ * - Click a breadcrumb to select it.
+ * - Remounted per node `path` by `<TypeExplorer>` (a keyed `<Show>`),
+ *   so what's expanded, or an edit, resets on selecting another node.
+ * - SEE:  `app/docs/ScopeDetailsPane.html`, its App UI components page (`/components/app/ScopeDetailsPane.html`).
  ****************/
 export function ScopeDetailsPane(props: ScopeDetailsPaneProps) {
   return (
@@ -75,7 +74,7 @@ export type ScopeDetailsPaneProps = Omit<DetailsBodyProps, "path" | "members"> &
  * - its `members`:  click one to select it in the tree, or its `▶` to show its own `<DetailsBody>` right here
  *   - in `document` order, under one collapsible "Members" heading, with a marker for each section
  *   - `alphabetical`, by kind, under collapsible "Properties", "Actions" ... headings
- * - "Spell" -- with where it's defined at its right -- "Rules" its statement made, and "Compiled Output",
+ * - "Spell", with where it's defined at its right;  "Rules" its statement made;  "Compiled Output":
  *   each collapsible
  * - Every heading is closed until opened, and open or closed alike for every node -- see `<Section>`.
  * - Its details are fetched when first shown -- see `TypeExplorerProps.loadDetails`.
@@ -337,8 +336,9 @@ type DetailsBodyProps = {
 
 /****************
  * ### `<SectionMarker>`
- * Marker in a list in document order, for the heading what follows is under, e.g. `actions` -- see
- * `sectionStartsAt()`.  A plain rule if there's none, e.g. after a type's own members.
+ * Marker in a list in document order, for the heading what follows is under, e.g. `actions`:
+ * see `sectionStartsAt()`.
+ * - A plain rule if there's none, e.g. after a type's own members.
  * - Shared with `<TypeExplorer>`'s and `<ThingExplorer>`'s trees, which indent it with `style`.
  ****************/
 export function SectionMarker(props: SectionMarkerProps) {
@@ -375,8 +375,8 @@ export type DescriptionAt = Omit<SetDescriptionParams, "text">
 
 /****************
  * ### `<Description>`
- * `node`'s docstring, as markdown -- a `#` comment is a top heading, `##` the next ... -- click to edit it,
- * if we know where -- `at` -- and `onSave` is given.
+ * `node`'s docstring, as markdown:  a `#` comment is a top heading, `##` the next ...
+ * - Click to edit it, if we know where (`at`) and `onSave` is given.
  * - Edits the markdown as written, e.g. `## Cards` -- see `LSP.SpellLanguageService.commentLines()`.
  * - Cmd/Ctrl-Enter or "Save" saves, Escape or "Cancel" doesn't.
  * - Shows what was saved until a new tree brings the real one.
@@ -519,8 +519,8 @@ export function memberGroupTitle(label: string): string {
 }
 
 /**
- * Icon name for each kind of scope-tree node -- Fomantic's names, from the app's `fomantic` icon pack (see
- * `loadUI.ts`).
+ * Icon name for each kind of scope-tree node:
+ * Fomantic's names, from the app's `fomantic` icon pack (see `loadUI.ts`).
  */
 export const SCOPE_ICONS: Record<ScopeNodeKind, string> = {
   root: "sitemap",

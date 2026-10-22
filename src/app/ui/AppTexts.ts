@@ -9,8 +9,8 @@ const ENGLISH = "en"
 
 /****************
  * ### `AppTexts`
- * The editor's words, in the page's language:  every menu item, notice and pane title the app shows people
- * (epic `spanish` P13).
+ * The editor's words, in the page's language:
+ * every menu item, notice and pane title the app shows people (epic `spanish` P13).
  * - Read one with `appTexts.text(key, params)`:  `appTexts.text("save")` => `Save`, or `Guardar` on a Spanish page.
  *   - The keys and their English:  `APP_TEXTS` (`AppTexts.en.ts`).
  *   - Another language:  `AppTexts.<lang>.ts`, a LAZY chunk only a page in that language loads.
@@ -21,8 +21,8 @@ const ENGLISH = "en"
  * - The first text read starts `load()`:  Spell UI's runtime, then the page language's texts.
  *   - It makes Spell UI speak the language too (`RootLoader.useLanguage()`), so its own texts match ours.
  * - Reactive:  `text()` reads `lang`, a spell cell, so a Solid reader redraws when another language's texts arrive.
- * - Position in the import graph:  NO value import of Solid or `spell-ui`, so `editor.ts`, the runners and
- *   `<spell-app>` can all read it.
+ * - Position in the import graph:  NO value import of Solid or `spell-ui`,
+ *   so `editor.ts`, the runners and `<spell-app>` can all read it.
  *   - Spell UI comes in through dynamic `import()`s.
  *   - Imported by path, `spell-app/app/ui/AppTexts`:  the `UI` barrel is types only.
  * - ONE instance per page bundle, `appTexts`, below.
@@ -71,8 +71,8 @@ export class AppTexts extends Observable {
   }
 
   /**
-   * `read()`, redrawn when the page language's texts arrive:  for a web component's own text, which
-   * `translationForKey()` looks up, and which no spell cell tracks.
+   * `read()`, redrawn when the page language's texts arrive:
+   * for a web component's own text, which `translationForKey()` looks up, and which no spell cell tracks.
    * - e.g. `appTexts.inLanguage(() => this.translationForKey("nothingToRun"))`, read in JSX.
    * - SIDE EFFECT:  starts `load()`, as `text()` does.
    */
@@ -102,8 +102,8 @@ export class AppTexts extends Observable {
 
   /**
    * Give the page a `lang` when it names none:  the browser's language.
-   * - The editor app's entry calls it before anything draws, so Spell UI's `<ui-root>` and screen readers agree with
-   *   the texts.
+   * - The editor app's entry calls it before anything draws,
+   *   so Spell UI's `<ui-root>` and screen readers agree with the texts.
    * - NEVER from code a host page loads (`<spell-app>`):  the host's document is its own.
    */
   static namePageLanguage(): void {
