@@ -62,7 +62,7 @@ export class SpellMonaco {
       { open: '"', close: '"' },
       { open: "'", close: "'" }
     ],
-    wordPattern: /[A-Za-z_][\w-]*|-?\d+(\.\d+)?/,
+    wordPattern: /[\p{L}_][\p{L}\p{M}\d_-]*|-?\d+(\.\d+)?/u,
     indentationRules: {
       increaseIndentPattern: /:\s*$/,
       decreaseIndentPattern: /^\s*(otherwise|else)\b/

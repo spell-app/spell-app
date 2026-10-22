@@ -1005,7 +1005,7 @@ export class SpellLanguageService {
   }
 
   /** A word a rename can produce:  what `identifier` / `type` / `constant` rules match. */
-  static RENAMABLE_WORD = /^[A-Za-z][\w-]*$/
+  static RENAMABLE_WORD = P.ALPHANUMERIC_WORD_WITH_DASHES
 
   /** Every occurrence of `subject`, declaration included, if they can ALL be renamed -- see `prepareRename()`. */
   private renamable(subject: LSP.SpellSubject): LSP.FileMatch[] | undefined {
@@ -1292,7 +1292,7 @@ export class SpellLanguageService {
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
     const tagItems = this.tagItems(lineText)
     if (tagItems) return tagItems
-    const atStatementStart = /^\s*[\w-]*$/.test(lineText)
+    const atStatementStart = /^\s*[\p{L}\p{M}\d_-]*$/u.test(lineText)
     if (!atStatementStart) {
       const expected = this.expectedNext(file, position)
       if (expected.length) return expected
@@ -1347,7 +1347,7 @@ export class SpellLanguageService {
     const offset = this.offsetAt(file, position)
     const text = file.parseText
     const beforeCursor = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
-    const typed = /[\w-]*$/.exec(beforeCursor)![0]
+    const typed = /[\p{L}\p{M}\d_-]*$/u.exec(beforeCursor)![0]
     const input = beforeCursor.slice(0, beforeCursor.length - typed.length).trim()
     const scope = this.scopeAt(file, offset)
     if (!input || !scope.parser) return []
@@ -2099,7 +2099,7 @@ export class SpellLanguageService {
         words = SpellLanguageService.firstWords(target, parser, visited, followGroups)
       }
     }
-    return words.filter((word) => /^[a-z][\w-]*$/i.test(word))
+    return words.filter((word) => P.ALPHANUMERIC_WORD_WITH_DASHES.test(word))
   }
 
   /** Kinds of NAME a completion can offer, by the `highlightAs` of the rule that matches them -- see `firstKinds()`. */
