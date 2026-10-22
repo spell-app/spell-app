@@ -21,7 +21,7 @@ export function followRoute(params: () => Partial<SpellRouteParams>, page: Edito
     (tail) => {
       let path: string
       try {
-        path = SP.SpellUrls.withoutPage(SP.SpellLocation.addressForUrl(tail))
+        path = SP.SpellUrls.withoutPage(tail)
       } catch (error) {
         editor.showError(error)
         return

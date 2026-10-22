@@ -137,9 +137,9 @@
   },
   "dependencies": {
     "@inkjs/ui": "^2",
-    "@solidjs/h": "2.0.0-rc.13",
-    "@solidjs/router": "2.0.0-next.35",
-    "@solidjs/web": "2.0.0-rc.13",
+    "@solidjs/h": "2.0.0-rc.17",
+    "@solidjs/router": "2.0.0-next.41",
+    "@solidjs/web": "2.0.0-rc.17",
     "chalk": "^5.6.0",
     "commander": "^14",
     "fs-extra": "^11.3.0",
@@ -151,7 +151,7 @@
     "monaco-editor": "^0.57.0",
     "node-filter-async": "^3.0.0",
     "react": "^18.2.0",
-    "solid-js": "2.0.0-rc.13",
+    "solid-js": "2.0.0-rc.17",
     "spell-kit": "workspace:*",
     "spell-lang": "workspace:*",
     "spell-ui": "workspace:*",
@@ -162,7 +162,7 @@
     "wrap-ansi": "^9"
   },
   "devDependencies": {
-    "@solidjs/vite-plugin": "3.0.0-next.47",
+    "@solidjs/vite-plugin": "3.0.0-next.51",
     "@types/fs-extra": "^11.0.4",
     "@types/lodash": "^4.17.17",
     "@types/node": "^22.20.4",

@@ -22,15 +22,12 @@ describe("production build", () => {
   test("keeps rule class names, lowers decorators, keeps `core` in `spell-runtime.js`, emits icon packs", () => {
     const outDir = mkdtempSync(join(tmpdir(), "spell-build-"))
     try {
-      execFileSync(
-        "npx",
-        ["vite", "build", "--outDir", outDir, "--emptyOutDir", "--sourcemap", "--logLevel", "silent"],
-        {
-          // the package folder:  a root run has another working directory
-          cwd: join(import.meta.dirname, "../../app"),
-          stdio: "pipe"
-        }
-      )
+      // `vp`, the install's Vite:  it has no `vite` command, and `npx vite` would fetch another
+      execFileSync("vp", ["build", "--outDir", outDir, "--emptyOutDir", "--sourcemap", "--logLevel", "silent"], {
+        // the package folder:  a root run has another working directory
+        cwd: join(import.meta.dirname, "../../app"),
+        stdio: "pipe"
+      })
       const assets = join(outDir, "assets")
       const files = readdirSync(assets).filter((file) => file.endsWith(".js"))
       const chunks = files.map((file) => readFileSync(join(assets, file), "utf8"))
