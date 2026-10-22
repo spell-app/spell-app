@@ -91,7 +91,7 @@ Read the right-hand column first:  when an address misbehaves, it says where to 
 | `/_beside/<folder>/` | each folder beside spell-app that the settings name, mounted alone:  `/_beside/spell-ui/docs/` | the kit, from the settings |
 | `/saga/<saga>[/<epic>]` | a redirect to that saga's or epic's page, keeping the `#id` | `linkRoutes` |
 | `/spaces/<project>/<file>` | a project's file, by its address | spaces' `appRoutes` |
-| `/element/...` | the editor's element bundles, from `app/dist-element/`;  the epic server serves them too | the settings' `engineRoutes` |
+| `/element/...` | the editor's element bundles, from `app/dist-element/` | `appRoutes`;  on the epic server, the settings' `engineRoutes` |
 | `/editor` | a redirect to the running editor;  while it isn't up, a 503 page that says so | `appRoutes` |
 | `/hello` | `{"message":"Hello from the API!"}`:  is the API up? | `appRoutes` |
 | `/ui/...` | a 404 with the new address, never a redirect | spell-app's `pageServerRoutes` |
