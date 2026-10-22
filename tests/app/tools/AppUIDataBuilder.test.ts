@@ -6,15 +6,15 @@ import { describe, expect, test } from "vite-plus/test"
 import { keepingCommentsIn } from "spell-kit/util/node/json5"
 import { SiteDataBuilder } from "spell-ui/tools/SiteDataBuilder"
 
-import { AppUIDataBuilder } from "../../../app/tools/AppUIDataBuilder.ts"
+import { AppUIDataBuilder } from "spell-app/app/tools/AppUIDataBuilder"
 
 /** The pages read from a vocabulary, not a `file`:  the component file whose banner names the page. */
 const VOCABULARY_FAMILY_FILES = {
-  "spell-app": "components/spell-app/SpellApp.tsx",
-  "spell-editor": "components/spell-editor/SpellEditor.tsx",
-  "spell-code": "components/spell-code/SpellCode.tsx",
-  "spell-markdown": "components/spell-markdown/SpellMarkdown.tsx",
-  "spell-element": "src/runner/SpellElement.tsx"
+  "spell-app": "src/app/components/spell-app/SpellApp.tsx",
+  "spell-editor": "src/app/components/spell-editor/SpellEditor.tsx",
+  "spell-code": "src/app/components/spell-code/SpellCode.tsx",
+  "spell-markdown": "src/app/components/spell-markdown/SpellMarkdown.tsx",
+  "spell-element": "src/app/runner/SpellElement.tsx"
 }
 
 /** One builder, one build, for every test:  it reads every `.tsx` file of the app. */
@@ -22,7 +22,7 @@ const BUILDER = new AppUIDataBuilder()
 const DATA = await BUILDER.build()
 
 describe("AppUIDataBuilder.build()", () => {
-  test("components.json5 is up to date:  run `yarn site:data` in app/ after changing what it reads", () => {
+  test("components.json5 is up to date:  run `yarn site:data` after changing what it reads", () => {
     expect(readFileSync(BUILDER.dataFile, "utf8")).toBe(
       keepingCommentsIn(BUILDER.dataFile, SiteDataBuilder.stringify(DATA))
     )
@@ -73,7 +73,7 @@ describe("AppUIDataBuilder.build()", () => {
 
   test("says where the app draws a component", () => {
     expect(DATA.components.find((tag) => tag.tag === "Notice")?.usedIn).toEqual([
-      { name: "index", file: "app/src/index.tsx" }
+      { name: "index", file: "src/app/index.tsx" }
     ])
   })
 })

@@ -1,49 +1,95 @@
-import { existsSync, readFileSync } from "node:fs"
-import { resolve } from "node:path"
-import { defineConfig, type TestProjectConfiguration } from "vite-plus"
+import { configDefaults, defineConfig, type TestProjectConfiguration } from "vite-plus"
+import { playwright } from "vite-plus/test/browser-playwright"
 
-import { appProjects } from "./app/vitest.config.ts"
-
-/**
- * ONE vitest run for every package of spell-app:  `yarn vitest` and the VS Code vitest extension read this
- * (`yarn test` runs each folder's own Vitest in turn instead, `spell-folders test`, as every repo's root does).
- * - Each package keeps its own `vitest.config.ts` (so `yarn test` in a package folder is unchanged);  this file
- *   only lists them as `projects`, each named for its folder, so `--project spaces` / `--project app:node` read
- *   clearly.
- * - The folders:  the root `package.json`'s `"spellFolders"`, each a folder at the repo's root (epic `repo-split` P11:
- *   spell-app is ONE package, `spell-app`, its folders its sub-paths).
- *   Only a package whose config holds several projects of its own needs an entry in `SPECIAL` below, since vitest
- *   doesn't nest `projects`.
- * - Every project gets its own `root`, so its relative globs, `setupFiles` and aliases resolve per package.
- */
-const ROOT = import.meta.dirname
+import { standardDecorators } from "spell-kit/toolchain/decorators"
+import { packageVersion } from "spell-kit/toolchain/packageVersion"
+import { appConfig } from "./app/vite.shared.ts"
 
 /**
- * Packages whose config holds several projects:  folder -> projects, built from the package's own exported
- * factory so the two stay in step.
- * - `app`:  `node` (most tests) and `browser` (`*.browser.test.ts(x)`:  Solid's client build).
+ * The app's tests that need a real browser, and Solid's CLIENT build:  `*.browser.test.ts(x)`, anywhere in its
+ * tests (`<spell-app>`, `<spell-editor>` too).
  */
-const SPECIAL: Record<string, TestProjectConfiguration[]> = {
-  app: appProjects({ prefix: "app:", root: resolve(ROOT, "app") })
-}
+const BROWSER_TESTS = ["**/*.browser.test.{ts,tsx}"]
 
-/** Projects of every folder, in the `"spellFolders"` order. */
-function packageProjects(): TestProjectConfiguration[] {
-  const { spellFolders } = JSON.parse(readFileSync(resolve(ROOT, "package.json"), "utf8")) as {
-    spellFolders: Array<{ name: string }>
-  }
-  const projects: TestProjectConfiguration[] = []
-  for (const { name: folder } of spellFolders) {
-    const root = resolve(ROOT, folder)
-    const config = resolve(root, "vitest.config.ts")
-    if (SPECIAL[folder]) projects.push(...SPECIAL[folder])
-    else if (existsSync(config)) projects.push({ extends: config, root, test: { name: folder } })
-  }
-  return projects
-}
+/** The app's tests, at the same paths as its code (`src/app/`). */
+const APP_TESTS = "tests/app"
 
+/**
+ * spell-app's Vitest config:  one project per folder of `src/`, each over its tests in `tests/<folder>/`, at the same
+ * paths as the code.
+ * - `yarn vp test run --project spaces` runs one;  the app's are `app:node` and `app:browser`.
+ * - `standardDecorators()` lowers standard decorators (spell's, which most of them load):  vite 8's own transform
+ *   (oxc) doesn't.
+ * - The app's two each have their OWN `appConfig()` (decorator lowering, the Solid plugin, Lightning CSS), not this
+ *   file's plugins (`extends: false`):
+ *   - `app:node`:  every app test but `BROWSER_TESTS`.  `solid-js` is its SERVER build there:
+ *     `renderToString`, writes NOT staged (`solid.test.tsx` pins it).
+ *     It SAYS `environment: "node"`:  the Solid plugin reads it from the config it's created in to pick the server
+ *     build (without it, jsdom + the client build).
+ *   - `app:browser`:  `BROWSER_TESTS`, in chromium (Vitest browser mode + Playwright):  Solid's client build, so
+ *     staged writes, effects and `flush()` behave as in the app.
+ * - Python's tests (spaces' web server, `tests/spaces/server/py/`) are pytest's:  `yarn test` runs them after.
+ */
 export default defineConfig({
+  plugins: [standardDecorators(), packageVersion(import.meta.dirname)],
   test: {
-    projects: packageProjects()
+    projects: [
+      { extends: true, test: { name: "spaces", dir: "tests/spaces", environment: "node" } },
+      { extends: true, test: { name: "lsp", dir: "tests/lsp" } },
+      ...appProjects(),
+      { extends: true, test: { name: "cli", dir: "tests/cli" } },
+      { extends: true, test: { name: "page-server", dir: "tests/page-server", environment: "node" } }
+    ]
   }
 })
+
+/** The app's two projects, `app:node` and `app:browser` (above). */
+function appProjects(): TestProjectConfiguration[] {
+  return [
+    {
+      ...appConfig(),
+      extends: false,
+      test: {
+        name: "app:node",
+        dir: APP_TESTS,
+        environment: "node",
+        exclude: [...configDefaults.exclude, ...BROWSER_TESTS]
+      }
+    },
+    {
+      ...browserConfig(),
+      extends: false,
+      test: {
+        name: "app:browser",
+        dir: APP_TESTS,
+        include: BROWSER_TESTS,
+        // Spell UI's core first, as a page has it:  its settings for `spell-kit/element`
+        setupFiles: ["spell-ui/test-helpers/setup.ts"],
+        browser: {
+          enabled: true,
+          provider: playwright(),
+          headless: true,
+          instances: [{ browser: "chromium" }]
+        }
+      }
+    }
+  ]
+}
+
+/**
+ * `appConfig()` for the `app:browser` project, with Solid pre-bundled up front.
+ * - Without it, the first run on a fresh cache finds them mid-run, re-optimizes and RELOADS:
+ *   a test file then imports a second Solid.
+ */
+function browserConfig() {
+  return {
+    ...appConfig(),
+    optimizeDeps: {
+      // crawl the tests' imports up front:  `spell-app/app/editor` pulls in more (`marked`, lodash ...)
+      // - `spellRuntime.ts` too:  tests import it by URL (`editor.loadRuntime()`), which the crawl can't follow, so
+      //   ITS deps (`lodash/cloneDeep` ...) were found mid-run on a fresh cache (C6)
+      entries: [...BROWSER_TESTS.map((glob) => `${APP_TESTS}/${glob}`), "src/app/runner/spellRuntime.ts"],
+      include: ["solid-js", "@solidjs/web", "@solidjs/h"]
+    }
+  }
+}

@@ -5,7 +5,7 @@
  * - The spell LANGUAGE only:  the docs and Review tabs, "Open Epic...", the window bridge and the handoff are
  *   spell-epic's own extension's (`spell-app.spell-epic`, built from spell-epic's `vscode/`;  epic `epic-eject` I7).
  * - Activates on the window's first spell file (`onLanguage:spell`):  a window without spell files runs no server.
- * - The server is a spell-app checkout's own `lsp/src/server.ts`, run by its `tsx`.
+ * - The server is a spell-app checkout's own `src/lsp/server.ts`, run by its `tsx` from its root (`LSP_SERVER`).
  *   - Which checkout:  the window's, found when the server starts (`findSpellApp()`), so one installed copy works
  *     from the kit's main checkout and from every epic's worktree.
  *   - So the editor always runs spell as it is on disk:  restart the server to pick up a change.
@@ -23,6 +23,13 @@ import {
 
 import { RunnerPanel } from "./RunnerPanel"
 import { findSpellApp } from "./spellAppRoot"
+
+/**
+ * A spell-app checkout's language server, from its root:  `tsx` runs it there, reading the root's `tsconfig.json`.
+ * - Since epic `repo-split` P14, every import a package name, so it needs no run-time alias hook.
+ * - A checkout from before P14 (`lsp/src/server.ts`) has none:  the extension says so, naming this file.
+ */
+const LSP_SERVER = "src/lsp/server.ts"
 
 /** Scheme of the read-only documents showing a spell file's compiled code -- see `CompiledProvider`. */
 const COMPILED_SCHEME = "spell-compiled"
@@ -63,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 /**
  * Start the language server and register our commands -- once, for the window's first spell file.
  * - Shows an error, and does nothing else, if no spell-app checkout is found (`findSpellApp()`),
- *   or its packages aren't installed.
+ *   its packages aren't installed, or it has no `src/lsp/server.ts` (a checkout from before epic `repo-split` P14).
  */
 async function startLanguageServer(context: vscode.ExtensionContext): Promise<void> {
   const configured = vscode.workspace.getConfiguration("spell").get<string>("parserRoot")
@@ -81,22 +88,27 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
   }
   const repoRoot = choice.root
   const tsx = findTsx(repoRoot)
-  const lspDir = resolve(repoRoot, "lsp")
-  const server = resolve(lspDir, "src/server.ts")
-  if (!tsx || !existsSync(server)) {
-    const message = `Spell:  no language server in '${repoRoot}'.  Run \`yarn\` in its kit's folder, or set \`spell.parserRoot\`.`
+  const server = resolve(repoRoot, LSP_SERVER)
+  if (!tsx) {
+    const message = `Spell:  no \`tsx\` for '${repoRoot}'.  Run \`yarn\` in its kit's folder, or set \`spell.parserRoot\`.`
+    void vscode.window.showErrorMessage(message)
+    return
+  }
+  if (!existsSync(server)) {
+    const message =
+      `Spell:  no language server at '${server}'.  A checkout from before epic \`repo-split\` P14 can't run ` +
+      "in this extension:  set `spell.parserRoot` to a newer one."
     void vscode.window.showErrorMessage(message)
     return
   }
 
-  // `TransportKind.stdio` adds `--stdio` to `args`.  `cwd` so `tsx` finds lsp's `tsconfig.json` (for `$/`).
+  // `TransportKind.stdio` adds `--stdio` to `args`.
   const serverOptions: ServerOptions = {
     command: tsx,
-    // then `$/` imports by each file's own repo (`spell-kit/toolchain/aliases`):  the server runs spell-lang's source too
-    args: ["--import", "spell-kit/toolchain/aliases", server],
+    args: [server],
     transport: TransportKind.stdio,
-    // `tsx` reads `tsconfig.json` (the aliases) where it runs
-    options: { cwd: lspDir }
+    // `tsx` reads the `tsconfig.json` where it runs
+    options: { cwd: repoRoot }
   }
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: "file", language: "spell" }]

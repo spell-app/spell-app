@@ -6,7 +6,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  * Build the runner bundle for the VS Code extension's "Run Project" webview:
  * `yarn build:runner`, after `vite.solid.config.ts --outDir dist-runner` (which empties the folder).
  * - Two entries, to FIXED names, so the extension's webview HTML can name them:
- *   - `runner.js` (+ `runner.css`):  the runner, from `src/runner/main.tsx`
+ *   - `runner.js` (+ `runner.css`):  the runner, from `src/app/runner/main.tsx`
  *   - `spell-runtime.js`:  what programs run on, which the runner loads a copy of -- see `spellRuntime.ts`
  * - What both use goes in ONE shared chunk.
  *   - `core` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
@@ -14,7 +14,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  * - Solid and `spell-ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`), as in
  *   `dist-element/`:  one layout, one pin.
  * - Semantic UI + Lato are NOT bundled:  the webview loads them straight from `static/`.
- * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.  `keepNames` MUST stay on --
+ * - Plugins, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.  `keepNames` MUST stay on --
  *   see `parser/build.test.ts`.
  */
 const shared = appConfig()
@@ -30,8 +30,8 @@ export default defineConfig({
     cssCodeSplit: false,
     rolldownOptions: {
       input: {
-        runner: "src/runner/main.tsx",
-        "spell-runtime": "src/runner/spellRuntime.ts"
+        runner: "../src/app/runner/main.tsx",
+        "spell-runtime": "../src/app/runner/spellRuntime.ts"
       },
       // keep `spell-runtime.js`'s exports:  nothing in the bundle imports it, the runner loads it by URL
       preserveEntrySignatures: "exports-only",

@@ -29,7 +29,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/components/spell-editor/SpellEditor.tsx"
+              href="../../src/app/components/spell-editor/SpellEditor.tsx"
               icon="code"
               aria-label="Its code, SpellEditor.tsx"
               title="Its code, SpellEditor.tsx"
@@ -82,7 +82,7 @@
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
-              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <a href="../../src/app/" target="src-packages-app">The app package</a> builds it with
               <code>yarn build:element</code>.
             </p>
           </ui-section>
@@ -156,7 +156,7 @@
             <ui-docs-api family="spell-editor"></ui-docs-api>
             <p class="meta">
               From its vocabulary, by <code>yarn site:data</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >.
             </p>
           </ui-section>
@@ -166,42 +166,42 @@
             <ul>
               <li>
                 <a
-                  href="../../packages/app/components/spell-editor/SpellEditor.tsx"
+                  href="../../src/app/components/spell-editor/SpellEditor.tsx"
                   target="src-packages-app-components-spell-editor-spelleditor-tsx"
-                  ><code title="packages/app/components/spell-editor/SpellEditor.tsx">SpellEditor.tsx</code></a
+                  ><code title="src/app/components/spell-editor/SpellEditor.tsx">SpellEditor.tsx</code></a
                 >: its DOM element (the script API) and its component
               </li>
               <li>
                 <a
-                  href="../../packages/app/components/spell-editor/SpellEditor.en.ts"
+                  href="../../src/app/components/spell-editor/SpellEditor.en.ts"
                   target="src-packages-app-components-spell-editor-spelleditor-en-ts"
-                  ><code title="packages/app/components/spell-editor/SpellEditor.en.ts">SpellEditor.en.ts</code></a
+                  ><code title="src/app/components/spell-editor/SpellEditor.en.ts">SpellEditor.en.ts</code></a
                 >: its vocabulary, every name it uses
               </li>
               <li>
                 <a
-                  href="../../packages/app/src/spellEditor/SpellEditorPane.tsx"
+                  href="../../src/app/spellEditor/SpellEditorPane.tsx"
                   target="src-packages-app-src-spelleditor-spelleditorpane-tsx"
-                  ><code title="packages/app/src/spellEditor/SpellEditorPane.tsx">SpellEditorPane.tsx</code></a
+                  ><code title="src/app/spellEditor/SpellEditorPane.tsx">SpellEditorPane.tsx</code></a
                 >
                 and
                 <a
-                  href="../../packages/app/src/spellEditor/SpellEditorPane.css"
+                  href="../../src/app/spellEditor/SpellEditorPane.css"
                   target="src-packages-app-src-spelleditor-spelleditorpane-css"
-                  ><code title="packages/app/src/spellEditor/SpellEditorPane.css">SpellEditorPane.css</code></a
+                  ><code title="src/app/spellEditor/SpellEditorPane.css">SpellEditorPane.css</code></a
                 >: what it draws, the tabs, the editor and the status line
               </li>
               <li>
                 <a
-                  href="../../tests/app/src/spellEditor/spellEditor.browser.test.tsx"
+                  href="../../tests/app/spellEditor/spellEditor.browser.test.tsx"
                   target="src-tests-app-src-spelleditor-spelleditor-browser-test-tsx"
-                  ><code title="tests/app/src/spellEditor/spellEditor.browser.test.tsx"
+                  ><code title="tests/app/spellEditor/spellEditor.browser.test.tsx"
                     >spellEditor.browser.test.tsx</code
                   ></a
                 >: its tests
               </li>
               <li>
-                Its build: <code title="writes packages/app/dist-element/">yarn build:element</code>, served at
+                Its build: <code title="writes app/dist-element/">yarn build:element</code>, served at
                 <code>/element/</code>. Its demo: <code>/demo/spell-editor.html</code>, on the editor's server.
               </li>
             </ul>

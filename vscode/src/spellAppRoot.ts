@@ -1,5 +1,5 @@
 /**
- * Which spell-app checkout the extension runs:  its language server (`lsp/`) and its runner bundle (`app/`).
+ * Which spell-app checkout the extension runs:  its language server (`src/lsp/`) and its runner bundle (`app/`).
  * - Decided when the server starts, from the window, NOT from where the extension was built:
  *   one installed copy works for the kit's main checkout, every epic's worktree, and a checkout you've moved.
  * - Plain node (`fs`, `path`), NO `vscode`:  `extension.ts` hands it the setting and the window's folders,
@@ -84,7 +84,7 @@ export type SpellAppPlaces = {
 
 /** The spell-app checkout `findSpellApp()` picked. */
 export type SpellAppChoice = {
-  /** spell-app's folder:  holds `lsp/` and `app/` */
+  /** spell-app's folder:  holds `src/lsp/` and `app/` */
   root: string
   /** how it was found, for the extension's output */
   reason: string

@@ -29,7 +29,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/components/spell-app/SpellApp.tsx"
+              href="../../src/app/components/spell-app/SpellApp.tsx"
               icon="code"
               aria-label="Its code, SpellApp.tsx"
               title="Its code, SpellApp.tsx"
@@ -72,7 +72,7 @@
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
-              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <a href="../../src/app/" target="src-packages-app">The app package</a> builds it with
               <code>yarn build:element</code>.
             </p>
           </ui-section>
@@ -141,7 +141,7 @@
             <ui-docs-api family="spell-app"></ui-docs-api>
             <p class="meta">
               From its vocabulary, by <code>yarn site:data</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >.
             </p>
           </ui-section>
@@ -151,27 +151,27 @@
             <ul>
               <li>
                 <a
-                  href="../../packages/app/components/spell-app/SpellApp.tsx"
+                  href="../../src/app/components/spell-app/SpellApp.tsx"
                   target="src-packages-app-components-spell-app-spellapp-tsx"
-                  ><code title="packages/app/components/spell-app/SpellApp.tsx">SpellApp.tsx</code></a
+                  ><code title="src/app/components/spell-app/SpellApp.tsx">SpellApp.tsx</code></a
                 >: its DOM element (the script API) and its component, a root
               </li>
               <li>
                 <a
-                  href="../../packages/app/components/spell-app/SpellApp.en.ts"
+                  href="../../src/app/components/spell-app/SpellApp.en.ts"
                   target="src-packages-app-components-spell-app-spellapp-en-ts"
-                  ><code title="packages/app/components/spell-app/SpellApp.en.ts">SpellApp.en.ts</code></a
+                  ><code title="src/app/components/spell-app/SpellApp.en.ts">SpellApp.en.ts</code></a
                 >: its vocabulary, every name it uses
               </li>
               <li>
                 <a
-                  href="../../packages/app/src/runner/SpellAppRunner.tsx"
+                  href="../../src/app/runner/SpellAppRunner.tsx"
                   target="src-packages-app-src-runner-spellapprunner-tsx"
-                  ><code title="packages/app/src/runner/SpellAppRunner.tsx">SpellAppRunner.tsx</code></a
+                  ><code title="src/app/runner/SpellAppRunner.tsx">SpellAppRunner.tsx</code></a
                 >: what it draws, the runner
               </li>
               <li>
-                Its build: <code title="writes packages/app/dist-element/">yarn build:element</code>, served at
+                Its build: <code title="writes app/dist-element/">yarn build:element</code>, served at
                 <code>/element/</code>
               </li>
             </ul>

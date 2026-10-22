@@ -24,12 +24,12 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
     - `path-in-prose`:  a file path in a page's or Markdown's running text
     - `code-dense`:  a sentence of 3+ code spans, in a page or Markdown
   - It can't see the rest:  that's what the reading pass is for.
-- Every epic's Doc Review runs it:  [the epic skill](spell-epic/skills/epic/SKILL.md), "6. Doc Review".
+- Every epic's Doc Review runs it:  [the epic skill](../spell-epic/skills/epic/SKILL.md), "6. Doc Review".
 
 ## Forms
 
 ```
-/fussbudget <path...>       folders, a package, files:   /fussbudget packages/server/src
+/fussbudget <path...>       folders, a package, files:   /fussbudget src/spaces/server
 /fussbudget epic <name>     an epic page:                  /fussbudget epic skillz
 /fussbudget branch          what this branch changed since `main`, uncommitted work included
 /fussbudget                 asks what to cover
@@ -102,7 +102,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
    - The diff IS the proposal:  Owen reviews it in Source Control,
      and discards a file or a hunk he doesn't like.
    - An epic page has no branch diff:  each turn's edits are one `auto:` commit in `spell-app-dev`,
-     which can be reverted whole.  Then `epic check <name>`.
+     which can be reverted whole.  Then `epic lint <name>`.
 8. The checker again:  the count AFTER.
    - A miss left on purpose (a false hit, a line that can't break better):  name it in the report.
 9. Report ("Report").
@@ -116,13 +116,13 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - A page:  the path is the name's tooltip, the browser's own (`title`), never a second code span:
 
     ```html
-    BEFORE  Built:  <code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code>
-    AFTER   Built:  <code title="packages/spell/src/node/buildTsx.ts">buildTsx()</code>
+    BEFORE  Built:  <code>buildTsx()</code>, <code>spell-lang/src/spell/node/buildTsx.ts:40</code>
+    AFTER   Built:  <code title="spell-lang/src/spell/node/buildTsx.ts">buildTsx()</code>
     ```
 
     `doc-links.js` links the name to its `title`'s file, so a click still opens it.
   - A path with no name to hang it on ("see `guides/x/x.html`"):  the page's title as the link text.
-  - Markdown, which has no tooltips:  a link, `` [`buildTsx()`](packages/spell/src/node/buildTsx.ts) ``.
+  - Markdown, which has no tooltips:  a link, `` [`buildTsx()`](../spell-lang/src/spell/node/buildTsx.ts) ``.
     In agent-facing Markdown (`AGENTS.md`, WWOD, `SKILL.md`), a path an agent must open stays reachable that way.
 - `code-dense`:  say what it MEANS, then one fact per bullet.
   - The exact settings and values go in a tooltip, or a folded code block:
@@ -139,7 +139,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - More folders than agents:  group neighbours, one agent a group.
   - Why:  one voice per package, and the session stays free.
 - Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
-  ([the bg skill](spell-epic/skills/bg/SKILL.md), "Names"):
+  ([the bg skill](../spell-epic/skills/bg/SKILL.md), "Names"):
   - `epic agents add fussbudget-<folder> "<its task>"`:  prints its full name
   - an `Agent` call:  type `general-purpose`, in the background (`run_in_background: true`),
     its `description` starting with that full name

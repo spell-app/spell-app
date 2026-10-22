@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: 24
           cache: yarn
-      # its Python (spell-folders' pytest and ruff run through uv);  uv fetches the Python each project pins
+      # its Python (`yarn test`'s pytest and `yarn lint`'s ruff run through uv);  uv fetches the Python each project pins
       - uses: astral-sh/setup-uv@v6
 
       # the kit's own install first:  `yarn clone` reads `repos.json5` with the kit's json5

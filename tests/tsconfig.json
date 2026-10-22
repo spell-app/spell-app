@@ -1,0 +1,9 @@
+{
+  // spell-app's tests:  node's settings (`tsconfig.node.json`), over this folder
+  // - NOT `app/`:  the app's tests, Solid's JSX, `app/tsconfig.json`
+  // - NOT `spaces/@spell/`, `spaces/server/py/`:  the test projects' snapshots (spell's own tests check them), and
+  //   spaces' web server's pytest tests
+  "extends": "../tsconfig.node.json",
+  "include": ["."],
+  "exclude": ["app", "spaces/@spell", "spaces/server/py"]
+}

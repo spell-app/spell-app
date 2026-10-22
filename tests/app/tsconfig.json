@@ -1,6 +1,10 @@
 {
-  // app's tests:  app's own settings (packages/app/tsconfig.json), over this folder
-  "extends": "../../app/tsconfig.json",
-  // app's own ambient types too (monaco's internal modules)
-  "include": [".", "../../app/src/types"]
+  // the app's tests:  the app's own settings (the root `tsconfig.json`, Solid's JSX), with node's types, over this
+  // folder;  and the app's ambient types (monaco's internal modules)
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client", "spell-kit/toolchain/types"]
+  },
+  "include": [".", "../../src/app/types"],
+  "exclude": []
 }

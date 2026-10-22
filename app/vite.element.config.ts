@@ -9,7 +9,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
 /**
  * Build the `<spell-app>` web component:  `yarn build:element` => `dist-element/`, after `vite.solid.config.ts`.
  * - Two entries:
- *   - `spell-app.js`:  the element, for pages to load -- see `components/spell-app/index.ts`
+ *   - `spell-app.js`:  the element, for pages to load -- see `src/app/components/spell-app/index.ts`
  *   - `spell-runtime.js`:  what ONE app runs on, loaded afresh per element -- see `spellRuntime.ts`
  * - What both use goes in shared chunks.
  *   `core` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
@@ -25,7 +25,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  * - `static/` is copied in, so Semantic UI and Lato sit beside the bundle --
  *   and the built-in types' scope pack, `core.scopes.js`, see `builtInsPack()`.
  * - And the component pack of both elements, `spell.pack.js`:  see `componentPack()`.
- * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
+ * - Plugins, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
  *   `keepNames` MUST stay on -- see `parser/build.test.ts`.
  */
 const shared = appConfig()
@@ -44,8 +44,8 @@ export default defineConfig({
     cssCodeSplit: false,
     rolldownOptions: {
       input: {
-        "spell-app": "components/spell-app/index.ts",
-        "spell-runtime": "src/runner/spellRuntime.ts"
+        "spell-app": "../src/app/components/spell-app/index.ts",
+        "spell-runtime": "../src/app/runner/spellRuntime.ts"
       },
       // keep `spell-runtime.js`'s exports:  nothing in the bundle imports it, the element loads it by URL
       preserveEntrySignatures: "exports-only",
@@ -85,17 +85,20 @@ function builtInsPack(): Plugin {
 // ## The component pack
 ////////////////
 
-/** The element families, `packages/app/components/<tag>/`:  each one's barrel is the entry of `<tag>.js`. */
-const COMPONENTS = fileURLToPath(new URL("components", import.meta.url))
+/** The element families, `src/app/components/<tag>/`:  each one's barrel is the entry of `<tag>.js`. */
+const COMPONENTS = fileURLToPath(new URL("../src/app/components", import.meta.url))
 
 /**
- * The kit's `RootCatalog` (`spell-kit/element/tools/RootCatalog`, Spell UI's until epic `repo-split` P10), which reads
+ * The kit's `RootCatalog` (`spell-kit/element-tools/RootCatalog`, Spell UI's until epic `repo-split` P10), which reads
  * a catalog from vocabularies.
  * - Imported as the build runs, by URL, found through the kit's `exports` (never a path into another repo):
  *   a static import would have `tsc -p tsconfig.node.json` check the kit's source.
  * - Node runs its `.ts` files as they are (type stripping).
+ * - By its name WITH `.ts`:  node's resolver adds no extension (the kit's `"./*.ts"` entry).
  */
-const ROOT_CATALOG = pathToFileURL(createRequire(import.meta.url).resolve("spell-kit/element/tools/RootCatalog")).href
+const ROOT_CATALOG = pathToFileURL(
+  createRequire(import.meta.url).resolve("spell-kit/element-tools/RootCatalog.ts")
+).href
 
 /** What `RootCatalog` knows of a tag:  `RootCatalogEntry` (its folder, its skeleton). */
 type CatalogEntry = { readonly folder: string; readonly skeleton?: unknown }
@@ -108,7 +111,7 @@ const PACK = { name: "spell", prefix: "spell-" }
 
 /**
  * Write `spell.pack.js`:  the app's elements as a Spell UI COMPONENT PACK
- * (`<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`:  every family in `components/`),
+ * (`<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`:  every family in `src/app/components/`),
  * which a page with a `<ui-root>` loads through `<ui-components source>`, as the docs' pages load `epics.pack.js`:
  *
  *     <script type="module" src="/element/spell-ui.js"></script>

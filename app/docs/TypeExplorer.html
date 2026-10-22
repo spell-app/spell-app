@@ -29,7 +29,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/src/solid/TypeExplorer.tsx"
+              href="../../src/app/solid/TypeExplorer.tsx"
               icon="code"
               aria-label="Its code, TypeExplorer.tsx"
               title="Its code, TypeExplorer.tsx"
@@ -72,7 +72,7 @@
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
-              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <a href="../../src/app/" target="src-packages-app">The app package</a> builds it with
               <code>yarn build:element</code>.
             </p>
           </ui-section>
@@ -145,7 +145,7 @@
             <ui-docs-api family="TypeExplorer"></ui-docs-api>
             <p class="meta">
               From its code, by <code>yarn site:data</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >.
             </p>
           </ui-section>
@@ -154,45 +154,37 @@
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>
-                <a
-                  href="../../packages/app/src/solid/TypeExplorer.tsx"
-                  target="src-packages-app-src-solid-typeexplorer-tsx"
-                  ><code title="packages/app/src/solid/TypeExplorer.tsx">TypeExplorer.tsx</code></a
+                <a href="../../src/app/solid/TypeExplorer.tsx" target="src-packages-app-src-solid-typeexplorer-tsx"
+                  ><code title="src/app/solid/TypeExplorer.tsx">TypeExplorer.tsx</code></a
                 >: the component and its props, its tree's rows, and <code>TreeRow</code>
               </li>
               <li>
-                <a
-                  href="../../packages/app/src/solid/TypeExplorer.css"
-                  target="src-packages-app-src-solid-typeexplorer-css"
-                  ><code title="packages/app/src/solid/TypeExplorer.css">TypeExplorer.css</code></a
+                <a href="../../src/app/solid/TypeExplorer.css" target="src-packages-app-src-solid-typeexplorer-css"
+                  ><code title="src/app/solid/TypeExplorer.css">TypeExplorer.css</code></a
                 >: its look, which the Thing Explorer shares
               </li>
               <li>
                 Its tests:
                 <a
-                  href="../../tests/app/src/solid/TypeExplorer.test.tsx"
+                  href="../../tests/app/solid/TypeExplorer.test.tsx"
                   target="src-tests-app-src-solid-typeexplorer-test-tsx"
-                  ><code title="tests/app/src/solid/TypeExplorer.test.tsx">TypeExplorer.test.tsx</code></a
+                  ><code title="tests/app/solid/TypeExplorer.test.tsx">TypeExplorer.test.tsx</code></a
                 >,
                 <a
-                  href="../../tests/app/src/solid/TypeExplorer.browser.test.tsx"
+                  href="../../tests/app/solid/TypeExplorer.browser.test.tsx"
                   target="src-tests-app-src-solid-typeexplorer-browser-test-tsx"
-                  ><code title="tests/app/src/solid/TypeExplorer.browser.test.tsx"
-                    >TypeExplorer.browser.test.tsx</code
-                  ></a
+                  ><code title="tests/app/solid/TypeExplorer.browser.test.tsx">TypeExplorer.browser.test.tsx</code></a
                 >
               </li>
               <li>
                 Where the runners draw it:
                 <a
-                  href="../../packages/app/src/runner/SpellAppRunner.tsx"
+                  href="../../src/app/runner/SpellAppRunner.tsx"
                   target="src-packages-app-src-runner-spellapprunner-tsx"
-                  ><code title="packages/app/src/runner/SpellAppRunner.tsx">SpellAppRunner.tsx</code></a
+                  ><code title="src/app/runner/SpellAppRunner.tsx">SpellAppRunner.tsx</code></a
                 >,
-                <a
-                  href="../../packages/app/src/runner/VSCodeRunner.tsx"
-                  target="src-packages-app-src-runner-vscoderunner-tsx"
-                  ><code title="packages/app/src/runner/VSCodeRunner.tsx">VSCodeRunner.tsx</code></a
+                <a href="../../src/app/runner/VSCodeRunner.tsx" target="src-packages-app-src-runner-vscoderunner-tsx"
+                  ><code title="src/app/runner/VSCodeRunner.tsx">VSCodeRunner.tsx</code></a
                 >
               </li>
             </ul>
