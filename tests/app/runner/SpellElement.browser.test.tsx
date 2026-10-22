@@ -487,16 +487,10 @@ describe("SpellElement", () => {
     }
     Chip.declareProp("label", { type: "text" })
     Chip.declareProp("home", { type: "Stack" })
-    /** A stack of chips, each in one stack at a time:  drawn as its name. */
+    /** A stack of chips, each in one stack at a time:  drawn as its name, every list's, built in. */
     class Stack extends DrawableList<Chip> {
       static elementTag = core.defineElement(this, "Drawable Board")
       static instanceType = Chip
-      get name() {
-        return this.getProp("name")
-      }
-      set name(value) {
-        this.setProp("name", value)
-      }
       draw(): ReturnType<Drawable["draw"]> {
         return (h("b", {}, () => `${this.name}`) as unknown as () => ReturnType<Drawable["draw"]>)()
       }
