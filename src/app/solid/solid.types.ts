@@ -2,12 +2,13 @@ import type { JSX } from "@solidjs/web"
 
 /**
  * Types for the app's Solid code.
- * - `<ui-*>` tags in Solid JSX:  `spell-ui` ships no JSX types, so every `ui-*` tag takes the HTML attributes
- *   plus anything else, any value:  an object or function becomes the element's property, `on-ui-change` a listener
- *   (`spell-kit/element`'s `RichAttributes`).
- *   Loose ON PURPOSE until `ui` ships typed tags:  a misspelt attribute isn't caught here.
- * - Augments `"@solidjs/web/types/jsx.js"`, NOT `"@solidjs/web"` (that one only re-exports `JSX`;  see
- *   `guides/solid/solid-2.md`).
+ * - `<ui-*>` tags in Solid JSX:  `spell-ui` ships no JSX types,
+ *   so every `ui-*` tag takes the HTML attributes plus anything else, any value.
+ *   - An object or function becomes the element's property, `on-ui-change` a listener
+ *     (`spell-kit/element`'s `RichAttributes`).
+ *   - Loose ON PURPOSE until `ui` ships typed tags:  a misspelt attribute isn't caught here.
+ * - Augments `"@solidjs/web/types/jsx.js"`, NOT `"@solidjs/web"`:
+ *   that one only re-exports `JSX` (see `guides/solid/solid-2.md`).
  */
 
 declare module "@solidjs/web/types/jsx.js" {

@@ -49,8 +49,8 @@ import "./SpellAppRunner.css"
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/
 export function SpellAppRunner(props: SpellAppRunnerProps) {
-  // `run()` reads props from an effect's callback:  a conditional prop is a memo made on its first read, and
-  // since Solid rc.17 one made there needs an owner (`PRIMITIVE_IN_EFFECT_CALLBACK`)
+  // `run()` reads props from an effect's callback, and a conditional prop is a memo made on its first read:
+  // since Solid rc.17, a memo made there needs an owner (`PRIMITIVE_IN_EFFECT_CALLBACK`)
   const owner = getOwner()
   const [loaded, setLoaded] = createSignal<LoadedRuntime>()
   const [error, setError] = createSignal<string>()

@@ -22,7 +22,8 @@ Distrust patterns from both.
   [the Solid 2 guide](../spell.epics/guides/solid/solid-2.html), especially §2 "Read-after-write" and §3 "Gotchas".
 - Every new API, with an example:  [the Solid 2 cheatsheet](../spell.epics/guides/solid/cheatsheet.html).
   - Or Solid's own, `node_modules/solid-js/CHEATSHEET.md`, hoisted to the repo root.
-    rc.17 also ships Solid's own skills beside it, `node_modules/solid-js/skills/` (`solid-2.0`, `solid-2.0-cheatsheet`).
+  - Since rc.17, Solid ships its own skills beside it, `node_modules/solid-js/skills/`:
+    `solid-2.0`, `solid-2.0-cheatsheet`.
 - A dev diagnostic code:
   `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (repo root).
 - Unsure how Solid behaves?  Test it, don't guess:
