@@ -488,7 +488,7 @@ spell test @spell/examples/outline-solitaire
 </details>
 
 Beside its Card.spell sits Card.spell-es, an early hand translation of the card, which the project leaves out.
-Spell reads Spanish now, a project at a time (`language: "es"`):
+Spell reads Spanish now, a file at a time, by its name (`Carta.es.spell`):
 the test project `cartas` is the cards project in Spanish
 ([Spell in Spanish](https://github.com/spell-app/spell-lang/blob/main/README.md#spell-in-spanish)).
 🌱 A translated Solitario is coming.

@@ -13,7 +13,7 @@ import {
   PYTHON_FIXTURES,
   compiledFixture,
   fixtureImports,
-  fixtureLanguage,
+  fixtureLanguages,
   fixtureProjectNames
 } from "spell-app/spaces/test"
 import { CLI } from "spell-app/cli"
@@ -60,7 +60,7 @@ async function printed(name: string, target: string, code = compiledFixture(name
       dom: true,
       seed: CONTRACT_SEED,
       // a test's lines in the fixture's language, as `spell run` prints them:  `cartas`'s in Spanish
-      messages: SP.SpellWords.messagesFor(fixtureLanguage(name)),
+      messages: SP.SpellWords.messagesFor(fixtureLanguages(name)[0]!),
       // only what's printed matters:  Python needn't wait at a pause (javascript's run as they are)
       pauses: false
     })

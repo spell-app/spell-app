@@ -436,7 +436,7 @@ describe("ScopeExplorer built-in types", () => {
 describe("ScopeExplorer in Spanish", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scopes-es-"))
   cpSync(fixturePath("cartas"), resolve(dir, "cartas"), { recursive: true })
-  const cartaPath = resolve(dir, "cartas/Carta.spell")
+  const cartaPath = resolve(dir, "cartas/Carta.es.spell")
   const cartaUri = pathToFileURL(cartaPath).href
   const workspace = new SpellDiskWorkspace()
   const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(workspace))

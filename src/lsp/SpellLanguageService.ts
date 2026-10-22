@@ -594,7 +594,7 @@ export class SpellLanguageService {
     ]
     // an outline body's line, as the sentence style says it -- see `SP.SpellStatement.getLongForm()`
     const longForm = statement?.rule instanceof SP.SpellStatement ? statement.rule.getLongForm(statement) : undefined
-    if (longForm) sections.unshift(`**${LSP.LspTexts.for(file.project.language).text("readsAs")}**  \`${longForm}\``)
+    if (longForm) sections.unshift(`**${LSP.LspTexts.for(file.language).text("readsAs")}**  \`${longForm}\``)
     if (subject) sections.push(this.describeSubject(subject))
     const compiled = statement && SpellLanguageService.compileQuietly(statement)
     if (compiled) sections.push(["```js", SpellLanguageService.truncateLines(compiled, 20), "```"].join("\n"))
@@ -1283,7 +1283,7 @@ export class SpellLanguageService {
       problem: project.parseError,
       compiledUri: this.addresses.uriFor(project.outputFile),
       folderUri: this.addresses.uriFor(project),
-      wordsUri: this.addresses.uriFor(project.wordsFile)
+      wordsUris: project.wordsFiles.map((it) => this.addresses.uriFor(it))
     }
   }
 
@@ -1308,7 +1308,7 @@ export class SpellLanguageService {
     if (cssItems) return cssItems
     if (!file.match) return []
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
-    const tagItems = this.tagItems(lineText, LSP.LspTexts.for(file.project.language))
+    const tagItems = this.tagItems(lineText, LSP.LspTexts.for(file.language))
     if (tagItems) return tagItems
     const atStatementStart = /^\s*[\p{L}\p{M}\d_-]*$/u.test(lineText)
     if (!atStatementStart) {
@@ -1323,7 +1323,7 @@ export class SpellLanguageService {
       ...this.methodItems(file, scope, offset, atStatementStart ? "statement" : "expression")
     ]
     if (atStatementStart && scope.parser) {
-      const statement = LSP.LspTexts.for(file.project.language).text("statement")
+      const statement = LSP.LspTexts.for(file.language).text("statement")
       for (const word of this.statementWords(scope.parser, file.project)) {
         items.push({ label: word, kind: CompletionItemKind.Keyword, detail: statement })
       }
@@ -1414,7 +1414,7 @@ export class SpellLanguageService {
     }
     // Words from categories too, e.g. `{expression}` => `the`, `a`, `its`... -- NOT `Card` when there's `card`
     const words = new Set(SpellLanguageService.firstWords(rule, parser, new Set(), true))
-    const next = LSP.LspTexts.for(file.project.language).text("next")
+    const next = LSP.LspTexts.for(file.language).text("next")
     for (const word of words) {
       if (word !== word.toLowerCase() && words.has(word.toLowerCase())) continue
       items.push([2, { label: word, kind: CompletionItemKind.Keyword, detail: next }])
@@ -1813,7 +1813,7 @@ export class SpellLanguageService {
     const text = file.contents ?? ""
     if (!text.trim()) return []
     const formatter = new P.TokenFormatter({
-      tokenizer: file.project.language.parser.tokenizer,
+      tokenizer: file.language.parser.tokenizer,
       indent: "\t",
       trimFinalBlankLines: !range && !!options.trimFinalNewlines,
       ...SpellLanguageService.FORMAT_SPACING
@@ -1874,7 +1874,7 @@ export class SpellLanguageService {
    */
   accentEdits(file: SP.SpellFile, from = 0, to = Infinity): TextEdit[] {
     if (!file.match) return []
-    const keywords = LSP.SpellKeywords.of(file.project.language)
+    const keywords = LSP.SpellKeywords.of(file.language)
     if (!keywords.hasAccentFixes) return []
     const text = file.parseText
     const edits = new Map<number, TextEdit>()

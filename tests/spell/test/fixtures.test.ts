@@ -12,7 +12,7 @@ import {
   fixturePath,
   fixtureProjectNames,
   fixtureWords,
-  fixtureLanguage
+  fixtureLanguages
 } from "spell-app/spaces/test"
 
 /**
@@ -45,12 +45,14 @@ describe("fixture projects compile to their snapshots", () => {
       )
     })
 
-    // its words, by the names its javascript uses -- see `SP.SpellWords`.
+    // its words, by the names its javascript uses, one file per language its files are in -- see `SP.SpellWords`.
     // `.<lang>.snapshot.js`:  ending as a snapshot does keeps it out of the fixture's files, in the app.
     test(`${name}'s words`, async () => {
-      await expect(fixtureWords(name)).toMatchFileSnapshot(
-        fixturePath(name, `${name}.${fixtureLanguage(name)}${SP.SNAPSHOT_JS_SUFFIX}`)
-      )
+      for (const lang of fixtureLanguages(name)) {
+        await expect(fixtureWords(name, lang)).toMatchFileSnapshot(
+          fixturePath(name, `${name}.${lang}${SP.SNAPSHOT_JS_SUFFIX}`)
+        )
+      }
     })
 
     // the `ts/solid` target's, `tsc`-checked by `typescript.test.ts`

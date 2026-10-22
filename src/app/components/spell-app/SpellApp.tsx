@@ -396,8 +396,9 @@ const SCOPES_JS = ".scopes.js"
 const DECLARATIONS_JSON = ".declarations.json5"
 
 /**
- * End of a project's words file's name, in its own language:  `SP.wordsSuffixFor()`, e.g. `.en.js`, `.es.js`.
- * - `{lang}` is filled in from its declarations when the words load (`SpellAppRunner`'s `inLanguage()`).
+ * End of a project's words file's name, in one of its languages:  `SP.wordsSuffixFor()`, e.g. `.en.js`, `.es.js`.
+ * - `{lang}` is filled in with each language its declarations name when the words load
+ *   (`SpellAppRunner`'s `wordsInLanguages()`):  a project mixing languages has a file in each (epic `spanish` P19).
  */
 const WORDS_JS = ".{lang}.js"
 

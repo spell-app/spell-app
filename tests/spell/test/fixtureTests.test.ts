@@ -1,16 +1,16 @@
 import { describe, expect, test } from "vite-plus/test"
 
 import * as SC from "spell-lang/core"
-import { compiledFixture, fixtureLanguage, fixtureProjectNames } from "spell-app/spaces/test"
+import { compiledFixture, fixtureLanguages, fixtureProjectNames } from "spell-app/spaces/test"
 
 /**
- * A fixture written in another language than English runs its own spell tests, and they all pass (epic `spanish`).
+ * A fixture with files in another language than English runs its own spell tests, and they all pass (epic `spanish`).
  * - So a Spanish program doesn't only compile:  `la carta es la reina de espadas` is true of the queen of spades.
  * - Each fixture compiled as `compiledFixture()` does, then run on the core, as a runner would.
  * - Every `esperar que ...` of every test must pass;  a failing one is listed with its test.
  */
 describe("fixtures in other languages pass their own tests", () => {
-  for (const name of fixtureProjectNames().filter((name) => fixtureLanguage(name) !== "en")) {
+  for (const name of fixtureProjectNames().filter((name) => fixtureLanguages(name).some((lang) => lang !== "en"))) {
     test(name, () => {
       expect(failedChecks(name)).toEqual([])
     })

@@ -35,8 +35,10 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   const compiled = project.outputFile.contents ?? ""
   // where the Type Explorer finds each declaration's code -- see `SP.SpellDeclarations`
   const declarations = project.declarationsFile.contents ?? ""
-  // what the Thing Explorer labels members by -- see `SP.SpellWords`
-  const words = project.wordsFile.contents ?? ""
+  // what the Thing Explorer labels members by, a file per language its files are in -- see `SP.SpellWords`
+  const words = new Map<string, string>(
+    project.wordsFiles.map((file) => [`/app/${file.location.file}`, file.contents ?? ""])
+  )
   // the explorer shows each imported project's own parse
   await session.workspace.track(project)
   for (const imported of LSP.ScopeExplorer.importedProjects(project)) await session.workspace.track(imported)
@@ -45,11 +47,11 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
     Object.entries(CLI.importedOutputs(project)).flatMap(([id, url]) => {
       const name = id.slice(id.lastIndexOf("/") + 1)
       // its words are beside its spell files, not necessarily beside its compiled javascript
-      const wordsPath = new SP.SpellProject(id).wordsFile.location.serverPath
+      const wordsPaths = new SP.SpellProject(id).wordsFiles.map((file) => file.location.serverPath)
       return [
         [`/app/${name}${SP.COMPILED_JS_SUFFIX}`, fileURLToPath(url)],
-        // by its own name, in its own language:  `cards.en.js`
-        [`/app/${wordsPath.slice(wordsPath.lastIndexOf("/") + 1)}`, wordsPath]
+        // by its own name, in each of its languages:  `cards.en.js`
+        ...wordsPaths.map((path) => [`/app/${path.slice(path.lastIndexOf("/") + 1)}`, path] as [string, string])
       ]
     })
   )
@@ -60,8 +62,8 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
     if (path === `/app/${name}${SP.COMPILED_JS_SUFFIX}`) return { text: compiled, type: "text/javascript" }
     if (path === `/app/${name}${SP.SCOPES_JS_SUFFIX}`) return { text: scopes, type: "text/javascript" }
     if (path === `/app/${name}${SP.DECLARATIONS_JSON_SUFFIX}`) return { text: declarations, type: "application/json" }
-    if (path === `/app/${name}${SP.wordsSuffixFor(project.language.lang)}`)
-      return { text: words, type: "text/javascript" }
+    const ownWords = words.get(path)
+    if (ownWords !== undefined) return { text: ownWords, type: "text/javascript" }
     const imported = imports.get(path)
     if (imported) return { file: imported }
     return element(path)

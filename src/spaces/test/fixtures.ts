@@ -102,17 +102,23 @@ export function fixtureDeclarations(projectName: string): string {
   return JSON.stringify(compileFixture(projectName).declarations, null, 2) + "\n"
 }
 
-/** The human language fixture `projectName` is written in, from its project file:  `en` when it names none. */
-export function fixtureLanguage(projectName: string): string {
-  return readProjectFile(fixturePath(projectName)).language ?? "en"
+/**
+ * The human languages fixture `projectName`'s files are written in, by their names, the one it speaks first:
+ * `["es"]` for `cartas`, whose files are `Carta.es.spell` ... -- see `SP.SpellDeclarations.languagesOf()`.
+ * - It has a words file in each:  `fixtureWords()`.
+ */
+export function fixtureLanguages(projectName: string): string[] {
+  return SP.SpellDeclarations.languagesOf(compileFixture(projectName).declarations)
 }
 
 /**
- * Fixture `projectName`'s words, as its `<Project>.<lang>.js` would hold them (`cards.en.js`, `cartas.es.js`):
+ * Fixture `projectName`'s words in `lang`, as its `<Project>.<lang>.js` would hold them (`cards.en.js`, `cartas.es.js`):
  * from its declarations, by javascript's names -- see `SP.SpellWords`.
+ * - `lang`:  the one it speaks, by default (`fixtureLanguages()`).
  */
-export function fixtureWords(projectName: string): string {
-  return SP.SpellWords.script(SP.SpellWords.of(compileFixture(projectName).declarations), projectName)
+export function fixtureWords(projectName: string, lang = fixtureLanguages(projectName)[0]!): string {
+  const words = SP.SpellWords.of(compileFixture(projectName).declarations, P.JSWriter.instance, lang)
+  return SP.SpellWords.script(words, projectName)
 }
 
 /**
@@ -133,9 +139,12 @@ function compileFixture(
   target: string | P.ProgramWriter = SP.RUNNING_TARGET
 ): { code: string; declarations: SP.SpellDeclarationsData; draws: boolean } {
   const projectDir = fixturePath(projectName)
-  const { version, exports, imports, listsStartAt, language } = readProjectFile(projectDir)
+  const { version, exports, imports, listsStartAt } = readProjectFile(projectDir)
   const parentScope = fixtureImportScope(projectName)
-  const { scope, files } = parseSpellProject(loadFixtureProject(projectName), { parentScope })
+  const sources = loadFixtureProject(projectName)
+  // each file's language, by its name:  `Carta.es.spell` is Spanish (epic `spanish` P19)
+  const languages = [...new Set(sources.map(({ path }) => SP.Language.forFile(path).lang))]
+  const { scope, files } = parseSpellProject(sources, { parentScope })
   const errors = files.flatMap(({ path, errors }) => errors.map((error) => `// PARSE ERROR ${path}:${error}\n`))
   const parts = imports
     .filter(({ path, active }) => active !== false && /\.(spell|css)$/.test(path))
@@ -151,7 +160,7 @@ function compileFixture(
     scope.parser!.inPlay(() => SP.SpellProject.combineCompiled(parts, writer, importLines, scope, { listsStartAt })) +
     "\n"
   return {
-    ...SP.SpellDeclarations.split(marked, scope, { version, exports, language }),
+    ...SP.SpellDeclarations.split(marked, scope, { version, exports, languages }),
     draws: SP.SpellProject.draws(parts)
   }
 }
@@ -190,8 +199,9 @@ function fixtureImportScope(projectName: string): P.Scope {
     const projectId = SP.SpellProject.projectIdForImport(path)
     return { from: path, projectId, declarations: compileFixture(fixture).declarations, import: picks, module }
   })
-  // the fixture's language's root:  its project file says which, English if none
-  const root = SP.Language.for(readProjectFile(fixturePath(projectName)).language).rootScope
+  // the root of its files' languages, by their names:  Spanish's for `Carta.es.spell` (epic `spanish` P19)
+  const languages = loadFixtureProject(projectName).map(({ path }) => SP.Language.forFile(path))
+  const root = SP.Language.rootScopeFor([...new Set(languages)])
   return loaded.length ? SP.SpellDeclarations.importScope(root, loaded) : root
 }
 
@@ -221,7 +231,6 @@ function readProjectFile(projectDir: string): {
   exports?: string[]
   imports: Array<{ path: string; active?: boolean; import?: string[] }>
   listsStartAt?: 0 | 1
-  language?: string
 } {
   return JSON5.parse(readFileSync(projectFileFor(projectDir), "utf8"))
 }

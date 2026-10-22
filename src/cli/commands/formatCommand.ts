@@ -23,7 +23,7 @@ export async function formatCommand(
   for (const resolved of await session.projects(args)) {
     const project = resolved.kind === "file" ? resolved.file.project : resolved.project
     await session.parse(project)
-    const spellFiles = project.spellFiles.filter((it) => it.location.extension === ".spell")
+    const spellFiles = project.spellFiles.filter((it) => it.location.isSpellFile)
     files.push(...(resolved.kind === "file" ? spellFiles.filter((it) => it.path === resolved.file.path) : spellFiles))
   }
   if (!options.check) {

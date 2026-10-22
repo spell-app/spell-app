@@ -370,7 +370,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  const { title, version, exports, targets, listsStartAt, language } = importsFile
+  const { title, version, exports, targets, listsStartAt } = importsFile
   const buildFolder = buildFolderInBuild(projectId)
   return {
     imports: importsFile.imports,
@@ -380,7 +380,6 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
     exports,
     targets,
     listsStartAt,
-    language,
     buildFolder
   }
 }

@@ -52,7 +52,12 @@ export type CompiledDeclarations = {
   statements: MarkerDeclaration[]
   /** Where each statement's code starts in the compiled javascript:  its line, from 0. */
   codeLines?: number[]
-  /** The human language the project is written in, e.g. `es`;  missing for English. */
+  /**
+   * The human languages the project's files are written in, the one it speaks first, e.g. `["es", "en"]`;
+   * missing for English alone -- see `SP.SpellDeclarationsData.languages`.
+   */
+  languages?: string[]
+  /** DEPRECATED:  the ONE language of declarations from before epic `spanish` P19 -- read, never written. */
   language?: string
 }
 

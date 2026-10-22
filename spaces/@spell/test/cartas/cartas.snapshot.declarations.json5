@@ -1,6 +1,8 @@
 {
   "spellVersion": "0.8.0",
-  "language": "es",
+  "languages": [
+    "es"
+  ],
   "provides": [
     "Carta",
     "Mazo",
@@ -13,7 +15,7 @@
       "type": "Carta",
       "superType": "Thing",
       "gender": "feminine",
-      "defined": "/Carta.spell:71-92"
+      "defined": "/Carta.es.spell:71-92"
     },
     {
       "property": "rango",
@@ -34,7 +36,7 @@
         "reina",
         "rey"
       ],
-      "defined": "/Carta.spell:143-231"
+      "defined": "/Carta.es.spell:143-231"
     },
     {
       "property": "palo",
@@ -46,7 +48,7 @@
         "corazones",
         "espadas"
       ],
-      "defined": "/Carta.spell:252-330"
+      "defined": "/Carta.es.spell:252-330"
     },
     {
       "property": "color",
@@ -55,13 +57,13 @@
         "rojo",
         "negro"
       ],
-      "defined": "/Carta.spell:366-463"
+      "defined": "/Carta.es.spell:366-463"
     },
     {
       "property": "valor",
       "of": "Carta",
       "datatype": "number",
-      "defined": "/Carta.spell:500-567"
+      "defined": "/Carta.es.spell:500-567"
     },
     {
       "property": "dirección",
@@ -71,7 +73,7 @@
         "arriba",
         "abajo"
       ],
-      "defined": "/Carta.spell:611-667"
+      "defined": "/Carta.es.spell:611-667"
     },
     {
       "syntax": "{operator:is_or_is_not} boca arriba",
@@ -81,7 +83,7 @@
       "kind": "method",
       "name": "\"está boca arriba\"",
       "returns": "choice",
-      "defined": "/Carta.spell:717-771"
+      "defined": "/Carta.es.spell:717-771"
     },
     {
       "syntax": "{operator:is_or_is_not} boca abajo",
@@ -91,7 +93,7 @@
       "kind": "method",
       "name": "\"está boca abajo\"",
       "returns": "choice",
-      "defined": "/Carta.spell:772-824"
+      "defined": "/Carta.es.spell:772-824"
     },
     {
       "syntax": "{operator:is_or_is_not_a} figura",
@@ -101,7 +103,7 @@
       "kind": "method",
       "name": "\"es una figura\"",
       "returns": "choice",
-      "defined": "/Carta.spell:853-918"
+      "defined": "/Carta.es.spell:853-918"
     },
     {
       "syntax": "{operator:is_or_is_not_a} (expression:trébol|diamante|corazón|espada)",
@@ -118,7 +120,7 @@
           "espadas"
         ]
       },
-      "defined": "/Carta.spell:971-1010"
+      "defined": "/Carta.es.spell:971-1010"
     },
     {
       "syntax": "{operator:is_or_is_not_a} (expression:as|2|3|4|5|6|7|8|9|10|jota|reina|rey)",
@@ -144,7 +146,7 @@
           "rey"
         ]
       },
-      "defined": "/Carta.spell:1058-1099"
+      "defined": "/Carta.es.spell:1058-1099"
     },
     {
       "syntax": "{operator:is_or_is_not} {definite_article} (expression:as|2|3|4|5|6|7|8|9|10|jota|reina|rey) de (expression:tréboles|diamantes|corazones|espadas)",
@@ -176,47 +178,47 @@
           "espadas"
         ]
       },
-      "defined": "/Carta.spell:1141-1205"
+      "defined": "/Carta.es.spell:1141-1205"
     },
     {
       "property": "nombre",
       "of": "Carta",
       "datatype": "text",
-      "defined": "/Carta.spell:1249-1303"
+      "defined": "/Carta.es.spell:1249-1303"
     },
     {
       "property": "palo_corto",
       "asWritten": "palo corto",
       "of": "Carta",
       "datatype": "text",
-      "defined": "/Carta.spell:1305-1513"
+      "defined": "/Carta.es.spell:1305-1513"
     },
     {
       "property": "rango_corto",
       "asWritten": "rango corto",
       "of": "Carta",
       "datatype": "text",
-      "defined": "/Carta.spell:1515-1686"
+      "defined": "/Carta.es.spell:1515-1686"
     },
     {
       "property": "dirección_corta",
       "asWritten": "dirección corta",
       "of": "Carta",
       "datatype": "text",
-      "defined": "/Carta.spell:1688-1777"
+      "defined": "/Carta.es.spell:1688-1777"
     },
     {
       "property": "nombre_corto",
       "asWritten": "nombre corto",
       "of": "Carta",
       "datatype": "text",
-      "defined": "/Carta.spell:1779-1842"
+      "defined": "/Carta.es.spell:1779-1842"
     },
     {
       "property": "estado",
       "of": "Carta",
       "datatype": "text",
-      "defined": "/Carta.spell:1844-1922"
+      "defined": "/Carta.es.spell:1844-1922"
     },
     {
       "syntax": "voltear {thisArg:expression} boca arriba",
@@ -230,7 +232,7 @@
       "kind": "method",
       "name": "voltear una carta boca arriba",
       "waits": true,
-      "defined": "/Carta.spell:2044-2124"
+      "defined": "/Carta.es.spell:2044-2124"
     },
     {
       "syntax": "voltear {thisArg:expression} boca abajo",
@@ -244,7 +246,7 @@
       "kind": "method",
       "name": "voltear una carta boca abajo",
       "waits": true,
-      "defined": "/Carta.spell:2125-2203"
+      "defined": "/Carta.es.spell:2125-2203"
     },
     {
       "syntax": "dar la vuelta a {thisArg:expression}",
@@ -258,7 +260,7 @@
       "kind": "method",
       "name": "dar la vuelta a una carta",
       "waits": true,
-      "defined": "/Carta.spell:2235-2385"
+      "defined": "/Carta.es.spell:2235-2385"
     },
     {
       "syntax": "dibujar {thisArg:expression}",
@@ -271,7 +273,7 @@
       ],
       "kind": "method",
       "name": "dibujar una carta",
-      "defined": "/Carta.spell:2387-2898"
+      "defined": "/Carta.es.spell:2387-2898"
     },
     {
       "syntax": "probar la carta",
@@ -280,14 +282,14 @@
       "alias": "statement",
       "kind": "function",
       "name": "la carta",
-      "defined": "/Carta.spell:2933-4180"
+      "defined": "/Carta.es.spell:2933-4180"
     },
     {
       "type": "Mazo",
       "superType": "List",
       "gender": "masculine",
       "itemType": "Carta",
-      "defined": "/Mazo.spell:65-95"
+      "defined": "/Mazo.es.spell:65-95"
     },
     {
       "syntax": "preparar {thisArg:expression}",
@@ -301,7 +303,7 @@
       "kind": "method",
       "name": "preparar un mazo",
       "returns": "nothing",
-      "defined": "/Mazo.spell:97-364"
+      "defined": "/Mazo.es.spell:97-364"
     },
     {
       "syntax": "mostrar {thisArg:expression}",
@@ -314,7 +316,7 @@
       ],
       "kind": "method",
       "name": "mostrar un mazo",
-      "defined": "/Mazo.spell:366-549"
+      "defined": "/Mazo.es.spell:366-549"
     },
     {
       "property": "está_preparado",
@@ -322,7 +324,7 @@
       "of": "Mazo",
       "datatype": "choice",
       "autoDeclared": true,
-      "defined": "/Mazo.spell:327-364"
+      "defined": "/Mazo.es.spell:327-364"
     },
     {
       "syntax": "probar la creación del mazo",
@@ -331,38 +333,38 @@
       "alias": "statement",
       "kind": "function",
       "name": "la creación del mazo",
-      "defined": "/Mazo.spell:551-1142"
+      "defined": "/Mazo.es.spell:551-1142"
     },
     {
       "type": "Pila",
       "superType": "List",
       "gender": "feminine",
       "itemType": "Carta",
-      "defined": "/Pila.spell:18-49"
+      "defined": "/Pila.es.spell:18-49"
     },
     {
       "property": "color",
       "of": "Pila",
-      "defined": "/Pila.spell:166-270"
+      "defined": "/Pila.es.spell:166-270"
     },
     {
       "property": "valor",
       "of": "Pila",
       "datatype": "number",
-      "defined": "/Pila.spell:272-368"
+      "defined": "/Pila.es.spell:272-368"
     },
     {
       "property": "estado",
       "of": "Pila",
       "datatype": "text",
-      "defined": "/Pila.spell:370-548"
+      "defined": "/Pila.es.spell:370-548"
     },
     {
       "property": "pila",
       "of": "Carta",
       "datatype": "Pila",
       "exclusive": true,
-      "defined": "/Pila.spell:134-164"
+      "defined": "/Pila.es.spell:134-164"
     }
   ],
   "codeLines": [

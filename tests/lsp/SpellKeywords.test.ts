@@ -96,12 +96,12 @@ describe("SpellKeywords", () => {
 
 /**
  * The language service over a project written in Spanish:  a temp copy of the frozen `cartas` project
- * (`language: "es"`), so edits never touch the repo.
+ * (its files `Carta.es.spell` ...), so edits never touch the repo.
  */
 describe("SpellLanguageService, in Spanish", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-es-"))
   cpSync(fixturePath("cartas"), resolve(dir, "cartas"), { recursive: true })
-  const mazoPath = resolve(dir, "cartas/Mazo.spell")
+  const mazoPath = resolve(dir, "cartas/Mazo.es.spell")
   const mazoUri = pathToFileURL(mazoPath).href
   const mazoText = readFileSync(mazoPath, "utf8")
   const workspace = new SpellDiskWorkspace()
@@ -114,7 +114,7 @@ describe("SpellLanguageService, in Spanish", () => {
   })
 
   test("the project reads as Spanish, cleanly", () => {
-    expect(mazo.project.language).toBe(SP.spanish)
+    expect(mazo.project.languages).toEqual([SP.spanish])
     for (const file of mazo.project.spellFiles) expect(errorsIn(file), file.path).toEqual([])
   })
 
@@ -129,7 +129,7 @@ describe("SpellLanguageService, in Spanish", () => {
     expect(words).not.toContain("return")
   })
 
-  test("hover over a type names it, in the project's language (P13)", () => {
+  test("hover over a type names it, in the file's language (P13, P19)", () => {
     const line = mazoText.split("\n").findIndex((it) => it.startsWith("un mazo es una lista de cartas"))
     const hover = service.hover(mazo, { line, character: 4 })
     expect(JSON.stringify(hover?.contents)).toMatch(/tipo \*\*Mazo\*\*/)
@@ -167,7 +167,7 @@ describe("SpellLanguageService, in Spanish", () => {
     return service.diagnostics(file).filter(({ severity }) => severity === DiagnosticSeverity.Error)
   }
 
-  /** Run `check` with Mazo.spell's open text set to `text`, then ALWAYS put the original back. */
+  /** Run `check` with Mazo.es.spell's open text set to `text`, then ALWAYS put the original back. */
   async function withMazoText(text: string, check: () => void) {
     try {
       await workspace.update(mazoUri, text)

@@ -117,8 +117,11 @@ export type ProjectInfo = {
    * - NOT necessarily where its compiled javascript is:  ask for that by `compiledUri`.
    */
   folderUri: string
-  /** URI of its words, `<Project>.en.js`, beside its spell files -- whether or not it's been compiled yet. */
-  wordsUri: string
+  /**
+   * URIs of its words, `<Project>.en.js`, beside its spell files -- whether or not it's been compiled yet.
+   * - One per language its files are in, the one it speaks first (epic `spanish` P19):  `SP.SpellProject.wordsFiles`.
+   */
+  wordsUris: string[]
 }
 
 /**

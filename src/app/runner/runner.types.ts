@@ -13,13 +13,14 @@ import type { UI } from "spell-app/app/ui"
  * - `scopes`:  live scope tree to show in the Type Explorer, as the language server's `spell/scopes`
  * - `settings`:  the project's `settings.json5`, as the extension read it -- sent on `ready`, before anything else
  * - `details`:  answer to our `details` -- as the language server's `spell/scopeDetails`
- * - `words`:  the project's words file, `<Project>.en.js`, as text -- for the Thing Explorer's labels
+ * - `words`:  the project's words files, `<Project>.en.js`, as text -- for the Thing Explorer's labels
  *   - see `SP.SpellWords`
+ *   - one per language its files are in, the one it speaks first (epic `spanish` P19)
  *   - sent after each `run`;  `undefined` if it has none
  */
 export type ToRunnerMessage =
   | { type: "run"; compiled: string }
-  | { type: "words"; words?: string }
+  | { type: "words"; words?: string[] }
   | { type: "scopes"; tree: LSP.ScopeNode }
   | { type: "settings"; settings: ProjectSettings }
   | { type: "details"; path: string; details: LSP.ScopeDetails | null }
