@@ -24,7 +24,7 @@ The same code runs that calculator in three places:  in this element, in the edi
 and in VS Code's Run Project panel.
 It all lives in [src/app/](src/app/), Spell's editor:
 the web app where you write Spell on one side and watch it run on the other.
-It's [Solid](https://docs.solidjs.com/) 2 on [Spell UI](../spell-ui/README.md)'s components,
+It's [Solid](https://docs.solidjs.com/) 2 on [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s components,
 with [Monaco](https://microsoft.github.io/monaco-editor/) for the text.
 
 Its server isn't in this folder:  it's [spaces'](README-spaces.md#the-servers--an-api-that-nothing-starts),
@@ -54,11 +54,11 @@ _Three hosts, one runner:  every program runs on a copy of the runtime, never on
 ## Four elements, for any page
 
 Each one is a real tag, with attributes, events and a script API,
-written on [the kit's element framework](../README-element.md);
+written on [the kit's element framework](https://github.com/spell-app/spell-kit/blob/main/README-element.md);
 each has a folder of its own in [src/app/components/](src/app/components/).
 So a plain HTML page can hold one, as the demos below do.
 Inside a framework's page is another matter:  Spell UI's `<ui-dropdown>` has been checked in React, Solid and Vue
-([Spell UI and frameworks](../spell-ui/README-frameworks.md)), and these four haven't been yet.
+([Spell UI and frameworks](https://github.com/spell-app/spell-ui/blob/main/README-frameworks.md)), and these four haven't been yet.
 
 | Tag | What it does | What you set |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ their styles and headings left out._
   Two apps may follow one editor;  an app that names only its editor waits for the editor's first compile.
 - On a page with Spell UI of its own, like a docs page, they use that page's Solid and Spell UI core:
   never a second copy.
-  How a component pack loads, and why one Solid matters:  [the element framework](../README-element.md),
+  How a component pack loads, and why one Solid matters:  [the element framework](https://github.com/spell-app/spell-kit/blob/main/README-element.md),
   "Packs and `<ui-root>`".
 
 Where it stops:
@@ -235,7 +235,7 @@ The edges:
 
 ### Every program gets its own runtime
 
-Programs run on `spell-runtime.js`, a copy of [spell-lang's core](../spell-lang/README-core.md) built into each bundle,
+Programs run on `spell-runtime.js`, a copy of [spell-lang's core](https://github.com/spell-app/spell-lang/blob/main/README-core.md) built into each bundle,
 never on one the page itself imported.
 Each `<spell-app>` loads a copy of its own.
 
@@ -283,7 +283,7 @@ It starts afresh instead, and says why on the console, when:
 
 And a run that throws doesn't cost you the game:
 the next good compile carries over the things of the last run that finished.
-How a thing comes over (a property added, dropped or retyped):  [spell-lang's core](../spell-lang/README-core.md).
+How a thing comes over (a property added, dropped or retyped):  [spell-lang's core](https://github.com/spell-app/spell-lang/blob/main/README-core.md).
 
 ### A drawable thing is its own element
 
@@ -403,7 +403,7 @@ All of its state, and everything it does, lives in ONE object, `editor`:  its st
 The panes read it;  the buttons and the keys call it, and do nothing else.
 
 If you know React, there's no `useStore` hook and no selector.
-`editor`'s fields are cells, from [the kit's reactive engine](../README-util.md):  values that know who read them.
+`editor`'s fields are cells, from [the kit's reactive engine](https://github.com/spell-app/spell-kit/blob/main/README-util.md):  values that know who read them.
 A bridge makes Solid follow them, so a pane that reads `editor.project` draws again when it changes,
 and a read right after a write sees the new value.
 The panes themselves are Solid, which looks like React in JSX but runs a component once:
@@ -564,12 +564,12 @@ It's 31 pages in seven groups, from the four web components through the panes an
   - Only `spellRuntime.ts` imports `spell-lang/core` as a value:
     anywhere else, it lands in a chunk every app on the page shares, and the build tests fail.
 - The rest of the folder's rules:  [app's AGENTS.md](src/app/AGENTS.md).
-  The checks every repo shares:  [README-development.md](../README-development.md).
+  The checks every repo shares:  [README-development.md](https://github.com/spell-app/spell-kit/blob/main/README-development.md).
 
 ## See also
 
 - [The Spell app](README.md):  this repo's front page, with the live loop drawn for people who don't program
 - [Spaces](README-spaces.md):  where the projects come from, and the server the editor saves through
-- [The element framework](../README-element.md):  what all four elements are written on, and how a pack loads
+- [The element framework](https://github.com/spell-app/spell-kit/blob/main/README-element.md):  what all four elements are written on, and how a pack loads
 - [The language server](README-lsp.md):  the service Monaco asks in the page, and VS Code asks over stdio
-- [Spell in VS Code](../README-vscode.md):  Run Project, the third place the runner runs
+- [Spell in VS Code](https://github.com/spell-app/spell-kit/blob/main/README-vscode.md):  Run Project, the third place the runner runs

@@ -339,11 +339,6 @@
       "/_brand/assets/": "../spell-brand/assets"
     }
   },
-  "shared": {
-    "links": [
-      "agents"
-    ]
-  },
   "spell": {
     "commands": "./src/cli/commands.ts",
     "hooks": "./src/cli/hooks.ts"

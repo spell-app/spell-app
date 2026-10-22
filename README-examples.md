@@ -49,14 +49,14 @@ They're two groups in Spell's own space:
 
 ### Opening one
 
-With Spell set up ([setup from zero](../README.md#setup-from-zero)) and `spell` on your PATH
-([setting it up](../README-cli.md#setting-it-up)), one command opens the editor on an example:
+With Spell set up ([setup from zero](https://github.com/spell-app/spell-kit/blob/main/README.md#setup-from-zero)) and `spell` on your PATH
+([setting it up](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#setting-it-up)), one command opens the editor on an example:
 
 ```sh
 spell app serve @spell/examples/calculator
 ```
 
-- It opens your browser on the example, until Ctrl-C ([its options](../README-cli.md#spell-app)).
+- It opens your browser on the example, until Ctrl-C ([its options](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app)).
 - In the editor, **Open or Create...** in the top bar lists every project, these among them.
 - `/run/` in place of `/edit/` shows the app alone, full size, with its console
   ([the editor's routes](README-app.md#the-editor--one-object-behind-every-pane)).
@@ -250,7 +250,7 @@ spell run @spell/examples/fizzbuzz
 # 100 buzz
 ```
 
-With `--target py`, the same hundred lines come from Python ([the targets](../spell-lang/README-targets.md)).
+With `--target py`, the same hundred lines come from Python ([the targets](https://github.com/spell-app/spell-lang/blob/main/README-targets.md)).
 
 <details>
 <summary>What it compiles to, in JavaScript</summary>
@@ -272,7 +272,7 @@ playFizzbuzz()
 
 - From `spell compile @spell/examples/fizzbuzz --stdout`, its import line left out.
 - The new phrase is a function, `playFizzbuzz()`;  "the number" is the loop's `number`.
-- `core` is [the runtime](../spell-lang/README-core.md) compiled Spell runs on.
+- `core` is [the runtime](https://github.com/spell-app/spell-lang/blob/main/README-core.md) compiled Spell runs on.
 
 </details>
 
@@ -335,7 +335,7 @@ export class TodosApp extends App {
 
 </details>
 
-Then how it draws, with [Spell UI](../spell-ui/README.md)'s elements, where a click runs a line of Spell:
+Then how it draws, with [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s elements, where a click runs a line of Spell:
 
 ```spell
 <ui-item onClick={set the filter of the app to "active"} selected={the filter of the app is "active"}>Active</ui-item>
@@ -411,7 +411,7 @@ a "deck" is a list of cards with:
 
 - The same sentences as the to-do list's, without "a deck" at the start of every line.
 - It isn't a second language:  the bullets are more ways to write the same rules
-  ([the language, sentence by sentence](../spell-lang/README-spell.md)).
+  ([the language, sentence by sentence](https://github.com/spell-app/spell-lang/blob/main/README-spell.md)).
 - `2 ... 10` is every rank between:  the deck's test counts 52 cards.
 - `##` lines are headings, as in Markdown:  comments a person reads, which the editor shows in bold.
 
@@ -464,7 +464,7 @@ spell test @spell/examples/outline-solitaire
 ```
 
 🌱 Beside its Card.spell sits Card.spell-es, a card in Spanish, which the project leaves out:
-no rules read Spanish yet ([spell-lang](../spell-lang/README.md)).
+no rules read Spanish yet ([spell-lang](https://github.com/spell-app/spell-lang/blob/main/README.md)).
 
 <img src="docs/images/examples/outline-solitaire.png" width="640" alt="Outline Solitaire open in the Spell editor:  Deck.spell on the left, Klondike on the right, each card a Unicode playing card">
 
@@ -552,9 +552,9 @@ spell app create Flashcards
 ## The frozen test projects
 
 FizzBuzz, the to-do list and both solitaires have frozen twins in spell-lang,
-[`@spell/test`](../spell-lang/tests/spaces/@spell/test/),
+[`@spell/test`](https://github.com/spell-app/spell-lang/tree/main/tests/spaces/@spell/test),
 which Spell's own tests compile and compare line for line
-([how they're checked](../spell-lang/README-spell.md#the-frozen-test-projects)).
+([how they're checked](https://github.com/spell-app/spell-lang/blob/main/README-spell.md#the-frozen-test-projects)).
 Open them like any other project (`/edit/@spell/test/fizzbuzz`), but change the examples here instead:
 even `spell format` leaves the test projects alone.
 
@@ -563,9 +563,9 @@ even `spell format` leaves the test projects alone.
 - [The editor and the runners](README-app.md):  how the editor runs an example as you type,
   and keeps a game going across an edit
 - [Spaces](README-spaces.md):  addresses, your own space, and importing a library into a project
-- [The language, sentence by sentence](../spell-lang/README-spell.md):  every kind of sentence these examples use,
+- [The language, sentence by sentence](https://github.com/spell-app/spell-lang/blob/main/README-spell.md):  every kind of sentence these examples use,
   and how the frozen test projects are checked
-- [spell-app's commands](../README-cli.md#spell-app):  `spell app create`, `spell app serve` and `spell projects`,
+- [spell-app's commands](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app):  `spell app create`, `spell app serve` and `spell projects`,
   in full
-- [Spell UI's components](../spell-ui/README-components.md):
+- [Spell UI's components](https://github.com/spell-app/spell-ui/blob/main/README-components.md):
   the `<ui-*>` elements the to-do list and Outline Solitaire draw with

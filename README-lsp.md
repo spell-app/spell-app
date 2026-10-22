@@ -154,7 +154,7 @@ For every window with a `.spell` file open, it starts [server.ts](src/lsp/server
 over standard input and output.
 That file is the only one it runs:  a checkout without it gets an error naming the file, and no server.
 Which checkout it picks, and pointing it at another with `spell.parserRoot`:
-[the kit's VS Code page](../README-vscode.md#which-checkout-it-runs),
+[the kit's VS Code page](https://github.com/spell-app/spell-kit/blob/main/README-vscode.md#which-checkout-it-runs),
 with installing the extension, its settings and hacking on it.
 
 Start the server yourself, the way an editor would, in spell-app's folder:
@@ -198,7 +198,7 @@ spell explain suit --in .
 _The hover from the top of the page, in a terminal:  the same method, over the line that declares `suit`._
 
 - The commands are spell-lang's, but their work is spell-app's for now, through a hook:
-  [the command line's page](../README-cli.md#spell-lang) has each one.
+  [the command line's page](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-lang) has each one.
 
 ## It reads the parse the compiler already made
 
@@ -217,12 +217,12 @@ The service is a set of readers over that record.
 - Positions come from offsets into the file's text, never a token's line and column:
   offsets are what the incremental parse keeps exact.
   A character is a UTF-16 code unit, the protocol's default.
-- How the parse builds scope, and re-parses after an edit:  [spell-lang's parser page](../spell-lang/README-parser.md);
-  the service's side, "Language server" in [spell-lang's PARSING.md](../spell-lang/src/spell/PARSING.md).
+- How the parse builds scope, and re-parses after an edit:  [spell-lang's parser page](https://github.com/spell-app/spell-lang/blob/main/README-parser.md);
+  the service's side, "Language server" in [spell-lang's PARSING.md](https://github.com/spell-app/spell-lang/blob/main/src/spell/PARSING.md).
 
 The one reader that isn't the parser:  VS Code paints the first colours from a TextMate grammar,
 before the server answers, and the server's colours repaint them
-([the kit's VS Code page](../README-vscode.md)).
+([the kit's VS Code page](https://github.com/spell-app/spell-kit/blob/main/README-vscode.md)).
 
 ## One queue:  an answer never sees old text
 
@@ -420,7 +420,7 @@ its `path` saying where it sits in the tree._
 
 `spell lint` and `spell describe` are spell-lang's commands, but their work, and this service, live in spell-app
 today:  without spell-app, those commands say so and stop.
-Two of [the command line's plans](../README-cli.md#-coming) change that, neither started:
+Two of [the command line's plans](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#-coming) change that, neither started:
 the service moving down into spell-lang with the commands, one by one,
 and `spell lsp`, a command VS Code would start the server by instead of a `tsx` path.
 
@@ -462,8 +462,8 @@ yarn vp test run --project lsp                           # its tests:  131, in f
 ## See also
 
 - [The editor and the runners](README-app.md):  the browser editor, whose Monaco calls the service in the page
-- [The kit's VS Code page](../README-vscode.md):  installing the extension, its commands and settings,
+- [The kit's VS Code page](https://github.com/spell-app/spell-kit/blob/main/README-vscode.md):  installing the extension, its commands and settings,
   and which checkout's server a window runs
-- [spell-lang's parser page](../spell-lang/README-parser.md):  the parse every answer here is read from
-- [The command line](../README-cli.md#spell-lang):  the commands that share the service
+- [spell-lang's parser page](https://github.com/spell-app/spell-lang/blob/main/README-parser.md):  the parse every answer here is read from
+- [The command line](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-lang):  the commands that share the service
 - [Spaces](README-spaces.md):  where the disk workspace finds projects, and what an address is
