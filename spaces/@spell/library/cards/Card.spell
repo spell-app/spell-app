@@ -1,6 +1,7 @@
 ## A playing card -- in the outline style:  its name, then what's true of it
 // The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
-a "card" is a thing where:
+// A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
+a "card" is a drawable thing where:
 
 	## suits, ranks and colors:  the card's own kinds of values
 	- "suits" as one of clubs, diamonds, hearts or spades
@@ -62,14 +63,14 @@ a "card" is a thing where:
 		unicode 1F0C0 + its picture column if it is a diamond
 		unicode 1F0D0 + its picture column otherwise
 
-	## drawing:  its picture, face up or face down
-	- to "draw its front":
-		<ui-text class="Card" size="massive" color={its color} onClick={fire event card click with card = it}>
+	## drawing:  its picture face up, the back every card shares face down
+	- to draw it:
+		if it is face down
+			return <ui-text class="Card" size="massive" color="blue" onClick={fire event card click with card = it}>
+				{unicode 1F0A0}
+			</ui-text>
+		return <ui-text class="Card" size="massive" color={its color} onClick={fire event card click with card = it}>
 			{its picture}
-		</ui-text>
-	- to "draw its back":                           // the back every card shares
-		<ui-text class="Card" size="massive" color="blue" onClick={fire event card click with card = it}>
-			{unicode 1F0A0}
 		</ui-text>
 
 	## turning it over

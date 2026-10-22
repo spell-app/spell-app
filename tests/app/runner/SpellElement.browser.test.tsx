@@ -190,6 +190,40 @@ describe("SpellElement", () => {
       expect(labels(right!)).toEqual(["game-chip a"])
       root.remove()
     })
+
+    /** A heap with no drawing of its own:  its wrapper just the slot, each chip as itself. */
+    class Bare extends DrawableList<Chip> {
+      static elementTag = core.defineElement(this, "Game")
+      static instanceType = Chip
+    }
+    /** A heap that draws each chip in a spot of its own (`to draw each item`). */
+    class Spots extends DrawableList<Chip> {
+      static elementTag = core.defineElement(this, "Game")
+      static instanceType = Chip
+      drawEachItem(chip: Chip): ReturnType<Drawable["draw"]> {
+        const spot = h("div", { class: "spot" }, () => core.drawThing(chip))
+        return (spot as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+
+    test("by default its wrapper is just its slot;  `to draw each item` puts each chip in a spot, as its children (P20)", async () => {
+      const [bare, spots] = [new Bare(), new Spots()]
+      core.append(bare, new Chip("a"))
+      core.append(spots, new Chip("b"))
+      const root = document.createElement("div")
+      document.body.append(root)
+      const dispose = core.mountApp({ draw: () => [core.drawThing(bare), core.drawThing(spots)] }, root)
+      flush()
+      await ElementFixture.settle(root)
+      const [bareElement, spotsElement] = [root.querySelector("game-bare")!, root.querySelector("game-spots")!]
+      expect(bareElement.shadowRoot!.innerHTML).toContain("<slot></slot>")
+      expect([...bareElement.children].map((child) => child.localName)).toEqual(["game-chip"])
+      expect([...spotsElement.children].map((child) => child.outerHTML)).toEqual([
+        expect.stringMatching(/^<div class="spot"><game-chip[^>]*><\/game-chip><\/div>$/)
+      ])
+      dispose.unmount()
+      root.remove()
+    })
   })
 
   describe("a program run again swaps what's behind its tags (P7)", () => {

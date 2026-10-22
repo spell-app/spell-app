@@ -34,14 +34,14 @@ a "card" is a thing:
 	- its "short name" is: its short rank + its icon
 	- its "state" is: its short rank + its icon + its short direction
 
-	## drawing
-	- to "draw its front":
-		<div onClick={fire event card-click with card = it} className="Card face-up [rank] [suit] ui button compact fluid [color]">
+	## drawing:  ONE drawing, which checks its own direction
+	- to draw it:
+		if it is face down
+			return <div onClick={fire event card-click with card = it} className="Card face-down [rank] [suit] ui button compact fluid"><i className="fitted bicycle icon"/></div>
+		return <div onClick={fire event card-click with card = it} className="Card face-up [rank] [suit] ui button compact fluid [color]">
 			{its short rank + " "}
 			<span className="suit">{its icon}</span>
 		</div>
-	- to "draw its back":
-		<div onClick={fire event card-click with card = it} className="Card face-down [rank] [suit] ui button compact fluid"><i className="fitted bicycle icon"/></div>
 
 ## actions -- the sentence style, beside the outline
 

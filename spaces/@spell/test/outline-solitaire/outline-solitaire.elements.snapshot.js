@@ -135,8 +135,14 @@ export class Card extends Thing {
     return this.shortRank + this.icon + this.shortDirection
   }
 
-  /** drawing */
-  get front() {
+  /** drawing:  ONE drawing, which checks its own direction */
+  draw() {
+    if (this.isFaceDown) {
+      return h("div", {
+        class: () => `Card face-down ${this.rank} ${this.suit} ui button compact fluid`,
+        onClick: () => sendTrigger("card-click", { card: this })
+      }, h("i", { class: "fitted bicycle icon" }))
+    }
     return h("div", {
       class: () => `Card face-up ${this.rank} ${this.suit} ui button compact fluid ${this.color}`,
       onClick: () => sendTrigger("card-click", { card: this })
@@ -144,16 +150,6 @@ export class Card extends Thing {
       () => `${this.shortRank} `,
       h("span", { class: "suit" }, () => this.icon)
     )
-  }
-
-  get back() {
-    return h("div", {
-      class: () => `Card face-down ${this.rank} ${this.suit} ui button compact fluid`,
-      onClick: () => sendTrigger("card-click", { card: this })
-    }, h("i", { class: "fitted bicycle icon" }))
-  }
-  draw() {
-    return this.direction === "down" ? this.back : this.front
   }
 
   //## actions -- the sentence style, beside the outline

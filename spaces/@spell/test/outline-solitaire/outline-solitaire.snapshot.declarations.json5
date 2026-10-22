@@ -127,7 +127,7 @@
     {
       "type": "Card",
       "superType": "Thing",
-      "defined": "/Card.spell:84-1645"
+      "defined": "/Card.spell:84-1695"
     },
     {
       "property": "suit",
@@ -307,14 +307,17 @@
       "defined": "/Card.spell:1155-1218"
     },
     {
-      "property": "front",
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
       "of": "Card",
-      "defined": "/Card.spell:1235-1460"
-    },
-    {
-      "property": "back",
-      "of": "Card",
-      "defined": "/Card.spell:1464-1645"
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/Card.spell:1281-1695"
     },
     {
       "syntax": "turn {thisArg:expression} face up",
@@ -328,7 +331,7 @@
       "kind": "method",
       "name": "turn a card face up",
       "waits": true,
-      "defined": "/Card.spell:1806-1873"
+      "defined": "/Card.spell:1856-1923"
     },
     {
       "syntax": "turn {thisArg:expression} face down",
@@ -342,7 +345,7 @@
       "kind": "method",
       "name": "turn a card face down",
       "waits": true,
-      "defined": "/Card.spell:1874-1945"
+      "defined": "/Card.spell:1924-1995"
     },
     {
       "syntax": "turn {thisArg:expression} over",
@@ -356,7 +359,7 @@
       "kind": "method",
       "name": "turn a card over",
       "waits": true,
-      "defined": "/Card.spell:2053-2163"
+      "defined": "/Card.spell:2103-2213"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -379,7 +382,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spell:2215-3327"
+      "defined": "/Card.spell:2265-3377"
     },
     {
       "type": "Pile",
@@ -644,38 +647,37 @@
     145,
     149,
     154,
-    164,
-    180,
-    185,
-    194,
-    200,
-    237,
-    285,
-    288,
-    293,
-    298,
-    303,
-    308,
-    318,
-    335,
-    336,
-    341,
-    347,
-    391,
-    396,
-    405,
-    410,
-    416,
-    417,
-    437,
-    449,
-    459,
+    176,
+    181,
+    190,
+    196,
+    233,
+    281,
+    284,
+    289,
+    294,
+    299,
+    304,
+    314,
+    331,
+    332,
+    337,
+    343,
+    387,
+    392,
+    401,
+    406,
+    412,
+    413,
+    433,
+    445,
+    455,
+    516,
     520,
-    524,
-    533,
-    549,
-    587,
-    625,
-    630
+    529,
+    545,
+    583,
+    621,
+    626
   ]
 }

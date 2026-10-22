@@ -1,6 +1,7 @@
 ## A pile of cards, e.g. a game's stock or its discards
 // The game that uses these cards names its piles, and says what each kind of pile takes.
-a "pile" is a list of cards where:
+// A drawable list:  its element holds its cards' elements, e.g. `<cards-pile>` around `<cards-card>`s.
+a "pile" is a drawable list of cards where:
 	// what the game calls it, e.g. "stock"
 	- its "name" is text
 	// the color and value of its last card:  what the next card goes on

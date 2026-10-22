@@ -1,4 +1,4 @@
-import { For } from "solid-js"
+import { Show, For } from "solid-js"
 import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, trigger, position, on } from "@spell/core"
 
 core.heading("Deck:  US standard card deck (without jokers) -- in the outline style")
@@ -152,25 +152,24 @@ export class Card extends Thing {
     return this.shortRank + this.icon + this.shortDirection
   }
 
-  /** drawing */
-  @derived get front() {
-    return (
-      <div class={`Card face-up ${this.rank} ${this.suit} ui button compact fluid ${this.color}`} onClick={() => trigger("card-click", { card: this })}>
-        {`${this.shortRank} `}
-        <span class="suit">{this.icon}</span>
-      </div>
-    )
-  }
-
-  @derived get back() {
-    return (
-      <div class={`Card face-down ${this.rank} ${this.suit} ui button compact fluid`} onClick={() => trigger("card-click", { card: this })}>
-        <i class="fitted bicycle icon" />
-      </div>
-    )
-  }
+  /** drawing:  ONE drawing, which checks its own direction */
   @drawn draw() {
-    return this.direction === "down" ? this.back : this.front
+    const click = () => trigger("card-click", { card: this })
+    return (
+      <Show
+        when={this.isFaceDown}
+        fallback={
+          <div class={`Card face-up ${this.rank} ${this.suit} ui button compact fluid ${this.color}`} onClick={click}>
+            {`${this.shortRank} `}
+            <span class="suit">{this.icon}</span>
+          </div>
+        }
+      >
+        <div class={`Card face-down ${this.rank} ${this.suit} ui button compact fluid`} onClick={click}>
+          <i class="fitted bicycle icon" />
+        </div>
+      </Show>
+    )
   }
 
   //## actions -- the sentence style, beside the outline

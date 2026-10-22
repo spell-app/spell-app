@@ -140,6 +140,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * - Handed a thing:  our `id` is its name (`nameAfterHandedThing()`).
    * - Each of our type's properties stays the same on our thing and our element:  `keepThingAndElementAgreeing()`.
    * - A drawable list the page wrote puts its own items in, as its children:  in a layout, nothing else draws it.
+   *   Each is what its `to draw each item` draws (`core.drawItems()`), by default the item's own element.
    */
   onMount() {
     createEffect(

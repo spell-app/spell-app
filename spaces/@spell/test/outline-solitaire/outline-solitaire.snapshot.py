@@ -178,9 +178,17 @@ class Card(Thing):
     def state(self) -> str:
         return self.short_rank + self.icon + self.short_direction
 
-    @property
-    def front(self) -> Any:
-        """drawing"""
+    def draw(self) -> Any:
+        """drawing:  ONE drawing, which checks its own direction"""
+        if self.is_face_down:
+            return h(
+                "div",
+                {
+                    "class": f"Card face-down {self.rank} {self.suit} ui button compact fluid",
+                    "onClick": lambda event: core.trigger("card-click", card=self),
+                },
+                h("i", {"class": "fitted bicycle icon"}),
+            )
         return h(
             "div",
             {
@@ -190,20 +198,6 @@ class Card(Thing):
             f"{self.short_rank} ",
             h("span", {"class": "suit"}, self.icon),
         )
-
-    @property
-    def back(self) -> Any:
-        return h(
-            "div",
-            {
-                "class": f"Card face-down {self.rank} {self.suit} ui button compact fluid",
-                "onClick": lambda event: core.trigger("card-click", card=self),
-            },
-            h("i", {"class": "fitted bicycle icon"}),
-        )
-
-    def draw(self) -> Any:
-        return self.back if self.direction == "down" else self.front
 
     # actions -- the sentence style, beside the outline
 
