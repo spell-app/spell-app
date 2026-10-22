@@ -29,6 +29,7 @@ describe("projectChoices()", () => {
       "@spell/test/card-table/",
       "@spell/test/cards/",
       "@spell/test/cards-from-zero/",
+      "@spell/test/cartas/",
       "@spell/test/drawable-solitaire/",
       "@spell/test/fizzbuzz/",
       "@spell/test/klondike/",

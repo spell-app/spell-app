@@ -658,7 +658,7 @@ describe("spell projects", () => {
   test("lists the groups, each by its address", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@spell\/test +Test fixtures +11 projects$/m)
+    expect(stdout).toMatch(/^@spell\/test +Test fixtures +12 projects$/m)
     expect(stdout).toMatch(/^owen@spell +Projects /m)
   })
 
@@ -668,6 +668,7 @@ describe("spell projects", () => {
       { name: "card-table", id: "@spell/test/card-table" },
       { name: "cards", id: "@spell/test/cards" },
       { name: "cards-from-zero", id: "@spell/test/cards-from-zero" },
+      { name: "cartas", id: "@spell/test/cartas" },
       { name: "drawable-solitaire", id: "@spell/test/drawable-solitaire" },
       { name: "fizzbuzz", id: "@spell/test/fizzbuzz" },
       { name: "klondike", id: "@spell/test/klondike" },
