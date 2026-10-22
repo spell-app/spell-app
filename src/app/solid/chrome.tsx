@@ -1,7 +1,8 @@
 import { Show, omit } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Actions, on, type UIElementAttributes } from "spell-app/app/solid"
+import type { UIDropdownJSXAttributes, UIItemJSXAttributes, UIMenuJSXAttributes } from "spell-ui/jsx"
+import { Actions, on } from "spell-app/app/solid"
 
 import "./chrome.css"
 
@@ -50,7 +51,7 @@ export function PanelMenu(props: MenuProps) {
 }
 
 /** Props for `<AppMenu>` / `<PanelMenu>`:  any `<ui-menu>` attribute (`size`, `color` ...), its items as children. */
-export type MenuProps = UIElementAttributes
+export type MenuProps = UIMenuJSXAttributes
 
 /****************
  * ### `<Submenu>`
@@ -76,7 +77,7 @@ export function Submenu(props: SubmenuProps) {
 }
 
 /** Props for `<Submenu>`. */
-export type SubmenuProps = UIElementAttributes & {
+export type SubmenuProps = UIMenuJSXAttributes & {
   /** Left-aligned section -- a `33.3%` min-width, so left / center / right line up. */
   left?: boolean
   /** Center section -- a `33.3%` min-width, so left / center / right line up. */
@@ -91,7 +92,7 @@ export type SubmenuProps = UIElementAttributes & {
  * ### `<MenuHeader>`
  * Menu header item.
  ****************/
-export function MenuHeader(props: UIElementAttributes) {
+export function MenuHeader(props: UIItemJSXAttributes) {
   return (
     <ui-item type="header" {...omit(props, "children")}>
       {props.children}
@@ -103,7 +104,7 @@ export function MenuHeader(props: UIElementAttributes) {
  * ### `<Spring>`
  * Invisible, borderless menu item that eats up remaining space -- pushes its neighbors apart.
  ****************/
-export function Spring(props: UIElementAttributes) {
+export function Spring(props: UIItemJSXAttributes) {
   return <ui-item {...omit(props, "class")} class={["spring", "no-border", props.class]} />
 }
 
@@ -147,7 +148,7 @@ export function MoreMenu(props: MoreMenuProps) {
 }
 
 /** Props for `<MoreMenu>`:  these, plus any `<ui-dropdown>` attribute (`direction`, `pointing` ...). */
-export type MoreMenuProps = UIElementAttributes & {
+export type MoreMenuProps = UIDropdownJSXAttributes & {
   /** A disabled placeholder item instead of the real dropdown. */
   stub?: boolean
   /** Wrapped in a `<ui-item>`, to sit in a menu.  Default:  `true`. */
@@ -175,7 +176,7 @@ function choose(event: CustomEvent<{ value: string }>) {
  * ### `<DropdownLabel>`
  * Label that goes next to a dropdown in a menu, e.g. a project dropdown's "Project:".
  ****************/
-export function DropdownLabel(props: UIElementAttributes) {
+export function DropdownLabel(props: UIItemJSXAttributes) {
   return (
     <ui-item {...omit(props, "class", "children")} class={["dropdown-label", props.class]}>
       {props.children}

@@ -6,7 +6,7 @@
  *   - `cellsBridge.ts`:  SIDE EFFECT, Solid follows spell cells (spell Things, `SP.*`, the editor).
  *   - `tracked()`:  a memo over a read of spell state.
  *   - `on()`:  a `ref` listening for a `ui-*` event.
- *   - `solid.types.ts`:  `<ui-*>` tags in Solid JSX.
+ *   - `solid.types.ts`:  `<ui-*>` tags in Solid JSX, Spell UI's exact types (`spell-ui/jsx`).
  * - Shared UI:
  *   - `chrome.tsx`:  `AppMenu`, `PanelMenu`, `Submenu`, `MenuHeader`, `Spring`, `MoreMenu`, `DropdownLabel`,
  *     `ProjectActionsDropdown`, `FileActionsDropdown`, the icon names

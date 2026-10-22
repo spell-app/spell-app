@@ -1,9 +1,10 @@
 import { For, Show, createEffect, createMemo, createSignal, omit } from "solid-js"
 
 import { SP } from "spell-lang/spell"
+import type { UIMenuJSXAttributes } from "spell-ui/jsx"
 import { SPACES } from "spell-app/spaces"
 import { editor } from "spell-app/app/editor"
-import { DropdownLabel, PROJECT_ICON, on, tracked, type UIElementAttributes } from "spell-app/app/solid"
+import { DropdownLabel, PROJECT_ICON, on, tracked } from "spell-app/app/solid"
 
 import "./ProjectDropdown.css"
 
@@ -37,7 +38,7 @@ export function ProjectMenu(props: ProjectMenuProps) {
 }
 
 /** Props for `<ProjectMenu>`:  these, plus any `<ui-menu>` attribute. */
-export type ProjectMenuProps = UIElementAttributes & {
+export type ProjectMenuProps = UIMenuJSXAttributes & {
   /** Root whose projects to list.  Default:  `editor.projectRoot`. */
   projectRoot?: SPACES.SpellProjectRoot
   /** Open `<SpellRunner>` instead of `<SpellEditor>`. */
