@@ -195,6 +195,9 @@
         "dir": "app/docs",
         "assets": "../spell-ui/site/_assets"
       }
+    },
+    "engineRoutes": {
+      "/element/": "app/dist-element"
     }
   },
   "spell": {

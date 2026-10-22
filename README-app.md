@@ -87,6 +87,7 @@ _From the two demo pages, [spell-app.html](app/demo/spell-app.html) and [spell-e
 their styles and headings left out._
 
 - `/element/...` is the page server's:  it serves the app's `dist-element/`, which `yarn build:element` builds.
+  The epic server serves it too (the settings' `engineRoutes`), so App UI's pages find `spell.pack.js` there.
 - The demos are on the editor's own server, port 3000 when it's free:
   `/demo/spell-app.html`, `/demo/spell-editor.html`, and two more below.
   To see them, from spell-app's folder:  `yarn build:element`, then `yarn start`.

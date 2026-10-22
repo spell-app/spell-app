@@ -8,7 +8,8 @@
   ],
   "componentSets": {
     "app": { "name": "App UI", "dir": "app/docs", "assets": "../spell-ui/site/_assets" }
-  }
+  },
+  "engineRoutes": { "/element/": "app/dist-element" }
 }
 ```
 
@@ -16,16 +17,17 @@ _spell-app's whole part of the page server's settings, from its [package.json](p
 
 The page server is the kit's, and so is this page's old content:  every address, every setting, bundles, tabs, live
 reload and editing in place are on [the kit's README-server.md](https://github.com/spell-app/spell-kit/blob/main/README-server.md).
-spell-app brings only its own part, the three settings above, the way each repo does.
+spell-app brings only its own part, the four settings above, the way each repo does.
 The kit merges every installed repo's part as the server starts, each read from its own repo's folder.
 
-## What the three settings add
+## What the four settings add
 
 | Setting | What it adds |
 | --- | --- |
 | `routes` | the app's route module, [appRoutes.ts](src/spaces/server/node/routes/appRoutes.ts):  the editor, its API, the built-in projects' build (below) |
 | `pageScripts` | `spell-language.js`, which colours blocks of Spell on the docs pages;  not on the component sets' pages, and only while its file exists, so a checkout that hasn't run `yarn build:element` gets no 404 |
 | `componentSets` | App UI, the docs pages of the app's components, from [app/docs/](app/docs/), at `/components/app/` ([README-app.md](README-app.md)) |
+| `engineRoutes` | the editor's element bundles at `/element/`, from `app/dist-element/`, so the epic server serves them too, not only `appRoutes` |
 
 spell-app names no other repo's routes:  spell-epic, Spell UI and the content repo each declare their own.
 
