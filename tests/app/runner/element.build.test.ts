@@ -187,7 +187,9 @@ describe("runner builds", () => {
       const copy = join(element, "spell-solid-shared.page.mjs")
       writeFileSync(copy, text)
       const shared = (await import(pathToFileURL(copy).href)) as Record<string, unknown>
-      expect(Object.keys(shared).sort()).toEqual([...names].sort())
+      // less `$$moduleUrl`, which the Solid plugin adds to every module Vitest loads for the server, this one too
+      const exported = Object.keys(shared).filter((name) => name !== "$$moduleUrl")
+      expect(exported.sort()).toEqual([...names].sort())
       expect(shared.createSignal).toBe("page's createSignal")
       expect(shared.UIRoot).toBe("page's UIRoot")
       expect(shared.h).toBe("page's h")
@@ -340,11 +342,14 @@ function passesOnShared(dir: string, file: string, name: string): boolean {
   return !!local && imported.some((entry) => entry[0] === name && (entry[1] ?? entry[0]) === local)
 }
 
-/** Build `configs` into `outDir`, in order, as the `package.json` script does;  the first empties it. */
+/**
+ * Build `configs` into `outDir`, in order, as the `package.json` script does;  the first empties it.
+ * - With `vp`, the install's Vite:  it has no `vite` command, and `npx vite` would fetch another.
+ */
 function build(outDir: string, ...configs: string[]) {
   for (const [index, config] of configs.entries()) {
-    const args = ["vite", "build", "-c", config, "--outDir", outDir, "--logLevel", "silent"]
-    execFileSync("npx", index === 0 ? [...args, "--emptyOutDir"] : args, {
+    const args = ["build", "-c", config, "--outDir", outDir, "--logLevel", "silent"]
+    execFileSync("vp", index === 0 ? [...args, "--emptyOutDir"] : args, {
       // the package folder:  a root run has another working directory
       cwd: join(import.meta.dirname, "../../../app"),
       stdio: "pipe"

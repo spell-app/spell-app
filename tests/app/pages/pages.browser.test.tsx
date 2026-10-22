@@ -43,6 +43,8 @@ describe("routes", () => {
     ["/edit/@spell/examples/todos-form-based", "SpellEditor", "@spell/examples/todos-form-based"],
     ["/edit/@spell/examples/todos-form-based/todo.spell", "SpellEditor", "@spell/examples/todos-form-based/todo.spell"],
     ["/edit/owen@spell/my%20things/a%20b.spell", "SpellEditor", "owen@spell/my things/a b.spell"],
+    // decoded ONCE:  an encoded `%` stays a `%25` in the name
+    ["/edit/owen@spell/a%2525b.spell", "SpellEditor", "owen@spell/a%25b.spell"],
     ["/run/@spell/examples", "SpellRunner", "@spell/examples"],
     ["/run/@spell/examples/todos-form-based", "SpellRunner", "@spell/examples/todos-form-based"],
     // a page of the running app:  its app, until apps have pages

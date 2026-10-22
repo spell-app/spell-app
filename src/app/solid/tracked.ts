@@ -1,4 +1,6 @@
-import { createMemo, createRoot, getOwner, type Accessor } from "solid-js"
+import { createMemo, getOwner, type Accessor } from "solid-js"
+
+import { E } from "spell-kit/element"
 
 import "./cellsBridge"
 
@@ -24,7 +26,7 @@ import "./cellsBridge"
  */
 export function tracked<T>(read: () => T): TrackedAccessor<T> {
   if (getOwner()) return Object.assign(memoOf(read), { dispose: () => {} })
-  return createRoot((dispose) => Object.assign(memoOf(read), { dispose }))
+  return E.Reactive.ownRoot((dispose) => Object.assign(memoOf(read), { dispose }))
 }
 
 /** What `tracked()` returns:  the accessor, plus `dispose()` to stop tracking early (or with no owner). */

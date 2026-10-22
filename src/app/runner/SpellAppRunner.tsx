@@ -1,4 +1,4 @@
-import { Match, Show, Switch, createEffect, createSignal, onSettled, untrack } from "solid-js"
+import { Match, Show, Switch, createEffect, createSignal, getOwner, onSettled, runWithOwner, untrack } from "solid-js"
 
 import type { LSP } from "spell-app/lsp"
 import type { SP } from "spell-lang/spell"
@@ -49,6 +49,9 @@ import "./SpellAppRunner.css"
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/
 export function SpellAppRunner(props: SpellAppRunnerProps) {
+  // `run()` reads props from an effect's callback:  a conditional prop is a memo made on its first read, and
+  // since Solid rc.17 one made there needs an owner (`PRIMITIVE_IN_EFFECT_CALLBACK`)
+  const owner = getOwner()
   const [loaded, setLoaded] = createSignal<LoadedRuntime>()
   const [error, setError] = createSignal<string>()
   // Does the program draw an app?  Assume so until a run says.
@@ -109,7 +112,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   createEffect(
     () => [loaded(), props.source] as const,
     ([copy, source]) => {
-      if (copy) void run(copy, source, "keep things")
+      if (copy) void runWithOwner(owner, () => run(copy, source, "keep things"))
     }
   )
 
