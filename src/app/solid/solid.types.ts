@@ -13,6 +13,8 @@ declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {
       [tag: `ui-${string}`]: UIElementAttributes
+      // a Spanish program's Spell UI tags, `<es-boton>`:  the same elements, under `<ui-root lang="es">`
+      [tag: `es-${string}`]: UIElementAttributes
     }
   }
 }

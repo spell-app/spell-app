@@ -208,6 +208,12 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     lastSource = source
     // its own words first:  their `messages` are what the core says as it runs, e.g. its tests' lines in Spanish
     const own = await ownWords(source)
+    // a program in another language draws with that language's tags (`<es-boton>`):  Spell UI defines them first
+    if (own?.lang && own.lang !== "en") {
+      const { RootLoader } = await import("spell-ui/components/ui-root/RootLoader")
+      // oxlint-disable-next-line react-hooks/rules-of-hooks -- Spell UI's `useLanguage()` is no React hook
+      await RootLoader.useLanguage(own.lang)
+    }
     const ran = await runProgram(copy, source, appRoot, { layout: !!layout, keepThings, messages: own?.messages })
     compiledRef.current = ran.compiled
     setError(ran.error)
