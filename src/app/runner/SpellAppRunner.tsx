@@ -208,7 +208,8 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     const keepThings = how === "keep things" && isSameProgram(lastSource, source)
     lastSource = source
     // its own words first:  their `messages` are what the core says as it runs, e.g. its tests' lines in Spanish
-    const own = await ownWords(source)
+    // - awaited only when there are some to load:  else the last run's app goes at once, in the same tick, as before
+    const own = source.words || !source.wordsUrl ? source.words : await ownWords(source)
     // a program in another language draws with that language's tags (`<es-boton>`):  Spell UI defines them first
     if (own?.lang && own.lang !== "en") {
       const { RootLoader } = await import("spell-ui/components/ui-root")
