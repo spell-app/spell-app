@@ -325,11 +325,14 @@ export type SpellAppSource = {
   importUrl: (projectId: string) => string
   /** URL of the declarations of project `projectId`, which it imports -- if it may have them. */
   importDeclarationsUrl?: (projectId: string) => string
-  /** URL of its words, `<Project>.en.js`, if it may have them:  the Thing Explorer's labels -- see `SP.SpellWords`. */
+  /**
+   * URL of its words, `<Project>.en.js`, if it may have them:  the Thing Explorer's labels -- see `SP.SpellWords`.
+   * - `{lang}` in it is the project's language, from its declarations:  `<Project>.{lang}.js` => `Solitario.es.js`.
+   */
   wordsUrl?: string
   /** Its words, in memory -- used instead of loading `wordsUrl`, e.g. fresh from an editor. */
   words?: SP.SpellWordsData
-  /** URL of the words of project `projectId`, which it imports -- if it may have them. */
+  /** URL of the words of project `projectId`, which it imports -- if it may have them;  `{lang}` as in `wordsUrl`. */
   importWordsUrl?: (projectId: string) => string
   /** URL of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell` -- if its sources can be had. */
   sourceUrl?: (uri: string) => string
@@ -492,14 +495,36 @@ async function loadScopes(
  * - NEVER throws:  words are optional, as a scope pack is.
  */
 async function loadWords(source: SpellAppSource, importIds: string[]): Promise<SP.SpellWordsData | undefined> {
-  const { importWordsUrl } = source
+  const { importWordsUrl, importDeclarationsUrl } = source
+  const ownDeclarations = async () => source.declarations ?? fetchJSON<CompiledDeclarations>(source.declarationsUrl)
   return mergedWords(
     await Promise.all([
-      source.words ?? wordsAt(source.wordsUrl),
-      ...importIds.map((id) => wordsAt(importWordsUrl?.(id)))
+      source.words ?? wordsAt(await inLanguage(source.wordsUrl, ownDeclarations)),
+      ...importIds.map(async (id) =>
+        wordsAt(await inLanguage(importWordsUrl?.(id), () => fetchJSON(importDeclarationsUrl?.(id))))
+      )
     ])
   )
 }
+
+/**
+ * `url` with `{lang}` filled in:  the language its project's declarations name, English (`en`) if none.
+ * - Declarations are read only when the URL asks for a language.
+ * - NEVER throws:  no declarations, English.
+ */
+async function inLanguage(
+  url: string | undefined,
+  declarations: () => Promise<CompiledDeclarations | undefined>
+): Promise<string | undefined> {
+  if (!url?.includes(LANG)) return url
+  const language = await declarations()
+    .then((it) => it?.language)
+    .catch(() => undefined)
+  return url.replace(LANG, language ?? "en")
+}
+
+/** Where a words file's URL takes its project's language:  `<Project>.{lang}.js`. */
+const LANG = "{lang}"
 
 ////////////////
 // ## Fed by an editor

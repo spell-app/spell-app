@@ -78,6 +78,8 @@ export type ProjectFileJSON = {
    * - Ordinal words don't follow it:  `the first card` is the first either way.
    */
   listsStartAt?: 0 | 1
+  /** The human language its spell is written in, e.g. `es`;  English when missing (epic `spanish`). */
+  language?: string
   /** Files it compiles, in order -- and other projects it imports. */
   imports: ImportEntryJSON[]
 }
@@ -108,5 +110,6 @@ export type ProjectIndexJSON = {
   exports?: string[]
   targets?: string[]
   listsStartAt?: 0 | 1
+  language?: string
   buildFolder?: string
 }

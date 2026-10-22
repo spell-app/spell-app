@@ -392,8 +392,11 @@ const SCOPES_JS = ".scopes.js"
 /** End of a project's declarations file's name:  `SP.DECLARATIONS_JSON_SUFFIX`. */
 const DECLARATIONS_JSON = ".declarations.json5"
 
-/** End of a project's words file's name:  `SP.WORDS_JS_SUFFIX`. */
-const WORDS_JS = ".en.js"
+/**
+ * End of a project's words file's name, in its own language:  `SP.wordsSuffixFor()`, e.g. `.en.js`, `.es.js`.
+ * - `{lang}` is filled in from its declarations when the words load (`SpellAppRunner`'s `inLanguage()`).
+ */
+const WORDS_JS = ".{lang}.js"
 
 /** `width` / `height` attribute `value` as a CSS size:  `""` for `fluid`, or none. */
 function cssSize(value: string | null | undefined): string {
