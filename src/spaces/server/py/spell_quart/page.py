@@ -87,7 +87,7 @@ def assets_folder() -> Path:
 def built_folder(path: str) -> Path:
     """Folder `path` in the build folder of the checkout this spell_quart is in:  `$SPELL_BUILD_DIR`, else its `build/`.
 
-    - e.g. `built_folder("spaces/@spell/examples/drawable-solitaire")`:  where `spell compile` builds Solitaire
+    - e.g. `built_folder("spaces/@spell/examples/Solitaire")`:  where `spell compile` builds Solitaire
       (epic `people-and-orgs` J33).
     - Found as `assets_folder()` finds the page side:  each checkout's app runs its own spell_quart,
       so it loads its own checkout's build, in a worktree or after a move.

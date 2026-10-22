@@ -1585,7 +1585,8 @@ export class SpellLanguageService {
    * Method signature a line of `words` would call, e.g. `shuffle the deck twice` => `to shuffle a deck twice`.
    * - The first word stays a word:  it's the method's name.
    * - After that, the LONGEST run of words that parses as a whole expression in `scope` becomes a parameter:
-   *   - a type's name, e.g. `the deck` if there's a type `deck` => `a deck`,
+   *   - a type's name, e.g. `the deck` if there's a type `deck` => `a deck`;  or what it is, if a type:
+   *     `the deck of solitaire` => `a deck`
    *     paren-free:  a known type after `a` is a parameter -- see spell's `bare_type_arg`
    *   - a number => `(number)`, text => `(text)`
    *   - otherwise its last word => `(deck)`, numbered if it's already taken -- a type's name too, the second time
@@ -1600,8 +1601,9 @@ export class SpellLanguageService {
     const names = new Set<string>()
     for (let index = 1; index < tokens.length;) {
       let length = tokens.length - index
+      let match: P.Match | undefined
       for (; length > 0; length--) {
-        const match = parser.parse(tokens.slice(index, index + length), "expression", scope)
+        match = parser.parse(tokens.slice(index, index + length), "expression", scope)
         if (match?.length === length) break
       }
       if (!length) {
@@ -1611,13 +1613,17 @@ export class SpellLanguageService {
       const expression = tokens.slice(index, index + length)
       index += length
       const last = expression.at(-1)!
-      const word = (last.raw ?? "").toLowerCase()
+      // what it IS, if a type:  `the deck of solitaire` is a deck -- else its last word
+      const datatype = typeof match?.datatype === "string" ? match.datatype : undefined
+      const isLiteral = last instanceof P.NumberToken || last instanceof P.TextToken
+      const typed = !isLiteral && datatype ? scope.getType(datatype)?.instanceName : undefined
+      const word = typed && types.has(typed) ? typed : (last.raw ?? "").toLowerCase()
       if (types.has(word) && !names.has(word)) {
         names.add(word)
         bits.push(`a ${word}`)
         continue
       }
-      const param = last instanceof P.NumberToken ? "number" : last instanceof P.TextToken ? "text" : word
+      const param = !isLiteral ? word : last instanceof P.NumberToken ? "number" : "text"
       let name = param
       for (let count = 2; names.has(name); count++) name = `${param}${count}`
       names.add(name)

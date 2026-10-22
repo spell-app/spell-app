@@ -1,16 +1,9 @@
 {
   "imports": [
     {
-      "path": "/Card.spell",
-      "active": true
-    },
-    {
-      "path": "/Deck.spell",
-      "active": true
-    },
-    {
-      "path": "/Pile.spell",
-      "active": true
+      "path": "@spell/library/cards",
+      "active": true,
+      "import": ["Card", "Deck", "Pile", "Suit"]
     },
     {
       "path": "/Solitaire.spell",

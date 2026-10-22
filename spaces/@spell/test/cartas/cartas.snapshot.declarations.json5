@@ -264,7 +264,7 @@
     },
     {
       "syntax": "dibujar {thisArg:expression}",
-      "output": "dibujar",
+      "output": "draw",
       "rule": "method_call",
       "of": "Carta",
       "alias": [

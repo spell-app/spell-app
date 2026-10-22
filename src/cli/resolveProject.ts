@@ -2,7 +2,7 @@
  * Turns a command-line argument into what it names:  a project, a `.spell` file, or a whole project root.
  * - Spell addresses (`SP.SpellLocation.isAddress()`, epic `people-and-orgs` P4):
  *   - `@spell/library/cards`, `owen@spell/errors`:  a project
- *   - `@spell/test/solitaire/Card.spell`:  a file in one
+ *   - `@spell/test/solitaire/Solitaire.spell`:  a file in one
  *   - `@spell/examples`, `owen@spell`:  a whole group;  `@spell`:  every group in that space
  * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:
  *   the command line's own word, not an address.

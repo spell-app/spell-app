@@ -2,64 +2,41 @@
 export const words = {
   lang: "en",
   types: {
-    Card: {
-      rank: "rank",
-      suit: "suit",
-      color: "color",
-      value: "value",
-      direction: "direction",
-      isFaceUp: "is face up",
-      isFaceDown: "is face down",
-      isAFaceCard: "is a face card",
-      isASuit: "is a (suit)",
-      isARank: "is a (rank)",
-      isTheRankOfSuits: "is the (rank) of (suits)",
-      name: "name",
-      shortSuit: "short-suit",
-      shortRank: "short-rank",
-      shortDirection: "short-direction",
-      shortName: "short-name",
-      state: "state",
-      turnFaceUp: "turn (a card) face up",
-      turnFaceDown: "turn (a card) face down",
-      turnOver: "turn (a card) over",
-      draw: "draw (a card)",
-      moveToPile: "move (a card) to (a pile)",
-      play: "play (a card)",
-      pile: "pile"
-    },
-    Deck: {
-      setUp: "set up (a deck)",
-      display: "display (a deck)",
-      isSetUp: "is-set-up"
-    },
-    Pile: {
-      color: "color",
-      value: "value",
-      state: "state"
-    },
-    Game: {
-      score: "score",
-      state: "state",
-      draw: "draw (a game)"
-    },
     StockPile: {
-      canPickUpCard: "can pick up (a card)",
-      draw: "draw (a stock-pile)"
-    },
-    DiscardPile: {
-      canPickUpCard: "can pick up (a card)",
-      draw: "draw (a discard-pile)"
+      draw: "draw it"
     },
     Foundation: {
-      canPickUpCard: "can pick up (a card)",
-      canPlayCard: "can play (a card)",
-      draw: "draw (a foundation)"
+      suit: "suit",
+      draw: "draw it"
     },
-    Tableau: {
-      canPickUpCard: "can pick up (a card)",
-      canPlayCard: "can play (a card)",
-      draw: "draw (a tableau)"
+    Solitaire: {
+      score: "score",
+      deck: "deck",
+      stock: "stock",
+      discards: "discards",
+      clubs: "clubs",
+      diamonds: "diamonds",
+      hearts: "hearts",
+      spades: "spades",
+      T1: "T1",
+      T2: "T2",
+      T3: "T3",
+      T4: "T4",
+      T5: "T5",
+      T6: "T6",
+      T7: "T7",
+      create: "create it",
+      debug: "debug it",
+      resetTheStock: "reset the stock",
+      playFromTheStock: "play from the stock",
+      dealTheCards: "deal the cards",
+      startANewGame: "start a new game",
+      cheat: "cheat",
+      autoPlay: "auto play",
+      draw: "draw it"
+    },
+    Card: {
+      play: "play a card"
     }
   }
 }

@@ -8,7 +8,13 @@ import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { parseSpellProject, describeParseErrors } from "spell-lang/spell/test"
 import { SPACES } from "spell-app/spaces"
-import { loadFixtureProject, fixturePath, fixtureProjectId, FIXTURES_DIR } from "spell-app/spaces/test"
+import {
+  loadFixtureProject,
+  fixtureImportScope,
+  fixturePath,
+  fixtureProjectId,
+  FIXTURES_DIR
+} from "spell-app/spaces/test"
 import { diskFetch, installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { serverPathForRoot } from "spell-app/spaces/server/node/projects/project-utils"
 
@@ -24,26 +30,29 @@ describe("diskFetch", () => {
     const project = new SP.SpellProject(solitaire)
     await project.load(undefined)
     const spellFiles = project.activeImports.filter((file) => file instanceof SP.SpellFile)
-    expect(spellFiles.map((file) => file.filePath)).toEqual([
-      "/Card.spell",
-      "/Deck.spell",
-      "/Pile.spell",
-      "/Solitaire.spell"
-    ])
+    expect(spellFiles.map((file) => file.filePath)).toEqual(["/Solitaire.spell"])
 
+    // against the card library it imports, its declarations read from disk too
     await project.parse()
-    const reference = parseSpellProject(loadFixtureProject("solitaire"))
+    const reference = parseSpellProject(loadFixtureProject("solitaire"), {
+      parentScope: fixtureImportScope("solitaire")
+    })
     spellFiles.forEach((file, index) => {
       expect(file.match, file.path).toBeDefined()
       expect(describeParseErrors(file.match)).toEqual(reference.files[index]!.errors)
-      expect(P.JSWriter.instance.writeMatch(file.match)).toEqual(reference.files[index]!.compiled)
+      // its elements' tags say its project's name, `solitaire`;  the reference's, `test-project`
+      const compiled = String(P.JSWriter.instance.writeMatch(file.match)).replaceAll(
+        'this, "solitaire")',
+        'this, "test-project")'
+      )
+      expect(compiled).toEqual(reference.files[index]!.compiled)
     })
   })
 
   test("it answers a file's URL, split by its group and project:  `/spaces/<project>/<file>`", async () => {
-    const url = SP.SpellUrls.fileUrl(`${solitaire}/Card.spell`)
-    expect(url).toBe("/spaces/@spell/test/solitaire/Card.spell")
-    expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("solitaire", "Card.spell"), "utf8"))
+    const url = SP.SpellUrls.fileUrl(`${solitaire}/Solitaire.spell`)
+    expect(url).toBe("/spaces/@spell/test/solitaire/Solitaire.spell")
+    expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("solitaire", "Solitaire.spell"), "utf8"))
     expect(await diskFetch({ url: SP.SpellUrls.indexUrl(solitaire) })).toHaveProperty("imports")
     expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/test") })).toContainEqual({ path: solitaire })
   })
@@ -58,7 +67,9 @@ describe("diskFetch", () => {
 
   describe("locationForDiskPath", () => {
     test("a file under a known root's folder maps onto that root", () => {
-      expect(locationForDiskPath(fixturePath("solitaire", "Card.spell"))?.path).toBe(`${solitaire}/Card.spell`)
+      expect(locationForDiskPath(fixturePath("solitaire", "Solitaire.spell"))?.path).toBe(
+        `${solitaire}/Solitaire.spell`
+      )
     })
 
     // where each group's folder is -- NOT what's in it, which tests never depend on

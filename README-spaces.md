@@ -1,20 +1,20 @@
 # Spaces:  where projects and people live
 
 ```text
-@spell/examples/drawable-solitaire/Card.spell
-└──── group ──┘ └──── project ───┘ └─ file ─┘
+@spell/examples/Solitaire/Solitaire.spell
+└──── group ──┘ └project─┘ └─── file ──┘
 ```
 
-_A Spell address:  one file of the Drawable Solitaire example, named by what it is rather than where it is._
+_A Spell address:  one file of the Solitaire example, named by what it is rather than where it is._
 
 Every project and every file in Spell has an address like that one, and it's the same address everywhere:
 
 | Where | What you write |
 | --- | --- |
-| the editor | `http://localhost:3000/edit/@spell/examples/drawable-solitaire/Card.spell` |
-| the command line | `spell run @spell/examples/drawable-solitaire` |
+| the editor | `http://localhost:3000/edit/@spell/examples/Solitaire/Solitaire.spell` |
+| the command line | `spell run @spell/examples/Solitaire` |
 | another project, importing a library | `{ "path": "@spell/library/cards", "import": ["Card", "Deck", "Pile"] }` |
-| the server, reading the file | `GET /spaces/@spell/examples/drawable-solitaire/Card.spell` |
+| the server, reading the file | `GET /spaces/@spell/examples/Solitaire/Solitaire.spell` |
 
 None of them is a path on disk.
 One function turns an address into a folder, [`SpellUrls.folderFor()`](https://github.com/spell-app/spell-lang/blob/main/src/spell/SpellUrls.ts),
@@ -72,9 +72,9 @@ here     = "@here"                       on the command line:  the project in th
 | Address | What it is |
 | --- | --- |
 | `@spell/examples` | a group:  the example projects |
-| `@spell/examples/drawable-solitaire` | a project |
-| `@spell/examples/drawable-solitaire/Card.spell` | a file in it |
-| `@spell/examples/drawable-solitaire/assets/` | a folder in it:  the slash at the end says so |
+| `@spell/examples/Solitaire` | a project |
+| `@spell/examples/Solitaire/Solitaire.spell` | a file in it |
+| `@spell/examples/Solitaire/assets/` | a folder in it:  the slash at the end says so |
 | `owen@spell/hello` | a project in a person's own group |
 
 - A group belongs to a space:  `@spell/examples` to `@spell`, an organization;
@@ -377,7 +377,7 @@ first, in a child process running the checkout's own `spell compile`, so the pag
 - As the page server starts, `spell compile --stale --all @spell/examples @spell/library` runs in the background,
   so the demo pages and App UI's live examples find their programs.
 - What it builds goes in spell-app's `build/` folder, mirroring each project's path, never committed:
-  `build/spaces/@spell/examples/drawable-solitaire/` holds that project's compiled program and its scope pack
+  `build/spaces/@spell/examples/Solitaire/` holds that project's compiled program and its scope pack
   (`.scopes.js`, what the Type Explorer reads).
 - A file already built is served as it is, even when its sources changed since:
   the startup compile and `spell compile --stale` are what catch those.
@@ -447,7 +447,7 @@ That's `spell_quart`, a [Quart](https://quart.palletsprojects.com/) app (Flask's
 in spaces' [Python folder](src/spaces/server/py/).
 
 ```sh
-spell run @spell/examples/outline-solitaire --target py
+spell run @spell/examples/Solitaire --target py
 ```
 
 1. It compiles the project to Python, on `spell_core` (spell-lang's Python runtime), into a temporary folder:

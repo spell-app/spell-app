@@ -643,9 +643,14 @@ export class ScopeExplorer {
     return items.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
   }
 
-  /** PascalCase name of the type statement `declaredBy` declares something on, e.g. `Card`, if any. */
+  /**
+   * PascalCase name of the type statement `declaredBy` declares something on, e.g. `Card`, if any.
+   * - Else the type whose outline body it's in:  `- "suits" as one of clubs ...` under `a "card" is ... where:`
+   *   declares the suits on the card (epic `spanish` P11).
+   */
   private ownerOf(declaredBy: P.Match | undefined): string | undefined {
-    const of = declaredBy?.rule.getDeclaration(declaredBy)?.of
+    const of =
+      declaredBy?.rule.getDeclaration(declaredBy)?.of ?? P.SubjectScope.of(declaredBy?.scope)?.subjectType?.name
     return of ? ScopeExplorer.typeNameOf(of) : undefined
   }
 }

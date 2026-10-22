@@ -10,7 +10,8 @@ import { compiledFixture } from "spell-app/spaces/test"
  * - Its whole output is pinned by the fixtures' `.snapshot.py`, and run by the core contract.
  */
 describe("Python on asyncio", () => {
-  const cards = compiledFixture("cards", PY.PyWriter.instance)
+  // the card library, as the fixtures that import it compile it
+  const cards = compiledFixture("@spell/library/cards", PY.PyWriter.instance)
   if (process.env.SPELL_DUMP_ASYNC) writeFileSync(process.env.SPELL_DUMP_ASYNC, cards)
 
   test("a method that pauses waits:  `async def`, `await core.pause_for(...)`", () => {
@@ -24,7 +25,7 @@ describe("Python on asyncio", () => {
   })
 
   test("a getter that doesn't wait stays a plain property", () => {
-    expect(cards).toMatch(/@property\n {4}def color\(self\) -> str:/)
+    expect(cards).toMatch(/@property\n {4}def short_suit\(self\) -> str:/)
   })
 
   test("the top level runs what waits with asyncio.run()", () => {

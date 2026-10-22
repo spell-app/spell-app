@@ -334,12 +334,14 @@
     {
       "property": "color",
       "of": "Suit",
+      "readAs": "Suit.color({it})",
       "defined": "/Card.spell:508-585"
     },
     {
       "property": "symbol",
       "of": "Suit",
       "datatype": "text",
+      "readAs": "Suit.symbol({it})",
       "defined": "/Card.spell:589-724"
     },
     {

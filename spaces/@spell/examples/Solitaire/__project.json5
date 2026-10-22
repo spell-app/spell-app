@@ -1,0 +1,19 @@
+{
+  "title": "Solitaire",
+  "description": "Klondike solitaire in the outline style, on the cards library:  `import`s its cards, deck and piles, and adds the game, its kinds of piles (`a \"tableau\" is a pile where:`), their moves, layout and CSS;  `pause for` animates the deal",
+  "imports": [
+    {
+      "path": "@spell/library/cards",
+      "active": true,
+      "import": ["Card", "Deck", "Pile", "Suit"]
+    },
+    {
+      "path": "/Solitaire.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

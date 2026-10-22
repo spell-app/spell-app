@@ -88,6 +88,49 @@ setTimeout(() => late.start(), 50)
 `
 
 /**
+ * A card table, as spell compiles it:  a drawable list whose frame has a named place, filled by a child that says
+ * it goes there.
+ * - From its spell:  `to draw a pile:` returns `<div className="pile"><div className="header"><children
+ *   name="header"/></div><children/></div>`;  the table draws a pile, and one written by hand,
+ *   `<test-project-pile><h3 in="header">Discards</h3></test-project-pile>`.
+ */
+const CARD_TABLE = `
+import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+export class Card extends Drawable {
+  static elementTag = core.defineElement(this, "test-project")
+  static { this.declareProp("rank", { type: "text" }) }
+  get rank() { return this.getProp("rank") }
+  set rank(value) { this.setProp("rank", value) }
+  draw() {
+    return h("div", { class: "card" }, () => this.rank)
+  }
+}
+export class Pile extends DrawableList {
+  static instanceType = Card
+  static elementTag = core.defineElement(this, "test-project")
+  static { this.declareProp("name", { type: "text" }) }
+  get name() { return this.getProp("name") }
+  set name(value) { this.setProp("name", value) }
+  draw() {
+    return h("div", { class: "pile" }, h("div", { class: "header" }, h("slot", { name: "header" })), h("slot"))
+  }
+}
+export class Table extends App {
+  draw() {
+    return h("div", { class: "table" },
+      () => core.drawThing(pile),
+      h("test-project-pile", h("h3", { slot: "header" }, "Discards"))
+    )
+  }
+}
+export const table = new Table()
+export const pile = new Pile({ name: "Pile 1" })
+pile.append(new Card({ rank: "A" }))
+pile.append(new Card({ rank: "K" }))
+if (!core.isCarryingOver) table.start()
+`
+
+/**
  * A card game, as compiled spell draws it:
  * - a card's `draw()` chooses its face by an `if` (read OUTSIDE its live values)
  * - its rank is a live value
@@ -389,34 +432,32 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => titles()[3] === "Ship it")
   })
 
-  test("the `Drawable Solitaire` example:  each pile and card its own element, styled by its <css>;  a click still plays", async () => {
-    const host = await mount(source(await fixtureCompiled("drawable-solitaire"), "Solitaire"))
+  test("the `Solitaire` example:  each pile and card its own element, styled by its <css>;  a click still plays", async () => {
+    const host = await mount(await solitaireSource())
     type Element = HTMLElement & { ready: Promise<void> }
     const cards = () => [...host.querySelectorAll<Element>("test-project-card")]
     await waitFor(() => cards().length === 52)
     await ElementFixture.settle(host)
     expect(host.querySelector(".spell-draw-error")).toBeNull()
-    // each pile holds its cards' elements, shown through its frame's <children/>, a <slot> on the page
+    // each pile holds its cards' elements, shown through its frame's place for them, a <slot> on the page
     const tableaus = () => [...host.querySelectorAll<Element>("test-project-tableau")]
     // dealt with a pause between cards:  wait for the last
     await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
     await ElementFixture.settle(host)
     expect(tableaus().map((tableau) => tableau.children.length)).toEqual([1, 2, 3, 4, 5, 6, 7])
-    expect(tableaus()[0]!.shadowRoot!.querySelector(".pile.tableau slot")).not.toBeNull()
-    // the card's own <css>, in its own shadow root:  a face-down card's back
-    const faces = cards().map((card) => card.shadowRoot!.querySelector(".card"))
-    const down = faces.find((face) => face!.classList.contains("face-down"))!
-    expect(getComputedStyle(down).backgroundImage).toContain("repeating-linear-gradient")
-    // the pile's own <css>:  a stacked pile's cards sit on each other
+    expect(tableaus()[0]!.shadowRoot!.querySelector("slot")).not.toBeNull()
+    // the tableau's own <css>:  each card but the last shows only its top
+    const column = tableaus()[6]!
+    expect(getComputedStyle(column.firstElementChild!).overflow).toBe("hidden")
+    expect(getComputedStyle(column.lastElementChild!).overflow).not.toBe("hidden")
+    // a stacked pile's, which its kinds inherit:  a stock's cards sit on each other
     const stock = host.querySelector<Element>("test-project-stock-pile")!
     expect(getComputedStyle(stock.lastElementChild!).position).toBe("absolute")
 
     // each card shows its thing's rank, suit and direction as attributes, for the inspector (P13)
     for (const card of cards()) {
-      const face = card.shadowRoot!.querySelector(".card")!
-      expect(face.classList.contains(`face-${card.getAttribute("direction")}`)).toBe(true)
-      expect(face.classList.contains(card.getAttribute("suit")!)).toBe(true)
-      expect(face.classList.contains(card.getAttribute("rank")!)).toBe(true)
+      expect(card.getAttribute("direction")).toMatch(/^(up|down)$/)
+      expect(card.getAttribute("suit")).toMatch(/^(clubs|diamonds|hearts|spades)$/)
     }
     expect(tableaus().map((tableau) => tableau.getAttribute("name"))).toEqual([
       "T1",
@@ -437,19 +478,20 @@ describe("compiled spell draws with Solid", () => {
     expect(stock.id).toBe("stock")
     for (const card of cards()) expect(card.id).toBe(`${card.getAttribute("rank")}-of-${card.getAttribute("suit")}`)
 
+    // the deal ends by playing the stock's top card onto the discards
     const discards = () => host.querySelector("test-project-discard-pile")!.children.length
-    expect(discards()).toBe(0)
+    await waitFor(() => discards() === 1)
     const played = stock.lastElementChild as HTMLElement
     expect(played.getAttribute("direction")).toBe("down")
-    played.shadowRoot!.querySelector<HTMLElement>(".card")!.click()
-    await waitFor(() => discards() > 0)
+    played.shadowRoot!.querySelector<HTMLElement>(".Card")!.click()
+    await waitFor(() => discards() > 1)
     // ... and they follow as the game plays:  the card played from the stock is face up, on the discards
     await waitFor(() => played.getAttribute("direction") === "up")
     await waitFor(() => played.getAttribute("pile") === "DiscardPile#discards")
   })
 
   test('a drawable list\'s frame:  its cards in its <children/>, a child written in="header" in its <children name="header"/>', async () => {
-    const host = await mount(source(await fixtureCompiled("card-table"), "Table"))
+    const host = await mount(source(CARD_TABLE, "Table"))
     type Element = HTMLElement & { ready: Promise<void> }
     const piles = () => [...host.querySelectorAll<Element>("test-project-pile")]
     await waitFor(() => piles().length === 2 && piles().every((pile) => pile.shadowRoot?.querySelector(".pile")))
@@ -479,28 +521,31 @@ describe("compiled spell draws with Solid", () => {
     expect(tile.poke()).toBe("poked A")
   })
 
-  test("`Drawable Solitaire` run again, edited, on the same page:  its tags stay, its cards take the new <css>", async () => {
-    const program = await fixtureCompiled("drawable-solitaire")
-    const first = await mount(source(program, "Solitaire"))
+  test("`Solitaire` run again, edited, on the same page:  its tags stay, its piles take the new <css>", async () => {
+    const solitaire = await solitaireSource()
+    const first = await mount(solitaire)
     await waitFor(() => first.querySelectorAll("test-project-card").length === 52)
-    // the card's back, edited:  a new colour in its <css>
-    const edited = program.replace("#3a6, #3a6 4px, #285 4px, #285 8px", "#36a, #36a 4px, #258 4px, #258 8px")
-    expect(edited).not.toBe(program)
-    const second = await mount(source(edited, "Solitaire"))
+    // the place a stacked pile keeps for its first card, edited:  a new colour in its <css>
+    const edited = solitaire.compiled!.replace(PLACE_BORDER, EDITED_BORDER)
+    expect(edited).not.toBe(solitaire.compiled)
+    const second = await mount({ ...solitaire, compiled: edited })
     await waitFor(() => second.querySelectorAll("test-project-card").length === 52)
     await ElementFixture.settle(second)
     expect(second.querySelector(".spell-draw-error")).toBeNull()
-    const backs = [...first.querySelectorAll("test-project-card"), ...second.querySelectorAll("test-project-card")]
-      .map((card) => card.shadowRoot?.querySelector(".card.face-down"))
-      .filter((back): back is Element => !!back)
-    expect(backs.length).toBeGreaterThan(0)
-    // one sheet per tag:  the old program's cards take the edit too
-    for (const back of backs) expect(getComputedStyle(back).backgroundImage).toContain("rgb(51, 102, 170)")
+    const places = [
+      ...first.querySelectorAll("test-project-foundation"),
+      ...second.querySelectorAll("test-project-foundation")
+    ]
+      .map((pile) => pile.shadowRoot?.querySelector(".Placeholder"))
+      .filter((place): place is Element => !!place)
+    expect(places.length).toBe(8)
+    // one sheet per tag:  the old program's piles take the edit too
+    for (const place of places) expect(getComputedStyle(place).borderTopColor).toBe(EDITED_COLOR)
   })
 
-  test("`Drawable Solitaire` dealt and played, then recompiled with a new card back:  the same game, drawn the new way (P16)", async () => {
-    const program = await fixtureCompiled("drawable-solitaire")
-    const { host, setSource } = await mountSettable(source(program, "Solitaire"))
+  test("`Solitaire` dealt and played, then its card library recompiled with a new back:  the same game, drawn the new way (P16)", async () => {
+    const solitaire = await solitaireSource()
+    const { host, setSource } = await mountSettable(solitaire)
     type Element = HTMLElement & { ready: Promise<void> }
     const tableaus = () => [...host.querySelectorAll<Element>("test-project-tableau")]
     await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
@@ -508,7 +553,7 @@ describe("compiled spell draws with Solid", () => {
     const discards = () => host.querySelector<Element>("test-project-discard-pile")!
     await ElementFixture.settle(host)
     // played:  a card from the stock to the discards, face up
-    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".Card")!.click()
     await waitFor(() => discards().children.length === 2)
     await ElementFixture.settle(host)
 
@@ -524,63 +569,83 @@ describe("compiled spell draws with Solid", () => {
     const before = game()
     expect(before.flat()).toHaveLength(52)
 
-    // the card's back, edited:  a new colour in its <css>
-    const edited = program.replace("#3a6, #3a6 4px, #285 4px, #285 8px", "#36a, #36a 4px, #258 4px, #258 8px")
+    // the card library's card, edited:  a new colour for its back
+    // (an edit to Solitaire's own file would start afresh:  it starts the app -- P17, below)
     const said = vi.spyOn(console, "info")
     cleanups.push(() => said.mockRestore())
-    setSource(source(edited, "Solitaire"))
+    setSource(await solitaireSource((cards) => cards.replace('color: "blue"', 'color: "green"')))
     await waitFor(
       () => host.querySelector("test-project-tableau")?.children.length === 1 && game().flat().length === 52
     )
     await ElementFixture.settle(host)
     expect(game()).toEqual(before)
-    const back = [...host.querySelectorAll("test-project-card")]
-      .map((card) => card.shadowRoot!.querySelector(".card.face-down"))
-      .find((face) => !!face)!
-    expect(getComputedStyle(back).backgroundImage).toContain("rgb(51, 102, 170)")
+    const backs = [...host.querySelectorAll("test-project-card")]
+      .filter((card) => card.getAttribute("direction") === "down")
+      .map((card) => card.shadowRoot!.querySelector(".Card")!.getAttribute("color"))
+    expect(backs.length).toBeGreaterThan(0)
+    expect(new Set(backs)).toEqual(new Set(["green"]))
 
     // no new deal:  the start stopped at its first pause, and nothing moves on
     await new Promise((resolve) => setTimeout(resolve, 300))
     expect(game()).toEqual(before)
     // ONE card each, held by the deck AND its pile;  the cards the new run dealt are gone
     const { core } = (await testRuntime()).runtime
-    const { deck, allPiles } = core.things.exported as Record<string, { items: Array<{ items: unknown[] }> }>
-    const inPiles = new Set(allPiles!.items.flatMap((pile) => pile.items))
-    expect(deck!.items.every((card) => inPiles.has(card))).toBe(true)
+    type Held = { items: unknown[] }
+    const { solitaire: app } = core.things.exported as Record<string, Record<string, Held>>
+    const names = [
+      "stock",
+      "discards",
+      "clubs",
+      "diamonds",
+      "hearts",
+      "spades",
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6",
+      "T7"
+    ]
+    const inPiles = new Set(names.flatMap((name) => app![name]!.items))
+    expect(app!.deck!.items.every((card) => inPiles.has(card))).toBe(true)
     expect(core.things.all().filter((thing) => thing.type === "Card")).toHaveLength(52)
-    expect(said.mock.calls.flat().join()).toContain("Kept allPiles, deck, discards, foundations, game, stock, tableaus")
+    expect(said.mock.calls.flat().join()).toContain("Kept solitaire")
     // its start skipped:  its tests don't print again (P17)
     const printed = consoleText()
-    expect(printed).toContain("Kept allPiles")
+    expect(printed).toContain("Kept solitaire")
     expect(printed).not.toContain("test card setup")
-    expect(printed).not.toContain("test deck creation")
+    expect(printed).not.toContain("test the moves")
 
     // and the game plays on:  another card from the stock
-    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".Card")!.click()
     await waitFor(() => discards().children.length === 3)
   })
 
-  test("`Drawable Solitaire` played, then its app's own file edited:  a fresh game, as Restart deals (P17)", async () => {
-    const program = await fixtureCompiled("drawable-solitaire")
-    const { host, setSource } = await mountSettable(source(program, "Solitaire"))
+  test("`Solitaire` played, then its app's own file edited:  a fresh game, as Restart deals (P17)", async () => {
+    const solitaire = await solitaireSource()
+    const { host, setSource } = await mountSettable(solitaire)
     type Element = HTMLElement & { ready: Promise<void> }
     const tableaus = () => [...host.querySelectorAll<Element>("test-project-tableau")]
     const stock = () => host.querySelector<Element>("test-project-stock-pile")!
     const discards = () => host.querySelector<Element>("test-project-discard-pile")!
     await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
     await ElementFixture.settle(host)
-    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".Card")!.click()
     await waitFor(() => discards().children.length === 2)
-    expect(consoleText()).toContain("test card setup")
+    expect(consoleText()).toContain("test the moves")
 
-    // Solitaire's own file, which says `start the game`:  a new score to start from
-    const edited = program.replace("  game.score = 0\n", "  game.score = 1\n")
-    expect(edited).not.toBe(program)
-    setSource(source(edited, "Solitaire"))
+    // Solitaire's own file, which says `start a new game`:  a new score to start from
+    const edited = solitaire.compiled!.replace(
+      "solitaire.startANewGame()\n",
+      "solitaire.score = 1\nsolitaire.startANewGame()\n"
+    )
+    expect(edited).not.toBe(solitaire.compiled)
+    setSource({ ...solitaire, compiled: edited })
     await waitFor(() => consoleText().includes("Started afresh:  the program's start changed"))
     // dealt again:  the tests print again, and the deal ends with one card turned onto the discards
     await waitFor(() => tableaus()[6]?.children.length === 7 && discards().children.length === 1, 10_000)
-    expect(consoleText()).toContain("test card setup")
+    expect(consoleText()).toContain("test the moves")
     expect(consoleText()).not.toContain("Kept")
   })
 
@@ -805,19 +870,44 @@ function consoleText(): string {
 let testCore: (typeof import("spell-app/app/runner/spellRuntime"))["core"] | undefined
 
 /**
- * Fixture project `name`'s compiled javascript, as text:  its blessed snapshot, `<name>.snapshot.js`.
- * - Vite serves a file by its path.
- * - A fixture, never an example:  an example's compiled output is built when needed, in `build/`
+ * The Solitaire fixture, as a runner runs it:  its compiled javascript, and the card library's it imports.
+ * - Each its blessed snapshot, as text:  `solitaire.snapshot.js`, and `cards.import.snapshot.js` beside it.
+ * - Vite serves a file by its path;  the import is handed over as a `blob:` URL, which the runner fetches.
+ * - `editCards`:  an edit to the card library's, as recompiling it would make.
+ * - A fixture, never the example:  an example's compiled output is built when needed, in `build/`
  *   (epic `people-and-orgs` P11), so a fresh checkout has none.
- *   `TodosFormBased` and `DrawableSolitaire` are frozen copies of the `Todos - Form Based` and `Drawable Solitaire`
- *   examples.
+ *   `solitaire` and `TodosFormBased` are frozen copies of the `Solitaire` and `Todos - Form Based` examples.
  */
-async function fixtureCompiled(name: string): Promise<string> {
-  // spell's frozen test projects, beside the built-in groups:  `spaces/@spell/test/` at the repo's root
-  const file = new URL(`../../../spaces/@spell/test/${name}/${name}.snapshot.js`, import.meta.url).pathname
-  const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
-  return compiled
+async function solitaireSource(editCards = (cards: string) => cards): Promise<SpellAppSource> {
+  const [program, written] = await Promise.all([
+    fixtureText("solitaire", "solitaire.snapshot.js"),
+    fixtureText("solitaire", "cards.import.snapshot.js")
+  ])
+  const cardsUrl = URL.createObjectURL(new Blob([editCards(written)], { type: "text/javascript" }))
+  return {
+    ...source(program, "Solitaire"),
+    importUrl: (id) => (id === "@spell/library/cards" ? cardsUrl : `/nowhere/${id}`)
+  }
 }
+
+/** Fixture project `name`'s compiled javascript, as text:  its blessed snapshot, `<name>.snapshot.js`. */
+async function fixtureCompiled(name: string): Promise<string> {
+  return fixtureText(name, `${name}.snapshot.js`)
+}
+
+/** File `file` of fixture project `name`, as text. */
+async function fixtureText(name: string, file: string): Promise<string> {
+  // spell's frozen test projects, beside the built-in groups:  `spaces/@spell/test/` at the repo's root
+  const path = new URL(`../../../spaces/@spell/test/${name}/${file}`, import.meta.url).pathname
+  const { default: text } = (await import(/* @vite-ignore */ `${path}?raw`)) as { default: string }
+  return text
+}
+
+/** A stacked pile's place for its first card:  its border, in Solitaire's compiled `<css>`, and an edit of it. */
+const PLACE_BORDER = "border: 2px dashed #c8c8c8;"
+const EDITED_BORDER = "border: 2px dashed #36a;"
+/** `EDITED_BORDER`'s colour, as the browser computes it. */
+const EDITED_COLOR = "rgb(51, 102, 170)"
 
 /** What to run:  `program`, in memory. */
 function source(program: string, name = "Counter"): SpellAppSource {

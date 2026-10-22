@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeAll } from "vite-plus/test"
 import { readFileSync } from "fs"
+import { resolve } from "path"
 import { pathToFileURL } from "url"
 import {
   CompletionItemKind,
@@ -13,7 +14,7 @@ import { CompletionItemInsertTextRule, MarkerSeverity } from "monaco-editor/edit
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
 import { LspToMonaco } from "spell-app/app/ui/monaco/LspToMonaco"
-import { fixturePath } from "spell-app/spaces/test"
+import environment from "spell-app/spaces/server/node/environment"
 
 /**
  * LSP => Monaco conversions, alone and on real `SpellLanguageService` answers.
@@ -123,8 +124,8 @@ describe("LspToMonaco", () => {
     })
   })
 
-  describe("on real answers, for Solitaire", () => {
-    const deckPath = fixturePath("solitaire", "Deck.spell")
+  describe("on real answers, for the card library's deck", () => {
+    const deckPath = resolve(environment.systemFilesRoot, "library", "cards", "Deck.spell")
     const deckUri = pathToFileURL(deckPath).href
     const deckText = readFileSync(deckPath, "utf8")
     const workspace = new SpellDiskWorkspace()
@@ -147,7 +148,7 @@ describe("LspToMonaco", () => {
 
     test("rename => one edit per use, by file", () => {
       const file = workspace.fileFor(deckUri)!
-      const edit = service.rename(file, at("set card-names", 5), "card-labels")
+      const edit = service.rename(file, at("color = red", 8), "crimson")
       const edits = LspToMonaco.workspaceEdit(edit!).edits as Array<{ resource: { scheme: string } }>
       expect(edits.length).toBeGreaterThan(1)
       expect(new Set(edits.map((it) => it.resource.scheme))).toEqual(new Set(["file"]))

@@ -5,7 +5,7 @@ import { linkModule, projectImportsOf, startChanged } from "spell-app/app/runner
 const COMPILED = `/*! SPELL: PROJECT { spellVersion: "0.8.0" } */
 import { core, Thing, List, App } from "@spell/core"
 import { Card, Deck } from "@spell/project/@spell/library/cards"
-import { Pile } from "@spell/project/@spell/examples/drawable-solitaire"
+import { Pile } from "@spell/project/@spell/examples/Solitaire"
 import { Card as Again } from "@spell/project/@spell/library/cards"
 
 export class Game extends App {}
@@ -13,7 +13,7 @@ export class Game extends App {}
 
 describe("projectImportsOf()", () => {
   test("lists each imported project once, in order", () => {
-    expect(projectImportsOf(COMPILED)).toEqual(["@spell/library/cards", "@spell/examples/drawable-solitaire"])
+    expect(projectImportsOf(COMPILED)).toEqual(["@spell/library/cards", "@spell/examples/Solitaire"])
   })
 
   test("is empty with no project imports", () => {
@@ -25,7 +25,7 @@ describe("linkModule()", () => {
   test("points `@spell/core` and each project at its URL", () => {
     const linked = linkModule(COMPILED, "blob:core", {
       "@spell/library/cards": "blob:cards",
-      "@spell/examples/drawable-solitaire": "blob:solitaire"
+      "@spell/examples/Solitaire": "blob:solitaire"
     })
     expect(linked).toContain(`import { core, Thing, List, App } from "blob:core"`)
     expect(linked).toContain(`import { Card, Deck } from "blob:cards"`)

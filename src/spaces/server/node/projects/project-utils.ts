@@ -77,7 +77,7 @@ export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
 }
 
 /**
- * Folder on disk of `place`, e.g. `@spell/examples/drawable-solitaire` => `spaces/@spell/examples/drawable-solitaire`.
+ * Folder on disk of `place`, e.g. `@spell/examples/Solitaire` => `spaces/@spell/examples/Solitaire`.
  * - Throws if `place` has no folder of its own, e.g. `@local/my-folder`.
  */
 export function folderForPlace(place: string): string {
@@ -117,7 +117,7 @@ export function isBuiltFile(location: SP.SpellLocation): boolean {
  * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`:
  * its path MIRRORED under `build/` at the repo root (epic `people-and-orgs` P11).
  * - Under the repo (its packages, its `tests/`):  the same path under `build/`
- *   - `spaces/@spell/examples/drawable-solitaire` => `build/spaces/@spell/examples/drawable-solitaire`
+ *   - `spaces/@spell/examples/Solitaire` => `build/spaces/@spell/examples/Solitaire`
  *   - the frozen test projects too:  `spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  * - Under spell-spaces:  under `build/spell-spaces/`, so each checkout builds its own
  *   - `<spell-spaces>/@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
@@ -157,7 +157,7 @@ export type BuildFolders = {
 /**
  * Where project `projectId`'s built files go, inside the checkout's build folder:
  * its index's `buildFolder`, `/`-separated.
- * - e.g. `spaces/@spell/examples/drawable-solitaire`, for `build/spaces/@spell/examples/drawable-solitaire`
+ * - e.g. `spaces/@spell/examples/Solitaire`, for `build/spaces/@spell/examples/Solitaire`
  * - No `../` (decision J33):  a Python web app names it so, and `spell_quart.built_folder()` finds the checkout's.
  * - `undefined` for a project whose built files sit beside its source (`buildFolderFor()`).
  */
@@ -386,7 +386,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 
 /**
  * `GET /api/projects/index/<project>` -- fetch (and resync) a project's index.
- * - e.g. `/api/projects/index/@spell/examples/drawable-solitaire`
+ * - e.g. `/api/projects/index/@spell/examples/Solitaire`
  * - Returns: `ProjectIndexJSON`.
  * - Failure: 500 if the place isn't a project's (`SP.SpellUrls.projectIdFor()`).
  */
@@ -411,7 +411,7 @@ function tailOf(request: Request, prefix: string): string {
 
 /**
  * The file a file's URL names, as a `SpellLocation`.
- * - e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell` or `/api/projects/file/<project>/<file>`
+ * - e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell` or `/api/projects/file/<project>/<file>`
  * - Split by its group and project BEFORE any path is made (`SP.SpellUrls.fileForUrl()`),
  *   then checked part by part (`new SP.SpellLocation()`).
  * - throws `TypeError` if it names no project's file
@@ -433,7 +433,7 @@ export function fileOrOldName(serverPath: string): string {
 }
 
 /**
- * `GET /spaces/<project>/<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell`.
+ * `GET /spaces/<project>/<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell`.
  * - A file spell BUILDS (`Solitaire.spell.js`, `.scopes.js` ...) is served from the project's build folder
  *   (`serverPath`):  its URL sits beside its source's.
  * - Returns:  raw file body via `SRV.Reply.sendFile()`, `{ dotfiles: "allow" }`, so dotfiles can be fetched too.

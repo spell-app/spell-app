@@ -353,7 +353,7 @@ const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
 /** Answer to `spell/project`, as `LSP.ProjectInfo` -- just what we read. */
 type ProjectInfo = {
-  /** Project id, e.g. `@spell/examples/drawable-solitaire`. */
+  /** Project id, e.g. `@spell/examples/Solitaire`. */
   project: string
   /** URI of its compiled javascript, `<Project>.spell.js`. */
   compiledUri: string

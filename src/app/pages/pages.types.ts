@@ -7,7 +7,7 @@ import type { EditorStore } from "spell-app/app/editor"
 /** Params parsed out of the `/edit/*address` and `/run/*address` routes. */
 export type SpellRouteParams = {
   /**
-   * The address, each part decoded by the router, e.g. `@spell/examples/drawable-solitaire/a b.spell`.
+   * The address, each part decoded by the router, e.g. `@spell/examples/Solitaire/a b.spell`.
    * - NEVER decode it again:  a name with an encoded `%` in it, `a%25b`, would lose it.
    */
   address: string

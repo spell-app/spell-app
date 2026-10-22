@@ -11,9 +11,9 @@ from spell_quart import built_folder
 def test_built_folder_is_in_the_checkouts_build(monkeypatch: pytest.MonkeyPatch) -> None:
     """With no `$SPELL_BUILD_DIR`:  the `build/` of the checkout spell_quart is in, beside its `spaces/`."""
     monkeypatch.delenv("SPELL_BUILD_DIR", raising=False)
-    folder = built_folder("spaces/@spell/examples/drawable-solitaire")
+    folder = built_folder("spaces/@spell/examples/Solitaire")
     checkout = Path(spell_quart.__file__).resolve().parents[5]
-    assert folder == checkout / "build" / "spaces" / "@spell" / "examples" / "drawable-solitaire"
+    assert folder == checkout / "build" / "spaces" / "@spell" / "examples" / "Solitaire"
     assert (checkout / "spaces").is_dir()
 
 

@@ -10,28 +10,28 @@ import { fixtureWords } from "spell-app/spaces/test"
  * - Each fixture's whole words file is pinned beside it:  `fixtures.test.ts`.
  */
 describe("SpellWords", () => {
-  test("Solitaire's:  every member of its types, by the names its javascript uses", () => {
+  test("Solitaire's:  every member of its own types -- and of the card library's it adds to -- by javascript's names", () => {
     const words = SP.SpellWords.read(fixtureWords("solitaire"))!
-    expect(Object.keys(words.types)).toEqual([
-      "Card",
-      "Deck",
-      "Pile",
-      "Game",
-      "StockPile",
-      "DiscardPile",
-      "Foundation",
-      "Tableau"
-    ])
+    expect(Object.keys(words.types)).toEqual(["StockPile", "Foundation", "Solitaire", "Card"])
+    expect(words.types.Solitaire).toMatchObject({
+      dealTheCards: "deal the cards",
+      startANewGame: "start a new game",
+      autoPlay: "auto play",
+      draw: "draw it"
+    })
+    // the library's card, which Solitaire teaches to play
+    expect(words.types.Card).toEqual({ play: "play a card" })
+    expect(words.types.StockPile).toEqual({ draw: "draw it" })
+  })
+
+  test("the card library's:  the card's own, as written", () => {
+    const words = SP.SpellWords.read(fixtureWords("@spell/library/cards"))!
     expect(words.types.Card).toMatchObject({
-      moveToPile: "move (a card) to (a pile)",
-      turnOver: "turn (a card) over",
+      turnOver: "turn it over",
       isFaceUp: "is face up",
       isASuit: "is a (suit)",
-      shortRank: "short-rank"
+      shortRank: "short rank"
     })
-    expect(words.types.StockPile).toEqual({
-      canPickUpCard: "can pick up (a card)",
-      draw: "draw (a stock-pile)"
-    })
+    expect(words.types.Suit).toEqual({ color: "color", symbol: "symbol" })
   })
 })

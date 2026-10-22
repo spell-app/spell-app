@@ -5,6 +5,7 @@ import { PY } from "spell-lang/py"
 import { SP } from "spell-lang/spell"
 import {
   LIBRARY_FIXTURES,
+  LIBRARY_GROUP,
   PYTHON_FIXTURES,
   compiledFixture,
   fixtureDeclarations,
@@ -12,7 +13,8 @@ import {
   fixturePath,
   fixtureProjectNames,
   fixtureWords,
-  fixtureLanguages
+  fixtureLanguages,
+  fixtureImports
 } from "spell-app/spaces/test"
 
 /**
@@ -20,12 +22,15 @@ import {
  * against the snapshots beside it, in `spaces/@spell/test/<Project>/`:
  * - `<Project>.snapshot.js`:  the javascript (`js/solid` target)
  * - `<Project>.snapshot.declarations.json5`:  its declarations
- * - `<Project>.<lang>.snapshot.js`:  its words, in its language (`cards.en.snapshot.js`, `cartas.es.snapshot.js`)
+ * - `<Project>.<lang>.snapshot.js`:  its words, in its language (`solitaire.en.snapshot.js`, `cartas.es.snapshot.js`)
  * - `<Project>.snapshot.tsx`:  the TypeScript (`ts/solid` target)
  * - `<Project>.snapshot.py`:  the Python (the `py` target)
  *   - only for the fixtures in `PYTHON_FIXTURES`
  * - `<Project>.lib.snapshot.ts`:  as a library (the `ts/lib` target)
  *   - only for the fixtures in `LIBRARY_FIXTURES`
+ * - `<library>.import.snapshot.js`:  each `@spell/library` project it imports, compiled as it runs against it,
+ *   e.g. `cards.import.snapshot.js` beside `solitaire`:  so a page can run the fixture, its import and all
+ *   (the runner's browser tests)
  * - Why beside it:  a change shows up as a diff of a real `.js` or `.py` file, in VS Code's Source Control.
  * - New fixture:  copy a project into `spaces/@spell/test/`, then `yarn spell:test:fixtures:bless` writes its
  *   snapshot.
@@ -72,6 +77,15 @@ describe("fixture projects compile to their snapshots", () => {
       await expect(compiledFixture(name, PY.ElementsWriter.instance)).toMatchFileSnapshot(
         fixturePath(name, `${name}.elements${SP.SNAPSHOT_JS_SUFFIX}`)
       )
+    })
+
+    // each library it imports, as the program loads it:  `@spell/library/cards` => `cards.import.snapshot.js`
+    test(`${name}'s libraries`, async () => {
+      for (const imported of Object.values(fixtureImports(name)).filter((it) => it.startsWith(LIBRARY_GROUP))) {
+        await expect(compiledFixture(imported)).toMatchFileSnapshot(
+          fixturePath(name, `${imported.split("/").at(-1)}.import${SP.SNAPSHOT_JS_SUFFIX}`)
+        )
+      }
     })
 
     // as a library (the `ts/lib` target, epic `people-and-orgs` P3):  its classes alone, one TypeScript file

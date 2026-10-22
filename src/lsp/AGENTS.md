@@ -30,7 +30,7 @@ when working with code in this folder, `src/lsp/` of the `spell-app` package (`s
   ```sh
   yarn lsp:start                                     # runs the server over stdio
   yarn lsp:scopes [--compile] <projectId...>         # writes scope packs
-  yarn lsp:scopes --compile @spell/examples/drawable-solitaire   # e.g.
+  yarn lsp:scopes --compile @spell/examples/Solitaire   # e.g.
   ```
 
 - `spell-app/lsp` MUST stay BROWSER-SAFE (WWOD §8 › "Barrels").

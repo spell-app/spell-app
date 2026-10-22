@@ -31,11 +31,16 @@ beforeAll(() => {
   const files = Object.fromEntries(
     fixtureProjectNames().map((name) => [`${name}.tsx`, compiledFixture(name, "ts/solid")])
   )
-  // a fixture's imports are the other fixtures' files, checked beside it, e.g. `@spell/test/cards` => `Cards.tsx`
+  // a fixture's imports are files checked beside it:  another fixture's, or a library's,
+  // e.g. `@spell/library/cards` => `cards.tsx`
+  const imports = fixtureProjectNames().flatMap((name) => Object.entries(fixtureImports(name)))
+  const fileOf = (imported: string) => `${imported.split("/").at(-1)}.tsx`
+  for (const [, imported] of imports) files[fileOf(imported)] ??= compiledFixture(imported, "ts/solid")
   const projects = Object.fromEntries(
-    fixtureProjectNames()
-      .flatMap((name) => Object.entries(fixtureImports(name)))
-      .map(([module, fixture]) => [decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length)), `./${fixture}.tsx`])
+    imports.map(([module, imported]) => [
+      decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length)),
+      `./${fileOf(imported)}`
+    ])
   )
   result = typecheck({ ...files, "Cards.sample.tsx": solidSample(), "Mistakes.tsx": MISTAKES }, { projects })
 }, 60_000)

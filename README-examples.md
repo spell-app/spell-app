@@ -2,16 +2,15 @@
 
 ```spell
 // a tableau:  a column, built down from king to ace, red and black in turn
-a tableau is a pile
-	- layout is vertical
-	- can give up a card if: the card is face up
-	- can take a card if:
-		if the tableau is empty
+a "tableau" is a pile where:
+	- it can give up a card if: the card is face up
+	- it can take a card if:
+		if it is empty
 			return the card is a king
 		return its color is not the color of the card and its value is the value of the card + 1
 ```
 
-_Real Spell, from the Outline Solitaire example:  the rule for one column of Klondike._
+_Real Spell, from the Solitaire example:  the rule for one column of Klondike._
 
 If you've played Klondike, you just read the rule for a column:
 a king on an empty one, and after that, one card lower, in the other color.
@@ -37,8 +36,8 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 | FizzBuzz | [`@spell/examples/fizzbuzz`](spaces/@spell/examples/fizzbuzz/) | Counting to 100 with fizz and buzz:  a loop, `if` and `otherwise`, and `print`, in eight lines | <a href="docs/images/examples/fizzbuzz.png"><img src="docs/images/examples/fizzbuzz.png" width="360" alt="FizzBuzz open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Calculator | [`@spell/examples/calculator`](spaces/@spell/examples/calculator/) | A working calculator:  an app with text properties, actions like `to clear (a calculator)`, and buttons whose clicks are Spell;  its first lines list ideas for extending it | <a href="docs/images/examples/calculator.png"><img src="docs/images/examples/calculator.png" width="360" alt="Calculator open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Todos - Form Based | [`@spell/examples/todos-form-based`](spaces/@spell/examples/todos-form-based/) | A to-do list:  yes/no properties, phrases like `a task "is complete" if ...`, a list filtered with `where`, and a form drawn with click handlers written in Spell | <a href="docs/images/examples/todos-form-based.png"><img src="docs/images/examples/todos-form-based.png" width="360" alt="Todos - Form Based open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
-| Outline Solitaire | [`@spell/examples/outline-solitaire`](spaces/@spell/examples/outline-solitaire/) | Klondike solitaire in the outline style, `a "deck" is a list of cards with:` and its facts as bullets:  kinds (`one of clubs, diamonds ...`), derived properties, phrases, tests and `pause for` | <a href="docs/images/examples/outline-solitaire.png"><img src="docs/images/examples/outline-solitaire.png" width="360" alt="Outline Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
-| Drawable Solitaire | [`@spell/examples/drawable-solitaire`](spaces/@spell/examples/drawable-solitaire/) | The same game, each card its own web component:  `a card is a drawable thing` with a `<css>` block draws as `<solitaire-card>`;  piles laid out by their children, a shuffled stock | <a href="docs/images/examples/drawable-solitaire.png"><img src="docs/images/examples/drawable-solitaire.png" width="360" alt="Drawable Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Solitaire | [`@spell/examples/Solitaire`](spaces/@spell/examples/Solitaire/) | Klondike solitaire in the outline style, on the cards library:  `import`s its cards, deck and piles, and adds the game, its kinds of piles (`a "tableau" is a pile where:`), their moves, layout and CSS;  `pause for` animates the deal | <a href="docs/images/examples/Solitaire.png"><img src="docs/images/examples/Solitaire.png" width="360" alt="Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Solitario | [`@spell/examples/Solitario`](spaces/@spell/examples/Solitario/) | Solitaire's Spanish twin:  Klondike in the outline style, in Spanish, on its own Spanish cards (`Carta`, `Mazo`, `Pila`) rather than the cards library | <a href="docs/images/examples/Solitario.png"><img src="docs/images/examples/Solitario.png" width="360" alt="Solitario open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Cards | [`@spell/library/cards`](spaces/@spell/library/cards/) | A library other projects import:  cards, decks and piles, at version 1.0.0 | a library:  no app of its own |
 | People | [`@spell/library/people`](spaces/@spell/library/people/) | People, orgs, notes and relationships, each saved in a readable JSON5 file;  compiled to TypeScript for the app's "You" panel and the people store | a library:  no app of its own |
 
@@ -408,37 +407,43 @@ The tasks last as long as the program runs, and Restart starts again from the th
 
 _The to-do list beside its 72 lines:  the first task is ticked, because the program makes it with `completed = yes`._
 
-## Outline Solitaire:  the outline style, and things that draw themselves
+## Solitaire:  the outline style, a library, and things that draw themselves
 
-Klondike in four files, written in the OUTLINE style:  a heading line, then what's true of it as bullets.
-The editor opens its [Deck.spell](spaces/@spell/examples/outline-solitaire/Deck.spell) first:
+Klondike in one file, written in the OUTLINE style:  a heading line, then what's true of it as bullets.
+Its cards, its deck and its piles aren't in it:  it imports them, from the card library.
 
-```spell
-a "deck" is a list of cards with:
-	- "suits" as one of clubs, diamonds, hearts or spades
-	- the "color" of a suit is:
-		red if it is diamonds or hearts
-		black otherwise
-	- "ranks" as one of ace, 2 ... 10, jack, queen, king
-	- a rank "is a face card" if it is jack, queen or king
-	// no jokers, unless it's made `with jokers`
-	- its jokers is yes or no
+```json5
+{ "path": "@spell/library/cards", "active": true, "import": ["Card", "Deck", "Pile", "Suit"] }
 ```
 
-- The same sentences as the to-do list's, without "a deck" at the start of every line.
+_From [its project file](spaces/@spell/examples/Solitaire/__project.json5):  the library's types, by name._
+
+So [Solitaire.spell](spaces/@spell/examples/Solitaire/Solitaire.spell) is only the game:
+the solitaire itself, how a click plays a card, and its kinds of pile, each saying what it may take or give up.
+
+```spell
+solitaire is an app where:
+	- its "score" is a number
+	- its "deck" is a new deck
+
+	// one of each pile, made with the solitaire
+	- its "stock" is a new stock pile with name = "stock"
+	- its "discards" is a new discard pile with name = "discards"
+	- its "clubs" is a new foundation with name = "clubs", suit = clubs
+```
+
+- The same sentences as the to-do list's, without "a solitaire" at the start of every line.
 - It isn't a second language:  the bullets are more ways to write the same rules
   ([the language, sentence by sentence](https://github.com/spell-app/spell-lang/blob/main/README-spell.md)).
-- `2 ... 10` is every rank between:  the deck's test counts 52 cards.
 - `##` lines are headings, as in Markdown:  comments a person reads, which the editor shows in bold.
+- The library's card says what its suits, ranks and colors are:
+  `suit = clubs` reads one, and a foundation draws its suit's `symbol`, which the card defines.
 
 The deal is a loop with a pause in it, so you watch it happen:
 
 ```spell
 - animation deal the cards:
-	// pull all cards into stock with a nice animation
-	set cards to merge every pile into a new pile
-	reverse the cards
-	for each card in the cards
+	for each card in its deck
 		set start pile to the pile of the card
 		turn the card face down
 		if start pile is not the stock of the solitaire
@@ -446,11 +451,10 @@ The deal is a loop with a pause in it, so you watch it happen:
 			pause for 50 msec
 	shuffle its stock
 
-	// deal cards into tableaus
 	for row from 1 to 7
-		turn the bottom card of its stock face up
+		turn the last card of its stock face up
 		for column from row to 7
-			add the bottom card of its stock to item column of the tableaus
+			add the last card of its stock to item column of the tableaus
 			pause for 50 msec
 
 	wait for: play from the stock
@@ -459,86 +463,72 @@ The deal is a loop with a pause in it, so you watch it happen:
 - `pause for 50 msec` lets the page draw before the next line runs:  28 cards dealt, 50 ms apart.
 - Written `animation` instead of `to`, an action runs one at a time:
   asking for it again while it runs does nothing, so a second Restart can't deal on top of the first.
-- A card turns over with the same 50 ms pause, in `to turn it over`.
+- A card is in one pile at a time, as the library says (`a card belongs to one pile`):
+  adding it to the stock takes it off the pile it was in.
 
 What you see:
 - Each card is one character, from Unicode's playing cards:  the queen of spades is 🂭, and the card's test checks it.
-- Each pile is a drawable list, its own element (`<outline-solitaire-tableau>` and the rest),
-  styled by the `<css>` block inside its own definition.
+- Each card is its own element, the library's `<cards-card>`;
+  each pile is a drawable list, its own element (`<solitaire-tableau>` and the rest), holding its cards' elements.
+- Each kind of pile styles itself, in the `<css>` block inside its own definition:
+  a tableau shows the top of each card below the one before;  a stacked pile, the stock, the discards and the
+  foundations, shows its last card, over a dashed place for its first.
 - AutoPlay, Cheat, Debug and Restart run across the top;  a card onto a foundation scores 10, one from the discards 5.
   Cheat turns up a random face-down card:  `set the pile to a random pile in remaining piles`.
 
-Its tests are in the same files, written in Spell, and run from the command line:
+Its tests are written in Spell, beside what they test, and run from the command line:
+the library's tests of its card, deck and piles, then Solitaire's own, of what each pile may take.
 
 ```sh
-spell test @spell/examples/outline-solitaire
+spell test @spell/examples/Solitaire
 ```
 
 <details>
 <summary>Output</summary>
 
 ```text
-✓ Compiling @spell/examples/outline-solitaire
-✓ test deck creation  (8 checks)
-✓ test card setup  (36 checks)
+✓ Compiling @spell/examples/Solitaire
+✓ test card setup  (30 checks)
+✓ test jokers  (15 checks)
+✓ test deck creation  (7 checks)
+✓ test deck with jokers  (5 checks)
+✓ test piles  (8 checks)
+✓ test the moves  (11 checks)
 
-2 passed
+6 passed
 ```
 
 </details>
 
-Beside its Card.spell sits Card.spell-es, an early hand translation of the card, which the project leaves out.
-Spell reads Spanish now, a file at a time, by its name (`Carta.es.spell`):
-the test project `cartas` is the cards project in Spanish
+<img src="docs/images/examples/Solitaire.png" width="640" alt="Solitaire running:  the stock, the discards and four foundations across the top, seven tableaus dealt below, each card a Unicode playing card">
+
+_Solitaire, dealt:  every card on the table one Unicode character, drawn large._
+
+### Solitario:  the same game, in Spanish
+
+Spell reads Spanish too, a file at a time, by its name:  `Solitario.es.spell` is Spanish, `Solitaire.spell` English
 ([Spell in Spanish](https://github.com/spell-app/spell-lang/blob/main/README.md#spell-in-spanish)).
-🌱 A translated Solitario is coming.
+[Solitario](spaces/@spell/examples/Solitario/) is Solitaire written in it, line for line, cards and all:
+its own `Carta`, `Mazo` and `Pila`, rather than the English library's, so all of it reads in Spanish.
 
-<img src="docs/images/examples/outline-solitaire.png" width="640" alt="Outline Solitaire open in the Spell editor:  Deck.spell on the left, Klondike on the right, each card a Unicode playing card">
-
-_Outline Solitaire:  Deck.spell open, and every card on the table one Unicode character, drawn large._
-
-### Drawable Solitaire:  every card its own element
-
-The same game, one step further, and in the sentence style:
-[Card.spell](spaces/@spell/examples/drawable-solitaire/Card.spell) says `a card is a drawable thing:`,
-then gives it a `<css>` block,
-and every card becomes a real web component, `<solitaire-card>`, that a plain page could use too.
-
-- Its tag is the project's name without "drawable", then the type's:
-  `drawable-solitaire` and card make `solitaire-card`.
-- The face-down cards' green stripes are in that `<css>`, beside the card that wears them.
-- Each pile is an element too, and puts its cards' elements where its drawing says `<children/>`:
-
-```mermaid
-%%{init: {"theme":"base","themeVariables":{"fontFamily":"-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"15px","primaryColor":"#EFECFB","primaryBorderColor":"#6550CA","primaryTextColor":"#1A1C27","secondaryColor":"#F4F1E9","tertiaryColor":"#F7F6FC","lineColor":"#7F6FD6","textColor":"#7F6FD6","clusterBkg":"#F7F6FC","clusterBorder":"#B9B0E8","titleColor":"#1A1C27","edgeLabelBackground":"#F7F6FC","actorBkg":"#EFECFB","actorBorder":"#6550CA","actorTextColor":"#1A1C27","actorLineColor":"#9C90DE","signalColor":"#7F6FD6","signalTextColor":"#7F6FD6","labelBoxBkgColor":"#EFECFB","labelBoxBorderColor":"#6550CA","labelTextColor":"#1A1C27","loopTextColor":"#7F6FD6","noteBkgColor":"#F1E7D4","noteBorderColor":"#C9B48A","noteTextColor":"#1A1C27","activationBkgColor":"#DCD6F7","activationBorderColor":"#6550CA","sequenceNumberColor":"#FFFFFF"},"flowchart":{"curve":"basis","padding":12,"nodeSpacing":40,"rankSpacing":44}}}%%
-flowchart TB
-  game["the game:  an app, drawn on the page"] --> stock["solitaire-stock-pile"]
-  game --> discards["solitaire-discard-pile"]
-  game --> foundations["solitaire-foundation, four of them"]
-  game --> tableaus["solitaire-tableau, seven of them"]
-  stock --> cards["solitaire-card:  52 of them, each inside the pile that holds it"]
-  discards --> cards
-  foundations --> cards
-  tableaus --> cards
-  %% the Spell look:  yarn mermaid:pretty
-  classDef default fill:#EFECFB,stroke:#6550CA,stroke-width:1.5px,color:#1A1C27,rx:8px,ry:8px
+```spell
+// una columna:  se arma hacia abajo, del rey al as, rojo y negro alternados
+una "columna" es una pila donde:
+	- puede soltar una carta si: la carta está boca arriba
+	- puede tomar una carta si:
+		si la columna está vacía
+			devolver la carta es un rey
+		devolver su color no es el color de la carta y su valor es el valor de la carta + 1
 ```
 
-_Drawable Solitaire on the page:  13 pile elements, and every card an element of its own inside the pile that holds it._
+_The tableau's rule, in Spanish:  a column, `columna`._
 
-- Its card test runs every time the program does:  Card.spell ends by saying `test card setup`,
-  and the output shows ✅.
-  `spell test` runs both of its tests, 22 checks and 6.
-- `spell lint` passes it, with two warnings:
-  a pile's `droppable` and a foundation's `symbol` are used without being declared.
+- Its tests are the same six, in Spanish:  `spell test @spell/examples/Solitario` runs them.
+- Where the two differ, a Spanish word does:  the queen is `dama`, so its short name is D, and the king's R.
 
-Put the two ideas together, the outline style and a card that draws itself, and a card takes ten lines.
-Neither example has that file;  [the editor's page](README-app.md#a-drawable-thing-is-its-own-element) shows it,
-with the element it compiles to, and in a project named solitaire it draws as `<solitaire-card>` too.
+<img src="docs/images/examples/Solitario.png" width="640" alt="Solitario running:  its menu in Spanish, Puntos, Jugar solo, Trampa, Depurar and Reiniciar, and the same Klondike board">
 
-<img src="docs/images/examples/drawable-solitaire.png" width="640" alt="Drawable Solitaire open in the Spell editor:  Card.spell's css on the left, Klondike on the right, the face-down cards striped green">
-
-_Drawable Solitaire:  the card's `<css>` on the left, and on the right, each card an element of its own._
+_Solitario, dealt:  the same board, its menu in Spanish._
 
 ## Ideas for your own
 
@@ -550,8 +540,8 @@ The last column says where to borrow from;  where a part isn't in the language y
 | Flashcards | a deck of question cards, one at random, each turning over on a click, and a score | the solitaires:  `a random card in the deck`, `to turn it over`;  the card-and-deck idea, for learning |
 | A habit or chore tracker | tasks with yes/no done flags, drawn as a table | the to-do list's `where` filters;  **not yet** "today's chores":  a date has a year and a day, no month yet, and no word means today |
 | A recipe scaler | ingredients with amounts, scaled to a number of servings | numbers, derived properties, `to scale (a recipe) to (servings as a number)` |
-| Dice games (Yahtzee, Pig) | a drawable die, rolled with an animation, scored by phrases | Drawable Solitaire's card:  `a die is a drawable thing` with `<css>`, `pause for`;  the to-do list's phrases:  `a roll "is a full house" if ...` |
-| Memory | cards face up and face down in a grid | importing `@spell/library/cards`, which no example does yet;  a drawable grid |
+| Dice games (Yahtzee, Pig) | a drawable die, rolled with an animation, scored by phrases | the card library's card:  `a "die" is a drawable thing`, Solitaire's piles' `<css>`, `pause for`;  the to-do list's phrases:  `a roll "is a full house" if ...` |
+| Memory | cards face up and face down in a grid | importing `@spell/library/cards`, as Solitaire does;  a drawable grid |
 | A collection catalogue | movies, baseball cards:  items with categories, and filter buttons | `one of ...` kinds and the to-do list's filter;  `it is saved in its own file`, as the people library's person is |
 | A sign-up sheet | people and a list of slots, in a form | `@spell/library/people` and the to-do list's form;  🌱 a natural first program to share, once editing together arrives |
 | A text adventure | rooms as things, and each way out a button | the to-do list's clicks, and `print`;  **not yet** typed commands (below) |
@@ -586,7 +576,7 @@ Made Flashcards:  try  spell run <your space>/Flashcards
 
 ## The frozen test projects
 
-FizzBuzz, the to-do list and both solitaires have frozen twins beside them,
+FizzBuzz, the to-do list and Solitaire have frozen twins beside them,
 [`@spell/test`](spaces/@spell/test/),
 which the tests in [tests/spell/](tests/spell/) compile and compare line for line
 ([how they're checked](https://github.com/spell-app/spell-lang/blob/main/README-spell.md#the-frozen-test-projects)).
@@ -603,4 +593,4 @@ even `spell format` leaves the test projects alone.
 - [spell-app's commands](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app):  `spell app create`, `spell app serve` and `spell projects`,
   in full
 - [Spell UI's components](https://github.com/spell-app/spell-ui/blob/main/README-components.md):
-  the `<ui-*>` elements the to-do list and Outline Solitaire draw with
+  the `<ui-*>` elements the to-do list and Solitaire draw with

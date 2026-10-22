@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "fs"
+import { readFileSync } from "fs"
 import { resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
@@ -7,7 +7,7 @@ import { PY } from "spell-lang/py"
 import { SP } from "spell-lang/spell"
 import { parseSpellProject } from "spell-lang/spell/test"
 import environment from "spell-app/spaces/server/node/environment"
-import { FIXTURES_DIR } from "spell-app/spaces/test"
+import { fixtureImportScope, fixtureProjectId, fixtureProjectNames, loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * Every name in today's spell that steps aside in Python (epic `python-target` P26):
@@ -39,41 +39,16 @@ class NotingNaming extends P.Naming {
   }
 }
 
-/** Each project folder under `root`:  one with a project file (`SP.PROJECT_FILE`). */
-function projectsIn(root: string): string[] {
-  return readdirSync(root, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => resolve(root, entry.name))
-    .filter((dir) => {
-      try {
-        readFileSync(resolve(dir, SP.PROJECT_FILE))
-        return true
-      } catch {
-        return false
-      }
-    })
-}
-
-/** The `.spell` files project `dir` imports, as `parseSpellProject()` takes them. */
-function spellFilesOf(dir: string): Array<{ path: string; contents: string }> {
-  const { imports } = JSON.parse(readFileSync(resolve(dir, SP.PROJECT_FILE), "utf8")) as {
-    imports: Array<{ path: string; active?: boolean }>
-  }
-  return imports
-    .filter(({ path, active }) => active !== false && path.endsWith(".spell"))
-    .map(({ path }) => ({ path, contents: readFileSync(resolve(dir, `.${path}`), "utf8") }))
-}
-
 describe("Python's name clashes in today's spell", () => {
   test("pinned:  every name that steps aside, and where", async () => {
     const naming = new NotingNaming(P.Naming.PYTHON, P.Naming.PYTHON_CLASHES)
     const writer = new PY.PyWriter()
     writer.naming = naming
-    const dirs = projectsIn(FIXTURES_DIR)
-    for (const dir of dirs) {
-      // its place, e.g. `@spell/examples/solitaire`
-      naming.where = dir.slice(dir.lastIndexOf("@spell"))
-      const { scope, files } = parseSpellProject(spellFilesOf(dir))
+    for (const name of fixtureProjectNames()) {
+      // its place, e.g. `@spell/test/solitaire`
+      naming.where = fixtureProjectId(name)
+      // as it compiles:  against what it imports, e.g. the card library
+      const { scope, files } = parseSpellProject(loadFixtureProject(name), { parentScope: fixtureImportScope(name) })
       const parts = files.map(({ match, compiled }) =>
         match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled
       )

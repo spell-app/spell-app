@@ -167,7 +167,7 @@ and in the app's build folder, `app/` at the repo's root.
     - A drawable LIST's element holds its items as its children (`core.drawItems()`), shown through its drawing's slot.
       - Its `to draw it` is the wrapper in its shadow root;  each child is what its `to draw each item` draws,
         by default the item's own element (epic `spanish` P20).
-    - The example:  `@spell/examples/drawable-solitaire`, each card its own element, styled by its `<css>`.
+    - The example:  `@spell/examples/Solitaire`, each card its own element, each pile styled by its `<css>`.
     - ONE tag per type per page, shared by every runtime copy (`SPELL_ELEMENTS`, on `globalThis`).
     - Compiled TypeScript writes each type's element class itself (P10):
       - e.g. `class CardElement extends SpellElement<Card>`

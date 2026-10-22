@@ -24,7 +24,7 @@ export const spellEditorVocabulary = {
       name: "project",
       kind: "string",
       description:
-        "What to edit, from the spell server's `/api`, as `<spell-app project>`:  `@spell/examples/drawable-solitaire`." +
+        "What to edit, from the spell server's `/api`, as `<spell-app project>`:  `@spell/examples/Solitaire`." +
         "  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves."
     },
     {

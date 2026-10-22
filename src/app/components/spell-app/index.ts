@@ -7,7 +7,7 @@
  *   or through the component pack, `spell.pack.js`:
  *
  *       <script type="module" src="/element/spell-app.js"></script>
- *       <spell-app project="@spell/examples/drawable-solitaire" toolbar></spell-app>
+ *       <spell-app project="@spell/examples/Solitaire" toolbar></spell-app>
  *
  * - On a page with Spell UI of its own (a docs page), it uses the page's Solid and Spell UI (`spell-solid-shared.js`).
  *

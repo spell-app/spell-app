@@ -125,7 +125,7 @@ export class Carta extends Thing {
     await core.pauseFor(50, "msec")
   }
 
-  dibujar() {
+  draw() {
     const className = `Card face-${this.dirección} ${this.rango} ${this.palo} ui button compact fluid `
     if (this.estáBocaAbajo) {
       return h("div", { class: () => className, onClick: () => trigger("card-click", { card: this }) },

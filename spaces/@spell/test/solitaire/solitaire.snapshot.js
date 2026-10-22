@@ -1,557 +1,417 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, trigger, position, on } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, css, position, on } from "@spell/core"
+import { Card, Suit, Rank, Deck, Pile } from "@spell/project/@spell/library/cards"
 
-core.heading("definition of a Card with nice english aliases for working with it")
-/** definition of a Card with nice english aliases for working with it */
-export class Card extends Thing {
-  /////////////////////////
-  // ## properties of cards
-  /////////////////////////
-  /** card ranks */
-  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
-  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
-  static { this.declareProp("rank", { oneOf: Card.Ranks }) }
-  get rank() { return this.getProp("rank") }
-  set rank(value) { this.setProp("rank", value) }
+core.heading("Klondike Solitaire")
+////////////////////////
+// ## Klondike Solitaire
+////////////////////////
+//-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for its rules, and what each pile is called.
+// The cards, the deck and the piles are the cards library's, `@spell/library/cards`:
+// this file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
+// What's where, top to bottom:
+//   the solitaire:  its piles, its moves, auto play and drawing
+//   playing a card:  what a click does
+//   start
+//   the piles:  each kind, what it may take or give up, and how it draws
+//   tests
 
-  /** card suits */
-  // cards have a suit as one of clubs, diamonds, hearts or spades
-  static Suits = ["clubs", "diamonds", "hearts", "spades"]
-  static { this.declareProp("suit", { oneOf: Card.Suits }) }
-  get suit() { return this.getProp("suit") }
-  set suit(value) { this.setProp("suit", value) }
+core.heading("The solitaire:  its piles, its moves, auto play and drawing")
+/** a stacked pile:  its cards on top of each other, the last one showing, over a place for the first */
+export class StackedPile extends Pile {
+  static elementTag = core.defineElement(this, "test-project")
 
-  /** color as derivation of suit */
-  get color() {
-    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
-    return "black"
+  static css = css`
+    :host {
+    	display: block;
+    	position: relative;
+    	min-height: 6.5rem;
+    }
+    /* where its first card goes:  a card-sized outline */
+    .Placeholder {
+    	position: absolute;
+    	top: 1.5rem;
+    	left: 0.3rem;
+    	width: 4.25rem;
+    	height: 5.65rem;
+    	box-sizing: border-box;
+    	border: 2px dashed #c8c8c8;
+    	border-radius: 0.4rem;
+    	display: flex;
+    	align-items: center;
+    	justify-content: center;
+    	font-size: 2rem;
+    	cursor: pointer;
+    }
+    ::slotted(*) {
+    	position: absolute;
+    	top: 0;
+    	left: 0;
+    }
+  `
+}
+
+/** the stock:  the cards not played yet, face down;  a click turns the next one over */
+export class StockPile extends StackedPile {
+  static elementTag = core.defineElement(this, "test-project")
+
+  canTake(card) {
+    return false
   }
 
-  /** value as a derivation of rank */
-  get value() {
-    return spellPosition(positionOf(Card.Ranks, this.rank))
-  }
-
-  /** card direction:  up or down */
-  // a card has a direction as either up or down
-  static Directions = ["up", "down"]
-  static { this.declareProp("direction", { oneOf: Card.Directions }) }
-  get direction() { return this.getProp("direction") }
-  set direction(value) { this.setProp("direction", value) }
-
-  /////////////
-  // ## aliases
-  /////////////
-  /** "card is face up/down" */
-  get isFaceUp() {
-    return this.direction == "up"
-  }
-
-  get isFaceDown() {
-    return this.direction == "down"
-  }
-
-  /** `card is a face card` */
-  get isAFaceCard() {
-    return core.includes(["jack", "queen", "king"], this.rank)
-  }
-
-  /** "card is a spade", "...is a club" etc */
-  isASuit(suit) {
-    return this.suit === suit
-  }
-
-  /** "card is a queen", "...is an ace" etc */
-  isARank(rank) {
-    return this.rank === rank
-  }
-
-  /** "card is the queen of spades" etc */
-  isTheRankOfSuits(rank, suit) {
-    return this.rank === rank && this.suit === suit
-  }
-
-  /** name as a derivation of name/suit */
-  get name() {
-    return `${this.rank}-of-${this.suit}`
-  }
-
-  get shortSuit() {
-    if (this.isASuit("clubs")) return "♣️"
-    if (this.isASuit("diamonds")) return "♦️"
-    if (this.isASuit("hearts")) return "♥️"
-    if (this.isASuit("spades")) return "♠️"
-    return "?"
-  }
-
-  get shortRank() {
-    if (this.rank === undefined) return "?"
-    if (typeof this.rank === "number") return `${this.rank}`
-    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
-  }
-
-  get shortDirection() {
-    if (this.direction == "up") return "+"
-    return "—"
-  }
-
-  get shortName() {
-    return this.shortRank + this.shortSuit
-  }
-
-  get state() {
-    return this.shortRank + this.shortSuit + this.shortDirection
-  }
-
-  //## actions
-
-  /**
-   * Turn card face up or face down
-   * Note that this will animate if you `wait for turn the card face up`
-   */
-  async turnFaceUp() {
-    this.direction = "up"
-    await core.pauseFor(50, "msec")
-  }
-
-  async turnFaceDown() {
-    this.direction = "down"
-    await core.pauseFor(50, "msec")
-  }
-
-  /**
-   * Flip card to opposite direction
-   * Note that this will animate if you `wait for turn the card face up`
-   */
-  async turnOver() {
-    if (this.direction == "up") this.turnFaceDown()
-    else this.turnFaceUp()
-    await core.pauseFor(50, "msec")
+  canGiveUp(card) {
+    return card === this.lastItem
   }
 
   draw() {
-    const className = `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
-    if (this.isFaceDown) {
-      return h("div", { class: () => className, onClick: () => trigger("card-click", { card: this }) },
-        h("i", { class: "fitted bicycle icon" })
-      )
-    }
-    return h("div", { class: () => className + this.color, onClick: () => trigger("card-click", { card: this }) },
-      () => `${this.shortRank} `,
-      h("span", { class: "suit" }, () => this.shortSuit)
+    return h("div", { class: "Stock" },
+      h("div", { class: "Placeholder", onClick: () => solitaire.playFromTheStock() }),
+      h("slot")
     )
   }
+}
 
-  /**
-   * "move" a card
-   * NOTE: use this rather than `add` to make sure card is only in one pile at a time
-   * if you `wait for: move the card to the pile` the move will be animated
-   */
-  async moveToPile(pile) {
-    if (this.pile !== undefined) this.pile.remove(this)
-    this.pile = pile
-    pile.append(this)
-    await core.pauseFor(50, "msec")
+/** the discards:  where the stock's cards go as they're turned over */
+export class DiscardPile extends StackedPile {
+  static elementTag = core.defineElement(this, "test-project")
+
+  canTake(card) {
+    return false
   }
 
-  async play() {
-    const startPile = this.pile
-    if (!startPile.canPickUpCard(this)) return false
+  canGiveUp(card) {
+    return card === this.lastItem
+  }
+}
 
-    if (startPile === stock) {
-      playFromTheStockPile()
-      return
+/** a foundation:  where a suit is built up, ace to king */
+export class Foundation extends StackedPile {
+  static elementTag = core.defineElement(this, "test-project")
+
+  // - its "suit" is a suit
+  static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
+  get suit() { return this.getProp("suit") }
+  set suit(value) { this.setProp("suit", value) }
+
+  canGiveUp(card) {
+    return false
+  }
+
+  /** one card at a time:  the last of its pile */
+  canTake(card) {
+    if (card !== card.pile.lastItem) return false
+    return this.suit === card.suit && this.value + 1 === card.value
+  }
+
+  draw() {
+    return h("div", { class: "Foundation" },
+      h("div", { class: "Placeholder" }, () => Suit.symbol(this.suit)),
+      h("slot")
+    )
+  }
+}
+
+/** a tableau:  a column, built down from king to ace, red and black in turn */
+export class Tableau extends Pile {
+  static elementTag = core.defineElement(this, "test-project")
+
+  canGiveUp(card) {
+    return card.isFaceUp
+  }
+
+  canTake(card) {
+    if (this.isEmpty) return card.isARank("king")
+    return this.color != card.color && this.value === card.value + 1
+  }
+
+  static css = css`
+    :host {
+    	display: block;
+    	min-height: 30rem;
     }
-
-    const droppablePiles = allPiles.filter((pile) => pile.droppable && pile.canPlayCard(this))
-    const endPile = droppablePiles.firstItem
-    if (endPile === undefined) return false
-
-    const cardsToMove = startPile.startingWith(this)
-    cardsToMove.name = startPile.name
-    core.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
-
-    cardsToMove.forEach((card) => card.moveToPile(endPile))
-
-    if (startPile instanceof Tableau && !startPile.isEmpty) {
-      await core.pauseFor(200, "msec")
-      const it = startPile.lastItem
-      core.console.log(`turning over (${startPile.name}: ${it?.state})`)
-      it?.turnFaceUp()
+    /* each card below the one before, its top showing;  the last one whole */
+    ::slotted(*) {
+    	display: block;
     }
-
-    if (endPile instanceof Foundation) game.score = game.score + 10
-    else if (startPile === discards) game.score = game.score + 5
-    return true
-  }
-
-  // set the pile of the card to the pile
-  static { this.declareProp("pile", { type: "Pile" }) }
-  get pile() { return this.getProp("pile") }
-  set pile(value) { this.setProp("pile", value) }
+    ::slotted(:not(:last-child)) {
+    	height: 2.6rem;
+    	overflow: hidden;
+    }
+  `
 }
 
-core.heading("create a card instance with default properties")
-/** create a card instance with default properties */
-export function testCardSetup() {
-  return core.test("test card setup", function testCardSetup() {
-    core.echoTestAction(`the card is a new card whose rank is queen, suit is spades and direction is up`)
-    const card = new Card({
-      rank: "queen",
-      suit: "spades",
-      direction: "up"
-    })
-    core.echo(card)
-    core.expect(card.rank, `the rank of the card`, "queen", `queen`)
-    core.expect(card.suit, `the suit of the card`, "spades", `spades`)
-    core.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
-    core.expect(card.color, `the color of the card`, "black", `black`)
-    core.expect(card.value, `the value of the card`, 12, `12`)
-    core.expect(card.shortSuit, `the short-suit of the card`, "♠️", `"♠️"`)
-    core.expect(card.shortRank, `the short-rank of the card`, "Q", `"Q"`)
-    core.expect(card.shortName, `the short-name of the card`, "Q♠️", `"Q♠️"`)
-
-    core.expect(card.isFaceUp, `the card is face up`, true, `yes`)
-    core.expect(card.isFaceDown, `the card is face down`, false, `no`)
-
-    core.expect(card.isAFaceCard, `the card is a face card`, true, `yes`)
-    core.expect(!card.isAFaceCard, `the card is not a face card`, false, `false`)
-
-    core.expect(card.isASuit("spades"), `the card is a spade`, true, `true`)
-    core.expect(card.isASuit("clubs"), `the card is a club`, false, `false`)
-
-    core.expect(card.isARank("queen"), `the card is a queen`, true, `true`)
-    core.expect(card.isARank("ace"), `the card is an ace`, false, `false`)
-    core.expect(card.isARank(2), `the card is a 2`, false, `false`)
-
-    core.expect(card.isTheRankOfSuits("queen", "spades"), `the card is the queen of spades`, true, `true`)
-    core.expect(card.isTheRankOfSuits("queen", "clubs"), `the card is the queen of clubs`, false, `false`)
-    core.expect(!card.isTheRankOfSuits(2, "diamonds"), `the card is not the 2 of diamonds`, true, `true`)
-
-    core.echoTestAction(`turn the card face down`)
-    card.turnFaceDown()
-    core.expect(card.direction, `the direction of the card`, "down", `down`)
-
-    core.echoTestAction(`turn the card over`)
-    card.turnOver()
-    core.expect(card.isFaceUp, `the card is face up`, true, `true`)
-  })
-}
-if (!core.isCarryingOver) testCardSetup()
-// -----------
-core.heading("Deck:   US standard card deck (without jokers currently)")
-//## Deck:   US standard card deck (without jokers currently)
-
-export class Deck extends List {
-  static instanceType = Card
-
-  setUp() {
-    if (this.isSetUp) return
-    Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => {
-      const it = new Card({ rank: rank, suit: suit })
-      this.append(it)
-    }))
-    this.isSetUp = true
-  }
-
-  display() {
-    const cardNames = new List()
-    this.forEach((card) => cardNames.append(card.shortName))
-    core.echo(`deck: ${cardNames}`)
-  }
-
-  // set the is-set-up of the deck to yes
-  static { this.declareProp("isSetUp", { type: "choice" }) }
-  get isSetUp() { return this.getProp("isSetUp") }
-  set isSetUp(value) { this.setProp("isSetUp", value) }
-}
-
-export function testDeckCreation() {
-  return core.test("test deck creation", function testDeckCreation() {
-    core.echoTestAction(`the deck is a new deck`)
-    const deck = new Deck()
-    core.echoTestAction(`set up the deck`)
-    deck.setUp()
-    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    core.echoTestAction(`set up the deck`)
-    deck.setUp()
-    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    const queens = deck.filter((card) => card.rank == "queen")
-    core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
-    core.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    core.expect(deck.firstItem?.shortName, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
-
-    core.echo("the deck before shuffling:")
-    core.echoTestAction(`display the deck`)
-    deck.display()
-    core.echoTestAction(`get the first card of the deck`)
-    const it = deck.firstItem
-    core.expect(it?.isTheRankOfSuits("ace", "clubs"), `it is the ace of clubs`, true, `yes`)
-  })
-}
-if (!core.isCarryingOver) testDeckCreation()
-// -----------
-core.heading("Pile of playing cards")
-/** Pile of playing cards */
-export class Pile extends List {
-  static instanceType = Card
-
-  get color() {
-    if (this.isEmpty) return "none"
-    return this.lastItem.color
-  }
-
-  get value() {
-    if (this.isEmpty) return 0
-    return this.lastItem.value
-  }
-
-  get state() {
-    let state = `${this.name || "pile"}:`
-    this.forEach((card) => (state = `${state} ${card.state}`))
-    return state
-  }
-}
-// -----------
-core.heading("Klondike Solitaire Card Game")
-//////////////////////////////////
-// ## Klondike Solitaire Card Game
-//////////////////////////////////
-//-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
-
-core.heading("Game bits")
-/** Game bits */
-export class Game extends App {
-  // a game has a score as a number
+/** The solitaire:  its piles, its moves, auto play and drawing */
+export class Solitaire extends App {
+  // - its "score" is a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }
 
-  //## actions
+  // - its "deck" is a new deck
+  static { this.declareProp("deck", { init: () => new Deck(), early: true }) }
+  get deck() { return this.getProp("deck") }
+  set deck(value) { this.setProp("deck", value) }
 
-  get state() {
-    let state = []
-    allPiles.forEach((pile) => core.append(state, pile.state))
-    return state
+  /** one of each pile, made with the solitaire */
+  // - its "stock" is a new stock pile with name = "stock"
+  static { this.declareProp("stock", { init: () => new StockPile({ name: "stock" }), early: true }) }
+  get stock() { return this.getProp("stock") }
+  set stock(value) { this.setProp("stock", value) }
+
+  // - its "discards" is a new discard pile with name = "discards"
+  static { this.declareProp("discards", { init: () => new DiscardPile({ name: "discards" }), early: true }) }
+  get discards() { return this.getProp("discards") }
+  set discards(value) { this.setProp("discards", value) }
+
+  // - its "clubs" is a new foundation with name = "clubs", suit = clubs
+  static { this.declareProp("clubs", { init: () => new Foundation({ name: "clubs", suit: "clubs" }), early: true }) }
+  get clubs() { return this.getProp("clubs") }
+  set clubs(value) { this.setProp("clubs", value) }
+
+  // - its "diamonds" is a new foundation with name = "diamonds", suit = diamonds
+  static { this.declareProp("diamonds", { init: () => new Foundation({ name: "diamonds", suit: "diamonds" }), early: true }) }
+  get diamonds() { return this.getProp("diamonds") }
+  set diamonds(value) { this.setProp("diamonds", value) }
+
+  // - its "hearts" is a new foundation with name = "hearts", suit = hearts
+  static { this.declareProp("hearts", { init: () => new Foundation({ name: "hearts", suit: "hearts" }), early: true }) }
+  get hearts() { return this.getProp("hearts") }
+  set hearts(value) { this.setProp("hearts", value) }
+
+  // - its "spades" is a new foundation with name = "spades", suit = spades
+  static { this.declareProp("spades", { init: () => new Foundation({ name: "spades", suit: "spades" }), early: true }) }
+  get spades() { return this.getProp("spades") }
+  set spades(value) { this.setProp("spades", value) }
+
+  // - its "T1" is a new tableau with name = "T1"
+  static { this.declareProp("T1", { init: () => new Tableau({ name: "T1" }), early: true }) }
+  get T1() { return this.getProp("T1") }
+  set T1(value) { this.setProp("T1", value) }
+
+  // - its "T2" is a new tableau with name = "T2"
+  static { this.declareProp("T2", { init: () => new Tableau({ name: "T2" }), early: true }) }
+  get T2() { return this.getProp("T2") }
+  set T2(value) { this.setProp("T2", value) }
+
+  // - its "T3" is a new tableau with name = "T3"
+  static { this.declareProp("T3", { init: () => new Tableau({ name: "T3" }), early: true }) }
+  get T3() { return this.getProp("T3") }
+  set T3(value) { this.setProp("T3", value) }
+
+  // - its "T4" is a new tableau with name = "T4"
+  static { this.declareProp("T4", { init: () => new Tableau({ name: "T4" }), early: true }) }
+  get T4() { return this.getProp("T4") }
+  set T4(value) { this.setProp("T4", value) }
+
+  // - its "T5" is a new tableau with name = "T5"
+  static { this.declareProp("T5", { init: () => new Tableau({ name: "T5" }), early: true }) }
+  get T5() { return this.getProp("T5") }
+  set T5(value) { this.setProp("T5", value) }
+
+  // - its "T6" is a new tableau with name = "T6"
+  static { this.declareProp("T6", { init: () => new Tableau({ name: "T6" }), early: true }) }
+  get T6() { return this.getProp("T6") }
+  set T6(value) { this.setProp("T6", value) }
+
+  // - its "T7" is a new tableau with name = "T7"
+  static { this.declareProp("T7", { init: () => new Tableau({ name: "T7" }), early: true }) }
+  get T7() { return this.getProp("T7") }
+  set T7(value) { this.setProp("T7", value) }
+
+  /**
+   * once, as the solitaire is made:  every card of the deck into the stock
+   * - its deck and piles are made with it, before this runs
+   * - inside the loop `it` is the card:  so the stock is `the stock of solitaire`
+   */
+  create() {
+    this.deck.forEach((card) => this.stock.append(card))
+  }
+
+  /** print each pile's cards, e.g. "stock: Q♠️— 7♥️—" */
+  debug() {
+    core.map(core.everyThing(Pile), (pile) => core.console.log(pile.state))
+  }
+
+  /** the discards, turned over, back into the stock */
+  resetTheStock() {
+    const cards = this.discards.clone()
+    cards.reverse()
+    cards.forEach((card) => {
+      this.stock.append(card)
+      card.turnFaceDown()
+    })
+  }
+
+  /** turn the stock's next card over, onto the discards */
+  async playFromTheStock() {
+    if (core.processIsRunning("play_from_the_stock")) return
+    core.startProcess("play_from_the_stock", "EXCLUSIVE")
+    try {
+      if (this.stock.isEmpty) await this.resetTheStock()
+
+      const it = this.stock.lastItem
+      it?.turnFaceUp()
+      this.discards.append(it)
+    }
+    finally {
+      core.stopProcess("play_from_the_stock")
+    }
+  }
+
+  /** gather every card of its deck into the stock, shuffle it, and deal the tableaus:  one card more in each, left to right */
+  async dealTheCards() {
+    if (core.processIsRunning("deal_the_cards")) return
+    core.startProcess("deal_the_cards", "EXCLUSIVE")
+    try {
+      for (const card of this.deck) {
+        const startPile = card.pile
+        card.turnFaceDown()
+        if (startPile !== this.stock) {
+          this.stock.append(card)
+          await core.pauseFor(50, "msec")
+        }
+      }
+      this.stock.randomize()
+
+      for (const row of core.getRange(1, 7)) {
+        this.stock.lastItem?.turnFaceUp()
+        for (const column of core.getRange(row, 7)) {
+          core.getItemAt(core.everyThing(Tableau), position(column))?.append(this.stock.lastItem)
+          await core.pauseFor(50, "msec")
+        }
+      }
+
+      await this.playFromTheStock()
+    }
+    finally {
+      core.stopProcess("deal_the_cards")
+    }
+  }
+
+  startANewGame() {
+    this.score = 0
+    this.dealTheCards()
+  }
+
+  /** turn up a face-down card from a tableau, at random, onto the discards */
+  async cheat() {
+    const remainingPiles = core.filter(core.everyThing(Tableau), (pile) => !pile.isEmpty && pile.firstItem?.isFaceDown)
+    if (core.isEmpty(remainingPiles)) return
+    const pile = core.randomItemOf(remainingPiles)
+    const hiddenCards = pile?.filter((card) => card.isFaceDown)
+    const card = hiddenCards?.randomItem()
+    card?.turnFaceUp()
+    await core.pauseFor(30, "ticks")
+    this.discards.append(card)
+  }
+
+  /** play every card that can go somewhere, until none can */
+  async autoPlay() {
+    let anythingChanged = false
+    if (!this.discards.isEmpty) {
+      const testCard = this.discards.lastItem
+      if (await testCard?.play()) {
+        anythingChanged = true
+        await core.pauseFor(500, "msec")
+      }
+    }
+
+    // each tableau's last card onto its foundation
+    await core.forEachSequential(core.everyThing(Tableau), async (pile) => {
+      if (pile.isEmpty) return
+      const testCard = pile.lastItem
+      const foundation = core.filter(core.everyThing(Foundation), (pile) => pile.suit == testCard.suit).firstItem
+      if (core.canTake(foundation, testCard)) {
+        anythingChanged = true
+        await testCard.play()
+        await core.pauseFor(100, "msec")
+      }
+    })
+
+    // each tableau's face-up cards, all together, onto another tableau
+    await core.forEachSequential(core.everyThing(Tableau), async (pile) => {
+      const faceUpCards = pile.filter((card) => card.isFaceUp)
+      if (faceUpCards.isEmpty) return
+      const testCard = faceUpCards.firstItem
+      if (testCard.isARank("king") && testCard == pile.firstItem) return
+      if (await testCard.play()) {
+        anythingChanged = true
+        await core.pauseFor(500, "msec")
+      }
+    })
+
+    if (anythingChanged) await this.autoPlay()
   }
 
   draw() {
-    return h("div", { class: "ui container" },
-      h("div", { class: "board" },
-        h("table", { class: "ui table fixed" },
-          h("thead",
-            h("tr",
-              h("th", { class: "left aligned", colspan: "2" }, "Klondike Solitaire"),
-              h("th", { class: "right aligned" }, () => `Score: ${this.score}`),
-              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => autoPlay() }, "AutoPlay")),
-              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => cheat() }, "Cheat")),
-              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => debugTheGame() }, "Debug")),
-              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => resetTheGame() }, "Restart"))
-            )
-          ),
-          h("tbody",
-            h("tr",
-              h("td", () => core.drawThing(stock)),
-              h("td", () => core.drawThing(discards)),
-              h("td"),
-              h("td", () => core.drawThing(foundations.firstItem)),
-              h("td", () => core.drawThing(foundations.getItem(1))),
-              h("td", () => core.drawThing(foundations.getItem(2))),
-              h("td", () => core.drawThing(foundations.getItem(3)))
-            ),
-            h("tr",
-              h("td", () => core.drawThing(tableaus.firstItem)),
-              h("td", () => core.drawThing(tableaus.getItem(1))),
-              h("td", () => core.drawThing(tableaus.getItem(2))),
-              h("td", () => core.drawThing(tableaus.getItem(3))),
-              h("td", () => core.drawThing(tableaus.getItem(4))),
-              h("td", () => core.drawThing(tableaus.getItem(5))),
-              h("td", () => core.drawThing(tableaus.getItem(6)))
-            )
-          )
+    return h("ui-container",
+      h("ui-menu",
+        h("ui-item", { type: "header" }, "Klondike Solitaire"),
+        h("ui-item", () => `Score: ${this.score}`),
+        h("ui-menu", { position: "right" },
+          h("ui-item", { onClick: () => this.autoPlay() }, "AutoPlay"),
+          h("ui-item", { onClick: () => this.cheat() }, "Cheat"),
+          h("ui-item", { onClick: () => this.debug() }, "Debug"),
+          h("ui-item", { onClick: () => this.startANewGame() }, "Restart")
+        )
+      ),
+      h("ui-grid", { columns: "7" },
+        h("ui-row",
+          h("ui-column", () => core.drawThing(this.stock)),
+          h("ui-column", () => core.drawThing(this.discards)),
+          h("ui-column"),
+          h("ui-column", () => core.drawThing(this.clubs)),
+          h("ui-column", () => core.drawThing(this.diamonds)),
+          h("ui-column", () => core.drawThing(this.hearts)),
+          h("ui-column", () => core.drawThing(this.spades))
+        ),
+        h("ui-row",
+          h("ui-column", () => core.drawThing(this.T1)),
+          h("ui-column", () => core.drawThing(this.T2)),
+          h("ui-column", () => core.drawThing(this.T3)),
+          h("ui-column", () => core.drawThing(this.T4)),
+          h("ui-column", () => core.drawThing(this.T5)),
+          h("ui-column", () => core.drawThing(this.T6)),
+          h("ui-column", () => core.drawThing(this.T7))
         )
       )
     )
   }
 }
+export const solitaire = new Solitaire()
 
-/** set up stock pile: unplayed cards */
-export class StockPile extends Pile {
-  canPickUpCard(card) {
-    return card === this.lastItem
+core.heading("Playing a card:  what a click does")
+////////////////////////////////////////
+// ## Playing a card:  what a click does
+////////////////////////////////////////
+/** the card, and every card on it, onto the first pile that can take it;  it says whether it moved */
+Card.prototype.play = async function () {
+  const startPile = this.pile
+  if (!core.canGiveUp(startPile, this)) return false
+
+  if (startPile === solitaire.stock) {
+    solitaire.playFromTheStock()
+    return
   }
 
-  draw() {
-    return h("div", { class: "Pile Stock stacked" },
-      h("div", { class: "Placeholder ui button basic compact fluid", onClick: () => playFromTheStockPile() }),
-      () => core.drawThing(this.lastItem)
-    )
-  }
-}
+  const endPile = core.filter(core.everyThing(Pile), (pile) => core.canTake(pile, this)).firstItem
+  if (endPile === undefined) return false
 
-/** set up discards: where played cards go when turning over stock */
-export class DiscardPile extends Pile {
-  canPickUpCard(card) {
-    return card === this.lastItem
-  }
+  const movingCards = startPile.startingWith(this)
+  movingCards.name = startPile.name
+  core.console.log(`moving (${movingCards.state}) to (${endPile.state})`)
 
-  draw() {
-    return h("div", { class: "Pile Discards stacked" }, () => core.drawThing(this.lastItem))
-  }
-}
+  movingCards.forEach((card) => core.move(card, endPile))
 
-/** set up foundation piles: where we build up from ace => king */
-export class Foundation extends Pile {
-  canPickUpCard(card) {
-    return false
+  if (startPile instanceof Tableau && !startPile.isEmpty) {
+    await core.pauseFor(200, "msec")
+    const it = startPile.lastItem
+    core.console.log(`turning over (${startPile.name}: ${it?.state})`)
+    it?.turnFaceUp()
   }
 
-  canPlayCard(card) {
-    return this.name == card.suit && this.value + 1 === card.value
-  }
-
-  //##############
-  //## rendering the bits
-
-  // note: tableaus just draw as a (vertical) list of cards
-
-  draw() {
-    const color = this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
-    return h("div", { class: "Pile Foundation stacked" },
-      h("div", { class: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` },
-        h("div", { class: () => `suit ${this.name}` }, () => this.symbol)
-      ),
-      () => core.drawThing(this.lastItem)
-    )
-  }
-}
-
-/** set up tableau piles: vertical piles where we arrange from king to ace */
-export class Tableau extends Pile {
-  canPickUpCard(card) {
-    return card.isFaceUp
-  }
-
-  canPlayCard(card) {
-    if (this.isEmpty) return card.isARank("king")
-    return this.color !== card.color && this.value === card.value + 1
-  }
-
-  draw() {
-    return h("div", { class: "Pile Tableau staggered" }, () => core.drawItems(this))
-  }
-}
-
-export const game = new Game()
-core.console.log(game)
-
-core.heading("set up all piles")
-/** set up all piles */
-export const allPiles = new List({ instanceType: "Pile" })
-export const foundations = new List({ instanceType: "Pile" })
-export const tableaus = new List({ instanceType: "Pile" })
-
-export const stock = new StockPile({ name: "stock", droppable: false })
-allPiles.append(stock)
-
-export const discards = new DiscardPile({ name: "discards", droppable: false })
-allPiles.append(discards)
-
-const it = new Foundation({
-  name: "clubs",
-  symbol: "♣️",
-  droppable: true
-})
-foundations.append(it)
-const it2 = new Foundation({
-  name: "diamonds",
-  symbol: "♦️",
-  droppable: true
-})
-foundations.append(it2)
-const it3 = new Foundation({
-  name: "hearts",
-  symbol: "♥️",
-  droppable: true
-})
-foundations.append(it3)
-const it4 = new Foundation({
-  name: "spades",
-  symbol: "♠️",
-  droppable: true
-})
-foundations.append(it4)
-foundations.forEach((pile) => allPiles.append(pile))
-
-core.getRange(1, 7).forEach((number) => {
-  const it5 = new Tableau({ name: `Tableau${number}`, droppable: true })
-  tableaus.append(it5)
-  allPiles.append(it5)
-})
-
-/** set up deck of cards */
-export const deck = new Deck()
-deck.setUp()
-// start with cards in the stock pile
-deck.forEach((card) => card.moveToPile(stock))
-
-core.heading("actions")
-export function debugTheGame() {
-  core.map(game.state, (line) => core.console.log(line))
-}
-
-export function resetTheStockPile() {
-  const cards = discards.clone()
-  cards.reverse()
-  cards.forEach((card) => {
-    card.moveToPile(stock)
-    card.turnFaceDown()
-  })
-}
-
-export async function playFromTheStockPile() {
-  if (core.processIsRunning("play_from_the_stock_pile")) return
-  core.startProcess("play_from_the_stock_pile", "EXCLUSIVE")
-  try {
-    if (stock.isEmpty) await resetTheStockPile()
-
-    const it5 = stock.lastItem
-    it5?.turnFaceUp()
-    // pause for 150 msec
-    it5?.moveToPile(discards)
-  }
-  finally {
-    core.stopProcess("play_from_the_stock_pile")
-  }
-}
-
-export async function dealTheCards() {
-  if (core.processIsRunning("deal_the_cards")) return
-  core.startProcess("deal_the_cards", "EXCLUSIVE")
-  try {
-    /** pull all cards into stock with a nice animation */
-    const cards = allPiles.merged(Pile)
-    cards.reverse()
-    for (const card of cards) {
-      const startPile = card.pile
-      card.turnFaceDown()
-      if (startPile !== stock) await card.moveToPile(stock)
-    }
-    stock.randomize()
-
-    // deal cards into tableaus
-    for (const row of core.getRange(1, 7)) {
-      stock.lastItem?.turnFaceUp()
-      for (const column of core.getRange(row, 7)) {
-        await stock.lastItem?.moveToPile(tableaus.getItem(position(column)))
-      }
-    }
-
-    await playFromTheStockPile()
-  }
-  finally {
-    core.stopProcess("deal_the_cards")
-  }
+  if (endPile instanceof Foundation) solitaire.score = solitaire.score + 10
+  else if (startPile === solitaire.discards) solitaire.score = solitaire.score + 5
+  return true
 }
 
 on("card-click", (event) => {
@@ -559,62 +419,89 @@ on("card-click", (event) => {
   card.play()
 })
 
-export async function autoPlay() {
-  let anythingChanged = false
-  if (!discards.isEmpty) {
-    const testCard = discards.lastItem
-    if (await testCard?.play()) {
-      anythingChanged = true
-      await core.pauseFor(500, "msec")
-    }
-  }
+core.heading("Start")
+//## Start
+core.console.log(solitaire)
+solitaire.startANewGame()
+if (!core.isCarryingOver) solitaire.start()
 
-  // attempt to move bottom card of tableaus to foundations
-  for (const pile of tableaus) {
-    if (pile.isEmpty) continue
-    const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
-    if (foundation?.canPlayCard(testCard)) {
-      anythingChanged = true
-      await testCard.play()
-      await core.pauseFor(100, "msec")
-    }
-  }
+core.heading("The piles:  each kind, what it may take or give up, and how it draws")
+//////////////////////////////////////////////////////////////////////////
+// ## The piles:  each kind, what it may take or give up, and how it draws
+//////////////////////////////////////////////////////////////////////////
+// Each pile is a drawable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
+// So each kind styles itself, in its `<css>`, and where its cards go:  styles.css can't reach inside it.
 
-  // attempt to move the entire pile of face-up cards
-  for (const pile of tableaus) {
-    const faceUpCards = pile.filter((card) => card.isFaceUp)
-    if (faceUpCards.isEmpty) continue
-    const testCard = faceUpCards.firstItem
-    if (testCard.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard.play()) {
-      anythingChanged = true
-      await core.pauseFor(500, "msec")
-    }
-  }
+core.heading("Tests")
+/** Tests */
+export function testTheMoves() {
+  return core.test("test the moves", function testTheMoves() {
+    core.echoTestAction(`set the column to a new tableau with name = "T1"`)
+    let column = new Tableau({ name: "T1" })
+    core.echoTestAction(`set the king to a new card whose rank is king, suit is spades and direction is up`)
+    const king = new Card({
+      rank: "king",
+      suit: "spades",
+      direction: "up"
+    })
+    core.echoTestAction(`set the queen to a new card whose rank is queen, suit is hearts and direction is up`)
+    const queen = new Card({
+      rank: "queen",
+      suit: "hearts",
+      direction: "up"
+    })
+    core.echoTestAction(`set the jack to a new card whose rank is jack, suit is clubs and direction is up`)
+    const jack = new Card({
+      rank: "jack",
+      suit: "clubs",
+      direction: "up"
+    })
+    // an empty tableau takes only a king, then one lower in the other color
+    core.expect(core.canTake(column, queen), `the column can take the queen`, false, `no`)
+    core.expect(core.canTake(column, king), `the column can take the king`, true, `yes`)
+    core.echoTestAction(`add the king to the column`)
+    column.append(king)
+    core.expect(core.canTake(column, jack), `the column can take the jack`, false, `no`)
+    core.expect(core.canTake(column, queen), `the column can take the queen`, true, `yes`)
+    core.echoTestAction(`add the queen to the column`)
+    column.append(queen)
+    core.expect(column.state, `the state of the column`, "T1: K♠️+ Q♥️+", `"T1: K♠️+ Q♥️+"`)
+    core.expect(core.canGiveUp(column, queen), `the column can give up the queen`, true, `yes`)
+    core.echoTestAction(`turn the queen face down`)
+    queen.turnFaceDown()
+    core.expect(core.canGiveUp(column, queen), `the column can give up the queen`, false, `no`)
 
-  // call auto-play again if anything actually changed
-  if (anythingChanged) await autoPlay()
+    /** a foundation takes its suit, ace first, then one higher:  each the last card of its pile */
+    const foundation = new Foundation({ name: "hearts", suit: "hearts" })
+    core.echoTestAction(`set the two to a new card whose rank is 2, suit is hearts and direction is up`)
+    const two = new Card({
+      rank: 2,
+      suit: "hearts",
+      direction: "up"
+    })
+    core.echoTestAction(`set the ace to a new card whose rank is ace, suit is hearts and direction is up`)
+    const ace = new Card({
+      rank: "ace",
+      suit: "hearts",
+      direction: "up"
+    })
+    core.echoTestAction(`set the column to a new tableau with name = "T2"`)
+    column = new Tableau({ name: "T2" })
+    core.echoTestAction(`add the two to the column`)
+    column.append(two)
+    core.echoTestAction(`add the ace to the column`)
+    column.append(ace)
+    core.expect(core.canTake(foundation, two), `the foundation can take the two`, false, `no`)
+    core.expect(core.canTake(foundation, ace), `the foundation can take the ace`, true, `yes`)
+    core.echoTestAction(`move the ace to the foundation`)
+    core.move(ace, foundation)
+    core.expect(core.canTake(foundation, two), `the foundation can take the two`, true, `yes`)
+    core.echoTestAction(`add the queen to the column`)
+    column.append(queen)
+    core.expect(core.canTake(foundation, queen), `the foundation can take the queen`, false, `no`)
+  })
 }
-
-export function resetTheGame() {
-  game.score = 0
-  dealTheCards()
-}
-
-export async function cheat() {
-  const remainingPiles = tableaus.filter((pile) => !pile.isEmpty && pile.firstItem?.isFaceDown)
-  if (remainingPiles.isEmpty) return
-  const pile = remainingPiles.randomItem()
-  const unplaidCards = pile?.filter((card) => card.isFaceDown)
-  const card = unplaidCards?.randomItem()
-  card?.turnFaceUp()
-  await core.pauseFor(30, "ticks")
-  card?.moveToPile(discards)
-}
-
-core.heading("rendering the bits")
-resetTheGame()
-if (!core.isCarryingOver) game.start()
 // -----------
-core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
+core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬`)
+// -----------
+if (!core.isCarryingOver) testTheMoves()

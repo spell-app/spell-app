@@ -58,7 +58,7 @@ export interface DOMSpellEditorElement extends E.AttributeValues<typeof spellEdi
  * ### `SpellEditor`
  * The component behind `<spell-editor>`:  edits a spell project in any page, in Monaco,
  * and feeds `<spell-app>`s on the page what it compiles.
- * - `project="@spell/examples/drawable-solitaire"`:
+ * - `project="@spell/examples/Solitaire"`:
  *   from the spell server's `/api`, as `<spell-app project>`.
  *   - Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
  * - Compiles when it opens the project, `COMPILE_DELAY` after typing stops, and at once on Cmd+Enter.

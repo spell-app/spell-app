@@ -23,7 +23,7 @@ export const words = {
       voltearBocaArriba: "voltear una carta boca arriba",
       voltearBocaAbajo: "voltear una carta boca abajo",
       darLaVueltaACarta: "dar la vuelta a una carta",
-      dibujar: "dibujar una carta",
+      draw: "dibujar una carta",
       pila: "pila"
     },
     Mazo: {

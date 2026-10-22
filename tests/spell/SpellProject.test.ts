@@ -2,7 +2,7 @@ import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "spell-lang/parser"
 import { parseSpellProject, summarize } from "spell-lang/spell/test"
-import { loadFixtureProject } from "spell-app/spaces/test"
+import { loadFixtureWithLibraries } from "spell-app/spaces/test"
 
 /**
  * Whole-project parse of the frozen Solitaire, `@spell/test/solitaire`.
@@ -11,7 +11,7 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  *   `BENCH=1 yarn vp test run tests/spell/SpellProject.test.ts --reporter=verbose --silent=false`
  */
 describe("Solitaire project", () => {
-  const files = loadFixtureProject("solitaire")
+  const files = loadFixtureWithLibraries("solitaire")
 
   test("loads files in import order", () => {
     expect(files.map(({ path }) => path)).toEqual(["/Card.spell", "/Deck.spell", "/Pile.spell", "/Solitaire.spell"])

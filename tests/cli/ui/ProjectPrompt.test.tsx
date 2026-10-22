@@ -38,42 +38,27 @@ describe("<ProjectPrompt>", () => {
   test("Tab completes as far as the choices agree", async () => {
     const { frame } = await prompt(["@spell/te", KEY.tab])
     const projects = [
-      "card-table",
-      "cards",
-      "cards-from-zero",
       "cartas",
-      "drawable-solitaire",
       "fizzbuzz",
-      "klondike",
-      "outline-solitaire",
+      "lists-from-zero",
       "people",
-      "solitaire"
+      "solitaire",
+      "thing-references",
+      "todos-form-based"
     ]
     const lines = projects.map((name, at) => `${at ? "  " : "❯ "}@spell/test/${name}/`)
-    expect(frame).toContain(["Which project or file?  @spell/test/█", ...lines, "  ...12 in all"].join("\n"))
+    expect(frame).toContain(["Which project or file?  @spell/test/█", ...lines].join("\n"))
   })
 
   test("Enter goes into a group, then a project -- entire project first -- and picks", async () => {
-    const { frame, onDone } = await prompt([
-      "@spell/test/",
-      KEY.down,
-      KEY.down,
-      KEY.down,
-      KEY.down,
-      KEY.down,
-      KEY.down,
-      KEY.down,
-      KEY.down,
-      KEY.down,
-      KEY.enter
-    ])
+    const { frame, onDone } = await prompt(["@spell/test/", KEY.down, KEY.down, KEY.down, KEY.down, KEY.enter])
     expect(frame).toContain(
-      "@spell/test/solitaire/█\n❯ @spell/test/solitaire  entire project\n  @spell/test/solitaire/Card.spell"
+      "@spell/test/solitaire/█\n❯ @spell/test/solitaire  entire project\n  @spell/test/solitaire/Solitaire.spell"
     )
     expect(onDone).not.toHaveBeenCalled()
 
     const picked = await prompt(["@spell/test/solitaire/", KEY.down, KEY.enter])
-    expect(picked.onDone).toHaveBeenCalledWith("@spell/test/solitaire/Card.spell")
+    expect(picked.onDone).toHaveBeenCalledWith("@spell/test/solitaire/Solitaire.spell")
     const whole = await prompt(["@spell/test/solitaire/", KEY.enter])
     expect(whole.onDone).toHaveBeenCalledWith("@spell/test/solitaire")
   })

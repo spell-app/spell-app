@@ -1,4 +1,5 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, positionOf, spellPosition, trigger } from "@spell/core"
+import { Show } from "solid-js"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, spellPosition, trigger } from "@spell/core"
 
 core.heading("definición de una Carta con alias en español para trabajar con ella")
 export type Rango = (typeof Carta.Rangos)[number]
@@ -126,20 +127,23 @@ export class Carta extends Thing {
     await core.pauseFor(50, "msec")
   }
 
-  dibujar() {
-    const className = `Card face-${this.dirección} ${this.rango} ${this.palo} ui button compact fluid `
-    if (this.estáBocaAbajo) {
-      return (
-        <div class={className} onClick={() => trigger("card-click", { card: this })}>
+  @drawn draw() {
+    const className = () => `Card face-${this.dirección} ${this.rango} ${this.palo} ui button compact fluid `
+    const click = () => trigger("card-click", { card: this })
+    return (
+      <Show
+        when={this.estáBocaAbajo}
+        fallback={
+          <div class={className() + this.color} onClick={click}>
+            {`${this.rangoCorto} `}
+            <span class="suit">{this.paloCorto}</span>
+          </div>
+        }
+      >
+        <div class={className()} onClick={click}>
           <i class="fitted bicycle icon" />
         </div>
-      )
-    }
-    return (
-      <div class={className + this.color} onClick={() => trigger("card-click", { card: this })}>
-        {`${this.rangoCorto} `}
-        <span class="suit">{this.paloCorto}</span>
-      </div>
+      </Show>
     )
   }
 

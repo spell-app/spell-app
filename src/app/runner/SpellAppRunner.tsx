@@ -305,7 +305,7 @@ export type SpellAppRunnerProps = {
   runtimeUrl: string
   /** URL of the built-in types' scope pack, `core.scopes.js`. */
   builtInsUrl: string
-  /** A Type Explorer link clicked, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell#L12`. */
+  /** A Type Explorer link clicked, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`. */
   onOpen: (href: string) => void
   /** Hand over what the element can do to us, e.g. `restart()` -- every render. */
   onControls?: (controls: SpellAppControls) => void
@@ -349,7 +349,7 @@ export type SpellAppSource = {
   words?: SP.SpellWordsData
   /** URL of the words of project `projectId`, which it imports -- if it may have them;  `{lang}` as in `wordsUrl`. */
   importWordsUrl?: (projectId: string) => string
-  /** URL of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell` -- if its sources can be had. */
+  /** URL of spell file `uri`, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell` -- if its sources can be had. */
   sourceUrl?: (uri: string) => string
 }
 

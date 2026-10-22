@@ -5,13 +5,12 @@ import { runSpellFiles } from "spell-lang/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
- * The OUTLINE style (epic page `outline-spell`) on a whole frozen project, `outline-solitaire`.
+ * The OUTLINE style (epic page `outline-spell`) on a whole project:  the card library, `@spell/library/cards`.
  * - The style itself, line by line:  spell-lang's own `outline.test.ts`.
  */
 describe("outline style", () => {
-  test("the outline Solitaire's cards pass their own tests, as today's cards do (P5)", () => {
-    // its deck, card and piles -- not the game itself, which starts an app
-    const files = loadFixtureProject("outline-solitaire").filter(({ path }) => !path.endsWith("Solitaire.spell"))
+  test("the card library's cards, deck and piles pass their own tests (P5)", () => {
+    const files = loadFixtureProject("@spell/library/cards")
     const lines: string[] = []
     const console = core.console as unknown as Record<string, (...args: unknown[]) => void>
     for (const method of ["log", "group", "groupCollapsed", "warn", "error", "info"].filter((it) => console[it])) {
@@ -20,7 +19,7 @@ describe("outline style", () => {
     runSpellFiles(files)("")
     vi.restoreAllMocks()
     expect(lines.filter((line) => line.includes("❌"))).toEqual([])
-    // 29:  since its deck deals its cards as it's made (`- to create it:`), it checks 52 cards once, not twice
-    expect(lines.filter((line) => line.includes("✅")).length).toBe(29)
+    // a line for every check its five tests make (card setup, jokers, deck creation, deck with jokers, piles)
+    expect(lines.filter((line) => line.includes("✅")).length).toBe(70)
   })
 })

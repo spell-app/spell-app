@@ -72,9 +72,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`:  who this machine's person is, until a machine can have more than one person.
-  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39).
-    - e.g. `@spell/examples/drawable-solitaire`
-    - a file in it:  its name, which has a dot (Q41), e.g. `@spell/examples/drawable-solitaire/Card.spell`
+  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39) --
+    or as titled, as `Solitaire` and `Solitaire`'s Spanish twin `Solitario` are (Owen, epic `spanish` P11).
+    - e.g. `@spell/examples/Solitaire`
+    - a file in it:  its name, which has a dot (Q41), e.g. `@spell/examples/Solitaire/Solitaire.spell`
   - A `@local/<folder>` group, added at runtime for a folder an editor opened, says its own folder (`serverPath`).
 - Where the folders are:  [environment.ts](server/node/environment.ts).
 
@@ -105,7 +106,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | Source | Built into | e.g. |
   | --- | --- | --- |
   | this repo's `tests/X` | `build/X` | |
-  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/drawable-solitaire/`, `build/spaces/@spell/test/fizzbuzz/` |
+  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/Solitaire/`, `build/spaces/@spell/test/fizzbuzz/` |
   | spell.spaces' `X` | `build/spell-spaces/X` | `build/spell-spaces/@spell/owen@/errors/` |
   | anywhere else | beside the source | |
 
@@ -156,7 +157,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Its handlers are our [project-utils.ts](server/node/projects/project-utils.ts)'s.
   - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
     [SpellUrls.ts](../../../spell-lang/src/spell/SpellUrls.ts)):
-    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell`
+    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell`
     - and SAVED by `POST /api/projects/file/<project>/<file>`
     - a project's index:  `/api/projects/index/<project>`
     - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`

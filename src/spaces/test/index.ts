@@ -6,6 +6,8 @@
 
 export {
   loadFixtureProject,
+  loadFixtureWithLibraries,
+  copyFixtureWithLibraries,
   fixturePath,
   fixtureProjectId,
   FIXTURES_GROUP,
@@ -16,6 +18,8 @@ export {
   fixtureWords,
   fixtureLanguages,
   fixtureImports,
+  fixtureImportScope,
+  LIBRARY_GROUP,
   FIXTURES_DIR,
   PYTHON_FIXTURES,
   LIBRARY_FIXTURES

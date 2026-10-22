@@ -18,7 +18,7 @@ export const LOCAL_PERSON = "owen"
  *     the `@spell` space's built-ins, `spaces/@spell/<group>/`, committed
  *   - `@spell/test`:  the test projects, beside them in `spaces/@spell/test/`, committed and frozen
  *   - `owen@spell`:  this machine's person's own, `<spell-spaces>/@spell/<person>@/`, outside git
- * - A project in one is its address, a slash and the project's folder name:  `@spell/examples/drawable-solitaire`.
+ * - A project in one is its address, a slash and the project's folder name:  `@spell/examples/Solitaire`.
  *   Built-in projects' names are lower-kebab (decision Q39).
  * - SIDE EFFECT:  loading this file registers them with spell (`SpellSetup.addProjectRoot()`).
  *   - Every program that reads a spell address loads it first:  through `spell-app/spaces`, spaces' disk reader,

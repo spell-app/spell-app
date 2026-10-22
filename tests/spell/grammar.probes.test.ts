@@ -184,8 +184,8 @@ describe("grammar probes", () => {
   })
 
   test("P7b  setting a property the type never declared", () => {
-    // `Pile.spell`'s own `set the pile of the card to the pile` declared it (P6, epic phase):  reactive
-    expect(probe("set the pile of the card to the pile")).toMatchInlineSnapshot(`"card.pile = pile"`)
+    // its first `set` declares it (P6, epic phase):  reactive -- the card's `pile` is the library's own, read-only
+    expect(probe("set the stack of the card to the pile")).toMatchInlineSnapshot(`"card.stack = pile"`)
   })
 
   ////////////////
@@ -756,7 +756,7 @@ describe("datatypes", () => {
       the name of the card  =>  text
       the value of the card  =>  number
       the short rank of the card  =>  text
-      the suits of the card  =>  list
+      the suits of the card  =>  list of suits
       card suits  =>  list
       the pile of the card  =>  Pile"
     `)
@@ -862,8 +862,11 @@ describe("datatypes", () => {
 // ## Harness
 ////////////////
 
-/** The frozen cards library:  `Card`, `Deck`, `Pile` -- not `Solitaire.spell`, which runs a game. */
-const CARDS = loadFixtureProject("solitaire").filter((file) => !file.path.endsWith("Solitaire.spell"))
+/**
+ * The cards library's files, `Card`, `Deck`, `Pile` (`@spell/library/cards`), parsed as the probe project's own.
+ * - NOT frozen:  a change to the library may change a probe's snapshot (epic `spanish` P11).
+ */
+const CARDS = loadFixtureProject("@spell/library/cards")
 
 /**
  * Types the probes use beside the cards library's, in a file of their own before the probe's.
