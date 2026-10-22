@@ -164,6 +164,8 @@ and in the app's build folder, `app/` at the repo's root.
       - `installSpellElements()` fills that in, per runtime copy.
     - `draw the card` then draws `<solitaire-card>`.
       Its `thing` is the card, which the element draws inside it (`drawOwn()`).
+      - It loads the Spell UI families its drawing uses itself (`loadSpellUIFamilies()`):
+        no root sees into its shadow root.  A Spanish program's `<es-texto>` too (epic `spanish` J96).
     - A drawable LIST's element holds its items as its children (`core.drawItems()`), shown through its drawing's slot.
       - Its `to draw it` is the wrapper in its shadow root;  each child is what its `to draw each item` draws,
         by default the item's own element (epic `spanish` P20).
@@ -208,6 +210,7 @@ and in the app's build folder, `app/` at the repo's root.
   - `spell-app/app/components/<tag>` imports one.
   - `<spell-app>` is a ROOT (`SpellApp extends UIRoot`, J37):  a page needs nothing around it.
     - It loads each Spell UI family the runner draws, the first time one appears (in its shadow root too).
+      A drawable thing's element loads its own:  a root never sees into another element's shadow root.
     - It never loads all of `spell-ui`:  `loadUI.ts` is the editor app's and VS Code's, not its.
     - A spell tag inside it loads from beside its script (`spell-editor` => `spell-editor.js`).
       So a page with only `<spell-app>`s never downloads the editor.
@@ -311,6 +314,8 @@ and in the app's build folder, `app/` at the repo's root.
 - As WWOD §4, with our own source as `spell-app/app` / `spell-app/app/*`:  a file's path under the repo's `src/`.
   - e.g. `import { UI } from "spell-app/app/ui"`, `import "spell-app/app/components/spell-code"`
   - Vite's own entries and `index.html`'s script are paths from `app/`, Vite's root:  `../src/app/index.tsx`.
+    - The dev server asks for that one as `/src/app/index.tsx`, as a URL can't go above its root:
+      `repoSourceInDev()`, in [vite.config.ts](../../app/vite.config.ts), finds it in the repo's `src/`.
 - Nothing imports THIS folder except `cli`.
   And the `<script>` entries in its own pages:  `index.html` and the demos.
 - It may import spaces' models, `spell-app/spaces` (the same repo, spell-app);
