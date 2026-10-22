@@ -44,19 +44,6 @@
   "[less]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
   "[yaml]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
 
-  // Autocomplete and hover docs for every `<ui-*>` tag, attribute and value in `.html` files:
-  // VS Code HTML custom data, written by `yarn site:data`.
-  // - Spell UI's, from its vocabularies (spell-ui, `tools/ElementManifests.ts`)
-  // - the brand's `<brand-*>` too, by its own `yarn site:data` (spell-brand)
-  // - both beside this repo, in the top repo `spell`
-  "html.customData": [
-    "../spell-ui/docs/__data/html-custom-data.json",
-    "../spell-brand/docs/__data/html-custom-data.json"
-  ],
-  // And in `.css` files, their custom properties (`--ui-button-padding-block`), parts (`::part(icon)`)
-  // and custom states (`:state(open)`), from the same `yarn site:data`.
-  "css.customData": ["../spell-ui/docs/__data/css-custom-data.json", "../spell-brand/docs/__data/css-custom-data.json"],
-
   // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.
   // - generated files (the root's `.gitattributes` `linguist-generated` list)
   // - Spell UI's 2,000+ icon SVGs and visual-test screenshots

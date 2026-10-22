@@ -119,6 +119,10 @@ More on some of them:
       (a folder that is spell-app, holds it, or is inside one)
     - else, last, the checkout it was built in
     - The extension's output says which it picked;  the code is `findSpellApp()` ([spellAppRoot.ts](vscode/src/spellAppRoot.ts)).
+  - In `.tsx` / `.jsx` files it also gives custom elements' slot, part and dashed-attribute help
+    ([ElementsHelp.ts](vscode/src/ElementsHelp.ts), the kit's `JsxElementHelp` bundled in, with TypeScript 6 to read JSX);
+    and it carries Spell UI's and the brand's HTML and CSS data, copied in by its build:
+    a vocabulary change shows there after `spell app vscode`.
   - The Review tab, the Epic Docs view and the window bridge are spell-epic's own extension, not this one.
 - page-server:  spell-app's own part of its page server, a route module on the kit's (`spell-kit/server`).
   - building the bundles it serves (`BundleBuild`, with spell's own CLI)
