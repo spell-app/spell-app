@@ -1,6 +1,7 @@
 {
-  // Extends the root alias table, as every package does:  tsc and esbuild resolve a `$/` import the same way.
-  "extends": "../tsconfig.base.json",
+  // The TypeScript settings every repo shares;  the extension imports only its own files and its own packages
+  // (`vscode`, `vscode-languageclient`), never spell-app's:  it runs a checkout's language server as a process.
+  "extends": "spell-kit/toolchain/tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",

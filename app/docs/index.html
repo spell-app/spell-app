@@ -32,7 +32,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/src/solid/"
+              href="../../src/app/solid/"
               icon="code"
               aria-label="The components' code"
               title="The components' code"
@@ -61,8 +61,8 @@
             >
             <ui-item icon="book"
               >The app's notes:
-              <a href="../../packages/app/AGENTS.md" target="src-packages-app-agents-md"
-                ><code title="packages/app/AGENTS.md">AGENTS.md</code></a
+              <a href="../../src/app/AGENTS.md" target="src-packages-app-agents-md"
+                ><code title="src/app/AGENTS.md">AGENTS.md</code></a
               ></ui-item
             >
           </ui-list>
@@ -250,9 +250,8 @@
             <ul>
               <li>
                 Each page's props, attributes and "Used in" tables come from the code itself:
-                <code>yarn site:data</code> in
-                <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a> reads every
-                documented component's banner and props, and where the app draws it.
+                <code>yarn site:data</code> in <a href="../../" target="src-spell-app"><code>spell-app</code></a> reads
+                every documented component's banner and props, and where the app draws it.
               </li>
               <li>
                 The pictures are headless screenshots of the editor: <code>yarn site:pictures</code>, with the editor
@@ -260,14 +259,13 @@
               </li>
               <li>
                 The live examples need the app's element build:
-                <code>yarn build:element</code> in
-                <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+                <code>yarn build:element</code> in <a href="../../" target="src-spell-app"><code>spell-app</code></a
                 >.
               </li>
               <li>
                 A new page: add it to the set's hand-kept facts,
-                <a href="../../packages/app/docs/__data/pages.json5" target="src-packages-app-docs-data-pages-json5"
-                  ><code title="packages/app/docs/__data/pages.json5">pages.json5</code></a
+                <a href="../../app/docs/__data/pages.json5" target="src-packages-app-docs-data-pages-json5"
+                  ><code title="app/docs/__data/pages.json5">pages.json5</code></a
                 >, run <code>yarn site:data</code>, then copy a page like it (<a
                   href="Notice.html"
                   target="src-packages-app-docs-notice-html"

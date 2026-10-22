@@ -7,14 +7,14 @@ argument-hint: "[push | pull <design link> [page] | new \"<title>\" | page <page
 # /design
 
 Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design draws with the real `<ui-*>` elements.
-- Epic `claude-design`;  [its epic page](../spell-app.epics/epics/claude-design/claude-design.plan.html).
+- Epic `claude-design`;  [its epic page](../spell.epics/epics/claude-design/claude-design.plan.html).
 - Claude Design can't reach this laptop.
   This skill carries things across with the Artifact tool, and `spell design ...` does the local half.
 
 - The system:  the link in the shared record, `spell design state`.
   - The record is `brand/design-system.json`, in `../spell-app-dev`.
   - Private:  only Owen can open it, until he shares it.
-- What it holds:  the system's project folder, in ui's build (`packages/ui/build/design-system/project/`, git-ignored).
+- What it holds:  the system's project folder, in Spell UI's build (`../spell-ui/build/design-system/project/`, git-ignored).
   - Written by `spell design build`:
     - the README, `tokens.json`, `components/index.d.ts`
     - a README + live `preview.html` per family
@@ -35,7 +35,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
 
 ## `/design push`:  after a component change
 
-1. A vocabulary changed:  `yarn site:data` in `packages/ui` first.
+1. A vocabulary changed:  `yarn site:data` in `../spell-ui` first.
    The cards and `index.d.ts` read its output.
 2. Build, bundle, check:
    - `spell design build`
@@ -83,7 +83,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
    - It prints what it couldn't carry:
      holes from `renderVals()`, handlers, unwrapped `<sc-if>` / `<sc-for>`.
    - Fix those by hand:  real text for holes, a small script for behaviour.
-4. Finish:  as [spell-epic's AGENTS.md](spell-epic/src/AGENTS.md), "Finishing a page".
+4. Finish:  as [spell-epic's AGENTS.md](../spell-epic/src/AGENTS.md), "Finishing a page".
    - `doc-links`, `vp fmt`, `check-spell`, and LOOK at the screenshots.
    - Then show it:  `epic pages link <page> --show`.
    - It's shared content:  committed for you.
@@ -125,12 +125,12 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
 ## `/design` alone:  a page in VS Code
 
 1. Read the system's rules and the elements' shapes LOCALLY:
-   - [the system's README](packages/ui/build/design-system/project/README.md), in ui's build
+   - [the system's README](../spell-ui/build/design-system/project/README.md), in Spell UI's build
      (run `spell design build` if it's missing)
    - then each card you'll use (`components/<Family>/README.md`), and `components/index.d.ts`
    - VS Code autocompletes `<ui-*>` tags and attributes
-     from [html-custom-data.json](packages/ui/site/_data/html-custom-data.json), in ui's site data.
-2. Start the page from a template (`epic pages new ...`),
+     from [html-custom-data.json](../spell-ui/site/_data/html-custom-data.json), in Spell UI's site data.
+2. Start the page from a template (`epic pages create ...`),
    or as `/design pull` writes one (the bundle, and the site header for its depth).
    - Write plain `<ui-*>` markup:  every component the system has.
    - `--ui-*` tokens for colour and spacing.

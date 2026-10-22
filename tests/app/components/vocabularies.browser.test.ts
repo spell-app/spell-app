@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { MemberClashes } from "spell-ui/test/MemberClashes"
+import { MemberClashes } from "spell-ui/test-helpers/MemberClashes"
 
-/** Every app web component's English vocabulary module, by path. */
-const MODULES = import.meta.glob<Record<string, unknown>>("../../../app/components/*/*.en.ts", {
+/** Every app web component's English vocabulary module, by path (`/`:  the repo's root, Vitest's). */
+const MODULES = import.meta.glob<Record<string, unknown>>("/src/app/components/*/*.en.ts", {
   eager: true
 })
 

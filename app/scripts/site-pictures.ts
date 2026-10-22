@@ -1,5 +1,5 @@
 /**
- * `yarn site:pictures [name...]` (in `packages/app`):  the App UI docs set's PICTURES, `docs/_images/<name>.png`,
+ * `yarn site:pictures [name...]`:  the App UI docs set's PICTURES, `docs/_images/<name>.png`,
  * headless screenshots of the running editor app.
  * - For the Solid components that can't be drawn alone on a docs page (they need the whole editor around them):
  *   the editor's page shell, its panes and editors, its menus, dialogs and notices.
@@ -14,7 +14,7 @@ import path from "node:path"
 
 import { chromium, type Page } from "playwright"
 
-/** `packages/app/`. */
+/** `app/`:  the app's build folder, its docs pages in `docs/`. */
 const APP = path.resolve(import.meta.dirname, "..")
 
 /** Where the pictures go. */

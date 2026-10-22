@@ -1,23 +1,23 @@
 <!doctype html>
 <!--
   App UI's LAYOUT:  every page's chrome, written ONCE, as Epic UI's (`spell-epic/src/docs/__parts/layout.html`) and
-  Spell UI's (`packages/ui/docs/__parts/layout.html`) are.
+  Spell UI's (`spell-ui/docs/__parts/layout.html`) are.
   - App UI is the docs set of the spell app's own components (epic `epic-workflow` P11):  the `<spell-app>` and
-    `<spell-editor>` web components, and the app's Solid components.  Its pages live here, in `packages/app/docs/`,
-    beside the two web components' code (`packages/app/components/`).
+    `<spell-editor>` web components, and the app's Solid components.  Its pages live here, in `app/docs/`,
+    beside the two web components' code (`src/app/components/`).
   - Served at `/components/app/` by the page server (its `componentSets` setting, in the root `package.json`), with
     Spell UI's site bundle laid over it at `_assets/`:  so the bundle takes `/components/app/` as its site's root, and
-    mounts THIS layout around each page's `main` (`packages/ui/site/_src/SiteShell.ts`), then swaps only the `main`
+    mounts THIS layout around each page's `main` (Spell UI's `site/_src/SiteShell.ts`), then swaps only the `main`
     (`SiteRouter.ts`).
   - Relative URLs here are against THIS file AS SERVED (`/components/app/__parts/`):  `../../..` is the checkout's
     root, at `/worktrees/<w>/components/app/` too.  The shell makes them absolute as it mounts.
   - Against Epic UI's:
-    - `<ui-components>`:  the app's element pack (`/element/spell.pack.js`, `yarn build:element` in `packages/app`,
+    - `<ui-components>`:  the app's element pack (`/element/spell.pack.js`, `yarn build:element` in spell-app,
       served by the page server's app routes), for the pages' live `<spell-app>`s and `<spell-editor>`;  the site
       bundle shares its Solid and Spell UI with it (`SitePacks.ts`).  Absolute:  the app's routes serve it at the
       server's root, a worktree's page too.
     - the brand reads "App UI";  the side column's links and groups come from `__data/` (`yarn site:data`, in
-      `packages/app`)
+      spell-app)
   - The COMMENTS (epic `epic-engine`, as Epic UI's):  every page loads `/_epic/assets/spell-comments.js` in its
     `<head>`, after the site's bundle:  the bullhorns, threads, Send and the page's toolbar;  its threads and pane are
     the epics pack's elements, so this loads that pack too (`/_epic/pack/epics.pack.js`, the epic server's engine

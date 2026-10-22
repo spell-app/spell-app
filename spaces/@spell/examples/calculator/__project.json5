@@ -1,5 +1,5 @@
 {
-  "description": "A working calculator:  an app with text properties, actions like `to clear (a calculator)`, and buttons whose clicks are spell;  its first lines list ideas for extending it",
+  "description": "A working calculator:  an app with text properties, actions like `to clear (a calculator)`, and buttons whose clicks are Spell;  its first lines list ideas for extending it",
   "imports": [
     {
       "path": "/Calculator.spell",

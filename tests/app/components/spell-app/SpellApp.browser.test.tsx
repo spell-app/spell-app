@@ -2,8 +2,8 @@ import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { SpellCompiled } from "$/app/runner/runner.types"
-import type { DOMSpellAppElement } from "$/app/components/spell-app"
+import type { SpellCompiled } from "spell-app/app/runner/runner.types"
+import type { DOMSpellAppElement } from "spell-app/app/components/spell-app"
 import type { P } from "spell-lang/parser"
 import type { SP } from "spell-lang/spell"
 
@@ -13,12 +13,12 @@ import type { SP } from "spell-lang/spell"
  *   every `<ui-*>` the runner draws is defined by the element itself, the first time it appears.
  * - The runtime and the shadow styles are stubbed, as in `runner.browser.test.tsx`.
  */
-vi.mock("$/app/runner/loadRuntime", async (importOriginal) => {
-  const original = await importOriginal<typeof import("$/app/runner/loadRuntime")>()
+vi.mock("spell-app/app/runner/loadRuntime", async (importOriginal) => {
+  const original = await importOriginal<typeof import("spell-app/app/runner/loadRuntime")>()
   return { ...original, loadRuntime: testRuntime }
 })
-vi.mock("$/app/runner/shadowStyles", async (importOriginal) => {
-  const original = await importOriginal<typeof import("$/app/runner/shadowStyles")>()
+vi.mock("spell-app/app/runner/shadowStyles", async (importOriginal) => {
+  const original = await importOriginal<typeof import("spell-app/app/runner/shadowStyles")>()
   return { ...original, adoptShadowStyles: async () => {} }
 })
 
@@ -226,7 +226,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
   })
 
   test("a <spell> block's handlers:  one line or several, `when` or `on`, an event in several words", async () => {
-    const { LayoutSpell } = await import("$/app/runner/LayoutSpell")
+    const { LayoutSpell } = await import("spell-app/app/runner/LayoutSpell")
     expect(LayoutSpell.handlersIn("when clicked: play a song\non drag: play another song")).toEqual([
       { event: "clicked", body: "play a song" },
       { event: "drag", body: "play another song" }
@@ -367,14 +367,14 @@ afterEach(() => {
 
 /** The runtime, as `loadRuntime()` would hand it over:  `spellRuntime.ts` as vite serves it. */
 async function testRuntime() {
-  const url = new URL("/src/runner/spellRuntime.ts", location.href).href
-  const runtime = (await import(/* @vite-ignore */ url)) as typeof import("$/app/runner/spellRuntime")
+  const url = new URL("/src/app/runner/spellRuntime.ts", location.href).href
+  const runtime = (await import(/* @vite-ignore */ url)) as typeof import("spell-app/app/runner/spellRuntime")
   return { runtime, coreUrl: url, release: () => {} }
 }
 
 /** Add `<spell-app>` markup `html` to the page;  removed after the test. */
 async function mountApp(html: string): Promise<DOMSpellAppElement> {
-  await import("$/app/components/spell-app")
+  await import("spell-app/app/components/spell-app")
   const holder = document.createElement("div")
   holder.innerHTML = html
   const app = holder.firstElementChild as DOMSpellAppElement

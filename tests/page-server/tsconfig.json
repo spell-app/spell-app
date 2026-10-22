@@ -1,5 +1,0 @@
-{
-  // page-server's tests:  page-server's own settings (packages/page-server/tsconfig.json), over this folder
-  "extends": "../../page-server/tsconfig.json",
-  "include": ["."]
-}

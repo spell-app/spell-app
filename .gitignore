@@ -2,6 +2,10 @@ node_modules
 .yarn/install-state.gz
 .DS_Store
 .claude/worktrees/
+# the projects the `spell` prompt picked last (`recentProjects.ts`):  each checkout's own;  `.recent-targets.json`
+# was its name until epic output-targets T6, renamed on first read
+/.recent-projects.json
+/.recent-targets.json
 # the VS Code window files' old folder:  they live in the content folder's windows/ since epic epic-eject P13
 # (`windowsFolder`, .epic/config.json5);  the main checkout's leftovers stay out of git until they're deleted
 /workspaces/

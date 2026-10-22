@@ -9,9 +9,9 @@ const RUNTIME_ENTRY = "spell-runtime"
 
 /**
  * The editor app:  `yarn start:dev` / `yarn build` => `dist/`.
- * - Plugins, aliases, dedupe and CSS:  `appConfig()`.
+ * - Plugins, dedupe and CSS:  `appConfig()`.
  * - `iconPacks`:  `spell-ui`'s built-in icon packs go beside the chunk holding `BuiltInPacks` (`assets/`), where
- *   it looks;  the app's Solid UI draws Fomantic names from them (`$/app/solid`'s `loadUI.ts`).
+ *   it looks;  the app's Solid UI draws Fomantic names from them (`spell-app/app/solid`'s `loadUI.ts`).
  * - ONE page, so it bundles its own Solid and `ui`:  `spell-solid.js` is the elements' and the runner's.
  */
 export default defineConfig({
@@ -50,7 +50,7 @@ export default defineConfig({
     rollupOptions: {
       // the app, and the runtime its programs run on -- its own entry, so it holds ALL of `core`, at a FIXED
       // name for `editor.loadRuntime()` to import.  See `spellRuntime.ts`.
-      input: { index: "index.html", [RUNTIME_ENTRY]: "src/runner/spellRuntime.ts" },
+      input: { index: "index.html", [RUNTIME_ENTRY]: "../src/app/runner/spellRuntime.ts" },
       // keep `spell-runtime.js`'s exports by NAME:  it's compiled spell's `@spell/core`
       preserveEntrySignatures: "exports-only",
       output: {

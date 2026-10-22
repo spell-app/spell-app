@@ -1,11 +1,11 @@
 /**
- * `yarn site:data [--check]` (in `packages/app`):  the App UI docs set's data, `docs/__data/components.json5`
+ * `yarn site:data [--check]`:  the App UI docs set's data, `app/docs/__data/components.json5`
  * and `search.json5`,
- * from `docs/__data/pages.json5` (hand-kept), the web components' vocabularies and the Solid components' source
- * (`tools/AppUIDataBuilder.ts`).
+ * from `app/docs/__data/pages.json5` (hand-kept), the web components' vocabularies and the Solid components' source
+ * (`AppUIDataBuilder`, in `src/app/tools/`).
  * - The set's pages read it (`<ui-docs-nav>`'s side column, `<ui-docs-api>`'s tables), as they are:  COMMITTED.
  * - Rerun it after changing a documented component's banner, props or uses, a vocabulary, or `pages.json5`;
- *   `tools/AppUIDataBuilder.test.ts` fails while it's stale.
+ *   `tests/app/tools/AppUIDataBuilder.test.ts` fails while it's stale.
  * - `--check`:  write nothing;  exit 1 if a file would change.
  * - `search.json5`:  every page's sections, read from the pages:  rerun after adding a page or a section too.
  */
@@ -16,7 +16,7 @@ import { parseArgs } from "node:util"
 import { keepingCommentsIn } from "spell-kit/util/node/json5"
 import { SiteDataBuilder } from "spell-ui/tools/SiteDataBuilder"
 
-import { AppUIDataBuilder } from "../tools/AppUIDataBuilder.ts"
+import { AppUIDataBuilder } from "spell-app/app/tools/AppUIDataBuilder"
 
 const { values } = parseArgs({ options: { check: { type: "boolean", default: false } } })
 const builder = new AppUIDataBuilder()
@@ -31,7 +31,7 @@ const names = stale.map(([file]) => path.relative(process.cwd(), file)).join(", 
 
 if (values.check) {
   if (stale.length) {
-    process.stderr.write(`app site data:  ${names} stale;  run \`yarn site:data\` in app/\n`)
+    process.stderr.write(`app site data:  ${names} stale;  run \`yarn site:data\`\n`)
     process.exit(1)
   }
 } else {
