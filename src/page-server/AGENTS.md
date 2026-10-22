@@ -14,8 +14,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     [its AGENTS.md](../../../src/server/AGENTS.md).
     It names nothing of spell-app's or spell-epic's folders.
   - This folder is spell-app's own part of it:  one ROUTE MODULE on it, plus what that module runs.
-  - When the repos split (P8):  the server package went to spell-server (the kit's `server/` since P9);  this one to
-    spell-app.
+  - When the repos split (P8):  the server package went to spell-server, and this one to spell-app.
+    spell-server is the kit's `src/server/` since P9.
 - What's in it:
   - [pageServerRoutes.ts](pageServerRoutes.ts) -- the route module, listed FIRST in the root `package.json`'s
     `"pageServer": { "routes": [...] }`;  the page server loads it by path, so NO package imports it.  As it's set up:
@@ -25,11 +25,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       what `people-and-orgs` moved OUT of the shared folders answers "not found" (`MOVED_OUT`),
       though the shared repo still holds it for the other checkouts:  `/ui/` and `/brand/components/`
       - Once every page and checkout is past it, it goes.
-      - The engine's old folders (`/packages/epics/tools/_assets/` ...) no longer serve:  the shared pages load
-        `/_epic/...` since `epic-eject` T13 (epic `repo-split` I42).
+      - The engine's old folders (`/packages/epics/tools/_assets/` ...) no longer serve:
+        the shared pages load `/_epic/...` since `epic-eject` T13 (epic `repo-split` I42).
   - [BundleBuild.ts](BundleBuild.ts) -- the bundles the page server serves are NOT committed, so it builds them.
     - They're the bundle list in the root `package.json`, read through `pageServerSettings()`;
-      the assembler reads the same list:
+      the kit's `SRV.Bundle` reads the same list:
 
       ```json
       "pageServer": { "bundles": [...] }
@@ -46,8 +46,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Only this checkout's:  a worktree's pages, served at `/worktrees/<w>/`,
       use the bundles that worktree's own page server built.
 - NOT here, though only spell-app has them:  the component sets and the engine routes.
-  They're SETTINGS, in the root `package.json`'s `"pageServer"` (`componentSets`, `engineRoutes`), read by the generic
-  server (epic `repo-split` Q3:  "stays in spell-app, configurable").
+  They're SETTINGS, in the root `package.json`'s `"pageServer"` (`componentSets`, `engineRoutes`),
+  read by the generic server (epic `repo-split` Q3:  "stays in spell-app, configurable").
 - Commands:
   - the repo's usual five, at its root (node tests);  this folder's tests alone, `yarn vp test run --project page-server`:
 

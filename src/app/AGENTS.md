@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this folder, `src/app/` of the `spell-app` package (`spell-app/app`),
 and in the app's build folder, `app/` at the repo's root.
 
-**READ the repo root's `AGENTS.md` and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
+**READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
 - the root's:  the repo's layout
 - WWOD:  the house style every package shares
 - Only what's local is below.
@@ -22,7 +22,7 @@ and in the app's build folder, `app/` at the repo's root.
   - `build.test.ts` pins that no chunk holds React, `spell-runtime.js` included.
   - Two test projects (the root's `vitest.config.ts`):
     - Both read the repo's `tests/app/`, where the tests live at the same paths as the code:
-      `solid.test.tsx` (beside this folder's `index.tsx`) is [tests/app/solid.test.tsx](../../tests/app/solid.test.tsx).
+      the test of this folder's `index.tsx` is [solid.test.tsx](../../tests/app/solid.test.tsx).
     - `app:node`, for most tests:  there Solid is its SERVER build
       (`renderToString`;  writes NOT staged, see [solid.test.tsx](../../tests/app/solid.test.tsx))
     - `app:browser` (chromium), for `*.browser.test.ts(x)`:  Solid's client build, as in the app
@@ -190,7 +190,8 @@ and in the app's build folder, `app/` at the repo's root.
       - No words file:  each by its name, `move to pile`.
 - `components/`:  `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4);
   `<spell-code>` and `<spell-markdown>` (epic `repo-split` P2).
-  - They're Spell UI components, written as a component pack's families are ([epics' AGENTS.md](../epics/AGENTS.md)).
+  - They're Spell UI components, written as a component pack's families are
+    ([spell-epic's AGENTS.md](../../../spell-epic/src/AGENTS.md)).
   - `components/<tag>/` holds:
     - `<Name>.en.ts`:  the vocabulary
     - `<Name>.tsx`:  two classes
@@ -242,8 +243,8 @@ and in the app's build folder, `app/` at the repo's root.
         - what the page server adds to the docs pages it serves (its `"pageScripts"`:
           [the kit's server AGENTS.md](../../../src/server/AGENTS.md)), so epic pages and guides colour spell (Q23)
         - it needs only the page's core, so any docs bundle will do
-    - Compiled spell's `<markdown>` blocks stay `<ui-markdown>` (marked):  they're plain text in a drawing
-      (`LayoutSpell.ts`, `MarkdownBlock`).
+    - Compiled spell's `<markdown>` blocks stay `<ui-markdown>` (marked):
+      they're plain text in a drawing (`LayoutSpell.ts`, `MarkdownBlock`).
 - `app/docs/` is App UI (epic `epic-workflow` P11):  the docs pages of the app's components, a COMPONENT SET.
   - Served at `/components/app/`.
   - Laid out as every set is since P18 of `people-and-orgs` (the root's `AGENTS.md`).
@@ -310,8 +311,8 @@ and in the app's build folder, `app/` at the repo's root.
   And the `<script>` entries in its own pages:  `index.html` and the demos.
 - It may import spaces' models, `spell-app/spaces` (the same repo, spell-app);
   NEVER `spell-app/spaces/server/node/...`, which is node only.
-  - Another repo's packages by npm name (`spell-lang/spell`, `spell-ui/core` ...:  the root's `AGENTS.md`,
-    "Import names and global types").
+  - Another repo's packages by npm name (`spell-lang/spell`, `spell-ui/core` ...):
+    the root's [AGENTS.md](../../AGENTS.md), "Import names and global types".
   - The editor ([editor.ts](editor.ts)) does:
     - a group's projects are `SPACES.SpellProjectRoot`
     - a project's file create, copy, rename and delete are `SPACES.ProjectFiles` (never `SpellProject`'s)
