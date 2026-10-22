@@ -206,7 +206,9 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     if (layout) unslot = slotsFromIn(layout)
     const keepThings = how === "keep things" && isSameProgram(lastSource, source)
     lastSource = source
-    const ran = await runProgram(copy, source, appRoot, { layout: !!layout, keepThings })
+    // its own words first:  their `messages` are what the core says as it runs, e.g. its tests' lines in Spanish
+    const own = await ownWords(source)
+    const ran = await runProgram(copy, source, appRoot, { layout: !!layout, keepThings, messages: own?.messages })
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
@@ -218,6 +220,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     }
     const loaded = await loadWords(
       source,
+      own,
       [...ran.compiled.keys()].filter((id) => id !== MAIN_PROJECT)
     )
     // a newer source's run may have started meanwhile:  its words are its own
@@ -406,7 +409,7 @@ async function runProgram(
   copy: LoadedRuntime,
   source: SpellAppSource,
   appRoot: HTMLElement,
-  { layout, keepThings }: { layout: boolean; keepThings: boolean }
+  { layout, keepThings, messages }: { layout: boolean; keepThings: boolean; messages?: Record<string, string> }
 ): Promise<Ran> {
   const compiled = new Map<string, string>()
   try {
@@ -416,6 +419,7 @@ async function runProgram(
       appRoot,
       layout,
       keepThings,
+      messages,
       coreUrl: copy.coreUrl,
       loadImport: async (projectId) => {
         const imported = await fetchText(source.importUrl(projectId))
@@ -489,22 +493,32 @@ async function loadScopes(
 }
 
 /**
- * The Thing Explorer's words for `source`, as one:  its own, then those of each project it imported (`importIds`).
- * - Its own:  `source.words` if set, else loaded from `source.wordsUrl`.
+ * `source`'s own words:  `source.words` if set, else loaded from `source.wordsUrl`, in its language.
+ * - `undefined` if it has none.
+ * - NEVER throws:  words are optional, as a scope pack is.
+ */
+async function ownWords(source: SpellAppSource): Promise<SP.SpellWordsData | undefined> {
+  const ownDeclarations = async () => source.declarations ?? fetchJSON<CompiledDeclarations>(source.declarationsUrl)
+  return source.words ?? wordsAt(await inLanguage(source.wordsUrl, ownDeclarations))
+}
+
+/**
+ * The Thing Explorer's words for `source`, as one:  its own (`own`), then those of each project it imported (`importIds`).
  * - `undefined` if none of them has any.
  * - NEVER throws:  words are optional, as a scope pack is.
  */
-async function loadWords(source: SpellAppSource, importIds: string[]): Promise<SP.SpellWordsData | undefined> {
+async function loadWords(
+  source: SpellAppSource,
+  own: SP.SpellWordsData | undefined,
+  importIds: string[]
+): Promise<SP.SpellWordsData | undefined> {
   const { importWordsUrl, importDeclarationsUrl } = source
-  const ownDeclarations = async () => source.declarations ?? fetchJSON<CompiledDeclarations>(source.declarationsUrl)
-  return mergedWords(
-    await Promise.all([
-      source.words ?? wordsAt(await inLanguage(source.wordsUrl, ownDeclarations)),
-      ...importIds.map(async (id) =>
-        wordsAt(await inLanguage(importWordsUrl?.(id), () => fetchJSON(importDeclarationsUrl?.(id))))
-      )
-    ])
+  const imported = await Promise.all(
+    importIds.map(async (id) =>
+      wordsAt(await inLanguage(importWordsUrl?.(id), () => fetchJSON(importDeclarationsUrl?.(id))))
+    )
   )
+  return mergedWords([own, ...imported])
 }
 
 /**

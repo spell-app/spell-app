@@ -39,6 +39,7 @@ export async function wordsIn(text: string): Promise<SP.SpellWordsData | undefin
 /**
  * `all` the words a run has -- its program's, then each project's it imports -- as one:
  * a type's words from the first that has it.  `undefined` if there are none.
+ * - Its `messages` are the first's:  what the core says, in the program's own language.
  */
 export function mergedWords(all: Array<SP.SpellWordsData | undefined>): SP.SpellWordsData | undefined {
   const present = all.filter((words) => words !== undefined)
@@ -47,7 +48,8 @@ export function mergedWords(all: Array<SP.SpellWordsData | undefined>): SP.Spell
   for (const words of present) {
     for (const [type, members] of Object.entries(words.types)) types[type] ??= members
   }
-  return { lang: present[0]!.lang, types }
+  const { lang, messages } = present[0]!
+  return messages ? { lang, types, messages } : { lang, types }
 }
 
 /** Is `words` what a words file exports? */
