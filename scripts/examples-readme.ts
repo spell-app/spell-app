@@ -169,7 +169,7 @@ function pictureOf(project: Project): string {
 
 /** A picture's alt text. */
 function altFor(project: Project): string {
-  return `${project.title} open in the Spell editor:  its spell on the left, the app running on the right`
+  return `${project.title} open in the Spell editor:  its Spell on the left, the app running on the right`
 }
 
 /** The page with `table` between its markers;  throws if the page has no markers. */
