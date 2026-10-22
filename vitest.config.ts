@@ -25,7 +25,7 @@ const APP_TESTS = "tests/app"
  *   - `app:node`:  every app test but `BROWSER_TESTS`.  `solid-js` is its SERVER build there:
  *     `renderToString`, writes NOT staged (`solid.test.tsx` pins it).
  *     It SAYS `environment: "node"`:  the Solid plugin reads it from the config it's created in to pick the server
- *     build (without it, jsdom + the client build).
+ *     build (without it, the client build).
  *   - `app:browser`:  `BROWSER_TESTS`, in chromium (Vitest browser mode + Playwright):  Solid's client build, so
  *     staged writes, effects and `flush()` behave as in the app.
  * - Python's tests (spaces' web server, `tests/spaces/server/py/`) are pytest's:  `yarn test` runs them after.
