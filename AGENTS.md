@@ -318,7 +318,7 @@ As the kit's ([AGENTS.md](../AGENTS.md), "Commands"), plus:
 ## Solid 2
 
 - `spell`'s editor app, runners and web components are Solid 2, on `spell-ui`.
-  - Version `2.0.0-rc.13`, for every package of every repo:  one copy, pinned by the kit's `resolutions`.
+  - Version `2.0.0-rc.17`, for every package of every repo:  one copy, pinned by the kit's `resolutions`.
   - So is what compiled spell draws (epic `output-targets` P10-P11).
   - React is left only in the `spell` CLI's terminal screens (Ink).
 - The rules:  [solid-2.md](../spell.epics/guides/solid/solid-2.md), read IN FULL before Solid work

@@ -1,6 +1,6 @@
 ---
 name: solid-2
-description: Solid 2 (rc.13) rules for this repo. Use BEFORE writing, reviewing or debugging Solid code or JSX in src/app, spell-lang's core rendering (its src/core: element(), draw, Thing/List/App components), `spell-kit/util` reactivity (Observable, getProp/setProp, stores, spell cells), spell-ui <ui-*> elements (spell-ui), or any React-to-Solid migration step. Also use when you see a Solid dev diagnostic code (REACTIVE_WRITE_IN_OWNED_SCOPE, REACTIVITY_HALTED, STRICT_READ_UNTRACKED...).
+description: Solid 2 (rc.17) rules for this repo. Use BEFORE writing, reviewing or debugging Solid code or JSX in src/app, spell-lang's core rendering (its src/core: element(), draw, Thing/List/App components), `spell-kit/util` reactivity (Observable, getProp/setProp, stores, spell cells), spell-ui <ui-*> elements (spell-ui), or any React-to-Solid migration step. Also use when you see a Solid dev diagnostic code (REACTIVE_WRITE_IN_OWNED_SCOPE, REACTIVITY_HALTED, STRICT_READ_UNTRACKED...).
 ---
 
 # Solid 2 in spell-app
@@ -22,7 +22,8 @@ Distrust patterns from both.
   [the Solid 2 guide](../spell.epics/guides/solid/solid-2.html), especially §2 "Read-after-write" and §3 "Gotchas".
 - Every new API, with an example:  [the Solid 2 cheatsheet](../spell.epics/guides/solid/cheatsheet.html).
   - Or Solid's own, `node_modules/solid-js/CHEATSHEET.md`, hoisted to the repo root.
-    Identical in rc.11 and rc.13.
+  - Since rc.17, Solid ships its own skills beside it, `node_modules/solid-js/skills/`:
+    `solid-2.0`, `solid-2.0-cheatsheet`.
 - A dev diagnostic code:
   `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (repo root).
 - Unsure how Solid behaves?  Test it, don't guess:

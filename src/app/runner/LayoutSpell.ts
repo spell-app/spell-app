@@ -1,6 +1,7 @@
-import { createEffect, createRoot } from "solid-js"
+import { createEffect } from "solid-js"
 
 import { camelCase, snakeCase } from "spell-kit/util"
+import { E } from "spell-kit/element"
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import type { Core } from "spell-lang/core"
@@ -100,7 +101,7 @@ export class LayoutSpell {
    * - Returns what takes it back.
    */
   bind(): () => void {
-    createRoot((dispose) => {
+    E.Reactive.ownRoot((dispose) => {
       this.undoes.push(dispose)
       const { root } = this.options
       // markdown first:  its holes are its own, not text's

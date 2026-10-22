@@ -1,7 +1,9 @@
 /**
  * Types for the app's Solid code.
  * - `<ui-*>` tags in Solid JSX:  Spell UI's own types, exact (`spell-ui/jsx`, generated from its vocabularies).
- *   - Every attribute of every tag, with its values, hover docs, and `prop:` for rich data.
+ *   - Every attribute of every tag, with its values and hover docs.
+ *   - Data goes as plain props:  an object or function becomes the element's property, `on-ui-change` a listener
+ *     (`spell-kit/element`'s `RichAttributes`).
  *   - A misspelt attribute or a value its set doesn't hold is an error.
  * - Translated tags (`<es-boton>`) stay loose:  the generated types name the English tags only.
  * - Importing it here puts them in every program that holds the app's Solid code.
@@ -22,5 +24,5 @@ declare module "@solidjs/web/types/jsx.js" {
   }
 }
 
-/** Attributes of a translated Spell UI tag (`<es-boton>`) in JSX:  HTML attributes, plus any attribute or `prop:`. */
+/** Attributes of a translated Spell UI tag (`<es-boton>`) in JSX:  HTML attributes, plus any attribute, any value. */
 export type TranslatedUIElementAttributes = JSX.HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }

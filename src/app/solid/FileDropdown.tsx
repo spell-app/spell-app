@@ -46,7 +46,7 @@ export function FileDropdown(props: FileDropdownProps) {
           id="FileDropdown"
           class="FileDropdown"
           loading={!state().ready}
-          prop:value={state().path}
+          value={state().path}
           ref={on<{ value: string }>("ui-change", choose)}
         >
           <For each={state().files} keyed={(file) => file.path}>
