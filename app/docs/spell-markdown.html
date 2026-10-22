@@ -27,7 +27,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/components/spell-markdown/SpellMarkdown.tsx"
+              href="../../src/app/components/spell-markdown/SpellMarkdown.tsx"
               icon="code"
               aria-label="Its code, SpellMarkdown.tsx"
               title="Its code, SpellMarkdown.tsx"
@@ -57,7 +57,7 @@
             <ui-item icon="play">Live: the real element, from the app's element build this page loads</ui-item>
           </ui-list>
 
-          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+          <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <ui-docs-example description="`editable`:  Write / Preview tabs, the preview drawn by spell's engine.">
               <spell-markdown editable>
@@ -80,12 +80,12 @@
             </ui-docs-example>
             <p class="meta">
               Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >), which this set's pages load.
             </p>
           </ui-section>
 
-          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+          <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <ul>
               <li>
@@ -105,7 +105,7 @@
             </ul>
           </ui-section>
 
-          <ui-section id="3-api" header="3. Attributes, events and texts" sticky collapsible dividing collapsed>
+          <ui-section id="3-api" label="3. Attributes, events and texts" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <p>
               Its own names; the rest are
@@ -116,35 +116,33 @@
             <ui-docs-api family="spell-markdown"></ui-docs-api>
             <p class="meta">
               From its vocabulary, by <code>yarn site:data</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >.
             </p>
           </ui-section>
 
-          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+          <ui-section id="4-its-code" label="4. Its code" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>
                 <a
-                  href="../../packages/app/components/spell-markdown/SpellMarkdown.tsx"
+                  href="../../src/app/components/spell-markdown/SpellMarkdown.tsx"
                   target="src-packages-app-components-spell-markdown-spellmarkdown-tsx"
-                  ><code title="packages/app/components/spell-markdown/SpellMarkdown.tsx">SpellMarkdown.tsx</code></a
+                  ><code title="src/app/components/spell-markdown/SpellMarkdown.tsx">SpellMarkdown.tsx</code></a
                 >: its component, a <code>UIMarkdown</code> drawn by spell's engine
               </li>
               <li>
                 <a
-                  href="../../packages/app/components/spell-markdown/SpellMarkdown.en.ts"
+                  href="../../src/app/components/spell-markdown/SpellMarkdown.en.ts"
                   target="src-packages-app-components-spell-markdown-spellmarkdown-en-ts"
-                  ><code title="packages/app/components/spell-markdown/SpellMarkdown.en.ts"
-                    >SpellMarkdown.en.ts</code
-                  ></a
+                  ><code title="src/app/components/spell-markdown/SpellMarkdown.en.ts">SpellMarkdown.en.ts</code></a
                 >: what its vocabulary adds to <code>&lt;ui-markdown&gt;</code>'s
               </li>
               <li>
                 <a
-                  href="../../packages/app/components/spell-markdown/MDEngine.ts"
+                  href="../../src/app/components/spell-markdown/MDEngine.ts"
                   target="src-packages-app-components-spell-markdown-mdengine-ts"
-                  ><code title="packages/app/components/spell-markdown/MDEngine.ts">MDEngine.ts</code></a
+                  ><code title="src/app/components/spell-markdown/MDEngine.ts">MDEngine.ts</code></a
                 >: spell's markdown engine, as <code>&lt;ui-markdown&gt;</code> asks for one
               </li>
               <li>

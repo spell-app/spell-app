@@ -1,5 +1,0 @@
-{
-  // lsp's tests:  lsp's own settings (packages/lsp/tsconfig.json), over this folder
-  "extends": "../../lsp/tsconfig.json",
-  "include": ["."]
-}

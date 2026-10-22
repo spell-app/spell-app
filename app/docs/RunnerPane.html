@@ -29,7 +29,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/src/runner/RunnerPane.tsx"
+              href="../../src/app/runner/RunnerPane.tsx"
               icon="code"
               aria-label="Its code, RunnerPane.tsx"
               title="Its code, RunnerPane.tsx"
@@ -66,7 +66,7 @@
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
-              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <a href="../../src/app/" target="src-packages-app">The app package</a> builds it with
               <code>yarn build:element</code>.
             </p>
           </ui-section>
@@ -126,7 +126,7 @@
             <ui-docs-api family="RunnerPane"></ui-docs-api>
             <p class="meta">
               From its code, by <code>yarn site:data</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >.
             </p>
           </ui-section>
@@ -135,30 +135,26 @@
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>
-                <a
-                  href="../../packages/app/src/runner/RunnerPane.tsx"
-                  target="src-packages-app-src-runner-runnerpane-tsx"
-                  ><code title="packages/app/src/runner/RunnerPane.tsx">RunnerPane.tsx</code></a
+                <a href="../../src/app/runner/RunnerPane.tsx" target="src-packages-app-src-runner-runnerpane-tsx"
+                  ><code title="src/app/runner/RunnerPane.tsx">RunnerPane.tsx</code></a
                 >: the component, its props, and a tab's type
               </li>
               <li>
-                <a
-                  href="../../packages/app/src/runner/RunnerPane.css"
-                  target="src-packages-app-src-runner-runnerpane-css"
-                  ><code title="packages/app/src/runner/RunnerPane.css">RunnerPane.css</code></a
+                <a href="../../src/app/runner/RunnerPane.css" target="src-packages-app-src-runner-runnerpane-css"
+                  ><code title="src/app/runner/RunnerPane.css">RunnerPane.css</code></a
                 >: the tabs on top, what they show filling the rest
               </li>
               <li>
                 <a
-                  href="../../tests/app/src/runner/runner.browser.test.tsx"
+                  href="../../tests/app/runner/runner.browser.test.tsx"
                   target="src-tests-app-src-runner-runner-browser-test-tsx"
-                  ><code title="tests/app/src/runner/runner.browser.test.tsx">runner.browser.test.tsx</code></a
+                  ><code title="tests/app/runner/runner.browser.test.tsx">runner.browser.test.tsx</code></a
                 >: its tests, through the runner that draws it
               </li>
               <li>
-                In the runner's pieces, <code>$/app/runner</code>:
-                <a href="../../packages/app/src/runner/" target="src-packages-app-src-runner"
-                  ><code title="packages/app/src/runner/">src/runner/</code></a
+                In the runner's pieces, <code>spell-app/app/runner</code>:
+                <a href="../../src/app/runner/" target="src-packages-app-src-runner"
+                  ><code title="src/app/runner/">src/runner/</code></a
                 >
               </li>
             </ul>

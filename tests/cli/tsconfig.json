@@ -1,7 +1,0 @@
-{
-  // cli's tests:  cli's own settings (cli/tsconfig.json), over this folder
-  "extends": "../../cli/tsconfig.json",
-  "include": ["."],
-  // a monorepo's root files, frozen for `pack new`'s tests:  data, not this repo's code
-  "exclude": ["src/dev/fixtures"]
-}

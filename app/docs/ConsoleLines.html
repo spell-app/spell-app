@@ -32,7 +32,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/src/solid/ConsoleLines.tsx"
+              href="../../src/app/solid/ConsoleLines.tsx"
               icon="code"
               aria-label="Its code, ConsoleLines.tsx"
               title="Its code, ConsoleLines.tsx"
@@ -69,7 +69,7 @@
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
-              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <a href="../../src/app/" target="src-packages-app">The app package</a> builds it with
               <code>yarn build:element</code>.
             </p>
           </ui-section>
@@ -138,7 +138,7 @@
             <ui-docs-api family="ConsoleLines"></ui-docs-api>
             <p class="meta">
               From its code, by <code>yarn site:data</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >.
             </p>
           </ui-section>
@@ -147,40 +147,30 @@
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>
-                <a
-                  href="../../packages/app/src/solid/ConsoleLines.tsx"
-                  target="src-packages-app-src-solid-consolelines-tsx"
-                  ><code title="packages/app/src/solid/ConsoleLines.tsx">ConsoleLines.tsx</code></a
+                <a href="../../src/app/solid/ConsoleLines.tsx" target="src-packages-app-src-solid-consolelines-tsx"
+                  ><code title="src/app/solid/ConsoleLines.tsx">ConsoleLines.tsx</code></a
                 >: all five components, and their props
               </li>
               <li>
-                <a
-                  href="../../packages/app/src/solid/ConsoleLines.css"
-                  target="src-packages-app-src-solid-consolelines-css"
-                  ><code title="packages/app/src/solid/ConsoleLines.css">ConsoleLines.css</code></a
+                <a href="../../src/app/solid/ConsoleLines.css" target="src-packages-app-src-solid-consolelines-css"
+                  ><code title="src/app/solid/ConsoleLines.css">ConsoleLines.css</code></a
                 >: their look
               </li>
               <li>
                 Its tests, with the editor's console's:
                 <a
-                  href="../../tests/app/src/solid/ConsoleViewer.browser.test.tsx"
+                  href="../../tests/app/solid/ConsoleViewer.browser.test.tsx"
                   target="src-tests-app-src-solid-consoleviewer-browser-test-tsx"
-                  ><code title="tests/app/src/solid/ConsoleViewer.browser.test.tsx"
-                    >ConsoleViewer.browser.test.tsx</code
-                  ></a
+                  ><code title="tests/app/solid/ConsoleViewer.browser.test.tsx">ConsoleViewer.browser.test.tsx</code></a
                 >
               </li>
               <li>
                 The consoles that draw it:
-                <a
-                  href="../../packages/app/src/runner/RunnerConsole.tsx"
-                  target="src-packages-app-src-runner-runnerconsole-tsx"
-                  ><code title="packages/app/src/runner/RunnerConsole.tsx">RunnerConsole.tsx</code></a
+                <a href="../../src/app/runner/RunnerConsole.tsx" target="src-packages-app-src-runner-runnerconsole-tsx"
+                  ><code title="src/app/runner/RunnerConsole.tsx">RunnerConsole.tsx</code></a
                 >,
-                <a
-                  href="../../packages/app/src/solid/ConsoleViewer.tsx"
-                  target="src-packages-app-src-solid-consoleviewer-tsx"
-                  ><code title="packages/app/src/solid/ConsoleViewer.tsx">ConsoleViewer.tsx</code></a
+                <a href="../../src/app/solid/ConsoleViewer.tsx" target="src-packages-app-src-solid-consoleviewer-tsx"
+                  ><code title="src/app/solid/ConsoleViewer.tsx">ConsoleViewer.tsx</code></a
                 >
               </li>
             </ul>

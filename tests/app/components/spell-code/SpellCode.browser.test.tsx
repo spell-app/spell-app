@@ -2,8 +2,8 @@ import { beforeAll, describe, expect, test, vi } from "vite-plus/test"
 
 import { UI } from "spell-ui/core"
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { DOMCodeElement } from "spell-ui/ui-code"
-import { SpellLanguage } from "$/app/components/spell-code"
+import type { DOMCodeElement } from "spell-ui/components/ui-code"
+import { SpellLanguage } from "spell-app/app/components/spell-code"
 
 /**
  * `<spell-code>`, and the `spell` language its family registers with the page's `UI.code`:

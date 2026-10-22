@@ -1,51 +1,73 @@
 # Spaces:  where projects and people live
 
-A SPACE is a person's or an organization's folder of projects.
-Every project and every file in one has an ADDRESS, like `@spell/examples/drawable-solitaire/Card.spell`,
-which the editor, the command line and other projects use to name it.
+```text
+@spell/examples/drawable-solitaire/Card.spell
+└──── group ──┘ └──── project ───┘ └─ file ─┘
+```
 
-The [spaces](spaces/) folder holds what makes that work:
-- the built-in projects, Spell's own space:  the examples and the libraries
-- the models of groups and projects, safe to run in a browser,
-  which the editor uses to make, copy, rename and delete them
-- the servers that serve them:  the editor's API on the page server, and Python's web server
-- people and organizations, saved as readable files
+_A Spell address:  one file of the Drawable Solitaire example, named by what it is rather than where it is._
 
-If you know npm:  an address is a bit like a scoped package name, `@org/name`, with a group and a file after it.
+Every project and every file in Spell has an address like that one, and it's the same address everywhere:
+
+| Where | What you write |
+| --- | --- |
+| the editor | `http://localhost:3000/edit/@spell/examples/drawable-solitaire/Card.spell` |
+| the command line | `spell run @spell/examples/drawable-solitaire` |
+| another project, importing a library | `{ "path": "@spell/library/cards", "import": ["Card", "Deck", "Pile"] }` |
+| the server, reading the file | `GET /spaces/@spell/examples/drawable-solitaire/Card.spell` |
+
+None of them is a path on disk.
+One function turns an address into a folder, [`SpellUrls.folderFor()`](../spell-lang/src/spell/SpellUrls.ts),
+and everything that reads a project goes through it:  so the editor, the command line and the compiler
+can't disagree about where a project is.
+
+If you know npm, `@spell/library/cards` reads like a scoped package, `@org/name`, and it's meant to:
+whose it is, then what.
+The difference is that there's no registry and no install.
+The address alone says which folder holds the project, so a library on your disk is importable the moment it exists.
+
+A SPACE is a person's or an organization's folder of projects:
+`@spell` is Spell's own, and `owen@spell` is a person's, at Spell.
+spell-app's [spaces](src/spaces/) is everything around them:
+- the built-in projects, in [spaces/](spaces/)
+- the models and the server the editor changes them through
+- a web server for programs compiled to Python
+- the people and organizations themselves
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"15px","primaryColor":"#EFECFB","primaryBorderColor":"#6550CA","primaryTextColor":"#1A1C27","secondaryColor":"#F4F1E9","tertiaryColor":"#F7F6FC","lineColor":"#7F6FD6","textColor":"#7F6FD6","clusterBkg":"#F7F6FC","clusterBorder":"#B9B0E8","titleColor":"#1A1C27","edgeLabelBackground":"#F7F6FC","actorBkg":"#EFECFB","actorBorder":"#6550CA","actorTextColor":"#1A1C27","actorLineColor":"#9C90DE","signalColor":"#7F6FD6","signalTextColor":"#7F6FD6","labelBoxBkgColor":"#EFECFB","labelBoxBorderColor":"#6550CA","labelTextColor":"#1A1C27","loopTextColor":"#7F6FD6","noteBkgColor":"#F1E7D4","noteBorderColor":"#C9B48A","noteTextColor":"#1A1C27","activationBkgColor":"#DCD6F7","activationBorderColor":"#6550CA","sequenceNumberColor":"#FFFFFF"},"flowchart":{"curve":"basis","padding":12,"nodeSpacing":40,"rankSpacing":44}}}%%
 flowchart LR
-  subgraph repo["in spell-app, committed"]
+  server["spaces' routes, on the page server<br/>read:  GET /spaces/‹address›<br/>save:  POST /api/projects/..."]
+  subgraph app["spell-app's spaces/ folder:  committed"]
     examples["@spell/examples"]
     library["@spell/library"]
+    guides["@spell/guides, empty so far"]
   end
-  subgraph lang["in spell-lang, frozen"]
+  subgraph lang["spell-lang's tests/spaces/:  frozen"]
     tests["@spell/test"]
   end
-  subgraph yours["spell.spaces, beside the kit, outside git"]
-    own["owen@spell:  your own projects"]
+  subgraph yours["spell.spaces/, beside the repos:  in no repo"]
+    own["owen@spell, your own"]
   end
-  read["/spaces/address:  read a file"] --> repo
-  read --> lang
-  read --> yours
-  write["/api/projects/...:  save, make, rename"] --> repo
-  write --> yours
+  server --> app
+  server --> lang
+  server --> yours
   %% the Spell look:  yarn mermaid:pretty
   classDef default fill:#EFECFB,stroke:#6550CA,stroke-width:1.5px,color:#1A1C27,rx:8px,ry:8px
 ```
 
-_Every group lives in a folder of its own;  the same two kinds of address read and write them all._
+_Five groups in three folders, and one way in:  the server takes an address and works out the folder itself._
 
-## Addresses
+## Addresses:  the folder is in the name
 
-An address is a group, then a project's name, then a file, with a slash between each:
+An address is a group, then a project's name, then a file, with a slash between each.
+Only the group is looked up;  everything after it is a folder or a file inside the group's folder.
 
 ```text
 address  = group "/" project [ "/" path ]
 group    = "@" org "/" domain            built-in:  @spell/examples, @spell/library, @spell/test
          | person "@" org                a person's own:  owen@spell
-project  = name                          one part, lower-kebab:  todos-form-based
+project  = name                          one part, no dot;  lower-kebab by convention:  todos-form-based
 path     = file | folder "/"             a file has a dot:  todo.spell;  a folder ends in a slash
 here     = "@here"                       on the command line:  the project in the folder you're in
 ```
@@ -55,95 +77,183 @@ here     = "@here"                       on the command line:  the project in th
 | `@spell/examples` | a group:  the example projects |
 | `@spell/examples/drawable-solitaire` | a project |
 | `@spell/examples/drawable-solitaire/Card.spell` | a file in it |
-| `@spell/examples/drawable-solitaire/assets/` | a folder in it |
-| `owen@spell/errors` | a project in a person's own group |
+| `@spell/examples/drawable-solitaire/assets/` | a folder in it:  the slash at the end says so |
+| `owen@spell/hello` | a project in a person's own group |
 
-- A group belongs to a space:
-  - `@spell/examples` to `@spell`, an organization
-  - `owen@spell` to a person at that organization
-- Each group's folder comes from its address, so nothing needs looking up beyond the group.
-- A page of a running app, `owen@spell/solitaire/rules`, has neither a dot nor a slash at the end:  it's not a file.
-- The full rules:  `SpellLocation`, in [spell-lang's SpellLocation.ts](../spell-lang/spell/src/SpellLocation.ts).
+- A group belongs to a space:  `@spell/examples` to `@spell`, an organization;
+  `owen@spell` to a person at that organization.
+- A page of a running app, `owen@spell/solitaire/rules`, has neither a dot nor a slash at the end:
+  it's not a file, so it's no address.
+- On the command line, a group or a whole space (`@spell`) stands for its projects:
+  `spell` asks which one, or `--all` takes them all ([the command line](../README-cli.md)).
+- The full rules, with every part of an address by name:
+  `SpellLocation`, in spell-lang's [SpellLocation.ts](../spell-lang/src/spell/SpellLocation.ts).
 
-### Your own projects group
+The groups, and where each one's folder is:
 
-Your own projects live in your own group, `<you>@spell`:
-`spell app create` makes projects there, and it's the editor's "Projects" list.
+| Group | In the editor | Its folder | What's in it |
+| --- | --- | --- | --- |
+| `owen@spell` | Projects | `spell.spaces/@spell/owen@/`, beside the repos, in no repo | your own projects:  where `spell app create` makes one |
+| `@spell/examples` | Examples | [spaces/@spell/examples/](spaces/@spell/examples/), committed | the five example apps ([README-examples.md](README-examples.md)) |
+| `@spell/library` | Libraries | [spaces/@spell/library/](spaces/@spell/library/), committed | projects other projects import:  cards, and people |
+| `@spell/guides` | Guides | none yet | nothing:  the editor's "New Guide" makes its folder, `spaces/@spell/guides/` |
+| `@spell/test` | Test fixtures, listed only in dev | spell-lang's [tests/spaces/@spell/test/](../spell-lang/tests/spaces/@spell/test/), frozen | the 11 projects spell-lang's tests compile and compare against snapshots |
 
-- Today the name is fixed, `owen@spell`, after the maintainer:
-  one person per machine, until a machine can have more than one.
-  - The code:  `LOCAL_PERSON`, in [projectGroups.ts](spaces/src/models/projectGroups.ts).
-- So on your machine, your projects' addresses start `owen@spell/` too, in your own folder:
-  nobody else's files are in it.
+- `spell projects` lists them, with how many projects each holds ([README-cli.md](../README-cli.md#spell-app)).
+- A project in no group still runs:  `spell` makes up a group for it on the spot, `@local/<folder>`,
+  named after the folder it's in.
+  The editor lists none of those.
+
+### Your own group is owen@spell, whoever you are
+
+Your own projects live in `owen@spell`, the editor's "Projects" list, and that's its name on every machine.
+- It's fixed today:  `LOCAL_PERSON` in [projectGroups.ts](src/spaces/models/projectGroups.ts), the part before the
+  `@`, is the one person a machine has, until a machine can have more than one.
+- So your projects' addresses start `owen@spell/` too, in your own spaces folder:  nobody else's files are in it.
 
 ## Setting up spaces for your own project
 
-Your spaces folder is `spell.spaces`, beside the kit's folders (`~/www/spell/spell.spaces/`):
-one folder for the main checkout and every worktree, outside git.
-A new checkout doesn't have it yet, so make it first.
+Your spaces folder is `spell.spaces`, beside the repos:  `~/www/spell/spell.spaces/`.
+It's ONE folder for the main checkout and every worktree, and it's in no git repo.
+A new checkout doesn't have one, and nothing makes it for you, so that's the first step.
 
-1. Make your own group's folder:
+The commands run from the kit's folder, `~/www/spell`, after [setup](../README.md#setup-from-zero),
+with `spell` on your PATH ([setting it up](../README-cli.md#setting-it-up)).
+What each printed on a real run is under it.
+
+1. Make your own group's folder.
 
    ```sh
-   mkdir -p ~/www/spell/spell.spaces/@spell/owen@
+   cd ~/www/spell
+   mkdir -p spell.spaces/@spell/owen@
+   # (prints nothing)
    ```
 
-   - It prints nothing.
-   - `SPELL_SPACES_DIR=<folder>` puts the spaces somewhere else, for every program that reads them.
-2. Make a project, from spell-app's folder (or anywhere, once `spell` is on your PATH):
+   - Skip it, and the next step stops at `No such folder:  .../spell.spaces/@spell/owen@`.
+   - `SPELL_SPACES_DIR=<folder>` puts your spaces somewhere else, for every program that reads them.
+
+2. Make a project.
 
    ```sh
    spell app create hello
+   # spell.spaces/@spell/owen@/hello
+   # Made hello:  try  spell run spell.spaces/@spell/owen@/hello
    ```
 
-   ```text
-   ../spell.spaces/@spell/owen@/hello
-   Made hello:  try  spell run ../spell.spaces/@spell/owen@/hello
-   ```
-
-   It writes two files:
+   It writes two files, and that's the whole project:
 
    ```text
    hello/
-     __project.json5     the project file
+     __project.json5     the project file:  one import, /hello.spell
      hello.spell         // hello:  a new spell project
                          print "hello from hello"
    ```
 
-3. Run it:
+   - It's careful with names and folders:  `spell app create "My Thing"` answers
+     `'My Thing' won't do as a project name`, and a second `spell app create hello` says `... already holds a project`.
+   - The editor's "New Project" takes any name, and makes the folder's name from it:
+     "Todos - Form Based" becomes `todos-form-based`, with "Todos - Form Based" kept as the project's title.
+
+3. Run it, by its address, from any folder.
 
    ```sh
    spell run owen@spell/hello
+   # ✓ Compiling owen@spell/hello
+   # hello from hello
    ```
 
-   ```text
-   ✓ Compiling owen@spell/hello
-   hello from hello
+   Its folder works too, `spell run spell.spaces/@spell/owen@/hello`, and so does `spell run` alone, inside it:
+   each one says `Compiling owen@spell/hello`.
+
+4. Open it in the editor.
+
+   ```sh
+   spell app serve owen@spell/hello
+   # ✓ Starting the page server  http://127.0.0.1:4747/
+   # ✓ Starting the editor  http://localhost:3000/  (/api on the page server)
+   # The spell app is at http://localhost:3000/edit/owen@spell/hello;  docs, epics, goals and Spell UI at http://127.0.0.1:4747/ -- Ctrl-C to stop
+   # http://localhost:3000/edit/owen@spell/hello
    ```
 
-4. Open it in the editor:  `yarn start` in spell-app, then `http://localhost:3000/edit/owen@spell/hello`,
-   or pick it under "Open or Create...", in "Projects".
-5. Add files in the editor ("New File"), or in your own editor:
-   a project lists every `.spell`, `.css` and `.js` file in its folder,
-   and adds a new one to its project file the next time it's opened.
-6. Use a library:  add another project to `imports`, by its address, naming what you want from it:
+   - It opens your browser at `http://localhost:3000/edit/owen@spell/hello`;  `Ctrl-C` stops what it started.
+     Its options:  [the command line's page](../README-cli.md#spell-app).
+   - In an editor that's already open:  "Open or Create...", then "Projects".
+
+5. Add a file:  "New File" in the editor, or any file you make in the project's folder.
+
+   ```sh
+   echo 'print "and more"' > spell.spaces/@spell/owen@/hello/more.spell
+   spell run owen@spell/hello
+   # ✓ Compiling owen@spell/hello
+   # hello from hello
+   # and more
+   ```
+
+   - A project's files are the `.spell`, `.css`, `.js` and `.jsx` files in its folder,
+     and its property editor pages, `.editor.html`.
+   - The next time the project is opened, a new file joins the end of its project file's `imports`,
+     which is the order they run in;  a file that's gone leaves it.
+
+6. Use a library:  add another project to the front of `imports`, by its address, naming what you want from it.
 
    ```json5
-   { "path": "@spell/library/cards", "active": true, "import": ["Card", "Deck", "Pile"] }
+   {
+     "imports": [{
+       "path": "@spell/library/cards",
+       "active": true,
+       "import": ["Card", "Deck", "Pile"]
+     }, {
+       "path": "/hello.spell",
+       "active": true
+     }, {
+       "path": "/more.spell",
+       "active": true
+     }]
+   }
    ```
 
-7. Keep it in git:  your spaces folder isn't in any repo,
-   so `git init` in your project's folder (or in `spell.spaces` itself), and push it wherever you like.
-   What spell builds goes in spell-app's `build/` folder, never beside your source, so there's nothing to ignore.
+   Then use it, at the end of `hello.spell`:
 
-- Elsewhere on disk:  `spell app create hello --in <folder>` makes it there;  `spell run <folder>` runs it.
-  It has no address then (`@local/<folder>` while the editor has it open), and it isn't in the editor's lists.
+   ```spell
+   set the deck to a new deck
+   set up the deck
+   print the number of cards in the deck
+   ```
+
+   ```sh
+   spell run owen@spell/hello
+   # ✓ Compiling owen@spell/hello
+   # ✅ test card setup
+   # ...
+   # hello from hello
+   # 52
+   # and more
+   ```
+
+   - The first time, it compiles the library too, into spell-app's `build/` folder.
+   - Expect a wall of ✅ first:  a library's own tests run as it loads,
+     so about 80 lines of the cards library's checks, 45 of them ✅, scroll past before your first line.
+
+7. Keep it in git.
+   Your spaces folder is in no repo, so `git init` in your project's folder (or in `spell.spaces` itself),
+   and push it wherever you like.
+
+   - Commit everything in the folder:  there's nothing to ignore.
+   - The compiled program goes in spell-app's `build/` folder, never beside your source.
+   - What a compile does leave beside it is meant to be committed:
+     `hello.declarations.json5`, what it declares, for projects that import it;  and `hello.en.js`, its words.
+   - Opening a project in the editor compiles it, which may rewrite those two:  look at `git status` after.
+   - Every target's files, and where each goes:  [spell-lang's README-targets.md](../spell-lang/README-targets.md).
+
+Somewhere else on disk:  `spell app create hello --in <folder>` makes it there, and `spell run <folder>/hello` runs
+it, as `@local/<folder>/hello`.
+It's in none of the editor's lists, so `spell app serve` on it opens the project chooser instead.
 
 <details>
 <summary>The project file's fields</summary>
 
-`__project.json5`, at the top of the project's folder (spaces' `ProjectFileJSON`,
-in [server.types.ts](spaces/src/server/node/projects/server.types.ts)):
+`__project.json5`, at the top of the project's folder (`ProjectFileJSON`,
+in [server.types.ts](src/spaces/server/node/projects/server.types.ts)):
 
 | Field | What it is | Default |
 | --- | --- | --- |
@@ -162,67 +272,113 @@ Each entry of `imports`:
 | `path` | a file of this project, `/Card.spell`, or another project's address |
 | `active` | `false` leaves it out of the compile |
 | `import` | from another project:  the names to take, `["Card", "Deck"]` |
+| `version` | from another project:  the range of its versions to accept, `"^1.0.0"` |
+| `source` | from another project:  `true` reads its source rather than its declarations |
+
+- The editor's "Settings" changes four of them:  `title`, `version`, `targets` and `listsStartAt`.
+- Its comments survive every rewrite:  the file is edited in place, never regenerated.
 
 </details>
 
-## The models
+## The models:  making projects, not compiling them
 
-The editor makes and changes projects through spaces' models, in [spaces/src/models/](spaces/src/models/):
-plain classes, safe in a browser, imported as `spell-app/spaces`.
+[spell-lang](../spell-lang/README.md) compiles projects, but it never lists them:  it starts with no groups at all.
+The groups, and every change to what's in them, are spaces' models:
+plain classes in [src/spaces/models/](src/spaces/models/), safe in a browser, imported as `spell-app/spaces`.
 
 | Model | What it does |
 | --- | --- |
-| `PROJECT_GROUPS` | Spell's project groups:  their addresses, titles and icons;  loading it tells spell about them |
-| `SpellProjectRoot` | one group's list of projects:  make, copy, rename and delete a project |
+| `PROJECT_GROUPS` | Spell's project groups:  their addresses, titles and icons;  loading it tells Spell about them |
+| `SpellProjectRoot` | one group's list of projects:  make, copy, rename and delete a project, and save its settings |
 | `ProjectFiles` | one project's files:  make, copy, rename and delete a file |
-| `SPACE_NAMES` | spaces' own file names, `__project.json5`, `__me.json5` ...:  never listed as a project's files |
+| `TypeSchemas` | a type's properties, read from its project's declarations, for the property editor |
+| `SPACE_NAMES` | spaces' own file names, `__project.json5`, `__me.json5`, `__org.json5` ...:  never one of a project's files |
 | `SpaceStorage` | the one interface every space file goes through:  read, write, list, remove, watch |
+| `PersonView`, `MeAnswer` ... | what the app and the server say about people:  types only |
 
-- spell-lang reads and compiles projects, but never holds one:  the groups are spaces', and spell starts with none.
-  So every program that reads an address loads spaces' groups first.
-- A project's own reading, compiling and saving is spell-lang's `SpellProject`;  making and renaming them is here.
+So a program that reads an address must load the groups first, and there are three ways in:
+- through `spell-app/spaces`, as the editor does
+- through spaces' disk reader, `installDiskFetch()`:  the [language server](README-lsp.md) and `spell` do this
+- or `spell-app/spaces/models/projectGroups` alone, as `<spell-app>` does to stay clear of the parser
 
-## The servers
+The line between the two repos is sharp.
+A project's own reading, compiling and saving is its `SpellProject`
+([README-spell.md](../spell-lang/README-spell.md));  making, copying and renaming projects happens here.
+Each model asks the server, and throws with what it was doing ("renaming file") for the editor to show.
 
-The editor saves and loads through the page server:
-spaces adds its routes there, as a ROUTE MODULE
-(a file the [page server](../README-server.md) loads by its path, from spell-app's settings).
+- The node side, `spell-app/spaces/server/node/...`, is imported by its path, never from the entry:
+  it's the part that touches the disk.
+- **Not yet:**  a second storage.
+  The disk is the only one behind `SpaceStorage`;  the interface is there so another can stand in, and none has.
 
-- [appRoutes.ts](spaces/src/server/node/routes/appRoutes.ts) serves:
-  - `/api/...`:  the app's API, below
-  - `/spaces/<address>`:  reading a file
-  - `/element/...`:  the web components, from the app's `dist-element/`
-  - `/editor`:  a link to the editor
-- It starts the editor (Vite) as the page server's child once the page server listens, and stops it with it.
-- It BUILDS on demand:
-  a request for a compiled file that isn't there yet (`/spaces/<project>/<project>.spell.js`) compiles its project first.
-  - As the page server starts, it compiles `@spell/examples` and `@spell/library` in the background,
-    so the demo pages and App UI's live examples are ready.
-  - What it builds goes in spell-app's `build/` folder, never committed:
-    `build/spaces/@spell/examples/drawable-solitaire/`.
-- `yarn start:server` runs the API alone, on port 3001, with no page server.
+## The servers:  an API that nothing starts
+
+If you know Express, the editor's API will look familiar:  a router, `api.get("/projects/list/*", ...)`.
+What's different is that nothing starts it.
+It's a ROUTE MODULE:  a file the [page server](../README-server.md) loads by its path,
+named in [spell-app's page server settings](README-page-server.md), and the page server is the one program running.
+
+| Path | What [appRoutes.ts](src/spaces/server/node/routes/appRoutes.ts) serves there |
+| --- | --- |
+| `/api/...` | the app's API (below), its bodies read as JSON5, up to 10 MB |
+| `/spaces/<address>` | a project's file, which is how Spell reads every file |
+| `/element/...` | `<spell-app>`'s and `<spell-editor>`'s bundles, from the app's `dist-element/` |
+| `/editor` | the site header's "Editor" link, redirected to wherever the editor is |
+| `/hello` | a liveness check |
+
+Two things run beside it, and stop with it.
+
+The EDITOR is Vite's dev server for the app, which the page server starts as its child once it listens
+([EditorServer.ts](src/spaces/server/node/routes/EditorServer.ts)).
+So however the page server starts, the "Editor" link works;  `SPELL_NO_EDITOR=1` skips it.
+
+BUILDS happen on demand ([ProjectBuild.ts](src/spaces/server/node/routes/ProjectBuild.ts)).
+Ask for a compiled file that isn't there yet, `/spaces/<project>/<project>.spell.js`, and its project compiles
+first, in a child process running the checkout's own `spell compile`, so the page server keeps serving meanwhile.
+- A request waits a minute at most;  then it gets a 404, and the compile carries on.
+- As the page server starts, `spell compile --stale --all @spell/examples @spell/library` runs in the background,
+  so the demo pages and App UI's live examples find their programs.
+- What it builds goes in spell-app's `build/` folder, mirroring each project's path, never committed:
+  `build/spaces/@spell/examples/drawable-solitaire/` holds that project's compiled program and its scope pack
+  (`.scopes.js`, what the Type Explorer reads).
+- A file already built is served as it is, even when its sources changed since:
+  the startup compile and `spell compile --stale` are what catch those.
+
+`yarn start:server`, at spell-app's root, runs the API alone, on port 3001, with no page server
+([cli.ts](src/spaces/server/node/routes/cli.ts)).
+
+This API writes files, so its one check matters:
+a write whose `Origin` isn't this machine gets a 403, `wrong origin`.
+There's no token, so it keeps out other web sites, not other programs on your machine.
 
 <details>
 <summary>The API's routes</summary>
 
-Each route's contract is on its handler, in [project-utils.ts](spaces/src/server/node/projects/project-utils.ts);
-the table is [api.ts](spaces/src/server/node/routes/api.ts).
+Each route's contract is on its handler, in [project-utils.ts](src/spaces/server/node/projects/project-utils.ts);
+the table is [api.ts](src/spaces/server/node/routes/api.ts), and
+[api.test.ts](tests/spaces/server/node/routes/api.test.ts) pins it over HTTP.
 
 | Route | What it does |
 | --- | --- |
 | `GET /spaces/<address>` | one file, as it is on disk;  a compiled one from `build/`, compiled first if it's missing |
 | `GET /api/projects/list/<group>` | a group's projects:  each address, and its title if it has one |
-| `GET /api/projects/index/<project>` | a project's files and imports;  adds new files to its project file |
+| `GET /api/projects/index/<project>` | a project's files and imports;  adds new files to its project file, drops gone ones |
 | `POST /api/projects/file/<address>` | save a file |
 | `POST /api/projects/create/project` | make a project |
 | `POST /api/projects/rename/project`, `.../duplicate/project` | rename or copy one |
-| `POST /api/projects/settings/project` | save a project's settings, its project file |
+| `DELETE /api/projects/remove/project` | delete one |
+| `POST /api/projects/settings/project` | save a project's settings, into its project file |
 | `POST /api/projects/create/file`, `.../rename/file` | make or rename a file |
-| `GET`, `POST /api/compile/file` | compile a file |
+| `DELETE /api/projects/remove/file` | delete a file |
+| `GET`, `POST /api/compile/file` | compile a file that's in no project |
 | `GET /api/people/me`, `POST /api/people/me` | this machine's person, their orgs and roles;  their changes |
+| `GET /api/test`, `/api/missing`, `/api/not-authorized`, `/api/error` | canned answers for testing the client:  200, 404, 403, and a 500 that says "No soup for you!" |
 
+- Anything else under `/api` is a 404, `API routine not defined on server`.
 - Every save goes through the page server's file operations:  under a file lock, written all at once.
-- A URL is split by its group and its project before any path on disk is made, each part decoded on its own.
+- A URL is split by its group and its project before any path on disk is made, each part decoded on its own,
+  and a `.` or `..` part is refused:  it's the one place a URL becomes a path.
+- `/editor` before the editor is up answers 503, with a page saying it takes a few seconds:  reload.
 
 </details>
 
@@ -231,46 +387,37 @@ the table is [api.ts](spaces/src/server/node/routes/api.ts).
 
 | Variable | What it sets | Default |
 | --- | --- | --- |
-| `SPELL_SPACES_DIR` | the spaces folder | `spell.spaces`, beside the main checkout |
+| `SPELL_SPACES_DIR` | the spaces folder;  the page server's `--spaces <dir>` sets it too | `spell.spaces`, beside the main checkout |
 | `SPELL_BUILTINS_DIR` | the built-in projects' folder | spell-app's `spaces/` |
 | `SPELL_TESTS_DIR` | the frozen test projects' folder | spell-lang's `tests/spaces/` |
 | `SPELL_BUILD_DIR` | where compiled output goes | spell-app's `build/` |
+| `SPELL_EDITOR_PORT` | the editor's port;  `spell app serve --port` sets it | 3000, else any free one |
 | `SPELL_NO_EDITOR` | `1`:  the page server doesn't start the editor | |
-| `SPELL_PAGE_ASSETS` | where Python's web server finds the page side | the app's `dist-page/` |
+| `PORT` | the API alone's port, `yarn start:server` | 3001 |
+| `SPELL_PAGE_ASSETS` | where the Python server finds the page side | the app's `dist-page/` |
 
-The tests set the first four, so they never write into the repo.
-
-</details>
-
-<details>
-<summary>What's committed beside a project's source, and what isn't</summary>
-
-| File | Where | Committed |
-| --- | --- | --- |
-| `<Project>.declarations.json5` | beside the source | yes:  what it declares, for projects that import it |
-| `<Project>.en.js` | beside the source | yes:  its words, how the explorers name its members in spell |
-| `<Project>.lib.ts` | beside the source | yes, for a library (`ts/lib`) |
-| `<Project>.spell.js`, `.spell.tsx`, `.spell.py` | `build/` | no:  compiled again whenever it's needed |
-| `<Project>.scopes.js` | `build/` | no:  the scope pack the Type Explorer reads |
-
-- Opening a project in the editor compiles it, which may rewrite its declarations and words:
-  look at `git status` after.
+- The tests set the first four, so they never write into the repo.
+- [environment.ts](src/spaces/server/node/environment.ts) reads the first four and the API's port:
+  it's the map of where everything is on disk.
 
 </details>
 
 ## The Python server
 
-A spell program can be compiled to Python and served as a web app,
-with the page drawn in the browser and the program running on the server:
-`spell_quart`, in spaces' [Python folder](spaces/src/server/py/).
+Compile a Spell program to Python, and it can still be a web page:
+the program runs on the server, and the page only draws what it's told.
+That's `spell_quart`, a [Quart](https://quart.palletsprojects.com/) app (Flask's asyncio twin),
+in spaces' [Python folder](src/spaces/server/py/).
 
 ```sh
 spell run @spell/examples/outline-solitaire --target py
 ```
 
-1. `spell run` compiles the project to Python, on `spell_core` (spell-lang's Python runtime), into a temporary folder.
-2. It builds the page side (the app's `yarn build:page`), if it's out of date.
-3. It starts the app on [Quart](https://quart.palletsprojects.com/), under uv, and opens the page, until `Ctrl-C`.
+1. It compiles the project to Python, on `spell_core` (spell-lang's Python runtime), into a temporary folder:
+   nothing is written into the project.
+2. It builds the page side (`yarn build:page`, the app's `dist-page/`) if it's older than what it's built from:
+   a few seconds, shown as a line of its own.
+3. It starts the app on Quart, under uv, on a free port, prints the address and opens it, until `Ctrl-C`.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"15px","primaryColor":"#EFECFB","primaryBorderColor":"#6550CA","primaryTextColor":"#1A1C27","secondaryColor":"#F4F1E9","tertiaryColor":"#F7F6FC","lineColor":"#7F6FD6","textColor":"#7F6FD6","clusterBkg":"#F7F6FC","clusterBorder":"#B9B0E8","titleColor":"#1A1C27","edgeLabelBackground":"#F7F6FC","actorBkg":"#EFECFB","actorBorder":"#6550CA","actorTextColor":"#1A1C27","actorLineColor":"#9C90DE","signalColor":"#7F6FD6","signalTextColor":"#7F6FD6","labelBoxBkgColor":"#EFECFB","labelBoxBorderColor":"#6550CA","labelTextColor":"#1A1C27","loopTextColor":"#7F6FD6","noteBkgColor":"#F1E7D4","noteBorderColor":"#C9B48A","noteTextColor":"#1A1C27","activationBkgColor":"#DCD6F7","activationBorderColor":"#6550CA","sequenceNumberColor":"#FFFFFF"},"sequence":{"mirrorActors":false,"messageAlign":"left","noteAlign":"left"}}}%%
@@ -290,45 +437,90 @@ sequenceDiagram
 
 _The page holds no program:  it draws what the server's copy says, one patch at a time._
 
-- One program per visitor, each on a core of its own;  a patch after each message, and at each pause.
+One visitor, one game.
+A visitor is a browser, known by a cookie, and each gets a game of their own:
+the program runs once for them, on a core of its own.
+Their tabs share it, so a click in one shows in every one,
+and a patch goes down after each message and at each pause, so a game animates.
+That game lives in the server's memory, though:  restart the server, and every game ends.
+
+- A message that fails is logged, and the page carries on.
+- `--seed <n>` deals the same game every run.
+- A program that doesn't draw runs in the terminal instead, as `python -m spell_core.run`.
 - It needs Python 3.12 or later, and [uv](https://docs.astral.sh/uv/), which fetches it.
 - How it differs from the page server:
   the page server serves files and the editor's API, and never runs your program;
   `spell_quart` runs one program per visitor, and serves only its page.
-- Its tests:  pytest, through uv, in `yarn test`;
-  the command line's tests play solitaire through a compiled app in headless Chromium.
+- Its tests:  pytest and ruff, through uv, in spell-app's `yarn test` and `yarn lint`;
+  [quartApp.test.ts](tests/cli/quartApp.test.ts) plays Solitaire through a compiled app, in headless Chromium.
+- What compiling to Python writes beside your source, the app itself among it:
+  [spell-lang's README-targets.md](../spell-lang/README-targets.md).
 
-## People and orgs
+## People and orgs:  the schema is a Spell file
 
-People and organizations are things in spell too:
-the people library, [`@spell/library/people`](spaces/@spell/library/people/),
-written in spell and compiled to TypeScript the app imports.
+People and organizations are things in Spell too, declared in Spell, in the people library.
+Here is what an organization is, and what it means to belong to one:
 
-- Every thing has an id, built in, and a file you can read:
-  - a person, `Person#owen@spell`:  `__me.json5` in their space, `@spell/owen@/__me.json5`
-  - an organization, `Org#spell`:  `__org.json5` in its, with its members inside it,
-    each a person and a role (guest, member, admin or spell-admin)
-- A person keeps notes, dated events and lists of friends;  a friend is saved as a reference, never into their file.
-- The people store ([PeopleStore.ts](spaces/src/server/node/people/PeopleStore.ts)) reads and writes them,
-  one file at a time, keeping every comment.
-  - The first time, it writes a starter `__me.json5` from git's name and email.
-- The editor's "You" panel shows and edits this machine's person, through `/api/people/me`.
+```spell
+an org is a thing where:
+	- it is saved in its own file
+	- it has a name as text
+	- its "members" is a list of memberships
 
-## 🌱 Coming:  spaces for organizations, sign-in and sharing
+a membership is a thing where:
+	- it has a person as a person
+	- its "role" is one of guest, member, admin, spell-admin
+```
 
-Today every space is on your own machine, and nobody is refused a save.
-What's planned:  spaces for organizations, sign-in and invites, and SHARING, in two stages.
+_From [People.spell](spaces/@spell/library/people/People.spell), the whole people library, 47 lines:
+it also declares the person ([the front page](README.md#spaces--every-project-has-an-owner-and-an-address) shows
+it), dated events, notes, relationships and friend lists._
 
-1. Everyone on a local network in one running program, kept in step by patches from the editor's server,
-   as the Python server already does for one visitor.
-2. Then the source itself, so several people write one project together.
+No schema file, no ORM:  those sentences are the schema.
+The library, [`@spell/library/people`](spaces/@spell/library/people/), compiles to TypeScript (its `ts/lib`
+target, `people.lib.ts`), and the app, the people store and `spell` import that.
+
+"Saved in its own file" means one JSON5 file each, with an id built in:
+- a person, `Person#owen@spell`, is `__me.json5` in their space
+- an organization, `Org#spell`, is `__org.json5` in its folder, with its members inside it
+
+```text
+spell.spaces/@spell/__org.json5              Org#spell:  the org, with its members
+spell.spaces/@spell/owen@/__me.json5         Person#owen@spell:  the person
+spell.spaces/@spell/owen@/hello/             owen@spell/hello:  one of their projects, beside them
+```
+
+Everything else is saved inside what holds it:  a person's notes, dated events and lists of friends.
+The one exception is a friend, who has a file of their own:
+saved as a reference, `{ "$ref": "Person#matt@three-degrees" }`, never into their file.
+
+The people store ([PeopleStore.ts](src/spaces/server/node/people/PeopleStore.ts)) reads and writes them,
+one file at a time, keeping every comment.
+- The first time, it writes you a starter `__me.json5`, with your name and email from git,
+  and two comment lines saying what the file is.
+- Each file is checked against its class, and read anyway:
+  `{ "$type": "Person", "id": "bad", "names": 7 }` loads, with one problem, `names is text, not a number`.
+- The editor's "You" panel shows this machine's person, their orgs and their file's problems,
+  and saves changes to their names, nickname, emails and dates, through `/api/people/me`.
+  Their orgs and roles are read only.
+- Spaces' own names, `__me.json5` among them, are known by a list, never by the `__` alone:
+  so they never list as a project's files, and Python's `__init__.py` still does.
+
+## 🌱 Coming:  spaces for organizations, sign-in and permissions
+
+Today every space is on your own machine, and nobody is refused a save:  the roles above are stored, not enforced.
+What's planned:  spaces for organizations, sign-in and invites, and permissions that use those roles.
+Then sharing, several people in one project, which [the front page](README.md#-several-people-in-one-project)
+lays out in its two stages.
 
 Where it stands:  the people and organizations are built;  sign-in, permissions and sharing are planned, not started.
 
 ## See also
 
-- [The Spell app](README.md):  this repo's front page
-- [The editor and the runners](README-app.md), [the example apps](README-examples.md),
-  [the language server](README-lsp.md), [spell-app's page server](README-page-server.md)
-- [spell-lang](../spell-lang/README.md):  `SpellProject`, the compiler, and the Python runtime
-- [The kit](../README.md), and [its page server](../README-server.md), which the servers here run on
+- [The Spell app](README.md):  this repo's front page, and where spaces sit among its folders
+- [The editor](README-app.md):  what calls these models and saves through this API
+- [The example apps](README-examples.md):  what's in `@spell/examples`, and ideas for a project of your own
+- [The command line](../README-cli.md#spell-app):  every option of `spell app create`, `spell app serve` and
+  `spell projects`
+- [spell-lang's README-spell.md](../spell-lang/README-spell.md):  `SpellProject`, which reads, compiles and saves
+  the projects that live here

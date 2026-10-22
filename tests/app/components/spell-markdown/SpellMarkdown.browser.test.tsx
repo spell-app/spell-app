@@ -2,9 +2,9 @@ import { beforeAll, describe, expect, test } from "vite-plus/test"
 
 import { UI } from "spell-ui/core"
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { DOMMarkdownElement } from "spell-ui/ui-markdown"
+import type { DOMMarkdownElement } from "spell-ui/components/ui-markdown"
 
-import "$/app/components/spell-markdown"
+import "spell-app/app/components/spell-markdown"
 
 /**
  * `<spell-markdown>`:  `<ui-markdown>` drawn by spell's own engine (`MDEngine`), in `ui-*` elements, plain and

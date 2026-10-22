@@ -23,12 +23,12 @@
       "outputs": ["spaces/@spell/library/**/*.lib.ts"],
       "cwd": ".",
       // the kit's `spell` (spell-app sits inside the kit, epic `repo-split` P13)
-      "run": ["node", "../cli/bin/spell.mjs", "compile", "@spell/library"]
+      "run": ["node", "../bin/spell.mjs", "compile", "@spell/library"]
     },
     {
       "name": "App UI data",
       "outputs": ["app/docs/__data/{components,search}.json5"],
-      "cwd": "app",
+      "cwd": ".",
       "run": ["yarn", "site:data"]
     }
   ]

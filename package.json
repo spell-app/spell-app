@@ -6,80 +6,117 @@
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
   "type": "module",
-  "spell": {
-    "commands": "./cli/commands.ts",
-    "hooks": "./cli/hooks.ts"
-  },
-  "spellFolders": [
-    {
-      "name": "spaces",
-      "node": true,
-      "python": "src/server/py"
-    },
-    {
-      "name": "lsp",
-      "node": true
-    },
-    {
-      "name": "app",
-      "lint": [
-        "src",
-        "components",
-        "tools",
-        "scripts"
-      ],
-      "node": true
-    },
-    {
-      "name": "cli",
-      "lint": [
-        "."
-      ]
-    },
-    {
-      "name": "page-server",
-      "node": true
-    }
-  ],
   "exports": {
-    "./app": "./app/src/index.tsx",
-    "./spaces/models/projectGroups": "./spaces/src/models/projectGroups.ts",
-    "./spaces/server/node/environment": "./spaces/src/server/node/environment.ts",
-    "./spaces/server/node/projects/disk-fetch": "./spaces/src/server/node/projects/disk-fetch.ts",
-    "./lsp": "./lsp/src/index.ts",
-    "./cli": "./cli/src/index.ts",
-    "./page-server": "./page-server/src/index.ts",
+    "./app": {
+      "spell-app-source": "./src/app/index.tsx",
+      "default": "./src/app/index.tsx"
+    },
+    "./app/components/spell-app": {
+      "spell-app-source": "./src/app/components/spell-app/index.ts",
+      "default": "./src/app/components/spell-app/index.ts"
+    },
+    "./app/components/spell-code": {
+      "spell-app-source": "./src/app/components/spell-code/index.ts",
+      "default": "./src/app/components/spell-code/index.ts"
+    },
+    "./app/components/spell-editor": {
+      "spell-app-source": "./src/app/components/spell-editor/index.ts",
+      "default": "./src/app/components/spell-editor/index.ts"
+    },
+    "./app/components/spell-markdown": {
+      "spell-app-source": "./src/app/components/spell-markdown/index.ts",
+      "default": "./src/app/components/spell-markdown/index.ts"
+    },
+    "./app/runner": {
+      "spell-app-source": "./src/app/runner/index.ts",
+      "default": "./src/app/runner/index.ts"
+    },
+    "./app/solid": {
+      "spell-app-source": "./src/app/solid/index.ts",
+      "default": "./src/app/solid/index.ts"
+    },
+    "./app/solid/modals": {
+      "spell-app-source": "./src/app/solid/modals/index.ts",
+      "default": "./src/app/solid/modals/index.ts"
+    },
+    "./app/solid/monaco": {
+      "spell-app-source": "./src/app/solid/monaco/index.ts",
+      "default": "./src/app/solid/monaco/index.ts"
+    },
+    "./app/ui": {
+      "spell-app-source": "./src/app/ui/index.ts",
+      "default": "./src/app/ui/index.ts"
+    },
+    "./app/ui/monaco": {
+      "spell-app-source": "./src/app/ui/monaco/index.ts",
+      "default": "./src/app/ui/monaco/index.ts"
+    },
+    "./spaces": {
+      "spell-app-source": "./src/spaces/index.ts",
+      "default": "./src/spaces/index.ts"
+    },
+    "./lsp": {
+      "spell-app-source": "./src/lsp/index.ts",
+      "default": "./src/lsp/index.ts"
+    },
+    "./cli": {
+      "spell-app-source": "./src/cli/index.ts",
+      "default": "./src/cli/index.ts"
+    },
+    "./cli/ui": {
+      "spell-app-source": "./src/cli/ui/index.ts",
+      "default": "./src/cli/ui/index.ts"
+    },
+    "./page-server": {
+      "spell-app-source": "./src/page-server/index.ts",
+      "default": "./src/page-server/index.ts"
+    },
+    "./*": {
+      "spell-app-source": [
+        "./src/*.ts",
+        "./src/*.tsx",
+        "./src/*/index.ts",
+        "./src/*/index.tsx",
+        "./src/*"
+      ],
+      "default": "./src/*"
+    },
+    "./*.ts": {
+      "spell-app-source": "./src/*.ts",
+      "default": "./src/*.ts"
+    },
+    "./spaces/@spell/library/people/people.lib.ts": "./spaces/@spell/library/people/people.lib.ts",
     "./package.json": "./package.json"
   },
   "scripts": {
-    "/////// CHECKS (spell-folders:  each folder in turn, \"spellFolders\")": "",
-    "ts": "spell-types --below && spell-folders ts",
-    "test": "spell-folders test",
-    "lint": "spell-folders lint",
-    "lint:fix": "spell-folders lint:fix",
-    "format": "spell-folders format",
-    "format:check": "spell-folders format:check",
+    "/////// CHECKS": "",
+    "ts": "spell-types --below && tsc -p tsconfig.json && tsc -p tsconfig.node.json && tsc -p tests && tsc -p tests/app",
+    "test": "vp test run && uv run --directory src/spaces/server/py pytest -q",
+    "lint": "vp lint --report-unused-disable-directives --max-warnings 0 src tests scripts app && uv run --directory src/spaces/server/py ruff check . ../../../../tests/spaces/server/py/tests",
+    "lint:fix": "vp lint --fix src tests scripts app && uv run --directory src/spaces/server/py ruff check --fix . ../../../../tests/spaces/server/py/tests",
+    "format": "vp fmt && uv run --directory src/spaces/server/py ruff format . ../../../../tests/spaces/server/py/tests",
+    "format:check": "vp fmt --check && uv run --directory src/spaces/server/py ruff format --check . ../../../../tests/spaces/server/py/tests",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "test:watch": "vp test",
-    "/////// THE EDITOR APP (app/)": "",
+    "/////// THE EDITOR APP (src/app/;  its build:  app/)": "",
     "start": "yarn && spell server stop && cd app && spell app serve --headless",
     "stop": "cd app && node scripts/stop.mjs",
     "start:dev": "cd app && vp dev",
-    "start:server": "cd app && tsx watch --import spell-kit/toolchain/aliases ../spaces/src/server/node/routes/cli.ts",
-    "start:server:prod": "cd app && tsx --import spell-kit/toolchain/aliases ../spaces/src/server/node/routes/cli.ts",
-    "build": "cd app && tsc && vp build",
+    "start:server": "tsx watch src/spaces/server/node/routes/cli.ts",
+    "start:server:prod": "tsx src/spaces/server/node/routes/cli.ts",
+    "build": "tsc -p tsconfig.json && cd app && vp build",
     "build:runner": "cd app && vp build -c vite.solid.config.ts --outDir dist-runner && vp build -c vite.runner.config.ts",
     "build:element": "cd app && vp build -c vite.solid.config.ts && vp build -c vite.element.config.ts && vp build -c vite.editor.config.ts && vp build -c vite.code.config.ts",
     "build:page": "cd app && vp build -c vite.solid.config.ts --outDir dist-page && vp build -c vite.page.config.ts",
     "preview": "cd app && vp preview",
-    "site:data": "cd app && tsx --import spell-kit/toolchain/aliases scripts/site-data.ts",
-    "site:pictures": "cd app && tsx --import spell-kit/toolchain/aliases scripts/site-pictures.ts",
+    "site:data": "tsx app/scripts/site-data.ts",
+    "site:pictures": "tsx app/scripts/site-pictures.ts",
     "clean": "cd app && rm -rf ./.cache; rm -rf ./build",
     "examples:readme": "tsx scripts/examples-readme.ts",
-    "/////// THE LANGUAGE SERVER (lsp/)": "",
-    "lsp:start": "cd lsp && tsx --import spell-kit/toolchain/aliases src/server.ts --stdio",
-    "lsp:scopes": "cd lsp && tsx --import spell-kit/toolchain/aliases src/scopes.ts",
-    "/////// THE spell COMMAND (the kit's bin;  this repo's own commands:  cli/commands.ts)": "",
+    "/////// THE LANGUAGE SERVER (src/lsp/)": "",
+    "lsp:start": "tsx src/lsp/server.ts --stdio",
+    "lsp:scopes": "tsx src/lsp/scopes.ts",
+    "/////// THE spell COMMAND (the kit's bin;  this repo's own commands:  src/cli/commands.ts)": "",
     "spell": "spell",
     "/////// REPO TOOLS (the spell command's)": "",
     "vscode": "spell app vscode",
@@ -145,7 +182,7 @@
   "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
-      "page-server/src/pageServerRoutes.ts",
+      "src/page-server/pageServerRoutes.ts",
       "../spell-epic/src/tools/detailsRoutes.ts",
       "../spell-epic/src/tools/choicesRoutes.ts",
       "../spell-epic/src/tools/commentsRoutes.ts",
@@ -156,13 +193,13 @@
       "../spell-epic/src/tools/agentRoutes.ts",
       "../spell-epic/src/tools/showRoutes.ts",
       "../spell-epic/src/tools/airplaneRoutes.ts",
-      "spaces/src/server/node/routes/appRoutes.ts"
+      "src/spaces/server/node/routes/appRoutes.ts"
     ],
     "watch": [
       "../spell-epic/src/tools/_assets",
       "../spell-brand",
       "../spell-epic/src/components/__pack",
-      "../spell-brand/components/__pack"
+      "../spell-brand/src/components/__pack"
     ],
     "writable": [
       "epics",
@@ -236,7 +273,6 @@
           "epics"
         ],
         "paths": [
-          "/packages/epics/docs/",
           "/spell-epic/src/docs/"
         ]
       },
@@ -248,8 +284,8 @@
           "ui"
         ],
         "paths": [
-          "/packages/ui/docs/",
-          "/packages/ui/site/"
+          "/spell-ui/docs/",
+          "/spell-ui/site/"
         ]
       },
       {
@@ -269,7 +305,7 @@
           "app"
         ],
         "paths": [
-          "/packages/app/docs/"
+          "(^|/worktrees/[^/]+|/spell-app)/app/docs/"
         ]
       },
       {
@@ -282,7 +318,7 @@
           "brand"
         ],
         "paths": [
-          "/packages/brand/docs/"
+          "/spell-brand/docs/"
         ]
       },
       {
@@ -297,7 +333,7 @@
       "/_epic/assets/": "../spell-epic/src/tools/_assets",
       "/_epic/pack/": "../spell-epic/src/components/__pack",
       "/templates/": "../spell-epic/templates",
-      "/packages/brand/components/__pack/": "../spell-brand/components/__pack",
+      "/packages/brand/components/__pack/": "../spell-brand/src/components/__pack",
       "/packages/brand/_assets/": "../spell-brand/_assets",
       "/_brand/assets/": "../spell-brand/assets"
     }
@@ -306,5 +342,9 @@
     "links": [
       "agents"
     ]
+  },
+  "spell": {
+    "commands": "./src/cli/commands.ts",
+    "hooks": "./src/cli/hooks.ts"
   }
 }

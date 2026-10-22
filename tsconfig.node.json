@@ -1,0 +1,35 @@
+{
+  // spell-app's TypeScript settings for its node-only code (see `tsconfig.json` for the rest):
+  // - the `spell` commands' work (`src/cli/`):  Ink's terminal screens, so React's JSX here
+  // - the page server's route module (`src/page-server/`), spaces' servers (`src/spaces/server/node/`)
+  // - the language server's process (`src/lsp/server.ts` ...), the app's docs-data tools (`src/app/tools/`)
+  // - the scripts and configs, at the root and in `app/` (the app's build)
+  // What they import from the browser folders is checked again here, with node's types.
+  // - ALSO the settings `tsx` runs `spell run`'s runner under (`runCommand.ts`):  standard decorators lowered
+  //   (`target: ES2020`), for spell-lang's source.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "types": ["node", "vite/client", "spell-kit/toolchain/types"]
+  },
+  "include": [
+    // the configs FIRST:  `vite-plus`'s types from this install, not from Spell UI's own copy, which its
+    // `vite.config.ts` (imported by `app/vite.shared.ts`) brings in:  else `test.browser.provider` clashes
+    "vite.config.ts",
+    "vitest.config.ts",
+    "app/*.ts",
+    "src/cli",
+    "src/page-server",
+    "src/spaces/server/node",
+    "src/app/tools",
+    "src/lsp/SpellDiskWorkspace.ts",
+    "src/lsp/scopes.ts",
+    "src/lsp/server.ts",
+    "src/lsp/stdioGuard.ts",
+    "scripts",
+    "app/scripts"
+  ],
+  "exclude": []
+}

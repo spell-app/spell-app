@@ -29,7 +29,7 @@
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../packages/app/src/runner/SpellElement.tsx"
+              href="../../src/app/runner/SpellElement.tsx"
               icon="code"
               aria-label="Its code, SpellElement.tsx"
               title="Its code, SpellElement.tsx"
@@ -91,7 +91,7 @@
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
-              <a href="../../packages/app/" target="src-packages-app">The app package</a> builds it with
+              <a href="../../src/app/" target="src-packages-app">The app package</a> builds it with
               <code>yarn build:element</code>.
             </p>
           </ui-section>
@@ -172,7 +172,7 @@
             <ui-docs-api family="spell-element"></ui-docs-api>
             <p class="meta">
               From its vocabulary, by <code>yarn site:data</code> in
-              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              <a href="../../" target="src-spell-app"><code>spell-app</code></a
               >.
             </p>
           </ui-section>
@@ -181,31 +181,27 @@
             <ui-icon slot="icon" name="folder open"></ui-icon>
             <ul>
               <li>
-                <a
-                  href="../../packages/app/src/runner/SpellElement.tsx"
-                  target="src-packages-app-src-runner-spellelement-tsx"
-                  ><code title="packages/app/src/runner/SpellElement.tsx">SpellElement.tsx</code></a
+                <a href="../../src/app/runner/SpellElement.tsx" target="src-packages-app-src-runner-spellelement-tsx"
+                  ><code title="src/app/runner/SpellElement.tsx">SpellElement.tsx</code></a
                 >: its component, and how each type's tag is defined
               </li>
               <li>
                 <a
-                  href="../../packages/app/src/runner/SpellElement.en.ts"
+                  href="../../src/app/runner/SpellElement.en.ts"
                   target="src-packages-app-src-runner-spellelement-en-ts"
-                  ><code title="packages/app/src/runner/SpellElement.en.ts">SpellElement.en.ts</code></a
+                  ><code title="src/app/runner/SpellElement.en.ts">SpellElement.en.ts</code></a
                 >: its vocabulary, the names each type's element copies
               </li>
               <li>
                 <a
-                  href="../../tests/app/src/runner/SpellElement.browser.test.tsx"
+                  href="../../tests/app/runner/SpellElement.browser.test.tsx"
                   target="src-tests-app-src-runner-spellelement-browser-test-tsx"
-                  ><code title="tests/app/src/runner/SpellElement.browser.test.tsx"
-                    >SpellElement.browser.test.tsx</code
-                  ></a
+                  ><code title="tests/app/runner/SpellElement.browser.test.tsx">SpellElement.browser.test.tsx</code></a
                 >: its tests
               </li>
               <li>
                 The example project:
-                <code title="packages/spaces/@spell/examples/drawable-solitaire/">Drawable Solitaire</code>; its demo of
+                <code title="spaces/@spell/examples/drawable-solitaire/">Drawable Solitaire</code>; its demo of
                 hand-written tags, <code>/demo/drawable-elements.html</code> on the editor's server
               </li>
             </ul>
