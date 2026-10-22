@@ -7,10 +7,11 @@ import { Actions, on } from "spell-app/app/solid"
 import "./chrome.css"
 
 //
-//  ## App chrome on `spell-ui`:  menus, sub-menus and the "..." dropdown.
-//  Same names and props as React's `spell-app/app/ui/chrome.tsx` had.  Look:  `chrome.css`.
+//  ## App chrome on `spell-ui`:  menus, sub-menus and the "..." dropdown.  Look:  `chrome.css`.
 //  - Menus are `<ui-menu>` of `<ui-item>`s;  a sub-menu is a `<ui-menu position>` inside one.
-//  - Hosts are `display: contents`:  style the boxes with `::part(menu)` / `::part(item)`, never the host.
+//  - The `<ui-*>` elements themselves are `display: contents`:
+//    style their boxes with `::part(menu)` / `::part(item)`, never the element.
+//  - Same names and props as the React app's `chrome.tsx` (`spell-app/app/ui/chrome.tsx`) had.
 //
 
 /****************
@@ -160,7 +161,7 @@ export type MoreMenuProps = UIDropdownJSXAttributes & {
 /**
  * A `<MoreMenu>`'s `ui-change`:  click the item chosen, and clear the value.
  * - SIDE EFFECT:  sets the dropdown's `value` DURING the event, so the dropdown keeps ours (`""`):
- *   the host decides (`requestChange()` on a `@controlled` member, the kit's `element/src/Reactive.ts`).
+ *   the element decides (`requestChange()` on a `@controlled` member, in `spell-kit/element/Reactive`).
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }

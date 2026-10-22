@@ -56,8 +56,7 @@ export type ProjectMenuProps = UIMenuJSXAttributes & {
  *   choosing sets it back during the event, and shows the project chosen, which then becomes `editor.project`.
  * - `showLabel` (default `true`):  a `<DropdownLabel>` first, e.g. "Example:".
  * - Sits in a menu:  wrapped in a `<ui-item class="ProjectDropdown">`.  Look:  `ProjectDropdown.css`.
- * - SEE:  its App UI components page, `app/docs/ProjectDropdown.html`
- *   (`/components/app/ProjectDropdown.html`).
+ * - SEE:  its App UI components page, `app/docs/ProjectDropdown.html` (`/components/app/ProjectDropdown.html`).
  ****************/
 export function ProjectDropdown(props: ProjectDropdownProps) {
   const root = trackProjectRoot(() => props.projectRoot)
@@ -170,7 +169,7 @@ function open(path: string, useRunner?: boolean) {
 /**
  * The dropdown's `ui-change`:  click the item chosen, which opens its project.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.project`'s DURING the event, so the dropdown keeps ours:
- *   the host decides (`requestChange()` on a `@controlled` member, the kit's `element/src/Reactive.ts`).
+ *   the element decides (`requestChange()` on a `@controlled` member, in `spell-kit/element/Reactive`).
  * - Opening the project then moves it on.
  */
 function choose(event: CustomEvent<{ value: string }>) {

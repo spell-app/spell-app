@@ -1,36 +1,39 @@
 {
-  // Linting is oxlint, via Vite+ (the `lint` block of the root's `vite.config.ts`, from the toolchain's `spell-kit/toolchain/lint`);
-  // the ESLint extension is no longer used here.
+  // Linting is oxlint, via Vite+:  the `lint` block of the root's `vite.config.ts`, from `spell-kit/toolchain/lint`.
+  // The ESLint extension is no longer used here.
   "oxc.enable": true,
-  // Spell's `.json5` files open as "JSON with comments":  VS Code has no JSON5 mode, and checks a file against its
-  // JSON Schema only in its JSON modes (epic `people-and-orgs` P5).  Spell writes keys and text in double quotes, so
-  // its files read cleanly there;  a bare key typed by hand gets one squiggle, and the schema check still runs.
+  // Spell's `.json5` files open as "JSON with comments" (epic `people-and-orgs` P5):
+  // - VS Code has no JSON5 mode, and checks a file against its JSON Schema only in its JSON modes.
+  // - Spell writes keys and text in double quotes, so its files read cleanly there.
+  // - A bare key typed by hand gets one squiggle, and the schema check still runs.
   "files.associations": { "*.json5": "jsonc" },
-  // A person's and an org's file checked against their type, the people library's:  made by `spell compile`, into
-  // its build folder (epic `people-and-orgs` P7, J91).  Missing until that compile has run in this checkout.
+  // A person's and an org's file, checked against their type, the people library's (epic `people-and-orgs` P7, J91).
+  // - `spell compile` makes the schemas, into its build folder.
+  //   They're missing until that compile has run in this checkout.
   "json.schemas": [
     { "fileMatch": ["__me.json5"], "url": "./build/spaces/@spell/library/people/schemas/Person.schema.json" },
     { "fileMatch": ["__org.json5"], "url": "./build/spaces/@spell/library/people/schemas/Org.schema.json" }
   ],
-  // Read ONLY the root's `vite.config.ts`, as `vp check` does (Vite+'s editor setup):  a package's own
-  // `lint` / `fmt` block is for `vp lint` / `vp fmt` run in that package, and says the same.
+  // Read ONLY the root's `vite.config.ts`, as `vp check` does (Vite+'s editor setup):
+  // a package's own `lint` / `fmt` block is for `vp lint` / `vp fmt` run in that package, and says the same.
   "oxc.disableNestedConfig": true,
   "oxc.fmt.disableNestedConfig": true,
   // Formatting is oxfmt (the root's `vite.config.ts` `fmt` block), via the Oxc extension.
-  // NOTE: MUST keep `defaultFormatter` pointed at the Oxc extension.  If it names an extension
-  // that is not installed, VS Code silently falls back to another formatter -- and since
-  // `.prettierrc` no longer exists, the Prettier extension would reformat with ITS defaults
-  // (semicolons, 80 columns), fighting our `fmt` settings on every save.
+  // NOTE: MUST keep `defaultFormatter` pointed at the Oxc extension.
+  // - If it names an extension that is not installed, VS Code silently falls back to another formatter.
+  // - With no `.prettierrc` any more, the Prettier extension would then reformat with ITS defaults
+  //   (semicolons, 80 columns), fighting our `fmt` settings on every save.
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
   "oxc.lint.run": "onType",
-  // Match the `lint` script's `--report-unused-disable-directives`, so a stale
-  // `// oxlint-disable-*` shows up in the editor rather than only failing in CI.
+  // Match the `lint` script's `--report-unused-disable-directives`,
+  // so a stale `// oxlint-disable-*` shows up in the editor rather than only failing in CI.
   "oxc.unusedDisableDirectives": "warn",
-  // Pin the formatter per language as well as globally.  A per-language `editor.defaultFormatter`
-  // beats any extension that also registers for that language, so a stray Prettier/ESLint install
-  // cannot take over a save.  NOTE: markdown is deliberately absent -- our `fmt` settings ignore
-  // `**/*.md` because `AGENTS.md` and friends are hand-wrapped prose.
+  // Pin the formatter per language as well as globally.
+  // - A per-language `editor.defaultFormatter` beats any extension that also registers for that language,
+  //   so a stray Prettier/ESLint install cannot take over a save.
+  // - NOTE: markdown is deliberately absent:  our `fmt` settings ignore `**/*.md`,
+  //   because `AGENTS.md` and friends are hand-wrapped prose.
   "[typescript]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
   "[typescriptreact]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
   "[javascript]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
@@ -41,23 +44,24 @@
   "[less]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
   "[yaml]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
 
-  // Autocomplete and hover docs for every `<ui-*>` tag, attribute and value in `.html` files:  Spell UI's vocabularies
-  // as VS Code HTML custom data, written by `yarn site:data` (spell-ui, `tools/ElementManifests.ts`);  the brand's
-  // `<brand-*>` too, by its own `yarn site:data` (spell-brand), both beside this repo in the top repo `spell`.
+  // Autocomplete and hover docs for every `<ui-*>` tag, attribute and value in `.html` files:
+  // VS Code HTML custom data, written by `yarn site:data`.
+  // - Spell UI's, from its vocabularies (spell-ui, `tools/ElementManifests.ts`)
+  // - the brand's `<brand-*>` too, by its own `yarn site:data` (spell-brand)
+  // - both beside this repo, in the top repo `spell`
   "html.customData": [
     "../spell-ui/docs/__data/html-custom-data.json",
     "../spell-brand/docs/__data/html-custom-data.json"
   ],
-  // And in `.css` files, their custom properties (`--ui-button-padding-block`), parts (`::part(icon)`) and custom
-  // states (`:state(open)`), from the same `yarn site:data`.
-  "css.customData": [
-    "../spell-ui/docs/__data/css-custom-data.json",
-    "../spell-brand/docs/__data/css-custom-data.json"
-  ],
+  // And in `.css` files, their custom properties (`--ui-button-padding-block`), parts (`::part(icon)`)
+  // and custom states (`:state(open)`), from the same `yarn site:data`.
+  "css.customData": ["../spell-ui/docs/__data/css-custom-data.json", "../spell-brand/docs/__data/css-custom-data.json"],
 
-  // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.  Generated files (the root's
-  // `.gitattributes` `linguist-generated` list), Spell UI's 2,000+ icon SVGs and visual-test screenshots, graphify's
-  // output.  A window's `files.exclude` (spell-epic's window script, `filesExclude()`) keeps each file to ONE folder.
+  // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.
+  // - generated files (the root's `.gitattributes` `linguist-generated` list)
+  // - Spell UI's 2,000+ icon SVGs and visual-test screenshots
+  // - graphify's output
+  // A window's `files.exclude` (spell-epic's window script, `filesExclude()`) keeps each file to ONE folder.
   "search.exclude": {
     "**/__snapshots__/**": true,
     "**/_assets/**": true,
@@ -67,7 +71,7 @@
     "yarn.lock": true
   },
 
-  // requires only if you use vetur plugin
+  // needed only with the Vetur extension
   "vetur.validation.script": false,
   "js/ts.experimental.useTsgo": false
 }
