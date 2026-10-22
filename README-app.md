@@ -493,8 +493,8 @@ What each bundle costs is the other half of the design:
   `spell-app.css` is 8 KB, `spell-editor.css` 188 KB.
 - `spell-language.js` is 611 bytes:  it registers Spell's colours with the page's `<ui-code>`, no element,
   and fetches Spell's parser to colour with the first time a Spell block appears.
-  [The page server's settings](README-page-server.md) add it to the docs pages it serves,
-  so epic pages and guides colour their Spell.
+  spell-app's part of the page server's settings ([README-page-server.md](README-page-server.md)) adds it to the docs
+  pages the server serves, so epic pages and guides colour their Spell.
 - `spell-page.js` is the page's `@spell/core` for a Python Spell app:
   it exports what `spell-runtime.js` does, and a test fails on one it leaves out.
 - The build tests pin all of it:  no React in any chunk, the runtime's included;  one Solid;
@@ -519,7 +519,8 @@ You pay for that split at build time:  `yarn build:element` is four Vite builds 
 ## App UI:  a page for every component
 
 The app's own components have docs pages, in Spell UI's page shape:
-App UI, at `/components/app/` on the page server, from [app/docs/](app/docs/).
+App UI, at `/components/app/` on the page server, from [app/docs/](app/docs/), a component set spell-app's settings
+declare ([README-page-server.md](README-page-server.md)).
 It's 31 pages in seven groups, from the four web components through the panes and dialogs to the runner's pieces.
 
 - Each page's props, attributes and "Used in" tables are made from the code:  `yarn site:data`.

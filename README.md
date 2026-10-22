@@ -291,7 +291,7 @@ It's the same name inside spell-app as from any other repo.
 | [README-spaces.md](README-spaces.md) | [src/spaces/](src/spaces/), `spell-app/spaces` | <ul><li>addresses:  the folder is in the name</li><li>setting up spaces for your own project, in seven steps</li><li>the models, the editor's API, and the Python server</li><li>people and orgs, declared in Spell;  🌱 sign-in</li></ul> |
 | [README-examples.md](README-examples.md) | [spaces/@spell/](spaces/@spell/):  data, not code | <ul><li>five apps, simplest first, each running</li><li>the four parts of every app, and the Calculator's bug</li><li>FizzBuzz, the to-do list and the two solitaires, line by line</li><li>ideas for your own;  the frozen test projects</li></ul> |
 | [README-lsp.md](README-lsp.md) | [src/lsp/](src/lsp/), `spell-app/lsp` | <ul><li>one service in three places:  the browser, VS Code, the command line</li><li>it reads the parse the compiler already made;  one queue</li><li>what it answers, request by request</li><li>scope packs;  where it stops</li></ul> |
-| [README-page-server.md](README-page-server.md) | [src/page-server/](src/page-server/), `spell-app/page-server` | <ul><li>what one port serves, and who answers</li><li>spell-app's own module:  bundles, and pages that load on a plane</li><li>adding a route;  running it</li><li>the settings, key by key</li></ul> |
+| [README-page-server.md](README-page-server.md) | its part of the kit's page server, in [package.json](package.json);  its route module is in spaces | <ul><li>the three settings spell-app adds to the kit's page server</li><li>what its route module serves:  the editor, its API, `/element/`</li><li>the editor's record;  running it</li></ul> |
 | [the kit's README-cli.md](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app) | [src/cli/](src/cli/), `spell-app/cli` | <ul><li>spell-app's commands:  `spell app create \| serve \| vscode`, `spell projects`</li><li>the work behind spell-lang's commands, which find projects the app's way</li></ul> |
 | [the kit's README-vscode.md](https://github.com/spell-app/spell-kit/blob/main/README-vscode.md) | [vscode/](vscode/):  the extension `spell-language`, a yarn project of its own | <ul><li>the Spell language for VS Code:  colours, the language server, Run Project</li></ul> |
 
@@ -305,21 +305,22 @@ Dependencies flow one way, down:
 flowchart LR
   cli --> app --> lsp --> spaces --> lang["spell-lang"] --> kit["the kit"]
   app --> ui["spell-ui"] --> kit
-  pageServer["page-server"] -. "loaded by the page server" .-> kitServer["spell-kit/server"]
+  routes["spaces' appRoutes"] -. "loaded by its path" .-> kitServer["the kit's page server"]
   %% the Spell look:  yarn mermaid:pretty
   classDef default fill:#EFECFB,stroke:#6550CA,stroke-width:1.5px,color:#1A1C27,rx:8px,ry:8px
   classDef repo fill:#6550CA,stroke:#4A3AA0,stroke-width:2px,color:#FFFFFF,rx:10px,ry:10px,font-weight:600
   class lang,kit,ui repo
 ```
 
-_Each folder uses only what's to its right;  the page server loads spell-app's layer by its path, from its settings._
+_Each folder uses only what's to its right;  the kit's page server loads spaces' route module by its path,
+from spell-app's settings._
 
 - spell-app is the top repo:  it uses spell-lang, Spell UI and the kit, and nothing uses it
   ([the map of the repos](https://github.com/spell-app/spell-kit/blob/main/README.md#the-five-repos)).
-- It RUNS spell-epic's page routes through its page server's settings, but never imports it.
+- It names spell-epic nowhere:  spell-epic declares its own part of the kit's page server, as spell-app does.
 - Each folder's `AGENTS.md` holds the rules for working in it:
-  [app](src/app/AGENTS.md), [spaces](src/spaces/AGENTS.md), [lsp](src/lsp/AGENTS.md), [cli](src/cli/AGENTS.md),
-  [page-server](src/page-server/AGENTS.md);  the repo's own, [AGENTS.md](AGENTS.md).
+  [app](src/app/AGENTS.md), [spaces](src/spaces/AGENTS.md), [lsp](src/lsp/AGENTS.md), [cli](src/cli/AGENTS.md);
+  the repo's own, [AGENTS.md](AGENTS.md).
 
 ## Setup from zero
 
@@ -351,7 +352,7 @@ The spell app is at http://localhost:3000/;  docs, epics, goals and Spell UI at 
 Open the editor's address, `http://localhost:3000/`, and pick an example under "Open or Create...".
 Start with FizzBuzz, the simplest:  `http://localhost:3000/edit/@spell/examples/fizzbuzz`.
 
-- `yarn start` runs the install first, and stops this checkout's page server, so you always get a fresh pair.
+- `yarn start` runs the install first, and stops the kit's page server, so you always get a fresh pair.
 - The addresses it prints are the real ones:  each server takes another free port when its own is in use.
 - With `spell` on your PATH, `spell app serve` does what `yarn start` does, without the install,
   and opens your browser.
@@ -379,8 +380,8 @@ _The editor is a Vite dev server;  everything it saves or loads goes to the page
 - The editor:  Vite, on port 3000, or any free one;  its address is in `.spell-server.editor.json`,
   its log in `.spell-server.editor.log`.
   The page server starts it, as its child ([the servers](README-spaces.md#the-servers--an-api-that-nothing-starts)).
-- The page server:  the kit's, one per checkout, on port 4747 if it's free
-  ([spell-app's page server](README-page-server.md), [the kit's](https://github.com/spell-app/spell-kit/blob/main/README-server.md)).
+- The page server:  the kit's, one per kit, started from its root, on port 4747 if it's free
+  ([what spell-app adds to it](README-page-server.md), [the kit's](https://github.com/spell-app/spell-kit/blob/main/README-server.md)).
 
 </details>
 
@@ -411,7 +412,7 @@ yarn ts    yarn lint    yarn format    yarn test    yarn review
 - `yarn review` runs them all, and FIXES lint and formatting as it goes.
 - `yarn test` is one Vitest run, a project per folder, then spaces' Python tests (pytest).
   - One folder's:  `yarn vp test run --project spaces`.
-    The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `page-server`.
+    The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`.
 - Tests live in `tests/<folder>/`, at the same paths as the code they test:
   [projectGroups.ts](src/spaces/models/projectGroups.ts) is tested by
   [projectGroups.test.ts](tests/spaces/models/projectGroups.test.ts).
@@ -434,7 +435,7 @@ Where a page says more, the row links it.
 | `ts`, `test`, `lint`, `lint:fix`, `format`, `format:check` | each check, over the whole repo;  `test`, `lint` and `format` run spaces' Python too, through uv |
 | `review` | `ts`, `lint:fix`, `format` and `test`, in turn |
 | `test:watch` | Vitest in watch mode, over every folder |
-| `start` | the install, then stop this checkout's page server, then `spell app serve --headless`:  the page server and the editor, printing the editor's address |
+| `start` | the install, then stop the kit's page server, then `spell app serve --headless`:  the page server and the editor, printing the editor's address |
 | `stop` | stop the servers started in spell-app's folder, the editor's Vite even when it's left running;  never the language server |
 | `start:dev` | the editor's Vite alone, with no page server |
 | `start:server`, `start:server:prod` | the app's API alone, on port 3001 (the first restarts on a change) |
@@ -446,7 +447,7 @@ Where a page says more, the row links it.
 | `lsp:start`, `lsp:scopes` | the language server over stdio;  projects' scope packs, `<Project>.scopes.js`:  [README-lsp.md](README-lsp.md#working-on-it) |
 | `spell` | the kit's `spell` command (the kit's `yarn cli:install` puts it on your PATH) |
 | `vscode`, `vscode:build`, `vscode:install` | `spell app vscode`:  build the VS Code extension and install it, or one step |
-| `server`, `serve` | `spell server`, the page server's command;  `spell server start all`, every web server of this checkout:  [running it](README-page-server.md#running-it) |
+| `server`, `serve` | `spell server`, the page server's command;  `spell server start all`, every web server of the kit:  [running it](README-page-server.md#running-it) |
 | `dev`, `dev:ts`, `dev:py` | `spell run` the project in the folder you're in, as JavaScript, TypeScript or Python |
 | `epic`, `ask`, `window` | the epic tools, handed to `epic` |
 | `commands:check` | check every script, command and skill against the commands page |
