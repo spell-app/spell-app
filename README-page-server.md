@@ -35,8 +35,16 @@ spell-app names no other repo's routes:  spell-epic, Spell UI and the content re
 
 ```sh
 curl -s http://127.0.0.1:4747/hello
-# {"message":"Hello from the API!"}
 ```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+{"message":"Hello from the API!"}
+```
+
+</details>
 
 It answers the editor's API under `/api/`, a project's files at `/spaces/<project>/<file>`, the editor's element
 bundles at `/element/`, the header's `/editor` link, and `/hello`.

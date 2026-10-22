@@ -196,13 +196,21 @@ to test seven plus five
 
 ```sh
 spell test
-# ✓ Compiling @local/scratchpad/calc
-# ✗ test seven plus five  (2 checks)
-#     ❌ Unexpected: `the right of sum` should be `"5"` but is actually `75`
-#     ❌ Unexpected: `the output of sum` should be `" = 12"` but is actually ` = 82`
-#
-# 0 passed, 1 failed
 ```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+✓ Compiling @local/scratchpad/calc
+✗ test seven plus five  (2 checks)
+    ❌ Unexpected: `the right of sum` should be `"5"` but is actually `75`
+    ❌ Unexpected: `the output of sum` should be `" = 12"` but is actually ` = 82`
+
+0 passed, 1 failed
+```
+
+</details>
 
 - Change `press plus` to say `set the operator of it to "+"`, and the same test passes:  1 passed.
 - In JavaScript, the two sentences are `this.operator = "+"` and `this.setTheOperatorOfCalculatorToOp("+")`.
@@ -240,15 +248,23 @@ play fizzbuzz
 
 ```sh
 spell run @spell/examples/fizzbuzz
-# ✓ Compiling @spell/examples/fizzbuzz
-# 1
-# 2
-# 3 fizz
-# ...
-# 15 fizzbuzz
-# ...
-# 100 buzz
 ```
+
+<details>
+<summary>Output</summary>
+
+```text
+✓ Compiling @spell/examples/fizzbuzz
+1
+2
+3 fizz
+...
+15 fizzbuzz
+...
+100 buzz
+```
+
+</details>
 
 With `--target py`, the same hundred lines come from Python ([the targets](https://github.com/spell-app/spell-lang/blob/main/README-targets.md)).
 
@@ -456,12 +472,20 @@ Its tests are in the same files, written in Spell, and run from the command line
 
 ```sh
 spell test @spell/examples/outline-solitaire
-# ✓ Compiling @spell/examples/outline-solitaire
-# ✓ test deck creation  (8 checks)
-# ✓ test card setup  (36 checks)
-#
-# 2 passed
 ```
+
+<details>
+<summary>Output</summary>
+
+```text
+✓ Compiling @spell/examples/outline-solitaire
+✓ test deck creation  (8 checks)
+✓ test card setup  (36 checks)
+
+2 passed
+```
+
+</details>
 
 🌱 Beside its Card.spell sits Card.spell-es, a card in Spanish, which the project leaves out:
 no rules read Spanish yet ([spell-lang](https://github.com/spell-app/spell-lang/blob/main/README.md)).
@@ -540,9 +564,17 @@ Start one, and it runs at once:
 
 ```sh
 spell app create Flashcards
-# <your space>/Flashcards
-# Made Flashcards:  try  spell run <your space>/Flashcards
 ```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+<your space>/Flashcards
+Made Flashcards:  try  spell run <your space>/Flashcards
+```
+
+</details>
 
 - It writes a project file and Flashcards.spell, a comment and one line that prints "hello from Flashcards".
 - With no `--in`, it goes in your own space:  [setting one up](README-spaces.md#setting-up-spaces-for-your-own-project)

@@ -79,9 +79,17 @@ And in a terminal, in the card's folder:
 
 ```sh
 spell lint Card.spell
-# ✗ Card.spell  (@local/cards/solitaire)  1 error · 1 warning
-# Card.spell:11:1  Don't understand "deal the card face up"
 ```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+✗ Card.spell  (@local/cards/solitaire)  1 error · 1 warning
+Card.spell:11:1  Don't understand "deal the card face up"
+```
+
+</details>
 
 The same two findings, from the same method.
 `spell lint` loads the project the way the server does, asks `SpellLanguageService` for each file's diagnostics,
@@ -107,8 +115,16 @@ Now the last line is a call to the new method, and lint agrees:
 
 ```sh
 spell lint Card.spell
-# ✓ Card.spell  (@local/cards/solitaire)  1 warning
 ```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+✓ Card.spell  (@local/cards/solitaire)  1 warning
+```
+
+</details>
 
 - The phrase's words become the method's signature, and the longest match wins,
   so the line parses as a call to it.
@@ -185,15 +201,23 @@ the server's own two classes, and calls them in its own process
 
 ```sh
 spell explain suit --in .
-# Card.spell:2
-# quoted_member
-# e.g. "rank"
-#
-# property suit of Card
-#
-# declared in Card.spell:2
-# ...
 ```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+Card.spell:2
+quoted_member
+e.g. "rank"
+
+property suit of Card
+
+declared in Card.spell:2
+...
+```
+
+</details>
 
 _The hover from the top of the page, in a terminal:  the same method, over the line that declares `suit`._
 

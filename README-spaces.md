@@ -126,9 +126,9 @@ What each printed on a real run is under it.
    ```sh
    cd ~/www/spell
    mkdir -p spell.spaces/@spell/owen@
-   # (prints nothing)
    ```
 
+   - It prints nothing.
    - Skip it, and the next step stops at `No such folder:  .../spell.spaces/@spell/owen@`.
    - `SPELL_SPACES_DIR=<folder>` puts your spaces somewhere else, for every program that reads them.
 
@@ -136,9 +136,17 @@ What each printed on a real run is under it.
 
    ```sh
    spell app create hello
-   # spell.spaces/@spell/owen@/hello
-   # Made hello:  try  spell run spell.spaces/@spell/owen@/hello
    ```
+
+   <details>
+   <summary>What it printed</summary>
+
+   ```text
+   spell.spaces/@spell/owen@/hello
+   Made hello:  try  spell run spell.spaces/@spell/owen@/hello
+   ```
+
+   </details>
 
    It writes two files, and that's the whole project:
 
@@ -158,9 +166,17 @@ What each printed on a real run is under it.
 
    ```sh
    spell run owen@spell/hello
-   # ✓ Compiling owen@spell/hello
-   # hello from hello
    ```
+
+   <details>
+   <summary>What it printed</summary>
+
+   ```text
+   ✓ Compiling owen@spell/hello
+   hello from hello
+   ```
+
+   </details>
 
    Its folder works too, `spell run spell.spaces/@spell/owen@/hello`, and so does `spell run` alone, inside it:
    each one says `Compiling owen@spell/hello`.
@@ -169,11 +185,19 @@ What each printed on a real run is under it.
 
    ```sh
    spell app serve owen@spell/hello
-   # ✓ Starting the page server  http://127.0.0.1:4747/
-   # ✓ Starting the editor  http://localhost:3000/  (/api on the page server)
-   # http://localhost:3000/edit/owen@spell/hello
-   # The spell app is at http://localhost:3000/edit/owen@spell/hello;  docs, epics, goals and Spell UI at http://127.0.0.1:4747/ -- Ctrl-C to stop
    ```
+
+   <details>
+   <summary>What it printed</summary>
+
+   ```text
+   ✓ Starting the page server  http://127.0.0.1:4747/
+   ✓ Starting the editor  http://localhost:3000/  (/api on the page server)
+   http://localhost:3000/edit/owen@spell/hello
+   The spell app is at http://localhost:3000/edit/owen@spell/hello;  docs, epics, goals and Spell UI at http://127.0.0.1:4747/ -- Ctrl-C to stop
+   ```
+
+   </details>
 
    - It opens your browser at `http://localhost:3000/edit/owen@spell/hello`;  `Ctrl-C` stops what it started.
      Its options:  [the command line's page](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app).
@@ -184,10 +208,18 @@ What each printed on a real run is under it.
    ```sh
    echo 'print "and more"' > spell.spaces/@spell/owen@/hello/more.spell
    spell run owen@spell/hello
-   # ✓ Compiling owen@spell/hello
-   # hello from hello
-   # and more
    ```
+
+   <details>
+   <summary>What it printed</summary>
+
+   ```text
+   ✓ Compiling owen@spell/hello
+   hello from hello
+   and more
+   ```
+
+   </details>
 
    - A project's files are the `.spell`, `.css`, `.js` and `.jsx` files in its folder,
      and its property editor pages, `.editor.html`.
@@ -222,13 +254,21 @@ What each printed on a real run is under it.
 
    ```sh
    spell run owen@spell/hello
-   # ✓ Compiling owen@spell/hello
-   # ✅ test card setup
-   # ...
-   # hello from hello
-   # 52
-   # and more
    ```
+
+   <details>
+   <summary>What it printed</summary>
+
+   ```text
+   ✓ Compiling owen@spell/hello
+   ✅ test card setup
+   ...
+   hello from hello
+   52
+   and more
+   ```
+
+   </details>
 
    - The first time, it compiles the library too, into spell-app's `build/` folder.
    - Expect a wall of ✅ first:  a library's own tests run as it loads,
