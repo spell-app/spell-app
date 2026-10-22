@@ -212,10 +212,16 @@ describe("runner builds", () => {
         name: "spell",
         prefix: "spell-",
         catalog: {
-          "spell-app": { folder: "spell-app" },
-          "spell-code": { folder: "spell-code", skeleton: expect.any(Object) },
-          "spell-editor": { folder: "spell-editor" },
-          "spell-markdown": { folder: "spell-markdown", skeleton: expect.any(Object) }
+          // each with its attribute names, for a root that defines its tags before the pack loads them;
+          // `arrayContaining`, not `any(Array)`:  the pack runs in another realm, whose arrays aren't this one's `Array`
+          "spell-app": { folder: "spell-app", attributes: expect.arrayContaining(["project", "src"]) },
+          "spell-code": { folder: "spell-code", skeleton: expect.any(Object), attributes: expect.arrayContaining([]) },
+          "spell-editor": { folder: "spell-editor", attributes: expect.arrayContaining([]) },
+          "spell-markdown": {
+            folder: "spell-markdown",
+            skeleton: expect.any(Object),
+            attributes: expect.arrayContaining([])
+          }
         },
         define: expect.any(Function)
       }
