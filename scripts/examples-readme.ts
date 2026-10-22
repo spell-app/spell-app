@@ -5,7 +5,8 @@
  *   - What each shows:  its project file's `description`, else the first comment of its first spell file.
  *   - Its name:  its project file's `title`, else its folder's name, `outline-solitaire` => `Outline Solitaire`.
  * - Takes a picture of each example open in the editor, its spell beside it running, into `docs/images/examples/`.
- *   - Headless Playwright, at the address this checkout's editor answers on (`.spell-server.editor.json`):
+ *   - Headless Playwright, at the address the kit's editor answers on (`.spell-server.editor.json`, at the page
+ *     server's root, the kit's):
  *     start it first, with `yarn start` or `spell app serve`.
  *   - A library has no app of its own, so no picture.
  * - Rewrites the table between the page's two marker comments, `<!-- examples:start -->` and `<!-- examples:end -->`;
@@ -23,6 +24,8 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import path from "node:path"
 
 import JSON5 from "json5"
+
+import { pageServerRoot } from "spell-kit/server/page/settings"
 
 /** spell-app's checkout. */
 const ROOT = path.resolve(import.meta.dirname, "..")
@@ -219,7 +222,8 @@ function check(table: string, projects: Project[]): boolean {
 
 /** Open each project in this checkout's editor, headless, and save what it shows. */
 async function takePictures(projects: Project[]): Promise<void> {
-  const editorFile = path.join(ROOT, ".spell-server.editor.json")
+  // the page server's record of its editor, at its root:  the kit's (epic `repo-split` P16)
+  const editorFile = path.join(pageServerRoot(ROOT), ".spell-server.editor.json")
   if (!existsSync(editorFile))
     throw new Error("examples-readme:  the editor isn't running here;  `yarn start` first, or pass --no-pictures")
   const editor = (JSON.parse(readFileSync(editorFile, "utf8")) as { url: string }).url

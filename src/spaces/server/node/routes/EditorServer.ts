@@ -24,7 +24,7 @@ import environment from "spell-app/spaces/server/node/environment"
  * - NOTE: if the page server dies without stopping (kill -9), vite keeps running:  `yarn stop`, at spell-app's root.
  */
 export class EditorServer {
-  /** the checkout */
+  /** the page server's root, where its records go:  the kit (epic `repo-split` P16) */
   readonly root: string
 
   /** the running vite, in its own process group */
