@@ -67,10 +67,6 @@
       "spell-app-source": "./src/cli/ui/index.ts",
       "default": "./src/cli/ui/index.ts"
     },
-    "./page-server": {
-      "spell-app-source": "./src/page-server/index.ts",
-      "default": "./src/page-server/index.ts"
-    },
     "./*": {
       "spell-app-source": [
         "./src/*.ts",
@@ -182,34 +178,7 @@
   "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
-      "src/page-server/pageServerRoutes.ts",
-      "../spell-epic/src/tools/detailsRoutes.ts",
-      "../spell-epic/src/tools/choicesRoutes.ts",
-      "../spell-epic/src/tools/commentsRoutes.ts",
-      "../spell-epic/src/tool/reviewRoutes.ts",
-      "../spell-epic/src/tool/epicRoutes.ts",
-      "../spell-epic/src/tool/linkRoutes.ts",
-      "../spell-epic/src/list/runningRoutes.ts",
-      "../spell-epic/src/tools/agentRoutes.ts",
-      "../spell-epic/src/tools/showRoutes.ts",
-      "../spell-epic/src/tools/airplaneRoutes.ts",
       "src/spaces/server/node/routes/appRoutes.ts"
-    ],
-    "watch": [
-      "../spell-epic/src/tools/_assets",
-      "../spell-brand",
-      "../spell-epic/src/components/__pack",
-      "../spell-brand/src/components/__pack"
-    ],
-    "writable": [
-      "epics",
-      "guides",
-      "pages",
-      "brand"
-    ],
-    "bundles": [
-      "../spell-ui/site/_assets",
-      "../spell-brand/_assets/ui"
     ],
     "pageScripts": [
       {
@@ -221,121 +190,11 @@
       }
     ],
     "componentSets": {
-      "ui": {
-        "name": "Spell UI",
-        "dir": "../spell-ui/docs",
-        "assets": "../spell-ui/site/_assets"
-      },
-      "epics": {
-        "name": "Epic UI",
-        "dir": "../spell-epic/src/docs",
-        "assets": "../spell-ui/site/_assets"
-      },
       "app": {
         "name": "App UI",
         "dir": "app/docs",
         "assets": "../spell-ui/site/_assets"
-      },
-      "brand": {
-        "name": "Brand",
-        "dir": "../spell-brand/docs",
-        "assets": "../spell-ui/site/_assets"
       }
-    },
-    "siteTabs": [
-      {
-        "name": "Guides",
-        "path": "guides/index.html",
-        "areas": [
-          "guides"
-        ]
-      },
-      {
-        "name": "Sagas",
-        "path": "sagas/index.html",
-        "areas": [
-          "sagas",
-          "goals"
-        ]
-      },
-      {
-        "name": "Epics",
-        "path": "epics/index.html",
-        "areas": [
-          "epics"
-        ]
-      },
-      {
-        "name": "Epic/UI",
-        "path": "/components/epics/",
-        "serverOnly": true,
-        "sets": [
-          "epics"
-        ],
-        "paths": [
-          "/spell-epic/src/docs/"
-        ]
-      },
-      {
-        "name": "Spell/UI",
-        "path": "/components/ui/",
-        "serverOnly": true,
-        "sets": [
-          "ui"
-        ],
-        "paths": [
-          "/spell-ui/docs/",
-          "/spell-ui/site/"
-        ]
-      },
-      {
-        "name": "App",
-        "path": "/editor/",
-        "serverOnly": true,
-        "ownTab": true,
-        "paths": [
-          "^/editor(/|$)"
-        ]
-      },
-      {
-        "name": "App/UI",
-        "path": "/components/app/",
-        "serverOnly": true,
-        "sets": [
-          "app"
-        ],
-        "paths": [
-          "(^|/worktrees/[^/]+|/spell-app)/app/docs/"
-        ]
-      },
-      {
-        "name": "Brand",
-        "path": "brand/index.html",
-        "areas": [
-          "brand"
-        ],
-        "sets": [
-          "brand"
-        ],
-        "paths": [
-          "/spell-brand/docs/"
-        ]
-      },
-      {
-        "name": "Templates",
-        "path": "templates/index.html",
-        "areas": [
-          "templates"
-        ]
-      }
-    ],
-    "engineRoutes": {
-      "/_epic/assets/": "../spell-epic/src/tools/_assets",
-      "/_epic/pack/": "../spell-epic/src/components/__pack",
-      "/templates/": "../spell-epic/templates",
-      "/packages/brand/components/__pack/": "../spell-brand/src/components/__pack",
-      "/packages/brand/_assets/": "../spell-brand/_assets",
-      "/_brand/assets/": "../spell-brand/assets"
     }
   },
   "spell": {
