@@ -11,6 +11,7 @@
   "scripts": {
     "build": "node build.mjs",
     "check": "cd ../.. && node_modules/.bin/tsc --noEmit -p spell-app/vscode",
+    "test": "../../node_modules/.bin/vp test run",
     "package": "vsce package --no-dependencies --skip-license --out spell-language.vsix",
     "install-extension": "code --install-extension spell-language.vsix --force"
   },

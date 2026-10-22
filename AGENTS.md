@@ -102,6 +102,11 @@ More on some of them:
   its own `package.json` and `yarn.lock`.
   - `spell app vscode` builds and installs it.
   - Or its two steps:  `spell app vscode build`, then `install`.
+  - Its tests, in [vscode/tests/](vscode/tests/), run in plain node,
+    with a stand-in for the `vscode` module ([fakeVscode.ts](vscode/tests/fakeVscode.ts)):
+    spell-app's `yarn test` runs them, as project `vscode`;
+    `yarn test` in `vscode/` alone.
+    Its `yarn check` type-checks them too.
   - Its language server runs lsp's source, [server.ts](src/lsp/server.ts), with `tsx`, from the checkout's root
     (`LSP_SERVER`, [extension.ts](vscode/src/extension.ts)).
     - A checkout from before epic `repo-split` P14 (`lsp/src/server.ts`) doesn't run:  it says so, naming the file.
@@ -341,7 +346,8 @@ As the kit's ([AGENTS.md](../AGENTS.md), "Toolchain:  Vite+"), plus:
   - `lint`:  oxlint over `src`, `tests`, `scripts` and `app`, then ruff;  `format`:  oxfmt, then ruff format.
     - spaces' Python is a uv project, `src/spaces/server/py/`:  `uv run --directory src/spaces/server/py ...`.
   - One folder's tests:  `yarn vp test run --project spaces`.
-    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`.
+    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`;
+      and `vscode`, the extension's, by its own [config](vscode/vitest.config.ts).
   - No more `yarn workspaces foreach`, nor `vp run -F`:  the repo is one workspace of the kit's install.
 - `yarn vitest` here (and the VS Code vitest extension) reads the same [vitest.config.ts](vitest.config.ts).
 
