@@ -134,7 +134,9 @@ export class SpellLanguageService {
     const errors = (SP.Block.getParseErrors(file.match) ?? []).flatMap((error): Diagnostic[] => {
       const range = this.rangeOf(file, error)
       if (!range) return []
-      const message = error.message || `Don't understand "${text.slice(error.start, error.end)}"`
+      const message =
+        error.message ||
+        SP.Language.of(error.scope).parserMessage("dont-understand", { text: text.slice(error.start, error.end) })
       return [{ range, severity: DiagnosticSeverity.Error, source: "spell", message }]
     })
     const warnings = SP.SpellWarnings.in(file.match).flatMap(({ at, message }): Diagnostic[] => {
