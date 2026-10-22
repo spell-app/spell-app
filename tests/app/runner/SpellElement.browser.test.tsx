@@ -63,8 +63,8 @@ describe("SpellElement", () => {
     class Memo extends Note {
       static css = ".note { background-color: rgb(4, 5, 6) }"
     }
-    core.defineElement(Note, "Notes")
-    core.defineElement(Memo, "Notes")
+    core.defineElement(Note, "Note")
+    core.defineElement(Memo, "Note")
     await Promise.resolve()
     const element = await ElementFixture.render<HTMLElement & { thing?: Memo }>("<note-memo></note-memo>")
     element.thing = new Memo()
@@ -139,7 +139,7 @@ describe("SpellElement", () => {
   describe("a drawable list's items are its element's children (P6)", () => {
     /** A card, drawn as its name. */
     class Chip extends Drawable {
-      static elementTag = core.defineElement(this, "Games")
+      static elementTag = core.defineElement(this, "Game")
       constructor(public label = "") {
         super()
       }
@@ -149,7 +149,7 @@ describe("SpellElement", () => {
     }
     /** A pile:  its outside a box around its slot. */
     class Heap extends DrawableList<Chip> {
-      static elementTag = core.defineElement(this, "Games")
+      static elementTag = core.defineElement(this, "Game")
       static instanceType = Chip
       draw(): ReturnType<Drawable["draw"]> {
         return (h("div", { class: "heap" }, h("slot", {})) as unknown as () => ReturnType<Drawable["draw"]>)()
@@ -205,7 +205,7 @@ describe("SpellElement", () => {
 
     test("its CSS changes in the elements already on the page;  its new things draw with its new draw()", async () => {
       const First = badgeVersion("rgb(1, 2, 3)", "first")
-      core.defineElement(First, "Swaps")
+      core.defineElement(First, "Swap")
       await Promise.resolve()
       const old = await ElementFixture.render<HTMLElement & { thing?: unknown }>("<swap-badge></swap-badge>")
       old.thing = new First()
@@ -215,7 +215,7 @@ describe("SpellElement", () => {
 
       // the edited program, run again:  a new class for the same tag
       const Second = badgeVersion("rgb(7, 8, 9)", "second")
-      core.defineElement(Second, "Swaps")
+      core.defineElement(Second, "Swap")
       await Promise.resolve()
       expect(old.shadowRoot!.querySelector(".badge")).toBe(oldBadge)
       expect(getComputedStyle(oldBadge).color).toBe("rgb(7, 8, 9)")

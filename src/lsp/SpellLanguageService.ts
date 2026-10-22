@@ -31,7 +31,6 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { instanceCase, typeCase } from "spell-kit/util"
 import { P } from "spell-lang/parser"
 import { MD, type InlineNode } from "spell-lang/markdown"
 import { SP } from "spell-lang/spell"
@@ -256,13 +255,13 @@ export class SpellLanguageService {
     const { kind, name, nameMatch, of, detail } = declaration
     return {
       symbol: {
-        name: kind === "type" ? typeCase(name) : name,
+        name: kind === "type" ? P.typeCase(name) : name,
         kind: SpellLanguageService.SYMBOL_KINDS[kind],
         detail,
         range,
         selectionRange: this.rangeOf(file, nameMatch) ?? range
       },
-      typeName: of && typeCase(of)
+      typeName: of && P.typeCase(of)
     }
   }
 
@@ -1859,7 +1858,7 @@ export class SpellLanguageService {
     return sequence.rules
       .filter((rule): rule is P.Subrule => rule instanceof P.Subrule)
       .map((slot) => {
-        if (slot.matchGroup === "thisArg" && method?.of) return instanceCase(method.of)
+        if (slot.matchGroup === "thisArg" && method?.of) return P.instanceCase(method.of)
         return params[param++]?.name ?? slot.matchGroup ?? slot.rule
       })
   }

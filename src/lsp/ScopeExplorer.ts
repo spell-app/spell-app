@@ -1,4 +1,3 @@
-import { singularize, typeCase } from "spell-kit/util"
 import { SPELL_CLASSES } from "spell-lang/core/core.types"
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
@@ -610,7 +609,7 @@ export class ScopeExplorer {
 
   /** PascalCase name of the type a declaration is `of`, as written, e.g. `cards` => `Card`. */
   private static typeNameOf(of: string): string {
-    return typeCase(singularize(of))
+    return P.typeCase(P.singularize(of))
   }
 
   /** `name` without the quotes it may be declared in, e.g. `"is face up"`. */
