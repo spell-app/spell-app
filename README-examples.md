@@ -487,8 +487,11 @@ spell test @spell/examples/outline-solitaire
 
 </details>
 
-🌱 Beside its Card.spell sits Card.spell-es, a card in Spanish, which the project leaves out:
-no rules read Spanish yet ([spell-lang](https://github.com/spell-app/spell-lang/blob/main/README.md)).
+Beside its Card.spell sits Card.spell-es, an early hand translation of the card, which the project leaves out.
+Spell reads Spanish now, a project at a time (`language: "es"`):
+the test project `cartas` is the cards project in Spanish
+([Spell in Spanish](https://github.com/spell-app/spell-lang/blob/main/README.md#spell-in-spanish)).
+🌱 A translated Solitario is coming.
 
 <img src="docs/images/examples/outline-solitaire.png" width="640" alt="Outline Solitaire open in the Spell editor:  Deck.spell on the left, Klondike on the right, each card a Unicode playing card">
 

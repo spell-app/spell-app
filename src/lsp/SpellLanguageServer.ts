@@ -229,8 +229,8 @@ export class SpellLanguageServer {
    * - Answers `{ ok }`:  whether it compiled cleanly.  If not, nothing is sent, so a running app keeps running.
    * - NOTE: a line which doesn't parse does NOT stop `compile()` -- it compiles to a `PARSE ERROR` comment.
    *   So "cleanly" means no parse errors in any of the project's files, too.
-   * - Compiled cleanly, it writes the project's scope pack too, `<Project>.scopes.js` -- so pages running it
-   *   with no parser show the same Type Explorer.  See `SpellDiskWorkspace.writeScopes()`.
+   * - Compiled cleanly, it writes the project's scope pack too, `<Project>.scopes.js`:
+   *   so pages running it with no parser show the same Type Explorer.  See `SpellDiskWorkspace.writeScopes()`.
    */
   private compileProject(uri: string): Promise<{ ok: boolean }> {
     return this.inQueue(uri, { ok: false }, async (file) => {
@@ -261,8 +261,8 @@ export class SpellLanguageServer {
 
   /**
    * Live scope tree of the project of document `uri`, for a scope explorer -- see `LSP.ScopeExplorer`.
-   * - Parses each project it imports compiled, if not yet parsed, to show their sources -- and tracks it, so
-   *   edits to its files on disk show next time.
+   * - Parses each project it imports compiled, if not yet parsed, to show their sources.
+   *   And tracks it, so edits to its files on disk show next time.
    * - Queued like a change, as parsing those changes things.
    */
   private scopeTree(uri: string): Promise<LSP.ScopeNode | null> {

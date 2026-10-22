@@ -71,10 +71,11 @@ export function ConsoleToolbar() {
 
 /****************
  * ### `<ConsoleViewer>`
- * `runtimeConsole()`'s lines, in a scrolling box -- the console of the runtime programs run on, which shows once
- * it's loaded.
- * - Lines are spell cells:  read through `tracked()`.  Logging REPLACES the console's `lines` array with one more
- *   line, and `<ConsoleLines>` keys rows by line, so only the new line's row is drawn.
+ * `runtimeConsole()`'s lines, in a scrolling box:
+ * the console of the runtime programs run on, which shows once it's loaded.
+ * - Lines are spell cells:  read through `tracked()`.
+ * - Logging REPLACES the console's `lines` array with one more line,
+ *   and `<ConsoleLines>` keys rows by line, so only the new line's row is drawn.
  * - An error drawing the lines shows in place of them (`<ErrorBoundary>`), and goes to `showError`.
  * - SEE:  its App UI components page, `app/docs/ConsoleViewer.html` (`/components/app/ConsoleViewer.html`).
  ****************/

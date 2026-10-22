@@ -24,17 +24,18 @@ import "./TypeExplorer.css"
  * - Keeps what's selected and open by node `path` as new trees come in, e.g. after each run.
  * - Selecting a node, e.g. from the breadcrumbs, opens the tree down to it.
  * - Details sections are closed to start, and open or closed alike for every node.
- * - Lists things in document order, with a marker for each heading they're under, or alphabetically -- the
- *   buttons left of Refresh switch.  See `UI.ScopeOrder`.
+ * - Lists things in document order, with a marker for each heading they're under, or alphabetically:
+ *   the buttons left of Refresh switch.  See `UI.ScopeOrder`.
  * - Remembers all that as a `UI.TypeExplorerState` through `state` + `onStateChange`, e.g. in the VS Code runner's
  *   `settings.json5` -- else in `localStorage`.
  *   - `state` is read ONCE, as it mounts:  after that, ours is the truth, and `onStateChange` hears each change.
  *     So a caller echoing `onStateChange` back into `state` is fine.
  * - A node's details are asked for with `loadDetails()` when first shown, and kept until a new `tree` comes.
  * - `readonly`, e.g. embedded in a page by `<spell-app>`:  descriptions can't be edited, whatever `onSaveDescription`.
- * - NOTE: imports its peers directly, NOT the `spell-app/app/solid` barrel:  a runner's bundle would get the whole editor
- *   through it (`Actions.tsx`).  So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.  Not
- *   imported here:  `spell-ui` can't load under node (`customElements`), and the `node` tests render this.
+ * - NOTE: imports its peers directly, NOT the `spell-app/app/solid` barrel:
+ *   a runner's bundle would get the whole editor through it (`Actions.tsx`).
+ *   - So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.
+ *   - Not imported here:  `spell-ui` can't load under node (`customElements`), and the `node` tests render this.
  * - SEE:  its App UI components page, `app/docs/TypeExplorer.html` (`/components/app/TypeExplorer.html`).
  ****************/
 export function TypeExplorer(props: TypeExplorerProps) {
@@ -220,8 +221,8 @@ export type TypeExplorerProps = {
  * ### `<ScopeTreeNode>`
  * One node in the "Scopes" tree, and its children if it's open.
  * - Click its arrow, or left of it, to open / close it -- anywhere right of that selects it.
- * - The root, "Spell", is always open:  no arrow.  Its children stay in tree order, whatever `order`:  the built-ins,
- *   then the projects, ours last.
+ * - The root, "Spell", is always open:  no arrow.
+ *   Its children stay in tree order, whatever `order`:  the built-ins, then the projects, ours last.
  * - Anything else's children come in `order`:
  *   - `document`:  as declared, with a `<SectionMarker>` for each heading they're under -- a type's members too
  *   - `alphabetical`:  a type's members under collapsible "Properties", "Actions" ... rows
@@ -447,8 +448,8 @@ const STATE_KEY = "spell.typeExplorer"
 /**
  * `<TypeExplorer>` state as last saved in `localStorage` -- empty if nothing's saved, or there's no storage.
  * - Per viewer:  a convenience, so any failure just starts afresh.
- * - NOTE: a VS Code webview's `localStorage` is its own, and may not outlive it -- the runner passes `state`
- *   instead, from the project's `settings.json5`.
+ * - NOTE: a VS Code webview's `localStorage` is its own, and may not outlive it:
+ *   the runner passes `state` instead, from the project's `settings.json5`.
  */
 function loadState(): TypeExplorerState {
   try {

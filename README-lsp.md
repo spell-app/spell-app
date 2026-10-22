@@ -241,7 +241,8 @@ The service is a set of readers over that record.
 - Positions come from offsets into the file's text, never a token's line and column:
   offsets are what the incremental parse keeps exact.
   A character is a UTF-16 code unit, the protocol's default.
-- How the parse builds scope, and re-parses after an edit:  [spell-lang's parser page](https://github.com/spell-app/spell-lang/blob/main/README-parser.md);
+- How the parse builds scope, and re-parses after an edit:
+  [spell-lang's parser page](https://github.com/spell-app/spell-lang/blob/main/README-parser.md);
   the service's side, "Language server" in [spell-lang's PARSING.md](https://github.com/spell-app/spell-lang/blob/main/src/spell/PARSING.md).
 
 The one reader that isn't the parser:  VS Code paints the first colours from a TextMate grammar,
@@ -357,8 +358,8 @@ The extension's compiled views and its Run Project panel ask the server for more
 | token types | `keyword`, `operator`, `variable`, `parameter`, `type`, `enumMember`, `function`, `property`, `number`, `string`, `comment` |
 | modifiers | `declaration`, `defaultLibrary`, `heading1` to `heading4`, `bold`, `italic`, `link`, `strikethrough` |
 
-- `heading1` to `heading4` are Spell's own, for a heading comment with that many `#`s;  four or more share
-  `heading4`.
+- `heading1` to `heading4` are Spell's own, for a heading comment with that many `#`s;
+  four or more share `heading4`.
 - `bold` to `strikethrough` are Markdown inside a comment, which the extension styles to match.
 - Nothing inside a `<css>` block:  editors colour it as CSS themselves.
 - Deltas come from one builder kept per file, so an edit sends what changed, not the whole file.
@@ -428,8 +429,9 @@ its `path` saying where it sits in the tree._
 - A pack leaves out each declaration's Spell and compiled code:
   the page fetches them when an entry is shown, from the project's source and compiled output, if it can have them.
 - Plain data, so one can be written by hand:  the way to document a type that's JavaScript, like `Thing` or `List`.
-- The code:  [ScopeExplorer.ts](src/lsp/ScopeExplorer.ts) builds the tree,
-  [ScopesSource.ts](src/lsp/ScopesSource.ts) reads it back from packs.
+- The code:
+  - [ScopeExplorer.ts](src/lsp/ScopeExplorer.ts) builds the tree
+  - [ScopesSource.ts](src/lsp/ScopesSource.ts) reads it back from packs
 
 ## Where it stops
 
