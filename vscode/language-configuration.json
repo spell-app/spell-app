@@ -24,7 +24,10 @@
   "wordPattern": { "pattern": "[\\p{L}_][\\p{L}\\p{M}\\d_-]*|-?\\d+(\\.\\d+)?", "flags": "u" },
   "indentationRules": {
     "increaseIndentPattern": ":\\s*$",
-    "decreaseIndentPattern": "^\\s*(otherwise|else)\\b"
+    "decreaseIndentPattern": {
+      "pattern": "^\\s*(?:otherwise|else|sino|de\\s+lo\\s+contrario|si\\s+no(?=\\s*:|\\s+si\\b))(?![\\p{L}\\p{M}\\d_-])",
+      "flags": "u"
+    }
   },
   "onEnterRules": [
     {

@@ -76,6 +76,18 @@ describe("<spell-code>", () => {
     expect(codeOf(host).querySelector(".hljs-type")!.textContent).toBe("pile")
   })
 
+  test("`spell/es` colours Spanish, with Spanish's parser:  its keywords, its types", async () => {
+    const PILAS = `<script type="text/plain">
+una pila es una lista de cartas
+el valor de una pila es:
+\tdevolver 0
+</script>`
+    const host = await code(`<spell-code language="spell/es">${PILAS}</spell-code>`)
+    const keywords = [...codeOf(host).querySelectorAll(".hljs-keyword")].map((it) => it.textContent)
+    expect(keywords).toContain("devolver")
+    expect(codeOf(host).querySelector(".hljs-type")!.textContent).toBe("pila")
+  })
+
   test("`spell/<lang>` with no such translation stays plain, naming it in the ui-error", async () => {
     const onError = vi.fn()
     document.addEventListener("ui-error", onError)

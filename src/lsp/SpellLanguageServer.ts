@@ -47,7 +47,11 @@ export class SpellLanguageServer {
     signatureHelpProvider: { triggerCharacters: [" "] },
     codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix] },
     documentFormattingProvider: true,
-    documentRangeFormattingProvider: true
+    documentRangeFormattingProvider: true,
+    documentOnTypeFormattingProvider: {
+      firstTriggerCharacter: LSP.SpellLanguageService.ON_TYPE_TRIGGERS[0]!,
+      moreTriggerCharacter: LSP.SpellLanguageService.ON_TYPE_TRIGGERS.slice(1)
+    }
   }
 
   /** Connection to the editor. */
@@ -148,6 +152,9 @@ export class SpellLanguageServer {
     )
     connection.onDocumentRangeFormatting(({ textDocument, range, options }) =>
       this.answer(textDocument.uri, [], (file) => service.formatting(file, options, range))
+    )
+    connection.onDocumentOnTypeFormatting(({ textDocument, position, ch }) =>
+      this.answer(textDocument.uri, [], (file) => service.onTypeFormatting(file, position, ch))
     )
     connection.onCompletion(({ textDocument, position }) =>
       this.answer(textDocument.uri, [], (file) => service.completion(file, position))

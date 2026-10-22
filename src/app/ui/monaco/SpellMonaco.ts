@@ -24,6 +24,7 @@ export class SpellMonaco {
   /**
    * Editor options every `<MonacoEditor>` starts with.
    * - Always TABS in spell, shown 3 wide.
+   * - Formats as you type:  a Spanish keyword typed without its accent gets it back (`SpellLanguageFeatures`).
    */
   static OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
     theme: "vs",
@@ -34,12 +35,14 @@ export class SpellMonaco {
     fontFamily: "Lato, Arial, sans-serif",
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
-    "semanticHighlighting.enabled": true
+    "semanticHighlighting.enabled": true,
+    formatOnType: true
   }
 
   /**
-   * How spell edits:  comments, brackets, indenting after a trailing `:`.
-   * - NOTE: keep in step with the VS Code extension's `vscode-extension/language-configuration.json`.
+   * How spell edits:  comments, brackets, indenting after a trailing `:`, back out for `else` (`SpellKeywords`).
+   * - NOTE: keep in step with the VS Code extension's `vscode/language-configuration.json`:
+   *   a test checks they match.
    */
   static CONFIGURATION: monaco.languages.LanguageConfiguration = {
     comments: { lineComment: "//" },
@@ -65,7 +68,7 @@ export class SpellMonaco {
     wordPattern: /[\p{L}_][\p{L}\p{M}\d_-]*|-?\d+(\.\d+)?/u,
     indentationRules: {
       increaseIndentPattern: /:\s*$/,
-      decreaseIndentPattern: /^\s*(otherwise|else)\b/
+      decreaseIndentPattern: LSP.SpellKeywords.DECREASE_INDENT
     },
     onEnterRules: [{ beforeText: /:\s*$/, action: { indentAction: monaco.languages.IndentAction.Indent } }]
   }

@@ -1786,7 +1786,7 @@ export class SpellLanguageService {
     const text = file.contents ?? ""
     if (!text.trim()) return []
     const formatter = new P.TokenFormatter({
-      tokenizer: SP.spellParser.tokenizer,
+      tokenizer: file.project.language.parser.tokenizer,
       indent: "\t",
       trimFinalBlankLines: !range && !!options.trimFinalNewlines,
       ...SpellLanguageService.FORMAT_SPACING
@@ -1810,6 +1810,56 @@ export class SpellLanguageService {
   /** Edit replacing `file`'s text from offset `start` to `end` with `newText`. */
   private editFor(file: SP.SpellFile, start: number, end: number, newText: string): TextEdit {
     return { range: { start: this.positionAt(file, start), end: this.positionAt(file, end) }, newText }
+  }
+
+  ////////////////
+  // ## Accent fixes
+  ////////////////
+
+  /**
+   * What the editor asks `onTypeFormatting()` after:  a space, or a new line.
+   * - VS Code asks only with `editor.formatOnType` on:  the extension turns it on for spell.
+   */
+  static ON_TYPE_TRIGGERS = [" ", "\n"]
+
+  /**
+   * Edits as `typed` goes in at `position`:  the accent fixes of what's just been finished (epic `spanish` P10).
+   * - A space:  the line so far;  a new line:  the line just ended too.
+   * - So `el numero de cartas` becomes `el número de cartas` once its line parses, with nothing to do --
+   *   see `accentEdits()`.
+   * - A line that doesn't parse yet is left alone:  only a parse says a word is a keyword.
+   */
+  onTypeFormatting(file: SP.SpellFile, position: Position, typed: string): TextEdit[] {
+    const offset = this.offsetAt(file, position)
+    const text = file.parseText
+    const lineStart = text.lastIndexOf("\n", offset - 1) + 1
+    const from = typed === "\n" ? text.lastIndexOf("\n", lineStart - 2) + 1 : lineStart
+    return this.accentEdits(file, from, offset)
+  }
+
+  /**
+   * Edits putting back the written accent of each keyword typed without it, from offset `from` to `to` of `file`:
+   * `numero` => `número`, `esta` => `está`.
+   * - Only words its language's parse matched as one of its own keywords, and only where that's unambiguous --
+   *   see `LSP.SpellKeywords.accentFixFor()`.
+   *   So a person's name `numero`, or `si` (`if`, as well as an unaccented `sí`), stays as typed.
+   * - None in a language with no such keywords, e.g. English.
+   */
+  accentEdits(file: SP.SpellFile, from = 0, to = Infinity): TextEdit[] {
+    if (!file.match) return []
+    const keywords = LSP.SpellKeywords.of(file.project.language)
+    if (!keywords.hasAccentFixes) return []
+    const text = file.parseText
+    const edits = new Map<number, TextEdit>()
+    this.walk(file.match, (match) => {
+      if (match.end === undefined || match.start === undefined || match.end < from || match.start > to) return
+      for (const token of match.matched) {
+        if (!(token instanceof P.WordToken) || token.start < from || token.end > to || edits.has(token.start)) continue
+        const fixed = keywords.accentFixFor(match.rule, text.slice(token.start, token.end))
+        if (fixed) edits.set(token.start, this.editFor(file, token.start, token.end, fixed))
+      }
+    })
+    return [...edits.values()]
   }
 
   ////////////////

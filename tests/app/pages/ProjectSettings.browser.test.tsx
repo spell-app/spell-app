@@ -70,7 +70,9 @@ describe("<ProjectSettings>", () => {
     button(modal, "Save").click()
     await closed
     expect(errors).toEqual([])
-    expect(group.saves).toEqual([{ title: "Solitaire!", version: "1.0.0", targets: [], listsStartAt: 0, language: "en" }])
+    expect(group.saves).toEqual([
+      { title: "Solitaire!", version: "1.0.0", targets: [], listsStartAt: 0, language: "en" }
+    ])
   })
 
   test("refuses a version that isn't `1.2.0`-shaped:  nothing saved, the dialog stays", async () => {
