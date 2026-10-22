@@ -780,6 +780,13 @@ describe("spell explain", () => {
     expect(stdout).toMatch(/Solitaire\.spell:\d+\ntype Tableau is a Pile\n/)
   })
 
+  test("--in a project:  what the projects it imports declare, too", () => {
+    // `card` is the cards library's, which solitaire imports
+    const { status, stdout } = spell(["explain", "card", "--in", "@spell/test/solitaire"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/library\/cards\/Card\.spell:\d+\ntype Card is a Drawable\n/)
+  })
+
   test("nothing by that name", () => {
     const { status, stderr } = spell(["explain", "wombat"])
     expect(status).toBe(1)

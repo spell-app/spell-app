@@ -404,7 +404,7 @@ export class Solitaire extends App {
     await core.forEachSequential(core.everyThing(Tableau), async (pile: Tableau) => {
       if (pile.isEmpty) return
       const testCard = pile.lastItem!
-      const foundation = core.filter<Foundation>(core.everyThing(Foundation), (pile: Foundation) => pile.suit == testCard.suit).firstItem
+      const foundation = core.filter(core.everyThing(Foundation), (pile: Foundation) => pile.suit == testCard.suit).firstItem
       if (core.canTake(foundation!, testCard)) {
         anythingChanged = true
         await testCard.play()
@@ -483,7 +483,7 @@ Card.prototype.play = async function (this: Card) {
     return
   }
 
-  const endPile = core.filter<Pile>(core.everyThing(Pile), (pile: Pile) => core.canTake(pile, this)).firstItem
+  const endPile = core.filter(core.everyThing(Pile), (pile: Pile) => core.canTake(pile, this)).firstItem
   if (endPile === undefined) return false
 
   const movingCards = startPile.startingWith(this)

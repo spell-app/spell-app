@@ -154,6 +154,15 @@ export class CliSession {
   }
 
   /**
+   * Parse each project `project` imports compiled, from its own sources -- see `ScopeExplorer.importedProjects()`.
+   * - Why:  a compiled import's scope holds just its declarations, so the Type Explorer tree, hover and
+   *   `workspaceSymbols()` (`spell explain`) need its own parse to show it.
+   */
+  async parseImports(project: SP.SpellProject): Promise<void> {
+    for (const imported of LSP.ScopeExplorer.importedProjects(project)) await this.workspace.track(imported)
+  }
+
+  /**
    * `project`'s Type Explorer tree, once it -- and every project it imports -- has parsed.
    * - Shows parsing progress only in a terminal, and clears it off once done:  it isn't the output.
    */
@@ -162,8 +171,7 @@ export class CliSession {
     const row = status?.start(`Parsing ${project.projectId}`)
     try {
       await this.parse(project, status)
-      // the tree shows each imported project's own parse -- see `ScopeExplorer.importedProjects()`
-      for (const imported of LSP.ScopeExplorer.importedProjects(project)) await this.workspace.track(imported)
+      await this.parseImports(project)
       if (row) status!.done(row, "ok")
     } finally {
       status?.finish({ clear: true })
