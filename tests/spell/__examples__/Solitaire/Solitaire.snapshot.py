@@ -1126,15 +1126,20 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
  ****************/
 
 [layout] {
-  display: block;
+  /* a box of its own, holding its floated sizer */
+  display: flow-root;
   position: relative;
   /* its cards size themselves by its width */
   container-type: inline-size;
+  /* the glow when a dragged card would land here:  0.6em around its cards, inside the board's gutters */
+  --spell-drop-glow-inset: calc(var(--ui-grid-row-spacing) / 2 - 0.6em) calc(var(--ui-grid-gutter) / 2 - 0.6em);
 }
 /* its height:  a card's, by default -- a percentage of padding is one of its width */
 [layout]::before {
   content: "";
-  display: block;
+  /* floated, so its cards start at the top of its content, not below it */
+  float: left;
+  width: 100%;
   padding-top: calc(100% * var(--card-height));
 }
 
@@ -1142,8 +1147,9 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
 [layout] > *,
 [layout]::part(placeholder) {
   position: absolute;
-  top: 0;
-  /* where its pile's content starts, inside the cell's gutters */
+  display: block;
+  /* where its pile's content starts, inside the cell's gutters:  its offsets in a layout are margins */
+  top: auto;
   left: auto;
   font-size: calc(100cqi / var(--card-width));
   width: calc(var(--card-width) * 1em);
@@ -1179,7 +1185,7 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
   padding-top: calc(100% * var(--card-height) * (1 + (max(var(--count, 1), 1) - 1) * var(--card-step-down)));
 }
 [layout="vertical"] > * {
-  top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));
+  margin-top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));
 }
 
 /* horizontal:  side by side, each covering the edge of the one before;  smaller as there are more, to fit the pile */
@@ -1198,7 +1204,7 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
 [layout="fanned"] > * {
   font-size: calc(60cqi / var(--card-width));
   left: calc(50% - var(--card-width) * 0.5em);
-  top: 10%;
+  margin-top: 10%;
   transform-origin: 50% 200%;
   rotate: calc((var(--index) - (var(--count) - 1) / 2) * var(--card-turn));
 }

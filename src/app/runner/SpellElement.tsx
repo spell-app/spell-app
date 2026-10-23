@@ -16,7 +16,7 @@ import { Dragging } from "./Dragging"
  * - A list that will take what's dragged over it glows, a soft purple halo outside and in, a little out from its edges:
  *   - drawn by its `::after`, over its items, so it never moves them
  *   - `--spell-drop-glow` (a `box-shadow`), `--spell-drop-glow-gap` (how far out) and `--spell-drop-glow-radius`
- *     change it
+ *     change it;  `--spell-drop-glow-inset` places it exactly, e.g. around a list's content, inside its padding
  */
 const DRAGGING_CSS = `
   :host(:state(draggable)) { touch-action: none; }
@@ -26,7 +26,7 @@ const DRAGGING_CSS = `
   :host(:state(accepting-drop))::after {
     content: "";
     position: absolute;
-    inset: calc(-1 * var(--spell-drop-glow-gap, 0.6em));
+    inset: var(--spell-drop-glow-inset, calc(-1 * var(--spell-drop-glow-gap, 0.6em)));
     border-radius: var(--spell-drop-glow-radius, 0.8em);
     box-shadow: var(
       --spell-drop-glow,
