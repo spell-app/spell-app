@@ -23,9 +23,9 @@ export const words = {
       estado: "estado",
       columnaDeImagen: "columna de imagen",
       imagen: "imagen",
-      voltearBocaArriba: "voltear una carta boca arriba",
-      voltearBocaAbajo: "voltear una carta boca abajo",
-      darVuelta: "dar vuelta una carta",
+      voltearBocaArriba: "voltearla boca arriba",
+      voltearBocaAbajo: "voltearla boca abajo",
+      voltear: "voltearla",
       jugar: "jugar una carta",
       pila: "pila"
     },
@@ -45,8 +45,8 @@ export const words = {
     },
     Mazo: {
       comodines: "comodines",
-      preparar: "preparar",
-      mostrar: "mostrar"
+      create: "crearlo",
+      mostrar: "mostrarlo"
     },
     Pila: {
       name: "nombre",
@@ -73,8 +73,8 @@ export const words = {
       C5: "C5",
       C6: "C6",
       C7: "C7",
-      preparar: "preparar",
-      depurar: "depurar",
+      create: "crearlo",
+      depurar: "depurarlo",
       rehacerLaReserva: "rehacer la reserva",
       robarDeLaReserva: "robar de la reserva",
       repartirLasCartas: "repartir las cartas",

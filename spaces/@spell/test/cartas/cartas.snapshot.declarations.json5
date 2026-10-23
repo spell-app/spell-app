@@ -249,7 +249,7 @@
       "defined": "/Carta.es.spell:2125-2203"
     },
     {
-      "syntax": "dar la vuelta a {thisArg:expression}",
+      "syntax": "dar la vuelta (a|al) {thisArg:expression}",
       "output": "dar_la_vuelta_a_carta",
       "rule": "method_call",
       "of": "Carta",
@@ -327,7 +327,7 @@
       "defined": "/Mazo.es.spell:327-364"
     },
     {
-      "syntax": "probar la creación del mazo",
+      "syntax": "probar la creación (del|de el) mazo",
       "output": "test_la_creación_del_mazo",
       "rule": "method_call",
       "alias": "statement",

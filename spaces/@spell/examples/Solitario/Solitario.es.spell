@@ -17,7 +17,7 @@ solitario es una aplicación donde:
 
 	// una de cada pila, hecha con el solitario
 	- su "reserva" es una nueva pila de reserva con nombre = "reserva"
-	- sus "descartes" es una nueva pila de descarte con nombre = "descartes"
+	- sus "descartes" es una nueva pila de descartes con nombre = "descartes"
 	- sus "tréboles" es una nueva fundación con nombre = "tréboles", palo = tréboles
 	- sus "diamantes" es una nueva fundación con nombre = "diamantes", palo = diamantes
 	- sus "corazones" es una nueva fundación con nombre = "corazones", palo = corazones
@@ -30,15 +30,15 @@ solitario es una aplicación donde:
 	- su "C6" es una nueva columna con nombre = "C6"
 	- su "C7" es una nueva columna con nombre = "C7"
 
-	// una vez, antes de la primera partida:  cada carta del mazo a la reserva
-	// - NOTE:  se llama a mano, en el inicio:  el español aún no tiene un `para crearlo` que corra al hacerlo
-	- para preparar:
-		preparar su mazo
+	// una vez, al hacerse el solitario:  cada carta del mazo a la reserva
+	// - su mazo y sus pilas se hacen con él, antes de que esto corra
+	// - dentro del bucle `eso` es la carta:  así la reserva es `la reserva del solitario`
+	- para crearlo:
 		para cada carta en su mazo
-			agregar la carta a la reserva del solitario
+			agregar eso a la reserva del solitario
 
 	// imprime las cartas de cada pila, p. ej. "reserva: D♠️— 7♥️—"
-	- para depurar:
+	- para depurarlo:
 		para cada pila en cada pila
 			imprimir el estado de la pila
 
@@ -83,7 +83,7 @@ solitario es una aplicación donde:
 
 	// voltea una carta boca abajo de una columna, al azar, sobre los descartes
 	- para hacer trampa:
-		poner pilas restantes a las pilas en las columnas donde la pila no está vacía y la primera carta de la pila está boca abajo
+		poner pilas restantes a las pilas en las columnas donde no está vacía y su primera carta está boca abajo
 		si pilas restantes está vacía devolver
 		poner la pila a una pila al azar de pilas restantes
 		poner cartas ocultas a las cartas en la pila donde la carta está boca abajo
@@ -168,7 +168,7 @@ para jugar una carta
 		robar de la reserva
 		devolver
 
-	poner pila final a la primera pila en cada pila donde la pila puede tomar la carta
+	poner pila final a la primera pila en cada pila donde puede tomar la carta
 	si no hay una pila final devolver no
 
 	poner cartas movidas a las cartas en pila inicial empezando con la carta
@@ -194,7 +194,6 @@ al clic-carta con una carta
 
 ## Inicio
 imprimir solitario
-preparar el solitario
 empezar el juego
 iniciar solitario
 
@@ -245,7 +244,7 @@ una "pila de reserva" es una pila apilada donde:
 		</div>
 
 // los descartes:  adonde van las cartas de la reserva al voltearse
-una "pila de descarte" es una pila apilada donde:
+una "pila de descartes" es una pila apilada donde:
 	- nunca puede tomar una carta
 	- puede soltar una carta si: la carta es su última carta
 
@@ -267,7 +266,7 @@ una "fundación" es una pila apilada donde:
 una "columna" es una pila donde:
 	- puede soltar una carta si: la carta está boca arriba
 	- puede tomar una carta si:
-		si la columna está vacía
+		si está vacía
 			devolver la carta es un rey
 		devolver su color no es el color de la carta y su valor es el valor de la carta + 1
 	<css>
