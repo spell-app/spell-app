@@ -442,22 +442,22 @@ export class Solitaire extends App {
         </ui-menu>
         <ui-grid columns="7">
           <ui-row>
-            <ui-column>{this.stock.draw()}</ui-column>
-            <ui-column>{this.discards.draw()}</ui-column>
+            <ui-column>{core.drawThing(this.stock)}</ui-column>
+            <ui-column>{core.drawThing(this.discards)}</ui-column>
             <ui-column />
-            <ui-column>{this.clubs.draw()}</ui-column>
-            <ui-column>{this.diamonds.draw()}</ui-column>
-            <ui-column>{this.hearts.draw()}</ui-column>
-            <ui-column>{this.spades.draw()}</ui-column>
+            <ui-column>{core.drawThing(this.clubs)}</ui-column>
+            <ui-column>{core.drawThing(this.diamonds)}</ui-column>
+            <ui-column>{core.drawThing(this.hearts)}</ui-column>
+            <ui-column>{core.drawThing(this.spades)}</ui-column>
           </ui-row>
           <ui-row>
-            <ui-column>{this.T1.draw()}</ui-column>
-            <ui-column>{this.T2.draw()}</ui-column>
-            <ui-column>{this.T3.draw()}</ui-column>
-            <ui-column>{this.T4.draw()}</ui-column>
-            <ui-column>{this.T5.draw()}</ui-column>
-            <ui-column>{this.T6.draw()}</ui-column>
-            <ui-column>{this.T7.draw()}</ui-column>
+            <ui-column>{core.drawThing(this.T1)}</ui-column>
+            <ui-column>{core.drawThing(this.T2)}</ui-column>
+            <ui-column>{core.drawThing(this.T3)}</ui-column>
+            <ui-column>{core.drawThing(this.T4)}</ui-column>
+            <ui-column>{core.drawThing(this.T5)}</ui-column>
+            <ui-column>{core.drawThing(this.T6)}</ui-column>
+            <ui-column>{core.drawThing(this.T7)}</ui-column>
           </ui-row>
         </ui-grid>
       </ui-container>
