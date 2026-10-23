@@ -16,7 +16,7 @@
 _spell-app's whole part of the page server's settings, from its [package.json](package.json)._
 
 The page server is the kit's, and so is this page's old content:  every address, every setting, bundles, tabs, live
-reload and editing in place are on [the kit's README-server.md](https://github.com/spell-app/spell-kit/blob/main/README-server.md).
+reload and editing in place are on [the kit's README-server.md](https://github.com/spell-app/spell/blob/main/README-server.md).
 spell-app brings only its own part, the four settings above, the way each repo does.
 The kit merges every installed repo's part as the server starts, each read from its own repo's folder.
 
@@ -76,11 +76,11 @@ Spell servers of ~/www/spell:
 - A row says `started` instead of `running` for a server it had to start.
 - The editor's row is there only while spell-app is installed:  without it, the kit's server still serves the epic
   pages and the Spell UI and Epic UI sets.
-- The rest of `spell server`:  [the kit's commands](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#the-kit).
+- The rest of `spell server`:  [the kit's commands](https://github.com/spell-app/spell/blob/main/README-cli.md#the-kit).
 
 ## See also
 
-- [The kit's page server](https://github.com/spell-app/spell-kit/blob/main/README-server.md):  every address and setting, how the repos' parts merge,
+- [The kit's page server](https://github.com/spell-app/spell/blob/main/README-server.md):  every address and setting, how the repos' parts merge,
   bundles, the tabs, adding a route
 - [Spaces](README-spaces.md):  the editor's API, call by call, and the servers behind it
 - [README-app.md](README-app.md):  the editor and App UI, which this part serves

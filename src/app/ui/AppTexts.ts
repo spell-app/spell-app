@@ -1,5 +1,5 @@
-import type { E } from "spell-kit/element"
-import { Observable, once, state } from "spell-kit/util"
+import type { E } from "spell/element"
+import { Observable, once, state } from "spell/util"
 import type { I18n } from "spell-ui/core"
 
 import { APP_TEXTS, type AppTextKey, type AppTextPack } from "./AppTexts.en"

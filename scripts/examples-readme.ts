@@ -25,7 +25,7 @@ import path from "node:path"
 
 import JSON5 from "json5"
 
-import { pageServerRoot } from "spell-kit/server/page/settings"
+import { pageServerRoot } from "spell/server/page/settings"
 
 /** spell-app's checkout. */
 const ROOT = path.resolve(import.meta.dirname, "..")

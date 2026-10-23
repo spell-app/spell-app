@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "spell-lang/parser"
+import { P } from "spell-parser/parser"
 import {
   incrementalSpellProject,
   parseSpellProject,
@@ -8,7 +8,7 @@ import {
   summarizeIncremental,
   type SpellProjectSummary,
   type SpellSourceFile
-} from "spell-lang/spell/test"
+} from "spell-parser/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
@@ -17,7 +17,7 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  * - Edits every `STEP`th line of each file of Solitaire, the card library's files and its own
  *   (one kind of edit per line, in rotation), then puts
  *   it back.
- * - Over projects written inline:  spell-lang's own `IncrementalProject.test.ts`.
+ * - Over projects written inline:  spell-parser's own `IncrementalProject.test.ts`.
  * - All on ONE project, so state has to stay right across many updates.
  * - `INCREMENTAL_FULL=1` edits every line.
  */

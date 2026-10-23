@@ -1,4 +1,4 @@
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import type * as UIT from "spell-app/app/ui/ui.types"
 import { monaco } from "./monaco"

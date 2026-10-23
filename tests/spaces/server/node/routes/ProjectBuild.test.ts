@@ -7,7 +7,7 @@ import { PassThrough } from "node:stream"
 import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { ProjectBuild } from "spell-app/spaces/server/node/routes/ProjectBuild"
 
 ////////////////
@@ -54,10 +54,10 @@ describe("ProjectBuild", () => {
   const projectFolder = join(root, "projects", "Built")
   // a fake kit in its install:  its `spell`, found by package (`kitSpell()`)
   put(
-    join(root, "node_modules/spell-kit/package.json"),
-    JSON.stringify({ name: "spell-kit", exports: { "./package.json": "./package.json" } })
+    join(root, "node_modules/spell/package.json"),
+    JSON.stringify({ name: "spell", exports: { "./package.json": "./package.json" } })
   )
-  put(join(root, "node_modules/spell-kit/bin/spell.mjs"))
+  put(join(root, "node_modules/spell/bin/spell.mjs"))
   put(join(projectFolder, SP.PROJECT_FILE), JSON.stringify({ imports: [{ path: "/Built.spell", active: true }] }))
   put(join(projectFolder, "Built.spell"), 'print "built"\n')
   // outside `packages/`:  its built files sit beside its source (`buildFolderFor()`)
@@ -77,7 +77,7 @@ describe("ProjectBuild", () => {
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
       [
-        join(root, "node_modules/spell-kit/bin/spell.mjs"),
+        join(root, "node_modules/spell/bin/spell.mjs"),
         "compile",
         "--stale",
         "--all",

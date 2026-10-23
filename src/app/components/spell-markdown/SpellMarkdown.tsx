@@ -27,7 +27,7 @@ const vocabulary = {
  * ### `SpellMarkdown`
  * The component behind `<spell-markdown>`:  markdown drawn by spell's own engine, in `ui-*` elements.
  * - A `<ui-markdown>` in every way (text or `source`, `editable`, `sanitized`, headings, `reveal()`),
- *   but drawn by `MDEngine` (`spell-lang/markdown`, on the parser) instead of marked:  `loadEngine()`.
+ *   but drawn by `MDEngine` (`spell-parser/markdown`, on the parser) instead of marked:  `loadEngine()`.
  *   - `ui-header`, `ui-list`, `ui-table`, `ui-message` for alerts, `ui-checkbox` for tasks ...
  *   - their families come with the family's barrel;  `sanitized` keeps them (`MDEngine.drawsUITags`)
  * - Its spell blocks are coloured:  the barrel loads `<spell-code>`, which registers spell with `UI.code`.

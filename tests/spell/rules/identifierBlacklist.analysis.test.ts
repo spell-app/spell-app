@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
 import { compiledFixture, fixtureProjectNames } from "spell-app/spaces/test"
 
 /** English's tables, the pack's own:  the analysis edits them in place, and puts each word back. */

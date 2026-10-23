@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/tes
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import { core, Thing, List } from "spell-lang/core"
+import { ElementFixture } from "spell/test-helpers/ElementFixture"
+import { core, Thing, List } from "spell-parser/core"
 import type { ThingExplorerState } from "spell-app/app/ui/ui.types"
 import { uiReady } from "spell-app/app/solid/loadUI"
 import { ThingExplorer } from "spell-app/app/solid/ThingExplorer"

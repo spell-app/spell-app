@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal, omit } from "solid-js"
 
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import type { UIMenuJSXAttributes } from "spell-ui/jsx"
 import { SPACES } from "spell-app/spaces"
 import { editor } from "spell-app/app/editor"
@@ -171,7 +171,7 @@ function open(path: string, useRunner?: boolean) {
 /**
  * The dropdown's `ui-change`:  click the item chosen, which opens its project.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.project`'s DURING the event, so the dropdown keeps ours:
- *   the element decides (`requestChange()` on a `@controlled` member, in `spell-kit/element/Reactive`).
+ *   the element decides (`requestChange()` on a `@controlled` member, in `spell/element/Reactive`).
  * - Opening the project then moves it on.
  */
 function choose(event: CustomEvent<{ value: string }>) {

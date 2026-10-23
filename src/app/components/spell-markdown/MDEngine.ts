@@ -1,9 +1,9 @@
-import { MD } from "spell-lang/markdown"
+import { MD } from "spell-parser/markdown"
 import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "spell-ui/components/ui-markdown"
 
 /****************
  * ### `MDEngine`
- * Spell's markdown engine (`spell-lang/markdown`, on the parser), what `<spell-markdown>` draws with, plain and `editable`.
+ * Spell's markdown engine (`spell-parser/markdown`, on the parser), what `<spell-markdown>` draws with, plain and `editable`.
  * - In a LAZY chunk of its own, imported by `SpellMarkdown.loadEngine()` on the first render.
  *   The same contract as Spell UI's `MarkdownEngine` (marked):  `MarkdownRendering`.
  * - Draws with `ui-*` elements (`ui-header`, `ui-list`, `ui-table`, `ui-message` alerts, `ui-checkbox` tasks ...),

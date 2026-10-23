@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { CustomError } from "spell-kit/util"
+import { CustomError } from "spell/util"
 import { editor } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { on, tracked } from "spell-app/app/solid"
@@ -95,7 +95,7 @@ type ErrorInfo = {
   params?: string[]
 }
 
-/** `error`, as `<ErrorDisplay>` shows it.  `CustomError` keeps its extras in `props` (`spell-kit/util`'s `CustomError`). */
+/** `error`, as `<ErrorDisplay>` shows it.  `CustomError` keeps its extras in `props` (`spell/util`'s `CustomError`). */
 function describeError(error: Error): ErrorInfo {
   const custom = error instanceof CustomError ? error : undefined
   const params = custom?.props?.params

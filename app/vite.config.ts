@@ -2,7 +2,7 @@ import { existsSync } from "node:fs"
 import path from "node:path"
 import { defineConfig, type Plugin } from "vite-plus"
 
-import { fmtConfig, packageLint } from "spell-kit/toolchain/lint"
+import { fmtConfig, packageLint } from "spell/toolchain/lint"
 import environment from "spell-app/spaces/server/node/environment"
 import { TOP_REPO, appConfig } from "./vite.shared.ts"
 

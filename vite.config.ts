@@ -1,6 +1,6 @@
 import { defineConfig } from "vite-plus"
 
-import { fmtConfig, packageLint, patternLintIn } from "spell-kit/toolchain/lint"
+import { fmtConfig, packageLint, patternLintIn } from "spell/toolchain/lint"
 
 /**
  * Not linted or formatted by oxlint / oxfmt:
@@ -26,7 +26,7 @@ const NOT_OURS = [
 
 /**
  * spell-app's Vite+ config:  the `lint` / `fmt` blocks (what `vp lint`, `vp fmt` and the Oxc editor extension read),
- * from the toolchain's settings (`spell-kit/toolchain/lint`).
+ * from the toolchain's settings (`spell/toolchain/lint`).
  * - One block for the whole repo, `src/`, `tests/`, `scripts/` and the app's build folder `app/`.
  * - React's rules everywhere:  the cli's terminal screens are Ink's (React for terminals).
  * - The `spell-ui/*` rules on the app's web components, `src/app/components/` (`patternLintIn()`).

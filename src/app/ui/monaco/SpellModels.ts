@@ -1,5 +1,5 @@
-import { observe } from "spell-kit/util"
-import { SP } from "spell-lang/spell"
+import { observe } from "spell/util"
+import { SP } from "spell-parser/spell"
 import type { LSP } from "spell-app/lsp"
 import { monaco } from "./monaco"
 import { AppAddresses } from "./AppAddresses"
@@ -14,7 +14,7 @@ import { SpellMonaco } from "./SpellMonaco"
  * - File => model:  a change from outside, e.g. load or reload, replaces the model's text (and its undo).
  * - Parse => markers:  whenever a spell file's `match` changes -- even from an edit to ANOTHER file -- its
  *   diagnostics become the model's markers, and `onDidParse` fires, e.g. for fresh semantic colouring.
- * - Follows files with `observe()` (`spell-kit/util`, on spell cells):  a plain function, re-run synchronously as the cells
+ * - Follows files with `observe()` (`spell/util`, on spell cells):  a plain function, re-run synchronously as the cells
  *   it read change -- no framework, so it's fine wherever `modelFor()` is called from.
  * - Covers a project at a time:  a model for every spell file it parses (peek, references and rename need them),
  *   plus any other file once shown.  Showing a file of another project disposes of the last one's models --

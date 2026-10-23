@@ -1,6 +1,6 @@
 import chalk from "chalk"
 
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import { CLI } from "spell-app/cli"
 
 /**

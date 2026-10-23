@@ -9,7 +9,7 @@ import {
   core,
   upgradeEntry,
   type ThingsToSearch
-} from "spell-lang/core/model"
+} from "spell-parser/core/model"
 import type { FileProblem, OrgRole, PersonChanges, PersonView } from "spell-app/spaces/models/people"
 import type { SpaceStorage } from "spell-app/spaces/models/SpaceStorage"
 import { readJSON5, writeJSON5 } from "spell-app/spaces/server/node/storage/json5"

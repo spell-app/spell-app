@@ -1,5 +1,5 @@
 import type { LSP } from "spell-app/lsp"
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import type { UI } from "spell-app/app/ui"
 
 // ## Messages

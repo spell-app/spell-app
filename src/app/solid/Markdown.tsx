@@ -1,11 +1,11 @@
 import { Loading, createMemo } from "solid-js"
 
-import type { MD } from "spell-lang/markdown"
+import type { MD } from "spell-parser/markdown"
 
 /****************
  * ### `<Markdown>`
  * `text` as markdown, e.g. a docstring, drawn by `MD.toHTML()` (GitHub-flavoured, plain HTML tags).
- * - `spell-lang/markdown` (and the parser under it) loads LAZILY, on the first `<Markdown>`:  the runners show docstrings
+ * - `spell-parser/markdown` (and the parser under it) loads LAZILY, on the first `<Markdown>`:  the runners show docstrings
  *   too (Type / Thing Explorer), and a runner page carries no parser otherwise.  Until it's in, the plain text.
  * - Its links go to `onOpen`, NOT the page -- e.g. `file:///…/Card.spell#L12`, for the editor to open.
  * - NOTE: raw HTML in `text` is rendered as is, bar GFM's tagfilter (`<script>` ... escaped):  only give it text
@@ -39,11 +39,11 @@ export type MarkdownProps = {
   onOpen: (href: string) => void
 }
 
-/** `spell-lang/markdown`'s `MD`, imported once, on first use. */
+/** `spell-parser/markdown`'s `MD`, imported once, on first use. */
 let markdown: Promise<typeof MD> | undefined
 
-/** Load `spell-lang/markdown` (once). */
+/** Load `spell-parser/markdown` (once). */
 function loadMarkdown() {
-  markdown ??= import("spell-lang/markdown").then((module) => module.MD)
+  markdown ??= import("spell-parser/markdown").then((module) => module.MD)
   return markdown
 }

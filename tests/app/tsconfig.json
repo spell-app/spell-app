@@ -3,7 +3,7 @@
   // folder;  and the app's ambient types (monaco's internal modules)
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "types": ["node", "vite/client", "spell-kit/toolchain/types"]
+    "types": ["node", "vite/client", "spell/toolchain/types"]
   },
   "include": [".", "../../src/app/types"],
   "exclude": []

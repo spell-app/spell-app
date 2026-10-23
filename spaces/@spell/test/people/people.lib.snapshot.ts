@@ -1,4 +1,4 @@
-import { Thing, List, prop } from "spell-lang/core/model"
+import { Thing, List, prop } from "spell-parser/core/model"
 
 //////////////////////////////////////////////////////////////////////////////
 // ## People, and what they keep about each other (epic `people-and-orgs`, P1)

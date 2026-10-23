@@ -1,9 +1,9 @@
 import { dirname } from "path"
 import * as vscode from "vscode"
 
-import { ElementCatalog } from "spell-kit/element-tools/jsx-help/ElementCatalog"
-import { JsxElementHelp, type JsxFile } from "spell-kit/element-tools/jsx-help/JsxElementHelp"
-import { ELEMENT_HELP_SOURCE } from "spell-kit/element-tools/tools.types"
+import { ElementCatalog } from "spell/element-tools/jsx-help/ElementCatalog"
+import { JsxElementHelp, type JsxFile } from "spell/element-tools/jsx-help/JsxElementHelp"
+import { ELEMENT_HELP_SOURCE } from "spell/element-tools/tools.types"
 
 /****************
  * ### `ElementsHelp`

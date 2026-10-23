@@ -1,7 +1,7 @@
 import { render } from "@solidjs/web"
 
 // Import parser bits
-import "spell-lang/parser"
+import "spell-parser/parser"
 import { editor } from "spell-app/app/editor"
 import { AppTexts } from "spell-app/app/ui/AppTexts"
 import { ErrorNotice, Notice, addAppIconsPageWide } from "spell-app/app/solid"
@@ -18,7 +18,7 @@ AppTexts.namePageLanguage()
 
 // Programs run on the runtime `editor` loads -- start loading it now.
 // - It registers the `UI` / `SUI` tags spell JSX draws with, NOT the editor's `spell-app/app/solid`.
-// - NEVER import `spell-lang/core` here:  see `spellRuntime.ts`.
+// - NEVER import `spell-parser/core` here:  see `spellRuntime.ts`.
 void editor.loadRuntime()
 
 // The editor's icon names are Fomantic's, page-wide too:  its dialogs open on `<body>`, outside `index.html`'s `<ui-root>`.

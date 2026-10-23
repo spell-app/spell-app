@@ -6,10 +6,10 @@ import { pathToFileURL } from "url"
 import { describe, test, expect, beforeAll } from "vite-plus/test"
 
 import environment from "spell-app/spaces/server/node/environment"
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
-import { describeParseErrors, tsxBinary } from "spell-lang/spell/test"
+import { describeParseErrors, tsxBinary } from "spell-parser/spell/test"
 import { fixtureFolder } from "spell-app/spaces/test"
 
 /**
@@ -17,8 +17,8 @@ import { fixtureFolder } from "spell-app/spaces/test"
  * - Solitaire split in two, in a temp `@local/<folder>` group:  `lib`, a copy of its cards, deck and piles (`Card`,
  *   `Deck`, `Pile`), and apps importing it, e.g. a copy of its game, `Solitaire.spell`.
  * - Nothing is written into the repo.
- * - spaces' since epic `repo-split` C11 (spell-lang's `tests/spell/` before):  it loads projects through spaces'
- *   disk reader, which spell-lang's tests never import.
+ * - spaces' since epic `repo-split` C11 (spell-parser's `tests/spell/` before):  it loads projects through spaces'
+ *   disk reader, which spell-parser's tests never import.
  */
 describe("SpellProject imports", () => {
   const solitaire = fixtureFolder("Solitaire")
@@ -87,9 +87,9 @@ describe("SpellProject imports", () => {
       })
     )
     const tsx = tsxBinary()
-    // from spell-lang's root:  `tsx` reads its `tsconfig.json` (standard decorators lowered)
+    // from spell-parser's root:  `tsx` reads its `tsconfig.json` (standard decorators lowered)
     return spawnSync(tsx, ["--import", hooks, runner], {
-      cwd: environment.packageFolder("spell-lang"),
+      cwd: environment.packageFolder("spell-parser"),
       encoding: "utf8",
       env: {
         ...process.env,

@@ -5,7 +5,7 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import { CompletionItemKind, DiagnosticSeverity, type CompletionList, type TextEdit } from "vscode-languageserver"
 
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
 import { fixtureFolder } from "spell-app/spaces/test"

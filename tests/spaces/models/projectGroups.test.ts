@@ -32,7 +32,7 @@ describe("spell's project groups", () => {
   test.each(Object.entries(ENTRIES))("are registered with spell by %s", async (_name, load) => {
     vi.resetModules()
     await load()
-    const { SpellSetup } = await import("spell-lang/spell/SpellSetup")
+    const { SpellSetup } = await import("spell-parser/spell/SpellSetup")
     expect(Object.keys(SpellSetup.projectRoots)).toEqual(
       expect.arrayContaining(SPACES.PROJECT_GROUPS.map((it) => it.path))
     )

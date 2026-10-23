@@ -3,7 +3,7 @@ import { tmpdir } from "os"
 import { resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { CLI } from "spell-app/cli"
 import {
   fixturePath,

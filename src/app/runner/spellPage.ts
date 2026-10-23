@@ -5,7 +5,7 @@
  * - It IS the page's `@spell/core`:  the program's drawing half, `<Project>.elements.spell.js`, imports from it,
  *   through the page's import map.
  * - It exports what `spell-runtime.js` exports for compiled javascript (`spellPage.test.ts` pins it),
- *   plus the page's side (`page.ts` in `spell-lang/core`):
+ *   plus the page's side (`page.ts` in `spell-parser/core`):
  *   `connectPage()`, `startPage()`, `sendCall()`, `sendTrigger()`.
  * - Unlike a runner's, it sets up the page itself:  Spell UI's elements, Solid following spell's cells,
  *   and a drawable thing's own element, e.g. `<solitaire-card>`.
@@ -43,7 +43,7 @@ import {
   startPage,
   sendCall,
   sendTrigger
-} from "spell-lang/core"
+} from "spell-parser/core"
 import { installSpellElements } from "./SpellElement"
 
 // a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself

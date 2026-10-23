@@ -1,5 +1,5 @@
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 
 import { monaco } from "./monaco"

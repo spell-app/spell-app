@@ -1,10 +1,10 @@
 import { createEffect } from "solid-js"
 
-import { camelCase, snakeCase } from "spell-kit/util"
-import { E } from "spell-kit/element"
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
-import type { Core } from "spell-lang/core"
+import { camelCase, snakeCase } from "spell/util"
+import { E } from "spell/element"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
+import type { Core } from "spell-parser/core"
 import { SpellElement } from "./SpellElement"
 import {
   LAYOUT_HOLE as HOLE,

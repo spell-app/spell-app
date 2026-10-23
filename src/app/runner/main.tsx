@@ -4,7 +4,7 @@
  * - Draws `<VSCodeRunner>` (Solid), which runs programs on its own copy of the spell runtime, `spell-runtime.js`
  *   beside this -- see `spellRuntime.ts`.  That's where `UI` / `SUI` are registered, `core` lives, and
  *   programs draw, with Solid.
- * - NEVER imports `spell-lang/core`:  it'd be bundled here, a second copy, NOT the one programs run on.
+ * - NEVER imports `spell-parser/core`:  it'd be bundled here, a second copy, NOT the one programs run on.
  *   Devtools get the runtime's as global `core` -- see `<VSCodeRunner>`.
  * - SIDE EFFECT:  `loadUI` defines every `<ui-*>` the runner draws;  the webview's HTML wraps `#runner-root` in
  *   `<ui-root icons="fomantic">`, for the runner's Fomantic icon names.

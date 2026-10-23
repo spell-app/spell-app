@@ -34,7 +34,7 @@ describe("findSpellApp():  the window's checkout", () => {
   })
 
   test("a folder inside a checkout leads to it, when no folder is or holds one", () => {
-    expect(findSpellApp({ workspaceFolders: [join(MAIN, "spell-lang")], builtIn: "/nowhere" })?.root).toBe(
+    expect(findSpellApp({ workspaceFolders: [join(MAIN, "spell-parser")], builtIn: "/nowhere" })?.root).toBe(
       join(MAIN, "spell-app")
     )
   })
@@ -73,14 +73,14 @@ const WORKTREE = checkout("spell.worktrees/epic", { worktree: true })
 const ELSEWHERE = join(TEMP, "elsewhere")
 mkdirSync(ELSEWHERE)
 
-/** A made-up kit at `path` (under `TEMP`), its spell-app and spell-lang inside it;  returns the kit's folder. */
+/** A made-up kit at `path` (under `TEMP`), its spell-app and spell-parser inside it;  returns the kit's folder. */
 function checkout(path: string, { worktree }: { worktree: boolean }): string {
   const kit = join(TEMP, path)
   const spellApp = join(kit, "spell-app")
   mkdirSync(spellApp, { recursive: true })
-  mkdirSync(join(kit, "spell-lang"))
+  mkdirSync(join(kit, "spell-parser"))
   writeFileSync(join(spellApp, "package.json"), `{ "name": "spell-app" }`)
-  writeFileSync(join(kit, "spell-lang", "package.json"), `{ "name": "spell-lang" }`)
+  writeFileSync(join(kit, "spell-parser", "package.json"), `{ "name": "spell-parser" }`)
   if (worktree) writeFileSync(join(spellApp, ".git"), `gitdir: ${join(TEMP, "spell/spell-app/.git/worktrees/epic")}\n`)
   else mkdirSync(join(spellApp, ".git"))
   return kit

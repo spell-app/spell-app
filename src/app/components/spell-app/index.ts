@@ -11,7 +11,7 @@
  *
  * - On a page with Spell UI of its own (a docs page), it uses the page's Solid and Spell UI (`spell-solid-shared.js`).
  *
- * - NEVER imports `spell-lang/core`, even indirectly:
+ * - NEVER imports `spell-parser/core`, even indirectly:
  *   each app loads its own copy, `spell-runtime.js` (`spellRuntime.ts`, `element.build.test.ts`).
  */
 

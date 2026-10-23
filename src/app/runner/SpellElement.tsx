@@ -1,10 +1,10 @@
 import { createEffect } from "solid-js"
 import { insert, type JSX } from "@solidjs/web"
 
-import { drawableAttributeFor, kebabCase } from "spell-kit/util"
+import { drawableAttributeFor, kebabCase } from "spell/util"
 import { E, UI } from "spell-ui/core"
 import { RootLoader } from "spell-ui/components/ui-root"
-import type { ElementApi, Core } from "spell-lang/core"
+import type { ElementApi, Core } from "spell-parser/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 import { Glides } from "./Glides"
 import { Dragging } from "./Dragging"
@@ -77,7 +77,7 @@ const DRAGGING_CSS = `
  *     and on the drop the program hears `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`
  *   - The web's own drag events say so as it goes:  `dragstart`, `dragenter`, `drop` ... (`Dragging`).
  *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`DRAGGING_CSS`).
- * - Part of `spell-runtime.js`:  NEVER value-imports `spell-lang/core`.
+ * - Part of `spell-runtime.js`:  NEVER value-imports `spell-parser/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
  * - SEE:  its App UI components page, `app/docs/spell-element.html` (`/components/app/spell-element.html`).
  ****************/
@@ -692,7 +692,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 
   /**
    * The attributes of a type's properties, from its `api`, e.g. `short-rank` for `short_rank`:
-   * see `drawableAttributeFor()` in `spell-kit/util`.
+   * see `drawableAttributeFor()` in `spell/util`.
    * - Text, a number or a choice:  an attribute and a property.
    * - A thing, e.g. a pile:  an attribute holding its reference, `pile="Tableau#T1"` (P18).
    *   So is the list holding it, for `a card belongs to one pile`.

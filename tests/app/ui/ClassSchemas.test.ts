@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { declareProp, Observable } from "spell-kit/util"
+import { declareProp, Observable } from "spell/util"
 import { ClassSchemas } from "spell-app/app/ui/ClassSchemas"
 
 describe("ClassSchemas.fromClass()", () => {

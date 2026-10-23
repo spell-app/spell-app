@@ -3,9 +3,9 @@ import path from "node:path"
 import solid from "@solidjs/vite-plugin"
 import type { Plugin, PluginOption, UserConfig } from "vite"
 
-import { standardDecorators } from "spell-kit/toolchain/decorators"
-import { packageVersion } from "spell-kit/toolchain/packageVersion"
-import { CSS_TARGETS, SOLID_DEDUPE } from "spell-kit/element-tools/elementConfig"
+import { standardDecorators } from "spell/toolchain/decorators"
+import { packageVersion } from "spell/toolchain/packageVersion"
+import { CSS_TARGETS, SOLID_DEDUPE } from "spell/element-tools/elementConfig"
 import { emitIconPacks } from "spell-ui/vite.config.ts"
 
 /**
@@ -46,7 +46,7 @@ export const TOP_REPO = (() => {
  *   Omit for `vitest`, and for builds that import `ui` from `spell-ui.js`.
  * - Lightning CSS with the kit's `CSS_TARGETS`, as Spell UI's own:
  *   Vite's default targets lower `light-dark()` and break `ui-dark` subtrees
- *   (see `spell-kit/element-tools/elementConfig`).
+ *   (see `spell/element-tools/elementConfig`).
  */
 export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
   const plugins: PluginOption[] = [
@@ -148,7 +148,7 @@ const FROM_SHARED_SOLID = new Map<string, string>([
   // spell-element, which `<spell-app>` and `<spell-editor>` are written on:  `spell-ui/core` carries all of it, and
   // its `E` holds every name spell-element's does, so it comes BEFORE `spell-ui/core` (a page's module,
   // `spell-solid-shared.js`)
-  ["spell-kit/element", SHARED_SOLID.shared],
+  ["spell/element", SHARED_SOLID.shared],
   ["spell-ui/core", SHARED_SOLID.shared],
   ["spell-ui/components/ui-root", SHARED_SOLID.shared],
   ["spell-ui", SHARED_SOLID.ui],
@@ -179,7 +179,7 @@ export const SHARED_DEFAULTS: Readonly<Record<string, string>> = { [H_PACKAGE]: 
 const SHARED_H = "\0spell-shared-h"
 
 /** Any other import from Solid's or `ui`'s packages:  `sharedSolid()` refuses it, as the shared files may lack it. */
-const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|spell-ui|spell-kit\/element)(\/|$)/
+const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|spell-ui|spell\/element)(\/|$)/
 
 /**
  * For a build that takes Solid and `spell-ui` from `SHARED_SOLID`'s files beside it, instead of bundling its own:

@@ -1,7 +1,7 @@
 import { Match, Show, Switch, createEffect, createSignal, getOwner, onSettled, runWithOwner, untrack } from "solid-js"
 
 import type { LSP } from "spell-app/lsp"
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import type { ThingExplorerState, TypeExplorerState } from "spell-app/app/ui/ui.types"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the `spell-app/app/solid` barrel, which pulls in the editor
@@ -46,7 +46,7 @@ import "./SpellAppRunner.css"
  * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
  * - Its `<ui-*>` tags are the caller's to define, with Fomantic's icon names:
  *   `<spell-app>` is a root that loads them as they appear;  the VS Code runner imports `spell-app/app/solid/loadUI`.
- * - NEVER imports `spell-lang/core`:  it'd land in the bundle's shared chunk, so every app would share it.
+ * - NEVER imports `spell-parser/core`:  it'd land in the bundle's shared chunk, so every app would share it.
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/
 export function SpellAppRunner(props: SpellAppRunnerProps) {

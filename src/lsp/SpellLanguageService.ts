@@ -32,9 +32,9 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { P } from "spell-lang/parser"
-import { MD, type InlineNode } from "spell-lang/markdown"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { MD, type InlineNode } from "spell-parser/markdown"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 
 /**

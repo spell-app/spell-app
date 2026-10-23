@@ -1,8 +1,8 @@
 import { configDefaults, defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
-import { standardDecorators } from "spell-kit/toolchain/decorators"
-import { packageVersion } from "spell-kit/toolchain/packageVersion"
+import { standardDecorators } from "spell/toolchain/decorators"
+import { packageVersion } from "spell/toolchain/packageVersion"
 import { appConfig } from "./app/vite.shared.ts"
 
 /**
@@ -29,10 +29,10 @@ const APP_TESTS = "tests/app"
  *       (without it, the client build).
  *   - `app:browser`:  `BROWSER_TESTS`, in chromium (Vitest browser mode + Playwright):
  *     Solid's client build, so staged writes, effects and `flush()` behave as in the app.
- * - `spell`:  spell-lang's language on the frozen test projects (`spaces/@spell/test/`), in `tests/spell/`, at the
- *   same paths their tests had in spell-lang (epic `spanish` P18):  the projects' snapshots, `tsc` and pyright on them,
+ * - `spell`:  spell-parser's language on the frozen test projects (`spaces/@spell/test/`), in `tests/spell/`, at the
+ *   same paths their tests had in spell-parser (epic `spanish` P18):  the projects' snapshots, `tsc` and pyright on them,
  *   whole-project parsing.
- *   - No folder of `src/` of its own:  it tests spell-lang's `spell`, by package, on this repo's projects.
+ *   - No folder of `src/` of its own:  it tests spell-parser's `spell`, by package, on this repo's projects.
  * - `vscode`:  the VS Code extension's plain-node parts (`vscode/src/`), in `tests/vscode/`;
  *   the extension is its own yarn project;  these parts need no stand-in `vscode`.
  * - `vscode:elements`:  the extension's elements help (`vscode/tests/`), by ITS config, `vscode/vitest.config.ts`:
@@ -75,7 +75,7 @@ function appProjects(): TestProjectConfiguration[] {
         name: "app:browser",
         dir: APP_TESTS,
         include: BROWSER_TESTS,
-        // Spell UI's core first, as a page has it:  its settings for `spell-kit/element`
+        // Spell UI's core first, as a page has it:  its settings for `spell/element`
         setupFiles: ["spell-ui/test-helpers/setup.ts"],
         browser: {
           enabled: true,

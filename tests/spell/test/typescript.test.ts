@@ -1,8 +1,8 @@
 import { beforeAll, describe, test, expect } from "vite-plus/test"
 
-import { describeTypecheckError, typecheck, type TypecheckResult } from "spell-lang/spell/node/typecheck"
-import { SP } from "spell-lang/spell"
-import { solidSample } from "spell-lang/spell/test"
+import { describeTypecheckError, typecheck, type TypecheckResult } from "spell-parser/spell/node/typecheck"
+import { SP } from "spell-parser/spell"
+import { solidSample } from "spell-parser/spell/test"
 import { compiledFixture, fixtureImports, fixtureProjectNames, snapshotPath } from "spell-app/spaces/test"
 
 /**

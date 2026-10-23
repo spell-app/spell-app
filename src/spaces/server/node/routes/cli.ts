@@ -1,16 +1,16 @@
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "spell-lang/spell/node/packageVersion.node"
+import "spell-parser/spell/node/packageVersion.node"
 
 import JSON5 from "json5"
 import path from "path"
 
-import { SRV } from "spell-kit/server"
+import { SRV } from "spell/server"
 import environment from "spell-app/spaces/server/node/environment"
 import { api, spaceFiles } from "./api"
 import { APP_DIR } from "./EditorServer"
 
 /**
- * The app's API server, on `spell-kit/server`'s `WebServer` (it was Express):  `yarn start:server`, at spell-app's root.
+ * The app's API server, on `spell/server`'s `WebServer` (it was Express):  `yarn start:server`, at spell-app's root.
  * - What it serves:
  *   - `/api/...` -- see `./api` for the route table
  *   - `/spaces/<project>/<file>` -- a project's file

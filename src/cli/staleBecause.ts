@@ -3,8 +3,8 @@ import { basename, join, relative } from "path"
 
 import environment from "spell-app/spaces/server/node/environment"
 import { buildFolderFor } from "spell-app/spaces/server/node/projects/project-utils"
-import { SP } from "spell-lang/spell"
-import { projectFileFor } from "spell-lang/spell/node/projectFile"
+import { SP } from "spell-parser/spell"
+import { projectFileFor } from "spell-parser/spell/node/projectFile"
 import { LSP } from "spell-app/lsp"
 
 /**
@@ -54,22 +54,22 @@ export async function staleBecause(project: SP.SpellProject): Promise<string | u
 
 /**
  * Spell's compiler:  what decides what a project builds to, as folders and files.
- * - the parser and its writers, spell's rules, Python's writers (spell-lang's), the language server's scope packs
+ * - the parser and its writers, spell's rules, Python's writers (spell-parser's), the language server's scope packs
  *   (this repo's)
  * - core's built-in types' declarations, which every project parses against
  * - NOT core's runtime:  compiled code imports it, so a change to it needs no rebuild
- * - spell-lang's by its packages' folders (`environment.packageFolder()`), never by a path into that repo
+ * - spell-parser's by its packages' folders (`environment.packageFolder()`), never by a path into that repo
  */
 export const COMPILER_SOURCES = [
-  environment.packageFolder("spell-lang/parser"),
+  environment.packageFolder("spell-parser/parser"),
   environment.srcDir,
   join(environment.repoDir, "src", "lsp"),
-  environment.packageFolder("spell-lang/py"),
-  join(environment.packageFolder("spell-lang/core"), "core.declarations.json5")
+  environment.packageFolder("spell-parser/py"),
+  join(environment.packageFolder("spell-parser/core"), "core.declarations.json5")
 ]
 
 /** Under `COMPILER_SOURCES`, but not the compiler:  Python's core (`spell_core`), its runtime, in py's `core/`. */
-const NOT_COMPILER = new Set([join(environment.packageFolder("spell-lang/py"), "core")])
+const NOT_COMPILER = new Set([join(environment.packageFolder("spell-parser/py"), "core")])
 
 ////////////////
 // ## Helpers

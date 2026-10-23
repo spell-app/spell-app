@@ -4,11 +4,11 @@ import { createRequire } from "module"
 import { dirname, join } from "path"
 import { createInterface } from "readline"
 
-import type { SRV } from "spell-kit/server"
+import type { SRV } from "spell/server"
 import environment from "spell-app/spaces/server/node/environment"
 import * as projectUtils from "spell-app/spaces/server/node/projects/project-utils"
-import { SP } from "spell-lang/spell"
-import { hasProjectFile } from "spell-lang/spell/node/projectFile"
+import { SP } from "spell-parser/spell"
+import { hasProjectFile } from "spell-parser/spell/node/projectFile"
 
 /**
  * Builds spell projects when the API needs what they build:  their compiled output and scope packs are in `build/`
@@ -204,14 +204,14 @@ async function within(work: Promise<void>, deadline: number): Promise<void> {
 }
 
 /**
- * The kit's `spell` command (`spell-kit`'s `bin/spell.mjs`), as checkout `root`'s install resolves the kit:
+ * The kit's `spell` command (`spell`'s `bin/spell.mjs`), as checkout `root`'s install resolves the kit:
  * the checkout's OWN, never the `spell` on `PATH` (maybe main's);  `undefined` when its install has no kit.
  * - By package, never a path into the kit (the root `AGENTS.md`, "Imports across repos").
- * - NOTE: the kit's `BundleBuild` (`spell-kit/server/page`) keeps a twin of this:  the kit imports no repo above it
+ * - NOTE: the kit's `BundleBuild` (`spell/server/page`) keeps a twin of this:  the kit imports no repo above it
  */
 function kitSpell(root: string): string | undefined {
   try {
-    const kit = dirname(createRequire(join(root, "package.json")).resolve("spell-kit/package.json"))
+    const kit = dirname(createRequire(join(root, "package.json")).resolve("spell/package.json"))
     return join(kit, "bin", "spell.mjs")
   } catch {
     return undefined

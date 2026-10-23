@@ -171,7 +171,7 @@ describe("runner builds", () => {
       "solid-js",
       "@solidjs/web",
       "@solidjs/h",
-      "spell-kit/element",
+      "spell/element",
       "spell-ui/core",
       "spell-ui/components/ui-root"
     ])
@@ -312,14 +312,14 @@ const PACKAGES = {
   monaco: /\/node_modules\/monaco-editor\//
 }
 
-/** The component base class, every set's:  `spell-kit/element`'s, which Spell UI's core carries. */
+/** The component base class, every set's:  `spell/element`'s, which Spell UI's core carries. */
 const UI_COMPONENT = /\/src\/element\/UIComponent\.tsx$/
 
 /** `ui`'s root component, which `<spell-app>` extends. */
 const UI_ROOT = /\/spell-ui\/src\/components\/ui-root\/UIRoot\.tsx$/
 
 /** Spell's highlighter, which colours spell for `<spell-code>`. */
-const SPELL_HIGHLIGHTER = /\/spell-lang\/src\/spell\/highlight\/SpellHighlighter\.ts$/
+const SPELL_HIGHLIGHTER = /\/spell-parser\/src\/spell\/highlight\/SpellHighlighter\.ts$/
 
 /** `<spell-editor>`'s component. */
 const SPELL_EDITOR = /\/components\/spell-editor\/SpellEditor\.tsx$/

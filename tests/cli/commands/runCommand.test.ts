@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { solidSample } from "spell-lang/spell/test"
+import { solidSample } from "spell-parser/spell/test"
 import { CLI } from "spell-app/cli"
 
 /**

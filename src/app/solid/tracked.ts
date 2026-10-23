@@ -1,13 +1,13 @@
 import { createMemo, getOwner, type Accessor } from "solid-js"
 
-import { E } from "spell-kit/element"
+import { E } from "spell/element"
 
 import "./cellsBridge"
 
 /**
  * A Solid accessor over a read of spell state:
  * `read()` re-runs when a spell cell it read changes, and Solid code reading the accessor re-runs after.
- * - Spell state is spell cells (`spell-kit/util`'s `cells.ts`):  spell Things, `SP.*`, the editor.
+ * - Spell state is spell cells (`spell/util`'s `cells.ts`):  spell Things, `SP.*`, the editor.
  *   - The bridge (`./cellsBridge`) makes EVERY Solid computation follow the cells it reads,
  *     so a plain read in JSX (`{editor.notice}`) is reactive too.
  *   - `tracked()` adds a memo:  `read()` runs once per change, however many places read the accessor,
@@ -18,7 +18,7 @@ import "./cellsBridge"
  *     (what `{ deferred: true }` used to ask for).
  * - NEVER re-reads for a change `read()` makes itself:
  *   a computed property that builds a new pile on every read would re-read forever.
- *   See `Reaction` in `spell-kit/util`.
+ *   See `Reaction` in `spell/util`.
  * - Every re-read notifies (`equals: false`):  the value may be the same object with something else changed.
  *   Read narrowly (`() => editor.project?.title`, not `() => editor`).
  * - The value is Solid's, so STAGED:

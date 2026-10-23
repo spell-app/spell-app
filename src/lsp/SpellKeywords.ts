@@ -1,5 +1,5 @@
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
 
 /****************
  * ### `SpellKeywords`

@@ -13,7 +13,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
-import { keepingCommentsIn } from "spell-kit/util/node/json5"
+import { keepingCommentsIn } from "spell/util/node/json5"
 import { SiteDataBuilder } from "spell-ui/tools/SiteDataBuilder"
 
 import { AppUIDataBuilder } from "spell-app/app/tools/AppUIDataBuilder"

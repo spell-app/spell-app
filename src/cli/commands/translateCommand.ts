@@ -1,12 +1,12 @@
-import { SP } from "spell-lang/spell"
-import type { SourceFile } from "spell-lang/spell/translate/translate.types"
+import { SP } from "spell-parser/spell"
+import type { SourceFile } from "spell-parser/spell/translate/translate.types"
 import { CLI } from "spell-app/cli"
 
 /**
- * `spell lang translate [project] --to <lang>`:  write a project in another language (epic `spanish` P24).
+ * `spell parser translate [project] --to <lang>`:  write a project in another language (epic `spanish` P24).
  * - Here, only what needs the app:  finding the project (an address, a folder, `@here`) and parsing it,
  *   and its `--seed` project too.
- * - The rest is spell-lang's `translateProject()`:  the dictionary, the translating, `claude -p`, the files.
+ * - The rest is spell-parser's `translateProject()`:  the dictionary, the translating, `claude -p`, the files.
  * - Returns the exit code:  `EXIT.ERRORS` if any line still needs a person.
  */
 export async function translateCommand(
@@ -16,7 +16,7 @@ export async function translateCommand(
 ): Promise<number> {
   const project = await CLI.projectFor(session, args[0] ?? (await session.defaultProject()))
   const seed = options.seed ? await CLI.projectFor(session, options.seed) : undefined
-  const { translateProject } = await import("spell-lang/cli/translateProject")
+  const { translateProject } = await import("spell-parser/cli/translateProject")
   return translateProject(
     {
       projectName: project.projectName ?? "Project",

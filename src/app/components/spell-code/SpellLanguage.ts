@@ -66,7 +66,7 @@ const TRANSLATIONS: Record<string, () => Promise<Omit<E.CodeLanguage, "load">>> 
 
 /** The highlighter of language `lang`'s spell, from its pack:  `SP.SpellHighlighter` with its parser. */
 async function highlighterFor(lang: string): Promise<Omit<E.CodeLanguage, "load">> {
-  const { SP } = await import("spell-lang/spell")
+  const { SP } = await import("spell-parser/spell")
   const { parser } = SP.Language.for(lang)
   return { highlight: (code: string) => SP.SpellHighlighter.spans(code, parser) }
 }

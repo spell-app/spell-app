@@ -6,7 +6,7 @@ import { dirname, join, resolve } from "path"
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright"
 import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 
-import { SRV } from "spell-kit/server"
+import { SRV } from "spell/server"
 
 /**
  * A Python spell app in a real browser (epic `python-target` P20):
@@ -23,8 +23,8 @@ import { SRV } from "spell-kit/server"
  * - The page side, `app/dist-page/`, is built first (`yarn build:page`, a few seconds):  never a stale one.
  */
 const REPO = resolve(import.meta.dirname, "../..")
-/** The kit's `spell`, by package:  `spell-kit`'s `bin/spell.mjs` (spell-app's own until epic `repo-split` P13). */
-const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "bin/spell.mjs")
+/** The kit's `spell`, by package:  `spell`'s `bin/spell.mjs` (spell-app's own until epic `repo-split` P13). */
+const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell/package.json")), "bin/spell.mjs")
 /** The Solitaire example, which this plays. */
 const SOLITAIRE = resolve(REPO, "spaces/@spell/examples/Solitaire")
 /** A frozen test project that imports another:  the counter library, `@spell/test/counter`. */

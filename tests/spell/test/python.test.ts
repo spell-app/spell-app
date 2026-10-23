@@ -1,7 +1,7 @@
 import { beforeAll, describe, test, expect } from "vite-plus/test"
 
-import { PY } from "spell-lang/py"
-import { describePyrightError, pyright, type PyrightResult } from "spell-lang/spell/node/pyright"
+import { PY } from "spell-parser/py"
+import { describePyrightError, pyright, type PyrightResult } from "spell-parser/spell/node/pyright"
 import { PYTHON_FIXTURES, compiledFixture, fixtureImports, snapshotPath } from "spell-app/spaces/test"
 
 /**

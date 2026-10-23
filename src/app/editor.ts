@@ -1,9 +1,9 @@
-import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "spell-kit/util"
+import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "spell/util"
 
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
 import { SPACES } from "spell-app/spaces"
-import type { SpellConsole } from "spell-lang/core/console"
+import type { SpellConsole } from "spell-parser/core/console"
 import type { SpellRuntime } from "spell-app/app/runner"
 import type * as UIT from "spell-app/app/ui/ui.types"
 import type { monaco } from "spell-app/app/ui/monaco"
@@ -803,7 +803,7 @@ let appRoot: HTMLElement | undefined
 
 /**
  * `core` of the runtime programs run on -- `undefined` until it's loaded, see `editor.loadRuntime()`.
- * - NOT an import of `spell-lang/core`:  the app MUST NOT load one of its own, see `spellRuntime.ts`.
+ * - NOT an import of `spell-parser/core`:  the app MUST NOT load one of its own, see `spellRuntime.ts`.
  * - A function, NOT a getter on `editor`:  callers outside the editor read it too.
  * - Reads `editor.runtimeLoaded`, so a reader calling it re-runs once it's loaded.
  */

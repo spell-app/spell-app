@@ -1,12 +1,12 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { parseSpellProject } from "spell-lang/spell/test"
+import { parseSpellProject } from "spell-parser/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * Spell's words for one thing, by its name or its place, in the frozen `thing-references` project:
  * the warning when two things share the name a reference reads.
- * - Over lines written inline:  spell-lang's own `references.test.ts`.
+ * - Over lines written inline:  spell-parser's own `references.test.ts`.
  */
 describe("thing references in spell", () => {
   test("the ThingReferences fixture:  a warning where a reference reads a name two tableaus share, none elsewhere", () => {

@@ -2,7 +2,7 @@
  * Barrel for spell-app's `spell` commands' work, one per file -- flattened into `spell-app/cli`.
  * - Each is `(session, args, options) => Promise<exitCode>`:
  *   - the app's own:  `spell app create | serve` (`newCommand`, `serveCommand`), `spell projects`
- *   - the language's:  spell-lang's commands (`spell compile` ...), through the `"language"` hook
+ *   - the language's:  spell-parser's commands (`spell compile` ...), through the `"language"` hook
  *     (`languageCommands.ts`)
  * - Except `vscodeCommand`, `(args) => Promise<exitCode>`:  it loads no spell.
  * - NOT here:  the kit's commands (`spell server` ...), Spell UI's (`spell pack` ...), the `epic` command's verbs.

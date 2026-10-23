@@ -1,17 +1,17 @@
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "spell-lang/spell/node/packageVersion.node"
+import "spell-parser/spell/node/packageVersion.node"
 
 import { existsSync, readFileSync } from "fs"
 import JSON5 from "json5"
 import { join } from "path"
 
-import { SRV } from "spell-kit/server"
-import type { RouteModule } from "spell-kit/server/page"
+import { SRV } from "spell/server"
+import type { RouteModule } from "spell/server/page"
 import { api, projectBuild, spaceFiles } from "./api"
 import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
 
 /**
- * The app on the page server:  a ROUTE MODULE (`spell-kit/server/page`'s `RouteModule`),
+ * The app on the page server:  a ROUTE MODULE (`spell/server/page`'s `RouteModule`),
  * spell-app's part of the kit's page server settings:  `"pageServer": { "routes": [...] }` in its `package.json`.
  * - What `spell app serve` runs everything on.
  * - It's spaces' (epic `people-and-orgs` P14):  where projects live, and the servers that serve them.

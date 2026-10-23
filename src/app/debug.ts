@@ -3,8 +3,8 @@ import global from "global"
 import _ from "lodash"
 import JSON5 from "json5"
 
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
 import { editor, runtimeCore } from "spell-app/app/editor"
 
 // Stick interesting bits on `global` to make console debugging easier.

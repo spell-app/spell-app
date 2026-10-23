@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 
-import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
+import { ElementFixture } from "spell/test-helpers/ElementFixture"
 import type { SpellCompiled } from "spell-app/app/runner/runner.types"
 import type { DOMSpellAppElement } from "spell-app/app/components/spell-app"
-import type { P } from "spell-lang/parser"
-import type { SP } from "spell-lang/spell"
+import type { P } from "spell-parser/parser"
+import type { SP } from "spell-parser/spell"
 
 /**
  * `<spell-app>` as a root (`UIRoot`), on a page with nothing else of Spell UI.
@@ -335,7 +335,7 @@ describe("<markdown> blocks:  drawn by <ui-markdown>, their holes live (P14, Q22
  * - Spell imported only now:  imported with the file, it loads before `<spell-app>`'s own setup has run.
  */
 async function compiledProject(text: string): Promise<{ compiled: string; declarations: SP.SpellDeclarationsData }> {
-  const [{ P }, { SP }] = await Promise.all([import("spell-lang/parser"), import("spell-lang/spell")])
+  const [{ P }, { SP }] = await Promise.all([import("spell-parser/parser"), import("spell-parser/spell")])
   const parentScope = SP.SpellParser.rootScope
   const scope = new P.ProjectScope({
     name: "test-project",

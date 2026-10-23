@@ -12,7 +12,7 @@ const CLI_SRC_DIR = resolve(fileURLToPath(import.meta.url), "..", "..")
 /** The child process that times one run -- see its header. */
 const RUNNER = resolve(CLI_SRC_DIR, "runner", "speedTest.mts")
 /**
- * Where spell's source is in a checkout of spell-lang, the repo whose parser is timed (epic `repo-split` P8),
+ * Where spell's source is in a checkout of spell-parser, the repo whose parser is timed (epic `repo-split` P8),
  * from its root.
  * - Since epic `repo-split` P14:  every import a package name, so it runs with no run-time alias hook.
  * - A ref from before P14 has none:  `--against` says so (`checkSpellSource()`).
@@ -48,7 +48,7 @@ export async function speedtestCommand(
   const status = new CLI.StatusReporter(session.isInteractive)
   const current: Side = {
     label: "Current",
-    checkout: environment.packageFolder("spell-lang")
+    checkout: environment.packageFolder("spell-parser")
   }
   const sides = [current]
   let checkout: string | undefined
@@ -91,7 +91,7 @@ export async function speedtestCommand(
 
 /**
  * One side of the comparison.
- * - `checkout`:  the spell-lang checkout `speedTest.mts` times:  ours (`spell-lang/spell`'s), or the temp one
+ * - `checkout`:  the spell-parser checkout `speedTest.mts` times:  ours (`spell-parser/spell`'s), or the temp one
  * - `results`:  each run's, so far
  */
 type Side = {
@@ -201,14 +201,14 @@ export function speedTable(totals: Pick<SideTotal, "label" | "average" | "min" |
 ////////////////
 
 /**
- * A temp git worktree of spell-lang (the repo of our `spell-lang/spell`) at `ref`, ready to time:  the top repo's
+ * A temp git worktree of spell-parser (the repo of our `spell-parser/spell`) at `ref`, ready to time:  the top repo's
  * `node_modules` linked in (epic `repo-split` P7:  one install for every repo), so its packages from the OTHER repos
- * (`spell-kit/util`) are ours, its own (`spell-lang/parser` ...) its own.
+ * (`spell/util`) are ours, its own (`spell-parser/parser` ...) its own.
  * - A `ref` with different dependencies may not run.
  * - `removeCheckout()` when done.
  */
 function checkoutOf(ref: string): string {
-  const repo = spellLangRepo()
+  const repo = spellParserRepo()
   const folder = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-speed-")))
   try {
     git(["worktree", "add", "--detach", folder, ref], repo)
@@ -222,25 +222,25 @@ function checkoutOf(ref: string): string {
 }
 
 /**
- * Make sure spell-lang checkout `folder` (at `ref`) has spell's source where we run it, `SPELL_SRC`.
+ * Make sure spell-parser checkout `folder` (at `ref`) has spell's source where we run it, `SPELL_SRC`.
  * - throws if not:  `ref` is from before epic `repo-split` P14, whose imports needed the run-time alias hook
  */
 function checkSpellSource(folder: string, ref: string): void {
   if (existsSync(resolve(folder, SPELL_SRC))) return
   throw new CLI.CliError(
-    `${ref} has no ${SPELL_SRC}:  --against needs a spell-lang ref from after epic repo-split P14 (one import name)`
+    `${ref} has no ${SPELL_SRC}:  --against needs a spell-parser ref from after epic repo-split P14 (one import name)`
   )
 }
 
-/** spell-lang's checkout:  the git repo our spell's source is in. */
-function spellLangRepo(): string {
+/** spell-parser's checkout:  the git repo our spell's source is in. */
+function spellParserRepo(): string {
   return git(["rev-parse", "--show-toplevel"], environment.srcDir)
 }
 
 /** The `node_modules` our spell is installed from:  the nearest one above spell's source (the top repo's). */
 function installedModules(): string {
   for (let dir = environment.srcDir; ; dir = dirname(dir)) {
-    if (existsSync(resolve(dir, "node_modules", "spell-lang"))) return resolve(dir, "node_modules")
+    if (existsSync(resolve(dir, "node_modules", "spell-parser"))) return resolve(dir, "node_modules")
     if (dirname(dir) === dir) throw new CLI.CliError(`no node_modules above ${environment.srcDir}`)
   }
 }
@@ -252,7 +252,7 @@ function installedModules(): string {
 function removeCheckout(folder: string): void {
   const modules = resolve(folder, "node_modules")
   if (lstatSync(modules, { throwIfNoEntry: false })?.isSymbolicLink()) unlinkSync(modules)
-  const repo = spellLangRepo()
+  const repo = spellParserRepo()
   spawnSync("git", ["worktree", "remove", "--force", folder], { cwd: repo })
   rmSync(folder, { recursive: true, force: true })
   spawnSync("git", ["worktree", "prune"], { cwd: repo })

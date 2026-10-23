@@ -1,4 +1,4 @@
-import { schemaOf, type PropInfo } from "spell-kit/util"
+import { schemaOf, type PropInfo } from "spell/util"
 import type { V } from "spell-ui/api"
 
 /****************

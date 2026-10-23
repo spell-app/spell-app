@@ -1,9 +1,9 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { describeTypecheckError, typecheck } from "spell-lang/spell/node/typecheck"
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
-import { parseSpellProject } from "spell-lang/spell/test"
+import { describeTypecheckError, typecheck } from "spell-parser/spell/node/typecheck"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
+import { parseSpellProject } from "spell-parser/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
@@ -12,7 +12,7 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  * not as code (`class Card`, TypeScript's `card: Card`, `List<Card>`),
  * nor as text the runtime reads (`isOfType(x, 'Card')`, `instanceType: "Card"`).
  * - Here on a whole game, Solitaire, its card library's files compiled with it:  every type its own, to rename.
- *   The maps themselves:  spell-lang's own `naming.test.ts`.
+ *   The maps themselves:  spell-parser's own `naming.test.ts`.
  */
 describe("a writer's naming map", () => {
   /** Solitaire and its cards, compiled by `writer` (javascript's or TypeScript's) with its types in `typeCase`. */

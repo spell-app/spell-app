@@ -1,11 +1,11 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { parseSpellProject } from "spell-lang/spell/test"
+import { parseSpellProject } from "spell-parser/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * `expectedAfter()` on a whole frozen project:  quick enough to ask on every keystroke.
- * - What it expects, rule by rule:  spell-lang's own `Expectations.test.ts`.
+ * - What it expects, rule by rule:  spell-parser's own `Expectations.test.ts`.
  */
 describe("expectedAfter()", () => {
   test("quick enough for every keystroke, on every line of Solitaire", () => {

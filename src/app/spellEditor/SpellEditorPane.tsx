@@ -1,6 +1,6 @@
 import { For, Show, createComponent, omit } from "solid-js"
 
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import type { monaco } from "spell-app/app/ui/monaco"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 

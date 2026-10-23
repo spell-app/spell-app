@@ -14,7 +14,7 @@ import {
 } from "vscode-languageserver/node"
 
 import type { LSP } from "spell-app/lsp"
-import { tsxBinary } from "spell-lang/spell/test"
+import { tsxBinary } from "spell-parser/spell/test"
 
 /**
  * The language server as an editor runs it:  a separate `yarn lsp:start` process, speaking JSON-RPC over stdio.

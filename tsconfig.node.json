@@ -7,13 +7,13 @@
   // - the scripts and configs, at the root and in `app/` (the app's build)
   // What they import from the browser folders is checked again here, with node's types.
   // - ALSO the settings `tsx` runs `spell run`'s runner under (`runCommand.ts`):  standard decorators lowered
-  //   (`target: ES2020`), for spell-lang's source.
+  //   (`target: ES2020`), for spell-parser's source.
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["node", "vite/client", "spell-kit/toolchain/types"]
+    "types": ["node", "vite/client", "spell/toolchain/types"]
   },
   "include": [
     // the configs FIRST:  `vite-plus`'s types from this install, not from Spell UI's own copy, which its

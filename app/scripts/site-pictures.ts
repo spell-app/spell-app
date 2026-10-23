@@ -14,7 +14,7 @@ import path from "node:path"
 
 import { chromium, type Page } from "playwright"
 
-import { pageServerRoot } from "spell-kit/server/page/settings"
+import { pageServerRoot } from "spell/server/page/settings"
 
 /** `app/`:  the app's build folder, its docs pages in `docs/`. */
 const APP = path.resolve(import.meta.dirname, "..")
