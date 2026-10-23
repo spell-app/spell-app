@@ -322,6 +322,8 @@ describe("SpellElement", () => {
       core.flush()
       // the dragged element is gone once its thing moves:  drawn again in its new list
       await ElementFixture.settle(document.body)
+      // a task:  the drag stops swallowing the click its let-go makes, which a synthetic one never does
+      await new Promise((resolve) => setTimeout(resolve))
     }
 
     // a tray of tokens, each in one tray at a time, as `a token belongs to one tray` compiles:  made before any token
@@ -509,6 +511,47 @@ describe("SpellElement", () => {
         expect([...trays[1]!.items]).toEqual([token])
       } finally {
         for (const name of ["whileThingDraggedOver", "whileTokenDraggedOver"]) delete to[name]
+        done()
+      }
+    })
+
+    test("a click selects a thing in its list;  command adds or takes one away, shift selects a range (outline-spell P29)", async () => {
+      /** A token people may select:  `a bead can be selected`. */
+      class Bead extends Token {
+        static elementTag = core.defineElement(this, "Game")
+        static canBeSelected = true
+      }
+      const beads = ["a", "b", "c", "d"].map((label) => new Bead(label))
+      core.append(trays[0]!, ...beads)
+      const pebble = new Pebble("e")
+      core.append(trays[0]!, pebble)
+      const { root, done } = await drawTrays()
+      const elements = [...root.querySelectorAll<HTMLElement>("game-bead")]
+      const click = async (element: HTMLElement, keys: MouseEventInit = {}) => {
+        element.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, ...keys }))
+        core.flush()
+        await ElementFixture.settle(root)
+      }
+      const selected = () => [...trays[0]!.selection].map((bead) => (bead as Token).label)
+      try {
+        await click(elements[1]!)
+        expect(selected()).toEqual(["b"])
+        expect(elements[1]!.matches(":state(selected)")).toBe(true)
+        await click(elements[3]!, { metaKey: true })
+        expect(selected()).toEqual(["b", "d"])
+        await click(elements[1]!, { ctrlKey: true })
+        expect(selected()).toEqual(["d"])
+        expect(elements[1]!.matches(":state(selected)")).toBe(false)
+        // from the last one clicked, b, to a:  in the list's order
+        await click(elements[0]!, { shiftKey: true })
+        expect(selected()).toEqual(["a", "b"])
+        // a thing whose type doesn't say `can be selected`:  its click selects nothing
+        await click(root.querySelector("game-pebble") as HTMLElement)
+        expect(selected()).toEqual(["a", "b"])
+        // taken out of the list, it leaves the selection
+        core.remove(trays[0]!, beads[0])
+        expect(selected()).toEqual(["b"])
+      } finally {
         done()
       }
     })

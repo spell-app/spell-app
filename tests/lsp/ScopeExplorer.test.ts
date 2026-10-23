@@ -80,8 +80,8 @@ describe("ScopeExplorer", () => {
     const stock = find(tree, "StockPile")
     const inherited = stock.members.filter((member) => member.inheritedFrom)
     expect(inherited.length).toBeGreaterThan(0)
-    // a pile is a list:  so a list's built-in members too, e.g. its `length`
-    expect(new Set(inherited.map((member) => member.inheritedFrom))).toEqual(new Set(["Pile", "List"]))
+    // a pile is a drawable list:  so a drawable list's built-in members too, its `selection`;  and a list's, its `length`
+    expect(new Set(inherited.map((member) => member.inheritedFrom))).toEqual(new Set(["Pile", "DrawableList", "List"]))
   })
 
   test("paths are unique -- and say what each node is", () => {

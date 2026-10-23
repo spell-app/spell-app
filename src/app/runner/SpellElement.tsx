@@ -11,14 +11,17 @@ import { Dragging } from "./Dragging"
 
 // Above the class:  its `elementSetup` reads it while the class is defined
 /**
- * What a draggable thing looks like:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
- * `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
+ * How a drawable thing's states look.
+ * - A draggable thing:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
+ *   `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
  * - A list that will take what's dragged over it glows, a soft purple halo outside and in, a little out from its edges:
  *   - drawn by its `::after`, over its items, so it never moves them
  *   - `--spell-drop-glow` (a `box-shadow`), `--spell-drop-glow-gap` (how far out) and `--spell-drop-glow-radius`
  *     change it;  `--spell-drop-glow-inset` places it exactly, e.g. around a list's content, inside its padding
+ * - A selected thing (`:state(selected)`) has a purple outline:
+ *   `--spell-selected-outline` and `--spell-selected-outline-offset` change it.
  */
-const DRAGGING_CSS = `
+const STATES_CSS = `
   :host(:state(draggable)) { touch-action: none; }
   :host(:state(draggable)), :host(:state(draggable)) * { cursor: grab !important; }
   :host(:state(dragging)), :host(:state(dragging)) * { cursor: grabbing !important; }
@@ -35,6 +38,10 @@ const DRAGGING_CSS = `
     );
     pointer-events: none;
     z-index: 1;
+  }
+  :host(:state(selected)) {
+    outline: var(--spell-selected-outline, 2px solid rgb(150 80 255 / 0.6));
+    outline-offset: var(--spell-selected-outline-offset, 2px);
   }
 `
 
@@ -79,7 +86,7 @@ const DRAGGING_CSS = `
  *     `dropped on it` (`handlerFor()`);  `dropped on it` takes the place of the `<thing>-drop` event;
  *     `- while a card is dragged over it:` sets what goes back as it leaves (`core.startWhile()`)
  *   - The web's own drag events say so as it goes:  `dragstart`, `dragenter`, `drop` ... (`Dragging`).
- *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`DRAGGING_CSS`).
+ *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`STATES_CSS`).
  * - Part of `spell-runtime.js`:  NEVER value-imports `spell-lang/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
  * - SEE:  its App UI components page, `app/docs/spell-element.html` (`/components/app/spell-element.html`).
@@ -88,7 +95,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   @E.proto static vocabulary = spellElementVocabulary
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     delegatesFocus: false,
-    styleSheets: { "spell-element": DRAGGING_CSS }
+    styleSheets: { "spell-element": STATES_CSS }
   }
 
   /** Each property its type declares, as an attribute -- set per tag, see `defineFor()`. */
@@ -274,7 +281,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   // ## Dropping (epic `outline-spell` P28)
   ////////////////
 
-  /** Will we take what's being dragged over us now?  We glow while we will (`DRAGGING_CSS`). */
+  /** Will we take what's being dragged over us now?  We glow while we will (`STATES_CSS`). */
   @E.cssState("accepting-drop")
   @E.state
   accessor isAcceptingDrop = false
@@ -421,6 +428,47 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     if (!heard.length) entry.core.move(thing, list)
   }
 
+  ////////////////
+  // ## Selecting (epic `outline-spell` P29)
+  ////////////////
+
+  /**
+   * Is our thing selected in its list (`DrawableList.selection`)?  Styled by `:state(selected)`.
+   * - Followed:  it changes as people click, here or on another of the list's items.
+   */
+  @E.cssState("selected")
+  get isSelected(): boolean {
+    const thing = this.currentThing
+    const list = this.ownerList as { selection?: Iterable<unknown> } | undefined
+    return !!thing && !!list?.selection && [...list.selection].includes(thing)
+  }
+
+  /**
+   * A click on a thing whose type says `can be selected`:  it selects it in its list.
+   * - Plain:  only it.
+   * - Command (ctrl):  it's added, or taken away if it was selected.
+   * - Shift:  everything from the last one clicked to it, in the list's order.
+   * - The program's own click handlers still run:  this only selects.
+   */
+  @E.on("click")
+  protected onClickToSelect(event: MouseEvent) {
+    const thing = this.currentThing
+    const list = this.ownerList as SelectableList | undefined
+    if (!thing || !list?.select || !SpellElement.flag(thing, "canBeSelected")) return
+    const items = [...(list as unknown as Iterable<object>)]
+    const selected = [...list.selection]
+    const anchor = SELECTION_ANCHORS.get(list)
+    if (event.shiftKey && anchor && items.includes(anchor)) {
+      const [from, to] = [items.indexOf(anchor), items.indexOf(thing)].sort((a, b) => a - b)
+      list.select(items.slice(from, to! + 1))
+      return
+    }
+    SELECTION_ANCHORS.set(list, thing)
+    if (event.metaKey || event.ctrlKey) {
+      list.select(selected.includes(thing) ? selected.filter((item) => item !== thing) : [...selected, thing])
+    } else list.select([thing])
+  }
+
   /** The list `element` draws, if it's a drawable list's element -- `undefined` if not. */
   static listOf(element: Element): object | undefined {
     const component = (element as Partial<E.DOMElement>).component
@@ -429,7 +477,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /** Does `thing`'s type say yes to `flag`, e.g. `canBeDragged` for `a card can be dragged`? */
-  private static flag(thing: object, flag: "canBeDragged" | "canBeDroppedOn"): boolean {
+  private static flag(thing: object, flag: "canBeDragged" | "canBeDroppedOn" | "canBeSelected"): boolean {
     return (thing.constructor as Partial<Record<typeof flag, boolean>>)[flag] === true
   }
 
@@ -799,7 +847,13 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
         property: attribute.property,
         values,
         ...(reference ? { reference } : {}),
-        spec: written.find((spec) => spec.name === attribute.name) ?? { name: attribute.name, kind, description }
+        // its type's `one of` values too:  a property editor offers them, e.g. a priority's low, normal or high
+        spec: written.find((spec) => spec.name === attribute.name) ?? {
+          name: attribute.name,
+          kind,
+          description,
+          ...(values?.length ? { values: values.map(String) } : {})
+        }
       })
     }
     return properties
@@ -944,6 +998,12 @@ Dragging.isDropTarget = (element) => {
   const list = SpellElement.listOf(element)
   return !!list && (list.constructor as { canBeDroppedOn?: boolean }).canBeDroppedOn === true
 }
+
+/** A drawable list, as selecting reads it:  `DrawableList.selection`, `select()`. */
+type SelectableList = { selection: Iterable<object>; select?: (items: Iterable<object>) => void }
+
+/** Each list's last item clicked to select:  where a shift-click's range starts. */
+const SELECTION_ANCHORS = new WeakMap<object, object>()
 
 /** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
 const BASE_LIST_NAMES = new Set(["DrawableList", "List", "Observable", "Object"])

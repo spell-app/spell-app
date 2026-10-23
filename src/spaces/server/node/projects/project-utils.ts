@@ -235,7 +235,7 @@ export const getProjectList = async (domainId: string): Promise<SP.ProjectList> 
 /**
  * `GET /api/projects/list/<group>` -- list projects in a group, e.g. `/api/projects/list/@spell/examples`.
  * - Returns: `SP.ProjectList`, each project's address and its title if its file has one:
- *   `[{ path: "@spell/examples/todos-form-based", title: "Todos - Form Based" }, { path: "@spell/examples/calculator" }]`.
+ *   `[{ path: "@spell/examples/TaskList", title: "Task List" }, { path: "@spell/examples/calculator" }]`.
  * - Failure: 500 (via `respondWithJSON`) if the place isn't a known group's (`SP.SpellUrls.projectIdFor()`).
  */
 export const request_getProjectList = respondWithJSON(async (request) => {

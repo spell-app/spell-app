@@ -1,0 +1,205 @@
+{
+  "spellVersion": "0.8.0",
+  "languages": [
+    "es"
+  ],
+  "provides": [
+    "Tarea",
+    "Agenda",
+    "ListaDeTareas",
+    "test_las_tareas",
+    "test_el_filtro"
+  ],
+  "statements": [
+    {
+      "type": "Tarea",
+      "superType": "Drawable",
+      "gender": "feminine",
+      "defined": "/Tarea.es.spell:199-1436"
+    },
+    {
+      "property": "título",
+      "of": "Tarea",
+      "datatype": "text",
+      "defined": "/Tarea.es.spell:243-263"
+    },
+    {
+      "property": "nota",
+      "of": "Tarea",
+      "datatype": "text",
+      "defined": "/Tarea.es.spell:267-285"
+    },
+    {
+      "property": "prioridad",
+      "classVariable": "Prioridades",
+      "of": "Tarea",
+      "enumeration": [
+        "baja",
+        "normal",
+        "alta"
+      ],
+      "defined": "/Tarea.es.spell:289-333"
+    },
+    {
+      "property": "hecha",
+      "of": "Tarea",
+      "datatype": "choice",
+      "defined": "/Tarea.es.spell:337-358"
+    },
+    {
+      "syntax": "{operator:is_or_is_not} hecha",
+      "output": "está_hecha",
+      "rule": "method_postfix",
+      "of": "Tarea",
+      "kind": "method",
+      "name": "\"está hecha\"",
+      "returns": "choice",
+      "defined": "/Tarea.es.spell:362-392"
+    },
+    {
+      "syntax": "{operator:is_or_is_not} pendiente",
+      "output": "está_pendiente",
+      "rule": "method_postfix",
+      "of": "Tarea",
+      "kind": "method",
+      "name": "\"está pendiente\"",
+      "returns": "choice",
+      "defined": "/Tarea.es.spell:425-459"
+    },
+    {
+      "property": "color_de_prioridad",
+      "asWritten": "color de prioridad",
+      "of": "Tarea",
+      "defined": "/Tarea.es.spell:561-642"
+    },
+    {
+      "constants": [
+        "rojo"
+      ],
+      "defined": "/Tarea.es.spell:591-619"
+    },
+    {
+      "constants": [
+        "gris"
+      ],
+      "defined": "/Tarea.es.spell:622-642"
+    },
+    {
+      "syntax": "probar las tareas",
+      "output": "test_las_tareas",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "las tareas",
+      "defined": "/Tarea.es.spell:1450-1651"
+    },
+    {
+      "type": "Agenda",
+      "superType": "DrawableList",
+      "gender": "feminine",
+      "itemType": "Tarea",
+      "defined": "/ListaDeTareas.es.spell:562-1087"
+    },
+    {
+      "property": "mostrando",
+      "classVariable": "Mostrandos",
+      "of": "Agenda",
+      "enumeration": [
+        "todas",
+        "pendientes",
+        "hechas"
+      ],
+      "defined": "/ListaDeTareas.es.spell:686-737"
+    },
+    {
+      "property": "agenda",
+      "of": "Tarea",
+      "datatype": "Agenda",
+      "exclusive": true,
+      "defined": "/ListaDeTareas.es.spell:1135-1167"
+    },
+    {
+      "type": "ListaDeTareas",
+      "superType": "App",
+      "defined": "/ListaDeTareas.es.spell:1263-4169"
+    },
+    {
+      "property": "tareas",
+      "of": "ListaDeTareas",
+      "datatype": "Agenda",
+      "defined": "/ListaDeTareas.es.spell:1307-1339"
+    },
+    {
+      "property": "borrador",
+      "of": "ListaDeTareas",
+      "datatype": "text",
+      "defined": "/ListaDeTareas.es.spell:1415-1437"
+    },
+    {
+      "property": "cuenta_pendiente",
+      "asWritten": "cuenta pendiente",
+      "of": "ListaDeTareas",
+      "datatype": "number",
+      "defined": "/ListaDeTareas.es.spell:1441-1521"
+    },
+    {
+      "syntax": "agregar el borrador ((de|del) {thisArg:expression})?",
+      "output": "agregar_el_borrador",
+      "rule": "method_call",
+      "of": "ListaDeTareas",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "agregar el borrador",
+      "returns": "nothing",
+      "defined": "/ListaDeTareas.es.spell:1605-1770"
+    },
+    {
+      "syntax": "quitar las tareas hechas ((de|del) {thisArg:expression})?",
+      "output": "quitar_las_tareas_hechas",
+      "rule": "method_call",
+      "of": "ListaDeTareas",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "quitar las tareas hechas",
+      "defined": "/ListaDeTareas.es.spell:1775-1852"
+    },
+    {
+      "syntax": "probar el filtro",
+      "output": "test_el_filtro",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "el filtro",
+      "defined": "/ListaDeTareas.es.spell:4812-5059"
+    }
+  ],
+  "codeLines": [
+    7,
+    10,
+    15,
+    20,
+    26,
+    32,
+    37,
+    42,
+    43,
+    44,
+    76,
+    104,
+    109,
+    131,
+    134,
+    135,
+    141,
+    146,
+    151,
+    157,
+    252
+  ]
+}

@@ -1,0 +1,81 @@
+/* File styles.css:  how the task list looks.
+   - The list and each task are elements of their own, so these rules reach them all:
+     - the list, <lista-de-tareas-agenda>, and its tasks inside it, each a <lista-de-tareas-tarea>
+     - inside a task, by its parts:  its row, ::part(row);  its title, ::part(title);  its priority label, ::part(priority)
+     - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */
+
+/****************
+ * The app:  its menu, the new task's field, then the list beside the property editor
+ ****************/
+
+.TaskList {
+  padding-block: 1em;
+}
+
+/* the field and its button on one line */
+.NewTask {
+  display: flex;
+  gap: 0.5em;
+  margin-block: 1em;
+}
+
+.NewTask > es-entrada {
+  flex: 1;
+}
+
+/****************
+ * The list:  one task a line
+ ****************/
+
+lista-de-tareas-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+lista-de-tareas-agenda::part(placeholder) {
+  padding: 1em;
+  color: grey;
+  text-align: center;
+}
+
+/****************
+ * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal
+ ****************/
+
+lista-de-tareas-tarea {
+  display: block;
+  padding: 0.25em 0.5em;
+  border-radius: 0.3em;
+}
+
+/* its checkbox, its title filling the line, then its priority */
+lista-de-tareas-tarea::part(row) {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+lista-de-tareas-tarea::part(title) {
+  flex: 1;
+}
+
+lista-de-tareas-tarea::part(priority) {
+  flex: none;
+}
+
+lista-de-tareas-tarea[prioridad="normal"]::part(priority),
+lista-de-tareas-tarea:not([prioridad])::part(priority) {
+  display: none;
+}
+
+/* selected:  a soft purple band, in place of the outline every selected thing has */
+lista-de-tareas-tarea:state(selected) {
+  --spell-selected-outline: none;
+  background: rgb(150 80 255 / 0.12);
+}
+
+/* done:  its title fades */
+lista-de-tareas-tarea[hecha] {
+  opacity: 0.6;
+}
