@@ -13,17 +13,28 @@ import { Dragging } from "./Dragging"
 /**
  * What a draggable thing looks like:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
  * `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
- * - A list that will take what's dragged over it glows:  `--spell-drop-glow` (a `box-shadow`) and
- *   `--spell-drop-glow-radius` change it.
+ * - A list that will take what's dragged over it glows, a soft purple halo outside and in, a little out from its edges:
+ *   - drawn by its `::after`, over its items, so it never moves them
+ *   - `--spell-drop-glow` (a `box-shadow`), `--spell-drop-glow-gap` (how far out) and `--spell-drop-glow-radius`
+ *     change it
  */
 const DRAGGING_CSS = `
   :host(:state(draggable)) { touch-action: none; }
   :host(:state(draggable)), :host(:state(draggable)) * { cursor: grab !important; }
   :host(:state(dragging)), :host(:state(dragging)) * { cursor: grabbing !important; }
-  :host(:state(accepting-drop)) {
-    border-radius: var(--spell-drop-glow-radius, 0.5em);
-    box-shadow: var(--spell-drop-glow, 0 0 0 0.2em rgb(255 196 0 / 0.9), 0 0 1.2em 0.4em rgb(255 196 0 / 0.6));
-    transition: box-shadow 120ms;
+  :host(:state(accepting-drop)) { position: relative; }
+  :host(:state(accepting-drop))::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--spell-drop-glow-gap, 0.6em));
+    border-radius: var(--spell-drop-glow-radius, 0.8em);
+    box-shadow: var(
+      --spell-drop-glow,
+      0 0 1.4em 0.2em rgb(150 80 255 / 0.55),
+      inset 0 0 1.2em 0.2em rgb(150 80 255 / 0.45)
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 `
 

@@ -1086,13 +1086,14 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
      so a card is as wide as its column, whatever the window's width. */
 
 /* A card's picture, in ems of its own letter (measured in Chrome on a Mac):
-   0.604em wide, 0.805em tall, its left edge 0.049em into the letter. */
+   0.604em wide, 0.805em tall, its left edge 0.049em into the letter;  its outline reaches a little past that, so a
+   card keeps 0.008em to spare above and below. */
 :root,
 :host {
   /* how wide a card is, for each em of its letter */
   --card-width: 0.604;
-  /* how tall it is, for each of its widths:  0.805 / 0.604 */
-  --card-height: 1.333;
+  /* how tall it is, for each of its widths:  (0.805 + 2 x 0.008) / 0.604 */
+  --card-height: 1.359;
   /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */
   --card-step-down: 0.2;
   /* along a row, how much of each card the next one covers:  a tenth of it */
@@ -1148,9 +1149,9 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
   width: calc(var(--card-width) * 1em);
   height: calc(var(--card-width) * var(--card-height) * 1em);
   overflow: hidden;
-  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.552 starts it at the top */
-  line-height: 0.552;
-  --ui-text-line-height: 0.552;
+  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.568 starts it 0.008em down */
+  line-height: 0.568;
+  --ui-text-line-height: 0.568;
   text-indent: -0.049em;
   user-select: none;
 }
