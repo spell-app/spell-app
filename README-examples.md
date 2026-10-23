@@ -487,11 +487,11 @@ spell test @spell/examples/Solitaire
 
 ```text
 ✓ Compiling @spell/examples/Solitaire
-✓ test card setup  (30 checks)
+✓ test card setup  (25 checks)
 ✓ test jokers  (15 checks)
-✓ test deck creation  (7 checks)
+✓ test deck creation  (10 checks)
 ✓ test deck with jokers  (5 checks)
-✓ test piles  (8 checks)
+✓ test piles  (9 checks)
 ✓ test the moves  (11 checks)
 
 6 passed
@@ -506,7 +506,7 @@ _Solitaire in the editor, dealt:  its Spell on the left, the game on the right._
 ### Solitario:  the same game, in Spanish
 
 Spell reads Spanish too, a file at a time, by its name:  `Solitario.es.spell` is Spanish, `Solitaire.spell` English
-([Spell in Spanish](https://github.com/spell-app/spell-lang/blob/main/README.md#spell-in-spanish)).
+([Spell in Spanish](https://github.com/spell-app/spell-lang/blob/main/README-spanish.md)).
 [Solitario](spaces/@spell/examples/Solitario/) is Solitaire written in it, line for line, cards and all:
 its own `Carta`, `Mazo` and `Pila`, as Solitaire has its `Card`, `Deck` and `Pile`, so all of it reads in Spanish.
 
