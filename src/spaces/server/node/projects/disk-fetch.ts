@@ -32,7 +32,11 @@ import { isFileOrFolderNotFoundError } from "./response-utils"
  */
 const ROUTES: Array<{ prefix: string; handle: (url: string, $params: $FetchParams) => Promise<unknown> }> = [
   { prefix: SP.SpellUrls.LIST, handle: (url) => projectUtils.getProjectList(SP.SpellUrls.projectIdFor(url)) },
-  { prefix: SP.SpellUrls.INDEX, handle: (url) => projectUtils.getIndex(SP.SpellUrls.projectIdFor(url)) },
+  {
+    prefix: SP.SpellUrls.INDEX,
+    // loose spell files opened from disk:  never a project file written into their folder
+    handle: (url) => projectUtils.getIndex(SP.SpellUrls.projectIdFor(url), { saving: "if it has one" })
+  },
   {
     prefix: SP.SpellUrls.SPACES,
     handle: (url) =>

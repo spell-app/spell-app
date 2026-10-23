@@ -9,8 +9,9 @@
  * - Anything else is a path on disk, from the current folder:
  *   - a `.spell` file, or a project's file (`__project.json5`)
  *   - a folder:  the project it's in, or a known root's folder, e.g. `spaces/@spell/examples`
- * - NEVER a folder that isn't inside a project:
- *   loading it would WRITE a project file there (see `projectUtils.getIndex()`).
+ * - NEVER a folder that isn't inside a project:  it has no project file, so it isn't one.
+ *   - Loading it would no longer write one there (the disk reader saves only into a project file that exists),
+ *     but a folder of loose files is still named by its files.
  * - Throws `CLI.CliError` for anything it can't place.
  */
 import { existsSync, statSync } from "fs"
