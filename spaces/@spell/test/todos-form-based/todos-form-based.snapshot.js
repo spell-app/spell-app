@@ -52,13 +52,21 @@ export class TodosApp extends App {
           h("ui-item", { type: "header" }, "To Do:"),
           h("ui-menu", { position: "right" },
             h("ui-item", "Show:"),
-            h("ui-item", { onClick: () => (app.filter = "all"), selected: () => app.filter == "all" }, "All"),
-            h("ui-item", { onClick: () => (app.filter = "active"), selected: () => app.filter == "active" },
-              "Active"
-            ),
-            h("ui-item", { onClick: () => (app.filter = "completed"), selected: () => app.filter == "completed" },
-              "Completed"
-            )
+            h("ui-item", {
+              onClick: () => (app.filter = "all"),
+              selected: () => app.filter == "all",
+              style: "cursor:pointer;user-select:none"
+            }, "All"),
+            h("ui-item", {
+              onClick: () => (app.filter = "active"),
+              selected: () => app.filter == "active",
+              style: "cursor:pointer;user-select:none"
+            }, "Active"),
+            h("ui-item", {
+              onClick: () => (app.filter = "completed"),
+              selected: () => app.filter == "completed",
+              style: "cursor:pointer;user-select:none"
+            }, "Completed")
           )
         ),
         h("ui-form", { debug: true, "prop:value": () => app },
@@ -73,9 +81,11 @@ export class TodosApp extends App {
               h("ui-input", { name: "newTaskName", placeholder: "New task name", label: "New task:" })
             ),
             h("ui-field",
-              h("ui-button", { disabled: () => app.newTaskName === "", onClick: () => createANewTask() },
-                "Add Task"
-              )
+              h("ui-button", {
+                disabled: () => app.newTaskName === "",
+                onClick: () => createANewTask(),
+                style: "cursor:pointer;user-select:none"
+              }, "Add Task")
             )
           )
         ),
@@ -83,12 +93,20 @@ export class TodosApp extends App {
         h("br"),
         h("ui-menu", { inverted: true, color: "grey" },
           h("ui-item", { type: "header" }, "Test:"),
-          h("ui-item", { onClick: () => createANewTask({ title: "Moar" }) }, "Add Item"),
-          h("ui-item", { onClick: () => core.removeItemAt(app.tasks, 0) }, "Remove Item"),
-          h("ui-item", { onClick: () => (core.getItemAt(app.tasks, 0).title = "New title") }, "Change name"),
-          h("ui-item", { onClick: () => core.removeWhere(app.tasks, (item) => item.isComplete) },
-            "Remove Completed"
-          )
+          h("ui-item", { onClick: () => createANewTask({ title: "Moar" }), style: "cursor:pointer;user-select:none" },
+            "Add Item"
+          ),
+          h("ui-item", { onClick: () => core.removeItemAt(app.tasks, 0), style: "cursor:pointer;user-select:none" },
+            "Remove Item"
+          ),
+          h("ui-item", {
+            onClick: () => (core.getItemAt(app.tasks, 0).title = "New title"),
+            style: "cursor:pointer;user-select:none"
+          }, "Change name"),
+          h("ui-item", {
+            onClick: () => core.removeWhere(app.tasks, (item) => item.isComplete),
+            style: "cursor:pointer;user-select:none"
+          }, "Remove Completed")
         )
       )
     )

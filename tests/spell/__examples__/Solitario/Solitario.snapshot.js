@@ -122,7 +122,8 @@ export class Carta extends Drawable {
     return h("es-texto", {
       part: "imagen",
       color: () => this.estáBocaDirección("arriba") ? this.color : "azul",
-      onClick: () => trigger("clic-carta", { carta: this })
+      onClick: () => trigger("clic-carta", { carta: this }),
+      style: "cursor:pointer;user-select:none"
     }, () => this.imagen)
   }
 
@@ -142,27 +143,38 @@ export class Carta extends Drawable {
     return rango + palo + dirección
   }
 
-  ////////////////////////////////////////
-  // ## Jugar una carta:  qué hace un clic
-  ////////////////////////////////////////
-  /** la carta, y cada carta sobre ella, a la primera pila que pueda tomarla;  dice si se movió */
-  async jugar() {
-    const pilaInicial = this.pila
-    if (!core.canGiveUp(pilaInicial, this)) return false
-
-    if (pilaInicial === solitario.reserva) {
+  //////////////////////////////////////////////////////
+  // ## Jugar una carta:  qué hace un clic o un arrastre
+  //////////////////////////////////////////////////////
+  /**
+   * la carta, y cada carta sobre ella, a la primera pila que pueda tomarla;  dice si se movió
+   * - la carta de la reserva se voltea sobre los descartes en su lugar
+   */
+  jugar() {
+    if (this.pila === solitario.reserva) {
       solitario.robarDeLaReserva()
       return
     }
 
     const pilaFinal = core.filter(core.everyThing(Pila), (pila) => core.canTake(pila, this)).firstItem
     if (pilaFinal === undefined) return false
+    return this.ponerEnPila(pilaFinal)
+  }
+
+  /**
+   * la carta, y cada carta sobre ella, a la pila, si las reglas de las pilas la dejan ir y tomarla;  dice si se movió
+   * - la pila que dejó voltea su nueva última carta, y el movimiento suma puntos
+   */
+  async ponerEnPila(pila) {
+    const pilaInicial = this.pila
+    if (!core.canGiveUp(pilaInicial, this)) return false
+    if (!core.canTake(pila, this)) return false
 
     const cartasMovidas = pilaInicial.startingWith(this)
     cartasMovidas.name = pilaInicial.name
-    core.console.log(`moviendo (${cartasMovidas.estado}) a (${pilaFinal.estado})`)
+    core.console.log(`moviendo (${cartasMovidas.estado}) a (${pila.estado})`)
 
-    cartasMovidas.forEach((carta) => core.move(carta, pilaFinal))
+    cartasMovidas.forEach((carta) => core.move(carta, pila))
 
     if (pilaInicial instanceof Columna && !pilaInicial.isEmpty) {
       await core.pauseFor(200, "msec")
@@ -171,7 +183,7 @@ export class Carta extends Drawable {
       it?.voltearBocaArriba()
     }
 
-    if (pilaFinal instanceof Fundación) solitario.puntuación = solitario.puntuación + 10
+    if (pila instanceof Fundación) solitario.puntuación = solitario.puntuación + 10
     else if (pilaInicial === solitario.descartes) solitario.puntuación = solitario.puntuación + 5
     return true
   }
@@ -499,17 +511,22 @@ export class PilaDeReserva extends Pila {
     return "apilada"
   }
 
+  /** un clic voltea su carta:  no se le puede quitar ninguna, así que ninguna se arrastra */
   canTake(carta) {
     return false
   }
 
   canGiveUp(carta) {
-    return carta === this.lastItem
+    return false
   }
 
   // vacía:  una carta gris claro, boca abajo -- un clic vuelve a voltear los descartes
   drawItsPlaceholder() {
-    return h("div", { part: "marcador", onClick: () => solitario.robarDeLaReserva() }, "🂠")
+    return h("div", {
+      part: "marcador",
+      onClick: () => solitario.robarDeLaReserva(),
+      style: "cursor:pointer;user-select:none"
+    }, "🂠")
   }
 }
 
@@ -795,15 +812,23 @@ export class Solitario extends App {
         h("es-elemento", { tipo: "encabezado" }, "Solitario Klondike"),
         h("es-elemento", () => `Puntos: ${this.puntuación}`),
         h("es-menu", { posicion: "derecha" },
-          h("es-elemento", { "aria-label": "Jugar solo", onClick: () => this.jugarSolo() },
+          h("es-elemento", {
+            "aria-label": "Jugar solo",
+            onClick: () => this.jugarSolo(),
+            style: "cursor:pointer;user-select:none"
+          },
             h("es-icono", { name: "fast forward" }),
             h("es-emergente", { contenido: "Jugar solo", invertido: true, tamano: "pequeño" })
           ),
-          h("es-elemento", { "aria-label": "Trampa", onClick: () => this.hacerTrampa() },
+          h("es-elemento", { "aria-label": "Trampa", onClick: () => this.hacerTrampa(), style: "cursor:pointer;user-select:none" },
             h("es-icono", { name: "eye" }),
             h("es-emergente", { contenido: "Trampa", invertido: true, tamano: "pequeño" })
           ),
-          h("es-elemento", { "aria-label": "Reiniciar", onClick: () => this.empezarElJuego() },
+          h("es-elemento", {
+            "aria-label": "Reiniciar",
+            onClick: () => this.empezarElJuego(),
+            style: "cursor:pointer;user-select:none"
+          },
             h("es-icono", { name: "redo" }),
             h("es-emergente", { contenido: "Reiniciar", invertido: true, tamano: "pequeño" })
           )
@@ -830,10 +855,16 @@ export class Solitario extends App {
 }
 export const solitario = new Solitario()
 
-core.heading("Jugar una carta:  qué hace un clic")
+core.heading("Jugar una carta:  qué hace un clic o un arrastre")
+/** un clic juega la carta;  un arrastre la pone donde se suelta */
 on("clic-carta", (event) => {
   const { carta } = event
   carta.jugar()
+})
+
+on("soltar-carta", (event) => {
+  const { carta, pila } = event
+  carta.ponerEnPila(pila)
 })
 
 core.heading("Inicio")
@@ -920,7 +951,7 @@ export function testLosMovimientos() {
   })
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  how the board looks -- each card, and how each pile lays its cards out (its disposición).¬   - Every pile and card is an element of its own on the board, so these rules reach them all:¬     - a pile by its disposición, e.g. <solitario-columna disposición="vertical">¬     - each card in it by its place, --index from 0, and how many there are, --count:  the pile numbers them¬     - an empty pile's placeholder, its marcador, which it draws itself, by its part:  ::part(marcador)¬   - A card is one letter of unicode's Playing Cards, at its pile's width:¬     so a card is as wide as its column, whatever the window's width. */¬¬/* A card's picture, in ems of its own letter (measured in Chrome on a Mac):¬   0.604em wide, 0.805em tall, its left edge 0.049em into the letter. */¬:root,¬:host {¬  /* how wide a card is, for each em of its letter */¬  --card-width: 0.604;¬  /* how tall it is, for each of its widths:  0.805 / 0.604 */¬  --card-height: 1.333;¬  /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */¬  --card-step-down: 0.2;¬  /* along a row, how much of each card the next one covers:  a tenth of it */¬  --card-overlap: 0.1;¬  /* fanned, how far each card turns from the one before */¬  --card-turn: 8deg;¬}¬¬/****************¬ * The board:  below the game's menu, its piles seven to a line¬ ****************/¬¬.Board {¬  /* gutters that shrink with a narrow window, so the cards keep most of its width */¬  --ui-grid-gutter: min(2rem, 2.5vw);¬  --ui-grid-row-spacing: min(2rem, 4vw);¬  /* 1.5rem below the menu:  the grid pulls itself up by half a row's spacing */¬  margin-top: calc(1.5rem + var(--ui-grid-row-spacing) / 2);¬}¬¬/* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */¬@media (width < 36rem) {¬  es-elemento[tipo="encabezado"] {¬    display: none;¬  }¬}¬¬/****************¬ * A pile:  as wide as its cell of the board, and as tall as its cards¬ ****************/¬¬[disposición] {¬  display: block;¬  position: relative;¬  /* its cards size themselves by its width */¬  container-type: inline-size;¬}¬/* its height:  a card's, by default -- a percentage of padding is one of its width */¬[disposición]::before {¬  content: "";¬  display: block;¬  padding-top: calc(100% * var(--card-height));¬}¬¬/* Each card, and the placeholder:  a card's letter as wide as the pile, cut to the card it draws */¬[disposición] > *,¬[disposición]::part(marcador) {¬  position: absolute;¬  top: 0;¬  left: 0;¬  font-size: calc(100cqi / var(--card-width));¬  width: calc(var(--card-width) * 1em);¬  height: calc(var(--card-width) * var(--card-height) * 1em);¬  overflow: hidden;¬  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.552 starts it at the top */¬  line-height: 0.552;¬  --ui-text-line-height: 0.552;¬  text-indent: -0.049em;¬  user-select: none;¬}¬/* a card's letter is only its ink:  a white face, its corners rounded as the letter's are, hides the cards below */¬[disposición] > * {¬  background: #fff;¬  border-radius: 0.035em;¬  cursor: pointer;¬}¬¬/* An empty pile's placeholder:  a light grey card */¬[disposición]::part(marcador) {¬  color: #000;¬  opacity: 0.15;¬}¬[disposición]::part(marcador):hover {¬  opacity: 0.25;¬}¬¬/****************¬ * The layouts:  apilada (stacked) puts every card on top of the one before¬ ****************/¬¬/* vertical:  each card a step below the one before */¬[disposición="vertical"]::before {¬  padding-top: calc(100% * var(--card-height) * (1 + (max(var(--count, 1), 1) - 1) * var(--card-step-down)));¬}¬[disposición="vertical"] > * {¬  top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));¬}¬¬/* horizontal:  side by side, each covering the edge of the one before;  smaller as there are more, to fit the pile */¬[disposición="horizontal"] {¬  --spread: calc(1 + (max(var(--count, 1), 1) - 1) * (1 - var(--card-overlap)));¬}¬[disposición="horizontal"]::before {¬  padding-top: calc(100% * var(--card-height) / var(--spread));¬}¬[disposición="horizontal"] > * {¬  font-size: calc(100cqi / var(--card-width) / var(--spread));¬  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));¬}¬¬/* abanico (fanned):  as a hand of cards is held, each turned a little from the one before, around a point below them */¬[disposición="abanico"] > * {¬  font-size: calc(60cqi / var(--card-width));¬  left: calc(50% - var(--card-width) * 0.5em);¬  top: 10%;¬  transform-origin: 50% 200%;¬  rotate: calc((var(--index) - (var(--count) - 1) / 2) * var(--card-turn));¬}¬`)
+core.installStyles(undefined, `/* File styles.css:  how the board looks -- each card, and how each pile lays its cards out (its disposición).¬   - Every pile and card is an element of its own on the board, so these rules reach them all:¬     - a pile by its disposición, e.g. <solitario-columna disposición="vertical">¬     - each card in it by its place, --index from 0, and how many there are, --count:  the pile numbers them¬     - an empty pile's placeholder, its marcador, which it draws itself, by its part:  ::part(marcador)¬   - A card is one letter of unicode's Playing Cards, at its pile's width:¬     so a card is as wide as its column, whatever the window's width. */¬¬/* A card's picture, in ems of its own letter (measured in Chrome on a Mac):¬   0.604em wide, 0.805em tall, its left edge 0.049em into the letter. */¬:root,¬:host {¬  /* how wide a card is, for each em of its letter */¬  --card-width: 0.604;¬  /* how tall it is, for each of its widths:  0.805 / 0.604 */¬  --card-height: 1.333;¬  /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */¬  --card-step-down: 0.2;¬  /* along a row, how much of each card the next one covers:  a tenth of it */¬  --card-overlap: 0.1;¬  /* fanned, how far each card turns from the one before */¬  --card-turn: 8deg;¬}¬¬/****************¬ * The board:  below the game's menu, its piles seven to a line¬ ****************/¬¬.Board {¬  /* gutters that shrink with a narrow window, so the cards keep most of its width */¬  --ui-grid-gutter: min(2rem, 2.5vw);¬  --ui-grid-row-spacing: min(2rem, 4vw);¬  /* 1.5rem below the menu:  the grid pulls itself up by half a row's spacing */¬  margin-top: calc(1.5rem + var(--ui-grid-row-spacing) / 2);¬}¬¬/* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */¬@media (width < 36rem) {¬  es-elemento[tipo="encabezado"] {¬    display: none;¬  }¬}¬¬/****************¬ * A pile:  as wide as its cell of the board, and as tall as its cards¬ ****************/¬¬[disposición] {¬  display: block;¬  position: relative;¬  /* its cards size themselves by its width */¬  container-type: inline-size;¬}¬/* its height:  a card's, by default -- a percentage of padding is one of its width */¬[disposición]::before {¬  content: "";¬  display: block;¬  padding-top: calc(100% * var(--card-height));¬}¬¬/* Each card, and the placeholder:  a card's letter as wide as the pile, cut to the card it draws */¬[disposición] > *,¬[disposición]::part(marcador) {¬  position: absolute;¬  top: 0;¬  left: 0;¬  font-size: calc(100cqi / var(--card-width));¬  width: calc(var(--card-width) * 1em);¬  height: calc(var(--card-width) * var(--card-height) * 1em);¬  overflow: hidden;¬  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.552 starts it at the top */¬  line-height: 0.552;¬  --ui-text-line-height: 0.552;¬  text-indent: -0.049em;¬  user-select: none;¬}¬/* a card's letter is only its ink:  a white face, its corners rounded as the letter's are, hides the cards below */¬[disposición] > * {¬  background: #fff;¬  border-radius: 0.035em;¬}¬¬/* An empty pile's placeholder:  a light grey card */¬[disposición]::part(marcador) {¬  color: #000;¬  opacity: 0.15;¬}¬[disposición]::part(marcador):hover {¬  opacity: 0.25;¬}¬¬/****************¬ * The layouts:  apilada (stacked) puts every card on top of the one before¬ ****************/¬¬/* vertical:  each card a step below the one before */¬[disposición="vertical"]::before {¬  padding-top: calc(100% * var(--card-height) * (1 + (max(var(--count, 1), 1) - 1) * var(--card-step-down)));¬}¬[disposición="vertical"] > * {¬  top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));¬}¬¬/* horizontal:  side by side, each covering the edge of the one before;  smaller as there are more, to fit the pile */¬[disposición="horizontal"] {¬  --spread: calc(1 + (max(var(--count, 1), 1) - 1) * (1 - var(--card-overlap)));¬}¬[disposición="horizontal"]::before {¬  padding-top: calc(100% * var(--card-height) / var(--spread));¬}¬[disposición="horizontal"] > * {¬  font-size: calc(100cqi / var(--card-width) / var(--spread));¬  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));¬}¬¬/* abanico (fanned):  as a hand of cards is held, each turned a little from the one before, around a point below them */¬[disposición="abanico"] > * {¬  font-size: calc(60cqi / var(--card-width));¬  left: calc(50% - var(--card-width) * 0.5em);¬  top: 10%;¬  transform-origin: 50% 200%;¬  rotate: calc((var(--index) - (var(--count) - 1) / 2) * var(--card-turn));¬}¬`)
 // -----------
 if (!core.isCarryingOver) testLaPreparaciónDeLaCarta()
 if (!core.isCarryingOver) testLosComodines()

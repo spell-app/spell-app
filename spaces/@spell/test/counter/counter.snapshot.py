@@ -33,7 +33,11 @@ class Counter(Drawable):
     def draw(self) -> Any:
         return h(
             "ui-button",
-            {"class": "Counter", "onClick": lambda event: self.increment()},
+            {
+                "class": "Counter",
+                "onClick": lambda event: self.increment(),
+                "style": "cursor:pointer;user-select:none",
+            },
             f"Count: {self.count}",
         )
 

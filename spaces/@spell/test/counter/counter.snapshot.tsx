@@ -28,7 +28,11 @@ export class Counter extends Drawable {
 
   //## drawing:  a button showing its count;  a click counts
   @drawn draw() {
-    return <ui-button class="Counter" onClick={() => this.increment()}>{`Count: ${this.count}`}</ui-button>
+    return (
+      <ui-button class="Counter" onClick={() => this.increment()} style="cursor:pointer;user-select:none">
+        {`Count: ${this.count}`}
+      </ui-button>
+    )
   }
 }
 

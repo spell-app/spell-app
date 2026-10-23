@@ -165,25 +165,31 @@ solitario es una aplicación donde:
 		</es-contenedor>
 
 
-## Jugar una carta:  qué hace un clic
+## Jugar una carta:  qué hace un clic o un arrastre
 // la carta, y cada carta sobre ella, a la primera pila que pueda tomarla;  dice si se movió
+// - la carta de la reserva se voltea sobre los descartes en su lugar
 para jugar una carta
-	poner pila inicial a la pila de la carta
-	si pila inicial no puede soltar la carta devolver no
-
-	si pila inicial es la reserva del solitario
+	si la pila de la carta es la reserva del solitario
 		robar de la reserva
 		devolver
 
 	poner pila final a la primera pila en cada pila donde puede tomar la carta
 	si no hay una pila final devolver no
+	devolver poner la carta en pila final
+
+// la carta, y cada carta sobre ella, a la pila, si las reglas de las pilas la dejan ir y tomarla;  dice si se movió
+// - la pila que dejó voltea su nueva última carta, y el movimiento suma puntos
+para poner una carta en una pila
+	poner pila inicial a la pila de la carta
+	si pila inicial no puede soltar la carta devolver no
+	si la pila no puede tomar la carta devolver no
 
 	poner cartas movidas a las cartas en pila inicial empezando con la carta
 	poner el nombre de cartas movidas al nombre de pila inicial
-	imprimir "moviendo (" + el estado de cartas movidas + ") a (" + el estado de pila final + ")"
+	imprimir "moviendo (" + el estado de cartas movidas + ") a (" + el estado de la pila + ")"
 
 	para cada carta en cartas movidas
-		mover la carta a pila final
+		mover la carta a la pila
 
 	si pila inicial es una columna y pila inicial no está vacía
 		pausar 200 mseg
@@ -191,12 +197,16 @@ para jugar una carta
 		imprimir "volteando (" + el nombre de pila inicial + ": " + su estado + ")"
 		voltear eso boca arriba
 
-	si pila final es una fundación: poner la puntuación del solitario a la puntuación del solitario + 10
+	si la pila es una fundación: poner la puntuación del solitario a la puntuación del solitario + 10
 	de lo contrario si pila inicial es los descartes del solitario: poner la puntuación del solitario a la puntuación del solitario + 5
 	devolver sí
 
+// un clic juega la carta;  un arrastre la pone donde se suelta
 al clic-carta con una carta
 	jugar la carta
+
+al soltar-carta con una carta y una pila
+	poner la carta en la pila
 
 
 ## Inicio
@@ -213,8 +223,9 @@ iniciar solitario
 // la reserva:  las cartas aún sin jugar, boca abajo;  un clic voltea la siguiente
 una "pila de reserva" es una pila donde:
 	- su disposición es apilada
+	// un clic voltea su carta:  no se le puede quitar ninguna, así que ninguna se arrastra
 	- nunca puede tomar una carta
-	- puede soltar una carta si: la carta es su última carta
+	- nunca puede soltar una carta
 	// vacía:  una carta gris claro, boca abajo -- un clic vuelve a voltear los descartes
 	- para dibujar su marcador:
 		devolver <div part="marcador" onClick={robar de la reserva}>🂠</div>

@@ -289,8 +289,28 @@
       ],
       "kind": "method",
       "name": "play a card",
+      "defined": "/Solitaire.spell:6121-6367"
+    },
+    {
+      "syntax": "put {thisArg:expression} on {callArgs:expression}",
+      "output": "put_on_$pile",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "put a card on a pile",
+      "params": [
+        {
+          "name": "pile",
+          "datatype": "Pile"
+        }
+      ],
+      "returns": "choice",
       "waits": true,
-      "defined": "/Solitaire.spell:6048-7052"
+      "defined": "/Solitaire.spell:6558-7425"
     },
     {
       "type": "Joker",
@@ -474,48 +494,48 @@
     {
       "type": "StockPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:7553-7873"
+      "defined": "/Solitaire.spell:8051-8433"
     },
     {
       "property": "layout",
       "of": "StockPile",
-      "defined": "/Solitaire.spell:7588-7609"
+      "defined": "/Solitaire.spell:8086-8107"
     },
     {
       "type": "DiscardPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:7943-8084"
+      "defined": "/Solitaire.spell:8503-8644"
     },
     {
       "property": "layout",
       "of": "DiscardPile",
-      "defined": "/Solitaire.spell:7980-8001"
+      "defined": "/Solitaire.spell:8540-8561"
     },
     {
       "type": "Foundation",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:8142-8687"
+      "defined": "/Solitaire.spell:8702-9247"
     },
     {
       "property": "layout",
       "of": "Foundation",
-      "defined": "/Solitaire.spell:8177-8198"
+      "defined": "/Solitaire.spell:8737-8758"
     },
     {
       "property": "suit",
       "of": "Foundation",
       "datatype": "CardSuit",
-      "defined": "/Solitaire.spell:8202-8227"
+      "defined": "/Solitaire.spell:8762-8787"
     },
     {
       "type": "Tableau",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:8765-9031"
+      "defined": "/Solitaire.spell:9325-9591"
     },
     {
       "property": "layout",
       "of": "Tableau",
-      "defined": "/Solitaire.spell:8797-8819"
+      "defined": "/Solitaire.spell:9357-9379"
     },
     {
       "type": "Solitaire",
@@ -741,7 +761,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "the moves",
-      "defined": "/Solitaire.spell:9043-10520"
+      "defined": "/Solitaire.spell:9603-11080"
     }
   ],
   "codeLines": [
@@ -765,66 +785,67 @@
     94,
     103,
     120,
-    128,
-    138,
-    149,
-    186,
-    189,
-    196,
-    200,
-    205,
-    209,
-    213,
+    129,
+    139,
+    153,
+    168,
+    198,
+    201,
+    208,
+    212,
+    217,
     221,
-    276,
-    313,
-    317,
-    323,
-    333,
-    342,
-    371,
-    395,
-    400,
-    406,
-    413,
+    225,
+    233,
+    288,
+    325,
+    329,
+    335,
+    345,
+    354,
+    383,
+    407,
+    412,
     418,
-    424,
-    434,
-    437,
-    492,
-    495,
-    514,
-    517,
+    425,
+    430,
+    436,
+    446,
+    449,
+    504,
+    507,
     531,
     534,
-    538,
-    566,
-    569,
-    584,
-    585,
-    590,
-    596,
+    548,
+    551,
+    555,
+    583,
+    586,
     601,
-    606,
-    611,
-    616,
-    621,
-    626,
-    631,
-    636,
-    641,
-    646,
-    651,
-    656,
-    666,
-    671,
-    676,
-    686,
-    702,
-    731,
-    737,
-    749,
-    790,
-    853
+    602,
+    607,
+    613,
+    618,
+    623,
+    628,
+    633,
+    638,
+    643,
+    648,
+    653,
+    658,
+    663,
+    668,
+    673,
+    683,
+    688,
+    693,
+    703,
+    719,
+    748,
+    754,
+    766,
+    807,
+    880
   ]
 }

@@ -78,7 +78,6 @@
 [disposición] > * {
   background: #fff;
   border-radius: 0.035em;
-  cursor: pointer;
 }
 
 /* An empty pile's placeholder:  a light grey card */

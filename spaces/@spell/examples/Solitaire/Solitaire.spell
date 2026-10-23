@@ -164,25 +164,31 @@ solitaire is an app where:
 		</ui-container>
 
 
-## Playing a card:  what a click does
+## Playing a card:  what a click or a drag does
 // the card, and every card on it, onto the first pile that can take it;  it says whether it moved
+// - the stock's card is turned over onto the discards instead
 to play a card
-	set start pile to the pile of the card
-	if start pile cannot give up the card return no
-
-	if start pile is the stock of the solitaire
+	if the pile of the card is the stock of the solitaire
 		play from the stock
 		return
 
 	set end pile to the first pile in every pile where it can take the card
 	if there is not an end pile return no
+	return put the card on end pile
+
+// the card, and every card on it, onto the pile, if the piles' rules let it go and take it;  it says whether it moved
+// - the pile it left turns its new last card up, and the move scores
+to put a card on a pile
+	set start pile to the pile of the card
+	if start pile cannot give up the card return no
+	if the pile cannot take the card return no
 
 	set moving cards to cards in start pile starting with the card
 	set the name of moving cards to the name of the start pile
-	print "moving (" + the state of moving cards + ") to (" + the state of end pile + ")"
+	print "moving (" + the state of moving cards + ") to (" + the state of the pile + ")"
 
 	for each card in moving cards
-		move it to end pile
+		move it to the pile
 
 	if the start pile is a tableau and the start pile is not empty
 		pause for 200 msec
@@ -190,12 +196,16 @@ to play a card
 		print "turning over (" + the name of start pile + ": " + its state + ")"
 		turn it face up
 
-	if end pile is a foundation: set the score of the solitaire to the score of the solitaire + 10
+	if the pile is a foundation: set the score of the solitaire to the score of the solitaire + 10
 	else if start pile is the discards of the solitaire: set the score of the solitaire to the score of the solitaire + 5
 	return yes
 
+// a click plays the card;  a drag puts it where it's dropped
 on card click with a card
 	play the card
+
+on card drop with a card and a pile
+	put the card on the pile
 
 
 ## Start
@@ -212,8 +222,9 @@ start solitaire
 // the stock:  the cards not played yet, face down;  a click turns the next one over
 a "stock pile" is a pile where:
 	- its layout is stacked
+	// a click turns its card over:  none can be taken from it, so none can be dragged
 	- it can never take a card
-	- it can give up a card if: the card is its last card
+	- it can never let go of a card
 	// empty:  a light grey card, face down -- a click turns the discards back over
 	- to draw its placeholder:
 		return <div part="placeholder" onClick={play from the stock}>🂠</div>

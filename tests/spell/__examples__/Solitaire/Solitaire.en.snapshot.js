@@ -23,6 +23,7 @@ export const words = {
       symbol: "symbol",
       state: "state",
       play: "play a card",
+      putOnPile: "put a card on a pile",
       pile: "pile"
     },
     Joker: {

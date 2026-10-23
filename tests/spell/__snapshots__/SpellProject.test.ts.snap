@@ -224,7 +224,8 @@ export class Card extends Drawable {
     return h("ui-text", {
       part: "picture",
       color: () => this.isFaceDirection("up") ? this.color : "blue",
-      onClick: () => trigger("card-click", { card: this })
+      onClick: () => trigger("card-click", { card: this }),
+      style: "cursor:pointer;user-select:none"
     }, () => this.picture)
   }
 
@@ -683,44 +684,49 @@ core.heading("The solitaire:  its piles, its moves, auto play and drawing")
 /** the stock:  the cards not played yet, face down;  a click turns the next one over */
 /*! SPELL: DECLARES {
   type: "StockPile", superType: "Pile",
-  defined: "/Solitaire.spell:7553-7873",
+  defined: "/Solitaire.spell:8051-8433",
 } */
 export class StockPile extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "StockPile",
-    defined: "/Solitaire.spell:7588-7609",
+    defined: "/Solitaire.spell:8086-8107",
   } */
   get layout() {
     return "stacked"
   }
 
+  /** a click turns its card over:  none can be taken from it, so none can be dragged */
   canTake(card) {
     return false
   }
 
   canGiveUp(card) {
-    return card === this.lastItem
+    return false
   }
 
   // empty:  a light grey card, face down -- a click turns the discards back over
   drawItsPlaceholder() {
-    return h("div", { part: "placeholder", onClick: () => solitaire.playFromTheStock() }, "🂠")
+    return h("div", {
+      part: "placeholder",
+      onClick: () => solitaire.playFromTheStock(),
+      style: "cursor:pointer;user-select:none"
+    }, "🂠")
   }
 }
 
 /** the discards:  where the stock's cards go as they're turned over */
 /*! SPELL: DECLARES {
   type: "DiscardPile", superType: "Pile",
-  defined: "/Solitaire.spell:7943-8084",
+  defined: "/Solitaire.spell:8503-8644",
 } */
 export class DiscardPile extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "DiscardPile",
-    defined: "/Solitaire.spell:7980-8001",
+    defined: "/Solitaire.spell:8540-8561",
   } */
   get layout() {
     return "stacked"
@@ -738,14 +744,14 @@ export class DiscardPile extends Pile {
 /** a foundation:  where a suit is built up, ace to king */
 /*! SPELL: DECLARES {
   type: "Foundation", superType: "Pile",
-  defined: "/Solitaire.spell:8142-8687",
+  defined: "/Solitaire.spell:8702-9247",
 } */
 export class Foundation extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "Foundation",
-    defined: "/Solitaire.spell:8177-8198",
+    defined: "/Solitaire.spell:8737-8758",
   } */
   get layout() {
     return "stacked"
@@ -753,7 +759,7 @@ export class Foundation extends Pile {
 
   /*! SPELL: DECLARES {
     property: "suit", of: "Foundation", datatype: "CardSuit",
-    defined: "/Solitaire.spell:8202-8227",
+    defined: "/Solitaire.spell:8762-8787",
   } */
   // - its "suit" is a card suit
   static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
@@ -785,14 +791,14 @@ export class Foundation extends Pile {
 /** a tableau:  a column, built down from king to ace, red and black in turn */
 /*! SPELL: DECLARES {
   type: "Tableau", superType: "Pile",
-  defined: "/Solitaire.spell:8765-9031",
+  defined: "/Solitaire.spell:9325-9591",
 } */
 export class Tableau extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "Tableau",
-    defined: "/Solitaire.spell:8797-8819",
+    defined: "/Solitaire.spell:9357-9379",
   } */
   get layout() {
     return "vertical"
@@ -1136,15 +1142,19 @@ export class Solitaire extends App {
         h("ui-item", { type: "header" }, "Klondike Solitaire"),
         h("ui-item", () => \`Score: \${this.score}\`),
         h("ui-menu", { position: "right" },
-          h("ui-item", { "aria-label": "Auto play", onClick: () => this.autoPlay() },
+          h("ui-item", { "aria-label": "Auto play", onClick: () => this.autoPlay(), style: "cursor:pointer;user-select:none" },
             h("ui-icon", { name: "fast forward" }),
             h("ui-popup", { content: "Auto play", inverted: true, size: "small" })
           ),
-          h("ui-item", { "aria-label": "Cheat", onClick: () => this.cheat() },
+          h("ui-item", { "aria-label": "Cheat", onClick: () => this.cheat(), style: "cursor:pointer;user-select:none" },
             h("ui-icon", { name: "eye" }),
             h("ui-popup", { content: "Cheat", inverted: true, size: "small" })
           ),
-          h("ui-item", { "aria-label": "Restart", onClick: () => this.startANewGame() },
+          h("ui-item", {
+            "aria-label": "Restart",
+            onClick: () => this.startANewGame(),
+            style: "cursor:pointer;user-select:none"
+          },
             h("ui-icon", { name: "redo" }),
             h("ui-popup", { content: "Restart", inverted: true, size: "small" })
           )
@@ -1171,33 +1181,51 @@ export class Solitaire extends App {
 }
 export const solitaire = new Solitaire()
 
-core.heading("Playing a card:  what a click does")
-////////////////////////////////////////
-// ## Playing a card:  what a click does
-////////////////////////////////////////
-/** the card, and every card on it, onto the first pile that can take it;  it says whether it moved */
+core.heading("Playing a card:  what a click or a drag does")
+//////////////////////////////////////////////////
+// ## Playing a card:  what a click or a drag does
+//////////////////////////////////////////////////
+/**
+ * the card, and every card on it, onto the first pile that can take it;  it says whether it moved
+ * - the stock's card is turned over onto the discards instead
+ */
 /*! SPELL: DECLARES {
   syntax: "play {thisArg:expression}", output: "play", rule: "method_call", of: "Card",
-  alias: ["statement", "expression"], kind: "method", name: "play a card", waits: true,
-  defined: "/Solitaire.spell:6048-7052",
+  alias: ["statement", "expression"], kind: "method", name: "play a card",
+  defined: "/Solitaire.spell:6121-6367",
 } */
-Card.prototype.play = async function () {
-  const startPile = this.pile
-  if (!core.canGiveUp(startPile, this)) return false
-
-  if (startPile === solitaire.stock) {
+Card.prototype.play = function () {
+  if (this.pile === solitaire.stock) {
     solitaire.playFromTheStock()
     return
   }
 
   const endPile = core.filter(core.everyThing(Pile), (pile) => core.canTake(pile, this)).firstItem
   if (endPile === undefined) return false
+  return this.putOnPile(endPile)
+}
+
+/**
+ * the card, and every card on it, onto the pile, if the piles' rules let it go and take it;  it says whether it moved
+ * - the pile it left turns its new last card up, and the move scores
+ */
+/*! SPELL: DECLARES {
+  syntax: "put {thisArg:expression} on {callArgs:expression}", output: "put_on_$pile",
+  rule: "method_call", of: "Card", alias: ["statement", "expression"], kind: "method",
+  name: "put a card on a pile", params: [{ name: "pile", datatype: "Pile" }], returns: "choice",
+  waits: true,
+  defined: "/Solitaire.spell:6558-7425",
+} */
+Card.prototype.putOnPile = async function (pile) {
+  const startPile = this.pile
+  if (!core.canGiveUp(startPile, this)) return false
+  if (!core.canTake(pile, this)) return false
 
   const movingCards = startPile.startingWith(this)
   movingCards.name = startPile.name
-  core.console.log(\`moving (\${movingCards.state}) to (\${endPile.state})\`)
+  core.console.log(\`moving (\${movingCards.state}) to (\${pile.state})\`)
 
-  movingCards.forEach((card) => core.move(card, endPile))
+  movingCards.forEach((card) => core.move(card, pile))
 
   if (startPile instanceof Tableau && !startPile.isEmpty) {
     await core.pauseFor(200, "msec")
@@ -1206,14 +1234,20 @@ Card.prototype.play = async function () {
     it?.turnFaceUp()
   }
 
-  if (endPile instanceof Foundation) solitaire.score = solitaire.score + 10
+  if (pile instanceof Foundation) solitaire.score = solitaire.score + 10
   else if (startPile === solitaire.discards) solitaire.score = solitaire.score + 5
   return true
 }
 
+/** a click plays the card;  a drag puts it where it's dropped */
 on("card-click", (event) => {
   const { card } = event
   card.play()
+})
+
+on("card-drop", (event) => {
+  const { card, pile } = event
+  card.putOnPile(pile)
 })
 
 core.heading("Start")
@@ -1235,7 +1269,7 @@ core.heading("Tests")
 /*! SPELL: DECLARES {
   syntax: "test the moves", output: "test_the_moves", rule: "method_call", alias: "statement",
   kind: "function", name: "the moves",
-  defined: "/Solitaire.spell:9043-10520",
+  defined: "/Solitaire.spell:9603-11080",
 } */
 export function testTheMoves() {
   return core.test("test the moves", function testTheMoves() {

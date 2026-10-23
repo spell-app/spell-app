@@ -141,6 +141,7 @@ class Card(Drawable):
                 "part": "picture",
                 "color": self.color if self.is_face_direction("up") else "blue",
                 "onClick": lambda event: core.trigger("card-click", card=self),
+                "style": "cursor:pointer;user-select:none",
             },
             self.picture,
         )
@@ -165,31 +166,42 @@ class Card(Drawable):
         direction = "↑" if self.is_face_direction("up") else "↓"
         return f"{rank}{suit}{direction}"
 
-    #######################################
-    # ## Playing a card:  what a click does
-    #######################################
+    #################################################
+    # ## Playing a card:  what a click or a drag does
+    #################################################
 
-    async def play(self) -> bool | None:
-        """the card, and every card on it, onto the first pile that can take it;  it says whether it moved"""
-        start_pile = self.pile
-        assert start_pile is not None
-        if not core.can_give_up(start_pile, self):
-            return False
-
-        if start_pile == solitaire.stock:
+    async def play(self) -> Any:
+        """
+        the card, and every card on it, onto the first pile that can take it;  it says whether it moved
+        - the stock's card is turned over onto the discards instead
+        """
+        if self.pile == solitaire.stock:
             await solitaire.play_from_the_stock()
             return
 
         end_pile = core.filter(core.every_thing(Pile), lambda pile: core.can_take(pile, self)).first_item
         if end_pile is None:
             return False
+        return await self.put_on_pile(end_pile)
+
+    async def put_on_pile(self, pile: Pile) -> bool:
+        """
+        the card, and every card on it, onto the pile, if the piles' rules let it go and take it;  it says whether it moved
+        - the pile it left turns its new last card up, and the move scores
+        """
+        start_pile = self.pile
+        assert start_pile is not None
+        if not core.can_give_up(start_pile, self):
+            return False
+        if not core.can_take(pile, self):
+            return False
 
         moving_cards = start_pile.starting_with(self)
         moving_cards.name = start_pile.name
-        print(f"moving ({moving_cards.state}) to ({end_pile.state})")
+        print(f"moving ({moving_cards.state}) to ({pile.state})")
 
         for card in moving_cards:
-            core.move(card, end_pile)
+            core.move(card, pile)
 
         if isinstance(start_pile, Tableau) and (start_pile):
             await core.pause_for(200, "msec")
@@ -197,7 +209,7 @@ class Card(Drawable):
             print(f"turning over ({start_pile.name}: {getattr(it, "state", None)})")
             await it.turn_face_up()
 
-        if isinstance(end_pile, Foundation):
+        if isinstance(pile, Foundation):
             solitaire.score = solitaire.score + 10
         elif start_pile == solitaire.discards:
             solitaire.score = solitaire.score + 5
@@ -616,10 +628,11 @@ class StockPile(Pile):
         return "stacked"
 
     def can_take(self, card: Card) -> bool:
+        """a click turns its card over:  none can be taken from it, so none can be dragged"""
         return False
 
     def can_give_up(self, card: Card) -> bool:
-        return card == self.last_item
+        return False
 
     # empty:  a light grey card, face down -- a click turns the discards back over
 
@@ -627,7 +640,11 @@ class StockPile(Pile):
         async def _each_1(event: Any) -> Any:
             return await solitaire.play_from_the_stock()
 
-        return h("div", {"part": "placeholder", "onClick": _each_1}, "🂠")
+        return h(
+            "div",
+            {"part": "placeholder", "onClick": _each_1, "style": "cursor:pointer;user-select:none"},
+            "🂠",
+        )
 
 
 class DiscardPile(Pile):
@@ -885,19 +902,27 @@ class Solitaire(App):
                     {"position": "right"},
                     h(
                         "ui-item",
-                        {"aria-label": "Auto play", "onClick": _each_1},
+                        {
+                            "aria-label": "Auto play",
+                            "onClick": _each_1,
+                            "style": "cursor:pointer;user-select:none",
+                        },
                         h("ui-icon", {"name": "fast forward"}),
                         h("ui-popup", {"content": "Auto play", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
-                        {"aria-label": "Cheat", "onClick": _each_2},
+                        {"aria-label": "Cheat", "onClick": _each_2, "style": "cursor:pointer;user-select:none"},
                         h("ui-icon", {"name": "eye"}),
                         h("ui-popup", {"content": "Cheat", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
-                        {"aria-label": "Restart", "onClick": _each_3},
+                        {
+                            "aria-label": "Restart",
+                            "onClick": _each_3,
+                            "style": "cursor:pointer;user-select:none",
+                        },
                         h("ui-icon", {"name": "redo"}),
                         h("ui-popup", {"content": "Restart", "inverted": True, "size": "small"}),
                     ),
@@ -931,6 +956,13 @@ solitaire = Solitaire()
 async def on_card_click(event: Any) -> None:
     card = event.card
     await card.play()
+
+
+@core.on("card-drop")
+async def on_card_drop(event: Any) -> None:
+    card = event.card
+    pile = event.pile
+    await card.put_on_pile(pile)
 
 
 # Start
@@ -1117,7 +1149,6 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
 [layout] > * {
   background: #fff;
   border-radius: 0.035em;
-  cursor: pointer;
 }
 
 /* An empty pile's placeholder:  a light grey card */

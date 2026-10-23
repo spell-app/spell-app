@@ -121,7 +121,8 @@ export class Card extends Drawable {
     return h("ui-text", {
       part: "picture",
       color: () => this.isFaceDirection("up") ? this.color : "blue",
-      onClick: () => sendTrigger("card-click", { card: this })
+      onClick: () => sendTrigger("card-click", { card: this }),
+      style: "cursor:pointer;user-select:none"
     }, () => this.picture)
   }
 
@@ -142,27 +143,38 @@ export class Card extends Drawable {
     return rank + suit + direction
   }
 
-  ////////////////////////////////////////
-  // ## Playing a card:  what a click does
-  ////////////////////////////////////////
-  /** the card, and every card on it, onto the first pile that can take it;  it says whether it moved */
-  async play() {
-    const startPile = this.pile
-    if (!core.canGiveUp(startPile, this)) return false
-
-    if (startPile === solitaire.stock) {
+  //////////////////////////////////////////////////
+  // ## Playing a card:  what a click or a drag does
+  //////////////////////////////////////////////////
+  /**
+   * the card, and every card on it, onto the first pile that can take it;  it says whether it moved
+   * - the stock's card is turned over onto the discards instead
+   */
+  play() {
+    if (this.pile === solitaire.stock) {
       solitaire.playFromTheStock()
       return
     }
 
     const endPile = core.filter(core.everyThing(Pile), (pile) => core.canTake(pile, this)).firstItem
     if (endPile === undefined) return false
+    return this.putOnPile(endPile)
+  }
+
+  /**
+   * the card, and every card on it, onto the pile, if the piles' rules let it go and take it;  it says whether it moved
+   * - the pile it left turns its new last card up, and the move scores
+   */
+  async putOnPile(pile) {
+    const startPile = this.pile
+    if (!core.canGiveUp(startPile, this)) return false
+    if (!core.canTake(pile, this)) return false
 
     const movingCards = startPile.startingWith(this)
     movingCards.name = startPile.name
-    core.console.log(`moving (${movingCards.state}) to (${endPile.state})`)
+    core.console.log(`moving (${movingCards.state}) to (${pile.state})`)
 
-    movingCards.forEach((card) => core.move(card, endPile))
+    movingCards.forEach((card) => core.move(card, pile))
 
     if (startPile instanceof Tableau && !startPile.isEmpty) {
       await core.pauseFor(200, "msec")
@@ -171,7 +183,7 @@ export class Card extends Drawable {
       it?.turnFaceUp()
     }
 
-    if (endPile instanceof Foundation) solitaire.score = solitaire.score + 10
+    if (pile instanceof Foundation) solitaire.score = solitaire.score + 10
     else if (startPile === solitaire.discards) solitaire.score = solitaire.score + 5
     return true
   }
@@ -338,17 +350,22 @@ export class StockPile extends Pile {
     return "stacked"
   }
 
+  /** a click turns its card over:  none can be taken from it, so none can be dragged */
   canTake(card) {
     return false
   }
 
   canGiveUp(card) {
-    return card === this.lastItem
+    return false
   }
 
   // empty:  a light grey card, face down -- a click turns the discards back over
   drawItsPlaceholder() {
-    return h("div", { part: "placeholder", onClick: () => sendCall("play_from_the_stock", [], solitaire) }, "🂠")
+    return h("div", {
+      part: "placeholder",
+      onClick: () => sendCall("play_from_the_stock", [], solitaire),
+      style: "cursor:pointer;user-select:none"
+    }, "🂠")
   }
 }
 
@@ -635,15 +652,27 @@ export class Solitaire extends App {
         h("ui-item", { type: "header" }, "Klondike Solitaire"),
         h("ui-item", () => `Score: ${this.score}`),
         h("ui-menu", { position: "right" },
-          h("ui-item", { "aria-label": "Auto play", onClick: () => sendCall("auto_play", [], this) },
+          h("ui-item", {
+            "aria-label": "Auto play",
+            onClick: () => sendCall("auto_play", [], this),
+            style: "cursor:pointer;user-select:none"
+          },
             h("ui-icon", { name: "fast forward" }),
             h("ui-popup", { content: "Auto play", inverted: true, size: "small" })
           ),
-          h("ui-item", { "aria-label": "Cheat", onClick: () => sendCall("cheat", [], this) },
+          h("ui-item", {
+            "aria-label": "Cheat",
+            onClick: () => sendCall("cheat", [], this),
+            style: "cursor:pointer;user-select:none"
+          },
             h("ui-icon", { name: "eye" }),
             h("ui-popup", { content: "Cheat", inverted: true, size: "small" })
           ),
-          h("ui-item", { "aria-label": "Restart", onClick: () => sendCall("start_a_new_game", [], this) },
+          h("ui-item", {
+            "aria-label": "Restart",
+            onClick: () => sendCall("start_a_new_game", [], this),
+            style: "cursor:pointer;user-select:none"
+          },
             h("ui-icon", { name: "redo" }),
             h("ui-popup", { content: "Restart", inverted: true, size: "small" })
           )
@@ -670,6 +699,8 @@ export class Solitaire extends App {
 }
 export let solitaire
 
+/** a click plays the card;  a drag puts it where it's dropped */
+
 //## Start
 
 /////////////////////////////////////////////////////////////////////////
@@ -684,7 +715,7 @@ export function testTheMoves(...args) {
   return sendCall("test_the_moves", args)
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  how the board looks -- each card, and how each pile lays its cards out.¬   - Every pile and card is an element of its own on the board, so these rules reach them all:¬     - a pile by its layout, e.g. <solitaire-tableau layout="vertical">¬     - each card in it by its place, --index from 0, and how many there are, --count:  the pile numbers them¬     - an empty pile's placeholder, which it draws itself, by its part:  ::part(placeholder)¬   - A card is one letter of unicode's Playing Cards, at its pile's width:¬     so a card is as wide as its column, whatever the window's width. */¬¬/* A card's picture, in ems of its own letter (measured in Chrome on a Mac):¬   0.604em wide, 0.805em tall, its left edge 0.049em into the letter. */¬:root,¬:host {¬  /* how wide a card is, for each em of its letter */¬  --card-width: 0.604;¬  /* how tall it is, for each of its widths:  0.805 / 0.604 */¬  --card-height: 1.333;¬  /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */¬  --card-step-down: 0.2;¬  /* along a row, how much of each card the next one covers:  a tenth of it */¬  --card-overlap: 0.1;¬  /* fanned, how far each card turns from the one before */¬  --card-turn: 8deg;¬}¬¬/****************¬ * The board:  below the game's menu, its piles seven to a line¬ ****************/¬¬.Board {¬  /* gutters that shrink with a narrow window, so the cards keep most of its width */¬  --ui-grid-gutter: min(2rem, 2.5vw);¬  --ui-grid-row-spacing: min(2rem, 4vw);¬  /* 1.5rem below the menu:  the grid pulls itself up by half a row's spacing */¬  margin-top: calc(1.5rem + var(--ui-grid-row-spacing) / 2);¬}¬¬/* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */¬@media (width < 36rem) {¬  ui-item[type="header"] {¬    display: none;¬  }¬}¬¬/****************¬ * A pile:  as wide as its cell of the board, and as tall as its cards¬ ****************/¬¬[layout] {¬  display: block;¬  position: relative;¬  /* its cards size themselves by its width */¬  container-type: inline-size;¬}¬/* its height:  a card's, by default -- a percentage of padding is one of its width */¬[layout]::before {¬  content: "";¬  display: block;¬  padding-top: calc(100% * var(--card-height));¬}¬¬/* Each card, and the placeholder:  a card's letter as wide as the pile, cut to the card it draws */¬[layout] > *,¬[layout]::part(placeholder) {¬  position: absolute;¬  top: 0;¬  left: 0;¬  font-size: calc(100cqi / var(--card-width));¬  width: calc(var(--card-width) * 1em);¬  height: calc(var(--card-width) * var(--card-height) * 1em);¬  overflow: hidden;¬  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.552 starts it at the top */¬  line-height: 0.552;¬  --ui-text-line-height: 0.552;¬  text-indent: -0.049em;¬  user-select: none;¬}¬/* a card's letter is only its ink:  a white face, its corners rounded as the letter's are, hides the cards below */¬[layout] > * {¬  background: #fff;¬  border-radius: 0.035em;¬  cursor: pointer;¬}¬¬/* An empty pile's placeholder:  a light grey card */¬[layout]::part(placeholder) {¬  color: #000;¬  opacity: 0.15;¬}¬[layout]::part(placeholder):hover {¬  opacity: 0.25;¬}¬¬/****************¬ * The layouts:  stacked puts every card on top of the one before¬ ****************/¬¬/* vertical:  each card a step below the one before */¬[layout="vertical"]::before {¬  padding-top: calc(100% * var(--card-height) * (1 + (max(var(--count, 1), 1) - 1) * var(--card-step-down)));¬}¬[layout="vertical"] > * {¬  top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));¬}¬¬/* horizontal:  side by side, each covering the edge of the one before;  smaller as there are more, to fit the pile */¬[layout="horizontal"] {¬  --spread: calc(1 + (max(var(--count, 1), 1) - 1) * (1 - var(--card-overlap)));¬}¬[layout="horizontal"]::before {¬  padding-top: calc(100% * var(--card-height) / var(--spread));¬}¬[layout="horizontal"] > * {¬  font-size: calc(100cqi / var(--card-width) / var(--spread));¬  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));¬}¬¬/* fanned:  as a hand of cards is held, each turned a little from the one before, around a point below them */¬[layout="fanned"] > * {¬  font-size: calc(60cqi / var(--card-width));¬  left: calc(50% - var(--card-width) * 0.5em);¬  top: 10%;¬  transform-origin: 50% 200%;¬  rotate: calc((var(--index) - (var(--count) - 1) / 2) * var(--card-turn));¬}¬`)
+core.installStyles(undefined, `/* File styles.css:  how the board looks -- each card, and how each pile lays its cards out.¬   - Every pile and card is an element of its own on the board, so these rules reach them all:¬     - a pile by its layout, e.g. <solitaire-tableau layout="vertical">¬     - each card in it by its place, --index from 0, and how many there are, --count:  the pile numbers them¬     - an empty pile's placeholder, which it draws itself, by its part:  ::part(placeholder)¬   - A card is one letter of unicode's Playing Cards, at its pile's width:¬     so a card is as wide as its column, whatever the window's width. */¬¬/* A card's picture, in ems of its own letter (measured in Chrome on a Mac):¬   0.604em wide, 0.805em tall, its left edge 0.049em into the letter. */¬:root,¬:host {¬  /* how wide a card is, for each em of its letter */¬  --card-width: 0.604;¬  /* how tall it is, for each of its widths:  0.805 / 0.604 */¬  --card-height: 1.333;¬  /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */¬  --card-step-down: 0.2;¬  /* along a row, how much of each card the next one covers:  a tenth of it */¬  --card-overlap: 0.1;¬  /* fanned, how far each card turns from the one before */¬  --card-turn: 8deg;¬}¬¬/****************¬ * The board:  below the game's menu, its piles seven to a line¬ ****************/¬¬.Board {¬  /* gutters that shrink with a narrow window, so the cards keep most of its width */¬  --ui-grid-gutter: min(2rem, 2.5vw);¬  --ui-grid-row-spacing: min(2rem, 4vw);¬  /* 1.5rem below the menu:  the grid pulls itself up by half a row's spacing */¬  margin-top: calc(1.5rem + var(--ui-grid-row-spacing) / 2);¬}¬¬/* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */¬@media (width < 36rem) {¬  ui-item[type="header"] {¬    display: none;¬  }¬}¬¬/****************¬ * A pile:  as wide as its cell of the board, and as tall as its cards¬ ****************/¬¬[layout] {¬  display: block;¬  position: relative;¬  /* its cards size themselves by its width */¬  container-type: inline-size;¬}¬/* its height:  a card's, by default -- a percentage of padding is one of its width */¬[layout]::before {¬  content: "";¬  display: block;¬  padding-top: calc(100% * var(--card-height));¬}¬¬/* Each card, and the placeholder:  a card's letter as wide as the pile, cut to the card it draws */¬[layout] > *,¬[layout]::part(placeholder) {¬  position: absolute;¬  top: 0;¬  left: 0;¬  font-size: calc(100cqi / var(--card-width));¬  width: calc(var(--card-width) * 1em);¬  height: calc(var(--card-width) * var(--card-height) * 1em);¬  overflow: hidden;¬  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.552 starts it at the top */¬  line-height: 0.552;¬  --ui-text-line-height: 0.552;¬  text-indent: -0.049em;¬  user-select: none;¬}¬/* a card's letter is only its ink:  a white face, its corners rounded as the letter's are, hides the cards below */¬[layout] > * {¬  background: #fff;¬  border-radius: 0.035em;¬}¬¬/* An empty pile's placeholder:  a light grey card */¬[layout]::part(placeholder) {¬  color: #000;¬  opacity: 0.15;¬}¬[layout]::part(placeholder):hover {¬  opacity: 0.25;¬}¬¬/****************¬ * The layouts:  stacked puts every card on top of the one before¬ ****************/¬¬/* vertical:  each card a step below the one before */¬[layout="vertical"]::before {¬  padding-top: calc(100% * var(--card-height) * (1 + (max(var(--count, 1), 1) - 1) * var(--card-step-down)));¬}¬[layout="vertical"] > * {¬  top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));¬}¬¬/* horizontal:  side by side, each covering the edge of the one before;  smaller as there are more, to fit the pile */¬[layout="horizontal"] {¬  --spread: calc(1 + (max(var(--count, 1), 1) - 1) * (1 - var(--card-overlap)));¬}¬[layout="horizontal"]::before {¬  padding-top: calc(100% * var(--card-height) / var(--spread));¬}¬[layout="horizontal"] > * {¬  font-size: calc(100cqi / var(--card-width) / var(--spread));¬  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));¬}¬¬/* fanned:  as a hand of cards is held, each turned a little from the one before, around a point below them */¬[layout="fanned"] > * {¬  font-size: calc(60cqi / var(--card-width));¬  left: calc(50% - var(--card-width) * 0.5em);¬  top: 10%;¬  transform-origin: 50% 200%;¬  rotate: calc((var(--index) - (var(--count) - 1) / 2) * var(--card-turn));¬}¬`)
 // -----------
 
 /** Binds each thing the program keeps, from Python's state. */
