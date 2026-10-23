@@ -167,6 +167,7 @@ export class Card extends Drawable {
     const startPile = this.pile
     if (!core.canGiveUp(startPile, this)) return false
     if (!core.canTake(pile, this)) return false
+    const points = this.countThePointsForCardOnPile(pile)
 
     const movingCards = startPile.startingWith(this)
     movingCards.name = startPile.name
@@ -181,9 +182,15 @@ export class Card extends Drawable {
       it?.turnFaceUp()
     }
 
-    if (pile instanceof Foundation) solitaire.score = solitaire.score + 10
-    else if (startPile === solitaire.discards) solitaire.score = solitaire.score + 5
+    solitaire.score = solitaire.score + points
     return true
+  }
+
+  /** what putting the card on the pile scores:  10 on a foundation, 5 from the discards, else nothing */
+  countThePointsForCardOnPile(pile) {
+    if (pile instanceof Foundation) return 10
+    if (this.pile === solitaire.discards) return 5
+    return 0
   }
 
   static canBeDragged = true
@@ -444,6 +451,12 @@ export class Pile extends DrawableList {
     return state
   }
 
+  /** while a card it would take is over it, the score shows what the move would add -- gone as the card leaves */
+  whileCardDraggedOver(card) {
+    const points = card.countThePointsForCardOnPile(this)
+    if (core.canTake(this, card) && points > 0) solitaire.hint = ` (+${points})`
+  }
+
   whenCardDroppedOn(card) {
     card.putOnPile(this)
   }
@@ -616,6 +629,12 @@ export class Solitaire extends App {
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }
 
+  /** what the move being dragged would add to the score, e.g. " (+10)":  shown beside it, while a card is over a pile */
+  // - its "hint" is text
+  static { this.declareProp("hint", { type: "text" }) }
+  get hint() { return this.getProp("hint") }
+  set hint(value) { this.setProp("hint", value) }
+
   // - its "deck" is a new deck
   static { this.declareProp("deck", { init: () => new Deck(), early: true }) }
   get deck() { return this.getProp("deck") }
@@ -759,6 +778,7 @@ export class Solitaire extends App {
 
   startANewGame() {
     this.score = 0
+    this.hint = ""
     this.dealTheCards()
   }
 
@@ -820,7 +840,7 @@ export class Solitaire extends App {
     return h("ui-container",
       h("ui-menu",
         h("ui-item", { type: "header" }, "Klondike Solitaire"),
-        h("ui-item", () => `Score: ${this.score}`),
+        h("ui-item", () => `Score: ${this.score}${this.hint}`),
         h("ui-menu", { position: "right" },
           h("ui-item", { "aria-label": "Auto play", onClick: () => this.autoPlay(), style: "cursor:pointer;user-select:none" },
             h("ui-icon", { name: "fast forward" }),

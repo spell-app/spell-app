@@ -54,6 +54,7 @@ exports[`ScopeExplorer > a type's members:  in document order, by file then line
   "property pile",
   "method play a card",
   "method put a card on a pile",
+  "method count the points for a card on a pile",
   "property id",
   "method (a thing) belongs to one (list)",
   "method draw (a thing)",

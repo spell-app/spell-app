@@ -23,6 +23,7 @@ export const words = {
       estado: "estado",
       jugar: "jugar una carta",
       ponerEnPila: "poner una carta en una pila",
+      contarLosPuntosDeCartaEnPila: "contar los puntos de una carta en una pila",
       pila: "pila"
     },
     Comodín: {
@@ -60,6 +61,7 @@ export const words = {
     },
     Solitario: {
       puntuación: "puntuación",
+      pista: "pista",
       mazo: "mazo",
       reserva: "reserva",
       descartes: "descartes",

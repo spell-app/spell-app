@@ -167,6 +167,7 @@ export class Carta extends Drawable {
     const pilaInicial = this.pila
     if (!core.canGiveUp(pilaInicial, this)) return false
     if (!core.canTake(pila, this)) return false
+    const puntos = this.contarLosPuntosDeCartaEnPila(pila)
 
     const cartasMovidas = pilaInicial.startingWith(this)
     cartasMovidas.name = pilaInicial.name
@@ -181,9 +182,15 @@ export class Carta extends Drawable {
       it?.voltearBocaArriba()
     }
 
-    if (pila instanceof Fundación) solitario.puntuación = solitario.puntuación + 10
-    else if (pilaInicial === solitario.descartes) solitario.puntuación = solitario.puntuación + 5
+    solitario.puntuación = solitario.puntuación + puntos
     return true
+  }
+
+  /** lo que suma poner la carta en la pila:  10 en una fundación, 5 desde los descartes, si no nada */
+  contarLosPuntosDeCartaEnPila(pila: Pila) {
+    if (pila instanceof Fundación) return 10
+    if (this.pila === solitario.descartes) return 5
+    return 0
   }
 
   static canBeDragged = true
@@ -240,6 +247,10 @@ export class CartaElement extends SpellElement<Carta> {
 
   ponerEnPila(pila: Pila) {
     return this.currentThing?.ponerEnPila(pila)
+  }
+
+  contarLosPuntosDeCartaEnPila(pila: Pila) {
+    return this.currentThing?.contarLosPuntosDeCartaEnPila(pila)
   }
 }
 core.useElement(Carta, CartaElement)
@@ -513,6 +524,12 @@ export class Pila extends DrawableList<Carta> {
     return estado
   }
 
+  /** mientras una carta que tomaría está sobre ella, la puntuación muestra lo que sumaría -- se va al irse la carta */
+  whileCartaDraggedOver(carta: Carta) {
+    const puntos = carta.contarLosPuntosDeCartaEnPila(this)
+    if (core.canTake(this, carta) && puntos > 0) solitario.pista = ` (+${puntos})`
+  }
+
   whenCartaDroppedOn(carta: Carta) {
     carta.ponerEnPila(this)
   }
@@ -538,6 +555,10 @@ export class PilaElement extends SpellElement<Pila> {
     { name: "name", kind: "string", description: "Its name." },
     { name: "disposición", kind: "string", description: "Its disposición." }
   ])
+
+  whileCartaDraggedOver(carta: Carta) {
+    return this.currentThing?.whileCartaDraggedOver(carta)
+  }
 
   whenCartaDroppedOn(carta: Carta) {
     return this.currentThing?.whenCartaDroppedOn(carta)
@@ -795,6 +816,11 @@ export class Solitario extends App {
   @prop({ type: "number" })
   accessor puntuación!: number
 
+  /** lo que sumaría el movimiento que se arrastra, p. ej. " (+10)":  se ve a su lado, mientras una carta está sobre una pila */
+  // su "pista" es texto
+  @prop({ type: "text" })
+  accessor pista!: string
+
   // su "mazo" es un nuevo mazo
   @prop({ init: () => new Mazo(), early: true })
   accessor mazo!: Mazo
@@ -924,6 +950,7 @@ export class Solitario extends App {
 
   empezarElJuego() {
     this.puntuación = 0
+    this.pista = ""
     this.repartirLasCartas()
   }
 
@@ -985,7 +1012,7 @@ export class Solitario extends App {
       <es-contenedor>
         <es-menu>
           <es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
-          <es-elemento>{`Puntos: ${this.puntuación}`}</es-elemento>
+          <es-elemento>{`Puntos: ${this.puntuación}${this.pista}`}</es-elemento>
           <es-menu posicion="derecha">
             <es-elemento aria-label="Jugar solo" onClick={() => this.jugarSolo()} style="cursor:pointer;user-select:none">
               <es-icono name="fast forward" />
