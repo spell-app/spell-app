@@ -5,6 +5,7 @@
  *   folder says `CLI.CliError`, `CLI.CompileOptions` ...:  ONE `CliError` class for every repo's commands.
  */
 import type { SP } from "spell-parser/spell"
+import type { LSP } from "spell-app/lsp"
 import type { GlobalOptions } from "spell/cli"
 
 export { CliError, EXIT, type GlobalOptions } from "spell/cli"
@@ -20,6 +21,7 @@ export type {
   SpeedtestOptions,
   TestOptions,
   TranslateOptions,
+  TranslateTimeOptions,
   WatchOptions
 } from "spell-parser/cli"
 
@@ -105,6 +107,8 @@ export type NewOptions = GlobalOptions & {
  * - `messages`:  what the core says, e.g. a test's lines, in the language the program speaks (epic `spanish` P12, P19):
  *   see `core.useMessages()`.
  *   Left out:  English.
+ * - `reports`:  `test` also sends how each test went (`TestsReport`) over IPC, for the lines its failures are on
+ *   (epic `spanish` P25:  `spell parser translate`'s fix-ups)
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -117,6 +121,7 @@ export type RunSpec = {
   dom?: boolean
   seed?: number
   messages?: Record<string, string>
+  reports?: boolean
 }
 
 /**
@@ -125,6 +130,14 @@ export type RunSpec = {
  */
 export type RunReport = {
   skipped: string[]
+}
+
+/**
+ * What `runProject.ts` tells its parent once `test` has run, over IPC, when asked (`RunSpec.reports`):
+ * how each test went, as the language server reads it to put each failure on its line (`spell/testDiagnostics`).
+ */
+export type TestsReport = {
+  tests: LSP.TestReport[]
 }
 
 ////////////////

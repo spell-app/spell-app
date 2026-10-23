@@ -4,9 +4,12 @@ import { E } from "spell-ui/core"
  * ### `Dragging`
  * One drag of a drawable thing's element, from pointer down to pointer up:  a mouse and a finger alike.
  *
- * - What it moves:  the element, and its list's items after it, e.g. a tableau's face-up card and the cards on it.
+ * - What it carries:  the element, and its list's items after it, e.g. a tableau's face-up card and the cards on it.
  *   They follow the pointer by their `translate`, raised above the board, and ignore the pointer meanwhile,
  *   so what's under it can be found.
+ * - Or what its owner says (`DragOptions.carried`), staying where it is (`follows: false`):
+ *   e.g. a task list's selected tasks, dimmed, while a line shows where they'd go (`SpellElement`, epic `outline-spell`
+ *   P30).
  * - Where it lands:  the drawable list's element under the pointer, as `dropTargetAt()` finds it.
  * - It sends the web's own drag events, as `DragEvent`s with no `dataTransfer`, so a page can follow it as it would
  *   the browser's drag and drop:
@@ -30,15 +33,15 @@ export class Dragging {
   constructor(
     readonly element: HTMLElement,
     event: PointerEvent,
-    private readonly onDrop: (target: HTMLElement | undefined) => void
+    private readonly options: DragOptions
   ) {
     this.startX = event.clientX
     this.startY = event.clientY
     this.pointerId = event.pointerId
-    const options = { signal: this.listening.signal }
-    window.addEventListener("pointermove", this.onMove, options)
-    window.addEventListener("pointerup", this.onUp, options)
-    window.addEventListener("pointercancel", this.onCancel, options)
+    const listening = { signal: this.listening.signal }
+    window.addEventListener("pointermove", this.onMove, listening)
+    window.addEventListener("pointerup", this.onUp, listening)
+    window.addEventListener("pointercancel", this.onCancel, listening)
   }
 
   /** Where the press started. */
@@ -48,8 +51,18 @@ export class Dragging {
   private readonly pointerId: number
   /** Ends the window listeners. */
   private readonly listening = new AbortController()
-  /** What's being dragged, once it's a drag:  the element, then its list's items after it. */
+  /** What's carried, once it's a drag:  the element, then its list's items after it -- or what `options` says. */
   private moving: HTMLElement[] = []
+
+  /** What's carried:  the element first. */
+  get carried(): readonly HTMLElement[] {
+    return this.moving
+  }
+
+  /** Does what's carried follow the pointer?  Else it stays where it is (`DragOptions.follows`). */
+  get follows(): boolean {
+    return this.options.follows !== false
+  }
   /** The drop target under the pointer now, if any:  it's had `dragenter`, and gets `dragleave` as the pointer leaves. */
   private over: HTMLElement | undefined
 
@@ -62,7 +75,7 @@ export class Dragging {
       if (Math.hypot(dx, dy) < DRAG_START_PX) return
       this.start()
     }
-    for (const element of this.moving) element.style.translate = `${dx}px ${dy}px`
+    if (this.follows) for (const element of this.moving) element.style.translate = `${dx}px ${dy}px`
     event.preventDefault()
     Dragging.send(this.element, "drag", event)
     this.moveOver(Dragging.dropTargetAt(this.element, event.clientX, event.clientY), event)
@@ -78,17 +91,25 @@ export class Dragging {
     if (target) Dragging.send(target, "dragover", event)
   }
 
-  /** The drag starts:  what's dragged is raised, and leaves the pointer to what's under it. */
+  /**
+   * The drag starts:  what's carried is raised, and leaves the pointer to what's under it --
+   * unless it stays where it is.
+   */
   private start() {
     const following: HTMLElement[] = []
     for (let next = this.element.nextElementSibling; next; next = next.nextElementSibling) {
       following.push(next as HTMLElement)
     }
-    this.moving = [this.element, ...following]
-    for (const element of this.moving) {
-      element.style.zIndex = DRAGGING_Z_INDEX
-      element.style.pointerEvents = "none"
+    this.moving = this.options.carried ?? [this.element, ...following]
+    if (this.follows) {
+      for (const element of this.moving) {
+        element.style.zIndex = DRAGGING_Z_INDEX
+        element.style.pointerEvents = "none"
+      }
     }
+    // no text selected as the pointer sweeps the page, as the browser's own drag selects none
+    getSelection()?.removeAllRanges()
+    document.documentElement.style.userSelect = "none"
     Dragging.current = this
     this.element.dispatchEvent(new DragEvent("dragstart", { bubbles: true, composed: true }))
   }
@@ -103,7 +124,7 @@ export class Dragging {
     this.moveOver(target, event)
     try {
       if (target) Dragging.send(target, "drop", event)
-      this.onDrop(target)
+      this.options.onDrop(target)
     } finally {
       // after the move is drawn:  what's still here wasn't taken, and slides back
       E.beforeNextPaint(() => this.settle())
@@ -120,7 +141,7 @@ export class Dragging {
 
   /** What's still where it was dragged from slides back, and takes the pointer again. */
   private settle() {
-    for (const element of this.moving) {
+    for (const element of this.follows ? this.moving : []) {
       const from = element.style.translate
       element.style.translate = ""
       element.style.pointerEvents = ""
@@ -138,6 +159,7 @@ export class Dragging {
         )
       }
     }
+    document.documentElement.style.userSelect = ""
     if (Dragging.current === this) Dragging.current = undefined
     this.element.dispatchEvent(new DragEvent("dragend", { bubbles: true, composed: true }))
   }
@@ -176,6 +198,16 @@ export class Dragging {
     // a pointer up off the element makes no click:  stop waiting for one
     E.soon(() => window.removeEventListener("click", swallow, { capture: true }))
   }
+}
+
+/** How a drag goes:  what its owner says. */
+export type DragOptions = {
+  /** What happens on the drop, on `target`, the list under the pointer -- `undefined` for none. */
+  onDrop(target: HTMLElement | undefined): void
+  /** What's carried, the dragged element first;  default the element and its list's items after it. */
+  carried?: HTMLElement[]
+  /** Does what's carried follow the pointer?  Default yes;  `false`:  it stays where it is, dimmed by its owner. */
+  follows?: boolean
 }
 
 /** How far the pointer moves before a press is a drag, in pixels:  less is a click. */

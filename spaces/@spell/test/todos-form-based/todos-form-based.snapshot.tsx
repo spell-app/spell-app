@@ -37,8 +37,8 @@ export class TodosApp extends App {
   accessor filter!: Filter
 
   @derived get shownTasks() {
-    if (this.filter == "active") return core.filter(this.tasks, (task: Task) => task.isActive)
-    if (this.filter == "completed") return core.filter(this.tasks, (task: Task) => task.isComplete)
+    if (this.filter === "active") return core.filter(this.tasks, (task: Task) => task.isActive)
+    if (this.filter === "completed") return core.filter(this.tasks, (task: Task) => task.isComplete)
     return this.tasks
   }
 
@@ -50,13 +50,13 @@ export class TodosApp extends App {
             <ui-item type="header">To Do:</ui-item>
             <ui-menu position="right">
               <ui-item>Show:</ui-item>
-              <ui-item onClick={() => (app.filter = "all")} selected={app.filter == "all"} style="cursor:pointer;user-select:none">
+              <ui-item onClick={() => (app.filter = "all")} selected={app.filter === "all"} style="cursor:pointer;user-select:none">
                 All
               </ui-item>
-              <ui-item onClick={() => (app.filter = "active")} selected={app.filter == "active"} style="cursor:pointer;user-select:none">
+              <ui-item onClick={() => (app.filter = "active")} selected={app.filter === "active"} style="cursor:pointer;user-select:none">
                 Active
               </ui-item>
-              <ui-item onClick={() => (app.filter = "completed")} selected={app.filter == "completed"} style="cursor:pointer;user-select:none">
+              <ui-item onClick={() => (app.filter = "completed")} selected={app.filter === "completed"} style="cursor:pointer;user-select:none">
                 Completed
               </ui-item>
             </ui-menu>

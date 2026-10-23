@@ -126,10 +126,10 @@ export class Carta extends Drawable {
   }
 
   get símbolo() {
-    if (this.palo == "tréboles") return "♣"
-    if (this.palo == "diamantes") return "♦"
-    if (this.palo == "corazones") return "♥"
-    if (this.palo == "espadas") return "♠"
+    if (this.palo === "tréboles") return "♣"
+    if (this.palo === "diamantes") return "♦"
+    if (this.palo === "corazones") return "♥"
+    if (this.palo === "espadas") return "♠"
     return "?"
   }
 
@@ -167,6 +167,7 @@ export class Carta extends Drawable {
     const pilaInicial = this.pila
     if (!core.canGiveUp(pilaInicial, this)) return false
     if (!core.canTake(pila, this)) return false
+    const puntos = this.contarLosPuntosDeCartaEnPila(pila)
 
     const cartasMovidas = pilaInicial.startingWith(this)
     cartasMovidas.name = pilaInicial.name
@@ -181,9 +182,15 @@ export class Carta extends Drawable {
       it?.voltearBocaArriba()
     }
 
-    if (pila instanceof Fundación) solitario.puntuación = solitario.puntuación + 10
-    else if (pilaInicial === solitario.descartes) solitario.puntuación = solitario.puntuación + 5
+    solitario.puntuación = solitario.puntuación + puntos
     return true
+  }
+
+  /** lo que suma poner la carta en la pila:  10 en una fundación, 5 desde los descartes, si no nada */
+  contarLosPuntosDeCartaEnPila(pila: Pila) {
+    if (pila instanceof Fundación) return 10
+    if (this.pila === solitario.descartes) return 5
+    return 0
   }
 
   static canBeDragged = true
@@ -240,6 +247,10 @@ export class CartaElement extends SpellElement<Carta> {
 
   ponerEnPila(pila: Pila) {
     return this.currentThing?.ponerEnPila(pila)
+  }
+
+  contarLosPuntosDeCartaEnPila(pila: Pila) {
+    return this.currentThing?.contarLosPuntosDeCartaEnPila(pila)
   }
 }
 core.useElement(Carta, CartaElement)
@@ -428,7 +439,7 @@ export function testLaCreaciónDelMazo() {
     const mazo = new Mazo()
     core.expect(mazo.length, `el número de cartas en el mazo`, 52, `52`)
     core.echoTestAction(`poner las damas a las cartas en el mazo donde el rango de la carta es dama`)
-    const damas = mazo.filter((carta) => carta.rango == "dama")
+    const damas = mazo.filter((carta) => carta.rango === "dama")
     core.expect(damas.length, `el número de cartas en las damas`, 4, `4`)
     // el as de tréboles es la carta de arriba
     core.expect(mazo.firstItem?.nombre!, `el nombre de la carta de arriba del mazo`, "as de tréboles", `"as de tréboles"`)
@@ -513,6 +524,16 @@ export class Pila extends DrawableList<Carta> {
     return estado
   }
 
+  /** mientras una carta que tomaría está sobre ella, la puntuación muestra lo que sumaría -- se va al irse la carta */
+  whileCartaDraggedOver(carta: Carta) {
+    const puntos = carta.contarLosPuntosDeCartaEnPila(this)
+    if (core.canTake(this, carta) && puntos > 0) solitario.pista = ` (+${puntos})`
+  }
+
+  whenCartaDroppedOn(carta: Carta) {
+    carta.ponerEnPila(this)
+  }
+
   static canBeDroppedOn = true
 
   static exclusive = true
@@ -534,6 +555,14 @@ export class PilaElement extends SpellElement<Pila> {
     { name: "name", kind: "string", description: "Its name." },
     { name: "disposición", kind: "string", description: "Its disposición." }
   ])
+
+  whileCartaDraggedOver(carta: Carta) {
+    return this.currentThing?.whileCartaDraggedOver(carta)
+  }
+
+  whenCartaDroppedOn(carta: Carta) {
+    return this.currentThing?.whenCartaDroppedOn(carta)
+  }
 }
 core.useElement(Pila, PilaElement)
 // en la página, se le puede soltar una carta encima:  brilla cuando la tomaría, según sus propias reglas
@@ -787,6 +816,11 @@ export class Solitario extends App {
   @prop({ type: "number" })
   accessor puntuación!: number
 
+  /** lo que sumaría el movimiento que se arrastra, p. ej. " (+10)":  se ve a su lado, mientras una carta está sobre una pila */
+  // su "pista" es texto
+  @prop({ type: "text" })
+  accessor pista!: string
+
   // su "mazo" es un nuevo mazo
   @prop({ init: () => new Mazo(), early: true })
   accessor mazo!: Mazo
@@ -916,6 +950,7 @@ export class Solitario extends App {
 
   empezarElJuego() {
     this.puntuación = 0
+    this.pista = ""
     this.repartirLasCartas()
   }
 
@@ -977,7 +1012,7 @@ export class Solitario extends App {
       <es-contenedor>
         <es-menu>
           <es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
-          <es-elemento>{`Puntos: ${this.puntuación}`}</es-elemento>
+          <es-elemento>{`Puntos: ${this.puntuación}${this.pista}`}</es-elemento>
           <es-menu posicion="derecha">
             <es-elemento aria-label="Jugar solo" onClick={() => this.jugarSolo()} style="cursor:pointer;user-select:none">
               <es-icono name="fast forward" />
@@ -1018,8 +1053,6 @@ export const solitario = new Solitario()
 core.heading("Jugar una carta:  qué hace un clic o un arrastre")
 /** un clic juega la carta;  un arrastre la pone donde se suelta */
 on<{ carta: Carta }>("clic-carta", ({ carta }) => carta.jugar())
-
-on<{ carta: Carta; pila: Pila }>("soltar-carta", ({ carta, pila }) => carta.ponerEnPila(pila))
 
 core.heading("Inicio")
 //## Inicio

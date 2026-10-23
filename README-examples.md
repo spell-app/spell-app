@@ -18,11 +18,11 @@ a king on an empty one, and after that, one card lower, in the other color.
 That isn't a comment above the code that checks a move.
 It IS the check:  click a card, and the game moves it to the first pile that says it can take it.
 
-Five example apps ship with the Spell editor, from FizzBuzz up to that solitaire, and two libraries to build on.
+Six example apps ship with the Spell editor, from FizzBuzz up to that solitaire, and two libraries to build on.
 Each one is a real project:  open it, and its app runs beside its text;  change a line, and the app follows.
 Here to make your own?  [Skip to the ideas](#ideas-for-your-own).
 
-## Five apps, simplest first
+## Six apps, simplest first
 
 Open them in this order:  each one adds an idea or two to the one before.
 Each picture is the example open in the editor:
@@ -35,7 +35,8 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 | --- | --- | --- | --- |
 | FizzBuzz | [`@spell/examples/fizzbuzz`](spaces/@spell/examples/fizzbuzz/) | Counting to 100 with fizz and buzz:  a loop, `if` and `otherwise`, and `print`, in eight lines | <a href="docs/images/examples/fizzbuzz.png"><img src="docs/images/examples/fizzbuzz.png" width="360" alt="FizzBuzz open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Calculator | [`@spell/examples/calculator`](spaces/@spell/examples/calculator/) | A working calculator:  an app with text properties, actions like `to clear (a calculator)`, and buttons whose clicks are Spell;  its first lines list ideas for extending it | <a href="docs/images/examples/calculator.png"><img src="docs/images/examples/calculator.png" width="360" alt="Calculator open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
-| Todos - Form Based | [`@spell/examples/todos-form-based`](spaces/@spell/examples/todos-form-based/) | A to-do list:  yes/no properties, phrases like `a task "is complete" if ...`, a list filtered with `where`, and a form drawn with click handlers written in Spell | <a href="docs/images/examples/todos-form-based.png"><img src="docs/images/examples/todos-form-based.png" width="360" alt="Todos - Form Based open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Task List | [`@spell/examples/TaskList`](spaces/@spell/examples/TaskList/) | A to-do list in the outline style:  each task its own element, with Spell UI's controls;  `where` filters it, and a click selects tasks (shift and command for more) for a property editor that changes them all at once | <a href="docs/images/examples/TaskList.png"><img src="docs/images/examples/TaskList.png" width="360" alt="Task List open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Lista de tareas | [`@spell/examples/ListaDeTareas`](spaces/@spell/examples/ListaDeTareas/) | Task List's Spanish twin:  a to-do list in the outline style, in Spanish, each task its own element with Spell UI's controls, a click selecting tasks for a property editor that changes them all at once | <a href="docs/images/examples/ListaDeTareas.png"><img src="docs/images/examples/ListaDeTareas.png" width="360" alt="Lista de tareas open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Solitaire | [`@spell/examples/Solitaire`](spaces/@spell/examples/Solitaire/) | Klondike solitaire in the outline style:  its own cards, deck and piles (`Card`, `Deck`, `Pile`), then the game, its kinds of piles (`a "tableau" is a pile where:`), their moves, layout and CSS;  `pause for` animates the deal | <a href="docs/images/examples/Solitaire.png"><img src="docs/images/examples/Solitaire.png" width="360" alt="Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Solitario | [`@spell/examples/Solitario`](spaces/@spell/examples/Solitario/) | Solitaire's Spanish twin:  Klondike in the outline style, in Spanish, with its own cards, deck and piles (`Carta`, `Mazo`, `Pila`), as Solitaire has | <a href="docs/images/examples/Solitario.png"><img src="docs/images/examples/Solitario.png" width="360" alt="Solitario open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | People | [`@spell/library/people`](spaces/@spell/library/people/) | People, orgs, notes and relationships, each saved in a readable JSON5 file;  compiled to TypeScript for the app's "You" panel and the people store | a library:  no app of its own |
@@ -72,7 +73,7 @@ Everything else on this page is written by hand.
    `spell app create <name> --in spaces/@spell/examples` writes a first one.
 2. Give its project file a `"description"`:  one line of what it shows.
    - Without one, the table takes the first comment of its first Spell file.
-   - A `"title"` names it, when its folder's name can't (`todos-form-based` is "Todos - Form Based").
+   - A `"title"` names it, when its folder's name can't (`ListaDeTareas` is "Lista de tareas").
 3. Add its name to the learning order at the top of [the script](scripts/examples-readme.ts), where it fits;
    one not listed comes after the listed ones, by name.
 4. Start the editor, `yarn start` in spell-app, and leave it running.
@@ -103,7 +104,7 @@ Everything else on this page is written by hand.
 ## Every app here has four parts
 
 FizzBuzz only prints.
-The other four draw an app, and each is built the same way:
+The other five draw an app, and each is built the same way:
 what its things ARE, what they DO, how they DRAW, and one line that starts it.
 If you know React, you know all four already, under other names.
 
@@ -294,121 +295,206 @@ playFizzbuzz()
 
 _FizzBuzz in the editor:  nothing to draw, so the App pane stays empty, and the output starts at the bottom left._
 
-## Todos:  types, phrases, a list and a form
+## Task List:  things that draw themselves, a list, and a property editor
 
 Every framework has its to-do list, and this is Spell's:
-[todo.spell](spaces/@spell/examples/todos-form-based/todo.spell), 72 lines, in the four parts above.
-First, what a task IS, sentence by sentence:
+[Task List](spaces/@spell/examples/TaskList/), 147 lines of Spell in two files, and a style sheet.
+- [Task.spell](spaces/@spell/examples/TaskList/Task.spell):  what a task is, and how it draws.
+- [TaskList.spell](spaces/@spell/examples/TaskList/TaskList.spell):  the list of tasks, then the app around it.
+
+It's written in the OUTLINE style:  a heading line, then what's true of it, as bullets.
+First, what a task IS:
 
 ```spell
-a task is a thing
-a task has a title as text
-a task has a property completed as yes or no
-a task "is complete" if its completed is yes
-a task "is active" if its completed is no
+a "task" is a drawable thing where:
+	- its "title" is text
+	- its "notes" is text
+	- its "priority" is one of low, normal or high
+	- its "done" is yes or no
+	- it "is done" if its done is yes
+	- it "is active" if its done is no
+	- its "priority color" is:
+		red if its priority is high
+		grey otherwise
+	- it can be selected
+	- it can be dragged
 ```
 
-- `a task is a thing` declares a new type;  each `has` line gives it a property, with its kind.
-- The quoted phrases are new ways to talk about a task:  later lines can say `where it is complete`.
+- `a "task" is a drawable thing` declares a new type;  each `its` line gives it a property, with its kind.
+- `one of low, normal or high` is a choice of three values.
+- The quoted phrases are new ways to talk about a task:  later lines can say `where it is active`.
+- `drawable` makes each task an element of its own on the page, `<task-list-task>`.
+- `it can be selected`:  a click selects a task, and shift or command (ctrl) selects more.
+- `it can be dragged`:  by its grip, to another place in its list (below).
 
-Then the app, which holds the tasks and decides which to show:
+Then how a task draws, with [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s elements:
+a form of its own, bound to the task.
 
 ```spell
-a todos-app is an app
-a todos-app has a property tasks as a new list of tasks
-a todos-app has a property newTaskName as text
-a todos-app has a filter as one of all, active or completed
-
-the shownTasks of a todos-app is:
-	if its filter is "active" return tasks in its tasks where it is active
-	if its filter is "completed" return tasks in its tasks where it is complete
-	return its tasks
-```
-
-- `one of all, active or completed` is a choice of three values;  the program sets it to `all` before it starts.
-- `shownTasks` is worked out each time it's read, with `where` and the phrases above:
-  a getter, not a second list, so there's nothing to keep in step.
-
-<details>
-<summary>What <code>shownTasks</code> compiles to</summary>
-
-```js
-export class TodosApp extends App {
-  // ... its tasks, newTaskName and filter
-  get shownTasks() {
-    if (this.filter == "active") return core.filter(this.tasks, (task) => task.isActive)
-    if (this.filter == "completed") return core.filter(this.tasks, (task) => task.isComplete)
-    return this.tasks
-  }
-}
-```
-
-- Trimmed from `spell compile @spell/examples/todos-form-based --stdout`.
-- The two phrases became getters, `isComplete` and `isActive`:  `where it is active` reads `task.isActive`.
-  The task's whole class is on [the front page](README.md), folded under its first picture.
-
-</details>
-
-Then how it draws, with [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s elements, where a click runs a line of Spell:
-
-```spell
-<ui-item onClick={set the filter of the app to "active"} selected={the filter of the app is "active"}>Active</ui-item>
-...
-<ui-form debug value={the app}>
-	<ui-repeat items={the shownTasks of the app}>
-		<ui-fields>
-			<ui-field width="1"><ui-checkbox name="completed" aria-label="Done"/></ui-field>
-			<ui-field width="10"><ui-input name="title" aria-label="Task"/></ui-field>
-		</ui-fields>
-	</ui-repeat>
-	<ui-fields>
-		<ui-field width="11"><ui-input name="newTaskName" placeholder="New task name" label="New task:"/></ui-field>
-		<ui-field><ui-button disabled={the newTaskName of the app is ""} onClick={create a new task}>Add Task</ui-button></ui-field>
-	</ui-fields>
-</ui-form>
+- to draw it:
+	return <ui-form value={it}>
+		<div part="row">
+			<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
+			<ui-checkbox name="done" aria-label="Done"/>
+			<ui-input part="title" name="title" aria-label="Task" transparent/>
+			<ui-label part="priority" size="tiny" color={its priority color}>{its priority}</ui-label>
+		</div>
+	</ui-form>
 ```
 
 - There's no change handler anywhere.
-  The form is bound to the app (`value={the app}`):  one row per task in `shownTasks`,
-  and each named field shows its task's property and writes it back as you type or tick.
-- So with Active showing, a task you tick is no longer in the list `shownTasks` returns.
-- `debug` shows the app as JSON under the form, redrawn as it changes:
-  the quickest way to watch a click change the data.
-- A Test menu under the form changes the list from outside it,
-  as in `remove items in (the tasks of the app) where it is complete`, and the form follows.
+  The form is bound to the task (`value={it}`):
+  each named field shows its task's property, and writes it back as you type or tick.
+- The style sheet shows the priority label only when it isn't normal, and fades a task that's done.
+- A press in the title field or on the checkbox is theirs:  a drag starts from the grip, or the task's bare row.
 
-And last, `start the app`, then `print the app`, which shows `TodosApp {...}` in the program's output.
+Then the list, which decides which tasks to show:
+
+```spell
+a "checklist" is a drawable list of tasks where:
+	- its "showing" is one of all, active or done
+	- its items can be reordered immediately
+	- to draw each item:
+		if its showing is "active" and the task is done return nothing
+		if its showing is "done" and the task is active return nothing
+		return draw the task
+	- to draw its placeholder:
+		return <div part="placeholder">Nothing to do</div>
+```
+
+- A drawable list is an element too, `<task-list-checklist>`, around its tasks' elements.
+- Each task draws itself;  the list only says which to leave out, and what to show when it's empty.
+- `its items can be reordered immediately`:  drag a task, and it moves as the pointer goes, dimmed, each task gliding
+  to its new place.
+  - Without `immediately`, it stays put while a blue line shows where it would go:
+    rest the pointer there 2 seconds (or `after 1 second`), and it moves;  let go, and it moves at once.
+  - Drag a selected task, and every selected one goes with it.
+  - The page's `move-delay="0.5"` on the list sets the wait for that one list.
+
+<details>
+<summary>What the checklist compiles to</summary>
+
+```js
+export class Checklist extends DrawableList {
+  static instanceType = Task
+  static elementTag = core.defineElement(this, "TaskList")
+
+  // ... its showing:  all, active or done
+
+  // each task, unless the filter hides it
+  drawEachItem(item) {
+    if (this.showing == "active" && item.isDone) return undefined
+    if (this.showing == "done" && item.isActive) return undefined
+    return core.drawThing(item)
+  }
+
+  // empty:  says so
+  drawItsPlaceholder() {
+    return h("div", { part: "placeholder" }, "Nothing to do")
+  }
+
+  static exclusive = true
+}
+```
+
+- Trimmed from `spell compile @spell/examples/TaskList --stdout`.
+- The two phrases became getters on the task, `isDone` and `isActive`:  `the task is done` reads `item.isDone`.
+- `static exclusive` is the line `a task belongs to one checklist`:  a task is in one checklist at a time.
+
+</details>
+
+And last, the app:  `task list is an app`, with its tasks, the new task's field, and what its buttons do.
+
+```spell
+- to add the draft:
+	if its draft is "" return
+	add (a new task with title = its draft, priority = normal) to its tasks
+	clear its draft
+
+- to remove the done tasks:
+	remove tasks in its tasks where it is done
+```
+
+How it draws:
+- a menu across the top:  how many tasks are left to do, then four icon buttons, each with a tooltip:
+  All, To do, Done, and Remove the done tasks
+- the new task's field, and its Add button, which stays disabled while the field is empty
+- the list, and beside it a property editor, `<ui-property-editor>`, bound to `the selection of its tasks`
+
+The property editor edits every selected task at once.
+Select three tasks, set the priority to high, and all three change;
+a property they disagree on shows "Mixed".
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"15px","primaryColor":"#EFECFB","primaryBorderColor":"#6550CA","primaryTextColor":"#1A1C27","secondaryColor":"#F4F1E9","tertiaryColor":"#F7F6FC","lineColor":"#7F6FD6","textColor":"#7F6FD6","clusterBkg":"#F7F6FC","clusterBorder":"#B9B0E8","titleColor":"#1A1C27","edgeLabelBackground":"#F7F6FC","actorBkg":"#EFECFB","actorBorder":"#6550CA","actorTextColor":"#1A1C27","actorLineColor":"#9C90DE","signalColor":"#7F6FD6","signalTextColor":"#7F6FD6","labelBoxBkgColor":"#EFECFB","labelBoxBorderColor":"#6550CA","labelTextColor":"#1A1C27","loopTextColor":"#7F6FD6","noteBkgColor":"#F1E7D4","noteBorderColor":"#C9B48A","noteTextColor":"#1A1C27","activationBkgColor":"#DCD6F7","activationBorderColor":"#6550CA","sequenceNumberColor":"#FFFFFF"},"flowchart":{"curve":"basis","padding":12,"nodeSpacing":40,"rankSpacing":44}}}%%
 flowchart LR
-  task["a task"] -->|has| title["a title, as text"]
-  task -->|has| completed["completed, yes or no"]
-  task -->|phrase| isComplete["is complete, is active"]
-  app["a todos-app"] -->|has| tasks["a list of tasks"]
-  app -->|has| filter["a filter:  all, active or completed"]
-  app -->|works out| shown["its shownTasks"]
-  tasks --> shown
-  filter --> shown
-  isComplete --> shown
-  shown -->|drawn as| form["a form, one row per task"]
-  form -.->|a tick writes back| completed
+  app["the task list app"] -->|has| list["a checklist:  all, active or done"]
+  app -->|has| draft["the new task's field"]
+  draft -->|Add| task
+  list -->|holds| task["a task:  title, notes, priority, done"]
+  task -->|draws itself as| form["its own form:  a checkbox, its title"]
+  form -.->|a tick writes back| task
+  list -->|its selection| editor["the property editor"]
+  editor -.->|edits every selected task| task
   %% the Spell look:  yarn mermaid:pretty
   classDef default fill:#EFECFB,stroke:#6550CA,stroke-width:1.5px,color:#1A1C27,rx:8px,ry:8px
 ```
 
-_A todos-app keeps its tasks and a filter;  what it shows is worked out from both, and the form writes back._
+_The app keeps a checklist of tasks;  each task draws its own form, and the property editor changes the selected ones._
+
+Its tests are written in Spell, at the bottom of each file:
+
+```sh
+spell test @spell/examples/TaskList
+```
+
+<details>
+<summary>Output</summary>
+
+```text
+✓ Compiling @spell/examples/TaskList
+✓ test tasks  (2 checks)
+✓ test the filter  (1 check)
+
+2 passed
+```
+
+</details>
 
 Nothing is saved, though.
-The tasks last as long as the program runs, and Restart starts again from the three it makes.
+The tasks last as long as the program runs, and Restart starts again from the four it makes.
 
-<img src="docs/images/examples/todos-form-based.png" width="640" alt="Todos - Form Based open in the Spell editor:  todo.spell on the left;  on the right, the to-do list with its filter menu, three tasks and a New task field">
+<img src="docs/images/examples/TaskList.png" width="640" alt="Task List open in the Spell editor:  its Spell on the left;  on the right, the menu with 3 to do and four icon buttons, the new task's field, four tasks, the first ticked and marked high, and the property editor below">
 
-_The to-do list beside its 72 lines:  the first task is ticked, because the program makes it with `completed = yes`._
+_Task List in the editor:  the first task is ticked, because the program makes it with `done = yes`._
 
-## Solitaire:  the outline style, and things that draw themselves
+### Lista de tareas:  the same list, in Spanish
 
-Klondike in four files, written in the OUTLINE style:  a heading line, then what's true of it as bullets.
+[Lista de tareas](spaces/@spell/examples/ListaDeTareas/) is Task List written in Spanish, line for line,
+as Solitario is Solitaire (below):  its own `tarea`, in `Tarea.es.spell`.
+
+```spell
+una "tarea" es una cosa dibujable donde:
+	- su "título" es texto
+	- su "nota" es texto
+	- su "prioridad" es una de baja, normal o alta
+	- su "hecha" es sí o no
+	- "está hecha" si su hecha es sí
+	- "está pendiente" si su hecha es no
+```
+
+_A task, in Spanish:  the same seven lines, their comments left out._
+
+- Its tests are the same two, in Spanish:  `spell test @spell/examples/ListaDeTareas` runs them.
+- It draws with Spell UI's Spanish tags (`<es-formulario>`, `<es-casilla>`), and its menu says "3 pendientes".
+
+<img src="docs/images/examples/ListaDeTareas.png" width="640" alt="Lista de tareas open in the Spell editor:  Tarea.es.spell on the left;  on the right, the same task list in Spanish, 3 pendientes, Algo por hacer, Agregar">
+
+_Lista de tareas in the editor:  the same list, its words in Spanish._
+
+## Solitaire:  a game in outlines, and things that draw themselves
+
+Klondike in four files, written in the outline style, as Task List is.
 Its cards, its deck and its piles are its own files, before the game, in its project file's order:
 
 ```json5
@@ -431,7 +517,7 @@ solitaire is an app where:
 	- its "clubs" is a new foundation with name = "clubs", suit = clubs
 ```
 
-- The same sentences as the to-do list's, without "a solitaire" at the start of every line.
+- The same sentences as the Calculator's, without "a solitaire" at the start of every line.
 - It isn't a second language:  the bullets are more ways to write the same rules
   ([the language, sentence by sentence](https://github.com/spell-app/spell-parser/blob/main/README-spell.md)).
 - `##` lines are headings, as in Markdown:  comments a person reads, which the editor shows in bold.
@@ -537,13 +623,13 @@ The last column says where to borrow from;  where a part isn't in the language y
 | Idea | What it is | Borrow from |
 | --- | --- | --- |
 | Flashcards | a deck of question cards, one at random, each turning over on a click, and a score | the solitaires:  `a random card in the deck`, `to turn it over`;  the card-and-deck idea, for learning |
-| A habit or chore tracker | tasks with yes/no done flags, drawn as a table | the to-do list's `where` filters;  **not yet** "today's chores":  a date has a year and a day, no month yet, and no word means today |
+| A habit or chore tracker | tasks with yes/no done flags, drawn as a table | Task List's `where` filters;  **not yet** "today's chores":  a date has a year and a day, no month yet, and no word means today |
 | A recipe scaler | ingredients with amounts, scaled to a number of servings | numbers, derived properties, `to scale (a recipe) to (servings as a number)` |
-| Dice games (Yahtzee, Pig) | a drawable die, rolled with an animation, scored by phrases | Solitaire's card:  `a "die" is a drawable thing`, Solitaire's piles' `<css>`, `pause for`;  the to-do list's phrases:  `a roll "is a full house" if ...` |
+| Dice games (Yahtzee, Pig) | a drawable die, rolled with an animation, scored by phrases | Solitaire's card:  `a "die" is a drawable thing`, Solitaire's piles' `<css>`, `pause for`;  Task List's phrases:  `a roll "is a full house" if ...` |
 | Memory | cards face up and face down in a grid | Solitaire's `Card`, `Deck` and `Pile`, copied in or imported from it;  a drawable grid |
-| A collection catalogue | movies, baseball cards:  items with categories, and filter buttons | `one of ...` kinds and the to-do list's filter;  `it is saved in its own file`, as the people library's person is |
-| A sign-up sheet | people and a list of slots, in a form | `@spell/library/people` and the to-do list's form;  🌱 a natural first program to share, once editing together arrives |
-| A text adventure | rooms as things, and each way out a button | the to-do list's clicks, and `print`;  **not yet** typed commands (below) |
+| A collection catalogue | movies, baseball cards:  items with categories, and filter buttons | `one of ...` kinds and Task List's filter;  `it is saved in its own file`, as the people library's person is |
+| A sign-up sheet | people and a list of slots, in a form | `@spell/library/people` and Task List's forms and property editor;  🌱 a natural first program to share, once editing together arrives |
+| A text adventure | rooms as things, and each way out a button | Task List's clicks, and `print`;  **not yet** typed commands (below) |
 
 **Not yet:  reading what someone types.**
 `prompt "Where now?"` shows a dialog in the editor, but the program can't read the answer:
@@ -575,7 +661,7 @@ Made Flashcards:  try  spell run <your space>/Flashcards
 
 ## The frozen test projects
 
-FizzBuzz, the to-do list and Solitaire have frozen twins beside them,
+FizzBuzz and the to-do list Task List grew from have frozen twins beside them,
 [`@spell/test`](spaces/@spell/test/),
 which the tests in [tests/spell/](tests/spell/) compile and compare line for line
 ([how they're checked](https://github.com/spell-app/spell-parser/blob/main/README-spell.md#the-frozen-test-projects)).
@@ -592,4 +678,4 @@ even `spell format` leaves the test projects alone.
 - [spell-app's commands](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app):  `spell app create`, `spell app serve` and `spell projects`,
   in full
 - [Spell UI's components](https://github.com/spell-app/spell-ui/blob/main/README-components.md):
-  the `<ui-*>` elements the to-do list and Solitaire draw with
+  the `<ui-*>` elements Task List and Solitaire draw with

@@ -1,0 +1,18 @@
+{
+  "title": "Task List",
+  "description": "A to-do list in the outline style:  each task its own element, with Spell UI's controls;  `where` filters it, and a click selects tasks (shift and command for more) for a property editor that changes them all at once",
+  "imports": [
+    {
+      "path": "/Task.spell",
+      "active": true
+    },
+    {
+      "path": "/TaskList.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

@@ -11,14 +11,21 @@ import { Dragging } from "./Dragging"
 
 // Above the class:  its `elementSetup` reads it while the class is defined
 /**
- * What a draggable thing looks like:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
- * `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
+ * How a drawable thing's states look.
+ * - A draggable thing:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
+ *   `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
  * - A list that will take what's dragged over it glows, a soft purple halo outside and in, a little out from its edges:
  *   - drawn by its `::after`, over its items, so it never moves them
  *   - `--spell-drop-glow` (a `box-shadow`), `--spell-drop-glow-gap` (how far out) and `--spell-drop-glow-radius`
  *     change it;  `--spell-drop-glow-inset` places it exactly, e.g. around a list's content, inside its padding
+ * - Carried in a drag that leaves it where it is, a reordered list's item (`:state(lifted)`), it dims:
+ *   `--spell-lifted-opacity` changes it.
+ * - A list being reordered shows a blue line where the dragged items would go, its part `drop-line`:
+ *   `--spell-drop-line` (a color) and `--spell-drop-line-width` change it.
+ * - A selected thing (`:state(selected)`) has a purple outline:
+ *   `--spell-selected-outline` and `--spell-selected-outline-offset` change it.
  */
-const DRAGGING_CSS = `
+const STATES_CSS = `
   :host(:state(draggable)) { touch-action: none; }
   :host(:state(draggable)), :host(:state(draggable)) * { cursor: grab !important; }
   :host(:state(dragging)), :host(:state(dragging)) * { cursor: grabbing !important; }
@@ -35,6 +42,30 @@ const DRAGGING_CSS = `
     );
     pointer-events: none;
     z-index: 1;
+  }
+  :host(:state(lifted)) { opacity: var(--spell-lifted-opacity, 0.4); }
+  :host(:state(placing)) { position: relative; }
+  [part~="drop-line"] {
+    position: absolute;
+    inset-inline: 0;
+    height: var(--spell-drop-line-width, 2px);
+    margin-top: calc(var(--spell-drop-line-width, 2px) / -2);
+    background: var(--spell-drop-line, #2185d0);
+    border-radius: var(--spell-drop-line-width, 2px);
+    pointer-events: none;
+    z-index: 2;
+  }
+  [part~="drop-line"].row {
+    inset-inline: auto;
+    inset-block: 0;
+    width: var(--spell-drop-line-width, 2px);
+    height: auto;
+    margin-top: 0;
+    margin-left: calc(var(--spell-drop-line-width, 2px) / -2);
+  }
+  :host(:state(selected)) {
+    outline: var(--spell-selected-outline, 2px solid rgb(150 80 255 / 0.6));
+    outline-offset: var(--spell-selected-outline-offset, 2px);
   }
 `
 
@@ -75,8 +106,11 @@ const DRAGGING_CSS = `
  *     it, and its list's items after it, follow the pointer
  *   - `a pile can be dropped on`:  a pile that will take the card glows as it comes over (`:state(accepting-drop)`),
  *     and on the drop the program hears `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`
+ *   - the pile hears it too, by its own handlers:  `- when a card is dragged over it:`, `dragged out of it`,
+ *     `dropped on it` (`handlerFor()`);  `dropped on it` takes the place of the `<thing>-drop` event;
+ *     `- while a card is dragged over it:` sets what goes back as it leaves (`core.startWhile()`)
  *   - The web's own drag events say so as it goes:  `dragstart`, `dragenter`, `drop` ... (`Dragging`).
- *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`DRAGGING_CSS`).
+ *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`STATES_CSS`).
  * - Part of `spell-runtime.js`:  NEVER value-imports `spell-parser/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
  * - SEE:  its App UI components page, `app/docs/spell-element.html` (`/components/app/spell-element.html`).
@@ -85,7 +119,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   @E.proto static vocabulary = spellElementVocabulary
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     delegatesFocus: false,
-    styleSheets: { "spell-element": DRAGGING_CSS }
+    styleSheets: { "spell-element": STATES_CSS }
   }
 
   /** Each property its type declares, as an attribute -- set per tag, see `defineFor()`. */
@@ -96,7 +130,12 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   @E.state private accessor ownThing: object | undefined = undefined
 
   render(): JSX.Element {
-    return <>{this.drawing}</>
+    return (
+      <>
+        {this.drawing}
+        {this.dropLine}
+      </>
+    )
   }
 
   /**
@@ -249,77 +288,177 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   @E.state
   accessor isDragging = false
 
-  /** A press on a draggable thing:  a drag, if it moves -- see `Dragging`. */
+  /**
+   * A press on a draggable thing:  a drag, if it moves -- see `Dragging`.
+   * - Not one in a control inside it, e.g. a task's title field or checkbox:  that press is the control's.
+   * - In a list people may reorder (`its items can be reordered`), what's carried stays where it is, dimmed:
+   *   our thing, or every selected one if it's selected -- see `carriedElements()`.
+   */
   @E.on("pointerdown")
   protected onPointerDown(event: PointerEvent) {
-    if (!this.isDraggable || event.button !== 0) return
-    new Dragging(this.domElement, event, (target) => this.dropOn(target))
+    if (!this.isDraggable || event.button !== 0 || this.isInAControl(event)) return
+    const onDrop = (target: HTMLElement | undefined) => this.dropOn(target)
+    if (!SpellElement.reorders(this.ownerList)) return void new Dragging(this.domElement, event, { onDrop })
+    new Dragging(this.domElement, event, { onDrop, carried: this.carriedElements(), follows: false })
   }
 
   @E.on("dragstart")
   protected onDragStart(event: DragEvent) {
     // ours, not a card's within us:  the events bubble
-    if (event.target === this.domElement) this.isDragging = true
+    if (event.target !== this.domElement) return
+    this.isDragging = true
+    const drag = Dragging.current
+    if (drag && !drag.follows) for (const element of drag.carried) SpellElement.componentOf(element)!.isLifted = true
   }
 
   @E.on("dragend")
   protected onDragEnd(event: DragEvent) {
-    if (event.target === this.domElement) this.isDragging = false
+    if (event.target !== this.domElement) return
+    this.isDragging = false
+    for (const element of this.domElement.parentElement?.children ?? []) {
+      const component = SpellElement.componentOf(element)
+      if (component) component.isLifted = false
+    }
   }
 
   ////////////////
   // ## Dropping (epic `outline-spell` P28)
   ////////////////
 
-  /** Will we take what's being dragged over us now?  We glow while we will (`DRAGGING_CSS`). */
+  /** Will we take what's being dragged over us now?  We glow while we will (`STATES_CSS`). */
   @E.cssState("accepting-drop")
   @E.state
   accessor isAcceptingDrop = false
 
   @E.on("dragenter")
   protected onDragEnter(event: DragEvent) {
-    if (event.target === this.domElement) this.isAcceptingDrop = this.takesDrag()
+    if (event.target !== this.domElement) return
+    this.isAcceptingDrop = this.takesDrag()
+    const thing = this.dragOffer()
+    if (!thing) return
+    this.draggedOver = thing
+    this.whileRunning = this.handlerFor("while", "DraggedOver", thing)
+    if (this.whileRunning)
+      this.runHandler(() => this.entry!.core.startWhile(this.currentThing!, this.whileRunning!, thing))
+    const over = this.handlerFor("when", "DraggedOver", thing)
+    if (over) this.runHandler(() => this.entry!.core.runHandler(this.currentThing!, over, thing))
   }
 
   @E.on("dragleave")
   protected onDragLeave(event: DragEvent) {
-    if (event.target === this.domElement) this.isAcceptingDrop = false
-  }
-
-  @E.on("drop")
-  protected onDrop(event: DragEvent) {
-    if (event.target === this.domElement) this.isAcceptingDrop = false
+    if (event.target !== this.domElement) return
+    this.isAcceptingDrop = false
+    this.endDragOver("left")
   }
 
   /**
-   * Would we take the thing being dragged (`Dragging.current`)?
-   * - Only a list whose type says `can be dropped on`, and not the one it came from.
-   * - Then by our own rules:  `can take a card if: ...` (`core.canTake()`).
+   * Dropped on us:  what `while a card is dragged over it` set is put back.
+   * - A drop we take runs `when a card is dropped on it` next (`dropOn()`);  one we don't, `... dragged out of it`.
    */
-  takesDrag(): boolean {
+  @E.on("drop")
+  protected onDrop(event: DragEvent) {
+    if (event.target !== this.domElement) return
+    this.endDragOver(this.isAcceptingDrop ? "taken" : "left")
+    this.isAcceptingDrop = false
+    this.placeDrop()
+  }
+
+  /** The thing the program heard is dragged over us (`when a card is dragged over it`), till it hears it's gone. */
+  private draggedOver: object | undefined
+
+  /** Our `while ... dragged over it` handler running for it, e.g. `whileCardDraggedOver` -- see `onDragEnter()`. */
+  private whileRunning: string | undefined
+
+  /**
+   * The thing dragged over us has gone:  what our `while` handler set is put back,
+   * then, if it `left`, the program hears `when a card is dragged out of it`.
+   * - `taken`:  dropped on us, and we took it:  `when a card is dropped on it` is next instead.
+   */
+  private endDragOver(how: "left" | "taken") {
+    const thing = this.draggedOver
+    const list = this.currentThing
+    const ending = this.whileRunning
+    this.draggedOver = this.whileRunning = undefined
+    if (!thing || !list) return
+    if (ending) this.runHandler(() => this.entry!.core.endWhile(list, ending))
+    const out = how === "left" && this.handlerFor("when", "DraggedOutOf", thing)
+    if (out) this.runHandler(() => this.entry!.core.runHandler(list, out, thing))
+  }
+
+  /**
+   * The thing being dragged over us (`Dragging.current`), if we're a list it may be dropped on:
+   * our type says `can be dropped on`, and it's not from us.
+   * - Whether we'd TAKE it is our rules' call, after:  see `takesDrag()`.
+   */
+  private dragOffer(): object | undefined {
     const dragged = Dragging.current?.element
     const thing = dragged && SpellElement.thingOf(dragged)
     const list = this.currentThing
-    if (!thing || !list || !("items" in list) || !SpellElement.flag(list, "canBeDroppedOn")) return false
+    if (!thing || !list || !("items" in list) || !SpellElement.flag(list, "canBeDroppedOn")) return undefined
     const component = (dragged as Partial<E.DOMElement>).component
-    if (component instanceof SpellElement && component.ownerList === list) return false
-    return !!this.entry?.core.canTake(list, thing)
+    return component instanceof SpellElement && component.ownerList === list ? undefined : thing
   }
 
   /**
-   * Our thing, dropped on `target`, a drawable list's element:  the program hears `<thing>-drop`, e.g. `card-drop`.
-   * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing.
-   * - In the program's language (core's `drop-event` message):  a Spanish program hears `soltar-carta`.
-   * - Its details name the thing by its type, and the list by each of its types up to its family's:
-   *   `{ card, tableau, pile }`, so `on card drop with a card and a pile` gets both.
+   * Would we take the thing being dragged over us?
+   * - Only one we're offered (`dragOffer()`), then by our own rules:  `can take a card if: ...` (`core.canTake()`).
+   */
+  takesDrag(): boolean {
+    const thing = this.dragOffer()
+    const list = this.currentThing
+    return !!thing && !!list && !!this.entry?.core.canTake(list, thing)
+  }
+
+  /**
+   * Our list's drag handler for `thing`, e.g. `whenCardDroppedOn` for `- when a card is dropped on it:`
+   * (spell-parser's `DragHandler`) -- `undefined` if it has none.
+   * - `when` or `while`, then the moment:  `whileCardDraggedOver` for `- while a card is dragged over it:`.
+   * - The thing's own type's first, then each type above it:  a joker runs `when a card ...` too,
+   *   and every thing `when something ...` (`whenThingDroppedOn`).
+   */
+  private handlerFor(timing: "when" | "while", moment: DragMoment, thing: object): string | undefined {
+    const list = this.currentThing as Record<string, unknown> | undefined
+    if (!list) return undefined
+    for (let Class: Function = thing.constructor; Class?.name; Class = Object.getPrototypeOf(Class)) {
+      const method = `${timing}${Class.name}${moment}`
+      if (typeof list[method] === "function") return method
+    }
+    return undefined
+  }
+
+  /**
+   * Run a drag handler through our program's core, `run`:  where the program runs, Python's too (`core.remote`).
+   * - The program's own code:  a throw, or a promise that fails, goes to its console, and the drag goes on.
+   */
+  private runHandler(run: () => unknown) {
+    const { entry } = this
+    try {
+      void Promise.resolve(run()).catch((error) => entry?.core.console.error(error))
+    } catch (error) {
+      entry?.core.console.error(error)
+    }
+  }
+
+  /**
+   * Our thing, dropped on `target`, a drawable list's element.
+   * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing of it.
+   * - The list's `when a card is dropped on it:` runs, if it has one (`handlerFor()`).
+   * - Else the program hears `<thing>-drop`, e.g. `card-drop`,
+   *   in its own language (core's `drop-event` message):  a Spanish program hears `soltar-carta`.
+   *   - Its details name the thing by its type, and the list by each of its types up to its family's:
+   *     `{ card, tableau, pile }`, so `on card drop with a card and a pile` gets both.
+   *   - A program running elsewhere hears it there (`core.remote`), and decides there.
    * - Nobody listening:  it moves there, if the lists' rules let it (`core.move()`).
    */
   private dropOn(target: HTMLElement | undefined) {
     const component = (target as Partial<E.DOMElement> | undefined)?.component
+    if (component instanceof SpellElement && component.placed) return component.heardPlaced()
     const list = component instanceof SpellElement && component.takesDrag() ? component.currentThing : undefined
     const thing = this.currentThing
     const { entry } = this
     if (!list || !thing || !entry) return
+    const dropped = (component as SpellElement).handlerFor("when", "DroppedOn", thing)
+    if (dropped) return this.runHandler(() => entry.core.runHandler(list, dropped, thing))
     const name = SpellElement.instanceName(thing.constructor)
     const details: Record<string, object> = { [name]: thing }
     for (
@@ -329,8 +468,271 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     ) {
       details[SpellElement.instanceName(Class)] ??= list
     }
-    const heard = entry.core.trigger(entry.core.message("drop-event", { thing: kebabCase(name) }), details)
+    const event = entry.core.message("drop-event", { thing: kebabCase(name) })
+    if (entry.core.remote) return entry.core.remote.trigger(event, details)
+    const heard = entry.core.trigger(event, details)
     if (!heard.length) entry.core.move(thing, list)
+  }
+
+  ////////////////
+  // ## Reordering (epic `outline-spell` P30)
+  ////////////////
+
+  /** Is our thing carried in a drag that leaves it where it is, dimmed (`STATES_CSS`)?  `:state(lifted)`. */
+  @E.cssState("lifted")
+  @E.state
+  accessor isLifted = false
+
+  /** Is what's dragged over us going in somewhere among our items?  `:state(placing)`. */
+  @E.cssState("placing")
+  @E.state
+  accessor isPlacing = false
+
+  /**
+   * Where the line showing where dragged items go is, in pixels from our top (or left, for a row) -- none:  no line.
+   * - None for a list reordered immediately:  the items move as the pointer does, so they show where they go.
+   */
+  @E.state private accessor dropLineAt: number | undefined = undefined
+
+  /** Do our items lie in a row, so the line stands up between two of them? */
+  @E.state private accessor isRow = false
+
+  /** The item of ours the dragged ones would go before, at the line -- `undefined` for our end. */
+  private placeBefore: object | undefined
+
+  /** The wait before the dragged items move to the line, while the pointer rests there. */
+  private placing: (Promise<unknown> & { cancel(): void }) | undefined
+
+  /** Our items as they were before a move here, noted where they were:  they glide as our children change. */
+  private gliding: object[] | undefined
+
+  /** The things the last drop on us put in place:  the dropped item's `dropOn()` hears them, then forgets. */
+  private placed: object[] | undefined
+
+  /** The line, while one shows:  a part, `drop-line` (`STATES_CSS`). */
+  private get dropLine(): JSX.Element {
+    const at = this.dropLineAt
+    if (at === undefined) return null
+    return (
+      <div
+        part="drop-line"
+        class={this.isRow ? "row" : undefined}
+        style={{ [this.isRow ? "left" : "top"]: `${at}px` }}
+      />
+    )
+  }
+
+  /**
+   * How many seconds the pointer rests before dragged items move to the line:  our element's `move-delay`,
+   * else our type's `its items can be reordered after ... seconds` -- `undefined` if our items can't be reordered.
+   */
+  private get secondsBeforeMoving(): number | undefined {
+    const said = (this.currentThing?.constructor as { reorderItemsAfter?: number } | undefined)?.reorderItemsAfter
+    if (said === undefined) return undefined
+    const written = this.moveDelay as number | undefined
+    return typeof written === "number" && Number.isFinite(written) ? written : said
+  }
+
+  /**
+   * The things being dragged that would go in among our items:  `undefined` unless our items can be reordered.
+   * - From us, or from another list of ours that will give them up, if we take them (`takesDrag()`).
+   */
+  private get placeOffer(): object[] | undefined {
+    const drag = Dragging.current
+    if (!drag || this.secondsBeforeMoving === undefined) return undefined
+    const things = drag.carried.map((element) => SpellElement.thingOf(element)).filter((thing) => !!thing) as object[]
+    const list = this.currentThing as Iterable<unknown> | undefined
+    const ours = !!list && things.every((thing) => [...list].includes(thing))
+    return ours || this.takesDrag() ? things : undefined
+  }
+
+  /** The pointer moved over us:  where would the dragged items go?  A new place restarts the wait. */
+  @E.on("dragover")
+  protected onDragOver(event: DragEvent) {
+    if (event.target !== this.domElement) return
+    const things = this.placeOffer
+    if (!things) return this.stopPlacing()
+    const place = this.placeAt(event.clientX, event.clientY, things)
+    // the same place:  nothing changes, so the line stays put and the wait goes on
+    if (this.isPlacing && place.before === this.placeBefore) return
+    const delay = this.secondsBeforeMoving ?? 0
+    this.isPlacing = true
+    this.placeBefore = place.before
+    this.isRow = place.isRow
+    this.placing?.cancel()
+    // where they are already, e.g. as the drag starts:  nothing to move, and no line
+    if (this.hasThere(things, place.before)) return void (this.dropLineAt = undefined)
+    this.dropLineAt = delay > 0 ? place.at : undefined
+    this.placing = E.after(delay, () => this.moveHere(things))
+    // a wait already over:  `after()` rejects as it's canceled, which nothing needs to hear
+    this.placing.catch(() => {})
+  }
+
+  @E.on("dragleave")
+  protected onPlacingLeft(event: DragEvent) {
+    if (event.target === this.domElement) this.stopPlacing()
+  }
+
+  /** Dropped on us while placing:  the dragged items move to the line now, and the dropped item hears it (`dropOn()`). */
+  private placeDrop() {
+    const things = this.isPlacing ? this.placeOffer : undefined
+    if (things && !this.hasThere(things, this.placeBefore)) this.moveHere(things)
+    this.placed = things
+    this.stopPlacing()
+  }
+
+  /** The dropped item heard what the drop put in place:  our `when a task is dropped on it` runs for each. */
+  private heardPlaced() {
+    const things = this.placed ?? []
+    this.placed = undefined
+    const list = this.currentThing
+    for (const thing of things) {
+      const dropped = this.handlerFor("when", "DroppedOn", thing)
+      if (list && dropped) this.runHandler(() => this.entry!.core.runHandler(list, dropped, thing))
+    }
+  }
+
+  /**
+   * Move `things` to the line, through the program's core:  where the program runs, Python's too.
+   * - Every item glides to its new place, once our children are drawn again (`numberItems()`).
+   */
+  private moveHere(things: object[]) {
+    const list = this.currentThing
+    if (!list || !this.entry) return
+    const before = this.placeBefore
+    this.gliding = [...(list as Iterable<object>)]
+    Glides.noteForLater(this.gliding)
+    this.runHandler(() => this.entry!.core.moveBefore(list, things, before))
+    this.dropLineAt = undefined
+  }
+
+  /** Are `things` already just before `before` among our items, in that order (at our end, for none)? */
+  private hasThere(things: object[], before: object | undefined): boolean {
+    const items = [...((this.currentThing ?? []) as Iterable<object>)]
+    const at = before === undefined ? items.length : items.indexOf(before)
+    const there = items.slice(at - things.length, at)
+    return at >= things.length && there.every((item, index) => item === things[index])
+  }
+
+  /** No more placing:  the line goes, and the wait stops. */
+  private stopPlacing() {
+    this.placing?.cancel()
+    this.placing = undefined
+    this.placeBefore = undefined
+    this.dropLineAt = undefined
+    this.isPlacing = false
+  }
+
+  /**
+   * Where things dragged to (`x`, `y`) go among our items, and where the line shows:
+   * before the first of our items, not one of `carried`, whose middle is past the pointer;  after the last, if none is.
+   * - Down a column, or along a row:  whichever our first two items' places say.
+   */
+  private placeAt(x: number, y: number, carried: object[]): { before: object | undefined; at: number; isRow: boolean } {
+    const host = this.domElement.getBoundingClientRect()
+    const items = [...this.domElement.children].filter((child) => SpellElement.thingOf(child) !== undefined)
+    const boxes = items.map((item) => SpellElement.layoutBox(item))
+    const isRow =
+      boxes.length > 1 && Math.abs(boxes[1]!.left - boxes[0]!.left) > Math.abs(boxes[1]!.top - boxes[0]!.top)
+    const [start, end, pointer, origin] = isRow
+      ? (["left", "right", x, host.left] as const)
+      : (["top", "bottom", y, host.top] as const)
+    const index = items.findIndex((item, at) => {
+      const box = boxes[at]!
+      return !carried.includes(SpellElement.thingOf(item)!) && (box[start] + box[end]) / 2 > pointer
+    })
+    if (index < 0) {
+      const last = boxes.at(-1)
+      return { before: undefined, at: (last ? last[end] + LINE_GAP_PX : host[start] + LINE_GAP_PX) - origin, isRow }
+    }
+    const previous = boxes[index - 1]
+    const gap = previous ? (boxes[index]![start] - previous[end]) / 2 : LINE_GAP_PX
+    return { before: SpellElement.thingOf(items[index]!), at: boxes[index]![start] - gap - origin, isRow }
+  }
+
+  /**
+   * Where `element` lies, as the layout puts it:  its box less any `translate` it's gliding by (`Glides`).
+   * - So a place doesn't jump about while items glide to theirs, which would move them again, and again.
+   */
+  private static layoutBox(element: Element): DOMRect {
+    const box = element.getBoundingClientRect()
+    const [dx = 0, dy = 0] = getComputedStyle(element)
+      .translate.split(" ")
+      .map((part) => Number.parseFloat(part) || 0)
+    return new DOMRect(box.x - dx, box.y - dy, box.width, box.height)
+  }
+
+  /**
+   * The elements a drag of ours carries, in a list people may reorder:  every selected item's, in the list's order,
+   * when ours is selected;  else ours alone.
+   */
+  private carriedElements(): HTMLElement[] {
+    const siblings = [...(this.domElement.parentElement?.children ?? [])] as HTMLElement[]
+    const selected = this.isSelected ? siblings.filter((element) => SpellElement.componentOf(element)?.isSelected) : []
+    return selected.length > 1
+      ? [this.domElement, ...selected.filter((element) => element !== this.domElement)]
+      : [this.domElement]
+  }
+
+  /** Did `event`'s press start in a control inside us, e.g. a field or a checkbox:  its press, not a drag of ours? */
+  private isInAControl(event: Event): boolean {
+    for (const target of event.composedPath()) {
+      if (target === this.domElement) return false
+      if (target instanceof Element && target.matches(CONTROL_SELECTOR)) return true
+    }
+    return false
+  }
+
+  /** May people reorder `list`'s items, dragging them?  Its type says so:  `its items can be reordered`. */
+  private static reorders(list: object | undefined): boolean {
+    return (list?.constructor as { reorderItemsAfter?: number } | undefined)?.reorderItemsAfter !== undefined
+  }
+
+  /** The `SpellElement` behind `element`, if it's a drawable thing's element. */
+  private static componentOf(element: Element): SpellElement | undefined {
+    const { component } = element as Partial<E.DOMElement>
+    return component instanceof SpellElement ? component : undefined
+  }
+
+  ////////////////
+  // ## Selecting (epic `outline-spell` P29)
+  ////////////////
+
+  /**
+   * Is our thing selected in its list (`DrawableList.selection`)?  Styled by `:state(selected)`.
+   * - Followed:  it changes as people click, here or on another of the list's items.
+   */
+  @E.cssState("selected")
+  get isSelected(): boolean {
+    const thing = this.currentThing
+    const list = this.ownerList as { selection?: Iterable<unknown> } | undefined
+    return !!thing && !!list?.selection && [...list.selection].includes(thing)
+  }
+
+  /**
+   * A click on a thing whose type says `can be selected`:  it selects it in its list.
+   * - Plain:  only it.
+   * - Command (ctrl):  it's added, or taken away if it was selected.
+   * - Shift:  everything from the last one clicked to it, in the list's order.
+   * - The program's own click handlers still run:  this only selects.
+   */
+  @E.on("click")
+  protected onClickToSelect(event: MouseEvent) {
+    const thing = this.currentThing
+    const list = this.ownerList as SelectableList | undefined
+    if (!thing || !list?.select || !SpellElement.flag(thing, "canBeSelected")) return
+    const items = [...(list as unknown as Iterable<object>)]
+    const selected = [...list.selection]
+    const anchor = SELECTION_ANCHORS.get(list)
+    if (event.shiftKey && anchor && items.includes(anchor)) {
+      const [from, to] = [items.indexOf(anchor), items.indexOf(thing)].sort((a, b) => a - b)
+      list.select(items.slice(from, to! + 1))
+      return
+    }
+    SELECTION_ANCHORS.set(list, thing)
+    if (event.metaKey || event.ctrlKey) {
+      list.select(selected.includes(thing) ? selected.filter((item) => item !== thing) : [...selected, thing])
+    } else list.select([thing])
   }
 
   /** The list `element` draws, if it's a drawable list's element -- `undefined` if not. */
@@ -341,7 +743,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /** Does `thing`'s type say yes to `flag`, e.g. `canBeDragged` for `a card can be dragged`? */
-  private static flag(thing: object, flag: "canBeDragged" | "canBeDroppedOn"): boolean {
+  private static flag(thing: object, flag: "canBeDragged" | "canBeDroppedOn" | "canBeSelected"): boolean {
     return (thing.constructor as Partial<Record<typeof flag, boolean>>)[flag] === true
   }
 
@@ -366,6 +768,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const children = [...this.domElement.children] as HTMLElement[]
     children.forEach((child, index) => child.style.setProperty("--index", String(index)))
     this.domElement.style.setProperty("--count", String(children.length))
+    // our items, reordered here:  each glides from where it was (`moveHere()`)
+    if (this.gliding) Glides.glideNoted(this.gliding)
+    this.gliding = undefined
   }
 
   /**
@@ -711,7 +1116,13 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
         property: attribute.property,
         values,
         ...(reference ? { reference } : {}),
-        spec: written.find((spec) => spec.name === attribute.name) ?? { name: attribute.name, kind, description }
+        // its type's `one of` values too:  a property editor offers them, e.g. a priority's low, normal or high
+        spec: written.find((spec) => spec.name === attribute.name) ?? {
+          name: attribute.name,
+          kind,
+          description,
+          ...(values?.length ? { values: values.map(String) } : {})
+        }
       })
     }
     return properties
@@ -851,11 +1262,30 @@ const SPELL_ELEMENTS: Map<string, SpellElementEntry> = ((globalThis as SpellElem
 /** `globalThis`, holding `SPELL_ELEMENTS`. */
 type SpellElementsGlobal = typeof globalThis & { [key: symbol]: Map<string, SpellElementEntry> | undefined }
 
-// a drop lands on the element of a drawable list its type says can be dropped on:  `Dragging` knows only what we tell it
+// a drop lands on the element of a drawable list its type says can be dropped on, or reordered:  `Dragging` knows only what we tell it
 Dragging.isDropTarget = (element) => {
   const list = SpellElement.listOf(element)
-  return !!list && (list.constructor as { canBeDroppedOn?: boolean }).canBeDroppedOn === true
+  const Class = list?.constructor as { canBeDroppedOn?: boolean; reorderItemsAfter?: number } | undefined
+  return !!Class && (Class.canBeDroppedOn === true || Class.reorderItemsAfter !== undefined)
 }
+
+/** What a press in starts no drag:  it's the control's, e.g. typing in a task's title. */
+const CONTROL_SELECTOR = "input, textarea, select, button, [contenteditable]:not([contenteditable=false])"
+
+/** How far the line sits past a list's first or last item, in pixels, when there's no gap to center it in. */
+const LINE_GAP_PX = 2
+
+/** A drawable list, as selecting reads it:  `DrawableList.selection`, `select()`. */
+type SelectableList = { selection: Iterable<object>; select?: (items: Iterable<object>) => void }
+
+/** Each list's last item clicked to select:  where a shift-click's range starts. */
+const SELECTION_ANCHORS = new WeakMap<object, object>()
 
 /** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
 const BASE_LIST_NAMES = new Set(["DrawableList", "List", "Observable", "Object"])
+
+/**
+ * Each moment a list's drag handler is for:  the end of its method's name, e.g. `whenCardDraggedOver`.
+ * - spell-parser's `DragHandler` names them the same.
+ */
+type DragMoment = "DraggedOver" | "DraggedOutOf" | "DroppedOn"

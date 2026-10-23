@@ -1,0 +1,40 @@
+## Una tarea:  algo por hacer -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella
+// Una cosa dibujable:  cada tarea es un elemento propio en la página, `<lista-de-tareas-tarea>`.
+una "tarea" es una cosa dibujable donde:
+	- su "título" es texto
+	- su "nota" es texto
+	- su "prioridad" es una de baja, normal o alta
+	- su "hecha" es sí o no
+	- "está hecha" si su hecha es sí					// "la tarea está hecha"
+	- "está pendiente" si su hecha es no				// "la tarea está pendiente"
+	// el color de la etiqueta de su prioridad:  rojo cuando es alta
+	- su "color de prioridad" es:
+		rojo si su prioridad es alta
+		gris de lo contrario
+
+	// en la página, un clic la selecciona;  mayúsculas y comando (ctrl) seleccionan más,
+	// así el editor de propiedades junto a la lista las cambia todas a la vez
+	- se puede seleccionar
+	// y arrastrar, por su asa, a otro lugar de su lista:  las seleccionadas van con ella
+	- se puede arrastrar
+
+	## dibujo:  su asa, una casilla, su título, y su prioridad -- styles.css la muestra solo cuando no es normal
+	// un formulario propio, unido a ella:  marcar la casilla, o escribir un título, cambia la tarea
+	// - su fila y su título son partes:  styles.css los coloca
+	- para dibujarla:
+		devolver <es-formulario value={eso}>
+			<div part="row">
+				<es-icono part="grip" name="grip vertical" aria-label="Arrastrar"/>
+				<es-casilla name="hecha" aria-label="Hecha"/>
+				<es-entrada part="title" name="título" aria-label="Tarea" transparente/>
+				<es-etiqueta part="priority" tamano="diminuto" color={su color de prioridad}>{su prioridad}</es-etiqueta>
+			</div>
+		</es-formulario>
+
+
+## Pruebas
+para probar las tareas
+	poner la tarea a una nueva tarea con título = "Escribir las pruebas"
+	la tarea está pendiente debería ser sí
+	poner la hecha de la tarea a sí
+	la tarea está hecha debería ser sí

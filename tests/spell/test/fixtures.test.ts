@@ -18,7 +18,7 @@ import {
 /**
  * Every test project compiled, against its snapshots (`snapshotPath()`):
  * - the frozen fixtures, in `spaces/@spell/test/`:  their snapshots beside them, in `spaces/@spell/test/<Project>/`
- * - the examples tested as they are (`EXAMPLE_FIXTURES`, Solitaire and Solitario):
+ * - the examples tested as they are (`EXAMPLE_FIXTURES`:  Solitaire, Task List and their Spanish twins):
  *   their snapshots in `tests/spell/__examples__/<Project>/`, never beside the example
  *   - a change to the example changes them:  bless, then read the diff
  *

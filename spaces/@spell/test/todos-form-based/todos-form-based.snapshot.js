@@ -40,8 +40,8 @@ export class TodosApp extends App {
   set filter(value) { this.setProp("filter", value) }
 
   get shownTasks() {
-    if (this.filter == "active") return core.filter(this.tasks, (task) => task.isActive)
-    if (this.filter == "completed") return core.filter(this.tasks, (task) => task.isComplete)
+    if (this.filter === "active") return core.filter(this.tasks, (task) => task.isActive)
+    if (this.filter === "completed") return core.filter(this.tasks, (task) => task.isComplete)
     return this.tasks
   }
 
@@ -54,17 +54,17 @@ export class TodosApp extends App {
             h("ui-item", "Show:"),
             h("ui-item", {
               onClick: () => (app.filter = "all"),
-              selected: () => app.filter == "all",
+              selected: () => app.filter === "all",
               style: "cursor:pointer;user-select:none"
             }, "All"),
             h("ui-item", {
               onClick: () => (app.filter = "active"),
-              selected: () => app.filter == "active",
+              selected: () => app.filter === "active",
               style: "cursor:pointer;user-select:none"
             }, "Active"),
             h("ui-item", {
               onClick: () => (app.filter = "completed"),
-              selected: () => app.filter == "completed",
+              selected: () => app.filter === "completed",
               style: "cursor:pointer;user-select:none"
             }, "Completed")
           )

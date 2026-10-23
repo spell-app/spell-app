@@ -40,20 +40,16 @@ describe("routes", () => {
     ["/", "ProjectChooser", undefined],
     ["/anything/else", "ProjectChooser", undefined],
     ["/edit/@spell/examples", "SpellEditor", "@spell/examples"],
-    ["/edit/@spell/examples/todos-form-based", "SpellEditor", "@spell/examples/todos-form-based"],
-    ["/edit/@spell/examples/todos-form-based/todo.spell", "SpellEditor", "@spell/examples/todos-form-based/todo.spell"],
+    ["/edit/@spell/examples/TaskList", "SpellEditor", "@spell/examples/TaskList"],
+    ["/edit/@spell/examples/TaskList/TaskList.spell", "SpellEditor", "@spell/examples/TaskList/TaskList.spell"],
     ["/edit/owen@spell/my%20things/a%20b.spell", "SpellEditor", "owen@spell/my things/a b.spell"],
     // decoded ONCE:  an encoded `%` stays a `%25` in the name
     ["/edit/owen@spell/a%2525b.spell", "SpellEditor", "owen@spell/a%25b.spell"],
     ["/run/@spell/examples", "SpellRunner", "@spell/examples"],
-    ["/run/@spell/examples/todos-form-based", "SpellRunner", "@spell/examples/todos-form-based"],
+    ["/run/@spell/examples/TaskList", "SpellRunner", "@spell/examples/TaskList"],
     // a page of the running app:  its app, until apps have pages
-    ["/run/@spell/examples/todos-form-based/rules", "SpellRunner", "@spell/examples/todos-form-based"],
-    [
-      "/run/@spell/examples/todos-form-based/sub/Todo.spell",
-      "SpellRunner",
-      "@spell/examples/todos-form-based/sub/Todo.spell"
-    ]
+    ["/run/@spell/examples/TaskList/rules", "SpellRunner", "@spell/examples/TaskList"],
+    ["/run/@spell/examples/TaskList/sub/Todo.spell", "SpellRunner", "@spell/examples/TaskList/sub/Todo.spell"]
   ])("%s draws #%s and selects %s", async (url, pageId, path) => {
     const selectPath = spyOnEditor("selectPath", () => Promise.resolve())
     setEditor("projectPage", pageId === "SpellRunner" ? "editor" : "runner")
@@ -69,26 +65,26 @@ describe("routes", () => {
 
   test("`navigate()` (what `editor` calls) moves the router;  another URL of the same page keeps it", async () => {
     const selectPath = spyOnEditor("selectPath", () => Promise.resolve())
-    const { host, history } = await mountAt("/edit/@spell/examples/todos-form-based")
+    const { host, history } = await mountAt("/edit/@spell/examples/TaskList")
     const page = host.querySelector("#SpellEditor")
 
-    navigate("/edit/@spell/examples/todos-form-based/Other.spell")
+    navigate("/edit/@spell/examples/TaskList/Other.spell")
     await settle(host)
-    expect(history.get()).toBe("/edit/@spell/examples/todos-form-based/Other.spell")
-    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/todos-form-based/Other.spell")
+    expect(history.get()).toBe("/edit/@spell/examples/TaskList/Other.spell")
+    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/TaskList/Other.spell")
     // another of the route's paths:  the page stays as it is
     expect(host.querySelector("#SpellEditor")).toBe(page)
 
-    navigate("/run/@spell/examples/todos-form-based", { replace: true })
+    navigate("/run/@spell/examples/TaskList", { replace: true })
     await settle(host)
     expect(host.querySelector("#SpellEditor")).toBeNull()
     expect(host.querySelector("#SpellRunner")).not.toBeNull()
-    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/todos-form-based")
+    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/TaskList")
 
     // `replace` took the editor's entry's place:  back is the first page
     history.back()
     await settle(host)
-    expect(history.get()).toBe("/edit/@spell/examples/todos-form-based")
+    expect(history.get()).toBe("/edit/@spell/examples/TaskList")
   })
 
   test("a page's `<AppRoot>` is where programs draw, until another takes over", async () => {
@@ -99,12 +95,12 @@ describe("routes", () => {
       setAppRoot.mockRestore()
       releaseAppRoot.mockRestore()
     })
-    const { host } = await mountAt("/edit/@spell/examples/todos-form-based")
+    const { host } = await mountAt("/edit/@spell/examples/TaskList")
     // by identity:  `toHaveBeenCalledWith()` compares elements by their markup, and both pages' look alike
     const editorRoot = host.querySelector("#SpellEditor #spell-app-root")!
     expect(setAppRoot.mock.lastCall?.[0]).toBe(editorRoot)
 
-    navigate("/run/@spell/examples/todos-form-based")
+    navigate("/run/@spell/examples/TaskList")
     await settle(host)
     const runnerRoot = host.querySelector("#SpellRunner #spell-app-root")!
     expect(runnerRoot).not.toBe(editorRoot)

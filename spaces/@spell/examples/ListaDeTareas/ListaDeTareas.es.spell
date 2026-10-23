@@ -1,0 +1,107 @@
+## Lista de tareas
+// Las tareas son de este proyecto:  Tarea.
+// Este archivo agrega su lista, y la aplicación:  agregar una tarea, filtrar la lista, y editar lo seleccionado.
+// Qué hay, de arriba abajo:
+//   la agenda:  las tareas, mostradas según el filtro
+//   la aplicación:  su menú, el campo de la nueva tarea, la lista y el editor de propiedades
+//   inicio
+//   pruebas
+
+
+## La agenda:  las tareas, cada una un elemento propio dentro de ella
+// una lista dibujable:  `<lista-de-tareas-agenda>`, alrededor de las `<lista-de-tareas-tarea>` de sus tareas
+una "agenda" es una lista dibujable de tareas donde:
+	// lo que muestra:  todas las tareas, las pendientes, o las hechas
+	- su "mostrando" es una de todas, pendientes o hechas
+	// en la página, sus tareas se pueden arrastrar a otro lugar:  se mueven con el puntero, deslizándose
+	- sus elementos se pueden reordenar de inmediato
+	// cada tarea, salvo que el filtro la oculte
+	- para dibujar cada elemento:
+		si su mostrando es "pendientes" y la tarea está hecha devolver nada
+		si su mostrando es "hechas" y la tarea está pendiente devolver nada
+		devolver dibujar la tarea
+	// vacía:  lo dice
+	- para dibujar su marcador:
+		devolver <div part="placeholder">Nada por hacer</div>
+
+// una tarea está en una sola agenda a la vez
+una tarea pertenece a una agenda
+
+
+## La aplicación:  su menú, el campo de la nueva tarea, la lista, y el editor de propiedades
+lista de tareas es una aplicación donde:
+	- sus "tareas" es una nueva agenda
+	// lo que tiene el campo de la nueva tarea:  el título de la siguiente
+	- su "borrador" es texto
+	- su "cuenta pendiente" es el largo de (tareas en sus tareas donde está pendiente)
+
+	// el borrador, como una nueva tarea al final de la lista;  el campo se vacía
+	- para agregar el borrador:
+		si su borrador es "" devolver
+		agregar (una nueva tarea con título = su borrador, prioridad = normal) a sus tareas
+		limpiar su borrador
+
+	- para quitar las tareas hechas:
+		quitar tareas en sus tareas donde está hecha
+
+	// su menú, el campo de la nueva tarea, luego la lista junto al editor de propiedades
+	// - los botones del menú son iconos, cada uno con su ayuda
+	// - el editor de propiedades edita todas las tareas seleccionadas a la vez:  una propiedad en la que no
+	//   coinciden muestra "Varios"
+	- para dibujarla:
+		devolver <es-contenedor class="TaskList">
+			<es-menu>
+				<es-elemento tipo="encabezado">Lista de tareas</es-elemento>
+				<es-elemento>{su cuenta pendiente + " pendientes"}</es-elemento>
+				<es-menu posicion="derecha">
+					<es-elemento aria-label="Todas" seleccionado={el mostrando de sus tareas es "todas"} onClick={poner el mostrando de sus tareas a "todas"}>
+						<es-icono name="list"/>
+						<es-emergente contenido="Todas" invertido tamano="pequeño"/>
+					</es-elemento>
+					<es-elemento aria-label="Pendientes" seleccionado={el mostrando de sus tareas es "pendientes"} onClick={poner el mostrando de sus tareas a "pendientes"}>
+						<es-icono name="square outline"/>
+						<es-emergente contenido="Pendientes" invertido tamano="pequeño"/>
+					</es-elemento>
+					<es-elemento aria-label="Hechas" seleccionado={el mostrando de sus tareas es "hechas"} onClick={poner el mostrando de sus tareas a "hechas"}>
+						<es-icono name="check square outline"/>
+						<es-emergente contenido="Hechas" invertido tamano="pequeño"/>
+					</es-elemento>
+					<es-elemento aria-label="Quitar las hechas" onClick={quitar las tareas hechas}>
+						<es-icono name="trash alternate outline"/>
+						<es-emergente contenido="Quitar las tareas hechas" invertido tamano="pequeño"/>
+					</es-elemento>
+				</es-menu>
+			</es-menu>
+			<es-formulario value={eso}>
+				<div class="NewTask">
+					<es-entrada name="borrador" marcador="Algo por hacer" aria-label="Nueva tarea" fluido/>
+					<es-boton primario disabled={su borrador es ""} onClick={agregar el borrador}>Agregar</es-boton>
+				</div>
+			</es-formulario>
+			<es-cuadricula columnas="2" apilable>
+				{dibujar sus tareas}
+				<es-editor-propiedades etiqueta="Tareas seleccionadas" esquema="lista-de-tareas-tarea" value={la selección de sus tareas}>
+					<es-propiedad name="título"/>
+					<es-propiedad name="prioridad"/>
+					<es-propiedad name="hecha"/>
+					<es-propiedad name="nota"/>
+				</es-editor-propiedades>
+			</es-cuadricula>
+		</es-contenedor>
+
+
+## Inicio
+poner el mostrando de las tareas de la lista de tareas a todas
+agregar (una nueva tarea con título = "Escribir el ejemplo Lista de tareas", prioridad = alta, hecha = sí) a las tareas de la lista de tareas
+agregar (una nueva tarea con título = "Enseñarle a dibujar", prioridad = normal) a las tareas de la lista de tareas
+agregar (una nueva tarea con título = "Seleccionar unas tareas, y editarlas juntas", prioridad = normal) a las tareas de la lista de tareas
+agregar (una nueva tarea con título = "Arrastrar tareas para reordenarlas", prioridad = baja) a las tareas de la lista de tareas
+iniciar la lista de tareas
+
+
+## Pruebas
+para probar el filtro
+	poner la lista a una nueva agenda
+	agregar (una nueva tarea con título = "a", hecha = sí) a la lista
+	agregar (una nueva tarea con título = "b") a la lista
+	el largo de (tareas en la lista donde está pendiente) debería ser 1

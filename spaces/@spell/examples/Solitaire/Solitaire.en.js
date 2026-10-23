@@ -24,6 +24,7 @@ export const words = {
       state: "state",
       play: "play a card",
       putOnPile: "put a card on a pile",
+      countThePointsForCardOnPile: "count the points for a card on a pile",
       pile: "pile"
     },
     Joker: {
@@ -61,6 +62,7 @@ export const words = {
     },
     Solitaire: {
       score: "score",
+      hint: "hint",
       deck: "deck",
       stock: "stock",
       discards: "discards",

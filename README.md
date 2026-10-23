@@ -1,22 +1,24 @@
 # The Spell app
 
-<img src="docs/images/examples/todos-form-based.png" width="720" alt="The Spell editor with the to-do list open:  its program on the left, the to-do app running on the right, the JavaScript it compiled to below">
+<img src="docs/images/examples/TaskList.png" width="720" alt="The Spell editor with Task List open:  its program on the left, the task list running on the right, the JavaScript it compiled to below">
 
-_A to-do list in the Spell editor:  the program on the left, the app it makes on the right, running._
+_Task List in the Spell editor:  the program on the left, the app it makes on the right, running._
 
 The left half of that picture is the program.
-Here are the five sentences at its top, exactly as saved:
+Here is what a task is, the seven lines at the top of its file, their comments left out:
 
 ```spell
-a task is a thing
-a task has a title as text
-a task has a property completed as yes or no
-a task "is complete" if its completed is yes
-a task "is active" if its completed is no
+a "task" is a drawable thing where:
+	- its "title" is text
+	- its "notes" is text
+	- its "priority" is one of low, normal or high
+	- its "done" is yes or no
+	- it "is done" if its done is yes
+	- it "is active" if its done is no
 ```
 
 Read them once, and you know what a task is in this app:
-it has a title, it's done or it isn't, and "complete" and "active" are two ways of saying which.
+it has a title, notes and a priority, it's done or it isn't, and "done" and "active" are two ways of saying which.
 Change a sentence, and two seconds after you stop typing the app on the right follows,
 with the same tasks in it, ticked or not, drawn by the new version.
 
@@ -24,37 +26,49 @@ Spell's editor is a place to make real software for people who don't call themse
 You write a program in plain English, or ask an AI to write it, and it runs beside the text as you type.
 
 What the AI made isn't a black box.
-It's sentences like those five, on the left, beside the app they make on the right:
+It's sentences like those seven, on the left, beside the app they make on the right:
 read one and you know what the app does;  change one and watch the app change.
 
 <details>
-<summary>What the browser runs instead:  those five sentences, as JavaScript</summary>
+<summary>What the browser runs instead:  those seven lines, as JavaScript</summary>
 
 ```js
-export class Task extends Thing {
-  // a task has a title as text
+export class Task extends Drawable {
+  static elementTag = core.defineElement(this, "TaskList")
+
+  // - its "title" is text
   static { this.declareProp("title", { type: "text" }) }
   get title() { return this.getProp("title") }
   set title(value) { this.setProp("title", value) }
 
-  // a task has a property completed as yes or no
-  static { this.declareProp("completed", { type: "choice" }) }
-  get completed() { return this.getProp("completed") }
-  set completed(value) { this.setProp("completed", value) }
+  // ... its notes, the same way
 
-  get isComplete() {
-    return this.completed
+  // - its "priority" is one of low, normal or high
+  static Priorities = ["low", "normal", "high"]
+  static { this.declareProp("priority", { oneOf: Task.Priorities }) }
+  get priority() { return this.getProp("priority") }
+  set priority(value) { this.setProp("priority", value) }
+
+  // - its "done" is yes or no
+  static { this.declareProp("done", { type: "choice" }) }
+  get done() { return this.getProp("done") }
+  set done(value) { this.setProp("done", value) }
+
+  /** "task is done" */
+  get isDone() {
+    return this.done
   }
 
+  /** "task is active" */
   get isActive() {
-    return !this.completed
+    return !this.done
   }
 }
 ```
 
-- Real output:  `spell compile @spell/examples/todos-form-based --stdout`, its import line and heading left out.
-- Five sentences became 19 lines.
-  The whole to-do list is 72 lines of Spell, and 120 of JavaScript.
+- Real output:  `spell compile @spell/examples/TaskList --stdout`, trimmed to those seven lines.
+- `drawable` makes each task an element of its own on the page, `<task-list-task>`:  that's `elementTag`.
+- The whole Task List is 144 lines of Spell in two files, and about 270 of JavaScript, its styles among them.
 - The editor shows it too, under the app, and you never have to read it.
 
 </details>
@@ -80,8 +94,8 @@ in the editor's address bar, on the command line, or inside another project that
 
 | Address | What it names |
 | --- | --- |
-| `@spell/examples/todos-form-based` | the to-do list above, in Spell's own space |
-| `@spell/examples/todos-form-based/todo.spell` | one file of it |
+| `@spell/examples/TaskList` | Task List above, in Spell's own space |
+| `@spell/examples/TaskList/TaskList.spell` | one file of it |
 | `@spell/library/people` | a library:  a project other projects use, here people |
 | `owen@spell/errors` | a project in a person's own space |
 
@@ -100,7 +114,8 @@ a person is a thing:
 ```
 
 That's an OUTLINE:  a heading, then what's true of it, as bullets.
-The to-do list says the same kind of thing in sentences, and Spell reads both.
+So is the task at the top of this page.
+The Calculator says the same kind of thing in sentences, and Spell reads both.
 
 - `@spell` is an organization's space, Spell's own;  `owen@spell` is a person's, at that organization.
 - Each person and organization has an id, and a file of its own that you can open and read.
@@ -168,7 +183,7 @@ Each step in detail, with the code behind it:  [the editor's page](README-app.md
 
 All of this runs now, on your own machine.
 
-- **Write in sentences, or in outlines.**  The to-do list is sentences;  the person above is an outline.
+- **Write in sentences, or in outlines.**  The Calculator is sentences;  Task List and the person above are outlines.
   [Solitaire](spaces/@spell/examples/Solitaire/) is a whole card game written that way, its cards, deck and piles too.
 - **See mistakes as you type.**  On a line Spell can't read at all, it offers to teach Spell the phrase:
   "Define `to <phrase>`".
@@ -256,12 +271,12 @@ in the editor, beside the text.
 - **What it stands on:**  coding assistants write Spell today,
   and the language server's suggestions and quick fixes help you write it yourself.
 
-## The example apps:  five to open, two to build on
+## The example apps:  six to open, two to build on
 
-Five example apps come with the editor, simplest first:
+Six example apps come with the editor, simplest first:
 FizzBuzz, which counts to 100;
 a calculator whose buttons run Spell;
-the to-do list at the top of this page;
+Task List, at the top of this page, and Lista de tareas, the same list in Spanish;
 and Klondike solitaire, written in outlines, every card a piece of the page of its own;
 and Solitario, the same game in Spanish.
 A library comes with them, of people, for your own projects to build on.
@@ -289,7 +304,7 @@ It's the same name inside spell-app as from any other repo.
 | --- | --- | --- |
 | [README-app.md](README-app.md) | [src/app/](src/app/), `spell-app/app`;  its build folder, [app/](app/) | <ul><li>four elements for any page:  `<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`</li><li>one runner in three places;  a runtime per program;  a recompile that keeps what the program made</li><li>the editor:  one object behind every pane</li><li>the builds, one Solid per page;  App UI, a page per component</li></ul> |
 | [README-spaces.md](README-spaces.md) | [src/spaces/](src/spaces/), `spell-app/spaces` | <ul><li>addresses:  the folder is in the name</li><li>setting up spaces for your own project, in seven steps</li><li>the models, the editor's API, and the Python server</li><li>people and orgs, declared in Spell;  🌱 sign-in</li></ul> |
-| [README-examples.md](README-examples.md) | [spaces/@spell/](spaces/@spell/):  data, not code | <ul><li>five apps, simplest first, each running</li><li>the four parts of every app, and the Calculator's bug</li><li>FizzBuzz, the to-do list and the two solitaires, line by line</li><li>ideas for your own;  the frozen test projects</li></ul> |
+| [README-examples.md](README-examples.md) | [spaces/@spell/](spaces/@spell/):  data, not code | <ul><li>six apps, simplest first, each running</li><li>the four parts of every app, and the Calculator's bug</li><li>FizzBuzz, Task List and the two solitaires, line by line</li><li>ideas for your own;  the frozen test projects</li></ul> |
 | [README-lsp.md](README-lsp.md) | [src/lsp/](src/lsp/), `spell-app/lsp` | <ul><li>one service in three places:  the browser, VS Code, the command line</li><li>it reads the parse the compiler already made;  one queue</li><li>what it answers, request by request</li><li>scope packs;  where it stops</li></ul> |
 | [README-page-server.md](README-page-server.md) | its part of the kit's page server, in [package.json](package.json);  its route module is in spaces | <ul><li>the three settings spell-app adds to the kit's page server</li><li>what its route module serves:  the editor, its API, `/element/`</li><li>the editor's record;  running it</li></ul> |
 | [the kit's README-cli.md](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app) | [src/cli/](src/cli/), `spell-app/cli` | <ul><li>spell-app's commands:  `spell app create \| serve \| vscode`, `spell projects`</li><li>the work behind spell-parser's commands, which find projects the app's way</li></ul> |

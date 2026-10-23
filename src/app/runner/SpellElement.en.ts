@@ -28,11 +28,23 @@ export const spellElementVocabulary = {
       description:
         "The thing it draws:  set by the program that draws it, e.g. `draw the card`.  " +
         'A tag written in markup names the program\'s thing by its `id` instead:  `<solitaire-tableau id="T1">`.'
+    },
+    {
+      name: "move-delay",
+      kind: "number",
+      description:
+        "A list people may reorder (`its items can be reordered`):  how many seconds the pointer rests on a place " +
+        "before the dragged items move there, in place of what its type says."
     }
   ],
   events: [],
   slots: [],
-  parts: [],
+  parts: [
+    {
+      name: "drop-line",
+      description: "The line showing where dragged items would go, in a list people may reorder."
+    }
+  ],
   states: [],
   texts: []
 } as const satisfies E.ComponentVocabulary

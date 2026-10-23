@@ -49,7 +49,7 @@ describe("grammar probes", () => {
 
   test("P1d  property of a position", () => {
     expect(probe("print the suit of the first card of the deck is hearts")).toMatchInlineSnapshot(
-      `"core.console.log(deck.firstItem?.suit == "hearts")"`
+      `"core.console.log(deck.firstItem?.suit === "hearts")"`
     )
   })
 
@@ -64,13 +64,13 @@ describe("grammar probes", () => {
 
   test("P1f  count with `where`", () => {
     expect(probe("print the number of cards in the deck where its color is red")).toMatchInlineSnapshot(
-      `"core.console.log(deck.filter((card) => card.color == "red").length)"`
+      `"core.console.log(deck.filter((card) => card.color === "red").length)"`
     )
   })
 
   test("P1g  list with `where`", () => {
     expect(probe("print the cards in the deck where its color is red")).toMatchInlineSnapshot(
-      `"core.console.log(deck.filter((card) => card.color == "red"))"`
+      `"core.console.log(deck.filter((card) => card.color === "red"))"`
     )
   })
 
@@ -96,7 +96,7 @@ describe("grammar probes", () => {
 
   test("P2c+ `unicode 1F0A0 +` takes the sum, but stops before a comparison (epic `spanish` P11)", () => {
     expect(probe("print unicode 1F0A0 + x * 2 is y")).toMatchInlineSnapshot(
-      `"core.console.log(core.unicode(0x1F0A0 + x * 2) == y)"`
+      `"core.console.log(core.unicode(0x1F0A0 + x * 2) === y)"`
     )
   })
 
@@ -307,7 +307,7 @@ describe("grammar probes", () => {
         return await (x === 1)
       }
       export async function checkAgain() {
-        if (await x == 1) core.console.log(1)
+        if (await x === 1) core.console.log(1)
       }"
     `)
   })

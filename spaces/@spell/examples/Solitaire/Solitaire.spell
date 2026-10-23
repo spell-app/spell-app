@@ -13,6 +13,8 @@
 ## The solitaire:  its piles, its moves, auto play and drawing
 solitaire is an app where:
 	- its "score" is a number
+	// what the move being dragged would add to the score, e.g. " (+10)":  shown beside it, while a card is over a pile
+	- its "hint" is text
 	- its "deck" is a new deck
 
 	// one of each pile, made with the solitaire
@@ -78,7 +80,8 @@ solitaire is an app where:
 		wait for: play from the stock
 
 	- to start a new game:
-		set its score to 0
+		clear its score
+		clear its hint
 		deal the cards
 
 	// turn up a face-down card from a tableau, at random, onto the discards
@@ -129,7 +132,7 @@ solitaire is an app where:
 		return <ui-container>
 			<ui-menu>
 				<ui-item type="header">Klondike Solitaire</ui-item>
-				<ui-item>{"Score: " + its score}</ui-item>
+				<ui-item>{"Score: " + its score + its hint}</ui-item>
 				<ui-menu position="right">
 					<ui-item aria-label="Auto play" onClick={auto play}>
 						<ui-icon name="fast forward"/>
@@ -182,6 +185,7 @@ to put a card on a pile
 	set start pile to the pile of the card
 	if start pile cannot give up the card return no
 	if the pile cannot take the card return no
+	set points to count the points for the card on the pile
 
 	set moving cards to cards in start pile starting with the card
 	set the name of moving cards to the name of the start pile
@@ -196,16 +200,26 @@ to put a card on a pile
 		print "turning over (" + the name of start pile + ": " + its state + ")"
 		turn it face up
 
-	if the pile is a foundation: set the score of the solitaire to the score of the solitaire + 10
-	else if start pile is the discards of the solitaire: set the score of the solitaire to the score of the solitaire + 5
+	set the score of the solitaire to the score of the solitaire + points
 	return yes
+
+// what putting the card on the pile scores:  10 on a foundation, 5 from the discards, else nothing
+to count the points for a card on a pile
+	if the pile is a foundation return 10
+	if the pile of the card is the discards of the solitaire return 5
+	return 0
 
 // a click plays the card;  a drag puts it where it's dropped
 on card click with a card
 	play the card
 
-on card drop with a card and a pile
-	put the card on the pile
+a pile:
+	// while a card it would take is over it, the score shows what the move would add -- gone as the card leaves
+	- while a card is dragged over it:
+		set points to count the points for the card on it
+		if it can take the card and points > 0: set the hint of the solitaire to " (+" + points + ")"
+	- when a card is dropped on it:
+		put the card on it
 
 
 ## Start

@@ -168,6 +168,7 @@ const LARGEST_SEED = 2147483646
  * in `runProject.ts`, a fresh node process.  See `runProjectAs()`.
  * - Its javascript goes to a temp file, removed after.
  * - `capture`:  collect the child's output, rather than streaming it to our terminal -- e.g. for `spell watch --test`.
+ * - `reports`:  for `test`, how each test went too (`ChildResult.tests`), for the lines its failures are on
  * - Resolves to its exit code;  with `capture`, what it wrote -- see `ChildResult`;
  *   and, for `run`, what it skipped which needs a browser -- see `CLI.RunReport`.
  */
@@ -175,13 +176,13 @@ export async function runCompiled(
   mode: CLI.RunSpec["mode"],
   project: SP.SpellProject,
   options: CLI.TestOptions,
-  { capture = false }: { capture?: boolean } = {}
+  { capture = false, reports = false }: { capture?: boolean; reports?: boolean } = {}
 ): Promise<ChildResult> {
   const name = project.projectName ?? project.projectId
   const code = project.outputFile.contents ?? ""
   // in the language it speaks:  its app's file's, else its first file's (`SP.SpellDeclarations.speakingFirst()`)
   const messages = SP.SpellWords.messagesFor(project.wordsLanguages[0]!)
-  return runCode(mode, name, code, { ...options, projects: importedOutputs(project), capture, messages })
+  return runCode(mode, name, code, { ...options, projects: importedOutputs(project), capture, messages, reports })
 }
 
 /**
@@ -208,6 +209,7 @@ export async function runCode(
     dom,
     pauses,
     messages,
+    reports,
     ...options
   }: CLI.TestOptions & {
     extension?: string
@@ -216,6 +218,7 @@ export async function runCode(
     dom?: boolean
     pauses?: boolean
     messages?: Record<string, string>
+    reports?: boolean
   } = {}
 ): Promise<ChildResult> {
   if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed, pauses, dom, messages })
@@ -237,7 +240,8 @@ export async function runCode(
       filter: options.name,
       dom,
       seed: options.seed,
-      messages
+      messages,
+      reports
     }
     return await runChild(spec, capture)
   } finally {
@@ -253,8 +257,16 @@ export async function runCode(
  *   A dump of a thing (`print the card`) goes to stderr, see `SC.SpellConsole.printDump()`.
  * - `stderr`:  only what it wrote to stderr:  warnings, errors, dumps
  * - The three are empty without `capture`.
+ * - `tests`:  how each test went, when asked for (`runCompiled()`'s `reports`)
  */
-export type ChildResult = { exitCode: number; output: string; stdout: string; stderr: string; skipped: string[] }
+export type ChildResult = {
+  exitCode: number
+  output: string
+  stdout: string
+  stderr: string
+  skipped: string[]
+  tests?: LSP.TestReport[]
+}
 
 /**
  * URL of the compiled javascript of each project `project` imports -- and what THEY import -- by id.
@@ -298,7 +310,7 @@ function runChild(spec: CLI.RunSpec, capture: boolean): Promise<ChildResult> {
   const stdio: ("ignore" | "pipe" | "inherit" | "ipc")[] = capture
     ? ["ignore", "pipe", "pipe"]
     : ["inherit", "inherit", "inherit"]
-  if (spec.mode === "run") stdio.push("ipc")
+  if (spec.mode === "run" || spec.reports) stdio.push("ipc")
   return collected(spawn(process.execPath, args, { stdio, env }))
 }
 
@@ -309,6 +321,7 @@ function collected(child: ChildProcess): Promise<ChildResult> {
     let stdout = ""
     let stderr = ""
     let skipped: string[] = []
+    let tests: LSP.TestReport[] | undefined
     child.stdout?.on("data", (data) => {
       output += data
       stdout += data
@@ -317,9 +330,12 @@ function collected(child: ChildProcess): Promise<ChildResult> {
       output += data
       stderr += data
     })
-    child.on("message", (report: CLI.RunReport) => (skipped = report.skipped))
+    child.on("message", (report: CLI.RunReport | CLI.TestsReport) => {
+      if ("skipped" in report) skipped = report.skipped
+      if ("tests" in report) tests = report.tests
+    })
     child.on("exit", (code, signal) =>
-      done({ exitCode: code ?? (signal ? 130 : CLI.EXIT.ERRORS), output, stdout, stderr, skipped })
+      done({ exitCode: code ?? (signal ? 130 : CLI.EXIT.ERRORS), output, stdout, stderr, skipped, tests })
     )
     child.on("error", (error) =>
       done({

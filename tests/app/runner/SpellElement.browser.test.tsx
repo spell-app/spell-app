@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import h from "@solidjs/h"
 
-import { core, App, Drawable, DrawableList } from "spell-parser/core"
+import { core, App, Drawable, DrawableList, Thing } from "spell-parser/core"
 import { P } from "spell-parser/parser"
 import { E } from "spell-ui/core"
 import { RootLoader } from "spell-ui/components/ui-root"
@@ -322,6 +322,8 @@ describe("SpellElement", () => {
       core.flush()
       // the dragged element is gone once its thing moves:  drawn again in its new list
       await ElementFixture.settle(document.body)
+      // a task:  the drag stops swallowing the click its let-go makes, which a synthetic one never does
+      await new Promise((resolve) => setTimeout(resolve))
     }
 
     // a tray of tokens, each in one tray at a time, as `a token belongs to one tray` compiles:  made before any token
@@ -426,6 +428,134 @@ describe("SpellElement", () => {
       done()
     })
 
+    test("a tray's own handlers hear a token come over it and land:  `dropped on it` takes the place of <thing>-drop (outline-spell P28)", async () => {
+      /** A token of a sub-type:  its tray's `when a token ...` handlers run for it too. */
+      class Coin extends Token {
+        static elementTag = core.defineElement(this, "Game")
+      }
+      const coin = new Coin("a")
+      core.append(trays[0]!, coin)
+      const { root, done } = await drawTrays()
+      // `- when a token is dragged over it:` ... as compiled, on the tray
+      const heard: string[] = []
+      const to = trays[1]! as Tray & Record<string, unknown>
+      to.whenTokenDraggedOver = (token: Token) => heard.push(`over ${token.label}`)
+      to.whenTokenDraggedOutOf = (token: Token) => heard.push(`out of ${token.label}`)
+      to.whenTokenDroppedOn = (token: Token) => heard.push(`dropped ${token.label}`)
+      const trigger = vi.spyOn(core, "trigger")
+      try {
+        await drag(root.querySelector("game-coin") as HTMLElement, root.querySelectorAll<HTMLElement>("game-tray")[1]!)
+        expect(heard).toEqual(["over a", "dropped a"])
+        // its handler answered:  no `coin-drop`, and the move is the handler's to make
+        expect(trigger).not.toHaveBeenCalled()
+        expect([...trays[0]!.items]).toEqual([coin])
+      } finally {
+        trigger.mockRestore()
+        for (const name of ["whenTokenDraggedOver", "whenTokenDraggedOutOf", "whenTokenDroppedOn"]) delete to[name]
+        done()
+      }
+    })
+
+    test("a drop a tray won't take runs its `dragged out of it`, and a handler that throws goes to the console (outline-spell P28)", async () => {
+      const token = new Token("a")
+      core.append(trays[0]!, token)
+      const { root, done } = await drawTrays()
+      const heard: string[] = []
+      const to = trays[1]! as Tray & Record<string, unknown>
+      to.canTake = () => false
+      to.whenTokenDraggedOver = () => {
+        heard.push("over")
+        throw new Error("oops")
+      }
+      to.whenTokenDraggedOutOf = () => heard.push("out of")
+      to.whenTokenDroppedOn = () => heard.push("dropped")
+      const error = vi.spyOn(core.console, "error").mockImplementation(() => {})
+      try {
+        await drag(root.querySelector("game-token") as HTMLElement, root.querySelectorAll<HTMLElement>("game-tray")[1]!)
+        expect(heard).toEqual(["over", "out of"])
+        expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: "oops" }))
+        expect([...trays[0]!.items]).toEqual([token])
+      } finally {
+        error.mockRestore()
+        for (const name of ["canTake", "whenTokenDraggedOver", "whenTokenDraggedOutOf", "whenTokenDroppedOn"])
+          delete to[name]
+        done()
+      }
+    })
+
+    test("a tray's `while a token is dragged over it` sets what goes back as the token lands (outline-spell P28)", async () => {
+      const token = new Token("a")
+      core.append(trays[0]!, token)
+      const { root, done } = await drawTrays()
+      /** What the handler sets:  a prop, as compiled spell's are. */
+      class Sign extends Thing {
+        get hint(): string {
+          return this.getProp("hint") ?? ""
+        }
+        set hint(value: string) {
+          this.setProp("hint", value)
+        }
+      }
+      const sign = new Sign()
+      const to = trays[1]! as Tray & Record<string, unknown>
+      // `- while something is dragged over it:` too, but a token's own runs instead
+      to.whileThingDraggedOver = () => (sign.hint = "not this one")
+      to.whileTokenDraggedOver = (dragged: Token) => (sign.hint = `drop ${dragged.label} here`)
+      try {
+        await drag(
+          root.querySelector("game-token") as HTMLElement,
+          root.querySelectorAll<HTMLElement>("game-tray")[1]!,
+          () => expect(sign.hint).toBe("drop a here")
+        )
+        expect(sign.hint).toBe("")
+        expect([...trays[1]!.items]).toEqual([token])
+      } finally {
+        for (const name of ["whileThingDraggedOver", "whileTokenDraggedOver"]) delete to[name]
+        done()
+      }
+    })
+
+    test("a click selects a thing in its list;  command adds or takes one away, shift selects a range (outline-spell P29)", async () => {
+      /** A token people may select:  `a bead can be selected`. */
+      class Bead extends Token {
+        static elementTag = core.defineElement(this, "Game")
+        static canBeSelected = true
+      }
+      const beads = ["a", "b", "c", "d"].map((label) => new Bead(label))
+      core.append(trays[0]!, ...beads)
+      const pebble = new Pebble("e")
+      core.append(trays[0]!, pebble)
+      const { root, done } = await drawTrays()
+      const elements = [...root.querySelectorAll<HTMLElement>("game-bead")]
+      const click = async (element: HTMLElement, keys: MouseEventInit = {}) => {
+        element.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, ...keys }))
+        core.flush()
+        await ElementFixture.settle(root)
+      }
+      const selected = () => [...trays[0]!.selection].map((bead) => (bead as Token).label)
+      try {
+        await click(elements[1]!)
+        expect(selected()).toEqual(["b"])
+        expect(elements[1]!.matches(":state(selected)")).toBe(true)
+        await click(elements[3]!, { metaKey: true })
+        expect(selected()).toEqual(["b", "d"])
+        await click(elements[1]!, { ctrlKey: true })
+        expect(selected()).toEqual(["d"])
+        expect(elements[1]!.matches(":state(selected)")).toBe(false)
+        // from the last one clicked, b, to a:  in the list's order
+        await click(elements[0]!, { shiftKey: true })
+        expect(selected()).toEqual(["a", "b"])
+        // a thing whose type doesn't say `can be selected`:  its click selects nothing
+        await click(root.querySelector("game-pebble") as HTMLElement)
+        expect(selected()).toEqual(["a", "b"])
+        // taken out of the list, it leaves the selection
+        core.remove(trays[0]!, beads[0])
+        expect(selected()).toEqual(["b"])
+      } finally {
+        done()
+      }
+    })
+
     test("dragging is opt-in:  a thing whose type doesn't say `can be dragged` can't be dragged (outline-spell P28)", async () => {
       core.append(trays[0]!, new Token("a"), new Pebble("b"))
       const { root, done } = await drawTrays()
@@ -447,6 +577,179 @@ describe("SpellElement", () => {
       const { root, done } = await drawPots(jar)
       expect((root.querySelector("game-chip") as HTMLElement).matches(":state(draggable)")).toBe(false)
       done()
+    })
+
+    /** A column whose chits people may reorder:  `- its items can be reordered`, waiting a tenth of a second. */
+    class Column extends DrawableList<Chit> {
+      static elementTag = core.defineElement(this, "Game")
+      static exclusive = true
+      static reorderItemsAfter = 0.1
+    }
+    /** A chit, drawn as its label and a field:  `a chit can be dragged`, `can be selected`. */
+    class Chit extends Drawable {
+      static elementTag = core.defineElement(this, "Game")
+      static canBeDragged = true
+      static canBeSelected = true
+      constructor(public label = "") {
+        super()
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (
+          h("b", {}, this.label, h("input", { "aria-label": "field" })) as unknown as () => ReturnType<Drawable["draw"]>
+        )()
+      }
+    }
+    Object.defineProperty(Chit.prototype, "column", {
+      get(this: Chit) {
+        return Column.ownerOf(this)
+      },
+      configurable: true
+    })
+    Object.assign(Column, { instanceType: Chit })
+
+    /** A column of chits `labels`, drawn down the page:  returns it, its element, its chits' elements, and the end. */
+    async function drawColumn(...labels: string[]) {
+      const column = new Column()
+      core.append(column, ...labels.map((label) => new Chit(label)))
+      const root = document.createElement("div")
+      root.innerHTML = `<style>
+        game-column { display: flex; flex-direction: column; width: 120px; padding-bottom: 30px }
+        game-chit { display: block; height: 24px }
+      </style>`
+      document.body.append(root)
+      const mounted = core.mountApp({ draw: () => core.drawThing(column) }, root)
+      flush()
+      await ElementFixture.settle(root)
+      const element = root.querySelector("game-column") as HTMLElement
+      const chits = () => [...root.querySelectorAll<HTMLElement>("game-chit")]
+      const labelsNow = () => [...column].map((chit) => chit.label)
+      return { column, element, chits, labelsNow, done: () => (mounted.unmount(), root.remove()) }
+    }
+
+    /** Press `element`, then move the pointer to (`x`, `y`) in steps:  a drag under way;  returns how to let go there. */
+    function pressAndMove(element: Element, x: number, y: number, on: Element = element) {
+      const box = element.getBoundingClientRect()
+      const from = { x: box.x + 10, y: box.y + box.height / 2 }
+      const send = (target: EventTarget, type: string, at: { x: number; y: number }) =>
+        target.dispatchEvent(
+          new PointerEvent(type, { bubbles: true, composed: true, pointerId: 4, clientX: at.x, clientY: at.y })
+        )
+      send(on, "pointerdown", from)
+      for (const step of [0.25, 0.5, 0.75, 1]) {
+        send(window, "pointermove", { x: from.x + (x - from.x) * step, y: from.y + (y - from.y) * step })
+      }
+      return async () => {
+        send(window, "pointerup", { x, y })
+        core.flush()
+        await ElementFixture.settle(document.body)
+        // the drag ends just before the next paint (`dragend`);  then a task, so it stops swallowing the click
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+        await new Promise((resolve) => setTimeout(resolve))
+      }
+    }
+
+    test("a reordered list:  the dragged item dims, a line shows where it goes, and the drop puts it there (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c")
+      try {
+        const [a, , c] = chits()
+        const below = c!.getBoundingClientRect().bottom + 5
+        const letGo = pressAndMove(a!, a!.getBoundingClientRect().x + 10, below)
+        core.flush()
+        await ElementFixture.settle(element)
+        expect(a!.matches(":state(lifted)")).toBe(true)
+        expect(element.matches(":state(placing)")).toBe(true)
+        expect(element.shadowRoot!.querySelector("[part~=drop-line]")).not.toBeNull()
+        // dragged where it is:  it never follows the pointer
+        expect(a!.style.translate).toBe("")
+        await letGo()
+        expect(labelsNow()).toEqual(["b", "c", "a"])
+        // each moved item glides to its new place:  `a` down, `b` and `c` up
+        expect(chits().filter((chit) => chit.getAnimations().length > 0)).toHaveLength(3)
+        expect(element.matches(":state(placing)")).toBe(false)
+        expect(chits().some((chit) => chit.matches(":state(lifted)"))).toBe(false)
+      } finally {
+        done()
+      }
+    })
+
+    test("the pointer resting on a place:  the items move there while the drag goes on;  `move-delay` says how long (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c")
+      try {
+        element.setAttribute("move-delay", "0.05")
+        const [, b, c] = chits()
+        const letGo = pressAndMove(c!, c!.getBoundingClientRect().x + 10, b!.getBoundingClientRect().top + 2)
+        await new Promise((resolve) => setTimeout(resolve, 150))
+        core.flush()
+        expect(labelsNow()).toEqual(["a", "c", "b"])
+        await letGo()
+        expect(labelsNow()).toEqual(["a", "c", "b"])
+      } finally {
+        done()
+      }
+    })
+
+    test("reordered immediately:  no line, the item moves as the pointer goes, once a place, steady while items glide (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c", "d")
+      const moves = vi.spyOn(core, "moveBefore")
+      try {
+        element.setAttribute("move-delay", "0")
+        const [a, , , d] = chits()
+        const box = a!.getBoundingClientRect()
+        const send = (target: EventTarget, type: string, y: number) =>
+          target.dispatchEvent(
+            new PointerEvent(type, { bubbles: true, composed: true, pointerId: 5, clientX: box.x + 10, clientY: y })
+          )
+        send(a!, "pointerdown", box.y + 5)
+        // slowly down past `b` and `c`, a few pixels a step:  each new place moves it once
+        const end = d!.getBoundingClientRect().top + 2
+        for (let y = box.y + 5; y <= end; y += 3) {
+          send(window, "pointermove", y)
+          await new Promise((resolve) => setTimeout(resolve, 5))
+          core.flush()
+          expect(element.shadowRoot!.querySelector("[part~=drop-line]")).toBeNull()
+        }
+        expect(labelsNow()).toEqual(["b", "c", "a", "d"])
+        expect(moves).toHaveBeenCalledTimes(2)
+        send(window, "pointerup", end)
+        core.flush()
+        await ElementFixture.settle(document.body)
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+        await new Promise((resolve) => setTimeout(resolve))
+        expect(labelsNow()).toEqual(["b", "c", "a", "d"])
+      } finally {
+        moves.mockRestore()
+        done()
+      }
+    })
+
+    test("selected items drag together;  a press in a field inside one starts no drag (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c", "d")
+      try {
+        const [a, , c, d] = chits()
+        const click = (chit: HTMLElement, keys: MouseEventInit = {}) =>
+          chit.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, ...keys }))
+        click(a!)
+        click(c!, { metaKey: true })
+        core.flush()
+        await ElementFixture.settle(element)
+        const letGo = pressAndMove(a!, a!.getBoundingClientRect().x + 10, d!.getBoundingClientRect().bottom + 5)
+        await letGo()
+        expect(labelsNow()).toEqual(["b", "d", "a", "c"])
+        // the field:  its press is the field's
+        const [, , , last] = chits()
+        const field = last!.shadowRoot!.querySelector("input")!
+        const release = pressAndMove(
+          last!,
+          last!.getBoundingClientRect().x + 10,
+          chits()[0]!.getBoundingClientRect().top,
+          field
+        )
+        expect(last!.matches(":state(dragging)")).toBe(false)
+        await release()
+        expect(labelsNow()).toEqual(["b", "d", "a", "c"])
+      } finally {
+        done()
+      }
     })
 
     test("a chip moved to another pot glides there from where it was (outline-spell P27)", async () => {
@@ -1095,7 +1398,7 @@ describe("SpellElement", () => {
       flush()
       expect(element.component).toBeInstanceOf(TileElement)
       const attributes = element.component!.vocabulary.attributes as readonly E.AttributeSpec[]
-      expect(attributes.map((attribute) => attribute.name)).toEqual(["thing", "label", "size", "glow"])
+      expect(attributes.map((attribute) => attribute.name)).toEqual(["thing", "move-delay", "label", "size", "glow"])
       expect(attributes.find((attribute) => attribute.name === "label")!.description).toBe("Its label, as written.")
       const tile = element.shadowRoot!.querySelector(".tile")!
       expect(tile.textContent).toBe("A")
