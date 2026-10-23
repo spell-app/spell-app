@@ -59,6 +59,26 @@ export class SpellKeywords {
   }
 
   /**
+   * How completion offers keyword `word`:  the `label` it shows and writes, and the `filterText` it's found by.
+   * - A word with an accent fix is offered WITH its accent, and found as typed without it:
+   *   `esta` and `está` are both offered as `está`, found by `esta`,
+   *   so typing `esta` and accepting the suggestion writes `está` (epic `spanish` I7).
+   * - Any of the pack's keyword rules:  completion offers words, not a parse's matches -- see `accentFixFor()`.
+   * - Never a word the pack also has on its own:  `si` (`if`) is offered as `si`, never `sí`.
+   */
+  completionSpelling(word: string): { label: string; filterText?: string } {
+    this.accentedWords ??= new Map([...this.fixesByRule.values()].flatMap((pairs) => [...pairs]))
+    const accented = this.accentedWords.get(word)
+    if (accented) return { label: accented, filterText: word }
+    const plain = withoutAccents(word)
+    return plain !== word && this.accentedWords.get(plain) === word
+      ? { label: word, filterText: plain }
+      : { label: word }
+  }
+  /** Every rule's fixes as one, `esta` => `está`, worked out on first use -- see `completionSpelling()`. */
+  private accentedWords?: Map<string, string>
+
+  /**
    * Fill `fixesByRule` from every keyword rule of the pack -- see `accentFixFor()`.
    * - A word pairs with its accented form when both are alternatives in ONE place:
    *   - in a keyword's own list, `(número|numero)`, or one place of a phrase, `la (posición|posicion) de`

@@ -157,7 +157,7 @@ export class SpellLanguageServer {
       this.answer(textDocument.uri, [], (file) => service.onTypeFormatting(file, position, ch))
     )
     connection.onCompletion(({ textDocument, position }) =>
-      this.answer(textDocument.uri, [], (file) => service.completion(file, position))
+      this.answer(textDocument.uri, { isIncomplete: false, items: [] }, (file) => service.completion(file, position))
     )
     connection.onSignatureHelp(({ textDocument, position }) =>
       this.answer(textDocument.uri, null, (file) => service.signatureHelp(file, position))

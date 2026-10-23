@@ -498,7 +498,7 @@ describe("SpellLanguageService", () => {
     const afterClick = () => ({ line: lineOf(solitaire.parseText, "## Start") - 2, character: 0 })
 
     test("at the start of a statement:  names, statement starts, and the project's methods", () => {
-      const labels = service.completion(solitaire, afterClick()).map(({ label }) => label)
+      const labels = service.completion(solitaire, afterClick()).items.map(({ label }) => label)
       expect(labels).toEqual(expect.arrayContaining(["to", "if", "set", "card", "deck", "solitaire", "clubs"]))
       expect(labels).toContain("turn it face up")
       // a local of `to play a card`, above:  not out here
@@ -506,7 +506,7 @@ describe("SpellLanguageService", () => {
     })
 
     test("with docstrings", () => {
-      const items = service.completion(solitaire, afterClick())
+      const items = service.completion(solitaire, afterClick()).items
       const docs = (label: string) =>
         (items.find((item) => item.label === label)?.documentation as { value: string })?.value
       expect(docs("card")).toBe(
@@ -517,14 +517,14 @@ describe("SpellLanguageService", () => {
     })
 
     test("a method comes as a snippet, with its arguments' names", () => {
-      const item = service.completion(solitaire, afterClick()).find(({ label }) => label === "play a card")
+      const item = service.completion(solitaire, afterClick()).items.find(({ label }) => label === "play a card")
       expect(item).toMatchObject({ insertText: "play ${1:card}", insertTextFormat: 2 })
     })
 
     describe("what can come next, typed at the end of Solitaire.spell", () => {
       /** Completions at the end of `line`, typed as a new last line of Solitaire.spell. */
       async function typed(line: string, check: (items: CompletionItem[]) => void) {
-        await typedAtEnd(line, (position) => check(service.completion(solitaire, position)))
+        await typedAtEnd(line, (position) => check(service.completion(solitaire, position).items))
       }
       const labels = (items: CompletionItem[]) => items.map(({ label }) => label)
 
@@ -634,7 +634,7 @@ describe("SpellLanguageService", () => {
           const after = solitaire.parseText.split("\n").length - 1
           const item = service
             .completion(solitaire, { line: after, character: 0 })
-            .find(({ label }) => label === "deal a card onto a pile")
+            .items.find(({ label }) => label === "deal a card onto a pile")
           expect(item).toMatchObject({ insertText: "deal ${1:card} onto ${2:pile}", insertTextFormat: 2 })
         })
       })
@@ -659,7 +659,7 @@ describe("SpellLanguageService", () => {
     test("mid-statement:  names, but no statement starts", () => {
       // in `to play a card`'s `get the last card of the start pile`
       const position = at(solitaire, "get the last card of the start pile", "the last")
-      const labels = service.completion(solitaire, position).map(({ label }) => label)
+      const labels = service.completion(solitaire, position).items.map(({ label }) => label)
       expect(labels).toEqual(expect.arrayContaining(["solitaire", "start-pile", "card"]))
       expect(labels).not.toContain("to")
     })
@@ -711,7 +711,7 @@ describe("SpellLanguageService", () => {
         typedAtEnd("print the ", (position) => {
           const properties = service
             .completion(solitaire, position)
-            .filter(({ kind }) => kind === CompletionItemKind.Property)
+            .items.filter(({ kind }) => kind === CompletionItemKind.Property)
             .map(({ label }) => label)
           expect(properties).toEqual(expect.arrayContaining(["short colour", "direction", "pile"]))
         })
@@ -748,7 +748,7 @@ describe("SpellLanguageService", () => {
 
     test("completion after `the ` offers them, with their docs -- each type's", async () => {
       await typedAtEnd("print the ", (position) => {
-        const length = service.completion(solitaire, position).find(({ label }) => label === "length")!
+        const length = service.completion(solitaire, position).items.find(({ label }) => label === "length")!
         expect(length.detail).toBe("property of List, Text")
         const docs = (length.documentation as { value: string }).value
         expect(docs).toMatch(/^\*\*List\*\*:  How many items/)
@@ -1010,7 +1010,7 @@ describe("SpellLanguageService", () => {
 
     test("completion and hover are CSS's inside it", async () => {
       await withCardText(withBlock, () => {
-        const labels = service.completion(card, { line: rule, character: 12 }).map((item) => item.label)
+        const labels = service.completion(card, { line: rule, character: 12 }).items.map((item) => item.label)
         expect(labels).toContain("color")
         expect(labels).not.toContain("card")
         expect(service.hover(card, { line: rule, character: 4 })).toBeDefined()
@@ -1083,10 +1083,12 @@ describe("SpellLanguageService", () => {
     test("completion offers the phrases:  `belongs` after an item type, `take` and `never` after `can`", async () => {
       const labels = (items: CompletionItem[]) => items.map(({ label }) => label)
       await typedAtEnd("a card ", (position) => {
-        expect(labels(service.completion(solitaire, position))).toEqual(expect.arrayContaining(["belongs", "can"]))
+        expect(labels(service.completion(solitaire, position).items)).toEqual(
+          expect.arrayContaining(["belongs", "can"])
+        )
       })
       await typedAtEnd("a pile can ", (position) => {
-        expect(labels(service.completion(solitaire, position))).toEqual(
+        expect(labels(service.completion(solitaire, position).items)).toEqual(
           expect.arrayContaining(["add", "take", "give", "release", "remove", "let", "never"])
         )
       })

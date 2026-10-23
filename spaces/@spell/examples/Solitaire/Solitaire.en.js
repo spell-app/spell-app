@@ -46,11 +46,14 @@ export const words = {
       state: "state"
     },
     StockPile: {
-      drawItsPlaceholder: "draw its placeholder"
+      layout: "layout"
+    },
+    DiscardPile: {
+      layout: "layout"
     },
     Foundation: {
-      suit: "suit",
-      drawItsPlaceholder: "draw its placeholder"
+      layout: "layout",
+      suit: "suit"
     },
     Tableau: {
       layout: "layout"

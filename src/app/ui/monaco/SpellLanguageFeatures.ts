@@ -146,8 +146,8 @@ export class SpellLanguageFeatures {
       endLineNumber: position.lineNumber,
       endColumn: word.endColumn
     }
-    const items = this.service.completion(file, LspToMonaco.lspPosition(position))
-    return { suggestions: items.map((item) => LspToMonaco.completion(item, range)) }
+    const { items, isIncomplete } = this.service.completion(file, LspToMonaco.lspPosition(position))
+    return { suggestions: items.map((item) => LspToMonaco.completion(item, range)), incomplete: isIncomplete }
   }
 
   /** The method call being typed at `position`, with the argument being typed highlighted. */

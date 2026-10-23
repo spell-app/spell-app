@@ -14,7 +14,7 @@ import { json5Edited } from "spell-app/spaces/server/node/storage/json5"
 import environment from "spell-app/spaces/server/node/environment"
 
 import { SP } from "spell-lang/spell"
-import { projectFileFor } from "spell-lang/spell/node/projectFile"
+import { hasProjectFile, projectFileFor } from "spell-lang/spell/node/projectFile"
 import { SPACES } from "spell-app/spaces"
 
 import * as fileUtils from "./file-utils"
@@ -323,14 +323,30 @@ export async function saveProjectFile(projectId: string, contents: ProjectFileJS
   return saved
 }
 
+/** Options of `getIndex()`. */
+export type GetIndexOptions = {
+  /**
+   * When the synced imports are saved to the project's file:
+   * - `"always"` (the default):  the editor's server, where a new project gets its file this way
+   * - `"if it has one"`:  only into a project file that's already there
+   */
+  saving?: "always" | "if it has one"
+}
+
 /**
  * Return `index` for a project as a JSON blob -- see `ProjectIndexJSON`.
  * - `manifest` portion always reflects current state of file system.
  * - `imports` portion is synced with `manifest` (missing files dropped, new files appended as `active`).
  *   - SIDE EFFECT:  saved to disk, in the project's file (`saveProjectFile()`), if anything changed.
+ *   - Unless `saving` is `"if it has one"` and the folder has no project file:  then it's synced in memory only.
+ *     The disk reader passes that (`installDiskFetch()`), so opening loose spell files in an editor or on the
+ *     command line never writes a project file into their folder.
  * - HACKY: if project has zero manifest-worthy files, creates `DEFAULT_FILE` so there's always at least one.
  */
-export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => {
+export const getIndex = async (
+  projectId: string,
+  { saving = "always" }: GetIndexOptions = {}
+): Promise<ProjectIndexJSON> => {
   const location = SP.SpellLocation.getProjectLocation(projectId)
 
   // Get non-hidden files in project which the front-end knows how to deal with
@@ -390,7 +406,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 
   // Save the new imports if anything changed
   // NOTE: we explicitly do not save the `manifest`
-  if (anythingChanged) await saveProjectFile(projectId, importsFile)
+  const mayWrite = saving === "always" || hasProjectFile(location.serverPath)
+  if (anythingChanged && mayWrite) await saveProjectFile(projectId, importsFile)
 
   // Set `contents` for the active imports
   await Promise.all(

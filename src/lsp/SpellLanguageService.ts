@@ -10,6 +10,7 @@ import {
   SymbolKind,
   type CodeAction,
   type CompletionItem,
+  type CompletionList,
   type Diagnostic,
   type DocumentHighlight,
   type DocumentSymbol,
@@ -1379,20 +1380,22 @@ export class SpellLanguageService {
    * - at the start of a statement:  the first words of every kind of statement (`to`, `if`, `set`...),
    *   and calls to the project's own methods, as snippets
    * - mid-statement, if `expectedNext()` has nothing:  calls to methods usable as expressions
+   * - A keyword with a written accent is offered with it, and found as typed without it:
+   *   typing `esta` and accepting the suggestion writes `está` -- see `keywordItems()`.
    */
-  completion(file: SP.SpellFile, position: Position): CompletionItem[] {
+  completion(file: SP.SpellFile, position: Position): CompletionList {
     const offset = this.offsetAt(file, position)
     const text = file.parseText
-    const cssItems = this.css.completion(text, offset, position)?.items
-    if (cssItems) return cssItems
-    if (!file.match) return []
+    const cssList = this.css.completion(text, offset, position)
+    if (cssList) return cssList
+    if (!file.match) return { isIncomplete: false, items: [] }
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
     const tagItems = this.tagItems(lineText, LSP.LspTexts.for(file.language))
-    if (tagItems) return tagItems
+    if (tagItems) return { isIncomplete: false, items: tagItems }
     const atStatementStart = /^\s*[\p{L}\p{M}\d_-]*$/u.test(lineText)
     if (!atStatementStart) {
       const expected = this.expectedNext(file, position)
-      if (expected.length) return expected
+      if (expected.items.length) return expected
     }
     const scope = this.scopeAt(file, offset)
     const items = [
@@ -1403,11 +1406,28 @@ export class SpellLanguageService {
     ]
     if (atStatementStart && scope.parser) {
       const statement = LSP.LspTexts.for(file.language).text("statement")
-      for (const word of this.statementWords(scope.parser, file.project)) {
-        items.push({ label: word, kind: CompletionItemKind.Keyword, detail: statement })
-      }
+      items.push(...this.keywordItems(file, this.statementWords(scope.parser, file.project), statement))
     }
-    return items
+    return { isIncomplete: false, items }
+  }
+
+  /**
+   * Completions for keywords `words`, each with `detail`, e.g. `if` or `si`:
+   * - A word with a written accent is offered WITH it, found by the word without it,
+   *   so `esta` and `está` are ONE suggestion, `está`, which typing `esta` finds first -- see
+   *   `LSP.SpellKeywords.completionSpelling()`.
+   * - Why:  the editor accepts the suggestion on Enter, so `esta` must find `está` above a longer name like `estado`
+   *   (epic `spanish` I7).
+   */
+  private keywordItems(file: SP.SpellFile, words: Iterable<string>, detail: string): CompletionItem[] {
+    const keywords = LSP.SpellKeywords.of(file.language)
+    const items = new Map<string, CompletionItem>()
+    for (const word of words) {
+      const spelling = keywords.completionSpelling(word)
+      if (!items.has(spelling.label))
+        items.set(spelling.label, { ...spelling, kind: CompletionItemKind.Keyword, detail })
+    }
+    return [...items.values()]
   }
 
   /**
@@ -1437,31 +1457,37 @@ export class SpellLanguageService {
    *   - the words it can start with, e.g. `to`, or `the` / `a` / `its`... for an `{expression}`
    * - What only EXTENDS something complete (`continues`), e.g. an operator after `x`,
    *   only if the word being typed starts it:  `if x a` => `and`, but `if x ` offers no operators.
+   *   - So with no word typed yet, a list that left any out is INCOMPLETE:
+   *     the editor asks again as the word is typed, and `si e` finds `está`, not only names like `estado`.
    * - Ranked by `sortText`:  what's needed before what continues, shallower before deeper,
    *   then snippet, names, words.
    */
-  expectedNext(file: SP.SpellFile, position: Position): CompletionItem[] {
-    if (!file.match) return []
+  expectedNext(file: SP.SpellFile, position: Position): CompletionList {
+    const list: CompletionList = { isIncomplete: false, items: [] }
+    if (!file.match) return list
     const offset = this.offsetAt(file, position)
     const text = file.parseText
     const beforeCursor = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
     const typed = /[\p{L}\p{M}\d_-]*$/u.exec(beforeCursor)![0]
     const input = beforeCursor.slice(0, beforeCursor.length - typed.length).trim()
     const scope = this.scopeAt(file, offset)
-    if (!input || !scope.parser) return []
+    if (!input || !scope.parser) return list
 
     const items = new Map<string, CompletionItem>()
+    const startsWithTyped = (item: CompletionItem) => [item.label, item.filterText].some((it) => it?.startsWith(typed))
     for (const expectation of scope.parser.expectedAfter(input, "statement", scope)) {
       // partway through something, not what's next -- see `signatureHelp()`
       if (expectation.within) continue
       const rank = `${expectation.continues ? 1 : 0}${String(expectation.depth).padStart(2, "0")}`
       for (const [order, item] of this.expectedItems(expectation, file, scope, offset)) {
-        if (expectation.continues && (!typed || !item.label.startsWith(typed))) continue
+        if (expectation.continues && !typed) list.isIncomplete = true
+        if (expectation.continues && (!typed || !startsWithTyped(item))) continue
         const key = `${item.kind}:${item.label}`
         if (!items.has(key)) items.set(key, { ...item, sortText: `${rank}${order}:${item.label}` })
       }
     }
-    return [...items.values()]
+    list.items = [...items.values()]
+    return list
   }
 
   /**
@@ -1493,11 +1519,9 @@ export class SpellLanguageService {
     }
     // Words from categories too, e.g. `{expression}` => `the`, `a`, `its`... -- NOT `Card` when there's `card`
     const words = new Set(SpellLanguageService.firstWords(rule, parser, new Set(), true))
+    const lowerCase = [...words].filter((word) => word === word.toLowerCase() || !words.has(word.toLowerCase()))
     const next = LSP.LspTexts.for(file.language).text("next")
-    for (const word of words) {
-      if (word !== word.toLowerCase() && words.has(word.toLowerCase())) continue
-      items.push([2, { label: word, kind: CompletionItemKind.Keyword, detail: next }])
-    }
+    for (const item of this.keywordItems(file, lowerCase, next)) items.push([2, item])
     return items
   }
 

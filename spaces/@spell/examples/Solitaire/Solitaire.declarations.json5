@@ -290,7 +290,7 @@
       "kind": "method",
       "name": "play a card",
       "waits": true,
-      "defined": "/Solitaire.spell:5620-6624"
+      "defined": "/Solitaire.spell:5639-6643"
     },
     {
       "type": "Joker",
@@ -474,64 +474,53 @@
     {
       "type": "StockPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:7152-7447"
+      "defined": "/Solitaire.spell:7144-7464"
     },
     {
-      "syntax": "draw its placeholder (of {thisArg:expression})?",
-      "output": "draw_its_placeholder",
-      "rule": "method_call",
+      "property": "layout",
       "of": "StockPile",
-      "alias": [
-        "statement",
-        "expression"
-      ],
-      "kind": "method",
-      "name": "draw its placeholder",
-      "defined": "/Solitaire.spell:7351-7447"
+      "defined": "/Solitaire.spell:7179-7200"
     },
     {
       "type": "DiscardPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:7517-7633"
+      "defined": "/Solitaire.spell:7534-7675"
+    },
+    {
+      "property": "layout",
+      "of": "DiscardPile",
+      "defined": "/Solitaire.spell:7571-7592"
     },
     {
       "type": "Foundation",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:7691-8211"
+      "defined": "/Solitaire.spell:7733-8278"
+    },
+    {
+      "property": "layout",
+      "of": "Foundation",
+      "defined": "/Solitaire.spell:7768-7789"
     },
     {
       "property": "suit",
       "of": "Foundation",
       "datatype": "CardSuit",
-      "defined": "/Solitaire.spell:7726-7751"
-    },
-    {
-      "syntax": "draw its placeholder (of {thisArg:expression})?",
-      "output": "draw_its_placeholder",
-      "rule": "method_call",
-      "of": "Foundation",
-      "alias": [
-        "statement",
-        "expression"
-      ],
-      "kind": "method",
-      "name": "draw its placeholder",
-      "defined": "/Solitaire.spell:8064-8211"
+      "defined": "/Solitaire.spell:7793-7818"
     },
     {
       "type": "Tableau",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:8289-8555"
+      "defined": "/Solitaire.spell:8356-8622"
     },
     {
       "property": "layout",
       "of": "Tableau",
-      "defined": "/Solitaire.spell:8321-8343"
+      "defined": "/Solitaire.spell:8388-8410"
     },
     {
       "type": "Solitaire",
       "superType": "App",
-      "defined": "/Solitaire.spell:623-5480"
+      "defined": "/Solitaire.spell:623-5499"
     },
     {
       "property": "score",
@@ -743,7 +732,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Solitaire.spell:4660-5480"
+      "defined": "/Solitaire.spell:4753-5499"
     },
     {
       "syntax": "test the moves",
@@ -752,7 +741,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "the moves",
-      "defined": "/Solitaire.spell:8567-10044"
+      "defined": "/Solitaire.spell:8634-10111"
     }
   ],
   "codeLines": [
@@ -803,38 +792,39 @@
     434,
     437,
     492,
-    504,
-    510,
-    523,
-    526,
-    542,
-    554,
-    557,
-    572,
-    573,
-    578,
+    495,
+    514,
+    517,
+    531,
+    534,
+    538,
+    566,
+    569,
     584,
-    589,
-    594,
-    599,
-    604,
-    609,
-    614,
-    619,
-    624,
-    629,
-    634,
-    639,
-    644,
-    654,
-    659,
-    664,
-    674,
-    690,
-    719,
-    725,
+    585,
+    590,
+    596,
+    601,
+    606,
+    611,
+    616,
+    621,
+    626,
+    631,
+    636,
+    641,
+    646,
+    651,
+    656,
+    666,
+    671,
+    676,
+    686,
+    702,
+    731,
     737,
-    774,
-    830
+    749,
+    787,
+    842
   ]
 }

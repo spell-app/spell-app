@@ -3,7 +3,7 @@ import { cpSync, mkdtempSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
 import { pathToFileURL } from "url"
-import { CompletionItemKind, DiagnosticSeverity, type TextEdit } from "vscode-languageserver"
+import { CompletionItemKind, DiagnosticSeverity, type CompletionList, type TextEdit } from "vscode-languageserver"
 
 import { SP } from "spell-lang/spell"
 import { LSP } from "spell-app/lsp"
@@ -122,7 +122,7 @@ describe("SpellLanguageService, in Spanish", () => {
     const line = mazoText.split("\n").findIndex((it) => it.startsWith('\t- su "estado" es:')) + 1
     const words = service
       .completion(mazo, { line, character: 2 })
-      .filter((item) => item.kind === CompletionItemKind.Keyword)
+      .items.filter((item) => item.kind === CompletionItemKind.Keyword)
       .map((item) => item.label)
     expect(words).toEqual(expect.arrayContaining(["si", "para", "devolver", "poner"]))
     expect(words).not.toContain("if")
@@ -156,11 +156,61 @@ describe("SpellLanguageService, in Spanish", () => {
       })
     })
 
+    test("as you type:  a space fixes the line so far, once it parses (I7)", async () => {
+      const typed = "\teco el numero de cartas en el mazo "
+      await withMazoText(`${mazoText.trimEnd()}\n\npara contar un mazo\n${typed}\n`, () => {
+        const line = mazo.parseText.split("\n").indexOf(typed)
+        const edits = service.onTypeFormatting(mazo, { line, character: typed.length }, " ")
+        expect(fixedWords(edits)).toEqual(["número"])
+      })
+    })
+
+    test("a line that doesn't parse yet is left alone:  `numero esta` is no statement (I7)", async () => {
+      const typed = "\tnumero esta"
+      await withMazoText(`${mazoText.trimEnd()}\n\npara contar un mazo\n${typed}\n\t`, () => {
+        const line = mazo.parseText.split("\n").indexOf(typed)
+        expect(service.onTypeFormatting(mazo, { line: line + 1, character: 1 }, "\n")).toEqual([])
+      })
+    })
+
     test("leaves alone `si` (`if`), what's already accented, and a name a person chose", async () => {
       expect(service.accentEdits(mazo)).toEqual([])
       await withMazoText(`${mazoText.trimEnd()}\n\npara contar un mazo\n\tponer numero a 5\n\teco numero\n`, () => {
         expect(errorsIn(mazo)).toEqual([])
         expect(service.accentEdits(mazo)).toEqual([])
+      })
+    })
+  })
+
+  describe("completion of a keyword with a written accent (I7)", () => {
+    /** Completion at the end of `typed`, a line of a new method after Mazo.es.spell's own, with a line after it. */
+    async function completionAfter(typed: string, check: (list: CompletionList) => void) {
+      await withMazoText(`${mazoText.trimEnd()}\n\npara contar un mazo\n${typed}\n\teco 1\n`, () => {
+        const line = mazo.parseText.split("\n").indexOf(typed)
+        check(service.completion(mazo, { line, character: typed.length }))
+      })
+    }
+
+    test("offered WITH its accent, found as typed without it:  `esta` finds `está`, above `estado`", async () => {
+      await completionAfter("\tsi la carta de arriba del mazo e", ({ items }) => {
+        const labels = items.map((item) => item.label)
+        expect(items.find((item) => item.label === "está")).toMatchObject({ filterText: "esta" })
+        expect(labels).toContain("estado")
+        expect(labels).not.toContain("esta")
+      })
+    })
+
+    test("`si` (`if`) is never offered as `sí` (yes)", async () => {
+      await completionAfter("\ts", ({ items }) => {
+        expect(items.map((item) => item.label)).toContain("si")
+        expect(items.find((item) => item.filterText === "si")).toBeUndefined()
+      })
+    })
+
+    test("before a word is typed, a list that left out what continues the statement is incomplete", async () => {
+      await completionAfter("\tsi la carta de arriba del mazo ", ({ items, isIncomplete }) => {
+        expect(items.map((item) => item.label)).not.toContain("está")
+        expect(isIncomplete).toBe(true)
       })
     })
   })
