@@ -4,7 +4,10 @@
  *   from `src/app/runner/`), with Semantic UI + Lato straight from its `static/`.
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
  * - Also re-runs when the project's `<Project>.spell.js` changes on disk, e.g. compiled by the web app.
- * - Sends its words, `<Project>.en.js` beside its source, after each run:  the Thing Explorer's labels.
+ * - Sends its words with each run, `<Project>.en.js` beside its source:  the Thing Explorer's labels,
+ *   and what the core says as it runs, e.g. its tests' lines, in the program's language.
+ * - Runs the project's tests (the Run Tests command, the panel's own button, and after a run that starts no app),
+ *   and shows each failed check in the editor, on its line:  `spell/testDiagnostics` -- see `showTestResults()`.
  * - Sends the compiled javascript of each project it imports, when the runner asks (`loadImport`):
  *   the server's `spell/compiledImport`.
  */
@@ -12,7 +15,7 @@ import { existsSync, mkdirSync } from "fs"
 import JSON5 from "json5"
 import { resolve } from "path"
 import * as vscode from "vscode"
-import type { LanguageClient } from "vscode-languageclient/node"
+import type { Diagnostic, LanguageClient } from "vscode-languageclient/node"
 
 /****************
  * ### `RunnerPanel`
@@ -50,6 +53,15 @@ export class RunnerPanel {
   #lastRun: string | undefined
   /** Run the next `spell/projectCompiled` even if it's what we last ran:  Restart, or the webview is new. */
   #forceRun = false
+  /** Run the tests after the next run:  Run Tests asked for them before the webview ran anything. */
+  #testsOnRun = false
+
+  /**
+   * Each failed check of the last test run, on its line:  a set of their own, `spell tests`,
+   * so the language server's diagnostics, sent after every edit, leave them be.
+   * - Cleared for a file when it's edited, and replaced by the next test run.
+   */
+  static testDiagnostics: vscode.DiagnosticCollection
 
   constructor(client: LanguageClient, repoRoot: string, info: ProjectInfo, uri: string) {
     this.client = client
@@ -79,6 +91,7 @@ export class RunnerPanel {
       else if (message.type === "open") void RunnerPanel.open(message.href)
       else if (message.type === "setDescription") void this.setDescription(message)
       else if (message.type === "loadImport") void this.sendImport(message.projectId)
+      else if (message.type === "testResults") void this.showTestResults(message.tests)
     })
     const watcher = RunnerPanel.watch(vscode.Uri.parse(info.compiledUri))
     watcher.onDidChange((uri) => void this.compiledChanged(uri))
@@ -95,8 +108,15 @@ export class RunnerPanel {
    * - SIDE EFFECT: registers the `spell.runProject` command, and listeners for compiles and saves.
    */
   static register(context: vscode.ExtensionContext, client: LanguageClient, repoRoot: string): void {
+    RunnerPanel.testDiagnostics = vscode.languages.createDiagnosticCollection(TEST_DIAGNOSTICS)
     context.subscriptions.push(
+      RunnerPanel.testDiagnostics,
       vscode.commands.registerCommand("spell.runProject", () => RunnerPanel.show(client, repoRoot)),
+      vscode.commands.registerCommand("spell.runTests", () => RunnerPanel.runTests(client, repoRoot)),
+      // an edit may fix it, or move its line:  the next test run says
+      vscode.workspace.onDidChangeTextDocument(({ document, contentChanges }) => {
+        if (document.languageId === "spell" && contentChanges.length) RunnerPanel.testDiagnostics.delete(document.uri)
+      }),
       client.onNotification("spell/projectCompiled", ({ project, compiled }: ProjectCompiled) => {
         const panel = RunnerPanel.panels.get(project)
         panel?.run(compiled, panel.#forceRun)
@@ -105,24 +125,44 @@ export class RunnerPanel {
     )
   }
 
-  /** Run the active spell file's project beside it, or bring its panel forward if it's already running. */
-  static async show(client: LanguageClient, repoRoot: string): Promise<void> {
+  /**
+   * Run the active spell file's project beside it, or bring its panel forward if it's already running.
+   * - Answers its panel, and whether it's new;  `undefined`, saying why, if it can't run.
+   */
+  static async show(
+    client: LanguageClient,
+    repoRoot: string
+  ): Promise<{ panel: RunnerPanel; isNew: boolean } | undefined> {
     const document = vscode.window.activeTextEditor?.document
-    if (document?.languageId !== "spell") return
+    if (document?.languageId !== "spell") return undefined
     const spellApp = resolve(repoRoot, "app")
     if (!existsSync(resolve(spellApp, "dist-runner/runner.js"))) {
       void vscode.window.showErrorMessage(`Spell:  no runner bundle.  Run \`yarn build:runner\` in '${spellApp}'.`)
-      return
+      return undefined
     }
     const uri = document.uri.toString()
     const info = await client.sendRequest<ProjectInfo | null>("spell/project", { uri })
     if (!info) {
       void vscode.window.showErrorMessage("Spell:  this file isn't in a spell project.")
-      return
+      return undefined
     }
     const open = RunnerPanel.panels.get(info.project)
-    if (open) open.panel.reveal(undefined, true)
-    else new RunnerPanel(client, repoRoot, info, uri)
+    if (open) {
+      open.panel.reveal(undefined, true)
+      return { panel: open, isNew: false }
+    }
+    return { panel: new RunnerPanel(client, repoRoot, info, uri), isNew: true }
+  }
+
+  /**
+   * "Run Tests":  run the active spell file's project's tests, in its panel -- opening it if it isn't running.
+   * - A new panel runs them after its first run;  a running one, now.
+   */
+  static async runTests(client: LanguageClient, repoRoot: string): Promise<void> {
+    const shown = await RunnerPanel.show(client, repoRoot)
+    if (!shown) return
+    if (shown.isNew) shown.panel.#testsOnRun = true
+    else shown.panel.post({ type: "runTests" })
   }
 
   /**
@@ -169,24 +209,31 @@ export class RunnerPanel {
   }
 
   /**
-   * Run `compiled`, the project's javascript, in the webview -- then send its Type Explorer the scopes.
+   * Run `compiled`, the project's javascript, in the webview, with its words -- then send its Type Explorer the scopes.
+   * - With its tests too, when Run Tests opened the panel (`runTests()`).
    * - The webview keeps the program's things across runs, e.g. the game in progress:  only its Restart starts afresh.
    * - Skipped if it's what we last ran, unless `force`.
    */
   run(compiled: string, force = false): void {
     if (!force && compiled === this.#lastRun) return
     this.#lastRun = compiled
-    this.post({ type: "run", compiled })
-    void this.sendWords()
-    void this.sendScopes()
+    const runTests = this.#testsOnRun
+    this.#testsOnRun = false
+    void this.readWords().then((words) => {
+      // a newer run came while its words were read:  that one's what to run
+      if (compiled !== this.#lastRun) return
+      this.post(runTests ? { type: "run", compiled, words, runTests } : { type: "run", compiled, words })
+      void this.sendScopes()
+    })
   }
 
   /**
-   * Send the webview the project's words, as text:  `<Project>.en.js`, which compiling wrote beside its spell files.
+   * The project's words, as text:  `<Project>.en.js`, which compiling wrote beside its spell files.
    * - One per language its files are in, the one it speaks first (epic `spanish` P19).
-   * - None, e.g. compiled before words had a file:  sends none, and the Thing Explorer shows names as they are.
+   * - None, e.g. compiled before words had a file:  `undefined`, and the Thing Explorer shows names as they are.
+   * - NEVER throws.
    */
-  async sendWords(): Promise<void> {
+  async readWords(): Promise<string[] | undefined> {
     const texts = await Promise.all(
       this.wordsUris.map((uri) =>
         vscode.workspace.fs.readFile(uri).then(
@@ -196,7 +243,25 @@ export class RunnerPanel {
       )
     )
     const words = texts.filter((text) => text !== undefined)
-    this.post({ type: "words", words: words.length ? words : undefined })
+    return words.length ? words : undefined
+  }
+
+  /**
+   * Show each failed check of `tests`, how the project's tests went, in the editor, on its line --
+   * from the language server, which finds the lines (`spell/testDiagnostics`).
+   * - Every file of the project:  one whose tests now pass is cleared.
+   * - Can't, e.g. the server's busy restarting:  the status bar says so, as they're a convenience.
+   */
+  async showTestResults(tests: TestReport[]): Promise<void> {
+    try {
+      const files = await this.client.sendRequest<FileDiagnostics[]>("spell/testDiagnostics", { uri: this.uri, tests })
+      const { protocol2CodeConverter } = this.client
+      for (const { uri, diagnostics } of files) {
+        RunnerPanel.testDiagnostics.set(vscode.Uri.parse(uri), await protocol2CodeConverter.asDiagnostics(diagnostics))
+      }
+    } catch (error) {
+      vscode.window.setStatusBarMessage(`Spell:  couldn't show the tests' results in the editor -- ${error}`, 5000)
+    }
   }
 
   /**
@@ -359,6 +424,9 @@ export class RunnerPanel {
   }
 }
 
+/** Name of the set of diagnostics the tests' failed checks show in:  the Problems panel says it. */
+const TEST_DIAGNOSTICS = "spell tests"
+
 /** Start of what a line which doesn't parse compiles to:  a comment, `PARSE ERROR: Don't understand "foo"`. */
 const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
@@ -392,9 +460,9 @@ type ProjectCompiled = {
  * - `tree` is an `LSP.ScopeNode`, passed through as is.
  */
 type ToRunnerMessage =
-  | { type: "run"; compiled: string }
+  | { type: "run"; compiled: string; words?: string[]; runTests?: boolean }
+  | { type: "runTests" }
   | { type: "imported"; projectId: string; compiled?: string; error?: string }
-  | { type: "words"; words?: string[] }
   | { type: "scopes"; tree: unknown }
   | { type: "settings"; settings: ProjectSettings }
   | { type: "details"; path: string; details: unknown }
@@ -409,6 +477,21 @@ type FromRunnerMessage =
   | { type: "details"; path: string }
   | { type: "refreshScopes" }
   | { type: "loadImport"; projectId: string }
+  | { type: "testResults"; tests: TestReport[] }
+
+/**
+ * How one test went, as `LSP.TestReport`:  passed through to `spell/testDiagnostics` as is.
+ * - Just what we read:  nothing.
+ */
+type TestReport = Record<string, unknown>
+
+/** A file's diagnostics, as `LSP.FileDiagnostics`, answering `spell/testDiagnostics`. */
+type FileDiagnostics = {
+  /** The file's URI. */
+  uri: string
+  /** Its diagnostics, as the protocol has them:  none clears the ones it had. */
+  diagnostics: Diagnostic[]
+}
 
 /** Params of `spell/setDescription`, as `LSP.SetDescriptionParams` -- `file` for the file's own docstring. */
 type SetDescriptionParams = { uri: string; line?: number; file?: boolean; text: string }

@@ -11,11 +11,8 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  * - Snapshot pins Solitaire's, so a change to what a project declares shows up in review.
  */
 describe("SpellDeclarations, inline", () => {
-  const {
-    marked: compiled,
-    code,
-    declarations
-  } = compiledSpellProject(loadFixtureProject("Solitaire"), { version: "1.0.0" })
+  const solitaire = loadFixtureProject("Solitaire")
+  const { marked: compiled, code, declarations } = compiledSpellProject(solitaire, { version: "1.0.0" })
 
   test("Solitaire's declarations", () => {
     expect(declarations).toMatchSnapshot()
@@ -31,9 +28,12 @@ describe("SpellDeclarations, inline", () => {
     const lines = code.split("\n")
     expect(declarations.codeLines).toHaveLength(declarations.statements.length)
     const rank = declarations.statements.findIndex(({ property, of }) => property === "rank" && of === "Card")
-    // its code starts with the spell that made it (epic `people-and-orgs` P19)
-    expect(lines[declarations.codeLines![rank]!]).toBe('  // - its "rank" is a rank')
-    expect(lines[declarations.codeLines![rank]! + 1]).toMatch(/^ {2}static \{ this\.declareProp\("rank", /)
+    const rankLine = declarations.codeLines![rank]!
+    // its code starts with the spell that made it (epic `people-and-orgs` P19), `// - its "rank" is one of ace ...`
+    expect(lines[rankLine]).toBe(`  // - ${spellOf(declarations.statements[rank]!.defined!)}`)
+    // ...then the ranks it's one of, and the property
+    expect(lines[rankLine + 1]).toMatch(/^ {2}static Ranks = \[/)
+    expect(lines[rankLine + 2]).toMatch(/^ {2}static \{ this\.declareProp\("rank", /)
     const card = declarations.statements.findIndex(({ type }) => type === "Card")
     expect(lines[declarations.codeLines![card]!]).toBe("export class Card extends Drawable {")
   })
@@ -52,7 +52,7 @@ describe("SpellDeclarations, inline", () => {
   })
 
   test("reads a class member's comment, indented in its class's body", () => {
-    expect(compiled).toMatch(/\n {2}\/\*! SPELL: DECLARES \{\n {4}property: "rank", of: "Card"/)
+    expect(compiled).toMatch(/\n {2}\/\*! SPELL: DECLARES \{\n {4}property: "rank", [^\n]*of: "Card"/)
     expect(declarations.statements).toContainEqual(expect.objectContaining({ property: "rank", of: "Card" }))
     // ...and one from another file, `Pile.spell`'s `a card belongs to one pile`, which went in `Card.spell`'s class
     const pile = declarations.statements.find(({ property, of }) => property === "pile" && of === "Card")
@@ -93,6 +93,15 @@ describe("SpellDeclarations, inline", () => {
       /exports 'Wombat', which it doesn't declare/
     )
   })
+
+  /**
+   * The Solitaire spell a statement's `defined` points to, e.g. `/Card.spell:312-365` => `its "rank" is one of ...`.
+   * - So a test reads the example as it is now, not as it was when the test was written.
+   */
+  function spellOf(defined: string) {
+    const [, path, start, end] = /^(.+):(\d+)-(\d+)$/.exec(defined)!
+    return solitaire.find((file) => file.path === path)!.contents.slice(Number(start), Number(end))
+  }
 })
 
 /**
@@ -154,9 +163,11 @@ describe("SpellDeclarations.importScope()", () => {
       const card = imports.types.get("Card", "LOCAL_ONLY")!
       expect(card.declaredAt?.path).toBe(`${projectId}/Card.spell`)
       expect(sourceAt(card.declaredAt)).toMatch(/^a "card" is a drawable thing where:\n/)
-      expect(sourceAt(card.variables.get("suit", "LOCAL_ONLY")?.declaredAt)).toBe('its "suit" is a suit')
-      expect(sourceAt(card.classVariables.get("Suits", "LOCAL_ONLY")?.declaredAt)).toMatch(/^"suits" as one of clubs/)
-      expect(sourceAt(imports.constants.get("clubs", "LOCAL_ONLY")?.declaredAt)).toMatch(/^"suits" as one of clubs/)
+      // its suit, its list of suits and each suit:  all made by one statement
+      const suits = /^its "suit" is one of clubs, diamonds, hearts or spades$/
+      expect(sourceAt(card.variables.get("suit", "LOCAL_ONLY")?.declaredAt)).toMatch(suits)
+      expect(sourceAt(card.classVariables.get("Suits", "LOCAL_ONLY")?.declaredAt)).toMatch(suits)
+      expect(sourceAt(imports.constants.get("clubs", "LOCAL_ONLY")?.declaredAt)).toMatch(suits)
     })
 
     test("a rule:  its owner, what its statement declared, as `getDeclaration()` said -- and where", () => {

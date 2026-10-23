@@ -29,6 +29,7 @@ export const APP_TEXTS = {
   compile: "Compile",
   publish: "Publish",
   restart: "Restart",
+  runTests: "Run Tests",
   newProject: "New Project",
   newExample: "New Example",
   newGuide: "New Guide",
@@ -67,6 +68,8 @@ export const APP_TEXTS = {
   consoleExecuting: "Executing {type}",
   consoleFailed: "{Type} failed with error:",
   consoleExecuted: "{Type} executed without errors.",
+  testResults: "Tests:  {passed} passed, {failed} failed",
+  noTests: "No tests -- write one as `to test <something>:`",
 
   ////////////////
   // ## The project chooser (`ProjectChooser.tsx`, `ProjectDropdown.tsx`)

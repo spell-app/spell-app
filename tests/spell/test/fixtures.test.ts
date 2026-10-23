@@ -32,7 +32,7 @@ import {
  * - `<Project>.lib.snapshot.ts`:  as a library (the `ts/lib` target)
  *   - only for the fixtures in `LIBRARY_FIXTURES`
  *
- * A project one imports is a frozen fixture too, e.g. `lists-from-zero`'s card library, `cards`:
+ * A project one imports is a frozen fixture too, e.g. `counter-app`'s counter library, `counter`:
  * its own snapshots are what the runner's browser tests load as the import.
  * - Why real files:  a change shows up as a diff of a real `.js` or `.py` file, in VS Code's Source Control.
  * - New fixture:  copy a project into `spaces/@spell/test/`, then `yarn spell:test:fixtures:bless` writes its

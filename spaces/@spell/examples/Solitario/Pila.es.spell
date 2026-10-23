@@ -11,7 +11,8 @@ una "pila" es una lista dibujable de cartas donde:
 	- su "valor" es:
 		0 si está vacía
 		el valor de su última carta de lo contrario
-	// su nombre, luego el estado de cada carta, p. ej. "reserva: D♠️+ 7♥️—"
+
+	## estado de la pila, para depurar
 	- su "estado" es:
 		poner estado a (su nombre o "pila") + ":"
 		para cada carta en la pila
@@ -25,19 +26,23 @@ una carta pertenece a una pila
 ## Pruebas
 para probar las pilas
 	poner la reserva a una nueva pila con nombre = "reserva"
-	poner los descartes a una nueva pila con nombre = "descartes"
 	el color de la reserva debería ser "ninguno"
 	el valor de la reserva debería ser 0
 
 	agregar (una nueva carta cuyo rango es dama, palo es espadas y dirección es arriba) a la reserva
 	agregar (una nueva carta cuyo rango es 7, palo es corazones y dirección es abajo) a la reserva
+	eco el estado de la reserva
 	el color de la reserva debería ser rojo
 	el valor de la reserva debería ser 7
-	el estado de la reserva debería ser "reserva: D♠️+ 7♥️—"
+	el estado de la reserva debería ser "reserva: D♠↑ 7♥↓"
 
-	// una carta está en una sola pila a la vez
-	poner la carta a la última carta de la reserva
-	agregar la carta a los descartes
+	// una carta solo puede estar en una pila a la vez
+	poner los descartes a una nueva pila con nombre = "descartes"
+
+	obtener la última carta de la reserva
+	agregar eso a los descartes
+	su pila es los descartes debería ser sí
+
 	el número de cartas en la reserva debería ser 1
-	la pila de la carta es los descartes debería ser sí
-	el estado de los descartes debería ser "descartes: 7♥️—"
+	el número de cartas en los descartes debería ser 1
+	el estado de los descartes debería ser "descartes: 7♥↓"

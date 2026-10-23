@@ -1,56 +1,68 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, sendTrigger, sendCall, css, position } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, position, sendTrigger, css, sendCall } from "@spell/core"
 
 ///////////////////////////////////////////////////////////////////////////////
 // ## A playing card -- in the outline style:  its name, then what's true of it
 ///////////////////////////////////////////////////////////////////////////////
 /**
  * The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
- * A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`.
+ * A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
  */
 export class Card extends Drawable {
   static elementTag = core.defineElement(this, "test-project")
 
-  /** its suit and rank */
-  // - its "suit" is a suit
-  static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
-  get suit() { return this.getProp("suit") }
-  set suit(value) { this.setProp("suit", value) }
-
-  // - its "rank" is a rank
-  static { this.declareProp("rank", { oneOf: () => Card.Ranks }) }
+  /** card rank */
+  // - its "rank" is one of ace, 2 ... 10, jack, queen, king
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
+  static { this.declareProp("rank", { oneOf: Card.Ranks }) }
   get rank() { return this.getProp("rank") }
   set rank(value) { this.setProp("rank", value) }
 
-  get color() {
-    return Suit.color(this.suit)
-  }
-
-  /** ace 1 ... king 13 */
+  /** ace = 1 ... king = 13 */
   get value() {
     return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
-  /** e.g. "the card is a spade" */
-  isASuit(suit) {
-    return this.suit === suit
-  }
-
-  /** e.g. "the card is a queen" */
+  /** "card is a king" */
   isARank(rank) {
     return this.rank === rank
   }
 
-  /** e.g. "the card is the queen of spades" */
-  isTheRankOfSuits(rank, suit) {
-    return this.rank === rank && this.suit === suit
-  }
-
+  /** "card is a face card" */
   get isAFaceCard() {
-    return Rank.isAFaceCard(this.rank)
+    return core.includes(["jack", "queen", "king"], this.rank)
   }
 
-  isTheColorJoker(color) {
-    return this instanceof Joker && this.color == color
+  /** "card is a number card" */
+  get isANumberCard() {
+    return !this.isAFaceCard
+  }
+
+  /** card suit */
+  // - its "suit" is one of clubs, diamonds, hearts or spades
+  static Suits = ["clubs", "diamonds", "hearts", "spades"]
+  static { this.declareProp("suit", { oneOf: Card.Suits }) }
+  get suit() { return this.getProp("suit") }
+  set suit(value) { this.setProp("suit", value) }
+
+  /** "card is a diamond" */
+  isASuit(suit) {
+    return this.suit === suit
+  }
+
+  get color() {
+    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
+    return "black"
+  }
+
+  /** specific cards */
+  // "queen of spades"
+  get name() {
+    return `${this.rank} of ${this.suit}`
+  }
+
+  /** "card is the queen of spades" */
+  isTheRankOfSuit(rank, suit) {
+    return this.rank === rank && this.suit === suit
   }
 
   /** its direction:  face up or face down */
@@ -60,86 +72,14 @@ export class Card extends Drawable {
   get direction() { return this.getProp("direction") }
   set direction(value) { this.setProp("direction", value) }
 
-  get isFaceUp() {
-    return this.direction == "up"
+  /** card is face up */
+  isFaceDirection(direction) {
+    return this.direction === direction
   }
 
-  get isFaceDown() {
-    return this.direction == "down"
-  }
-
-  /** its names */
-  // e.g. "queen-of-spades"
-  get name() {
-    return `${this.rank}-of-${this.suit}`
-  }
-
-  get shortSuit() {
-    return Suit.symbol(this.suit)
-  }
-
-  get shortRank() {
-    if (this.rank === undefined) return "?"
-    if (typeof this.rank === "number") return `${this.rank}`
-    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
-  }
-
-  get shortDirection() {
-    if (this.direction == "up") return "+"
-    return "—"
-  }
-
-  get shortName() {
-    return this.shortRank + this.shortSuit
-  }
-
-  get state() {
-    return this.shortRank + this.shortSuit + this.shortDirection
-  }
-
-  //////////////////////////////////////////////////////////
-  // ## its picture:  a character of unicode's Playing Cards
-  //////////////////////////////////////////////////////////
-  /**
-   * SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
-   * The block is a grid:  a row for each suit, and in each row, a column for each rank.
-   * - The rows start at 1F0A0 (spades), 1F0B0 (hearts), 1F0C0 (diamonds) and 1F0D0 (clubs).
-   * - The columns run ace 1, 2 ... 10, jack B, then a knight our deck doesn't have, C, then queen D and king E.
-   */
-  get pictureColumn() {
-    // past the knight
-    if (this.isARank("queen") || this.isARank("king")) return this.value + 1
-    return this.value
-  }
-
-  get picture() {
-    if (this.isASuit("spades")) return core.unicode(0x1F0A0 + this.pictureColumn)
-    if (this.isASuit("hearts")) return core.unicode(0x1F0B0 + this.pictureColumn)
-    if (this.isASuit("diamonds")) return core.unicode(0x1F0C0 + this.pictureColumn)
-    return core.unicode(0x1F0D0 + this.pictureColumn)
-  }
-
-  /** drawing:  its picture face up, the back every card shares face down */
-  draw() {
-    if (this.isFaceDown) {
-      return h("ui-text", {
-        class: "Card",
-        size: "massive",
-        color: "blue",
-        onClick: () => sendTrigger("card-click", { card: this })
-      }, "🂠")
-    }
-    return h("ui-text", {
-      class: "Card",
-      size: "massive",
-      "prop:color": () => this.color,
-      onClick: () => sendTrigger("card-click", { card: this })
-    }, () => this.picture)
-  }
-
-  /////////////////////
-  // ## turning it over
-  /////////////////////
+  ///////////////////////////
+  // ## turning the card over
+  ///////////////////////////
   /** each pauses a moment, so `wait for: turn the card face up` animates */
   async turnFaceUp() {
     this.direction = "up"
@@ -152,9 +92,70 @@ export class Card extends Drawable {
   }
 
   async turnOver() {
-    if (this.isFaceUp) this.turnFaceDown()
-    else this.turnFaceUp()
-    await core.pauseFor(50, "msec")
+    if (this.isFaceDirection("up")) await this.turnFaceDown()
+    else await this.turnFaceUp()
+  }
+
+  /**
+   * Card picture:  drawn with special letters in the unicode character set
+   * - SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
+   */
+  get picture() {
+    if (this.isFaceDirection("down")) {
+      // "Playing Card Back"
+      return "🂠"
+    }
+
+    let column = this.value
+    if (this.isASuit("clubs")) return core.getItemAt(["🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞"], position(column))
+    if (this.isASuit("diamonds")) return core.getItemAt(["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎"], position(column))
+    if (this.isASuit("hearts")) return core.getItemAt(["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂽", "🂾"], position(column))
+    if (this.isASuit("spades")) return core.getItemAt(["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"], position(column))
+  }
+
+  /** drawing:  its picture face up, the back every card shares face down */
+  draw() {
+    return h("ui-text", {
+      class: "Card",
+      size: "massive",
+      color: () => this.isFaceDirection("up") ? this.color : "blue",
+      onClick: () => sendTrigger("card-click", { card: this })
+    }, () => this.picture)
+  }
+
+  static css = css`
+    /* a card is a card-sized box:  its size is the board's, --card-width x --card-height in styles.css */
+    :host {
+    	display: block;
+    	position: relative;
+    	width: var(--card-width);
+    	height: var(--card-height);
+    	overflow: hidden;
+    	cursor: pointer;
+    }
+    /* its picture, a character of unicode's Playing Cards:  moved so the card it draws fills the box */
+    ui-text::part(text) {
+    	position: absolute;
+    	left: -0.049em;
+    	top: -0.222em;
+    }
+  `
+
+  get symbol() {
+    if (this.isASuit("clubs")) return "♣"
+    if (this.isASuit("diamonds")) return "♦"
+    if (this.isASuit("hearts")) return "♥"
+    if (this.isASuit("spades")) return "♠"
+    return "?"
+
+  }
+
+  /** card "state", used for debugging */
+  get state() {
+    const rank = this.value === 10 ? 10 : `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
+    const suit = this.symbol
+    const direction = this.isFaceDirection("up") ? "↑" : "↓"
+    return rank + suit + direction
   }
 
   ////////////////////////////////////////
@@ -191,15 +192,6 @@ export class Card extends Drawable {
     return true
   }
 
-  // "suits" as one of clubs, diamonds, hearts or spades
-  static Suits = ["clubs", "diamonds", "hearts", "spades"]
-
-  // "ranks" as one of ace, 2 ... 10, jack, queen or king
-  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
-
-  // "colors" as one of red or black
-  static Colors = ["red", "black"]
-
   get pile() {
     return Pile.ownerOf(this)
   }
@@ -209,52 +201,36 @@ export class Card extends Drawable {
 export class Joker extends Card {
   static elementTag = core.defineElement(this, "test-project")
 
-  /** set when it's made:  it has no suit to work its color out from */
-  // - its "color" is a color
-  static { this.declareProp("color", { oneOf: () => Card.Colors }) }
+  // - its "color" is one of red or black
+  static Colors = ["red", "black"]
+  static { this.declareProp("color", { oneOf: Joker.Colors }) }
   get color() { return this.getProp("color") }
   set color(value) { this.setProp("color", value) }
 
-  /** e.g. "red-joker" */
-  get name() {
-    return `${this.color}-joker`
+  /** "card is the red joker" */
+  static isTheColorJoker(card, color) {
+    return card instanceof Joker && card.color === color
   }
 
-  get shortName() {
-    return "🃏"
-  }
-
-  get state() {
-    return this.shortName + this.shortDirection
+  get value() {
+    if (Joker.isTheColorJoker(this, "red")) return 53
+    return 54
   }
 
   get picture() {
-    if (this.color == "red") return "🂿"
-    return "🃏"
-  }
-}
-
-/** suits, ranks and colors:  the card's own kinds of values */
-export class Suit {
-  static color(suit) {
-    if (core.includes(["diamonds", "hearts"], suit)) return "red"
-    return "black"
+    return "🃟"
   }
 
-  static symbol(suit) {
-    if (suit == "clubs") return "♣️"
-    if (suit == "diamonds") return "♦️"
-    if (suit == "hearts") return "♥️"
-    if (suit == "spades") return "♠️"
-    return "?"
+  get name() {
+    return `${this.color} joker`
+  }
+
+  get state() {
+    const color = `${core.getItemAt(this.color, 0) ?? ""}`.toLocaleUpperCase()
+    const direction = this.isFaceDirection("up") ? "↑" : "↓"
+    return `*${color}${direction}`
   }
 }
-export class Rank {
-  static isAFaceCard(rank) {
-    return core.includes(["jack", "queen", "king"], rank)
-  }
-}
-export class Color {}
 
 /** Tests */
 export function testCardSetup(...args) {
@@ -280,21 +256,19 @@ export class Deck extends List {
 
   /** a new deck holds one of each card, ace of clubs first, then its two jokers, red then black */
   create() {
-    Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => {
-      // `the deck`, not `it`:  in a `for each`, `it` is the loop's item, here the suit
-      this.append(new Card({ rank: rank, suit: suit }))
-    }))
+    Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => this.append(new Card({ rank: rank, suit: suit }))))
     if (this.jokers) {
       this.append(new Joker({ color: "red" }))
       this.append(new Joker({ color: "black" }))
     }
+    this.forEach((card) => card.turnFaceDown())
   }
 
   /** echo its cards' short names, top to bottom */
-  display() {
+  get state() {
     const cardNames = new List({ instanceType: "text" })
-    this.forEach((card) => cardNames.append(card.shortName))
-    core.echo(`deck: ${cardNames}`)
+    this.forEach((card) => cardNames.append(card.state))
+    return `deck: ${cardNames}`
   }
 }
 
@@ -335,7 +309,7 @@ export class Pile extends DrawableList {
     return this.lastItem.value
   }
 
-  /** its name, then each card's state, e.g. "stock: Q♠️+ 7♥️—" */
+  /** pile state for debugging */
   get state() {
     let state = `${this.name || "pile"}:`
     this.forEach((card) => (state = `${state} ${card.state}`))
@@ -373,15 +347,16 @@ export class StackedPile extends Pile {
     :host {
     	display: block;
     	position: relative;
-    	min-height: 6.5rem;
+    	min-width: var(--card-width);
+    	min-height: var(--card-height);
     }
     /* where its first card goes:  a card-sized outline */
     .Placeholder {
     	position: absolute;
-    	top: 1.5rem;
-    	left: 0.3rem;
-    	width: 4.25rem;
-    	height: 5.65rem;
+    	top: 0;
+    	left: 0;
+    	width: var(--card-width);
+    	height: var(--card-height);
     	box-sizing: border-box;
     	border: 2px dashed #c8c8c8;
     	border-radius: 0.4rem;
@@ -436,7 +411,7 @@ export class DiscardPile extends StackedPile {
 export class Foundation extends StackedPile {
   static elementTag = core.defineElement(this, "test-project")
 
-  // - its "suit" is a suit
+  // - its "suit" is a card suit
   static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
   get suit() { return this.getProp("suit") }
   set suit(value) { this.setProp("suit", value) }
@@ -453,7 +428,7 @@ export class Foundation extends StackedPile {
 
   draw() {
     return h("div", { class: "Foundation" },
-      h("div", { class: "Placeholder" }, () => Suit.symbol(this.suit)),
+      h("div", { class: "Placeholder" }, () => (new Card({ suit: this.suit })).symbol),
       h("slot")
     )
   }
@@ -464,12 +439,12 @@ export class Tableau extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   canGiveUp(card) {
-    return card.isFaceUp
+    return card.isFaceDirection("up")
   }
 
   canTake(card) {
     if (this.isEmpty) return card.isARank("king")
-    return this.color != card.color && this.value === card.value + 1
+    return this.color !== card.color && this.value === card.value + 1
   }
 
   static css = css`
@@ -477,13 +452,12 @@ export class Tableau extends Pile {
     	display: block;
     	min-height: 30rem;
     }
-    /* each card below the one before, its top showing;  the last one whole */
+    /* each card below the one before, a strip of its top showing (--card-strip);  the last one whole */
     ::slotted(*) {
     	display: block;
     }
     ::slotted(:not(:last-child)) {
-    	height: 2.6rem;
-    	overflow: hidden;
+    	height: var(--card-strip);
     }
   `
 }
@@ -575,7 +549,7 @@ export class Solitaire extends App {
     this.deck.forEach((card) => this.stock.append(card))
   }
 
-  /** print each pile's cards, e.g. "stock: Q♠️— 7♥️—" */
+  /** print each pile's cards, e.g. "stock: Q♠↓ 7♥↓" */
   debug() {
     core.map(core.everyThing(Pile), (pile) => core.console.log(pile.state))
   }
@@ -643,10 +617,10 @@ export class Solitaire extends App {
 
   /** turn up a face-down card from a tableau, at random, onto the discards */
   async cheat() {
-    const remainingPiles = core.filter(core.everyThing(Tableau), (pile) => !pile.isEmpty && pile.firstItem?.isFaceDown)
+    const remainingPiles = core.filter(core.everyThing(Tableau), (pile) => !pile.isEmpty && pile.firstItem?.isFaceDirection("down"))
     if (core.isEmpty(remainingPiles)) return
     const pile = core.randomItemOf(remainingPiles)
-    const hiddenCards = pile?.filter((card) => card.isFaceDown)
+    const hiddenCards = pile?.filter((card) => card.isFaceDirection("down"))
     const card = hiddenCards?.randomItem()
     card?.turnFaceUp()
     await core.pauseFor(30, "ticks")
@@ -668,7 +642,7 @@ export class Solitaire extends App {
     await core.forEachSequential(core.everyThing(Tableau), async (pile) => {
       if (pile.isEmpty) return
       const testCard = pile.lastItem
-      const foundation = core.filter(core.everyThing(Foundation), (pile) => pile.suit == testCard.suit).firstItem
+      const foundation = core.filter(core.everyThing(Foundation), (pile) => pile.suit === testCard.suit).firstItem
       if (core.canTake(foundation, testCard)) {
         anythingChanged = true
         await testCard.play()
@@ -677,8 +651,8 @@ export class Solitaire extends App {
     })
 
     // each tableau's face-up cards, all together, onto another tableau
-    await (core.forEachSequential(core.everyThing(Tableau), async (pile) => {
-      const faceUpCards = pile.filter((card) => card.isFaceUp)
+    await core.forEachSequential(core.everyThing(Tableau), async (pile) => {
+      const faceUpCards = pile.filter((card) => card.isFaceDirection("up"))
       if (faceUpCards.isEmpty) return
       const testCard = faceUpCards.firstItem
       if (testCard.isARank("king") && testCard === pile.firstItem) return
@@ -686,7 +660,7 @@ export class Solitaire extends App {
         anythingChanged = true
         await core.pauseFor(500, "msec")
       }
-    }))
+    })
 
     if (anythingChanged) await this.autoPlay()
   }
@@ -741,7 +715,7 @@ export function testTheMoves(...args) {
   return sendCall("test_the_moves", args)
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬`)
+core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬¬/* The size of a card, which every card and pile reads:  custom properties reach inside their shadow roots.¬   - A card's picture, a character of unicode's Playing Cards, is 68 x 90px at the size the card draws it. */¬:root,¬:host {¬  --card-width: 4.25rem;¬  --card-height: 5.65rem;¬  /* how much of a card shows under the one on it, in a tableau */¬  --card-strip: 1.4rem;¬}¬¬/* Each column at least a card wide, and a little more:  a narrow board scrolls sideways, never squeezes them. */¬ui-row::part(row) {¬  flex-wrap: nowrap;¬}¬ui-column::part(column) {¬  min-width: calc(var(--card-width) + 1rem);¬}¬`)
 // -----------
 
 /** Binds each thing the program keeps, from Python's state. */

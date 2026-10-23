@@ -191,6 +191,10 @@ export class SpellLanguageServer {
         return edits && { changes: { [uri]: edits } }
       })
     )
+    // the editor shows them, in a set of its own:  so the next parse's diagnostics don't clear them
+    connection.onRequest("spell/testDiagnostics", ({ uri, tests }: LSP.TestDiagnosticsParams) =>
+      this.answer(uri, [], (file) => service.testDiagnostics(file.project, tests))
+    )
     documents.onDidSave(({ document }) => this.compileOnSave(document.uri))
 
     documents.listen(connection)

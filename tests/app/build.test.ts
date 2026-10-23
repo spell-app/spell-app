@@ -48,9 +48,10 @@ describe("production build", () => {
       // - Minified without it, it'd be e.g. `Ab=class extends ...` and the rule would register under a garbage name.
       // - Survives in one of three shapes:  `X = class`, `class X`, or, for a decorated class,
       //   esbuild's `__name(cls, "X")` helper, itself minified to e.g. ``Px(uS,`X`)``.
+      //   - The minified class may be named with a `$`, e.g. ``E($m,`X`)``:  which name it gets moves with every build.
       const RULE = "DefinePropertyHas"
       expect(js).toMatch(
-        new RegExp(String.raw`\b${RULE}\s*=\s*class\b|\bclass ${RULE}\b|\(\w+,\s*[\`"']${RULE}[\`"']\)`)
+        new RegExp(String.raw`\b${RULE}\s*=\s*class\b|\bclass ${RULE}\b|\([\w$]+,\s*[\`"']${RULE}[\`"']\)`)
       )
       // no React anywhere:  the app has none (P9), and programs draw with Solid (epic `output-targets` P11)
       const withReact = [...files.map((file) => join(assets, file)), join(outDir, "spell-runtime.js")].filter((file) =>

@@ -42,7 +42,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Python:  [the Python server's tests](../../tests/spaces/server/py/tests/), found by its pytest (`testpaths`)
   - The frozen test projects themselves are beside the built-ins, `spaces/@spell/test/` (see "Projects" below);
     the tests that compile them whole are the repo's `tests/spell/` (the `spell` project), not ours.
-    - Among them `cards`, a frozen card library:  `lists-from-zero` imports it.
+    - Among them `counter`, a frozen counter library:  `counter-app` imports it, for the tests of one project
+      importing another (the runner's, `spell compile`'s, `spell explain --in`, the core contract).
     - The examples Solitaire and Solitario are tested as they are, not as frozen copies:
       their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
 - [test/](test/index.ts), node only:  the test helpers for the frozen test projects and the tested examples,

@@ -1,11 +1,12 @@
-import { Show } from "solid-js"
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, trigger, css, position, on } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, css, on } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Una carta de la baraja -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // ## Una carta de la baraja -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+export type Rango = (typeof Carta.Rangos)[number]
+export type Palo = (typeof Carta.Palos)[number]
 export type Dirección = (typeof Carta.Direcciones)[number]
 
 /**
@@ -15,45 +16,57 @@ export type Dirección = (typeof Carta.Direcciones)[number]
 export class Carta extends Drawable {
   static elementTag = core.defineElement(this, "test-project")
 
-  /** su palo y su rango */
-  // su "palo" es un palo
-  @prop({ oneOf: () => Carta.Palos })
-  accessor palo!: (typeof Carta.Palos)[number]
-
-  // su "rango" es un rango
+  /** rango de la carta */
+  // su "rango" es uno de as, 2 ... 10, jota, dama, rey
+  static Rangos = ["as", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jota", "dama", "rey"] as const
   @prop({ oneOf: () => Carta.Rangos })
-  accessor rango!: (typeof Carta.Rangos)[number]
+  accessor rango!: Rango
 
-  get color() {
-    return Palo.color(this.palo)
-  }
-
-  /** as 1 ... rey 13 */
+  /** as = 1 ... rey = 13 */
   get valor() {
     return spellPosition(positionOf(Carta.Rangos, this.rango))
   }
 
-  /** p. ej. "la carta es una espada" */
-  esUnPalo(palo: (typeof Carta.Palos)[number]) {
-    return this.palo === palo
-  }
-
-  /** p. ej. "la carta es una dama" */
-  esUnRango(rango: (typeof Carta.Rangos)[number]) {
+  /** "la carta es un rey" */
+  esUnRango(rango: Rango) {
     return this.rango === rango
   }
 
-  /** p. ej. "la carta es la dama de espadas" */
-  esElRangoDePalos(rango: (typeof Carta.Rangos)[number], palo: (typeof Carta.Palos)[number]) {
-    return this.rango === rango && this.palo === palo
-  }
-
+  /** "la carta es una figura" */
   get esUnaFigura() {
-    return Rango.esUnaFigura(this.rango)
+    return core.includes(["jota", "dama", "rey"], this.rango)
   }
 
-  esElComodínColor(color: Color) {
-    return this instanceof Comodín && this.color == color
+  /** "la carta es una carta numérica" */
+  get esUnaCartaNumérica() {
+    return !this.esUnaFigura
+  }
+
+  /** palo de la carta */
+  // su "palo" es uno de tréboles, diamantes, corazones o espadas
+  static Palos = ["tréboles", "diamantes", "corazones", "espadas"] as const
+  @prop({ oneOf: () => Carta.Palos })
+  accessor palo!: Palo
+
+  /** "la carta es un diamante" */
+  esUnPalo(palo: Palo) {
+    return this.palo === palo
+  }
+
+  get color() {
+    if (core.includes(["diamantes", "corazones"], this.palo)) return "rojo"
+    return "negro"
+  }
+
+  /** cartas concretas */
+  // "dama de espadas"
+  get nombre() {
+    return `${this.rango} de ${this.palo}`
+  }
+
+  /** "la carta es la dama de espadas" */
+  esElRangoDePalo(rango: Rango, palo: Palo) {
+    return this.rango === rango && this.palo === palo
   }
 
   /** su dirección:  boca arriba o boca abajo */
@@ -62,84 +75,14 @@ export class Carta extends Drawable {
   @prop({ oneOf: () => Carta.Direcciones })
   accessor dirección!: Dirección
 
-  get estáBocaArriba() {
-    return this.dirección == "arriba"
+  /** la carta está boca arriba */
+  estáBocaDirección(dirección: Dirección) {
+    return this.dirección === dirección
   }
 
-  get estáBocaAbajo() {
-    return this.dirección == "abajo"
-  }
-
-  /** sus nombres */
-  // p. ej. "dama-de-espadas"
-  get nombre() {
-    return `${this.rango}-de-${this.palo}`
-  }
-
-  get paloCorto() {
-    return Palo.símbolo(this.palo)
-  }
-
-  get rangoCorto() {
-    if (this.rango === undefined) return "?"
-    if (typeof this.rango === "number") return `${this.rango}`
-    return `${core.getItemAt(this.rango, 0) ?? ""}`.toLocaleUpperCase()
-  }
-
-  get direcciónCorta() {
-    if (this.dirección == "arriba") return "+"
-    return "—"
-  }
-
-  get nombreCorto() {
-    return this.rangoCorto + this.paloCorto
-  }
-
-  get estado() {
-    return this.rangoCorto + this.paloCorto + this.direcciónCorta
-  }
-
-  //////////////////////////////////////////////////////
-  // ## su imagen:  un carácter de los naipes de unicode
-  //////////////////////////////////////////////////////
-  /**
-   * MIRA:  https://www.compart.com/en/unicode/block/U+1F0A0
-   * El bloque es una cuadrícula:  una fila por palo, y en cada fila, una columna por rango.
-   * - Las filas empiezan en 1F0A0 (espadas), 1F0B0 (corazones), 1F0C0 (diamantes) y 1F0D0 (tréboles).
-   * - Las columnas van as 1, 2 ... 10, jota B, luego un caballo que nuestro mazo no tiene, C, luego dama D y rey E.
-   */
-  get columnaDeImagen() {
-    // pasado el caballo
-    if (this.esUnRango("dama") || this.esUnRango("rey")) return this.valor + 1
-    return this.valor
-  }
-
-  get imagen() {
-    if (this.esUnPalo("espadas")) return core.unicode(0x1F0A0 + this.columnaDeImagen)
-    if (this.esUnPalo("corazones")) return core.unicode(0x1F0B0 + this.columnaDeImagen)
-    if (this.esUnPalo("diamantes")) return core.unicode(0x1F0C0 + this.columnaDeImagen)
-    return core.unicode(0x1F0D0 + this.columnaDeImagen)
-  }
-
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  // ## dibujarla:  su imagen boca arriba, boca abajo el dorso que comparten todas las cartas
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  // con el texto de Spell UI en español, `<es-texto>`:  toma su color tal cual, `rojo` o `negro`
-  @drawn draw() {
-    const click = () => trigger("clic-carta", { carta: this })
-    return (
-      <Show
-        when={this.estáBocaAbajo}
-        fallback={<es-texto class="Card" tamano="gigante" prop:color={this.color} onClick={click}>{this.imagen}</es-texto>}
-      >
-        <es-texto class="Card" tamano="gigante" color="azul" onClick={click}>{"🂠"}</es-texto>
-      </Show>
-    )
-  }
-
-  ///////////////
-  // ## voltearla
-  ///////////////
+  //////////////////////
+  // ## voltear la carta
+  //////////////////////
   /** cada una se detiene un momento, así `esperar a: voltear la carta boca arriba` se anima */
   async voltearBocaArriba() {
     this.dirección = "arriba"
@@ -152,9 +95,68 @@ export class Carta extends Drawable {
   }
 
   async voltear() {
-    if (this.estáBocaArriba) this.voltearBocaAbajo()
-    else this.voltearBocaArriba()
-    await core.pauseFor(50, "msec")
+    if (this.estáBocaDirección("arriba")) await this.voltearBocaAbajo()
+    else await this.voltearBocaArriba()
+  }
+
+  /**
+   * Imagen de la carta:  dibujada con letras especiales del juego de caracteres unicode
+   * - MIRA:  https://www.compart.com/en/unicode/block/U+1F0A0
+   */
+  get imagen() {
+    if (this.estáBocaDirección("abajo")) {
+      // "Dorso de carta"
+      return "🂠"
+    }
+
+    let columna = this.valor
+    if (this.esUnPalo("tréboles")) return core.getItemAt(["🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞"], position(columna))
+    if (this.esUnPalo("diamantes")) return core.getItemAt(["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎"], position(columna))
+    if (this.esUnPalo("corazones")) return core.getItemAt(["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂽", "🂾"], position(columna))
+    if (this.esUnPalo("espadas")) return core.getItemAt(["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"], position(columna))
+  }
+
+  //## dibujarla:  su imagen boca arriba, boca abajo el dorso que comparten todas las cartas
+  @drawn draw() {
+    return (
+      <es-texto class="Card" tamano="gigante" color={this.estáBocaDirección("arriba") ? this.color : "azul"} onClick={() => trigger("clic-carta", { carta: this })}>
+        {this.imagen}
+      </es-texto>
+    )
+  }
+
+  static css = css`
+    /* una carta es una caja del tamaño de una carta:  su tamaño es el del tablero, --card-width x --card-height en styles.css */
+    :host {
+    	display: block;
+    	position: relative;
+    	width: var(--card-width);
+    	height: var(--card-height);
+    	overflow: hidden;
+    	cursor: pointer;
+    }
+    /* su imagen, un carácter de los naipes de unicode:  movido para que la carta que dibuja llene la caja */
+    es-texto::part(text) {
+    	position: absolute;
+    	left: -0.049em;
+    	top: -0.222em;
+    }
+  `
+
+  get símbolo() {
+    if (this.palo == "tréboles") return "♣"
+    if (this.palo == "diamantes") return "♦"
+    if (this.palo == "corazones") return "♥"
+    if (this.palo == "espadas") return "♠"
+    return "?"
+  }
+
+  /** el "estado" de la carta, para depurar */
+  get estado() {
+    const rango = this.valor === 10 ? 10 : `${core.getItemAt(this.rango, 0) ?? ""}`.toLocaleUpperCase()
+    const palo = this.símbolo
+    const dirección = this.estáBocaDirección("arriba") ? "↑" : "↓"
+    return rango + palo + dirección
   }
 
   ////////////////////////////////////////
@@ -191,15 +193,6 @@ export class Carta extends Drawable {
     return true
   }
 
-  // "palos" como uno de tréboles, diamantes, corazones o espadas
-  static Palos = ["tréboles", "diamantes", "corazones", "espadas"] as const
-
-  // "rangos" como uno de as, 2 ... 10, jota, dama o rey
-  static Rangos = ["as", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jota", "dama", "rey"] as const
-
-  // "colores" como uno de rojo o negro
-  static Colores = ["rojo", "negro"] as const
-
   get pila() {
     return Pila.ownerOf(this)!
   }
@@ -213,25 +206,28 @@ export class Carta extends Drawable {
  */
 export class CartaElement extends SpellElement<Carta> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-carta", "carta", [
-    { name: "palo", kind: "string", description: "Its palo." },
     { name: "rango", kind: "string", description: "Its rango." },
+    { name: "palo", kind: "string", description: "Its palo." },
     { name: "dirección", kind: "string", description: "Its dirección." }
   ])
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "test-project-carta": Carta.css }
+  } satisfies Partial<E.ElementSetup>
 
-  esUnPalo(palo: (typeof Carta.Palos)[number]) {
-    return this.currentThing?.esUnPalo(palo)
-  }
-
-  esUnRango(rango: (typeof Carta.Rangos)[number]) {
+  esUnRango(rango: Rango) {
     return this.currentThing?.esUnRango(rango)
   }
 
-  esElRangoDePalos(rango: (typeof Carta.Rangos)[number], palo: (typeof Carta.Palos)[number]) {
-    return this.currentThing?.esElRangoDePalos(rango, palo)
+  esUnPalo(palo: Palo) {
+    return this.currentThing?.esUnPalo(palo)
   }
 
-  esElComodínColor(color: Color) {
-    return this.currentThing?.esElComodínColor(color)
+  esElRangoDePalo(rango: Rango, palo: Palo) {
+    return this.currentThing?.esElRangoDePalo(rango, palo)
+  }
+
+  estáBocaDirección(dirección: Dirección) {
+    return this.currentThing?.estáBocaDirección(dirección)
   }
 
   voltearBocaArriba() {
@@ -252,32 +248,41 @@ export class CartaElement extends SpellElement<Carta> {
 }
 core.useElement(Carta, CartaElement)
 
+core.heading("Pruebas")
+export type Color = (typeof Comodín.Colores)[number]
+
 /** Un comodín:  una carta salvaje sin rango ni palo -- hay uno rojo y uno negro */
 export class Comodín extends Carta {
   static elementTag = core.defineElement(this, "test-project")
 
-  /** se pone al hacerlo:  no tiene palo del que sacar su color */
-  // su "color" es un color
-  static { this.declareProp("color", { oneOf: () => Carta.Colores }) }
-  get color(): (typeof Carta.Colores)[number] { return this.getProp("color") as (typeof Carta.Colores)[number] }
-  set color(value: (typeof Carta.Colores)[number]) { this.setProp("color", value) }
+  // su "color" es uno de rojo o negro
+  static Colores = ["rojo", "negro"] as const
+  static { this.declareProp("color", { oneOf: Comodín.Colores }) }
+  get color(): Color { return this.getProp("color") as Color }
+  set color(value: Color) { this.setProp("color", value) }
 
-  /** p. ej. "comodín-rojo" */
-  get nombre() {
-    return `comodín-${this.color}`
+  /** "la carta es el comodín rojo" */
+  static esElComodínColor(carta: Carta, color: Color) {
+    return carta instanceof Comodín && carta.color === color
   }
 
-  get nombreCorto() {
-    return "🃏"
-  }
-
-  get estado() {
-    return this.nombreCorto + this.direcciónCorta
+  get valor() {
+    if (Comodín.esElComodínColor(this, "rojo")) return 53
+    return 54
   }
 
   get imagen() {
-    if (this.color == "rojo") return "🂿"
-    return "🃏"
+    return "🃟"
+  }
+
+  get nombre() {
+    return `comodín ${this.color}`
+  }
+
+  get estado() {
+    const color = `${core.getItemAt(this.color, 0) ?? ""}`.toLocaleUpperCase()
+    const dirección = this.estáBocaDirección("arriba") ? "↑" : "↓"
+    return `*${color}${dirección}`
   }
 }
 
@@ -294,55 +299,33 @@ export class ComodínElement extends SpellElement<Comodín> {
 }
 core.useElement(Comodín, ComodínElement)
 
-/** palos, rangos y colores:  los tipos de valores propios de la carta */
-export class Palo {
-  static color(palo: (typeof Carta.Palos)[number]) {
-    if (core.includes(["diamantes", "corazones"], palo)) return "rojo"
-    return "negro"
-  }
-
-  static símbolo(palo: (typeof Carta.Palos)[number]) {
-    if (palo == "tréboles") return "♣️"
-    if (palo == "diamantes") return "♦️"
-    if (palo == "corazones") return "♥️"
-    if (palo == "espadas") return "♠️"
-    return "?"
-  }
-}
-export class Rango {
-  static esUnaFigura(rango: (typeof Carta.Rangos)[number]) {
-    return core.includes(["jota", "dama", "rey"], rango)
-  }
-}
-export class Color {}
-
-core.heading("Pruebas")
 /** Pruebas */
 export function testLaPreparaciónDeLaCarta() {
   return core.test("test la preparación de la carta", function testLaPreparaciónDeLaCarta() {
-    core.echoTestAction(`obtener una nueva carta cuyo rango es dama, palo es espadas y dirección es arriba`)
+    core.echoTestAction(`obtener una nueva carta cuyo rango es dama, palo es espadas y dirección es abajo`)
     const it = new Carta({
       rango: "dama",
       palo: "espadas",
-      dirección: "arriba"
+      dirección: "abajo"
     })
-    core.echo(it)
+    core.echo(`probando la ${it.nombre}`)
     core.expect(it.rango, `su rango`, "dama", `dama`)
     core.expect(it.palo, `su palo`, "espadas", `espadas`)
-    core.expect(it.nombre, `su nombre`, "dama-de-espadas", `"dama-de-espadas"`)
+    core.expect(it.nombre, `su nombre`, "dama de espadas", `"dama de espadas"`)
     core.expect(it.color, `su color`, "negro", `negro`)
     core.expect(it.valor, `su valor`, 12, `12`)
-    core.expect(it.paloCorto, `su palo corto`, "♠️", `"♠️"`)
-    core.expect(it.rangoCorto, `su rango corto`, "D", `"D"`)
-    core.expect(it.nombreCorto, `su nombre corto`, "D♠️", `"D♠️"`)
-    core.expect(it.estado, `su estado`, "D♠️+", `"D♠️+"`)
+    core.expect(it.estado, `su estado`, "D♠↓", `"D♠↓"`)
+
+
+    core.expect(it.estáBocaDirección("abajo"), `está boca abajo`, true, `sí`)
+    core.expect(it.imagen, `su imagen`, "🂠", `"🂠"`)
+    core.echoTestAction(`voltear eso boca arriba`)
+    it.voltearBocaArriba()
+    core.expect(it.estáBocaDirección("arriba"), `está boca arriba`, true, `sí`)
     core.expect(it.imagen, `su imagen`, "🂭", `"🂭"`)
 
-    core.expect(it.estáBocaArriba, `está boca arriba`, true, `sí`)
-    core.expect(it.estáBocaAbajo, `está boca abajo`, false, `no`)
-
     core.expect(it.esUnaFigura, `es una figura`, true, `sí`)
-    core.expect(!it.esUnaFigura, `no es una figura`, false, `no`)
+    core.expect(!it.esUnaCartaNumérica, `no es una carta numérica`, true, `sí`)
 
     core.expect(it.esUnPalo("espadas"), `es una espada`, true, `sí`)
     core.expect(it.esUnPalo("tréboles"), `es un trébol`, false, `no`)
@@ -351,18 +334,10 @@ export function testLaPreparaciónDeLaCarta() {
     core.expect(it.esUnRango("as"), `es un as`, false, `no`)
     core.expect(it.esUnRango(2), `es un 2`, false, `no`)
 
-    core.expect(it.esElRangoDePalos("dama", "espadas"), `es la dama de espadas`, true, `sí`)
-    core.expect(it.esElRangoDePalos("dama", "tréboles"), `es la dama de tréboles`, false, `no`)
-    core.expect(!it.esElRangoDePalos(2, "diamantes"), `no es el 2 de diamantes`, true, `sí`)
-
-    core.echoTestAction(`voltear eso boca abajo`)
-    it.voltearBocaAbajo()
-    core.expect(it.dirección, `su dirección`, "abajo", `abajo`)
-    core.expect(it.estáBocaAbajo, `está boca abajo`, true, `sí`)
-
-    core.echoTestAction(`voltear eso`)
-    it.voltear()
-    core.expect(it.estáBocaArriba, `está boca arriba`, true, `sí`)
+    core.expect(it.esElRangoDePalo("dama", "espadas"), `es la dama de espadas`, true, `sí`)
+    core.expect(it.esElRangoDePalo("dama", "tréboles"), `es la dama de tréboles`, false, `no`)
+    core.expect(it.esElRangoDePalo(2, "tréboles"), `es el 2 de tréboles`, false, `no`)
+    // es el comodín rojo debería ser no
 
     /** una carta de número:  su rango tal cual, y su imagen en la fila de su palo */
     const siete = new Carta({
@@ -370,7 +345,8 @@ export function testLaPreparaciónDeLaCarta() {
       palo: "corazones",
       dirección: "arriba"
     })
-    core.expect(siete.nombreCorto, `el nombre corto del siete`, "7♥️", `"7♥️"`)
+    core.echo(`probando el ${siete.nombre}`)
+    core.expect(siete.esUnaCartaNumérica, `siete es una carta numérica`, true, `sí`)
     core.expect(siete.color, `el color del siete`, "rojo", `rojo`)
     core.expect(siete.imagen, `la imagen del siete`, "🂷", `"🂷"`)
     core.expect((new Carta({ rango: "as", palo: "tréboles" })).imagen, `la imagen de una nueva carta cuyo rango es as y palo es tréboles`, "🃑", `"🃑"`)
@@ -378,35 +354,36 @@ export function testLaPreparaciónDeLaCarta() {
   })
 }
 
+core.heading("Un comodín:  una carta salvaje sin rango ni palo -- hay uno rojo y uno negro")
 export function testLosComodines() {
   return core.test("test los comodines", function testLosComodines() {
     core.echoTestAction(`obtener un nuevo comodín cuyo color es rojo y dirección es arriba`)
     const it = new Comodín({ color: "rojo", dirección: "arriba" })
     core.echo(it)
-    core.expect(it instanceof Comodín, `es un comodín`, true, `sí`)
     core.expect(it instanceof Carta, `es una carta`, true, `sí`)
+    core.expect(it instanceof Comodín, `es un comodín`, true, `sí`)
     core.expect(it.color, `su color`, "rojo", `rojo`)
-    core.expect(it.nombre, `su nombre`, "comodín-rojo", `"comodín-rojo"`)
-    core.expect(it.nombreCorto, `su nombre corto`, "🃏", `"🃏"`)
-    core.expect(it.imagen, `su imagen`, "🂿", `"🂿"`)
-    core.expect(it.esElComodínColor("rojo"), `es el comodín rojo`, true, `sí`)
-    core.expect(it.esElComodínColor("negro"), `es el comodín negro`, false, `no`)
-    core.expect(!it.esElComodínColor("negro"), `no es el comodín negro`, true, `sí`)
+    core.expect(it.nombre, `su nombre`, "comodín rojo", `"comodín rojo"`)
+    core.expect(it.estado, `su estado`, "*R↑", `"*R↑"`)
+    core.expect(it.imagen, `su imagen`, "🃟", `"🃟"`)
+    core.expect(Comodín.esElComodínColor(it, "rojo"), `es el comodín rojo`, true, `sí`)
+    core.expect(Comodín.esElComodínColor(it, "negro"), `es el comodín negro`, false, `no`)
+    core.expect(!Comodín.esElComodínColor(it, "negro"), `no es el comodín negro`, true, `sí`)
 
-    core.expect(it.estáBocaArriba, `está boca arriba`, true, `sí`)
+    core.expect(it.estáBocaDirección("arriba"), `está boca arriba`, true, `sí`)
     core.echoTestAction(`voltear eso`)
     it.voltear()
-    core.expect(it.estáBocaAbajo, `está boca abajo`, true, `sí`)
+    core.expect(it.estáBocaDirección("abajo"), `está boca abajo`, true, `sí`)
 
     core.echoTestAction(`poner comodín negro a un nuevo comodín cuyo color es negro`)
     const comodínNegro = new Comodín({ color: "negro" })
-    core.expect(comodínNegro.imagen, `la imagen de comodín negro`, "🃏", `"🃏"`)
+    core.expect(comodínNegro.imagen, `la imagen de comodín negro`, "🃟", `"🃟"`)
 
     core.echoTestAction(`poner la carta a una nueva carta cuyo rango es dama y palo es espadas`)
     const carta = new Carta({ rango: "dama", palo: "espadas" })
     core.expect(carta instanceof Comodín, `la carta es un comodín`, false, `no`)
     core.expect(!(carta instanceof Comodín), `la carta no es un comodín`, true, `sí`)
-    core.expect(carta.esElComodínColor("rojo"), `la carta es el comodín rojo`, false, `no`)
+    core.expect(Comodín.esElComodínColor(carta, "rojo"), `la carta es el comodín rojo`, false, `no`)
   })
 }
 // -----------
@@ -426,21 +403,19 @@ export class Mazo extends List<Carta> {
 
   /** un mazo nuevo tiene una carta de cada, el as de tréboles primero, luego sus dos comodines, el rojo y luego el negro */
   create() {
-    Carta.Rangos.forEach((rango) => Carta.Palos.forEach((palo) => {
-      // `el mazo`, no `eso`:  en un `para cada`, `eso` es el elemento del bucle, aquí el palo
-      this.append(new Carta({ rango: rango, palo: palo }))
-    }))
+    Carta.Rangos.forEach((rango: Rango) => Carta.Palos.forEach((palo: Palo) => this.append(new Carta({ rango: rango, palo: palo }))))
     if (this.comodines) {
       this.append(new Comodín({ color: "rojo" }))
       this.append(new Comodín({ color: "negro" }))
     }
+    this.forEach((carta) => carta.voltearBocaAbajo())
   }
 
   /** muestra los nombres cortos de sus cartas, de arriba abajo */
-  mostrar() {
-    const nombresCortos = new List<string>({ instanceType: "text" })
-    this.forEach((carta) => nombresCortos.append(carta.nombreCorto))
-    core.echo(`mazo: ${nombresCortos}`)
+  @derived get estado() {
+    const nombres = new List<string>({ instanceType: "text" })
+    this.forEach((carta) => nombres.append(carta.estado))
+    return `mazo: ${nombres}`
   }
 }
 
@@ -454,20 +429,24 @@ export function testLaCreaciónDelMazo() {
     core.echoTestAction(`poner las damas a las cartas en el mazo donde el rango de la carta es dama`)
     const damas = mazo.filter((carta) => carta.rango == "dama")
     core.expect(damas.length, `el número de cartas en las damas`, 4, `4`)
-    core.expect(mazo.firstItem?.nombre!, `el nombre de la carta de arriba del mazo`, "as-de-tréboles", `"as-de-tréboles"`)
-    core.expect(mazo.lastItem?.nombre!, `el nombre de la carta de abajo del mazo`, "rey-de-espadas", `"rey-de-espadas"`)
-    core.expect(mazo.firstItem?.nombreCorto!, `el nombre corto de la carta de arriba del mazo`, "A♣️", `"A♣️"`)
-    core.expect(mazo.firstItem?.esElRangoDePalos("as", "tréboles")!, `la primera carta del mazo es el as de tréboles`, true, `sí`)
+    // el as de tréboles es la carta de arriba
+    core.expect(mazo.firstItem?.nombre!, `el nombre de la carta de arriba del mazo`, "as de tréboles", `"as de tréboles"`)
+    core.expect(mazo.firstItem?.estado!, `el estado de la carta de arriba del mazo`, "A♣↓", `"A♣↓"`)
+    core.expect(mazo.firstItem?.dirección!, `la dirección de la carta de arriba del mazo`, "abajo", `abajo`)
+    core.expect(mazo.firstItem?.esElRangoDePalo("as", "tréboles")!, `la primera carta del mazo es el as de tréboles`, true, `sí`)
+
+    core.expect(mazo.lastItem?.nombre!, `el nombre de la carta de abajo del mazo`, "rey de espadas", `"rey de espadas"`)
+    // ¡sin comodines!
+    core.expect((mazo.randomItem() instanceof Comodín)!, `una carta al azar del mazo es un comodín`, false, `no`)
+    core.expect(Comodín.esElComodínColor(mazo.randomItem()!, "rojo"), `una carta al azar del mazo es el comodín rojo`, false, `no`)
 
     core.echo("el mazo antes de barajar:")
-    core.echoTestAction(`mostrar el mazo`)
-    mazo.mostrar()
+    core.echo(mazo.estado)
     core.echoTestAction(`barajar el mazo`)
     mazo.randomize()
     core.expect(mazo.length, `el número de cartas en el mazo`, 52, `52`)
     core.echo("el mazo después de barajar:")
-    core.echoTestAction(`mostrar el mazo`)
-    mazo.mostrar()
+    core.echo(mazo.estado)
   })
 }
 
@@ -479,10 +458,11 @@ export function testElMazoConComodines() {
     core.echoTestAction(`poner las cartas salvajes a las cartas en el mazo donde es un comodín`)
     const cartasSalvajes = mazo.filter((carta) => carta instanceof Comodín)
     core.expect(cartasSalvajes.length, `el número de cartas en las cartas salvajes`, 2, `2`)
-    core.expect(mazo.firstItem?.esElRangoDePalos("as", "tréboles")!, `la primera carta del mazo es el as de tréboles`, true, `sí`)
-    // el comodín rojo, luego el negro, al final
-    core.expect(mazo.lastItem?.esElComodínColor("negro")!, `la última carta del mazo es el comodín negro`, true, `sí`)
-    core.expect(mazo.lastItem?.nombre!, `el nombre de la carta de abajo del mazo`, "comodín-negro", `"comodín-negro"`)
+    // la primera carta sigue siendo el as de tréboles
+    core.expect(mazo.firstItem?.esElRangoDePalo("as", "tréboles")!, `la primera carta del mazo es el as de tréboles`, true, `sí`)
+    // la última carta debería ser el comodín negro
+    core.expect(Comodín.esElComodínColor(mazo.lastItem!, "negro"), `la última carta del mazo es el comodín negro`, true, `sí`)
+    core.expect(mazo.lastItem?.nombre!, `el nombre de la carta de abajo del mazo`, "comodín negro", `"comodín negro"`)
   })
 }
 // -----------
@@ -514,7 +494,7 @@ export class Pila extends DrawableList<Carta> {
     return this.lastItem!.valor
   }
 
-  /** su nombre, luego el estado de cada carta, p. ej. "reserva: D♠️+ 7♥️—" */
+  /** estado de la pila, para depurar */
   @derived get estado() {
     let estado = `${this.name || "pila"}:`
     this.forEach((carta) => (estado = `${estado} ${carta.estado}`))
@@ -549,8 +529,6 @@ export function testLasPilas() {
   return core.test("test las pilas", function testLasPilas() {
     core.echoTestAction(`poner la reserva a una nueva pila con nombre = "reserva"`)
     const reserva = new Pila({ name: "reserva" })
-    core.echoTestAction(`poner los descartes a una nueva pila con nombre = "descartes"`)
-    const descartes = new Pila({ name: "descartes" })
     core.expect(reserva.color, `el color de la reserva`, "ninguno", `"ninguno"`)
     core.expect(reserva.valor, `el valor de la reserva`, 0, `0`)
 
@@ -566,17 +544,23 @@ export function testLasPilas() {
       palo: "corazones",
       dirección: "abajo"
     }))
+    core.echo(reserva.estado)
     core.expect(reserva.color, `el color de la reserva`, "rojo", `rojo`)
     core.expect(reserva.valor, `el valor de la reserva`, 7, `7`)
-    core.expect(reserva.estado, `el estado de la reserva`, "reserva: D♠️+ 7♥️—", `"reserva: D♠️+ 7♥️—"`)
+    core.expect(reserva.estado, `el estado de la reserva`, "reserva: D♠↑ 7♥↓", `"reserva: D♠↑ 7♥↓"`)
 
-    /** una carta está en una sola pila a la vez */
-    const carta = reserva.lastItem
-    core.echoTestAction(`agregar la carta a los descartes`)
-    descartes.append(carta!)
+    /** una carta solo puede estar en una pila a la vez */
+    const descartes = new Pila({ name: "descartes" })
+
+    core.echoTestAction(`obtener la última carta de la reserva`)
+    const it = reserva.lastItem
+    core.echoTestAction(`agregar eso a los descartes`)
+    descartes.append(it!)
+    core.expect(it?.pila === descartes, `su pila es los descartes`, true, `sí`)
+
     core.expect(reserva.length, `el número de cartas en la reserva`, 1, `1`)
-    core.expect(carta?.pila === descartes, `la pila de la carta es los descartes`, true, `sí`)
-    core.expect(descartes.estado, `el estado de los descartes`, "descartes: 7♥️—", `"descartes: 7♥️—"`)
+    core.expect(descartes.length, `el número de cartas en los descartes`, 1, `1`)
+    core.expect(descartes.estado, `el estado de los descartes`, "descartes: 7♥↓", `"descartes: 7♥↓"`)
   })
 }
 // -----------
@@ -603,15 +587,16 @@ export class PilaApilada extends Pila {
     :host {
     	display: block;
     	position: relative;
-    	min-height: 6.5rem;
+    	min-width: var(--card-width);
+    	min-height: var(--card-height);
     }
     /* donde va su primera carta:  un contorno del tamaño de una carta */
     .Placeholder {
     	position: absolute;
-    	top: 1.5rem;
-    	left: 0.3rem;
-    	width: 4.25rem;
-    	height: 5.65rem;
+    	top: 0;
+    	left: 0;
+    	width: var(--card-width);
+    	height: var(--card-height);
     	box-sizing: border-box;
     	border: 2px dashed #c8c8c8;
     	border-radius: 0.4rem;
@@ -720,9 +705,9 @@ core.useElement(PilaDeDescartes, PilaDeDescartesElement)
 export class Fundación extends PilaApilada {
   static elementTag = core.defineElement(this, "test-project")
 
-  // su "palo" es un palo
+  // su "palo" es un palo de carta
   @prop({ oneOf: () => Carta.Palos })
-  accessor palo!: (typeof Carta.Palos)[number]
+  accessor palo!: Palo
 
   canGiveUp(carta: Carta) {
     return false
@@ -737,7 +722,7 @@ export class Fundación extends PilaApilada {
   @drawn draw() {
     return (
       <div class="Foundation">
-        <div class="Placeholder">{Palo.símbolo(this.palo)}</div>
+        <div class="Placeholder">{(new Carta({ palo: this.palo })).símbolo}</div>
         <slot />
       </div>
     )
@@ -770,12 +755,12 @@ export class Columna extends Pila {
   static elementTag = core.defineElement(this, "test-project")
 
   canGiveUp(carta: Carta) {
-    return carta.estáBocaArriba
+    return carta.estáBocaDirección("arriba")
   }
 
   canTake(carta: Carta) {
     if (this.isEmpty) return carta.esUnRango("rey")
-    return this.color != carta.color && this.valor === carta.valor + 1
+    return this.color !== carta.color && this.valor === carta.valor + 1
   }
 
   static css = css`
@@ -783,13 +768,12 @@ export class Columna extends Pila {
     	display: block;
     	min-height: 30rem;
     }
-    /* cada carta debajo de la anterior, con su parte de arriba a la vista;  la última entera */
+    /* cada carta debajo de la anterior, con una franja de su parte de arriba a la vista (--card-strip);  la última entera */
     ::slotted(*) {
     	display: block;
     }
     ::slotted(:not(:last-child)) {
-    	height: 2.6rem;
-    	overflow: hidden;
+    	height: var(--card-strip);
     }
   `
 }
@@ -889,7 +873,7 @@ export class Solitario extends App {
     this.mazo.forEach((carta) => this.reserva.append(carta))
   }
 
-  /** imprime las cartas de cada pila, p. ej. "reserva: D♠️— 7♥️—" */
+  /** imprime las cartas de cada pila, p. ej. "reserva: D♠↓ 7♥↓" */
   depurar() {
     core.map(core.everyThing(Pila), (pila: Pila) => core.console.log(pila.estado))
   }
@@ -957,10 +941,10 @@ export class Solitario extends App {
 
   /** voltea una carta boca abajo de una columna, al azar, sobre los descartes */
   async hacerTrampa() {
-    const pilasRestantes = core.filter(core.everyThing(Columna), (pila: Columna) => !pila.isEmpty && pila.firstItem?.estáBocaAbajo)
+    const pilasRestantes = core.filter(core.everyThing(Columna), (pila: Columna) => !pila.isEmpty && pila.firstItem?.estáBocaDirección("abajo"))
     if (core.isEmpty(pilasRestantes)) return
     const pila = core.randomItemOf<Columna>(pilasRestantes)
-    const cartasOcultas = pila?.filter((carta) => carta.estáBocaAbajo)
+    const cartasOcultas = pila?.filter((carta) => carta.estáBocaDirección("abajo"))
     const carta = cartasOcultas?.randomItem()
     carta?.voltearBocaArriba()
     await core.pauseFor(30, "ticks")
@@ -982,7 +966,7 @@ export class Solitario extends App {
     await core.forEachSequential(core.everyThing(Columna), async (pila: Columna) => {
       if (pila.isEmpty) return
       const candidata = pila.lastItem!
-      const fundación = core.filter(core.everyThing(Fundación), (pila: Fundación) => pila.palo == candidata.palo).firstItem
+      const fundación = core.filter(core.everyThing(Fundación), (pila: Fundación) => pila.palo === candidata.palo).firstItem
       if (core.canTake(fundación!, candidata)) {
         huboCambios = true
         await candidata.jugar()
@@ -991,8 +975,8 @@ export class Solitario extends App {
     })
 
     // las cartas boca arriba de cada columna, todas juntas, a otra columna
-    await (core.forEachSequential(core.everyThing(Columna), async (pila: Columna) => {
-      const cartasVisibles = pila.filter((carta) => carta.estáBocaArriba)
+    await core.forEachSequential(core.everyThing(Columna), async (pila: Columna) => {
+      const cartasVisibles = pila.filter((carta) => carta.estáBocaDirección("arriba"))
       if (cartasVisibles.isEmpty) return
       const candidata = cartasVisibles.firstItem!
       if (candidata.esUnRango("rey") && candidata === pila.firstItem) return
@@ -1000,7 +984,7 @@ export class Solitario extends App {
         huboCambios = true
         await core.pauseFor(500, "msec")
       }
-    }))
+    })
 
     if (huboCambios) await this.jugarSolo()
   }
@@ -1093,7 +1077,7 @@ export function testLosMovimientos() {
     core.expect(core.canTake(columna, dama), `la columna puede tomar la dama`, true, `sí`)
     core.echoTestAction(`agregar la dama a la columna`)
     columna.append(dama)
-    core.expect(columna.estado, `el estado de la columna`, "C1: R♠️+ D♥️+", `"C1: R♠️+ D♥️+"`)
+    core.expect(columna.estado, `el estado de la columna`, "C1: R♠↑ D♥↑", `"C1: R♠↑ D♥↑"`)
     core.expect(core.canGiveUp(columna, dama), `la columna puede soltar la dama`, true, `sí`)
     core.echoTestAction(`voltear la dama boca abajo`)
     dama.voltearBocaAbajo()
@@ -1130,7 +1114,7 @@ export function testLosMovimientos() {
   })
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬`)
+core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitario.es.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬¬/* The size of a card, which every card and pile reads:  custom properties reach inside their shadow roots.¬   - A card's picture, a character of unicode's Playing Cards, is 68 x 90px at the size the card draws it. */¬:root,¬:host {¬  --card-width: 4.25rem;¬  --card-height: 5.65rem;¬  /* how much of a card shows under the one on it, in a tableau */¬  --card-strip: 1.4rem;¬}¬¬/* Each column at least a card wide, and a little more:  a narrow board scrolls sideways, never squeezes them. */¬es-fila::part(fila) {¬  flex-wrap: nowrap;¬}¬es-columna::part(columna) {¬  min-width: calc(var(--card-width) + 1rem);¬}¬`)
 // -----------
 if (!core.isCarryingOver) testLaPreparaciónDeLaCarta()
 if (!core.isCarryingOver) testLosComodines()

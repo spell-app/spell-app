@@ -17,8 +17,7 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  *     NOT an epic phase.
  *   - Titles match the page's experiment, `guides/precedence/experiments/grammar-today.mts`.
  * - Each probe parses scratch file `/Probe.spell` in memory with `parseSpellProject()`, exactly as a project
- *   compile does, after the frozen card library's `Card` / `Deck` / `Pile` (`spaces/@spell/test/cards/`).
- *   - Those predate jokers, so no joker phrasing here.
+ *   compile does, after the Solitaire example's `Card` / `Deck` / `Pile` (`spaces/@spell/examples/Solitaire/`).
  * - Snapshot:  the probe's compiled lines (after `SETUP`'s),
  *   then one `ERROR <line>:<ch> <message>` per parse error.
  *   - `SPELL:` declaration comments are left out:  they repeat the declaring statement.
@@ -32,7 +31,7 @@ describe("grammar probes", () => {
 
   test("P1a  trailing operand takes the operator", () => {
     expect(probe("print the first card of the deck is face up")).toMatchInlineSnapshot(
-      `"core.console.log(deck.firstItem?.isFaceUp)"`
+      `"core.console.log(deck.firstItem?.isFaceDirection("up"))"`
     )
   })
 
@@ -173,9 +172,9 @@ describe("grammar probes", () => {
   })
 
   test("P6b  multi-word property read", () => {
-    expect(probe("print the short-rank of the card", "print the short rank of the card")).toMatchInlineSnapshot(`
-      "core.console.log(card.shortRank)
-      core.console.log(card.shortRank)"
+    expect(probe("print the face-value of the chip", "print the face value of the chip")).toMatchInlineSnapshot(`
+      "core.console.log(chip.faceValue)
+      core.console.log(chip.faceValue)"
     `)
   })
 
@@ -192,9 +191,9 @@ describe("grammar probes", () => {
   // ## P8:  Solitaire's parens -- which are load-bearing?
   ////////////////
 
-  test("P8a  Deck.spell:40-41 as one line", () => {
+  test("P8a  Deck's `the first card of the deck is the ace of clubs`, as one line", () => {
     expect(probe("expect the first card of the deck is the ace of clubs to be yes")).toMatchInlineSnapshot(
-      `"core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
+      `"core.expect(deck.firstItem?.isTheRankOfSuit("ace", "clubs"), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
     )
   })
 
@@ -727,9 +726,11 @@ describe("datatypes", () => {
         "x if x > 1 otherwise 2",
         "the name of the card",
         "the value of the card",
-        "the short rank of the card",
+        "the face value of the chip",
         "the suits of the card",
         "card suits",
+        "every card suit",
+        "a random card suit",
         "the pile of the card"
       )
     ).toMatchInlineSnapshot(`
@@ -755,9 +756,11 @@ describe("datatypes", () => {
       x if x > 1 otherwise 2  =>  number
       the name of the card  =>  text
       the value of the card  =>  number
-      the short rank of the card  =>  text
-      the suits of the card  =>  list of suits
-      card suits  =>  list
+      the face value of the chip  =>  number
+      the suits of the card  =>  list of card-suits
+      card suits  =>  list of card-suits
+      every card suit  =>  list of card-suits
+      a random card suit  =>  CardSuit
       the pile of the card  =>  Pile"
     `)
   })
@@ -863,18 +866,21 @@ describe("datatypes", () => {
 ////////////////
 
 /**
- * The frozen card library's files, `Card`, `Deck`, `Pile` (`@spell/test/cards`), parsed as the probe project's own.
- * - NOT frozen:  a change to the library may change a probe's snapshot (epic `spanish` P11).
+ * The Solitaire example's card files, `Card`, `Deck`, `Pile`, parsed as the probe project's own:
+ * not its game, `Solitaire.spell`, which starts an app.
+ * - NOT frozen:  a change to the example's cards may change a probe's snapshot (epic `spanish` P11, J105).
  */
-const CARDS = loadFixtureProject("cards")
+const CARDS = loadFixtureProject("Solitaire").filter(({ path }) => path !== "/Solitaire.spell")
 
 /**
- * Types the probes use beside the cards library's, in a file of their own before the probe's.
+ * Types the probes use beside Solitaire's cards, in a file of their own before the probe's.
  * - Why a file of their own:  a method on a type declared in the SAME file compiles INTO its `class` body,
  *   above `SETUP_END`, where `probe()` wouldn't see it, e.g. P4a's `to put (a chip) on (a pot)`.
  * - From another file it compiles to `Chip.prototype...`, as a method on `Card` does.
+ * - A chip's `face value`:  a multi-word property declared in another file, for P6b,
+ *   as Solitaire's cards have none.
  */
-const SETUP_TYPES = ["a chip is a thing", "a pot is a list of chips"]
+const SETUP_TYPES = ["a chip is a thing where:", '\t- its "face value" is a number', "a pot is a list of chips"]
 
 /** What `SETUP`'s first line compiles to -- `probeWithTop()` returns what's above it. */
 const SETUP_START_COMPILED = "export const card = new Card()"
@@ -964,7 +970,7 @@ function statementsOf(match: P.Match | undefined, seen = new Set<P.Match>()): P.
   return found
 }
 
-/** `lines` parsed after the cards library, `SETUP_TYPES` and `SETUP`, as `probe()` does. */
+/** `lines` parsed after Solitaire's cards, `SETUP_TYPES` and `SETUP`, as `probe()` does. */
 function parseProbe(lines: string[]) {
   return parseSpellProject([
     ...CARDS,

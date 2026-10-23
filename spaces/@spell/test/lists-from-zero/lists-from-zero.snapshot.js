@@ -1,40 +1,61 @@
 import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"
-import { Card, Suit, Rank, Deck, Pile } from "@spell/project/@spell/test/cards"
 
 core.heading("Counting from 0:  this project's lists start at 0 (its project file)")
 //////////////////////////////////////////////////////////////////////////
 // ## Counting from 0:  this project's lists start at 0 (its project file)
 //////////////////////////////////////////////////////////////////////////
-/** Numbers count from 0;  ordinal words don't change.  Its deck is the frozen card library's (`@spell/test/cards`):  ace of clubs first. */
+/** Numbers count from 0;  ordinal words don't change.  Its rack is its own:  five tiles, A first. */
+export class Tile extends Thing {
+  // - its "letter" is text
+  static { this.declareProp("letter", { type: "text" }) }
+  get letter() { return this.getProp("letter") }
+  set letter(value) { this.setProp("letter", value) }
+}
+
+export class Rack extends List {
+  static instanceType = Tile
+
+  /** a new rack holds five tiles, A to E */
+  create() {
+    this.append(new Tile({ letter: "A" }))
+    this.append(new Tile({ letter: "B" }))
+    this.append(new Tile({ letter: "C" }))
+    this.append(new Tile({ letter: "D" }))
+    this.append(new Tile({ letter: "E" }))
+  }
+}
+
+core.heading("Tests")
+/** Tests */
 export function testCountingFromZero() {
   return core.test("test counting from zero", function testCountingFromZero() {
-    core.echoTestAction(`the deck is a new deck`)
-    const deck = new Deck()
-    core.expect(deck.firstItem?.name, `the name of card 0 of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
-    core.expect(deck.getItem(1)?.name, `the name of card 1 of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
-    core.expect(deck.lastItem?.name, `the name of card -1 of the deck`, "king-of-spades", `"king-of-spades"`)
-    core.expect(deck.firstItem?.name, `the name of the first card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
-    core.expect(deck.getItem(1)?.name, `the name of the second card of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
-    core.expect(deck.lastItem?.name, `the name of the last card of the deck`, "king-of-spades", `"king-of-spades"`)
-    core.echoTestAction(`set the ace to the first card of the deck`)
-    const ace = deck.firstItem
-    core.expect(deck.positionOf(ace), `the position of the ace in the deck`, 0, `0`)
-    core.echoTestAction(`set the aces to cards 0 to 3 of the deck`)
-    const aces = deck.slice(0, 4)
-    core.expect(aces.length, `the number of cards in the aces`, 4, `4`)
-    core.expect(aces.lastItem?.name, `the name of the last card of the aces`, "ace-of-spades", `"ace-of-spades"`)
-    core.echoTestAction(`set the kings to last two cards of the deck`)
-    const kings = core.rangeStartingAt(deck, -2, 2)
-    core.expect(kings.length, `the number of cards in the kings`, 2, `2`)
-    core.expect(kings.firstItem?.name, `the name of the first card of the kings`, "king-of-hearts", `"king-of-hearts"`)
+    core.echoTestAction(`the rack is a new rack`)
+    const rack = new Rack()
+    core.expect(rack.firstItem?.letter, `the letter of tile 0 of the rack`, "A", `"A"`)
+    core.expect(rack.getItem(1)?.letter, `the letter of tile 1 of the rack`, "B", `"B"`)
+    core.expect(rack.lastItem?.letter, `the letter of tile -1 of the rack`, "E", `"E"`)
+    core.expect(rack.firstItem?.letter, `the letter of the first tile of the rack`, "A", `"A"`)
+    core.expect(rack.getItem(1)?.letter, `the letter of the second tile of the rack`, "B", `"B"`)
+    core.expect(rack.lastItem?.letter, `the letter of the last tile of the rack`, "E", `"E"`)
+    core.echoTestAction(`set the start to the first tile of the rack`)
+    const start = rack.firstItem
+    core.expect(rack.positionOf(start), `the position of the start in the rack`, 0, `0`)
+    core.echoTestAction(`set the front to tiles 0 to 2 of the rack`)
+    const front = rack.slice(0, 3)
+    core.expect(front.length, `the number of tiles in the front`, 3, `3`)
+    core.expect(front.lastItem?.letter, `the letter of the last tile of the front`, "C", `"C"`)
+    core.echoTestAction(`set the back to last two tiles of the rack`)
+    const back = core.rangeStartingAt(rack, -2, 2)
+    core.expect(back.length, `the number of tiles in the back`, 2, `2`)
+    core.expect(back.firstItem?.letter, `the letter of the first tile of the back`, "D", `"D"`)
     core.echoTestAction(`set the positions to a new list of numbers`)
     const positions = new List({ instanceType: "number" })
-    core.echoTestAction(`for each card, position in the aces`)
-    aces.forEach((card, position_) => positions.append(position_))
+    core.echoTestAction(`for each tile, position in the front`)
+    front.forEach((tile, position_) => positions.append(position_))
     core.echo(`positions: ${positions}`)
-    core.echoTestAction(`remove card 0 of the deck`)
-    core.removeItemAt(deck, 0)
-    core.expect(deck.firstItem?.name, `the name of the first card of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
+    core.echoTestAction(`remove tile 0 of the rack`)
+    core.removeItemAt(rack, 0)
+    core.expect(rack.firstItem?.letter, `the letter of the first tile of the rack`, "B", `"B"`)
   })
 }
 // -----------

@@ -34,6 +34,7 @@ const APP_TEXTS_ES: AppTextPack = {
   compile: "Compilar",
   publish: "Publicar",
   restart: "Reiniciar",
+  runTests: "Ejecutar las pruebas",
   newProject: "Proyecto nuevo",
   newExample: "Ejemplo nuevo",
   newGuide: "Guía nueva",
@@ -72,6 +73,8 @@ const APP_TEXTS_ES: AppTextPack = {
   consoleExecuting: "Ejecutando {theType}",
   consoleFailed: "{Type}:  falló con un error:",
   consoleExecuted: "{Type}:  se ejecutó sin errores.",
+  testResults: "Pruebas:  {passed} pasaron, {failed} fallaron",
+  noTests: "No hay pruebas:  escribe una como `para probar <algo>:`",
 
   ////////////////
   // ## The project chooser

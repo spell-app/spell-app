@@ -13,10 +13,10 @@ import { SRV } from "spell-kit/server"
  * Solitaire compiled to `py`, served on Quart as `spell run --target py` serves it, and played in headless Chromium.
  * - Its cards and its piles are drawable:  each its own element, `<solitaire-card>` inside
  *   `<solitaire-tableau>` ... (epic `python-target` P28;  epic `spanish` P11, P21).
- * - A project it imports goes beside it, as `cards.py` and its drawing half:
+ * - A project it imports goes beside it, as `counter.py` and its drawing half:
  *   `spell run` writes them in its temp folder, `spell compile` beside the compiled program (J97),
  *   so the app compiling writes runs as it is.
- *   - Solitaire imports nothing since epic `spanish` P21:  `lists-from-zero`, which imports the frozen card library,
+ *   - Solitaire imports nothing since epic `spanish` P21:  `counter-app`, which imports the frozen counter library,
  *     checks it.
  * - Temp copies:  tests never write into `spaces/@spell/`.
  * - Seeded (`$SPELL_SEED`), so its deal is the javascript run's, the core contract's snapshot.
@@ -27,8 +27,8 @@ const REPO = resolve(import.meta.dirname, "../..")
 const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "bin/spell.mjs")
 /** The Solitaire example, which this plays. */
 const SOLITAIRE = resolve(REPO, "spaces/@spell/examples/Solitaire")
-/** A frozen test project that imports another:  the card library, `@spell/test/cards`. */
-const IMPORTER = resolve(REPO, "spaces/@spell/test/lists-from-zero")
+/** A frozen test project that imports another:  the counter library, `@spell/test/counter`. */
+const IMPORTER = resolve(REPO, "spaces/@spell/test/counter-app")
 /** `spell_quart`'s uv project, which serves a Python app:  Python's web server, in spaces. */
 const SPELL_QUART_DIR = resolve(REPO, "src/spaces/server/py")
 /** A card's element, Solitaire's own. */
@@ -47,7 +47,7 @@ beforeAll(async () => {
   expect(built.status, built.stderr).toBe(0)
   folder = mkdtempSync(join(tmpdir(), "spell-quart-"))
   cpSync(SOLITAIRE, join(folder, "Solitaire"), { recursive: true })
-  cpSync(IMPORTER, join(folder, "lists-from-zero"), {
+  cpSync(IMPORTER, join(folder, "counter-app"), {
     recursive: true,
     filter: (file) => !file.includes(".snapshot.")
   })
@@ -81,13 +81,14 @@ describe("a Python spell app, in a real browser", () => {
   })
 
   test("compiling a project that imports another writes that one's beside it too (J97)", () => {
-    const compiled = spawnSync("node", [SPELL, "compile", join(folder, "lists-from-zero"), "--target", "py"], {
+    const compiled = spawnSync("node", [SPELL, "compile", join(folder, "counter-app"), "--target", "py"], {
       encoding: "utf8"
     })
     expect(compiled.status, compiled.stderr).toBe(0)
-    const files = readdirSync(join(folder, "lists-from-zero"))
-    expect(files).toEqual(expect.arrayContaining(["lists-from-zero.spell.py", "cards.py"]))
-    expect(readFileSync(join(folder, "lists-from-zero", "cards.py"), "utf8")).toMatch(/^class Card\(/m)
+    const files = readdirSync(join(folder, "counter-app"))
+    // the library's Python, and its drawing half:  the counter draws
+    expect(files).toEqual(expect.arrayContaining(["counter-app.spell.py", "counter.py", "counter.elements.spell.js"]))
+    expect(readFileSync(join(folder, "counter-app", "counter.py"), "utf8")).toMatch(/^class Counter\(/m)
   })
 
   test("the app compiling wrote runs as it is:  `uv run python Solitaire.app.py`", async () => {
@@ -126,8 +127,10 @@ describe("a Python spell app, in a real browser", () => {
     const turned = patches[0]![0]!
     expect(patches[0]).toEqual([expect.objectContaining({ $type: "Card", direction: "up" })])
     const cardId = turned["$id"] as string
-    // what the page sent:  the click, naming the card by reference, its name (epic `python-target` P27)
-    expect(page.sent).toEqual([{ trigger: "card-click", target: `Card#${turned.rank}-of-${turned.suit}`, details: {} }])
+    // what the page sent:  the click, naming the card by reference, its name (epic `python-target` P27):
+    // the card's `its "name" is its rank + " of " + its suit`
+    const reference = `Card#${turned.rank} of ${turned.suit}`
+    expect(page.sent).toEqual([{ trigger: "card-click", target: reference, details: {} }])
     // then its move:  the pile it joined, and the pile it left
     expect(patches[1]!.map((thing) => thing["$type"])).toEqual(["DiscardPile", "StockPile"])
     const [joined] = patches[1]!
@@ -136,9 +139,7 @@ describe("a Python spell app, in a real browser", () => {
     // the console shows each frame, both ways, its badge first:  the state, the click up, the two patches down
     const frames = page.logged.filter((line) => /^%c(SENDING  >|RECEIVED <)%c/.test(line))
     expect(frames[0]).toMatch(/^%cRECEIVED <%c {2}state: {2}solitaire/)
-    expect(frames).toContainEqual(
-      expect.stringMatching(`^%cSENDING  >%c  event card-click \\(Card#${turned.rank}-of-${turned.suit}\\)`)
-    )
+    expect(frames).toContainEqual(expect.stringMatching(`^%cSENDING  >%c  event card-click \\(${reference}\\)`))
     expect(frames).toContainEqual(expect.stringMatching(`^%cRECEIVED <%c  patch:  DiscardPile #\\d+, StockPile #`))
 
     // each patch a small part of the whole state

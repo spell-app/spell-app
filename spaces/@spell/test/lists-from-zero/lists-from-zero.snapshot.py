@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from spell_core import core, List
-from cards import Card, Suit, Rank, Deck, Pile
+from spell_core import core, Thing, List, prop
 
 
 #########################################################################
@@ -11,81 +10,100 @@ from cards import Card, Suit, Rank, Deck, Pile
 #########################################################################
 
 
+class Tile(Thing):
+    """Numbers count from 0;  ordinal words don't change.  Its rack is its own:  five tiles, A first."""
+
+    # - its "letter" is text
+    letter = prop(type="text")
+
+
+class Rack(List):
+    item_type = Tile
+
+    def create(self) -> None:
+        """a new rack holds five tiles, A to E"""
+        self.append(Tile(letter="A"))
+        self.append(Tile(letter="B"))
+        self.append(Tile(letter="C"))
+        self.append(Tile(letter="D"))
+        self.append(Tile(letter="E"))
+
+
 def test_counting_from_zero() -> Any:
-    """Numbers count from 0;  ordinal words don't change.  Its deck is the frozen card library's (`@spell/test/cards`):  ace of clubs first."""
+    """Tests"""
     with core.test("test counting from zero"):
-        core.echo_test_action("the deck is a new deck")
-        deck = Deck()
+        core.echo_test_action("the rack is a new rack")
+        rack = Rack()
         core.expect(
-            getattr(deck.first_item, "name", None),
-            "the name of card 0 of the deck",
-            "ace-of-clubs",
-            "\"ace-of-clubs\"",
+            getattr(rack.first_item, "letter", None),
+            "the letter of tile 0 of the rack",
+            "A",
+            "\"A\"",
         )
         core.expect(
-            getattr(deck[1], "name", None),
-            "the name of card 1 of the deck",
-            "ace-of-diamonds",
-            "\"ace-of-diamonds\"",
+            getattr(rack[1], "letter", None),
+            "the letter of tile 1 of the rack",
+            "B",
+            "\"B\"",
         )
         core.expect(
-            getattr(deck.last_item, "name", None),
-            "the name of card -1 of the deck",
-            "king-of-spades",
-            "\"king-of-spades\"",
+            getattr(rack.last_item, "letter", None),
+            "the letter of tile -1 of the rack",
+            "E",
+            "\"E\"",
         )
         core.expect(
-            getattr(deck.first_item, "name", None),
-            "the name of the first card of the deck",
-            "ace-of-clubs",
-            "\"ace-of-clubs\"",
+            getattr(rack.first_item, "letter", None),
+            "the letter of the first tile of the rack",
+            "A",
+            "\"A\"",
         )
         core.expect(
-            getattr(deck[1], "name", None),
-            "the name of the second card of the deck",
-            "ace-of-diamonds",
-            "\"ace-of-diamonds\"",
+            getattr(rack[1], "letter", None),
+            "the letter of the second tile of the rack",
+            "B",
+            "\"B\"",
         )
         core.expect(
-            getattr(deck.last_item, "name", None),
-            "the name of the last card of the deck",
-            "king-of-spades",
-            "\"king-of-spades\"",
+            getattr(rack.last_item, "letter", None),
+            "the letter of the last tile of the rack",
+            "E",
+            "\"E\"",
         )
-        core.echo_test_action("set the ace to the first card of the deck")
-        ace = deck.first_item
-        core.expect(deck.position_of(ace), "the position of the ace in the deck", 0, "0")
-        core.echo_test_action("set the aces to cards 0 to 3 of the deck")
-        aces = deck[0:4]
-        core.expect(len(aces), "the number of cards in the aces", 4, "4")
+        core.echo_test_action("set the start to the first tile of the rack")
+        start = rack.first_item
+        core.expect(rack.position_of(start), "the position of the start in the rack", 0, "0")
+        core.echo_test_action("set the front to tiles 0 to 2 of the rack")
+        front = rack[0:3]
+        core.expect(len(front), "the number of tiles in the front", 3, "3")
         core.expect(
-            getattr(aces.last_item, "name", None),
-            "the name of the last card of the aces",
-            "ace-of-spades",
-            "\"ace-of-spades\"",
+            getattr(front.last_item, "letter", None),
+            "the letter of the last tile of the front",
+            "C",
+            "\"C\"",
         )
-        core.echo_test_action("set the kings to last two cards of the deck")
-        kings = core.range_starting_at(deck, -2, 2)
-        core.expect(len(kings), "the number of cards in the kings", 2, "2")
+        core.echo_test_action("set the back to last two tiles of the rack")
+        back = core.range_starting_at(rack, -2, 2)
+        core.expect(len(back), "the number of tiles in the back", 2, "2")
         core.expect(
-            getattr(kings.first_item, "name", None),
-            "the name of the first card of the kings",
-            "king-of-hearts",
-            "\"king-of-hearts\"",
+            getattr(back.first_item, "letter", None),
+            "the letter of the first tile of the back",
+            "D",
+            "\"D\"",
         )
         core.echo_test_action("set the positions to a new list of numbers")
         positions = List(item_type="number")
-        core.echo_test_action("for each card, position in the aces")
-        for position_, card in enumerate(aces):
+        core.echo_test_action("for each tile, position in the front")
+        for position_, tile in enumerate(front):
             positions.append(position_)
         core.echo(f"positions: {positions}")
-        core.echo_test_action("remove card 0 of the deck")
-        core.remove_item_at(deck, 0)
+        core.echo_test_action("remove tile 0 of the rack")
+        core.remove_item_at(rack, 0)
         core.expect(
-            getattr(deck.first_item, "name", None),
-            "the name of the first card of the deck",
-            "ace-of-diamonds",
-            "\"ace-of-diamonds\"",
+            getattr(rack.first_item, "letter", None),
+            "the letter of the first tile of the rack",
+            "B",
+            "\"B\"",
         )
 
 

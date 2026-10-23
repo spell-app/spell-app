@@ -1,0 +1,6 @@
+✅ test counting
+  ▶️ Executing   `get a new counter`
+  ✅ As expected `its count` is `0`
+  ▶️ Executing   `increment it`
+  ▶️ Executing   `increment it`
+  ✅ As expected `its count` is `2`

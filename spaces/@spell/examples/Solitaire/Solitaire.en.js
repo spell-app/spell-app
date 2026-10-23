@@ -3,51 +3,40 @@ export const words = {
   lang: "en",
   types: {
     Card: {
-      suit: "suit",
       rank: "rank",
-      color: "color",
       value: "value",
-      isASuit: "is a (suit)",
       isARank: "is a (rank)",
-      isTheRankOfSuits: "is the (rank) of (suits)",
       isAFaceCard: "is a face card",
-      isTheColorJoker: "is the (color as a color) joker",
-      direction: "direction",
-      isFaceUp: "is face up",
-      isFaceDown: "is face down",
+      isANumberCard: "is a number card",
+      suit: "suit",
+      isASuit: "is a (suit)",
+      color: "color",
       name: "name",
-      shortSuit: "short suit",
-      shortRank: "short rank",
-      shortDirection: "short direction",
-      shortName: "short name",
-      state: "state",
-      pictureColumn: "picture column",
-      picture: "picture",
-      draw: "draw it",
+      isTheRankOfSuit: "is the (rank) of (suit)",
+      direction: "direction",
+      isFaceDirection: "is face (direction)",
       turnFaceUp: "turn it face up",
       turnFaceDown: "turn it face down",
       turnOver: "turn it over",
+      picture: "picture",
+      draw: "draw it",
+      symbol: "symbol",
+      state: "state",
       play: "play a card",
       pile: "pile"
     },
     Joker: {
       color: "color",
+      isTheColorJoker: "is the (color) joker",
+      value: "value",
+      picture: "picture",
       name: "name",
-      shortName: "short name",
-      state: "state",
-      picture: "picture"
-    },
-    Suit: {
-      color: "color",
-      symbol: "symbol"
-    },
-    Rank: {
-      isAFaceCard: "is a face card"
+      state: "state"
     },
     Deck: {
       jokers: "jokers",
       create: "create it",
-      display: "display it"
+      state: "state"
     },
     Pile: {
       name: "name",

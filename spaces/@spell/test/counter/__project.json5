@@ -1,0 +1,10 @@
+{
+  "description": "A library other projects import:  a counter, drawn as a button that counts its clicks, at version 1.0.0",
+  "version": "1.0.0",
+  "imports": [
+    {
+      "path": "/Counter.spell",
+      "active": true
+    }
+  ]
+}

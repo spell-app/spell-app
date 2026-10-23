@@ -4,16 +4,16 @@ import { linkModule, projectImportsOf, startChanged } from "spell-app/app/runner
 
 const COMPILED = `/*! SPELL: PROJECT { spellVersion: "0.8.0" } */
 import { core, Thing, List, App } from "@spell/core"
-import { Card, Deck } from "@spell/project/@spell/test/cards"
+import { Counter } from "@spell/project/@spell/test/counter"
 import { Pile } from "@spell/project/@spell/examples/Solitaire"
-import { Card as Again } from "@spell/project/@spell/test/cards"
+import { Counter as Again } from "@spell/project/@spell/test/counter"
 
 export class Game extends App {}
 `
 
 describe("projectImportsOf()", () => {
   test("lists each imported project once, in order", () => {
-    expect(projectImportsOf(COMPILED)).toEqual(["@spell/test/cards", "@spell/examples/Solitaire"])
+    expect(projectImportsOf(COMPILED)).toEqual(["@spell/test/counter", "@spell/examples/Solitaire"])
   })
 
   test("is empty with no project imports", () => {
@@ -24,19 +24,19 @@ describe("projectImportsOf()", () => {
 describe("linkModule()", () => {
   test("points `@spell/core` and each project at its URL", () => {
     const linked = linkModule(COMPILED, "blob:core", {
-      "@spell/test/cards": "blob:cards",
+      "@spell/test/counter": "blob:counter",
       "@spell/examples/Solitaire": "blob:solitaire"
     })
     expect(linked).toContain(`import { core, Thing, List, App } from "blob:core"`)
-    expect(linked).toContain(`import { Card, Deck } from "blob:cards"`)
+    expect(linked).toContain(`import { Counter } from "blob:counter"`)
     expect(linked).toContain(`import { Pile } from "blob:solitaire"`)
-    expect(linked).toContain(`import { Card as Again } from "blob:cards"`)
+    expect(linked).toContain(`import { Counter as Again } from "blob:counter"`)
     expect(linked).not.toContain("@spell/")
   })
 
   test("leaves a project it has no URL for alone", () => {
     const linked = linkModule(COMPILED, "blob:core")
-    expect(linked).toContain(`from "@spell/project/@spell/test/cards"`)
+    expect(linked).toContain(`from "@spell/project/@spell/test/counter"`)
     expect(linked).toContain(`from "blob:core"`)
   })
 

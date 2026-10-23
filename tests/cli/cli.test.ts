@@ -44,10 +44,10 @@ const REPO_ROOT = resolve(import.meta.dirname, "..", "..")
 /** The page server's root, where its pid file is:  the kit around this repo (epic `repo-split` P16). */
 const SERVER_ROOT = pageServerRoot(REPO_ROOT)
 
-/** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
-/** The card library's folder:  its files are spell files a test can name, `Card.spell`. */
+/** The Solitaire example's folder:  its files are spell files a test can name, `Card.spell`. */
 const SOLITAIRE = fixtureFolder("Solitaire")
 
+/** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 
@@ -251,7 +251,7 @@ describe("spell compile", () => {
     const { status, stdout, stderr } = spell(["compile", "@spell/test"])
     expect(status).toBe(2)
     expect(stdout).toBe("")
-    expect(stderr).toContain("@spell/test holds several projects -- name one, or pass --all:\n  @spell/test/cards\n")
+    expect(stderr).toContain("@spell/test holds several projects -- name one, or pass --all:\n  @spell/test/counter\n")
   })
 
   test("an unknown project", () => {
@@ -667,14 +667,15 @@ describe("spell projects", () => {
   test("lists the groups, each by its address", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@spell\/test +Test fixtures +6 projects$/m)
+    expect(stdout).toMatch(/^@spell\/test +Test fixtures +7 projects$/m)
     expect(stdout).toMatch(/^owen@spell +Projects /m)
   })
 
   test("one group's projects, as JSON", () => {
     const { stdout } = spell(["projects", "@spell/test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
-      { name: "cards", id: "@spell/test/cards" },
+      { name: "counter", id: "@spell/test/counter" },
+      { name: "counter-app", id: "@spell/test/counter-app" },
       { name: "fizzbuzz", id: "@spell/test/fizzbuzz" },
       { name: "lists-from-zero", id: "@spell/test/lists-from-zero" },
       { name: "people", id: "@spell/test/people" },
@@ -780,10 +781,10 @@ describe("spell explain", () => {
   })
 
   test("--in a project:  what the projects it imports declare, too", () => {
-    // `card` is the frozen card library's, which lists-from-zero imports
-    const { status, stdout } = spell(["explain", "card", "--in", "@spell/test/lists-from-zero"])
+    // the type `Counter` is the frozen counter library's, which counter-app imports
+    const { status, stdout } = spell(["explain", "counter", "--in", "@spell/test/counter-app"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/(^|\/)cards\/Card\.spell:\d+\ntype Card is a Drawable\n/)
+    expect(stdout).toMatch(/(^|[/\n])counter\/Counter\.spell:\d+\ntype Counter is a Drawable\n/)
   })
 
   test("nothing by that name", () => {

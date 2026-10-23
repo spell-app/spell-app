@@ -12,7 +12,16 @@ import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { scopesFromPacks } from "spell-app/lsp/ScopesSource"
 import { compiledSpellProject } from "spell-lang/spell/test"
-import { copyFixtureProject, fixtureFolder, loadFixtureProject } from "spell-app/spaces/test"
+import { copyFixtureProject, fixtureFolder, lineOf, loadFixtureProject } from "spell-app/spaces/test"
+
+/** The Solitaire example's Card.spell:  the tests name its lines by what they say (`lineOf()`), as it changes. */
+const CARD_TEXT = readFileSync(fixtureFolder("Solitaire", "Card.spell"), "utf8")
+/** Its line declaring the card's type. */
+const CARD_TYPE = 'a "card" is'
+/** Its line declaring the card's suit, whose node is `suit`. */
+const SUIT = '- its "suit" is one of'
+/** The `##` heading the card's suit is under:  its section, and its docstring. */
+const SUIT_HEADING = "card suit"
 
 /**
  * The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it:
@@ -47,10 +56,12 @@ describe("ScopeExplorer", () => {
     const card = find(tree, "Card")
     expect(card.detail).toBe("is a Drawable")
     expect(card.super).toBe("type:Drawable")
-    expect(details(card).line).toEqual([4, 87])
+    // its first line, to the last of its outline
+    const declared = lineOf(CARD_TEXT, CARD_TYPE)
+    expect(details(card).line).toEqual([declared, outlineEnd(CARD_TEXT, declared)])
     expect(card.members.map(({ name, kind }) => `${kind} ${name}`)).toMatchSnapshot()
     const suit = card.members.find((member) => member.name === "suit")!
-    expect(details(suit).line).toBe(23)
+    expect(details(suit).line).toBe(lineOf(CARD_TEXT, SUIT))
     // in its node's file, so no `uri` of its own
     expect(details(suit).uri).toBeUndefined()
     expect(find(tree, "suit").uri).toBe(cardUri)
@@ -59,10 +70,10 @@ describe("ScopeExplorer", () => {
   test("each member's section:  the heading it's under, in the file it's declared in", () => {
     const card = find(tree, "Card")
     const sectionOf = (name: string) => card.members.find((member) => member.name === name)!.section
-    expect(sectionOf("suit")).toBe("its suit and rank")
-    expect(sectionOf("name")).toBe("its names")
-    expect(sectionOf("turn it over")).toBe("turning it over")
-    expect(find(tree, "suit").section).toBe("its suit and rank")
+    expect(sectionOf("suit")).toBe(SUIT_HEADING)
+    expect(sectionOf("name")).toBe("specific cards")
+    expect(sectionOf("turn it over")).toBe("turning the card over")
+    expect(find(tree, "suit").section).toBe(SUIT_HEADING)
   })
 
   test("a sub-type shows what it inherits, and from where", () => {
@@ -88,10 +99,11 @@ describe("ScopeExplorer", () => {
     expect(find(tree, "suit").path).toBe("project:Solitaire/file:Card.spell/type:Card/property:suit")
     const suit = details("suit")
     // the heading above it:  its docstring, as a comment there would be
-    expect(suit.description).toBe("## its suit and rank")
-    expect(suit.spell).toBe('\t- its "suit" is a suit')
+    expect(suit.description).toBe(`## ${SUIT_HEADING}`)
+    const line = lineOf(CARD_TEXT, SUIT)
+    expect(suit.spell).toBe(CARD_TEXT.split("\n")[line - 1])
     expect(suit.compiled).toContain('declareProp("suit"')
-    expect(suit.line).toBe(23)
+    expect(suit.line).toBe(line)
   })
 
   test("`line`:  a statement with a body is on its first and last lines", () => {
@@ -129,94 +141,39 @@ describe("ScopeExplorer", () => {
     const card = () => workspace.fileFor(cardUri)!
     const deckUri = cardUri.replace(/Card\.spell$/, "Deck.spell")
     const deck = () => workspace.fileFor(deckUri)!
+    /** The 1-based `line` of a file, as an edit's range covers it:  start to the next line's start. */
+    const wholeLine = (line: number) => ({
+      start: { line: line - 1, character: 0 },
+      end: { line, character: 0 }
+    })
+    /** The deck's one comment line above `- its "jokers" is ...`. */
+    const jokersComment = () => wholeLine(lineOf(deck().parseText, "// no jokers"))
 
     test("replaces the comment lines above it, one `//` line per line -- indented as it is", () => {
       const line = LSP.firstLine(details("jokers").line!)
-      expect(service().descriptionEdits(deck(), line, "the jokers\nof a deck")).toMatchInlineSnapshot(`
-        [
-          {
-            "newText": "	// the jokers
-        	// of a deck
-        ",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 4,
-              },
-              "start": {
-                "character": 0,
-                "line": 3,
-              },
-            },
-          },
-        ]
-      `)
+      expect(service().descriptionEdits(deck(), line, "the jokers\nof a deck")).toEqual([
+        { newText: "\t// the jokers\n\t// of a deck\n", range: jokersComment() }
+      ])
     })
 
     test("empty text removes them", () => {
       const line = LSP.firstLine(details("jokers").line!)
-      expect(service().descriptionEdits(deck(), line, "  ")).toMatchInlineSnapshot(`
-        [
-          {
-            "newText": "",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 4,
-              },
-              "start": {
-                "character": 0,
-                "line": 3,
-              },
-            },
-          },
-        ]
-      `)
+      expect(service().descriptionEdits(deck(), line, "  ")).toEqual([{ newText: "", range: jokersComment() }])
     })
 
     test("a `##` heading docstring:  shown as markdown, and replaced keeping its level", () => {
       const suit = details("suit")
-      expect(suit.description).toBe("## its suit and rank")
+      expect(suit.description).toBe(`## ${SUIT_HEADING}`)
       const line = LSP.firstLine(suit.line!)
-      expect(line).toBe(23)
-      expect(service().descriptionEdits(card(), line, "## the suit\nand the rank")).toMatchInlineSnapshot(`
-        [
-          {
-            "newText": "	## the suit
-        	// and the rank
-        ",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 22,
-              },
-              "start": {
-                "character": 0,
-                "line": 21,
-              },
-            },
-          },
-        ]
-      `)
+      expect(line).toBe(lineOf(CARD_TEXT, SUIT))
+      const heading = wholeLine(lineOf(CARD_TEXT, `## ${SUIT_HEADING}`))
+      expect(service().descriptionEdits(card(), line, "## the suit\nand the rank")).toEqual([
+        { newText: "\t## the suit\n\t// and the rank\n", range: heading }
+      ])
       // without its `##`, it's just a comment
-      expect(service().descriptionEdits(card(), line, "the suit")).toMatchInlineSnapshot(`
-        [
-          {
-            "newText": "	// the suit
-        ",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 22,
-              },
-              "start": {
-                "character": 0,
-                "line": 21,
-              },
-            },
-          },
-        ]
-      `)
+      expect(service().descriptionEdits(card(), line, "the suit")).toEqual([
+        { newText: "\t// the suit\n", range: heading }
+      ])
     })
 
     test("a file's docstring:  `#` heading comments at its top -- added as a `#` heading", () => {
@@ -229,8 +186,10 @@ describe("ScopeExplorer", () => {
     })
 
     test("`null` where no declaration starts", () => {
-      // a blank line in the card's outline
-      expect(service().descriptionEdits(card(), 5, "x")).toBeNull()
+      // the first blank line in the card's outline, 1-based
+      const declared = lineOf(CARD_TEXT, CARD_TYPE)
+      const blank = CARD_TEXT.split("\n").findIndex((text, index) => index >= declared && !text.trim()) + 1
+      expect(service().descriptionEdits(card(), blank, "x")).toBeNull()
     })
   })
 })
@@ -267,7 +226,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
   test("its types are from its sources:  docs and locations", () => {
     const suit = find(tree, "Card").members.find((member) => member.name === "suit")!
     expect(find(tree, "suit").uri).toMatch(/\/lib\/Card\.spell$/)
-    expect(explorer.details(app, suit.path)?.line).toBe(23)
+    expect(explorer.details(app, suit.path)?.line).toBe(lineOf(CARD_TEXT, SUIT))
   })
 
   test("our types inherit from its OWN types, from its sources -- with their docs and locations", () => {
@@ -374,7 +333,7 @@ describe("ScopeExplorer scope packs", () => {
     expect(pack.entries[0]).toEqual({ path: "project:Solitaire" })
     expect(pack.entries.every((entry) => !("children" in entry) && !("members" in entry))).toBe(true)
     const suit = pack.entries.find((entry) => entry.path.endsWith("/property:suit"))!
-    expect(suit).toMatchObject({ line: 23, description: "## its suit and rank" })
+    expect(suit).toMatchObject({ line: lineOf(CARD_TEXT, SUIT), description: `## ${SUIT_HEADING}` })
     // shown from its file and the compiled output, NOT kept in the pack
     expect(suit).not.toHaveProperty("spell")
     expect(suit).not.toHaveProperty("compiled")
@@ -551,6 +510,19 @@ function outline(node: LSP.ScopeNode, depth: number, indent = ""): string {
   const line = `${indent}${node.kind} ${node.name}${node.detail ? ` (${node.detail})` : ""}`
   if (!depth) return line
   return [line, ...node.children.map((child) => outline(child, depth - 1, `${indent}  `))].join("\n")
+}
+
+/**
+ * 1-based last line of the outline under 1-based line `start` of `text`:
+ * the last line before the next one that isn't indented, blank lines left out.
+ */
+function outlineEnd(text: string, start: number): number {
+  const lines = text.split("\n")
+  let end = start
+  for (let index = start; index < lines.length && /^(\s|$)/.test(lines[index]!); index++) {
+    if (lines[index]!.trim()) end = index + 1
+  }
+  return end
 }
 
 /** Node named `name` in `tree`. */

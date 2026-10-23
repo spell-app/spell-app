@@ -3,6 +3,7 @@ import path from "node:path"
 import JSON5 from "json5"
 import { describe, expect, it } from "vite-plus/test"
 
+import { compiledSpellProject } from "spell-lang/spell/test"
 import { SPACES } from "spell-app/spaces"
 
 /** The Solitaire example's compiled declarations, as committed beside it:  its cards, deck and piles among them. */
@@ -13,20 +14,42 @@ const CARDS = JSON5.parse(
   )
 )
 
+/**
+ * A chip's declarations, compiled from spell here:  what Solitaire's cards don't have.
+ * - a value kind, `colors`, which its `color` holds
+ * - a property of two words, `face value`
+ */
+const CHIPS = compiledSpellProject([
+  {
+    path: "/Chips.spell",
+    contents: [
+      "a chip is a thing where:",
+      '\t- "colors" as one of red, white or blue',
+      '\t- its "color" is a color',
+      '\t- its "face value" is a number'
+    ].join("\n")
+  }
+]).declarations!
+
 describe("SPACES.TypeSchemas.fromDeclarations()", () => {
-  it("reads a type's properties:  choices from a value kind, types from a datatype, labels as written", () => {
+  it("reads a type's properties:  choices from an enumeration, types from a datatype", () => {
     const card = SPACES.TypeSchemas.fromDeclarations(CARDS, "Card")!
     const byName = Object.fromEntries(card.attributes.map((spec) => [spec.name, spec]))
     expect(byName.suit).toMatchObject({ type: "choice", values: ["clubs", "diamonds", "hearts", "spades"] })
     expect(byName.rank!.values).toContain("ace")
     expect(byName.value).toMatchObject({ type: "number" })
-    expect(byName.short_suit).toMatchObject({ type: "text", label: "Short suit" })
   })
 
-  it("a property holding a value kind is a choice of its values:  a joker's color", () => {
-    const joker = SPACES.TypeSchemas.fromDeclarations(CARDS, "Joker")!
-    const color = joker.attributes.find((spec) => spec.name === "color")
-    expect(color).toMatchObject({ type: "choice", values: ["red", "black"] })
+  it("labels a property as written:  a chip's `face value` is `Face value`", () => {
+    const chip = SPACES.TypeSchemas.fromDeclarations(CHIPS, "Chip")!
+    const faceValue = chip.attributes.find((spec) => spec.name === "face_value")
+    expect(faceValue).toMatchObject({ type: "number", label: "Face value" })
+  })
+
+  it("a property holding a value kind is a choice of its values:  a chip's color", () => {
+    const chip = SPACES.TypeSchemas.fromDeclarations(CHIPS, "Chip")!
+    const color = chip.attributes.find((spec) => spec.name === "color")
+    expect(color).toMatchObject({ type: "choice", values: ["red", "white", "blue"] })
   })
 
   it("is `undefined` for a type it doesn't declare;  typesIn() lists the ones it does", () => {

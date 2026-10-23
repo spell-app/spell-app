@@ -1,3 +1,21 @@
 /* File styles.css:  the board's own styles.
-   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.
+   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitario.es.spell.
    A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */
+
+/* The size of a card, which every card and pile reads:  custom properties reach inside their shadow roots.
+   - A card's picture, a character of unicode's Playing Cards, is 68 x 90px at the size the card draws it. */
+:root,
+:host {
+  --card-width: 4.25rem;
+  --card-height: 5.65rem;
+  /* how much of a card shows under the one on it, in a tableau */
+  --card-strip: 1.4rem;
+}
+
+/* Each column at least a card wide, and a little more:  a narrow board scrolls sideways, never squeezes them. */
+es-fila::part(fila) {
+  flex-wrap: nowrap;
+}
+es-columna::part(columna) {
+  min-width: calc(var(--card-width) + 1rem);
+}

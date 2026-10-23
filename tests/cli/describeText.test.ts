@@ -69,7 +69,7 @@ describe("describeOverview()", () => {
     // descriptions aren't wrapped:  just lists, each under its heading, e.g. `Actions`, then indented to it
     const listLines = lines.filter((line) => /^ {4}(Properties|Actions|Constants) |^ {16}\S/.test(line))
     expect(Math.max(...listLines.map((line) => line.length))).toBeLessThanOrEqual(60)
-    for (const item of ["turn it face down", "is the (rank) of (suits)", "short direction"]) {
+    for (const item of ["turn it face down", "is the (rank) of (suit)", "Suits (clubs, diamonds, hearts, spades)"]) {
       expect(listLines.some((line) => line.includes(item))).toBe(true)
     }
   })

@@ -5,7 +5,7 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
   "is a (suit)": [
     {
       "name": "is_a_$suit",
-      "syntax": "{operator:is_or_is_not_a} (expression:club|diamond|heart|spade)",
+      "syntax": "{operator:is_or_is_not_a} (expression:clubs|club|diamonds|diamond|hearts|heart|spades|spade)",
     },
   ],
   "turn it over": [
@@ -19,46 +19,38 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
 
 exports[`ScopeExplorer > a type's members:  in document order, by file then line -- each with its line 1`] = `
 [
-  "enumeration Suits",
-  "constant clubs",
-  "constant diamonds",
-  "constant hearts",
-  "constant spades",
+  "property rank",
   "enumeration Ranks",
   "constant ace",
   "constant jack",
   "constant queen",
   "constant king",
-  "enumeration Colors",
-  "constant red",
-  "constant black",
-  "property suit",
-  "property rank",
-  "property color",
   "property value",
-  "method is a (suit)",
   "method is a (rank)",
-  "method is the (rank) of (suits)",
   "method is a face card",
-  "method is the (color as a color) joker",
+  "method is a number card",
+  "property suit",
+  "enumeration Suits",
+  "constant clubs",
+  "constant diamonds",
+  "constant hearts",
+  "constant spades",
+  "method is a (suit)",
+  "property color",
+  "property name",
+  "method is the (rank) of (suit)",
   "property direction",
   "enumeration Directions",
   "constant up",
   "constant down",
-  "method is face up",
-  "method is face down",
-  "property name",
-  "property short suit",
-  "property short rank",
-  "property short direction",
-  "property short name",
-  "property state",
-  "property picture column",
-  "property picture",
-  "method draw it",
+  "method is face (direction)",
   "method turn it face up",
   "method turn it face down",
   "method turn it over",
+  "property picture",
+  "method draw it",
+  "property symbol",
+  "property state",
   "property pile",
   "method play a card",
   "property id",
@@ -115,11 +107,8 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
   project Solitaire
     file Card.spell
       type Card (is a Drawable)
-      type Suit
-      type Rank
-      type Color
-      type Joker (is a Card)
       function test card setup
+      type Joker (is a Card)
       function test jokers
     file Deck.spell
       type Deck (is a List)
@@ -136,7 +125,9 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
       type DiscardPile (is a StackedPile)
       type Foundation (is a StackedPile)
       type Tableau (is a Pile)
-      function test the moves"
+      function test the moves
+    constant red
+    constant black"
 `;
 
 exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
@@ -187,11 +178,8 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
   project lib (imported)
     file Card.spell
       type Card (is a Drawable)
-      type Suit
-      type Rank
-      type Color
-      type Joker (is a Card)
       function test card setup
+      type Joker (is a Card)
       function test jokers
     file Deck.spell
       type Deck (is a List)
@@ -200,6 +188,8 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
     file Pile.spell
       type Pile (is a DrawableList)
       function test piles
+    constant red
+    constant black
   project app
     file Solitaire.spell
       type Solitaire (is a App)

@@ -272,7 +272,8 @@ export class ScopeExplorer {
       this.addFile(project, file, tree)
     const imports = scope.parentScope
     if (imports instanceof P.ImportScope) {
-      for (const type of imports.types.get().filter((it) => !tree.sourceTypes.has(it.name))) this.addType(type, tree)
+      const listed = imports.types.get().filter((it) => !tree.sourceTypes.has(it.name) && ScopeExplorer.isListed(it))
+      for (const type of listed) this.addType(type, tree)
     }
     for (const record of scope.constants.get().filter((it) => !this.ownerOf(it.declaredBy))) {
       this.addLeaf(LSP.scopePath(path, "constant", record.name), { kind: "constant", record }, record.declaredBy, tree)
@@ -294,7 +295,7 @@ export class ScopeExplorer {
       return description ? { description } : {}
     })
     const types = (project.scope?.types.get() ?? []).filter(
-      (type) => type.declaredBy && this.service.fileOf(type.declaredBy) === file
+      (type) => type.declaredBy && this.service.fileOf(type.declaredBy) === file && ScopeExplorer.isListed(type)
     )
     const functions = tree.methods.filter(
       (rule) => ScopeExplorer.declarationOf(rule)?.kind === "function" && this.service.fileOf(rule.declaredBy!) === file
@@ -316,6 +317,14 @@ export class ScopeExplorer {
       }))
     ]
     for (const { add } of this.inDocumentOrder(declared, tree)) add()
+  }
+
+  /**
+   * Is `type` one the tree lists:  every type but the kind of a property's values, e.g. `CardSuit` (epic `spanish` P22).
+   * - That kind has no class, nor members:  its values show on the type listing them, `Constants  Suits (clubs, ...)`.
+   */
+  private static isListed(type: P.TypeScope): boolean {
+    return !type.valueKind?.property
   }
 
   /**

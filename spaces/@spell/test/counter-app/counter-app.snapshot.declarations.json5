@@ -1,0 +1,34 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Tally",
+    "test_the_imported_counter"
+  ],
+  "statements": [
+    {
+      "type": "Tally",
+      "superType": "App",
+      "defined": "/CounterApp.spell:170-348"
+    },
+    {
+      "property": "counter",
+      "of": "Tally",
+      "datatype": "Counter",
+      "defined": "/CounterApp.spell:196-226"
+    },
+    {
+      "syntax": "test the imported counter",
+      "output": "test_the_imported_counter",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "the imported counter",
+      "defined": "/CounterApp.spell:360-521"
+    }
+  ],
+  "codeLines": [
+    8,
+    9,
+    23
+  ]
+}

@@ -3,50 +3,39 @@ export const words = {
   lang: "es",
   types: {
     Carta: {
-      palo: "palo",
       rango: "rango",
-      color: "color",
       valor: "valor",
-      esUnPalo: "es un (palo)",
       esUnRango: "es un (rango)",
-      esElRangoDePalos: "es el (rango) de (palos)",
       esUnaFigura: "es una figura",
-      esElComodínColor: "es el comodín (color como un color)",
-      dirección: "dirección",
-      estáBocaArriba: "está boca arriba",
-      estáBocaAbajo: "está boca abajo",
+      esUnaCartaNumérica: "es una carta numérica",
+      palo: "palo",
+      esUnPalo: "es un (palo)",
+      color: "color",
       nombre: "nombre",
-      paloCorto: "palo corto",
-      rangoCorto: "rango corto",
-      direcciónCorta: "dirección corta",
-      nombreCorto: "nombre corto",
-      estado: "estado",
-      columnaDeImagen: "columna de imagen",
-      imagen: "imagen",
+      esElRangoDePalo: "es el (rango) de (palo)",
+      dirección: "dirección",
+      estáBocaDirección: "está boca (dirección)",
       voltearBocaArriba: "voltearla boca arriba",
       voltearBocaAbajo: "voltearla boca abajo",
       voltear: "voltearla",
+      imagen: "imagen",
+      símbolo: "símbolo",
+      estado: "estado",
       jugar: "jugar una carta",
       pila: "pila"
     },
     Comodín: {
       color: "color",
+      esElComodínColor: "es el comodín (color)",
+      valor: "valor",
+      imagen: "imagen",
       nombre: "nombre",
-      nombreCorto: "nombre corto",
-      estado: "estado",
-      imagen: "imagen"
-    },
-    Palo: {
-      color: "color",
-      símbolo: "símbolo"
-    },
-    Rango: {
-      esUnaFigura: "es una figura"
+      estado: "estado"
     },
     Mazo: {
       comodines: "comodines",
       create: "crearlo",
-      mostrar: "mostrarlo"
+      estado: "estado"
     },
     Pila: {
       name: "nombre",

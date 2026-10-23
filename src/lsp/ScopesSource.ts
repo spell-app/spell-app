@@ -234,6 +234,8 @@ function parseMarker(comment: string): MarkerDeclaration | undefined {
  * What a marker's statement declares, as the end of each one's path in a scope pack:
  * from its `type:`, or its `file:` if it's not in a type, e.g. `type:Card/property:suit` or `function:debug the game`.
  * - As `LSP.ScopeExplorer` names them, e.g. a method by its `name` without its quotes.
+ * - A constant with no type is the project's, e.g. `red` in a card's `- its "color" is:  red if ...`:
+ *   `constant:red`, as the explorer has it under the project.
  */
 function declaredPaths(declaration: MarkerDeclaration): string[] {
   const { type, of, property, classVariable, kind, constants = [], enumeration = [] } = declaration
@@ -242,6 +244,7 @@ function declaredPaths(declaration: MarkerDeclaration): string[] {
   if (type) paths.push(scopePath("", "type", type))
   if (!owner) {
     if (kind === "function") paths.push(scopePath("", "function", methodName(declaration)))
+    for (const name of constants) paths.push(scopePath("", "constant", name))
     return paths
   }
   if (property) paths.push(scopePath(owner, "property", property))

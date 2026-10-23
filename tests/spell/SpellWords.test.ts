@@ -12,17 +12,7 @@ import { fixtureWords } from "spell-app/spaces/test"
 describe("SpellWords", () => {
   test("Solitaire's:  every member of its types, its own cards, deck and piles too, by javascript's names", () => {
     const words = SP.SpellWords.read(fixtureWords("Solitaire"))!
-    expect(Object.keys(words.types)).toEqual([
-      "Card",
-      "Joker",
-      "Suit",
-      "Rank",
-      "Deck",
-      "Pile",
-      "StockPile",
-      "Foundation",
-      "Solitaire"
-    ])
+    expect(Object.keys(words.types)).toEqual(["Card", "Joker", "Deck", "Pile", "StockPile", "Foundation", "Solitaire"])
     expect(words.types.Solitaire).toMatchObject({
       dealTheCards: "deal the cards",
       startANewGame: "start a new game",
@@ -34,14 +24,20 @@ describe("SpellWords", () => {
     expect(words.types.StockPile).toEqual({ draw: "draw it" })
   })
 
-  test("the frozen card library's (`cards`):  the card's own, as written", () => {
-    const words = SP.SpellWords.read(fixtureWords("cards"))!
+  test("the counter library's (`counter`):  its own, as written", () => {
+    const words = SP.SpellWords.read(fixtureWords("counter"))!
+    expect(words.types.Counter).toMatchObject({ increment: "increment it", count: "count" })
+  })
+
+  test("Solitaire's card:  its own, as written", () => {
+    const words = SP.SpellWords.read(fixtureWords("Solitaire"))!
     expect(words.types.Card).toMatchObject({
       turnOver: "turn it over",
-      isFaceUp: "is face up",
+      isFaceDirection: "is face (direction)",
       isASuit: "is a (suit)",
-      shortRank: "short rank"
+      symbol: "symbol"
     })
-    expect(words.types.Suit).toEqual({ color: "color", symbol: "symbol" })
+    // a joker's phrase:  a static method of its own, which any card may be asked
+    expect(words.types.Joker).toMatchObject({ isTheColorJoker: "is the (color) joker" })
   })
 })

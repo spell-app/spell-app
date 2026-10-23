@@ -73,7 +73,7 @@ working with code in this repository, `spell-app`.
   - Spell's frozen test projects (`@spell/test`) are HERE, beside the other `@spell` groups:
     [spaces/@spell/test/](spaces/@spell/test/) (spell-lang's from epic `repo-split` P8 until epic `spanish` P18).
     - Owen, 2026-10-22:  "Seems like all of the @spell/ packages should live in spell-app":
-      so a test project may import another `@spell` project:  `lists-from-zero` imports `cards`, a frozen card library.
+      so a test project may import another `@spell` project:  `counter-app` imports `counter`, a frozen counter library.
     - The tests that compile them whole are here too, in [tests/spell/](tests/spell/), the `spell` project:
       their snapshots, `tsc` and pyright on them, whole-project parsing.
       - The examples Solitaire and Solitario are tested as they are, never a frozen copy:
@@ -115,8 +115,9 @@ More on some of them:
     - A checkout from before epic `repo-split` P14 (`lsp/src/server.ts`) doesn't run:  it says so, naming the file.
   - Whose lsp:  the WINDOW's spell-app checkout, found when the server starts, so one install works everywhere:
     - the `spell.parserRoot` setting, if set
-    - else the window's folders, the worktree's before the main checkout's
-      (a folder that is spell-app, holds it, or is inside one)
+    - else the window's folders, the worktree's before the main checkout's:
+      a folder that is spell-app or holds it first, and only then one inside a checkout
+      (so `spell.epics`, inside the main checkout's kit, never wins a worktree's window for main)
     - else, last, the checkout it was built in
     - The extension's output says which it picked;  the code is `findSpellApp()` ([spellAppRoot.ts](vscode/src/spellAppRoot.ts)).
   - The Review tab, the Epic Docs view and the window bridge are spell-epic's own extension, not this one.

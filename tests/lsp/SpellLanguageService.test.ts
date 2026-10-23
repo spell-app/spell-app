@@ -18,7 +18,7 @@ import {
 import { SP } from "spell-lang/spell"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
-import { copyFixtureProject } from "spell-app/spaces/test"
+import { copyFixtureProject, lineOf } from "spell-app/spaces/test"
 
 /**
  * The language service over a real project:  a temp copy of the Solitaire example, its cards, deck and piles too
@@ -26,6 +26,8 @@ import { copyFixtureProject } from "spell-app/spaces/test"
  * so edits and `project.json` syncing never touch the repo, and its `@local/<folder>` project is ours alone.
  * - The card, deck and piles are outlines;  Solitaire's play, `to play a card`, is a sentence.
  * - Lines are 1-based, as an editor shows them.
+ * - The tests name a line of the example by what it says (`lineOf()`, `at()`), never by its number:
+ *   the example is Owen's, and changes.
  */
 describe("SpellLanguageService", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-"))
@@ -40,8 +42,20 @@ describe("SpellLanguageService", () => {
   let card: SP.SpellFile
   let deck: SP.SpellFile
   let solitaire: SP.SpellFile
+  /** Card.spell's line declaring the card's type:  `a "card" is a drawable thing where:`. */
+  const CARD_TYPE = 'a "card" is'
   /** Where Card.spell's type names its card:  `"card"` in `a "card" is a drawable thing where:`, 0-based. */
-  const CARD_NAME = { start: { line: 3, character: 2 }, end: { line: 3, character: 8 } }
+  const CARD_NAME = rangeAt(cardText, CARD_TYPE, '"card"')
+  /** The call to a method of the card's own, in its `to turn it over`. */
+  const TURN_CALL = "await turn it face down"
+  /** Card.spell's line declaring the card's suit, a property whose values it lists. */
+  const SUIT = '- its "suit" is one of'
+  /** Card.spell's line declaring the card's direction, which `- to turn it face up:` sets. */
+  const DIRECTION = '- its "direction" is'
+  /** The first line of `- to turn it face up:`'s body. */
+  const SET_DIRECTION = "set its direction to up"
+  /** Solitaire.spell's lines naming the variable `cards`, in `- to reset the stock:`:  it's set, then read twice. */
+  const RESET_CARDS = ["set cards to", "reverse the cards", "for each card in the cards"] as const
   /** A card, as Solitaire.spell's last line can name one. */
   const TOP_CARD = "the last card of the stock of solitaire"
 
@@ -127,18 +141,84 @@ describe("SpellLanguageService", () => {
     })
   })
 
+  describe("test results (spell/testDiagnostics)", () => {
+    /** What `core.expect()` printed for `what` that should be `expected`, failing. */
+    const failed = (what: string, expected: string, actual: string) =>
+      `Unexpected: \`${what}\` should be \`${expected}\` but is actually \`${actual}\``
+
+    test("a failed check is an error on the line that says it, with what it printed", () => {
+      const message = failed("it is the queen of spades", "yes", "false")
+      const answer = service.testDiagnostics(card.project, [
+        {
+          name: "test card setup",
+          method: "testCardSetup",
+          passed: false,
+          failures: [{ what: "it is the queen of spades", expected: "yes", message, occurrence: 0 }]
+        }
+      ])
+      // every file of the project, so one whose tests now pass is cleared
+      expect(answer.map(({ uri }) => uri)).toEqual(card.project.spellFiles.map((file) => workspace.uriFor(file)))
+      const [diagnostic, ...others] = answer.flatMap(({ diagnostics }) => diagnostics)
+      expect(others).toEqual([])
+      expect(answer.find(({ uri }) => uri === cardUri)?.diagnostics).toEqual([diagnostic])
+      // under its text, after the tab it's indented by
+      const text = "it is the queen of spades should be yes"
+      const line = lineOf(cardText, text) - 1
+      expect(diagnostic).toEqual({
+        range: { start: { line, character: 1 }, end: { line, character: 1 + text.length } },
+        severity: DiagnosticSeverity.Error,
+        source: "spell test",
+        message
+      })
+    })
+
+    test("a check its test says twice is found by which time it ran", () => {
+      // the deck's count, before and after it's shuffled
+      const what = "the number of cards in the deck"
+      const failures = [0, 1].map((occurrence) => ({
+        what,
+        expected: "52",
+        message: failed(what, "52", "51"),
+        occurrence
+      }))
+      const test = { name: "test deck creation", method: "testDeckCreation", passed: false, failures }
+      const [{ diagnostics }] = service.testDiagnostics(card.project, [test]).filter(({ uri }) => uri === deckUri)
+      const written = `${what} should be 52`
+      expect(diagnostics.map(({ range }) => range.start.line + 1)).toEqual([
+        lineOf(deck.parseText, written, 0),
+        lineOf(deck.parseText, written, 1)
+      ])
+    })
+
+    test("a test that threw is an error on its `to test` line;  a test it can't find, or one that passed, on none", () => {
+      const threw = 'Error in test "test jokers": oops'
+      const answer = service.testDiagnostics(card.project, [
+        { name: "test jokers", method: "testJokers", passed: false, failures: [], threw },
+        { name: "test card setup", method: "testCardSetup", passed: true, failures: [] },
+        { name: "test elsewhere", method: "testElsewhere", passed: false, failures: [], threw: "gone" }
+      ])
+      const diagnostics = answer.flatMap(({ diagnostics }) => diagnostics)
+      expect(diagnostics.map(({ range, message }) => [range.start.line + 1, message])).toEqual([
+        [lineOf(cardText, "to test jokers"), threw]
+      ])
+    })
+  })
+
   describe("structure", () => {
     test("folding ranges", () => {
       const folds = service
         .foldingRanges(card)
         .map(({ startLine, endLine, kind }) => `${startLine + 1}-${endLine + 1}${kind ? ` ${kind}` : ""}`)
-      // `- the "color" of a suit is:` + its body
-      expect(folds).toContain("11-13")
+      /** `first` line to `last`, as `folds` says it, e.g. `16-18`. */
+      const fold = (first: string, last: string, kind = "") =>
+        `${lineOf(cardText, first)}-${lineOf(cardText, last)}${kind && ` ${kind}`}`
+      // `- its "color" is:` + its body
+      expect(folds).toContain(fold('- its "color" is:', "black otherwise"))
       // `- to draw it:` + its body, and the multi-line JSX in it
-      expect(folds).toContain("67-74")
-      expect(folds).toContain("72-74")
-      // `## its picture: ...` and the comments under it
-      expect(folds).toContain("52-56 comment")
+      expect(folds).toContain(fold("- to draw it:", "</ui-text>"))
+      expect(folds).toContain(fold("<ui-text", "</ui-text>"))
+      // the comments above `- its "picture" is:`
+      expect(folds).toContain(fold("// Card picture:", "// - SEE:", "comment"))
       expect(folds).toMatchSnapshot()
     })
 
@@ -161,8 +241,8 @@ describe("SpellLanguageService", () => {
     })
 
     test("selection ranges grow from the word at the cursor out to the whole file", () => {
-      // on `suit` in `- its "suit" is a suit`
-      const position: Position = at(card, 23, "suit")
+      // on `suit` in `- its "suit" is one of clubs, ...`
+      const position: Position = at(card, SUIT, "suit")
       const [selection] = service.selectionRanges(card, [position])
       const texts: string[] = []
       for (let at: SelectionRange | undefined = selection; at; at = at.parent) {
@@ -170,25 +250,45 @@ describe("SpellLanguageService", () => {
         texts.push(card.parseText.slice(start, service.offsetAt(card, at.range.end)))
       }
       expect(texts[0]).toBe('"suit"')
-      expect(texts).toContain('its "suit" is a suit')
+      // the statement, without its outline's `- `
+      expect(texts).toContain(card.parseText.split("\n")[position.line]!.trim().replace(/^- /, ""))
       expect(texts.at(-1)).toBe(card.parseText)
     })
   })
 
   describe("highlighting", () => {
     test("semantic tokens", () => {
-      // declarations, enumerations, method definitions and calls, JSX
-      // ... and a quoted phrase's typed blank, `(color as a color)`, where it sits in the line
-      expect(describeTokens(card, [4, 7, 23, 32, 67, 78, 85])).toMatchSnapshot()
+      const lines = [
+        // a declaration
+        CARD_TYPE,
+        // properties, their values listed
+        '- its "rank" is one of',
+        SUIT,
+        // a quoted phrase, and its condition
+        '- it "is a face card" if',
+        // method definitions and calls, JSX
+        "- to draw it:",
+        "<ui-text",
+        "{its picture}",
+        "- to turn it face up:",
+        TURN_CALL
+      ].map((line) => lineOf(cardText, line))
+      expect(describeTokens(card, lines)).toMatchSnapshot()
     })
 
     test("a declared name, a built-in type, and calls to the project's own methods", () => {
-      const tokens = describeTokens(card, [4, 78, 85])
-      expect(tokens).toContain(`4:2 "\\"card\\"" type declaration`)
-      expect(tokens).toContain(`4:23 "thing" type defaultLibrary`)
-      expect(tokens).toContain(`78:6 "turn" function declaration`)
-      expect(tokens).toContain(`85:20 "turn" function`)
-      expect(tokens).toContain(`85:25 "it" variable`)
+      const lines = [CARD_TYPE, "- to turn it face up:", TURN_CALL].map((line) => lineOf(cardText, line))
+      const tokens = describeTokens(card, lines)
+      /** `word` on `line`, as `describeTokens()` says it, with token `type` and its modifiers. */
+      const token = (line: string, word: string, type: string) => {
+        const { line: index, character } = at(card, line, word)
+        return `${index + 1}:${character} ${JSON.stringify(word)} ${type}`
+      }
+      expect(tokens).toContain(token(CARD_TYPE, '"card"', "type declaration"))
+      expect(tokens).toContain(token(CARD_TYPE, "thing", "type defaultLibrary"))
+      expect(tokens).toContain(token("- to turn it face up:", "turn", "function declaration"))
+      expect(tokens).toContain(token(TURN_CALL, "turn", "function"))
+      expect(tokens).toContain(token(TURN_CALL, "it", "variable"))
     })
 
     test("a heading comment's level is its number of `#`s -- a `//` one has none", async () => {
@@ -239,89 +339,104 @@ describe("SpellLanguageService", () => {
 
   describe("hover", () => {
     test("on a type:  what it is, and where it's declared", () => {
-      const hover = service.hover(deck, at(deck, 3, "card"))
+      const hover = service.hover(deck, at(deck, 'a "deck" is', "card"))
       const markdown = (hover!.contents as { value: string }).value
       expect(markdown).toContain("type **Card** is a Drawable")
-      expect(markdown).toContain("[Card.spell:4]")
+      expect(markdown).toContain(`[Card.spell:${lineOf(cardText, CARD_TYPE)}]`)
     })
 
     test("on a method call:  its signature, and the javascript it becomes", () => {
-      const markdown = (service.hover(card, at(card, 85, "turn"))!.contents as { value: string }).value
+      const markdown = (service.hover(card, at(card, TURN_CALL, "turn"))!.contents as { value: string }).value
       expect(markdown).toContain("method **turn it face down**")
       expect(markdown).toContain("compiles to `turnFaceDown()`")
-      expect(markdown).toContain("```js\nif (this.isFaceUp) this.turnFaceDown()\n```")
+      expect(markdown).toContain("```js\nawait this.turnFaceDown()\n```")
     })
 
     test("a declaration's docstring, just under its name", () => {
       // `// a tableau:  a column, ...` is directly above `a "tableau" is a pile where:`
-      const markdown = (service.hover(solitaire, at(solitaire, 266, "tableau"))!.contents as { value: string }).value
+      const position = at(solitaire, 'a "tableau" is', "tableau")
+      const markdown = (service.hover(solitaire, position)!.contents as { value: string }).value
       expect(markdown).toContain(
         "type **Tableau** is a Pile\n\na tableau:  a column, built down from king to ace, red and black in turn\n\n"
       )
     })
 
     test("nothing on a blank line", () => {
-      // between the card's outline and the joker's
-      expect(service.hover(card, { line: 88, character: 0 })).toBeNull()
+      // between the card's tests and the joker's outline, 0-based
+      expect(service.hover(card, { line: lineOf(cardText, "## A joker") - 2, character: 0 })).toBeNull()
     })
   })
 
   describe("navigation", () => {
     test("definition of a type, from another file", () => {
-      expect(service.definition(deck, at(deck, 3, "card"))).toEqual([{ uri: cardUri, range: CARD_NAME }])
+      expect(service.definition(deck, at(deck, 'a "deck" is', "card"))).toEqual([{ uri: cardUri, range: CARD_NAME }])
     })
 
     test("definition of a method, from a call", () => {
-      const [location] = service.definition(card, at(card, 85, "turn"))
-      // `- to turn it face down:`
-      expect(location!.range.start).toEqual({ line: 80, character: 6 })
+      const [location] = service.definition(card, at(card, TURN_CALL, "turn"))
+      expect(location!.range.start).toEqual(at(card, "- to turn it face down:", "turn"))
     })
 
     test("type definition of a method's `it`:  the type the method is on", () => {
-      const [location] = service.typeDefinition(card, at(card, 85, "it", 1))
+      const [location] = service.typeDefinition(card, at(card, TURN_CALL, "it"))
       expect(location).toEqual({ uri: cardUri, range: CARD_NAME })
     })
 
     test("definition of a property, from `its ...`:  exactly where its type declares it", () => {
-      // `- its "direction" is up or down`
-      expect(service.definition(card, at(card, 79, "direction"))).toEqual([
-        { uri: cardUri, range: { start: { line: 34, character: 7 }, end: { line: 34, character: 18 } } }
+      expect(service.definition(card, at(card, SET_DIRECTION, "direction"))).toEqual([
+        { uri: cardUri, range: rangeAt(card, DIRECTION, '"direction"') }
       ])
-      const markdown = (service.hover(card, at(card, 79, "direction"))!.contents as { value: string }).value
+      const markdown = (service.hover(card, at(card, SET_DIRECTION, "direction"))!.contents as { value: string }).value
       expect(markdown).toContain("property **direction** of Card")
     })
 
     test("references to a property skip a same-named property of another type", () => {
+      const declared = '- its "name" is'
       const lines = (uri: string) =>
         service
-          .references(card, at(card, 40, "name"))
+          .references(card, at(card, declared, "name"))
           .filter((location) => location.uri === uri)
           .map(({ range }) => range.start.line + 1)
       // `its name should be ...` in Card's test
-      expect(lines(cardUri)).toEqual(expect.arrayContaining([40, 108]))
+      expect(lines(cardUri)).toEqual(
+        expect.arrayContaining([lineOf(cardText, declared), lineOf(cardText, "its name should be")])
+      )
       // `the name of start pile`, which is a pile, not a card
-      expect(lines(solitaireUri)).not.toContain(184)
+      expect(lines(solitaireUri)).not.toContain(lineOf(solitaire.parseText, 'print "turning over ('))
     })
 
     test("references to a property, across files", () => {
-      const files = service.references(deck, at(deck, 21, "short name")).map(({ uri }) => uri.split("/").pop())
-      expect(new Set(files)).toEqual(new Set(["Card.spell", "Deck.spell"]))
+      // the card's rank, read in Deck.spell;  Pile's and Solitaire's tests make cards `whose rank is ...`
+      const read = at(deck, "set the queens to the cards in the deck where the rank of the card", "rank")
+      const files = service.references(deck, read).map(({ uri }) => uri.split("/").pop())
+      expect(new Set(files)).toEqual(new Set(["Card.spell", "Deck.spell", "Pile.spell", "Solitaire.spell"]))
     })
 
     test("document highlights:  the declaration writes, the rest read", () => {
       // `cards`, in Solitaire's `- to reset the stock:`
       const highlights = service
-        .documentHighlights(solitaire, at(solitaire, 47, "cards"))
+        .documentHighlights(solitaire, at(solitaire, RESET_CARDS[0], "cards"))
         .map(({ range, kind }) => `${range.start.line + 1}:${range.start.character} ${kind}`)
-      expect(highlights).toEqual(["47:6 3", "48:14 2", "49:23 2"])
+      /** Where `cards` is on `line`, as `highlights` says it, with its kind:  3 writes, 2 reads. */
+      const highlight = (line: string, kind: number) => {
+        const { line: index, character } = at(solitaire, line, "cards")
+        return `${index + 1}:${character} ${kind}`
+      }
+      expect(highlights).toEqual([
+        highlight(RESET_CARDS[0], 3),
+        highlight(RESET_CARDS[1], 2),
+        highlight(RESET_CARDS[2], 2)
+      ])
     })
 
     test("rename a variable everywhere, and the project still parses the same", async () => {
-      const position = at(solitaire, 47, "cards")
+      const position = at(solitaire, RESET_CARDS[0], "cards")
       expect(service.prepareRename(solitaire, position)).toMatchObject({ placeholder: "cards" })
       const edit = service.rename(solitaire, position, "stack")!
       const edits = edit.changes![solitaireUri]!
-      expect(edits.map(({ range }) => range.start.line + 1)).toEqual([47, 48, 49])
+      expect(edits.map(({ range }) => range.start.line + 1)).toEqual(
+        RESET_CARDS.map((line) => lineOf(solitaire.parseText, line))
+      )
       const renamed = applyEdits(solitaire.parseText, edits)
       expect(renamed).toContain("\t\tset stack to a copy of list (its discards) as a pile\n\t\treverse the stack\n")
       await withText(solitaireUri, solitaire.parseText, renamed, () => {
@@ -330,10 +445,10 @@ describe("SpellLanguageService", () => {
     })
 
     test("won't rename `it`, a property, or a type written in more than one way", () => {
-      expect(service.prepareRename(card, at(card, 85, "it", 1))).toBeNull()
-      expect(service.prepareRename(card, at(card, 79, "direction"))).toBeNull()
-      expect(service.prepareRename(card, at(card, 4, "card"))).toBeNull()
-      expect(service.rename(solitaire, at(solitaire, 47, "cards"), "not a word")).toBeNull()
+      expect(service.prepareRename(card, at(card, TURN_CALL, "it"))).toBeNull()
+      expect(service.prepareRename(card, at(card, SET_DIRECTION, "direction"))).toBeNull()
+      expect(service.prepareRename(card, at(card, CARD_TYPE, "card"))).toBeNull()
+      expect(service.rename(solitaire, at(solitaire, RESET_CARDS[0], "cards"), "not a word")).toBeNull()
     })
   })
 
@@ -347,18 +462,21 @@ describe("SpellLanguageService", () => {
       expect(hover(card, at(card, last, "it"))).toContain("variable **it**: Joker · as `it_2`")
     })
     // the signature of `- to turn it face up`
-    expect(hover(card, at(card, 78, "turn"))).toContain("compiles to `turnFaceUp()`")
+    expect(hover(card, at(card, "- to turn it face up:", "turn"))).toContain("compiles to `turnFaceUp()`")
   })
 
   test("hover says what a variable holds:  an argument, a loop's item, `it`", () => {
     const hover = (file: SP.SpellFile, position: Position) =>
       (service.hover(file, position)!.contents as { value: string }).value
     // a stock pile's `- it can give up a card if: the card is its last card`
-    expect(hover(solitaire, at(solitaire, 239, "card", 1))).toContain("variable **card**: Card · argument")
+    const givesUp = "- it can give up a card if: the card is its last card"
+    expect(hover(solitaire, at(solitaire, givesUp, "card", 1))).toContain("variable **card**: Card · argument")
     // `for each card in the cards` / `add it to the stock of the solitaire`:  the loop's item
-    expect(hover(solitaire, at(solitaire, 50, "it"))).toContain("variable **it**: Card")
-    // `- to turn it over:` / `if it is face up: turn it face down`
-    expect(hover(card, at(card, 85, "it", 1))).toContain("variable **it**: Card")
+    expect(hover(solitaire, at(solitaire, "add it to the stock of the solitaire", "it"))).toContain(
+      "variable **it**: Card"
+    )
+    // `- to turn it over:` / `await turn it face down`
+    expect(hover(card, at(card, TURN_CALL, "it"))).toContain("variable **it**: Card")
   })
 
   /**
@@ -376,9 +494,11 @@ describe("SpellLanguageService", () => {
   }
 
   describe("completion", () => {
+    /** The blank line above Solitaire.spell's `## Start`, after `on card click`:  0-based. */
+    const afterClick = () => ({ line: lineOf(solitaire.parseText, "## Start") - 2, character: 0 })
+
     test("at the start of a statement:  names, statement starts, and the project's methods", () => {
-      // the blank line after `on card click`
-      const labels = service.completion(solitaire, { line: 193, character: 0 }).map(({ label }) => label)
+      const labels = service.completion(solitaire, afterClick()).map(({ label }) => label)
       expect(labels).toEqual(expect.arrayContaining(["to", "if", "set", "card", "deck", "solitaire", "clubs"]))
       expect(labels).toContain("turn it face up")
       // a local of `to play a card`, above:  not out here
@@ -386,20 +506,18 @@ describe("SpellLanguageService", () => {
     })
 
     test("with docstrings", () => {
-      const items = service.completion(solitaire, { line: 193, character: 0 })
+      const items = service.completion(solitaire, afterClick())
       const docs = (label: string) =>
         (items.find((item) => item.label === label)?.documentation as { value: string })?.value
       expect(docs("card")).toBe(
         "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\n" +
-          "A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`."
+          "A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`."
       )
       expect(docs("turn it face up")).toBe("each pauses a moment, so `wait for: turn the card face up` animates")
     })
 
     test("a method comes as a snippet, with its arguments' names", () => {
-      const item = service
-        .completion(solitaire, { line: 193, character: 0 })
-        .find(({ label }) => label === "play a card")
+      const item = service.completion(solitaire, afterClick()).find(({ label }) => label === "play a card")
       expect(item).toMatchObject({ insertText: "play ${1:card}", insertTextFormat: 2 })
     })
 
@@ -540,7 +658,8 @@ describe("SpellLanguageService", () => {
 
     test("mid-statement:  names, but no statement starts", () => {
       // in `to play a card`'s `get the last card of the start pile`
-      const labels = service.completion(solitaire, at(solitaire, 183, "the last")).map(({ label }) => label)
+      const position = at(solitaire, "get the last card of the start pile", "the last")
+      const labels = service.completion(solitaire, position).map(({ label }) => label)
       expect(labels).toEqual(expect.arrayContaining(["solitaire", "start-pile", "card"]))
       expect(labels).not.toContain("to")
     })
@@ -555,9 +674,8 @@ describe("SpellLanguageService", () => {
       "\tprint the short colour of the card"
     ]
     const text = `${cardText.trimEnd()}\n${added.join("\n")}\n`
-    const lineOf = (line: string) => text.split("\n").indexOf(line) + 1
-    const getterLine = lineOf(added[0]!)
-    const readLine = lineOf(added[3]!)
+    const getterLine = lineOf(text, added[0]!)
+    const readLine = lineOf(text, added[3]!.trim())
 
     test("hover, on any of its words:  the property, as written", async () => {
       await withCardText(text, () => {
@@ -582,19 +700,22 @@ describe("SpellLanguageService", () => {
 
     test("its type's hover lists it as written", async () => {
       await withCardText(text, () => {
-        const markdown = (service.hover(card, at(card, 4, "card"))!.contents as { value: string }).value
+        const markdown = (service.hover(card, at(card, CARD_TYPE, "card"))!.contents as { value: string }).value
         expect(markdown).toMatch(/properties: .*short colour/)
       })
     })
 
     test("completion after `the ` offers properties, as written", async () => {
-      await typedAtEnd("print the ", (position) => {
-        const properties = service
-          .completion(solitaire, position)
-          .filter(({ kind }) => kind === CompletionItemKind.Property)
-          .map(({ label }) => label)
-        expect(properties).toEqual(expect.arrayContaining(["short suit", "direction", "pile"]))
-      })
+      // in Solitaire.spell, with the card's getter
+      await withCardText(text, () =>
+        typedAtEnd("print the ", (position) => {
+          const properties = service
+            .completion(solitaire, position)
+            .filter(({ kind }) => kind === CompletionItemKind.Property)
+            .map(({ label }) => label)
+          expect(properties).toEqual(expect.arrayContaining(["short colour", "direction", "pile"]))
+        })
+      )
     })
   })
 
@@ -607,13 +728,11 @@ describe("SpellLanguageService", () => {
       "shuffle the hand"
     ]
     const text = `${cardText.trimEnd()}\n${added.join("\n")}\n`
-    const lineOf = (line: string) => text.split("\n").indexOf(line) + 1
 
     test("hover on a member:  which type's it is, what it is, and its docs", async () => {
       await withCardText(text, () => {
         expect(errorsIn(service, card)).toEqual([])
-        const markdown = (service.hover(card, at(card, lineOf(added[1]!), "length"))!.contents as { value: string })
-          .value
+        const markdown = (service.hover(card, at(card, added[1]!, "length"))!.contents as { value: string }).value
         expect(markdown).toContain("property **length** of Text · a number")
         expect(markdown).toContain("How many characters it has")
       })
@@ -621,8 +740,7 @@ describe("SpellLanguageService", () => {
 
     test("hover on a built-in rule:  the member it spells, with its docs", async () => {
       await withCardText(text, () => {
-        const markdown = (service.hover(card, at(card, lineOf(added[3]!), "shuffle"))!.contents as { value: string })
-          .value
+        const markdown = (service.hover(card, at(card, added[3]!, "shuffle"))!.contents as { value: string }).value
         expect(markdown).toContain("built in:  **shuffle (a list)** of list")
         expect(markdown).toContain("Put it in random order")
       })
@@ -739,17 +857,25 @@ describe("SpellLanguageService", () => {
       }
     })
 
-    /** Card.spell, untidy:  a tab alone on a blank line, trailing spaces, and a tab between two words. */
-    const untidy = cardText
-      .replace(
-        "its short rank + its short suit + its short direction\n\n",
-        "its short rank + its short suit + its short direction\n\t\n"
-      )
-      .replace("\t- to turn it face up:\n", "\t- to turn it face up:  \n")
-      .replace("\t- to turn it face down:\n", "\t- to turn it face down: \n")
-      .replace("\t\tset its direction to up\n", "\t\tset its\tdirection to up\n")
+    /**
+     * Card.spell as formatting leaves it, then untidy again:
+     * a tab alone on its outline's first blank line, trailing spaces, and a tab between two words.
+     * - Tidied first, so the edits are this test's:  the example may have untidy lines of its own.
+     */
+    function untidyCard() {
+      const tidy = applyEdits(cardText, service.formatting(card, tabs))
+      const blank = tidy.indexOf("\n\n", tidy.indexOf(CARD_TYPE)) + 1
+      const untidy = `${tidy.slice(0, blank)}\t${tidy.slice(blank)}`
+        .replace("\t- to turn it face up:\n", "\t- to turn it face up:  \n")
+        .replace("\t- to turn it face down:\n", "\t- to turn it face down: \n")
+        .replace(`\t\t${SET_DIRECTION}\n`, `\t\tset its\tdirection to up\n`)
+      /** 1-based line of `start` in the tidy card -- see `lineOf()`. */
+      const tidyLine = (start: string) => lineOf(tidy, start)
+      return { untidy, blankLine: tidy.slice(0, blank).split("\n").length, tidyLine }
+    }
 
     test("one edit per changed line", async () => {
+      const { untidy, blankLine, tidyLine } = untidyCard()
       expect(untidy).not.toBe(cardText)
       await withCardText(untidy, () => {
         const edits = service
@@ -757,32 +883,33 @@ describe("SpellLanguageService", () => {
           .map(({ range, newText }) => `${range.start.line + 1}: ${JSON.stringify(newText)}`)
         expect(edits).toEqual([
           // a tab alone on a blank line
-          '51: ""',
+          `${blankLine}: ""`,
           // trailing spaces
-          '78: "\\t- to turn it face up:"',
+          `${tidyLine("- to turn it face up:")}: "\\t- to turn it face up:"`,
           // a tab between two words
-          '79: "\\t\\tset its direction to up"',
-          '81: "\\t- to turn it face down:"'
+          `${tidyLine(SET_DIRECTION)}: "\\t\\t${SET_DIRECTION}"`,
+          `${tidyLine("- to turn it face down:")}: "\\t- to turn it face down:"`
         ])
       })
     })
 
     test("a range formats only the lines it touches", async () => {
+      const { untidy, tidyLine } = untidyCard()
       await withCardText(untidy, () => {
-        const range = { start: { line: 78, character: 0 }, end: { line: 78, character: 5 } }
-        expect(service.formatting(card, tabs, range).map(({ range }) => range.start.line + 1)).toEqual([79])
+        // `set its direction to up`, 0-based:  not the untidy lines above and below it
+        const line = tidyLine(SET_DIRECTION) - 1
+        const range = { start: { line, character: 0 }, end: { line, character: 5 } }
+        expect(service.formatting(card, tabs, range).map(({ range }) => range.start.line)).toEqual([line])
       })
     })
 
     test("tabs, even if the editor says spaces", () => {
       // the whole body of `- to turn it face up`, indented with spaces
-      const spaced = card.contents!.replace(
-        "\t\tset its direction to up\n\t\tpause",
-        "    set its direction to up\n    pause"
-      )
+      const spaced = card.contents!.replace(`\t\t${SET_DIRECTION}\n\t\tpause`, `    ${SET_DIRECTION}\n    pause`)
       return withText(cardUri, cardText, spaced, () => {
         const edits = service.formatting(card, { tabSize: 2, insertSpaces: true })
-        expect(edits.find(({ range }) => range.start.line === 78)?.newText).toBe("\t\tset its direction to up")
+        const line = lineOf(cardText, SET_DIRECTION) - 1
+        expect(edits.find(({ range }) => range.start.line === line)?.newText).toBe(`\t\t${SET_DIRECTION}`)
       })
     })
   })
@@ -864,6 +991,10 @@ describe("SpellLanguageService", () => {
       'a "card" is a drawable thing where:\n',
       'a "card" is a drawable thing where:\n\t<css>\n\t\t.red { colr: red }\n\t</css>\n'
     )
+    /** The block's `<css>` line, 0-based:  just under the card's declaration. */
+    const block = lineOf(cardText, CARD_TYPE)
+    /** Its `.red { colr: red }` line, 0-based. */
+    const rule = block + 1
 
     test("errors:  CSS mistakes, and none of spell's own:  it's spell's `css_block`", async () => {
       await withCardText(withBlock, () => {
@@ -871,7 +1002,7 @@ describe("SpellLanguageService", () => {
           {
             source: "css",
             message: "Unknown property: 'colr'",
-            range: { start: { line: 5, character: 9 }, end: { line: 5, character: 13 } }
+            range: { start: { line: rule, character: 9 }, end: { line: rule, character: 13 } }
           }
         ])
       })
@@ -879,17 +1010,18 @@ describe("SpellLanguageService", () => {
 
     test("completion and hover are CSS's inside it", async () => {
       await withCardText(withBlock, () => {
-        const labels = service.completion(card, { line: 5, character: 12 }).map((item) => item.label)
+        const labels = service.completion(card, { line: rule, character: 12 }).map((item) => item.label)
         expect(labels).toContain("color")
         expect(labels).not.toContain("card")
-        expect(service.hover(card, { line: 5, character: 4 })).toBeDefined()
+        expect(service.hover(card, { line: rule, character: 4 })).toBeDefined()
       })
     })
 
     test("no spell colouring in the block;  it folds", async () => {
       await withCardText(withBlock, () => {
-        expect(describeTokens(card, [5, 6, 7])).toEqual([])
-        expect(service.foldingRanges(card)).toContainEqual({ startLine: 4, endLine: 6 })
+        // its three lines, 1-based
+        expect(describeTokens(card, [block + 1, block + 2, block + 3])).toEqual([])
+        expect(service.foldingRanges(card)).toContainEqual({ startLine: block, endLine: block + 2 })
       })
     })
   })
@@ -913,33 +1045,36 @@ describe("SpellLanguageService", () => {
   })
 
   describe("membership and guards", () => {
-    // the card library's cards belong to one pile;  Solitaire's piles say what each can take and give up
+    // a card belongs to one pile;  Solitaire's piles say what each can take and give up
     const pileUri = pathToFileURL(resolve(dir, "Solitaire/Pile.spell")).href
-    const readLine = solitaireLineOf("\tset start pile to the pile of the card")
-    /** Hover's markdown at `word` on 1-based `line` of `file`. */
-    const hoverAt = (file: SP.SpellFile, line: number, word: string, nth = 0) =>
+    /** Pile.spell's `a card belongs to one pile`, 1-based. */
+    const belongsLine = lineOf(readFileSync(resolve(dir, "Solitaire/Pile.spell"), "utf8"), "a card belongs to one pile")
+    /** Where `deal the cards` reads a card's pile. */
+    const read = "set start pile to the pile of the card"
+    /** Hover's markdown at `word` on `line` of `file` -- see `at()`. */
+    const hoverAt = (file: SP.SpellFile, line: number | string, word: string, nth = 0) =>
       (service.hover(file, at(file, line, word, nth))!.contents as { value: string }).value
 
     test("hover on `the pile of the card`:  the pile holding it, from the `belongs to one` line", () => {
-      expect(hoverAt(solitaire, readLine, "pile", 1)).toContain(
+      expect(hoverAt(solitaire, read, "pile", 1)).toContain(
         "property **pile** of Card · a Pile · the Pile holding it, read-only:  it belongs to one at a time"
       )
-      expect(hoverAt(solitaire, readLine, "pile", 1)).toMatch(/declared in \[Pile\.spell:22\]/)
+      expect(hoverAt(solitaire, read, "pile", 1)).toContain(`declared in [Pile.spell:${belongsLine}]`)
     })
 
     test("go to definition:  the `belongs to one` line", () => {
-      const [location] = service.definition(solitaire, at(solitaire, readLine, "pile", 1))
+      const [location] = service.definition(solitaire, at(solitaire, read, "pile", 1))
       expect(location?.uri).toBe(pileUri)
-      expect(location?.range.start.line).toBe(21)
+      expect(location?.range.start.line).toBe(belongsLine - 1)
     })
 
     test("hover on `belongs to one`, and on a guard:  their rules and what they mean", () => {
       const pile = card.project.spellFiles.find((it) => it.path.endsWith("/Pile.spell"))!
-      const belongs = hoverAt(pile, 22, "belongs")
+      const belongs = hoverAt(pile, belongsLine, "belongs")
       expect(belongs).toContain("**belongs_to_one**")
       expect(belongs).toContain("built in:  **(a thing) belongs to one (list)** of thing")
-      // a tableau's `- it can take a card if:`
-      const guard = hoverAt(solitaire, 268, "take")
+      // a tableau's `- it can take a card if:`:  the second, after the foundation's
+      const guard = hoverAt(solitaire, lineOf(solitaire.parseText, "- it can take a card if:", 1), "take")
       expect(guard).toContain("**list_guard**")
       expect(guard).toContain("built in:  **(a list) can take (a thing)** of list")
       expect(guard).toContain("Tableau.prototype.canTake = function (card) {")
@@ -956,11 +1091,6 @@ describe("SpellLanguageService", () => {
         )
       })
     })
-
-    /** 1-based line of `line` in Solitaire.spell. */
-    function solitaireLineOf(line: string): number {
-      return readFileSync(resolve(dir, "Solitaire/Solitaire.spell"), "utf8").split("\n").indexOf(line) + 1
-    }
   })
 
   /** Run `check` with `to deal a card onto a pile` added to the end of Solitaire.spell, then ALWAYS take it out. */
@@ -975,14 +1105,19 @@ describe("SpellLanguageService", () => {
   }
 
   /** Run `check` with Card.spell's open text set to `text`, then ALWAYS put the original back. */
-  function withCardText(text: string, check: (changed: SP.SpellFile[]) => void) {
+  function withCardText(text: string, check: (changed: SP.SpellFile[]) => void | Promise<void>) {
     return withText(cardUri, cardText, text, check)
   }
 
   /** Run `check` with document `uri`'s open text set to `text`, then ALWAYS put back `original`. */
-  async function withText(uri: string, original: string, text: string, check: (changed: SP.SpellFile[]) => void) {
+  async function withText(
+    uri: string,
+    original: string,
+    text: string,
+    check: (changed: SP.SpellFile[]) => void | Promise<void>
+  ) {
     try {
-      check(await workspace.update(uri, text))
+      await check(await workspace.update(uri, text))
     } finally {
       await workspace.update(uri, original)
     }
@@ -1013,8 +1148,8 @@ describe("SpellLanguageService", () => {
 })
 
 /**
- * An OUTLINE project (epic page `outline-spell`):  a temp copy of the Solitaire fixture, with the card library's
- * files, whose deck, card and piles are written as outlines.
+ * An OUTLINE project (epic page `outline-spell`):  a temp copy of the Solitaire example,
+ * whose card, deck and piles are written as outlines.
  */
 describe("SpellLanguageService, outline style", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-outline-"))
@@ -1035,14 +1170,17 @@ describe("SpellLanguageService, outline style", () => {
   })
 
   test("hover on an outline line:  how the sentence style says it", () => {
-    const hoverOn = (line: number, word: string) =>
+    const hoverOn = (line: string, word: string) =>
       (service.hover(card, at(card, line, word))!.contents as { value: string }).value
-    expect(hoverOn(23, "suit").split("\n")[0]).toMatchInlineSnapshot(`"**Reads as**  \`a card has a suit as a suit\`"`)
-    expect(hoverOn(28, "is a (suit)").split("\n")[0]).toMatchInlineSnapshot(
+    // a property, its values listed;  a quoted phrase with a blank;  a quoted phrase with an `if`
+    expect(hoverOn('- its "suit" is one of', "suit").split("\n")[0]).toMatchInlineSnapshot(
+      `"**Reads as**  \`a card has a suit as one of clubs, diamonds, hearts or spades\`"`
+    )
+    expect(hoverOn('- it "is a (suit)"', "is a (suit)").split("\n")[0]).toMatchInlineSnapshot(
       `"**Reads as**  \`a card "is a (suit)" for its suits\`"`
     )
-    expect(hoverOn(36, "face up").split("\n")[0]).toMatchInlineSnapshot(
-      `"**Reads as**  \`a card "is face up" if its direction is up\`"`
+    expect(hoverOn('- it "is a face card" if', "face card").split("\n")[0]).toMatchInlineSnapshot(
+      `"**Reads as**  \`a card "is a face card" if its rank is jack, queen or king\`"`
     )
   })
 
@@ -1053,13 +1191,30 @@ describe("SpellLanguageService, outline style", () => {
   })
 })
 
-/** Position of the `nth` (0-based) `word` on 1-based `line` of `file`. */
-function at(file: SP.SpellFile, line: number, word: string, nth = 0): Position {
-  const text = file.parseText.split("\n")[line - 1]!
-  let character = -1
-  for (let count = 0; count <= nth; count++) character = text.indexOf(word, character + 1)
-  if (character < 0) throw new Error(`No '${word}' on line ${line} of ${file.file}`)
-  return { line: line - 1, character }
+/**
+ * Position of the `nth` (0-based) `word` on `line` of `source`:
+ * 1-based, or the first line starting with that text (see `lineOf()`).
+ * - Only where a word starts:  the `it` of `await` isn't one.
+ * - `source` is a file, or its text.
+ */
+function at(source: SP.SpellFile | string, line: number | string, word: string, nth = 0): Position {
+  const text = typeof source === "string" ? source : source.parseText
+  const number = typeof line === "number" ? line : lineOf(text, line)
+  const lineText = text.split("\n")[number - 1]!
+  const starts: number[] = []
+  for (let index = lineText.indexOf(word); index >= 0; index = lineText.indexOf(word, index + 1)) {
+    if (!/[\p{L}\p{N}_]/u.test(lineText[index - 1] ?? "")) starts.push(index)
+  }
+  const character = starts[nth]
+  const name = typeof source === "string" ? "the text" : source.file
+  if (character === undefined) throw new Error(`No '${word}' #${nth + 1} on line ${number} of ${name}`)
+  return { line: number - 1, character }
+}
+
+/** Range of the `nth` (0-based) `word` on `line` of `source` -- see `at()`. */
+function rangeAt(source: SP.SpellFile | string, line: number | string, word: string, nth = 0): Range {
+  const start = at(source, line, word, nth)
+  return { start, end: { line: start.line, character: start.character + word.length } }
 }
 
 /** `text` without blank lines, or whitespace at the end of any line. */
