@@ -695,6 +695,97 @@ describe("spell test --name", () => {
   })
 })
 
+describe("spell lang translate (epic spanish P24)", () => {
+  /** A small game, in English. */
+  const GAME = [
+    'a "card" is a thing where:',
+    '\t- its "rank" is one of ace or king',
+    '\t- it "is a (rank)"',
+    "",
+    "to test cards",
+    "\tget a new card whose rank is ace",
+    "\tit is an ace should be yes",
+    "\tit is a king should be no",
+    ""
+  ].join("\n")
+
+  /** Its names in Spanish, as a person (or `claude -p`) left them. */
+  const NAMES = {
+    types: { card: { name: "carta", gender: "feminine" }, game: { name: "juego" } },
+    names: { rank: "rango", ace: "as", king: "rey", game: "juego" },
+    phrases: { "is a (rank)": "es un (rango)", cards: "las cartas" }
+  }
+
+  test("writes the project in Spanish:  its files renamed, lint clean;  --update rewrites only the line that changed", () => {
+    const folder = tempProject("Game", GAME)
+    writeFileSync(resolve(folder, "Game.es.names.json5"), JSON.stringify(NAMES))
+    const out = resolve(TEMP, "Juego")
+    const first = spell(["lang", "translate", folder, "--to", "es", "--no-ai", "--out", out])
+    expect(first.status).toBe(0)
+    expect(first.stdout).toContain("9 of 9 lines translated")
+    expect(readFileSync(resolve(out, "Juego.es.spell"), "utf8")).toBe(
+      [
+        'una "carta" es una cosa donde:',
+        '\t- su "rango" es uno de as o rey',
+        '\t- "es un (rango)"',
+        "",
+        "para probar las cartas",
+        "\tobtener una nueva carta cuyo rango es as",
+        "\tes un as debería ser sí",
+        "\tes un rey debería ser no",
+        ""
+      ].join("\n")
+    )
+    expect(JSON.parse(readFileSync(resolve(out, SP.PROJECT_FILE), "utf8")).imports).toEqual([
+      { path: "/Juego.es.spell", active: true }
+    ])
+    expect(spell(["lint", out]).status).toBe(0)
+
+    // one line changed in English:  one line changed in Spanish, a hand edit elsewhere kept
+    const spanish = resolve(out, "Juego.es.spell")
+    writeFileSync(
+      spanish,
+      readFileSync(spanish, "utf8").replace("para probar las cartas", "para probar las cartas  // a mano")
+    )
+    writeFileSync(
+      resolve(folder, "Game.spell"),
+      GAME.replace("it is a king should be no", "it is a king should be yes")
+    )
+    const update = spell(["lang", "translate", folder, "--to", "es", "--no-ai", "--update", "--out", out])
+    expect(update.status).toBe(0)
+    expect(update.stdout).toContain("1 of 9 lines translated")
+    const lines = readFileSync(spanish, "utf8").split("\n")
+    expect(lines[4]).toBe("para probar las cartas  // a mano")
+    expect(lines[7]).toBe("\tes un rey debería ser sí")
+  })
+
+  test("a name the dictionary lacks, with --no-ai:  kept as written, marked TODO in the line and the dictionary, exit 1", () => {
+    const folder = tempProject("Deck", 'a "deck" is a thing\n')
+    const { status, stdout } = spell([
+      "lang",
+      "translate",
+      folder,
+      "--to",
+      "es",
+      "--no-ai",
+      "--out",
+      resolve(TEMP, "Mazo")
+    ])
+    expect(status).toBe(1)
+    expect(stdout).toContain('Deck.spell:1  types "deck"')
+    expect(readFileSync(resolve(TEMP, "Mazo", "Deck.es.spell"), "utf8")).toBe(
+      'un "deck" es una cosa  // TODO: translate (types "deck")\n'
+    )
+    expect(readFileSync(resolve(folder, "Deck.es.names.json5"), "utf8")).toContain('"deck": {\n      "name": "TODO"')
+  })
+
+  test("a language with no pack:  says which there are, exit 2", () => {
+    const { status, stderr } = spell(["lang", "translate", tempProject("Klingon", "print 1\n"), "--to", "tlh"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("No language pack 'tlh':  try en, es")
+  })
+})
+
 describe("spell projects", () => {
   test("lists the groups, each by its address", () => {
     const { status, stdout } = spell(["projects"])
