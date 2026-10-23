@@ -4,6 +4,8 @@
 a "pile" is a drawable list of cards where:
 	// what the game calls it, e.g. "stock"
 	- its "name" is text
+	// how its cards lie:  on top of each other, down a column, along a row, or fanned as a hand is held -- styles.css
+	- its "layout" is one of stacked, vertical, horizontal or fanned
 	// the color and value of its last card:  what the next card goes on
 	- its "color" is:
 		"none" if it is empty

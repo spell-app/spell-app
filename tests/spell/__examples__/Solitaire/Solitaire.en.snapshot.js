@@ -40,16 +40,23 @@ export const words = {
     },
     Pile: {
       name: "name",
+      layout: "layout",
       color: "color",
       value: "value",
       state: "state"
     },
     StockPile: {
-      draw: "draw it"
+      layout: "layout"
+    },
+    DiscardPile: {
+      layout: "layout"
     },
     Foundation: {
-      suit: "suit",
-      draw: "draw it"
+      layout: "layout",
+      suit: "suit"
+    },
+    Tableau: {
+      layout: "layout"
     },
     Solitaire: {
       score: "score",

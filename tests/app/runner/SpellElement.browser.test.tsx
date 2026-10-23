@@ -244,10 +244,63 @@ describe("SpellElement", () => {
       expect(bareElement.shadowRoot!.innerHTML).toContain("<slot></slot>")
       expect([...bareElement.children].map((child) => child.localName)).toEqual(["game-chip"])
       expect([...spotsElement.children].map((child) => child.outerHTML)).toEqual([
-        expect.stringMatching(/^<div class="spot"><game-chip[^>]*><\/game-chip><\/div>$/)
+        expect.stringMatching(/^<div class="spot"[^>]*><game-chip[^>]*><\/game-chip><\/div>$/)
       ])
       dispose.unmount()
       root.remove()
+    })
+
+    /** A heap of a family:  a chip is in one pot at a time, so putting it in another MOVES it. */
+    class Pot extends DrawableList<Chip> {
+      static elementTag = core.defineElement(this, "Game")
+      static instanceType = Chip
+      static exclusive = true
+    }
+
+    /** `pots` drawn side by side, apart, in a new root on the page:  returns the root and how to take it down. */
+    async function drawPots(...pots: Pot[]) {
+      const root = document.createElement("div")
+      root.style.cssText = "display: flex; gap: 50px"
+      document.body.append(root)
+      const mounted = core.mountApp({ draw: () => pots.map((pot) => core.drawThing(pot)) }, root)
+      flush()
+      await ElementFixture.settle(root)
+      return { root, done: () => (mounted.unmount(), root.remove()) }
+    }
+
+    test("numbers its children for CSS:  each one's --index from 0, its own --count;  again as they change (outline-spell P27)", async () => {
+      const pot = new Pot()
+      core.append(pot, new Chip("a"), new Chip("b"))
+      const { root, done } = await drawPots(pot)
+      const element = root.querySelector("game-pot") as HTMLElement
+      const indexes = () => [...element.children].map((chip) => (chip as HTMLElement).style.getPropertyValue("--index"))
+      expect(indexes()).toEqual(["0", "1"])
+      expect(element.style.getPropertyValue("--count")).toBe("2")
+
+      core.append(pot, new Chip("c"))
+      core.flush()
+      await ElementFixture.settle(root)
+      expect(indexes()).toEqual(["0", "1", "2"])
+      expect(element.style.getPropertyValue("--count")).toBe("3")
+      // a chip numbers no children of its own:  it would hide its pot's --count
+      expect((element.children[0] as HTMLElement).style.getPropertyValue("--count")).toBe("")
+      done()
+    })
+
+    test("a chip moved to another pot glides there from where it was (outline-spell P27)", async () => {
+      const [from, to] = [new Pot(), new Pot()]
+      const chip = new Chip("a")
+      core.append(from, new Chip("stays"), chip)
+      const { root, done } = await drawPots(from, to)
+      core.append(to, chip)
+      core.flush()
+      await ElementFixture.settle(root)
+      // the glide starts before the next paint
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      const moved = root.querySelectorAll("game-pot")[1]!.firstElementChild as HTMLElement
+      expect(moved.localName).toBe("game-chip")
+      expect(moved.getAnimations()).toHaveLength(1)
+      done()
     })
   })
 
@@ -469,6 +522,25 @@ describe("SpellElement", () => {
       settle()
       expect(ace.getAttribute("rank")).toBe("12")
       expect(thing.rank).toBe(12)
+    })
+
+    test("a property its type always gives the same value can't be set:  the attribute shows the thing's again (outline-spell P27)", async () => {
+      /** `- its suit is spades`:  a getter, with no setter. */
+      class Spade extends Deuce {
+        static elementTag = core.defineElement(this, "Agree")
+        get suit() {
+          return "spades"
+        }
+      }
+      const spade = await ElementFixture.render<CardElement>('<agree-spade rank="2"></agree-spade>')
+      await ElementFixture.settle(spade)
+      settle()
+      expect(spade.component!.currentThing).toBeInstanceOf(Spade)
+      expect(spade.getAttribute("suit")).toBe("spades")
+      spade.setAttribute("suit", "hearts")
+      settle()
+      expect(spade.component!.currentThing!.suit).toBe("spades")
+      expect(spade.getAttribute("suit")).toBe("spades")
     })
 
     test("a yes / no property is its attribute there or not;  nothing is no attribute", async () => {

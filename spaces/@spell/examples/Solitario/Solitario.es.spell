@@ -1,12 +1,12 @@
 ## Solitario Klondike
 -- Mira la [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) para sus reglas, y cómo se llama cada pila.
 // Las cartas, el mazo y las pilas son los de este proyecto:  Carta, Mazo y Pila.
-// Este archivo agrega el juego, sus tipos de pilas, qué puede tomar o soltar cada una, y cómo se dibuja cada una.
+// Este archivo agrega el juego, sus tipos de pilas, qué puede tomar o soltar cada una, y cómo están sus cartas.
 // Qué hay dónde, de arriba abajo:
 //   el solitario:  sus pilas, sus movimientos, el juego solo y su dibujo
 //   jugar una carta:  qué hace un clic
 //   inicio
-//   las pilas:  cada tipo, qué puede tomar o soltar, y cómo se dibuja
+//   las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas
 //   pruebas
 
 
@@ -123,6 +123,7 @@ solitario es una aplicación donde:
 
 		si hubo cambios esperar a jugar solo
 
+	// su menú, luego sus pilas:  siete por línea, cada una en su propia celda, la tercera vacía
 	- para dibujarlo:
 		devolver <es-contenedor>
 			<es-menu>
@@ -136,24 +137,20 @@ solitario es una aplicación donde:
 				</es-menu>
 			</es-menu>
 			<es-cuadricula columnas="7">
-				<es-fila>
-					<es-columna>{dibujar su reserva}</es-columna>
-					<es-columna>{dibujar sus descartes}</es-columna>
-					<es-columna/>
-					<es-columna>{dibujar sus tréboles}</es-columna>
-					<es-columna>{dibujar sus diamantes}</es-columna>
-					<es-columna>{dibujar sus corazones}</es-columna>
-					<es-columna>{dibujar sus espadas}</es-columna>
-				</es-fila>
-				<es-fila>
-					<es-columna>{dibujar su C1}</es-columna>
-					<es-columna>{dibujar su C2}</es-columna>
-					<es-columna>{dibujar su C3}</es-columna>
-					<es-columna>{dibujar su C4}</es-columna>
-					<es-columna>{dibujar su C5}</es-columna>
-					<es-columna>{dibujar su C6}</es-columna>
-					<es-columna>{dibujar su C7}</es-columna>
-				</es-fila>
+				{dibujar su reserva}
+				{dibujar sus descartes}
+				<div/>
+				{dibujar sus tréboles}
+				{dibujar sus diamantes}
+				{dibujar sus corazones}
+				{dibujar sus espadas}
+				{dibujar su C1}
+				{dibujar su C2}
+				{dibujar su C3}
+				{dibujar su C4}
+				{dibujar su C5}
+				{dibujar su C6}
+				{dibujar su C7}
 			</es-cuadricula>
 		</es-contenedor>
 
@@ -198,91 +195,47 @@ empezar el juego
 iniciar solitario
 
 
-## Las pilas:  cada tipo, qué puede tomar o soltar, y cómo se dibuja
+## Las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas
 // Cada pila es una lista dibujable:  un elemento propio, p. ej. `<solitario-columna>`, alrededor de los elementos de sus cartas.
-// Así cada tipo se da estilo a sí mismo, en su `<css>`, y dónde van sus cartas:  styles.css no llega dentro.
-
-// una pila apilada:  sus cartas una sobre otra, la última a la vista, sobre un lugar para la primera
-una "pila apilada" es una pila donde:
-	<css>
-		:host {
-			display: block;
-			position: relative;
-			min-width: var(--card-width);
-			min-height: var(--card-height);
-		}
-		/* donde va su primera carta:  un contorno del tamaño de una carta */
-		.Placeholder {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: var(--card-width);
-			height: var(--card-height);
-			box-sizing: border-box;
-			border: 2px dashed #c8c8c8;
-			border-radius: 0.4rem;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 2rem;
-			cursor: pointer;
-		}
-		::slotted(*) {
-			position: absolute;
-			top: 0;
-			left: 0;
-		}
-	</css>
+// Cómo están sus cartas es su disposición:  styles.css dibuja cada una.
+// Mientras está vacía, muestra su marcador, si tiene uno.
 
 // la reserva:  las cartas aún sin jugar, boca abajo;  un clic voltea la siguiente
-una "pila de reserva" es una pila apilada donde:
+una "pila de reserva" es una pila donde:
+	- su disposición es apilada
 	- nunca puede tomar una carta
 	- puede soltar una carta si: la carta es su última carta
-	- para dibujarla:
-		devolver <div class="Stock">
-			<div class="Placeholder" onClick={robar de la reserva}/>
-			<hijos/>
-		</div>
+	// vacía:  una carta gris claro, boca abajo -- un clic vuelve a voltear los descartes
+	- para dibujar su marcador:
+		devolver <div part="marcador" onClick={robar de la reserva}>🂠</div>
 
 // los descartes:  adonde van las cartas de la reserva al voltearse
-una "pila de descartes" es una pila apilada donde:
+una "pila de descartes" es una pila donde:
+	- su disposición es apilada
 	- nunca puede tomar una carta
 	- puede soltar una carta si: la carta es su última carta
 
 // una fundación:  donde se arma un palo, del as al rey
-una "fundación" es una pila apilada donde:
+una "fundación" es una pila donde:
+	- su disposición es apilada
 	- su "palo" es un palo de carta
 	- nunca puede soltar una carta
 	// una carta a la vez:  la última de su pila
 	- puede tomar una carta si:
 		si la carta no es la última carta de la pila de la carta devolver no
 		devolver su palo es el palo de la carta y su valor + 1 es el valor de la carta
-	- para dibujarla:
-		devolver <div class="Foundation">
-			<div class="Placeholder">{el símbolo de una nueva carta con palo = su palo}</div>
-			<hijos/>
-		</div>
+	// vacía:  un as gris claro de su palo, boca arriba
+	- para dibujar su marcador:
+		devolver <div part="marcador">{la imagen de una nueva carta cuyo rango es as, palo es su palo y dirección es arriba}</div>
 
 // una columna:  se arma hacia abajo, del rey al as, rojo y negro alternados
 una "columna" es una pila donde:
+	- su disposición es vertical
 	- puede soltar una carta si: la carta está boca arriba
 	- puede tomar una carta si:
 		si está vacía
 			devolver la carta es un rey
 		devolver su color no es el color de la carta y su valor es el valor de la carta + 1
-	<css>
-		:host {
-			display: block;
-			min-height: 30rem;
-		}
-		/* cada carta debajo de la anterior, con una franja de su parte de arriba a la vista (--card-strip);  la última entera */
-		::slotted(*) {
-			display: block;
-		}
-		::slotted(:not(:last-child)) {
-			height: var(--card-strip);
-		}
-	</css>
 
 
 ## Pruebas

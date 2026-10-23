@@ -433,7 +433,7 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => titles()[3] === "Ship it")
   })
 
-  test("the `Solitaire` example:  each pile and card its own element, styled by its <css>;  a click still plays", async () => {
+  test("the `Solitaire` example:  each pile and card its own element, laid out by its styles.css;  a click still plays", async () => {
     const host = await mount(await solitaireSource())
     type Element = HTMLElement & { ready: Promise<void> }
     const cards = () => [...host.querySelectorAll<Element>("test-project-card")]
@@ -447,13 +447,23 @@ describe("compiled spell draws with Solid", () => {
     await ElementFixture.settle(host)
     expect(tableaus().map((tableau) => tableau.children.length)).toEqual([1, 2, 3, 4, 5, 6, 7])
     expect(tableaus()[0]!.shadowRoot!.querySelector("slot")).not.toBeNull()
-    // the tableau's own <css>:  each card but the last shows only a strip of its top
-    // (every card is a clipped, card-sized box:  the card's own <css>)
+    // styles.css lays them out (outline-spell P27):  a tableau is vertical, each card a step below the one before,
+    // and every card as wide as its pile, inside its cell's gutters
     const column = tableaus()[6]!
-    const heightOf = (card: Element | null) => card!.getBoundingClientRect().height
-    expect(heightOf(column.firstElementChild as Element)).toBeLessThan(heightOf(column.lastElementChild as Element))
-    // a stacked pile's, which its kinds inherit:  a stock's cards sit on each other
+    // once the deal's cards have glided into place
+    await Promise.all([...column.children].flatMap((card) => card.getAnimations().map((glide) => glide.finished)))
+    const tops = [...column.children].map((card) => card.getBoundingClientRect().top)
+    for (const [index, top] of tops.entries()) if (index) expect(top).toBeGreaterThan(tops[index - 1]!)
+    const widthOf = (element: globalThis.Element) => Math.round(element.getBoundingClientRect().width)
+    const { paddingLeft, paddingRight } = getComputedStyle(column)
+    const inside = column.clientWidth - parseFloat(paddingLeft) - parseFloat(paddingRight)
+    expect(widthOf(column.lastElementChild!)).toBe(Math.round(inside))
+    // ... numbered by their pile, for that:  --index from 0, the pile's --count
+    expect((column.lastElementChild as HTMLElement).style.getPropertyValue("--index")).toBe("6")
+    expect(column.style.getPropertyValue("--count")).toBe("7")
+    // a stacked pile's cards sit on each other
     const stock = host.querySelector<Element>("test-project-stock-pile")!
+    expect(stock.getAttribute("layout")).toBe("stacked")
     expect(getComputedStyle(stock.lastElementChild!).position).toBe("absolute")
 
     // each card shows its thing's rank, suit and direction as attributes, for the inspector (P13)
@@ -485,7 +495,7 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => discards() === 1)
     const played = stock.lastElementChild as HTMLElement
     expect(played.getAttribute("direction")).toBe("down")
-    played.shadowRoot!.querySelector<HTMLElement>(".Card")!.click()
+    played.shadowRoot!.querySelector<HTMLElement>("[part=picture]")!.click()
     await waitFor(() => discards() > 1)
     // ... and they follow as the game plays:  the card played from the stock is face up, on the discards
     await waitFor(() => played.getAttribute("direction") === "up")
@@ -523,26 +533,25 @@ describe("compiled spell draws with Solid", () => {
     expect(tile.poke()).toBe("poked A")
   })
 
-  test("`Solitaire` run again, edited, on the same page:  its tags stay, its piles take the new <css>", async () => {
+  test("`Solitaire` run again, edited, on the same page:  its tags stay, its new piles draw the new way", async () => {
     const solitaire = await solitaireSource()
     const first = await mount(solitaire)
     await waitFor(() => first.querySelectorAll("test-project-card").length === 52)
-    // the place a stacked pile keeps for its first card, edited:  a new colour in its <css>
-    const edited = solitaire.compiled!.replace(PLACE_BORDER, EDITED_BORDER)
+    const defined = customElements.get("test-project-foundation")
+    // what an empty foundation shows, edited:  a placeholder of another kind
+    const edited = solitaire.compiled!.replace(PLACEHOLDER, EDITED_PLACEHOLDER)
     expect(edited).not.toBe(solitaire.compiled)
     const second = await mount({ ...solitaire, compiled: edited })
     await waitFor(() => second.querySelectorAll("test-project-card").length === 52)
     await ElementFixture.settle(second)
     expect(second.querySelector(".spell-draw-error")).toBeNull()
-    const places = [
-      ...first.querySelectorAll("test-project-foundation"),
-      ...second.querySelectorAll("test-project-foundation")
-    ]
-      .map((pile) => pile.shadowRoot?.querySelector(".Placeholder"))
-      .filter((place): place is Element => !!place)
-    expect(places.length).toBe(8)
-    // one sheet per tag:  the old program's piles take the edit too
-    for (const place of places) expect(getComputedStyle(place).borderTopColor).toBe(EDITED_COLOR)
+    // one tag per type:  defined once, its elements drawing the latest program
+    expect(customElements.get("test-project-foundation")).toBe(defined)
+    const placeholders = (host: HTMLElement) =>
+      [...host.querySelectorAll("test-project-foundation")].map((pile) => pile.shadowRoot?.querySelector("[part]"))
+    // the new program's foundations draw the edit;  the old program's keep drawing their own things
+    expect(placeholders(second).map((place) => place?.getAttribute("part"))).toEqual(Array(4).fill("edited"))
+    expect(placeholders(first).map((place) => place?.getAttribute("part"))).toEqual(Array(4).fill("placeholder"))
   })
 
   test("the counter app counted, then its counter library recompiled to draw differently:  the same count, drawn the new way (P16)", async () => {
@@ -584,7 +593,7 @@ describe("compiled spell draws with Solid", () => {
     const discards = () => host.querySelector<Element>("test-project-discard-pile")!
     await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
     await ElementFixture.settle(host)
-    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".Card")!.click()
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>("[part=picture]")!.click()
     await waitFor(() => discards().children.length === 2)
     expect(consoleText()).toContain("test the moves")
 
@@ -971,11 +980,10 @@ async function rawText(path: string): Promise<string> {
   return text
 }
 
-/** A stacked pile's place for its first card:  its border, in Solitaire's compiled `<css>`, and an edit of it. */
-const PLACE_BORDER = "border: 2px dashed #c8c8c8;"
-const EDITED_BORDER = "border: 2px dashed #36a;"
-/** `EDITED_BORDER`'s colour, as the browser computes it. */
-const EDITED_COLOR = "rgb(51, 102, 170)"
+/** What an empty foundation shows, in Solitaire's compiled javascript, and an edit of it. */
+const PLACEHOLDER = 'return h("div", { part: "placeholder" },'
+/** `PLACEHOLDER`, edited:  another part name. */
+const EDITED_PLACEHOLDER = 'return h("div", { part: "edited" },'
 
 /** What to run:  `program`, in memory. */
 function source(program: string, name = "Counter"): SpellAppSource {
