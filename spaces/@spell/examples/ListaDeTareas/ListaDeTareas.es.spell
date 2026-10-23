@@ -13,9 +13,8 @@
 una "agenda" es una lista dibujable de tareas donde:
 	// lo que muestra:  todas las tareas, las pendientes, o las hechas
 	- su "mostrando" es una de todas, pendientes o hechas
-	// en la página, sus tareas se pueden arrastrar a otro lugar:  una línea azul muestra dónde,
-	// y cuando el puntero se queda ahí 2 segundos se mueven, como al soltarlo
-	- sus elementos se pueden reordenar
+	// en la página, sus tareas se pueden arrastrar a otro lugar:  se mueven con el puntero, deslizándose
+	- sus elementos se pueden reordenar de inmediato
 	// cada tarea, salvo que el filtro la oculte
 	- para dibujar cada elemento:
 		si su mostrando es "pendientes" y la tarea está hecha devolver nada

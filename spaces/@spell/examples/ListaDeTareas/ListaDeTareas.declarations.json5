@@ -98,7 +98,7 @@
       "superType": "DrawableList",
       "gender": "feminine",
       "itemType": "Tarea",
-      "defined": "/ListaDeTareas.es.spell:562-1294"
+      "defined": "/ListaDeTareas.es.spell:562-1240"
     },
     {
       "property": "mostrando",
@@ -116,31 +116,31 @@
       "of": "Tarea",
       "datatype": "Agenda",
       "exclusive": true,
-      "defined": "/ListaDeTareas.es.spell:1342-1374"
+      "defined": "/ListaDeTareas.es.spell:1288-1320"
     },
     {
       "type": "ListaDeTareas",
       "superType": "App",
-      "defined": "/ListaDeTareas.es.spell:1470-4376"
+      "defined": "/ListaDeTareas.es.spell:1416-4322"
     },
     {
       "property": "tareas",
       "of": "ListaDeTareas",
       "datatype": "Agenda",
-      "defined": "/ListaDeTareas.es.spell:1514-1546"
+      "defined": "/ListaDeTareas.es.spell:1460-1492"
     },
     {
       "property": "borrador",
       "of": "ListaDeTareas",
       "datatype": "text",
-      "defined": "/ListaDeTareas.es.spell:1622-1644"
+      "defined": "/ListaDeTareas.es.spell:1568-1590"
     },
     {
       "property": "cuenta_pendiente",
       "asWritten": "cuenta pendiente",
       "of": "ListaDeTareas",
       "datatype": "number",
-      "defined": "/ListaDeTareas.es.spell:1648-1728"
+      "defined": "/ListaDeTareas.es.spell:1594-1674"
     },
     {
       "syntax": "agregar el borrador ((de|del) {thisArg:expression})?",
@@ -154,7 +154,7 @@
       "kind": "method",
       "name": "agregar el borrador",
       "returns": "nothing",
-      "defined": "/ListaDeTareas.es.spell:1812-1977"
+      "defined": "/ListaDeTareas.es.spell:1758-1923"
     },
     {
       "syntax": "quitar las tareas hechas ((de|del) {thisArg:expression})?",
@@ -167,7 +167,7 @@
       ],
       "kind": "method",
       "name": "quitar las tareas hechas",
-      "defined": "/ListaDeTareas.es.spell:1982-2059"
+      "defined": "/ListaDeTareas.es.spell:1928-2005"
     },
     {
       "syntax": "probar el filtro",
@@ -176,7 +176,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "el filtro",
-      "defined": "/ListaDeTareas.es.spell:5019-5266"
+      "defined": "/ListaDeTareas.es.spell:4965-5212"
     }
   ],
   "codeLines": [
@@ -193,13 +193,13 @@
     80,
     108,
     113,
-    139,
+    138,
+    141,
     142,
-    143,
-    149,
-    154,
-    159,
-    165,
-    260
+    148,
+    153,
+    158,
+    164,
+    259
   ]
 }

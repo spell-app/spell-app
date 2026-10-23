@@ -501,6 +501,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   /** The wait before the dragged items move to the line, while the pointer rests there. */
   private placing: (Promise<unknown> & { cancel(): void }) | undefined
 
+  /** Our items as they were before a move here, noted where they were:  they glide as our children change. */
+  private gliding: object[] | undefined
+
   /** The things the last drop on us put in place:  the dropped item's `dropOn()` hears them, then forgets. */
   private placed: object[] | undefined
 
@@ -583,11 +586,16 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     }
   }
 
-  /** Move `things` to the line, through the program's core:  where the program runs, Python's too. */
+  /**
+   * Move `things` to the line, through the program's core:  where the program runs, Python's too.
+   * - Every item glides to its new place, once our children are drawn again (`numberItems()`).
+   */
   private moveHere(things: object[]) {
     const list = this.currentThing
     if (!list || !this.entry) return
     const before = this.placeBefore
+    this.gliding = [...(list as Iterable<object>)]
+    Glides.noteForLater(this.gliding)
     this.runHandler(() => this.entry!.core.moveBefore(list, things, before))
     this.dropLineAt = undefined
   }
@@ -733,6 +741,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const children = [...this.domElement.children] as HTMLElement[]
     children.forEach((child, index) => child.style.setProperty("--index", String(index)))
     this.domElement.style.setProperty("--count", String(children.length))
+    // our items, reordered here:  each glides from where it was (`moveHere()`)
+    if (this.gliding) Glides.glideNoted(this.gliding)
+    this.gliding = undefined
   }
 
   /**

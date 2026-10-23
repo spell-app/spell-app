@@ -353,7 +353,7 @@ Then the list, which decides which tasks to show:
 ```spell
 a "checklist" is a drawable list of tasks where:
 	- its "showing" is one of all, active or done
-	- its items can be reordered
+	- its items can be reordered immediately
 	- to draw each item:
 		if its showing is "active" and the task is done return nothing
 		if its showing is "done" and the task is active return nothing
@@ -364,10 +364,12 @@ a "checklist" is a drawable list of tasks where:
 
 - A drawable list is an element too, `<task-list-checklist>`, around its tasks' elements.
 - Each task draws itself;  the list only says which to leave out, and what to show when it's empty.
-- `its items can be reordered`:  drag a task, and a blue line shows where it would go, the task dimmed where it is.
-  - Rest the pointer there 2 seconds, and it moves, the drag still going;  let go, and it moves at once.
+- `its items can be reordered immediately`:  drag a task, and it moves as the pointer goes, dimmed, each task gliding
+  to its new place.
+  - Without `immediately`, it stays put while a blue line shows where it would go:
+    rest the pointer there 2 seconds (or `after 1 second`), and it moves;  let go, and it moves at once.
   - Drag a selected task, and every selected one goes with it.
-  - Another wait:  `its items can be reordered after 1 second`;  or the page's `move-delay="1"` on the list.
+  - The page's `move-delay="0.5"` on the list sets the wait for that one list.
 
 <details>
 <summary>What the checklist compiles to</summary>

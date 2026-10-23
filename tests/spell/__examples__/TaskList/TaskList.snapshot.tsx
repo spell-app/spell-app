@@ -146,7 +146,7 @@ export class Checklist extends DrawableList<Task> {
     return <div part="placeholder">Nothing to do</div>
   }
 
-  static reorderItemsAfter = 2
+  static reorderItemsAfter = 0
 
   static exclusive = true
 }
@@ -171,8 +171,7 @@ export class ChecklistElement extends SpellElement<Checklist> {
   }
 }
 core.useElement(Checklist, ChecklistElement)
-// on the page, its tasks can be dragged to another place:  a blue line shows where,
-// and once the pointer rests there 2 seconds they move, as they do when it lets go
+// on the page, its tasks can be dragged to another place:  they move as the pointer does, gliding there
 
 /** a task is in one checklist at a time */
 
