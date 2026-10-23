@@ -15,7 +15,7 @@
       "type": "Tarea",
       "superType": "Drawable",
       "gender": "feminine",
-      "defined": "/Tarea.es.spell:199-1436"
+      "defined": "/Tarea.es.spell:199-1625"
     },
     {
       "property": "título",
@@ -91,14 +91,14 @@
       "alias": "statement",
       "kind": "function",
       "name": "las tareas",
-      "defined": "/Tarea.es.spell:1450-1651"
+      "defined": "/Tarea.es.spell:1639-1840"
     },
     {
       "type": "Agenda",
       "superType": "DrawableList",
       "gender": "feminine",
       "itemType": "Tarea",
-      "defined": "/ListaDeTareas.es.spell:562-1087"
+      "defined": "/ListaDeTareas.es.spell:562-1294"
     },
     {
       "property": "mostrando",
@@ -116,31 +116,31 @@
       "of": "Tarea",
       "datatype": "Agenda",
       "exclusive": true,
-      "defined": "/ListaDeTareas.es.spell:1135-1167"
+      "defined": "/ListaDeTareas.es.spell:1342-1374"
     },
     {
       "type": "ListaDeTareas",
       "superType": "App",
-      "defined": "/ListaDeTareas.es.spell:1263-4169"
+      "defined": "/ListaDeTareas.es.spell:1470-4376"
     },
     {
       "property": "tareas",
       "of": "ListaDeTareas",
       "datatype": "Agenda",
-      "defined": "/ListaDeTareas.es.spell:1307-1339"
+      "defined": "/ListaDeTareas.es.spell:1514-1546"
     },
     {
       "property": "borrador",
       "of": "ListaDeTareas",
       "datatype": "text",
-      "defined": "/ListaDeTareas.es.spell:1415-1437"
+      "defined": "/ListaDeTareas.es.spell:1622-1644"
     },
     {
       "property": "cuenta_pendiente",
       "asWritten": "cuenta pendiente",
       "of": "ListaDeTareas",
       "datatype": "number",
-      "defined": "/ListaDeTareas.es.spell:1441-1521"
+      "defined": "/ListaDeTareas.es.spell:1648-1728"
     },
     {
       "syntax": "agregar el borrador ((de|del) {thisArg:expression})?",
@@ -154,7 +154,7 @@
       "kind": "method",
       "name": "agregar el borrador",
       "returns": "nothing",
-      "defined": "/ListaDeTareas.es.spell:1605-1770"
+      "defined": "/ListaDeTareas.es.spell:1812-1977"
     },
     {
       "syntax": "quitar las tareas hechas ((de|del) {thisArg:expression})?",
@@ -167,7 +167,7 @@
       ],
       "kind": "method",
       "name": "quitar las tareas hechas",
-      "defined": "/ListaDeTareas.es.spell:1775-1852"
+      "defined": "/ListaDeTareas.es.spell:1982-2059"
     },
     {
       "syntax": "probar el filtro",
@@ -176,7 +176,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "el filtro",
-      "defined": "/ListaDeTareas.es.spell:4812-5059"
+      "defined": "/ListaDeTareas.es.spell:5019-5266"
     }
   ],
   "codeLines": [
@@ -190,16 +190,16 @@
     42,
     43,
     44,
-    76,
-    104,
-    109,
-    131,
-    134,
-    135,
-    141,
-    146,
-    151,
-    157,
-    252
+    80,
+    108,
+    113,
+    139,
+    142,
+    143,
+    149,
+    154,
+    159,
+    165,
+    260
   ]
 }

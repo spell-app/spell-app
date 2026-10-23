@@ -45,9 +45,9 @@ class Task(Drawable):
             return "red"
         return "grey"
 
-    #######################################################################################################
-    # ## drawing:  a checkbox, its title, and its priority -- styles.css shows it only when it isn't normal
-    #######################################################################################################
+    #################################################################################################################
+    # ## drawing:  its grip, a checkbox, its title, and its priority -- styles.css shows it only when it isn't normal
+    #################################################################################################################
 
     def draw(self) -> Any:
         """
@@ -60,6 +60,7 @@ class Task(Drawable):
             h(
                 "div",
                 {"part": "row"},
+                h("ui-icon", {"part": "grip", "name": "grip vertical", "aria-label": "Drag"}),
                 h("ui-checkbox", {"name": "done", "aria-label": "Done"}),
                 h(
                     "ui-input",
@@ -75,6 +76,8 @@ class Task(Drawable):
 
     can_be_selected = True
 
+    can_be_dragged = True
+
     @property
     def checklist(self) -> Checklist | None:
         return Checklist.owner_of(self)
@@ -82,6 +85,7 @@ class Task(Drawable):
 
 # on the page, a click selects it;  shift and command (ctrl) select more,
 # so the property editor beside the list changes them all at once
+# and dragged, by its grip, to another place in its list:  the selected ones go with it
 
 
 def test_tasks() -> Any:
@@ -139,8 +143,13 @@ class Checklist(DrawableList):
     def draw_its_placeholder(self) -> Any:
         return h("div", {"part": "placeholder"}, "Nothing to do")
 
+    reorder_items_after = 2
+
     exclusive = True
 
+
+# on the page, its tasks can be dragged to another place:  a blue line shows where,
+# and once the pointer rests there 2 seconds they move, as they do when it lets go
 
 # a task is in one checklist at a time
 
@@ -320,7 +329,8 @@ def test_the_filter() -> Any:
 core.install_styles(None, """/* File styles.css:  how the task list looks.
    - The list and each task are elements of their own, so these rules reach them all:
      - the list, <task-list-checklist>, and its tasks inside it, each a <task-list-task>
-     - inside a task, by its parts:  its row, ::part(row);  its title, ::part(title);  its priority label, ::part(priority)
+     - inside a task, by its parts:  its row, ::part(row);  its grip, ::part(grip);  its title, ::part(title);
+       its priority label, ::part(priority)
      - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */
 
 /****************
@@ -373,6 +383,12 @@ task-list-task::part(row) {
   display: flex;
   align-items: center;
   gap: 0.5em;
+}
+
+/* its grip:  what a drag starts from */
+task-list-task::part(grip) {
+  flex: none;
+  color: grey;
 }
 
 task-list-task::part(title) {

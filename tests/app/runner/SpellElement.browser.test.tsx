@@ -579,6 +579,143 @@ describe("SpellElement", () => {
       done()
     })
 
+    /** A column whose chits people may reorder:  `- its items can be reordered`, waiting a tenth of a second. */
+    class Column extends DrawableList<Chit> {
+      static elementTag = core.defineElement(this, "Game")
+      static exclusive = true
+      static reorderItemsAfter = 0.1
+    }
+    /** A chit, drawn as its label and a field:  `a chit can be dragged`, `can be selected`. */
+    class Chit extends Drawable {
+      static elementTag = core.defineElement(this, "Game")
+      static canBeDragged = true
+      static canBeSelected = true
+      constructor(public label = "") {
+        super()
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (
+          h("b", {}, this.label, h("input", { "aria-label": "field" })) as unknown as () => ReturnType<Drawable["draw"]>
+        )()
+      }
+    }
+    Object.defineProperty(Chit.prototype, "column", {
+      get(this: Chit) {
+        return Column.ownerOf(this)
+      },
+      configurable: true
+    })
+    Object.assign(Column, { instanceType: Chit })
+
+    /** A column of chits `labels`, drawn down the page:  returns it, its element, its chits' elements, and the end. */
+    async function drawColumn(...labels: string[]) {
+      const column = new Column()
+      core.append(column, ...labels.map((label) => new Chit(label)))
+      const root = document.createElement("div")
+      root.innerHTML = `<style>
+        game-column { display: flex; flex-direction: column; width: 120px; padding-bottom: 30px }
+        game-chit { display: block; height: 24px }
+      </style>`
+      document.body.append(root)
+      const mounted = core.mountApp({ draw: () => core.drawThing(column) }, root)
+      flush()
+      await ElementFixture.settle(root)
+      const element = root.querySelector("game-column") as HTMLElement
+      const chits = () => [...root.querySelectorAll<HTMLElement>("game-chit")]
+      const labelsNow = () => [...column].map((chit) => chit.label)
+      return { column, element, chits, labelsNow, done: () => (mounted.unmount(), root.remove()) }
+    }
+
+    /** Press `element`, then move the pointer to (`x`, `y`) in steps:  a drag under way;  returns how to let go there. */
+    function pressAndMove(element: Element, x: number, y: number, on: Element = element) {
+      const box = element.getBoundingClientRect()
+      const from = { x: box.x + 10, y: box.y + box.height / 2 }
+      const send = (target: EventTarget, type: string, at: { x: number; y: number }) =>
+        target.dispatchEvent(
+          new PointerEvent(type, { bubbles: true, composed: true, pointerId: 4, clientX: at.x, clientY: at.y })
+        )
+      send(on, "pointerdown", from)
+      for (const step of [0.25, 0.5, 0.75, 1]) {
+        send(window, "pointermove", { x: from.x + (x - from.x) * step, y: from.y + (y - from.y) * step })
+      }
+      return async () => {
+        send(window, "pointerup", { x, y })
+        core.flush()
+        await ElementFixture.settle(document.body)
+        // the drag ends just before the next paint (`dragend`);  then a task, so it stops swallowing the click
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+        await new Promise((resolve) => setTimeout(resolve))
+      }
+    }
+
+    test("a reordered list:  the dragged item dims, a line shows where it goes, and the drop puts it there (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c")
+      try {
+        const [a, , c] = chits()
+        const below = c!.getBoundingClientRect().bottom + 5
+        const letGo = pressAndMove(a!, a!.getBoundingClientRect().x + 10, below)
+        core.flush()
+        await ElementFixture.settle(element)
+        expect(a!.matches(":state(lifted)")).toBe(true)
+        expect(element.matches(":state(placing)")).toBe(true)
+        expect(element.shadowRoot!.querySelector("[part~=drop-line]")).not.toBeNull()
+        // dragged where it is:  it never follows the pointer
+        expect(a!.style.translate).toBe("")
+        await letGo()
+        expect(labelsNow()).toEqual(["b", "c", "a"])
+        expect(element.matches(":state(placing)")).toBe(false)
+        expect(chits().some((chit) => chit.matches(":state(lifted)"))).toBe(false)
+      } finally {
+        done()
+      }
+    })
+
+    test("the pointer resting on a place:  the items move there while the drag goes on;  `move-delay` says how long (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c")
+      try {
+        element.setAttribute("move-delay", "0.05")
+        const [, b, c] = chits()
+        const letGo = pressAndMove(c!, c!.getBoundingClientRect().x + 10, b!.getBoundingClientRect().top + 2)
+        await new Promise((resolve) => setTimeout(resolve, 150))
+        core.flush()
+        expect(labelsNow()).toEqual(["a", "c", "b"])
+        await letGo()
+        expect(labelsNow()).toEqual(["a", "c", "b"])
+      } finally {
+        done()
+      }
+    })
+
+    test("selected items drag together;  a press in a field inside one starts no drag (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c", "d")
+      try {
+        const [a, , c, d] = chits()
+        const click = (chit: HTMLElement, keys: MouseEventInit = {}) =>
+          chit.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, ...keys }))
+        click(a!)
+        click(c!, { metaKey: true })
+        core.flush()
+        await ElementFixture.settle(element)
+        const letGo = pressAndMove(a!, a!.getBoundingClientRect().x + 10, d!.getBoundingClientRect().bottom + 5)
+        await letGo()
+        expect(labelsNow()).toEqual(["b", "d", "a", "c"])
+        // the field:  its press is the field's
+        const [, , , last] = chits()
+        const field = last!.shadowRoot!.querySelector("input")!
+        const release = pressAndMove(
+          last!,
+          last!.getBoundingClientRect().x + 10,
+          chits()[0]!.getBoundingClientRect().top,
+          field
+        )
+        expect(last!.matches(":state(dragging)")).toBe(false)
+        await release()
+        expect(labelsNow()).toEqual(["b", "d", "a", "c"])
+      } finally {
+        done()
+      }
+    })
+
     test("a chip moved to another pot glides there from where it was (outline-spell P27)", async () => {
       const [from, to] = [new Pot(), new Pot()]
       const chip = new Chip("a")
@@ -1225,7 +1362,7 @@ describe("SpellElement", () => {
       flush()
       expect(element.component).toBeInstanceOf(TileElement)
       const attributes = element.component!.vocabulary.attributes as readonly E.AttributeSpec[]
-      expect(attributes.map((attribute) => attribute.name)).toEqual(["thing", "label", "size", "glow"])
+      expect(attributes.map((attribute) => attribute.name)).toEqual(["thing", "move-delay", "label", "size", "glow"])
       expect(attributes.find((attribute) => attribute.name === "label")!.description).toBe("Its label, as written.")
       const tile = element.shadowRoot!.querySelector(".tile")!
       expect(tile.textContent).toBe("A")

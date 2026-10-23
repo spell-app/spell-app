@@ -15,13 +15,16 @@ una "tarea" es una cosa dibujable donde:
 	// en la página, un clic la selecciona;  mayúsculas y comando (ctrl) seleccionan más,
 	// así el editor de propiedades junto a la lista las cambia todas a la vez
 	- se puede seleccionar
+	// y arrastrar, por su asa, a otro lugar de su lista:  las seleccionadas van con ella
+	- se puede arrastrar
 
-	## dibujo:  una casilla, su título, y su prioridad -- styles.css la muestra solo cuando no es normal
+	## dibujo:  su asa, una casilla, su título, y su prioridad -- styles.css la muestra solo cuando no es normal
 	// un formulario propio, unido a ella:  marcar la casilla, o escribir un título, cambia la tarea
 	// - su fila y su título son partes:  styles.css los coloca
 	- para dibujarla:
 		devolver <es-formulario value={eso}>
 			<div part="row">
+				<es-icono part="grip" name="grip vertical" aria-label="Arrastrar"/>
 				<es-casilla name="hecha" aria-label="Hecha"/>
 				<es-entrada part="title" name="título" aria-label="Tarea" transparente/>
 				<es-etiqueta part="priority" tamano="diminuto" color={su color de prioridad}>{su prioridad}</es-etiqueta>

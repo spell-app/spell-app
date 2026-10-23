@@ -45,14 +45,15 @@ export class Tarea extends Drawable {
     return "gris"
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-  // ## dibujo:  una casilla, su título, y su prioridad -- styles.css la muestra solo cuando no es normal
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // ## dibujo:  su asa, una casilla, su título, y su prioridad -- styles.css la muestra solo cuando no es normal
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // un formulario propio, unido a ella:  marcar la casilla, o escribir un título, cambia la tarea
   // - su fila y su título son partes:  styles.css los coloca
   draw() {
     return h("es-formulario", { value: this },
       h("div", { part: "row" },
+        h("es-icono", { part: "grip", name: "grip vertical", "aria-label": "Arrastrar" }),
         h("es-casilla", { name: "hecha", "aria-label": "Hecha" }),
         h("es-entrada", { part: "title", name: "título", "aria-label": "Tarea", transparente: true }),
         h("es-etiqueta", { part: "priority", tamano: "diminuto", color: () => this.colorDePrioridad },
@@ -64,6 +65,8 @@ export class Tarea extends Drawable {
 
   static canBeSelected = true
 
+  static canBeDragged = true
+
   get agenda() {
     return Agenda.ownerOf(this)
   }
@@ -71,6 +74,7 @@ export class Tarea extends Drawable {
 
 // en la página, un clic la selecciona;  mayúsculas y comando (ctrl) seleccionan más,
 // así el editor de propiedades junto a la lista las cambia todas a la vez
+// y arrastrar, por su asa, a otro lugar de su lista:  las seleccionadas van con ella
 
 core.heading("Pruebas")
 /** Pruebas */
@@ -125,8 +129,12 @@ export class Agenda extends DrawableList {
     return h("div", { part: "placeholder" }, "Nada por hacer")
   }
 
+  static reorderItemsAfter = 2
+
   static exclusive = true
 }
+// en la página, sus tareas se pueden arrastrar a otro lugar:  una línea azul muestra dónde,
+// y cuando el puntero se queda ahí 2 segundos se mueven, como al soltarlo
 
 /** una tarea está en una sola agenda a la vez */
 
@@ -262,7 +270,7 @@ export function testElFiltro() {
   })
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  how the task list looks.¬   - The list and each task are elements of their own, so these rules reach them all:¬     - the list, <lista-de-tareas-agenda>, and its tasks inside it, each a <lista-de-tareas-tarea>¬     - inside a task, by its parts:  its row, ::part(row);  its title, ::part(title);  its priority label, ::part(priority)¬     - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */¬¬/****************¬ * The app:  its menu, the new task's field, then the list beside the property editor¬ ****************/¬¬.TaskList {¬  padding-block: 1em;¬}¬¬/* the field and its button on one line */¬.NewTask {¬  display: flex;¬  gap: 0.5em;¬  margin-block: 1em;¬}¬¬.NewTask > es-entrada {¬  flex: 1;¬}¬¬/****************¬ * The list:  one task a line¬ ****************/¬¬lista-de-tareas-agenda {¬  display: flex;¬  flex-direction: column;¬  gap: 0.25em;¬}¬¬lista-de-tareas-agenda::part(placeholder) {¬  padding: 1em;¬  color: grey;¬  text-align: center;¬}¬¬/****************¬ * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal¬ ****************/¬¬lista-de-tareas-tarea {¬  display: block;¬  padding: 0.25em 0.5em;¬  border-radius: 0.3em;¬}¬¬/* its checkbox, its title filling the line, then its priority */¬lista-de-tareas-tarea::part(row) {¬  display: flex;¬  align-items: center;¬  gap: 0.5em;¬}¬¬lista-de-tareas-tarea::part(title) {¬  flex: 1;¬}¬¬lista-de-tareas-tarea::part(priority) {¬  flex: none;¬}¬¬lista-de-tareas-tarea[prioridad="normal"]::part(priority),¬lista-de-tareas-tarea:not([prioridad])::part(priority) {¬  display: none;¬}¬¬/* selected:  a soft purple band, in place of the outline every selected thing has */¬lista-de-tareas-tarea:state(selected) {¬  --spell-selected-outline: none;¬  background: rgb(150 80 255 / 0.12);¬}¬¬/* done:  its title fades */¬lista-de-tareas-tarea[hecha] {¬  opacity: 0.6;¬}¬`)
+core.installStyles(undefined, `/* File styles.css:  how the task list looks.¬   - The list and each task are elements of their own, so these rules reach them all:¬     - the list, <lista-de-tareas-agenda>, and its tasks inside it, each a <lista-de-tareas-tarea>¬     - inside a task, by its parts:  its row, ::part(row);  its grip, ::part(grip);  its title, ::part(title);¬       its priority label, ::part(priority)¬     - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */¬¬/****************¬ * The app:  its menu, the new task's field, then the list beside the property editor¬ ****************/¬¬.TaskList {¬  padding-block: 1em;¬}¬¬/* the field and its button on one line */¬.NewTask {¬  display: flex;¬  gap: 0.5em;¬  margin-block: 1em;¬}¬¬.NewTask > es-entrada {¬  flex: 1;¬}¬¬/****************¬ * The list:  one task a line¬ ****************/¬¬lista-de-tareas-agenda {¬  display: flex;¬  flex-direction: column;¬  gap: 0.25em;¬}¬¬lista-de-tareas-agenda::part(placeholder) {¬  padding: 1em;¬  color: grey;¬  text-align: center;¬}¬¬/****************¬ * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal¬ ****************/¬¬lista-de-tareas-tarea {¬  display: block;¬  padding: 0.25em 0.5em;¬  border-radius: 0.3em;¬}¬¬/* its checkbox, its title filling the line, then its priority */¬lista-de-tareas-tarea::part(row) {¬  display: flex;¬  align-items: center;¬  gap: 0.5em;¬}¬¬/* its grip:  what a drag starts from */¬lista-de-tareas-tarea::part(grip) {¬  flex: none;¬  color: grey;¬}¬¬lista-de-tareas-tarea::part(title) {¬  flex: 1;¬}¬¬lista-de-tareas-tarea::part(priority) {¬  flex: none;¬}¬¬lista-de-tareas-tarea[prioridad="normal"]::part(priority),¬lista-de-tareas-tarea:not([prioridad])::part(priority) {¬  display: none;¬}¬¬/* selected:  a soft purple band, in place of the outline every selected thing has */¬lista-de-tareas-tarea:state(selected) {¬  --spell-selected-outline: none;¬  background: rgb(150 80 255 / 0.12);¬}¬¬/* done:  its title fades */¬lista-de-tareas-tarea[hecha] {¬  opacity: 0.6;¬}¬`)
 // -----------
 if (!core.isCarryingOver) testLasTareas()
 if (!core.isCarryingOver) testElFiltro()

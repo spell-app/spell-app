@@ -298,7 +298,7 @@ _FizzBuzz in the editor:  nothing to draw, so the App pane stays empty, and the 
 ## Task List:  things that draw themselves, a list, and a property editor
 
 Every framework has its to-do list, and this is Spell's:
-[Task List](spaces/@spell/examples/TaskList/), 144 lines of Spell in two files, and a style sheet.
+[Task List](spaces/@spell/examples/TaskList/), 147 lines of Spell in two files, and a style sheet.
 - [Task.spell](spaces/@spell/examples/TaskList/Task.spell):  what a task is, and how it draws.
 - [TaskList.spell](spaces/@spell/examples/TaskList/TaskList.spell):  the list of tasks, then the app around it.
 
@@ -317,6 +317,7 @@ a "task" is a drawable thing where:
 		red if its priority is high
 		grey otherwise
 	- it can be selected
+	- it can be dragged
 ```
 
 - `a "task" is a drawable thing` declares a new type;  each `its` line gives it a property, with its kind.
@@ -324,6 +325,7 @@ a "task" is a drawable thing where:
 - The quoted phrases are new ways to talk about a task:  later lines can say `where it is active`.
 - `drawable` makes each task an element of its own on the page, `<task-list-task>`.
 - `it can be selected`:  a click selects a task, and shift or command (ctrl) selects more.
+- `it can be dragged`:  by its grip, to another place in its list (below).
 
 Then how a task draws, with [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s elements:
 a form of its own, bound to the task.
@@ -332,6 +334,7 @@ a form of its own, bound to the task.
 - to draw it:
 	return <ui-form value={it}>
 		<div part="row">
+			<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
 			<ui-checkbox name="done" aria-label="Done"/>
 			<ui-input part="title" name="title" aria-label="Task" transparent/>
 			<ui-label part="priority" size="tiny" color={its priority color}>{its priority}</ui-label>
@@ -343,12 +346,14 @@ a form of its own, bound to the task.
   The form is bound to the task (`value={it}`):
   each named field shows its task's property, and writes it back as you type or tick.
 - The style sheet shows the priority label only when it isn't normal, and fades a task that's done.
+- A press in the title field or on the checkbox is theirs:  a drag starts from the grip, or the task's bare row.
 
 Then the list, which decides which tasks to show:
 
 ```spell
 a "checklist" is a drawable list of tasks where:
 	- its "showing" is one of all, active or done
+	- its items can be reordered
 	- to draw each item:
 		if its showing is "active" and the task is done return nothing
 		if its showing is "done" and the task is active return nothing
@@ -359,6 +364,10 @@ a "checklist" is a drawable list of tasks where:
 
 - A drawable list is an element too, `<task-list-checklist>`, around its tasks' elements.
 - Each task draws itself;  the list only says which to leave out, and what to show when it's empty.
+- `its items can be reordered`:  drag a task, and a blue line shows where it would go, the task dimmed where it is.
+  - Rest the pointer there 2 seconds, and it moves, the drag still going;  let go, and it moves at once.
+  - Drag a selected task, and every selected one goes with it.
+  - Another wait:  `its items can be reordered after 1 second`;  or the page's `move-delay="1"` on the list.
 
 <details>
 <summary>What the checklist compiles to</summary>

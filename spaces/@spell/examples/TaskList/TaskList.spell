@@ -13,6 +13,9 @@
 a "checklist" is a drawable list of tasks where:
 	// what it shows:  every task, the ones still to do, or the ones done
 	- its "showing" is one of all, active or done
+	// on the page, its tasks can be dragged to another place:  a blue line shows where,
+	// and once the pointer rests there 2 seconds they move, as they do when it lets go
+	- its items can be reordered
 	// each task, unless the filter hides it
 	- to draw each item:
 		if its showing is "active" and the task is done return nothing

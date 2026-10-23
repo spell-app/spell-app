@@ -1,7 +1,8 @@
 /* File styles.css:  how the task list looks.
    - The list and each task are elements of their own, so these rules reach them all:
      - the list, <task-list-checklist>, and its tasks inside it, each a <task-list-task>
-     - inside a task, by its parts:  its row, ::part(row);  its title, ::part(title);  its priority label, ::part(priority)
+     - inside a task, by its parts:  its row, ::part(row);  its grip, ::part(grip);  its title, ::part(title);
+       its priority label, ::part(priority)
      - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */
 
 /****************
@@ -54,6 +55,12 @@ task-list-task::part(row) {
   display: flex;
   align-items: center;
   gap: 0.5em;
+}
+
+/* its grip:  what a drag starts from */
+task-list-task::part(grip) {
+  flex: none;
+  color: grey;
 }
 
 task-list-task::part(title) {

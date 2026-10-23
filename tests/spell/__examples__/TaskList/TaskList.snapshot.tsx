@@ -44,9 +44,9 @@ export class Task extends Drawable {
     return "grey"
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // ## drawing:  a checkbox, its title, and its priority -- styles.css shows it only when it isn't normal
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // ## drawing:  its grip, a checkbox, its title, and its priority -- styles.css shows it only when it isn't normal
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /**
    * a form of its own, bound to it:  checking the box, or typing a title, changes the task
    * - its row and its title are parts:  styles.css lays them out
@@ -55,6 +55,7 @@ export class Task extends Drawable {
     return (
       <ui-form value={this}>
         <div part="row">
+          <ui-icon part="grip" name="grip vertical" aria-label="Drag" />
           <ui-checkbox name="done" aria-label="Done" />
           <ui-input part="title" name="title" aria-label="Task" transparent={true} />
           <ui-label part="priority" size="tiny" color={this.priorityColor}>{this.priority}</ui-label>
@@ -64,6 +65,8 @@ export class Task extends Drawable {
   }
 
   static canBeSelected = true
+
+  static canBeDragged = true
 
   get checklist() {
     return Checklist.ownerOf(this)!
@@ -87,6 +90,7 @@ core.useElement(Task, TaskElement)
 
 // on the page, a click selects it;  shift and command (ctrl) select more,
 // so the property editor beside the list changes them all at once
+// and dragged, by its grip, to another place in its list:  the selected ones go with it
 
 core.heading("Tests")
 /** Tests */
@@ -142,6 +146,8 @@ export class Checklist extends DrawableList<Task> {
     return <div part="placeholder">Nothing to do</div>
   }
 
+  static reorderItemsAfter = 2
+
   static exclusive = true
 }
 
@@ -165,6 +171,8 @@ export class ChecklistElement extends SpellElement<Checklist> {
   }
 }
 core.useElement(Checklist, ChecklistElement)
+// on the page, its tasks can be dragged to another place:  a blue line shows where,
+// and once the pointer rests there 2 seconds they move, as they do when it lets go
 
 /** a task is in one checklist at a time */
 
@@ -275,7 +283,7 @@ export function testTheFilter() {
   })
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  how the task list looks.¬   - The list and each task are elements of their own, so these rules reach them all:¬     - the list, <task-list-checklist>, and its tasks inside it, each a <task-list-task>¬     - inside a task, by its parts:  its row, ::part(row);  its title, ::part(title);  its priority label, ::part(priority)¬     - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */¬¬/****************¬ * The app:  its menu, the new task's field, then the list beside the property editor¬ ****************/¬¬.TaskList {¬  padding-block: 1em;¬}¬¬/* the field and its button on one line */¬.NewTask {¬  display: flex;¬  gap: 0.5em;¬  margin-block: 1em;¬}¬¬.NewTask > ui-input {¬  flex: 1;¬}¬¬/****************¬ * The list:  one task a line¬ ****************/¬¬task-list-checklist {¬  display: flex;¬  flex-direction: column;¬  gap: 0.25em;¬}¬¬task-list-checklist::part(placeholder) {¬  padding: 1em;¬  color: grey;¬  text-align: center;¬}¬¬/****************¬ * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal¬ ****************/¬¬task-list-task {¬  display: block;¬  padding: 0.25em 0.5em;¬  border-radius: 0.3em;¬}¬¬/* its checkbox, its title filling the line, then its priority */¬task-list-task::part(row) {¬  display: flex;¬  align-items: center;¬  gap: 0.5em;¬}¬¬task-list-task::part(title) {¬  flex: 1;¬}¬¬task-list-task::part(priority) {¬  flex: none;¬}¬¬task-list-task[priority="normal"]::part(priority),¬task-list-task:not([priority])::part(priority) {¬  display: none;¬}¬¬/* selected:  a soft purple band, in place of the outline every selected thing has */¬task-list-task:state(selected) {¬  --spell-selected-outline: none;¬  background: rgb(150 80 255 / 0.12);¬}¬¬/* done:  its title fades */¬task-list-task[done] {¬  opacity: 0.6;¬}¬`)
+core.installStyles(undefined, `/* File styles.css:  how the task list looks.¬   - The list and each task are elements of their own, so these rules reach them all:¬     - the list, <task-list-checklist>, and its tasks inside it, each a <task-list-task>¬     - inside a task, by its parts:  its row, ::part(row);  its grip, ::part(grip);  its title, ::part(title);¬       its priority label, ::part(priority)¬     - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */¬¬/****************¬ * The app:  its menu, the new task's field, then the list beside the property editor¬ ****************/¬¬.TaskList {¬  padding-block: 1em;¬}¬¬/* the field and its button on one line */¬.NewTask {¬  display: flex;¬  gap: 0.5em;¬  margin-block: 1em;¬}¬¬.NewTask > ui-input {¬  flex: 1;¬}¬¬/****************¬ * The list:  one task a line¬ ****************/¬¬task-list-checklist {¬  display: flex;¬  flex-direction: column;¬  gap: 0.25em;¬}¬¬task-list-checklist::part(placeholder) {¬  padding: 1em;¬  color: grey;¬  text-align: center;¬}¬¬/****************¬ * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal¬ ****************/¬¬task-list-task {¬  display: block;¬  padding: 0.25em 0.5em;¬  border-radius: 0.3em;¬}¬¬/* its checkbox, its title filling the line, then its priority */¬task-list-task::part(row) {¬  display: flex;¬  align-items: center;¬  gap: 0.5em;¬}¬¬/* its grip:  what a drag starts from */¬task-list-task::part(grip) {¬  flex: none;¬  color: grey;¬}¬¬task-list-task::part(title) {¬  flex: 1;¬}¬¬task-list-task::part(priority) {¬  flex: none;¬}¬¬task-list-task[priority="normal"]::part(priority),¬task-list-task:not([priority])::part(priority) {¬  display: none;¬}¬¬/* selected:  a soft purple band, in place of the outline every selected thing has */¬task-list-task:state(selected) {¬  --spell-selected-outline: none;¬  background: rgb(150 80 255 / 0.12);¬}¬¬/* done:  its title fades */¬task-list-task[done] {¬  opacity: 0.6;¬}¬`)
 // -----------
 if (!core.isCarryingOver) testTasks()
 if (!core.isCarryingOver) testTheFilter()
