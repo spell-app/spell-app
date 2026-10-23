@@ -6,8 +6,8 @@
  * - It was spell's (`spell-lang/spell/node/project-utils`), until epic `people-and-orgs` P15.
  * - NOTE: loads spaces' barrel, so spell's project groups are registered (`SPACES.PROJECT_GROUPS`).
  */
-import { existsSync } from "fs"
-import { isAbsolute, relative, resolve, sep } from "path"
+import { existsSync, readFileSync } from "fs"
+import { basename, dirname, isAbsolute, relative, resolve, sep } from "path"
 
 import type { SRV } from "spell-kit/server"
 import { json5Edited } from "spell-app/spaces/server/node/storage/json5"
@@ -121,6 +121,10 @@ export function isBuiltFile(location: SP.SpellLocation): boolean {
  *   - the frozen test projects too:  `spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  * - Under spell-spaces:  under `build/spell-spaces/`, so each checkout builds its own
  *   - `<spell-spaces>/@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
+ * - In ANOTHER spell-app checkout (`checkoutHolding()`), e.g. a worktree's example opened by the main checkout's
+ *   language server:  the same path under THAT checkout's `build/` (epic `spanish` P21)
+ *   - `<worktree>/spell-app/spaces/@spell/examples/Solitaire` => `<worktree>/spell-app/build/spaces/@spell/...`
+ *   - Before, it went beside its source, untracked:  that server reads it as a `@local/<folder>` project.
  * - A project anywhere else -- a temporary `@local/<folder>` group, a VS Code workspace elsewhere:
  *   `projectFolder` itself, beside its source, as before `build/`.
  *   - NEVER a `build/` inside its root's folder:  that would list as one of its projects.
@@ -134,12 +138,41 @@ export function buildFolderFor(projectFolder: string, folders: BuildFolders = en
     [folders.spellSpacesDir, resolve(folders.buildDir, "spell-spaces")]
   ]
   for (const [from, to] of mirrors) {
-    const inside = from ? relative(from, projectFolder) : ""
-    const isOutside = !inside || isAbsolute(inside) || inside === ".." || inside.startsWith(`..${sep}`)
-    if (!isOutside) return resolve(to, inside)
+    const inside = insidePath(from, projectFolder)
+    if (inside) return resolve(to, inside)
   }
-  return projectFolder
+  const other = checkoutHolding(projectFolder)
+  return other ? resolve(other, "build", insidePath(other, projectFolder)!) : projectFolder
 }
+
+/** Path of `folder` inside `from`, if it's inside it:  `undefined` for `from` itself, or a folder outside it. */
+function insidePath(from: string | undefined, folder: string): string | undefined {
+  const inside = from ? relative(from, folder) : ""
+  const isOutside = !inside || isAbsolute(inside) || inside === ".." || inside.startsWith(`..${sep}`)
+  return isOutside ? undefined : inside
+}
+
+/**
+ * The spell-app checkout whose `spaces/` or `tests/` holds `projectFolder`, if any:
+ * the nearest folder above it with a `package.json` named `spell-app`.
+ * - So a project of another checkout builds into that checkout's `build/`:  see `buildFolderFor()`.
+ * - `undefined` for a project in no checkout's `spaces/` or `tests/`.
+ */
+function checkoutHolding(projectFolder: string): string | undefined {
+  for (let dir = dirname(projectFolder); dirname(dir) !== dir; dir = dirname(dir)) {
+    if (!SPACE_FOLDERS.has(basename(dir))) continue
+    const checkout = dirname(dir)
+    const packageFile = resolve(checkout, "package.json")
+    if (existsSync(packageFile) && JSON.parse(readFileSync(packageFile, "utf8")).name === SPELL_APP) return checkout
+  }
+  return undefined
+}
+
+/** The folders of a spell-app checkout that hold projects:  its built-in spaces, and its tests'. */
+const SPACE_FOLDERS = new Set(["spaces", "tests"])
+
+/** spell-app's package name, in a checkout's `package.json`. */
+const SPELL_APP = "spell-app"
 
 /**
  * Where `buildFolderFor()` mirrors from, and to.

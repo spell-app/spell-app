@@ -231,7 +231,8 @@ No import map:  a page has only one, and each `<spell-app>` needs its own `@spel
 
 The edges:
 - Two projects that import each other stop the run:  `Projects import each other: ...`, naming the loop.
-- VS Code's runner can't load a project that imports another yet:  it says so, and asks you to run it in the app.
+- VS Code's runner asks its extension for each project the program imports, which asks the language server
+  (`spell/compiledImport`):  that project's compiled file, compiled first if it has none yet.
 
 ### Every program gets its own runtime
 

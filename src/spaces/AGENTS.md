@@ -19,7 +19,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Its folders:
   - [@spell/](../../spaces/@spell/):  the `@spell` space's built-in projects, committed (see "Projects" below)
     - `examples/`:  the `@spell/examples` group (fizzbuzz, calculator ...)
-    - `library/`:  the `@spell/library` group (cards, people)
+    - `library/`:  the `@spell/library` group (people)
       - `people/`, the people library (P7):  people, orgs and what they keep
       - compiled to `people.lib.ts` (the `ts/lib` target):
         the app, the people store and the spell command import it
@@ -42,7 +42,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Python:  [the Python server's tests](../../tests/spaces/server/py/tests/), found by its pytest (`testpaths`)
   - The frozen test projects themselves are beside the built-ins, `spaces/@spell/test/` (see "Projects" below);
     the tests that compile them whole are the repo's `tests/spell/` (the `spell` project), not ours.
-- [test/](test/index.ts), node only:  the test helpers for the frozen test projects, `spell-app/spaces/test`
+    - Among them `cards`, a frozen card library:  `lists-from-zero` imports it.
+    - The examples Solitaire and Solitario are tested as they are, not as frozen copies:
+      their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
+- [test/](test/index.ts), node only:  the test helpers for the frozen test projects and the tested examples,
+  `spell-app/spaces/test`
   - `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`, `compiledFixture()` ...
   - Imported by tests only, by name, never from the barrel.
   - Inline projects are spell-lang's helpers', `spell-lang/spell/test` (`parseSpellProject()`).
@@ -108,6 +112,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | this repo's `tests/X` | `build/X` | |
   | this repo's `X` | `build/X` | `build/spaces/@spell/examples/Solitaire/`, `build/spaces/@spell/test/fizzbuzz/` |
   | spell.spaces' `X` | `build/spell-spaces/X` | `build/spell-spaces/@spell/owen@/errors/` |
+  | another spell-app checkout's `spaces/X` or `tests/X` | THAT checkout's `build/...` | a worktree's example, opened by the main checkout's language server (epic `spanish` P21) |
   | anywhere else | beside the source | |
 
   - `buildFolderFor()`, in project-utils;  "Projects" in [spell's PARSING.md](../../../spell-lang/src/spell/PARSING.md) has the rest.

@@ -3,7 +3,7 @@
   A spell project's drawable types, used on a plain page by their tags.
   - Served by the dev server at `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
   - The hidden `<spell-app>` runs `@spell/examples/Solitaire`, which defines its tags:
-    the card library's `<cards-card>`, `<cards-pile>`, and its own `<solitaire-tableau>` ...
+    its cards' `<solitaire-card>`, its piles' `<solitaire-pile>`, its `<solitaire-tableau>` ...
   - The tags below are written by hand:  each makes its own card or pile from its attributes.
     - Except the tableau, whose id names the hidden game's tableau T1:  `id="T1"` is `Tableau#T1` (P18, J43).
     - So a tag that makes its own thing has no id:  the ace is found by its class instead.
@@ -47,16 +47,16 @@
 
     <h2>Cards, written by hand</h2>
     <div class="table">
-      <cards-card class="ace" rank="ace" suit="spades" direction="up"></cards-card>
-      <cards-card rank="queen" suit="hearts" direction="up"></cards-card>
-      <cards-card rank="7" suit="clubs" direction="down"></cards-card>
+      <solitaire-card class="ace" rank="ace" suit="spades" direction="up"></solitaire-card>
+      <solitaire-card rank="queen" suit="hearts" direction="up"></solitaire-card>
+      <solitaire-card rank="7" suit="clubs" direction="down"></solitaire-card>
     </div>
 
     <h2>A pile holding cards</h2>
     <div class="table">
-      <cards-pile>
-        <cards-card rank="king" suit="diamonds" direction="up"></cards-card>
-      </cards-pile>
+      <solitaire-pile>
+        <solitaire-card rank="king" suit="diamonds" direction="up"></solitaire-card>
+      </solitaire-pile>
     </div>
 
     <h2>The hidden game's tableau T1, named by its id</h2>

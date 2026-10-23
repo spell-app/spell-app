@@ -1,4 +1,0 @@
-407:26 TS2533 Object is possibly 'null' or 'undefined'.
-407:129 TS2339 Property 'firstItem' does not exist on type '{} | Pick<List<Foundation>, "getItem"> | readonly Foundation[]'.
-486:19 TS2533 Object is possibly 'null' or 'undefined'.
-486:102 TS2339 Property 'firstItem' does not exist on type '{} | Pick<List<Pile>, "getItem"> | readonly Pile[]'.

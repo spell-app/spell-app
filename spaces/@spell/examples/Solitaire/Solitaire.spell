@@ -1,7 +1,7 @@
 ## Klondike Solitaire
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for its rules, and what each pile is called.
-// The cards, the deck and the piles are the cards library's, `@spell/library/cards`:
-// this file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
+// The cards, the deck and the piles are this project's own:  Card, Deck and Pile.
+// This file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
 // What's where, top to bottom:
 //   the solitaire:  its piles, its moves, auto play and drawing
 //   playing a card:  what a click does

@@ -5,6 +5,7 @@ import h from "@solidjs/h"
 import { core, App, Drawable, DrawableList } from "spell-lang/core"
 import { P } from "spell-lang/parser"
 import { E } from "spell-ui/core"
+import { RootLoader } from "spell-ui/components/ui-root"
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { installSpellElements, SpellElement } from "spell-app/app/runner/SpellElement"
 
@@ -72,6 +73,30 @@ describe("SpellElement", () => {
     const note = element.shadowRoot!.querySelector(".note")!
     expect(getComputedStyle(note).color).toBe("rgb(1, 2, 3)")
     expect(getComputedStyle(note).backgroundColor).toBe("rgb(4, 5, 6)")
+  })
+
+  test("loads the Spell UI families its drawing uses, a Spanish program's <es-*> tags and values too (J96)", async () => {
+    // what the runner does for a Spanish program, before it runs it
+    await RootLoader.useLanguage("es")
+    /** A Spanish card:  its own colour words, as Spell UI's Spanish tag takes them. */
+    class Carta extends Drawable {
+      color = "rojo"
+      draw(): ReturnType<Drawable["draw"]> {
+        const text = h("es-texto", { tamano: "gigante", "prop:color": () => this.color }, "🂱")
+        return (text as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    core.defineElement(Carta, "Solitario")
+    await Promise.resolve()
+    const element = await ElementFixture.render<HTMLElement & { thing?: Carta }>("<solitario-carta></solitario-carta>")
+    element.thing = new Carta()
+    flush()
+    // nothing but the card loads `<ui-text>`'s family:  the card's shadow root is no root's content
+    await customElements.whenDefined("es-texto")
+    const texto = element.shadowRoot!.querySelector("es-texto") as E.DOMElement
+    await texto.ready
+    await ElementFixture.settle()
+    expect(texto.shadowRoot!.querySelector("span")!.className).toBe("ui massive red text")
   })
 
   test("defining it again, as a program run again does, keeps the tag", () => {

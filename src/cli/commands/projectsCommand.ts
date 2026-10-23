@@ -6,7 +6,7 @@ import { CLI } from "spell-app/cli"
 /**
  * `spell projects [group]`:  list the project groups -- or, given one, e.g. `@spell/library`, the projects in it.
  * - A group's line:  its address (what to type), its title, how many projects.
- * - A project's line:  its name, e.g. `cards`, then its address, `@spell/library/cards`.
+ * - A project's line:  its name, e.g. `people`, then its address, `@spell/library/people`.
  * - `--json`:  the same as JSON, for scripts.
  * - Returns the exit code -- `EXIT.USAGE` for a group it doesn't know.
  */

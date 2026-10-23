@@ -124,8 +124,8 @@ describe("LspToMonaco", () => {
     })
   })
 
-  describe("on real answers, for the card library's deck", () => {
-    const deckPath = resolve(environment.systemFilesRoot, "library", "cards", "Deck.spell")
+  describe("on real answers, for the Solitaire example's deck", () => {
+    const deckPath = resolve(environment.systemFilesRoot, "examples", "Solitaire", "Deck.spell")
     const deckUri = pathToFileURL(deckPath).href
     const deckText = readFileSync(deckPath, "utf8")
     const workspace = new SpellDiskWorkspace()

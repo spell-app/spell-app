@@ -268,6 +268,19 @@ export type CompiledParams = {
   target?: CompiledTarget
 }
 
+/**
+ * Asked as `spell/compiledImport`:  the compiled javascript of a project the project of `uri` imports,
+ * e.g. `@spell/library/people`, for a runner to link it in -- see `runCompiled()`'s `loadImport`.
+ * - Answered with its `<Project>.spell.js`, read fresh;  compiled first if it has none yet.
+ * - `null` if it can't be loaded or compiled.
+ */
+export type CompiledImportParams = {
+  /** One of the importing project's spell files. */
+  uri: string
+  /** Project imported, as compiled spell names it after `@spell/project/`:  `@spell/library/people`. */
+  projectId: string
+}
+
 /** Sent as `spell/projectCompiled` after a project compiles, e.g. from `spell/compileProject`. */
 export type ProjectCompiled = {
   /** Project id, as `ProjectInfo.project`. */

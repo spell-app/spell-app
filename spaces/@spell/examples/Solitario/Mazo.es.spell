@@ -2,12 +2,10 @@
 // Lee los palos y rangos propios de la carta:  `palos de carta`, `rangos de carta`.
 un "mazo" es una lista de cartas donde:
 	// sin comodines, a menos que se haga `con comodines`
-	- "comodines" es sí o no
+	- su "comodines" es sí o no
 
-	// un mazo preparado tiene una carta de cada, el as de tréboles primero, luego sus dos comodines, el rojo y luego el negro
-	// - NOTE:  se llama a mano, `preparar el mazo`:  el español aún no tiene un `para crearlo` que corra al hacerlo
-	- para preparar:
-		si el mazo no está vacío devolver
+	// un mazo nuevo tiene una carta de cada, el as de tréboles primero, luego sus dos comodines, el rojo y luego el negro
+	- para crearlo:
 		para cada rango en rangos de carta
 			para cada palo en palos de carta
 				// `el mazo`, no `eso`:  en un `para cada`, `eso` es el elemento del bucle, aquí el palo
@@ -17,7 +15,7 @@ un "mazo" es una lista de cartas donde:
 			agregar (un nuevo comodín con color = negro) al mazo
 
 	// muestra los nombres cortos de sus cartas, de arriba abajo
-	- para mostrar:
+	- para mostrarlo:
 		poner nombres cortos a una nueva lista de texto
 		para cada carta en el mazo
 			agregar el nombre corto de la carta a nombres cortos
@@ -27,7 +25,6 @@ un "mazo" es una lista de cartas donde:
 ## Pruebas
 para probar la creación del mazo
 	el mazo es un nuevo mazo
-	preparar el mazo
 	el número de cartas en el mazo debería ser 52
 	poner las damas a las cartas en el mazo donde el rango de la carta es dama
 	el número de cartas en las damas debería ser 4
@@ -45,9 +42,8 @@ para probar la creación del mazo
 
 para probar el mazo con comodines
 	el mazo es un nuevo mazo con comodines
-	preparar el mazo
 	el número de cartas en el mazo debería ser 54
-	poner las cartas salvajes a las cartas en el mazo donde la carta es un comodín
+	poner las cartas salvajes a las cartas en el mazo donde es un comodín
 	el número de cartas en las cartas salvajes debería ser 2
 	la primera carta del mazo es el as de tréboles debería ser sí
 	// el comodín rojo, luego el negro, al final

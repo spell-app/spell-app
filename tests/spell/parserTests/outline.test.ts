@@ -5,12 +5,12 @@ import { runSpellFiles } from "spell-lang/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
- * The OUTLINE style (epic page `outline-spell`) on a whole project:  the card library, `@spell/library/cards`.
+ * The OUTLINE style (epic page `outline-spell`) on a whole project:  the frozen card library, `@spell/test/cards`.
  * - The style itself, line by line:  spell-lang's own `outline.test.ts`.
  */
 describe("outline style", () => {
   test("the card library's cards, deck and piles pass their own tests (P5)", () => {
-    const files = loadFixtureProject("@spell/library/cards")
+    const files = loadFixtureProject("cards")
     const lines: string[] = []
     const console = core.console as unknown as Record<string, (...args: unknown[]) => void>
     for (const method of ["log", "group", "groupCollapsed", "warn", "error", "info"].filter((it) => console[it])) {

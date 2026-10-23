@@ -1,4 +1,5 @@
-import { basename, resolve } from "path"
+import { readFileSync } from "fs"
+import { basename, dirname, join, resolve } from "path"
 import { fileURLToPath } from "url"
 
 import { describeTypecheckError, typecheck } from "spell-lang/spell/node/typecheck"
@@ -15,6 +16,9 @@ import { CLI } from "spell-app/cli"
  *   - each other target's, e.g. `<Project>.spell.tsx` -- see `SP.TARGETS`
  *   - `--target <name>`:  that target, this run, instead of the project file's
  *   - `--stdout`:  prints one (the target asked for, else the one that runs), and writes nothing
+ * - A target whose code imports other projects from files beside it, Python's (`from cards import Card`),
+ *   gets them written there too, e.g. `cards.py` and its drawing half beside `Solitaire.spell.py`:
+ *   as `spell run --target py` does (`CLI.writeImports()`), so its app runs as written.
  * - A target with a checker is checked once written:  `tsc` on `ts/solid` and a library (`ts/lib`), `pyright` on `py`.
  *   Its errors are listed, but don't fail the compile -- see `typecheckTargets()`.
  * - Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does:
@@ -95,11 +99,13 @@ async function compileProject(
   if (stdout) output.push(project.outputFileFor(printed).contents ?? "")
   const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile, ...project.wordsFiles]
   const wrote = stdout ? [] : files.map((file) => file.location.serverPath)
+  // what it imports, beside it, for a target that imports them from there, e.g. Python's `cards.py`
+  const imports = stdout ? {} : await writeImportsBeside(project, targets, wrote)
   // a CLEAN compile writes its scope pack too, as the language server does
   if (!stdout && !session.problems(project).length) {
     wrote.push(await session.workspace.writeScopes(project, session.explorer))
   }
-  const checked = stdout ? { counts: {}, details: [] } : typecheckTargets(session, project, targets)
+  const checked = stdout ? { counts: {}, details: [] } : typecheckTargets(session, project, targets, imports)
   const schemaProblem = stdout ? undefined : await writeLibrarySchemas(session, project, targets, wrote)
   // its editor pages, each a module defining its <type-editor> (epic `property-editor` P7)
   const pages = stdout ? { wrote: [], notes: [] } : await new CLI.EditorPages(session, project).compile()
@@ -115,6 +121,30 @@ async function compileProject(
   ]
   const note = notes.filter(Boolean).join(" · ") || undefined
   return !session.report(status, row, project, { note, details: checked.details }).length
+}
+
+/**
+ * SIDE EFFECT:  for each of `targets` whose code imports other projects from files beside it (`CLI.importsBeside()`),
+ * each project `project` imports, written beside its output:  e.g. `cards.py` and `cards.elements.spell.js`
+ * beside `Solitaire.spell.py`, as `spell run --target py` writes them in its temp folder (`CLI.writeImports()`).
+ * - Their paths are added to `wrote`.
+ * - Returns each written file's code, by its name, by target name:  for its checker -- see `typecheckTargets()`.
+ */
+async function writeImportsBeside(
+  project: SP.SpellProject,
+  targets: SP.Target[],
+  wrote: string[]
+): Promise<Record<string, Record<string, string>>> {
+  const written: Record<string, Record<string, string>> = {}
+  for (const target of targets.filter(CLI.importsBeside)) {
+    const folder = dirname(project.outputFileFor(target).location.serverPath)
+    written[target.name] = {}
+    for (const { file, elements } of Object.values(await CLI.writeImports(project, target, folder))) {
+      written[target.name]![file] = readFileSync(join(folder, file), "utf8")
+      wrote.push(join(folder, file), ...(elements ? [join(folder, elements)] : []))
+    }
+  }
+  return written
 }
 
 /**
@@ -142,6 +172,8 @@ async function writeLibrarySchemas(
 /**
  * Each of `project`'s targets' checker on it, as just written:
  * `tsc` on `ts/solid`, `pyright` on `py` (epic `python-target` P13).
+ * - `imports`:  the code of what it imports, by file name, by target name, e.g. `cards.py` for `py`:
+ *   checked with it, so its imports resolve, but only its own errors are listed.
  * - Returns its errors, as lines under the project, e.g. `Solitaire.spell.tsx:135:18  TS18048 ...`,
  *   and how many, by checker.
  * - Shown, NOT counted as the project's errors:
@@ -151,7 +183,8 @@ async function writeLibrarySchemas(
 function typecheckTargets(
   session: CLI.CliSession,
   project: SP.SpellProject,
-  targets: SP.Target[]
+  targets: SP.Target[],
+  imports: Record<string, Record<string, string>>
 ): { counts: Record<string, number>; details: string[] } {
   const details: string[] = []
   const counts: Record<string, number> = {}
@@ -164,7 +197,7 @@ function typecheckTargets(
     const file = project.outputFileFor(target)
     const name = basename(file.location.serverPath)
     const path = session.relative(file.location.serverPath)
-    const code = { [name]: file.contents ?? "" }
+    const code = { ...imports[target.name], [name]: file.contents ?? "" }
     const found =
       checker === "pyright"
         ? pyright(code).errors[name]!.map(describePyrightError)

@@ -18,18 +18,18 @@ import {
 import { SP } from "spell-lang/spell"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
-import { copyFixtureWithLibraries } from "spell-app/spaces/test"
+import { copyFixtureProject } from "spell-app/spaces/test"
 
 /**
- * The language service over a real project:  a temp copy of the Solitaire fixture and the card library's files,
- * as ONE project (`copyFixtureWithLibraries()`),
+ * The language service over a real project:  a temp copy of the Solitaire example, its cards, deck and piles too
+ * (`copyFixtureProject()`),
  * so edits and `project.json` syncing never touch the repo, and its `@local/<folder>` project is ours alone.
  * - The card, deck and piles are outlines;  Solitaire's play, `to play a card`, is a sentence.
  * - Lines are 1-based, as an editor shows them.
  */
 describe("SpellLanguageService", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-"))
-  copyFixtureWithLibraries("solitaire", resolve(dir, "Solitaire"))
+  copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const cardText = readFileSync(cardPath, "utf8")
@@ -391,7 +391,7 @@ describe("SpellLanguageService", () => {
         (items.find((item) => item.label === label)?.documentation as { value: string })?.value
       expect(docs("card")).toBe(
         "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\n" +
-          "A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`."
+          "A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`."
       )
       expect(docs("turn it face up")).toBe("each pauses a moment, so `wait for: turn the card face up` animates")
     })
@@ -1018,7 +1018,7 @@ describe("SpellLanguageService", () => {
  */
 describe("SpellLanguageService, outline style", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-outline-"))
-  copyFixtureWithLibraries("solitaire", resolve(dir, "Solitaire"))
+  copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()

@@ -28,16 +28,17 @@ import { CLI } from "spell-app/cli"
  *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
  *   - What a core must HAVE is `SC.Core` (`spell-lang/core/core.types`).
  * - The snapshot catches a broken core method, which both targets would share.
- * - A fixture that imports another project (`solitaire` imports the card library, `@spell/library/cards`)
+ * - A fixture that imports another project (`lists-from-zero` imports the frozen card library, `@spell/test/cards`)
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
- *   What it drew is printed last, so drawing is compared too.
+ *   What it drew is printed last, so drawing is compared too:
+ *   each drawable thing as its own element, e.g. `<test-project-card>`, its drawing in its place.
  * - Its random numbers start from seed 1 (`core.seedRandom()`),
  *   so Solitaire deals the same cards every run, on every target.
  * - Only STDOUT is compared:  the program's own output, as data.
  *   A dump of a thing (`print the card`) goes to stderr, as do warnings (epic `python-target`, Q17):
  *   how a thing looks dumped is each target's own business.
- * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
+ * - Changed on purpose:  `yarn vp test run tests/cli/contract.test.ts -u`, then read the diff.
  */
 const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py" }
 
@@ -59,7 +60,7 @@ async function printed(name: string, target: string, code = compiledFixture(name
       capture: true,
       dom: true,
       seed: CONTRACT_SEED,
-      // a test's lines in the fixture's language, as `spell run` prints them:  `cartas`'s in Spanish
+      // a test's lines in the fixture's language, as `spell run` prints them:  `Solitario`'s in Spanish
       messages: SP.SpellWords.messagesFor(fixtureLanguages(name)[0]!),
       // only what's printed matters:  Python needn't wait at a pause (javascript's run as they are)
       pauses: false
@@ -157,7 +158,7 @@ class HelpersByName extends P.JSWriter {
 
 describe("a program compiled before P16, with core's old names", () => {
   test("prints what it prints today", async () => {
-    const name = "solitaire"
+    const name = "Solitaire"
     const helpersByName = compiledFixture(name, new HelpersByName())
     const before = helpersByName.replace(/\bcore\.(\w+)\(/g, (call, method: string) =>
       OLD_NAMES[method] ? `core.${OLD_NAMES[method]}(` : call
@@ -207,7 +208,7 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
 })
 
 /** The fixtures that are games:  a `deck` of cards, and a `card-click` handler. */
-const GAMES = ["solitaire"]
+const GAMES = ["Solitaire"]
 
 /**
  * Where the board a run draws last starts, in its output's `lines`:  the last `<div id="spell-app-root">`.
@@ -262,7 +263,7 @@ describe("the core contract:  a game's patches give its whole state, click by cl
  * - The board it draws is the javascript run's, the last line of its contract snapshot.
  * - A click on the stock's place sends Python a call of the solitaire's `play from the stock`, the solitaire by
  *   reference;  Python's session runs it.
- *   - Not a card:  each draws in an element of its own, which the fake page doesn't define.
+ *   - Found through the shadow roots:  the stock draws in its own element, `<test-project-stock-pile>`.
  */
 describe("the core contract:  a page draws a Python game as javascript does", () => {
   for (const name of GAMES) {
@@ -298,8 +299,10 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
             ...modules,
             "const sent = []",
             `startPage({ modules: [${[...imported, "program"].join(", ")}], state: ${state}, send: (message) => sent.push(message) })`,
-            // the stock's place:  its cards draw in elements of their own, which a fake page doesn't define
-            'document.querySelector(".Stock .Placeholder").dispatchEvent(new Event("click", { bubbles: true }))',
+            // the stock's place:  in the stock's element's shadow root, as each drawable thing draws in its own
+            "const found = (root, selector) => root.querySelector(selector) ??",
+            "  [...root.querySelectorAll('*')].map((it) => it.shadowRoot && found(it.shadowRoot, selector)).find(Boolean)",
+            'found(document, ".Stock .Placeholder").dispatchEvent(new Event("click", { bubbles: true }))',
             "console.log(JSON.stringify(sent))"
           ].join("\n")
           const { exitCode, output, stdout } = await CLI.runCode("run", `${name}Page`, page, {

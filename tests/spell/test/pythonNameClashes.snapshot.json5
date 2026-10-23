@@ -1,5 +1,11 @@
 [
   {
+    "spell": "as",
+    "python": "as_",
+    "kind": "variable",
+    "where": "@spell/examples/Solitario"
+  },
+  {
     "spell": "position",
     "python": "position_",
     "kind": "variable",

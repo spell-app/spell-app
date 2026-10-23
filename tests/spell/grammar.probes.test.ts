@@ -17,7 +17,7 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  *     NOT an epic phase.
  *   - Titles match the page's experiment, `guides/precedence/experiments/grammar-today.mts`.
  * - Each probe parses scratch file `/Probe.spell` in memory with `parseSpellProject()`, exactly as a project
- *   compile does, after the frozen Solitaire fixture's `Card` / `Deck` / `Pile` (`spaces/@spell/test/solitaire/`).
+ *   compile does, after the frozen card library's `Card` / `Deck` / `Pile` (`spaces/@spell/test/cards/`).
  *   - Those predate jokers, so no joker phrasing here.
  * - Snapshot:  the probe's compiled lines (after `SETUP`'s),
  *   then one `ERROR <line>:<ch> <message>` per parse error.
@@ -863,10 +863,10 @@ describe("datatypes", () => {
 ////////////////
 
 /**
- * The cards library's files, `Card`, `Deck`, `Pile` (`@spell/library/cards`), parsed as the probe project's own.
+ * The frozen card library's files, `Card`, `Deck`, `Pile` (`@spell/test/cards`), parsed as the probe project's own.
  * - NOT frozen:  a change to the library may change a probe's snapshot (epic `spanish` P11).
  */
-const CARDS = loadFixtureProject("@spell/library/cards")
+const CARDS = loadFixtureProject("cards")
 
 /**
  * Types the probes use beside the cards library's, in a file of their own before the probe's.

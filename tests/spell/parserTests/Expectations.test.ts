@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vite-plus/test"
 
 import { parseSpellProject } from "spell-lang/spell/test"
-import { loadFixtureWithLibraries } from "spell-app/spaces/test"
+import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * `expectedAfter()` on a whole frozen project:  quick enough to ask on every keystroke.
@@ -9,7 +9,7 @@ import { loadFixtureWithLibraries } from "spell-app/spaces/test"
  */
 describe("expectedAfter()", () => {
   test("quick enough for every keystroke, on every line of Solitaire", () => {
-    const project = parseSpellProject(loadFixtureWithLibraries("solitaire"))
+    const project = parseSpellProject(loadFixtureProject("Solitaire"))
     let calls = 0
     const start = performance.now()
     for (const file of project.files) {

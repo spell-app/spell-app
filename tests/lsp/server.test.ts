@@ -171,6 +171,31 @@ describe("spell language server over stdio", () => {
     expect(card.members.map((member) => member.name)).toContain("suit")
   }, 30_000)
 
+  test("`spell/compiledImport` answers the javascript of a project it imports, for VS Code's runner;  `null` for none", async () => {
+    const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Imports")
+    mkdirSync(projectDir)
+    writeFileSync(
+      resolve(projectDir, "project.json"),
+      JSON.stringify({
+        imports: [
+          { path: "@spell/library/people", active: true, import: ["Person"] },
+          { path: "/main.spell", active: true }
+        ]
+      })
+    )
+    const text = "set foo to 1"
+    writeFileSync(resolve(projectDir, "main.spell"), text)
+    const uri = pathToFileURL(resolve(projectDir, "main.spell")).href
+    await connection.sendNotification("textDocument/didOpen", {
+      textDocument: { uri, languageId: "spell", version: 1, text }
+    })
+    const people = await connection.sendRequest("spell/compiledImport", { uri, projectId: "@spell/library/people" })
+    expect(people).toContain("class Person extends")
+    expect(await connection.sendRequest("spell/compiledImport", { uri, projectId: "@spell/library/nowhere" })).toBe(
+      null
+    )
+  }, 60_000)
+
   test("`spell/compileProject` of a project that doesn't parse:  not ok, and sends nothing", async () => {
     const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Broken")
     mkdirSync(projectDir)

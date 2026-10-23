@@ -1,3 +1,0 @@
-/* File styles.css:  the board's own styles.
-   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.
-   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */

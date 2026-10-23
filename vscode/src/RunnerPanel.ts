@@ -5,6 +5,8 @@
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
  * - Also re-runs when the project's `<Project>.spell.js` changes on disk, e.g. compiled by the web app.
  * - Sends its words, `<Project>.en.js` beside its source, after each run:  the Thing Explorer's labels.
+ * - Sends the compiled javascript of each project it imports, when the runner asks (`loadImport`):
+ *   the server's `spell/compiledImport`.
  */
 import { existsSync, mkdirSync } from "fs"
 import JSON5 from "json5"
@@ -76,6 +78,7 @@ export class RunnerPanel {
       else if (message.type === "refreshScopes") void this.sendScopes()
       else if (message.type === "open") void RunnerPanel.open(message.href)
       else if (message.type === "setDescription") void this.setDescription(message)
+      else if (message.type === "loadImport") void this.sendImport(message.projectId)
     })
     const watcher = RunnerPanel.watch(vscode.Uri.parse(info.compiledUri))
     watcher.onDidChange((uri) => void this.compiledChanged(uri))
@@ -194,6 +197,19 @@ export class RunnerPanel {
     )
     const words = texts.filter((text) => text !== undefined)
     this.post({ type: "words", words: words.length ? words : undefined })
+  }
+
+  /**
+   * Send the webview the compiled javascript of project `projectId`, which ours imports, e.g. `@spell/library/people`:
+   * the language server's `spell/compiledImport`, which compiles it first if it has none yet.
+   * - Asked for on every run, so a library compiled since shows at once.
+   * - Can't:  sends why instead, which the runner shows as the run's error.
+   */
+  async sendImport(projectId: string): Promise<void> {
+    const params = { uri: this.uri, projectId }
+    const compiled = await this.client.sendRequest<string | null>("spell/compiledImport", params).catch(() => null)
+    if (compiled) this.post({ type: "imported", projectId, compiled })
+    else this.post({ type: "imported", projectId, error: `Couldn't load project '${projectId}':  does it compile?` })
   }
 
   /** Send the webview the project's live scope tree, from the server's `spell/scopes`, for its Type Explorer. */
@@ -377,7 +393,8 @@ type ProjectCompiled = {
  */
 type ToRunnerMessage =
   | { type: "run"; compiled: string }
-  | { type: "words"; words?: string }
+  | { type: "imported"; projectId: string; compiled?: string; error?: string }
+  | { type: "words"; words?: string[] }
   | { type: "scopes"; tree: unknown }
   | { type: "settings"; settings: ProjectSettings }
   | { type: "details"; path: string; details: unknown }
@@ -391,6 +408,7 @@ type FromRunnerMessage =
   | { type: "saveSettings"; settings: ProjectSettings }
   | { type: "details"; path: string }
   | { type: "refreshScopes" }
+  | { type: "loadImport"; projectId: string }
 
 /** Params of `spell/setDescription`, as `LSP.SetDescriptionParams` -- `file` for the file's own docstring. */
 type SetDescriptionParams = { uri: string; line?: number; file?: boolean; text: string }

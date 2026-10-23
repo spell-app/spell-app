@@ -5,7 +5,14 @@ import { describe, test, expect } from "vite-plus/test"
 
 import { SP } from "spell-lang/spell"
 import { CLI } from "spell-app/cli"
-import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from "spell-app/spaces/test"
+import {
+  fixturePath,
+  fixtureProjectId,
+  fixtureProjectNames,
+  FIXTURES_DIR,
+  EXAMPLE_FIXTURES,
+  fixtureFolder
+} from "spell-app/spaces/test"
 
 /** What `arg` names, reduced to `kind` + id for comparing. */
 async function named(arg: string, cwd?: string) {
@@ -16,10 +23,11 @@ async function named(arg: string, cwd?: string) {
 }
 
 const FIZZBUZZ = fixtureProjectId("fizzbuzz")
-const SOLITAIRE = fixtureProjectId("solitaire")
+const SOLITAIRE = fixtureProjectId("Solitaire")
 const GAME = `${SOLITAIRE}/Solitaire.spell`
-// in the order a group lists its projects:  by name
+// the frozen ones, `@spell/test`'s, in the order a group lists its projects:  by name
 const ALL_FIXTURES = fixtureProjectNames()
+  .filter((name) => !EXAMPLE_FIXTURES.has(name))
   .map(fixtureProjectId)
   .sort((a, b) => a.localeCompare(b))
 
@@ -32,7 +40,7 @@ describe("resolveProject()", () => {
       expect(await named(SOLITAIRE)).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file", async () => {
-      expect(await named("@spell/test/solitaire/Solitaire.spell")).toEqual({ kind: "file", id: GAME })
+      expect(await named("@spell/examples/Solitaire/Solitaire.spell")).toEqual({ kind: "file", id: GAME })
     })
     test("a group, by its address, holds only folders with a project.json", async () => {
       expect(await named("@spell/test")).toEqual({ kind: "root", ids: ALL_FIXTURES })
@@ -41,20 +49,20 @@ describe("resolveProject()", () => {
 
   describe("disk paths", () => {
     test("a project folder", async () => {
-      expect(await named(fixturePath("solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
+      expect(await named(fixtureFolder("Solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a project's project.json", async () => {
-      expect(await named(fixturePath("solitaire", SP.PROJECT_FILE))).toEqual({ kind: "project", id: SOLITAIRE })
+      expect(await named(fixtureFolder("Solitaire", SP.PROJECT_FILE))).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file, relative to cwd", async () => {
-      expect(await named("Solitaire.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: GAME })
+      expect(await named("Solitaire.spell", fixtureFolder("Solitaire"))).toEqual({ kind: "file", id: GAME })
     })
     test("a known root's folder", async () => {
       expect(await named(FIXTURES_DIR)).toEqual({ kind: "root", ids: ALL_FIXTURES })
     })
     test("`@here` is the current folder", async () => {
-      expect(await named("@here", fixturePath("solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
-      expect(await named("@here/Solitaire.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: GAME })
+      expect(await named("@here", fixtureFolder("Solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
+      expect(await named("@here/Solitaire.spell", fixtureFolder("Solitaire"))).toEqual({ kind: "file", id: GAME })
     })
   })
 
@@ -62,8 +70,8 @@ describe("resolveProject()", () => {
     test.each([
       "@nope",
       "@spell/test/nope",
-      "@spell/test/solitaire/Nope.spell",
-      "@spell/test/solitaire/project.json",
+      "@spell/examples/Solitaire/Nope.spell",
+      "@spell/examples/Solitaire/project.json",
       "./no/such/thing"
     ])("%s", async (arg) => {
       await expect(CLI.resolveProject(arg, fixturePath())).rejects.toBeInstanceOf(CLI.CliError)

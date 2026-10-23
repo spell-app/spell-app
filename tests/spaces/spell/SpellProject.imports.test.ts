@@ -10,24 +10,23 @@ import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { describeParseErrors, tsxBinary } from "spell-lang/spell/test"
-import { fixturePath } from "spell-app/spaces/test"
+import { fixtureFolder } from "spell-app/spaces/test"
 
 /**
  * A project importing another, through `project.json` -- as `SpellProject` does it in the app.
- * - Solitaire split in two, in a temp `@local/<folder>` group:  `lib`, a copy of the card library (`Card`, `Deck`,
- *   `Pile`), and apps importing it, e.g. a copy of the Solitaire fixture's own file.
+ * - Solitaire split in two, in a temp `@local/<folder>` group:  `lib`, a copy of its cards, deck and piles (`Card`,
+ *   `Deck`, `Pile`), and apps importing it, e.g. a copy of its game, `Solitaire.spell`.
  * - Nothing is written into the repo.
  * - spaces' since epic `repo-split` C11 (spell-lang's `tests/spell/` before):  it loads projects through spaces'
  *   disk reader, which spell-lang's tests never import.
  */
 describe("SpellProject imports", () => {
-  const solitaire = fixturePath("solitaire")
-  const cards = resolve(environment.systemFilesRoot, "library", "cards")
+  const solitaire = fixtureFolder("Solitaire")
   const workspace = mkdtempSync(resolve(tmpdir(), "spell-imports-"))
   let root = ""
 
   /**
-   * Project `name` in the workspace:  `spellFiles` copied from Solitaire (its own file) or the card library (the rest),
+   * Project `name` in the workspace:  `spellFiles` copied from the Solitaire example,
    *   then `imports` ahead of them.
    * - Or written, if given `sources` for them.
    */
@@ -41,7 +40,7 @@ describe("SpellProject imports", () => {
     mkdirSync(dir)
     for (const file of spellFiles) {
       if (sources[file] !== undefined) writeFileSync(resolve(dir, file), sources[file])
-      else copyFileSync(resolve(file === "Solitaire.spell" ? solitaire : cards, file), resolve(dir, file))
+      else copyFileSync(resolve(solitaire, file), resolve(dir, file))
     }
     const { imports = [], ...rest } = json as { imports?: unknown[] }
     const files = spellFiles.map((file) => ({ path: `/${file}`, active: true }))
@@ -269,8 +268,8 @@ describe("SpellProject imports", () => {
   })
 
   test("a root's alias names a project in it, e.g. `@library/<name>` in `@spell/library`", () => {
-    expect(SP.SpellProject.projectIdForImport("@spell/library/cards")).toBe("@spell/library/cards")
-    expect(SP.SpellProject.projectIdForImport("@spell/test/solitaire")).toBe("@spell/test/solitaire")
+    expect(SP.SpellProject.projectIdForImport("@spell/library/people")).toBe("@spell/library/people")
+    expect(SP.SpellProject.projectIdForImport("@spell/examples/Solitaire")).toBe("@spell/examples/Solitaire")
     expect(SP.SpellProject.projectIdForImport("owen@spell/mine")).toBe("owen@spell/mine")
   })
 })

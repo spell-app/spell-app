@@ -12,8 +12,8 @@ const HOVER_RULE = "\n\n---\n\n"
  * `spell explain <word>`:  what `word` means to spell.
  * - Rules:  each spell rule named `word`, or whose syntax starts with it, e.g. `repeat` -- its syntax, and an
  *   example from its tests.  As the editor's hover shows a rule.
- * - With `--in <project>`, also what that project declares named `word` (ignoring case, and spaces ~== `-` ~== `_`)
- *   -- the editor's hover over its declaration.
+ * - With `--in <project>`, also what that project, and each project it imports, declares named `word`
+ *   (ignoring case, and spaces ~== `-` ~== `_`) -- the editor's hover over its declaration.
  * - `--json`:  what was found, as JSON.
  * - Returns the exit code:  `EXIT.ERRORS` if nothing was found.
  */
@@ -24,6 +24,8 @@ export async function explainCommand(
 ): Promise<number> {
   const [word = ""] = args
   const project = options.in ? await CLI.projectFor(session, options.in) : undefined
+  // what it imports too, e.g. the people library's `person` for a project that imports it
+  if (project) await session.parseImports(project)
   const parser = project?.scope?.parser ?? SP.spellParser
   const rules = rulesFor(word, parser).map((rule) => ({
     rule: rule.name!,

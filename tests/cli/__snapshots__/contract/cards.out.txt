@@ -91,31 +91,3 @@
   ✅ As expected `the number of cards in the stock` is `1`
   ✅ As expected `the pile of the card is the discards` is `yes`
   ✅ As expected `the state of the discards` is `"discards: 7♥️—"`
-✅ test the moves
-  ▶️ Executing   `set the column to a new tableau with name = "T1"`
-  ▶️ Executing   `set the king to a new card whose rank is king, suit is spades and direction is up`
-  ▶️ Executing   `set the queen to a new card whose rank is queen, suit is hearts and direction is up`
-  ▶️ Executing   `set the jack to a new card whose rank is jack, suit is clubs and direction is up`
-  ✅ As expected `the column can take the queen` is `no`
-  ✅ As expected `the column can take the king` is `yes`
-  ▶️ Executing   `add the king to the column`
-  ✅ As expected `the column can take the jack` is `no`
-  ✅ As expected `the column can take the queen` is `yes`
-  ▶️ Executing   `add the queen to the column`
-  ✅ As expected `the state of the column` is `"T1: K♠️+ Q♥️+"`
-  ✅ As expected `the column can give up the queen` is `yes`
-  ▶️ Executing   `turn the queen face down`
-  ✅ As expected `the column can give up the queen` is `no`
-  ▶️ Executing   `set the two to a new card whose rank is 2, suit is hearts and direction is up`
-  ▶️ Executing   `set the ace to a new card whose rank is ace, suit is hearts and direction is up`
-  ▶️ Executing   `set the column to a new tableau with name = "T2"`
-  ▶️ Executing   `add the two to the column`
-  ▶️ Executing   `add the ace to the column`
-  ✅ As expected `the foundation can take the two` is `no`
-  ✅ As expected `the foundation can take the ace` is `yes`
-  ▶️ Executing   `move the ace to the foundation`
-  ✅ As expected `the foundation can take the two` is `yes`
-  ▶️ Executing   `add the queen to the column`
-  ✅ As expected `the foundation can take the queen` is `no`
-
-<div id="spell-app-root"><ui-container><ui-menu><ui-item type="header">Klondike Solitaire</ui-item><ui-item>Score: 0</ui-item><ui-menu position="right"><ui-item>AutoPlay</ui-item><ui-item>Cheat</ui-item><ui-item>Debug</ui-item><ui-item>Restart</ui-item></ui-menu></ui-menu><ui-grid columns="7"><ui-row><ui-column><div class="Stock"><div class="Placeholder"></div><slot></slot></div></ui-column><ui-column><slot></slot></ui-column><ui-column></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♣️</div><slot></slot></div></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♦️</div><slot></slot></div></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♥️</div><slot></slot></div></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♠️</div><slot></slot></div></ui-column></ui-row><ui-row><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column></ui-row></ui-grid></ui-container></div>

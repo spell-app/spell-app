@@ -109,7 +109,7 @@ const environment = {
   /** The built-in projects, e.g. `spaces/@spell/examples/Solitaire` -- the `@spell/...` groups. */
   systemFilesRoot: resolve(spaceFolders.builtins, "@spell"),
   /**
-   * Frozen projects tests run against, e.g. `spaces/@spell/test/solitaire` -- `@spell/test`.
+   * Frozen projects tests run against, e.g. `spaces/@spell/test/fizzbuzz` -- `@spell/test`.
    * See `spell-app/spaces/test`.
    */
   testFilesRoot: resolve(spaceFolders.builtins, "@spell", "test"),

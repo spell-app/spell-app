@@ -12,15 +12,15 @@ import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { scopesFromPacks } from "spell-app/lsp/ScopesSource"
 import { compiledSpellProject } from "spell-lang/spell/test"
-import { fixturePath, copyFixtureWithLibraries, loadFixtureWithLibraries } from "spell-app/spaces/test"
+import { copyFixtureProject, fixtureFolder, loadFixtureProject } from "spell-app/spaces/test"
 
 /**
- * The scope tree of a temp copy of the Solitaire fixture, as a scope explorer sees it:
- * the card library's files and its own, as ONE project -- see `copyFixtureWithLibraries()`.
+ * The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it:
+ * its cards, deck and piles and its game, ONE project -- see `copyFixtureProject()`.
  */
 describe("ScopeExplorer", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scopes-"))
-  copyFixtureWithLibraries("solitaire", resolve(dir, "Solitaire"))
+  copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
@@ -238,11 +238,10 @@ describe("ScopeExplorer", () => {
 /**
  * A project importing another COMPILED:  its node shows that project's own parse, sources and all.
  * - Solitaire split in two, in a temp `@local/<folder>` group, as `SpellProject.imports.test.ts` does:
- *   a copy of the card library, and Solitaire's own file.
+ *   `lib`, a copy of its cards, deck and piles, and `app`, its game.
  */
 describe("ScopeExplorer of a project importing another, compiled", () => {
-  const solitaire = fixturePath("solitaire")
-  const cards = resolve(environment.systemFilesRoot, "library", "cards")
+  const solitaire = fixtureFolder("Solitaire")
   const workspace = mkdtempSync(resolve(tmpdir(), "spell-scopes-imports-"))
   const disk = new SpellDiskWorkspace()
   const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(disk))
@@ -322,7 +321,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
   })
 
   /**
-   * Project `name` in the workspace:  `spellFiles` copied from Solitaire (its own file) or the card library (the rest),
+   * Project `name` in the workspace:  `spellFiles` copied from Solitaire,
    * then `written` ones, after `imports`.
    */
   function makeProject(
@@ -334,7 +333,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     const dir = resolve(workspace, name)
     mkdirSync(dir)
     for (const file of spellFiles) {
-      copyFileSync(resolve(file === "Solitaire.spell" ? solitaire : cards, file), resolve(dir, file))
+      copyFileSync(resolve(solitaire, file), resolve(dir, file))
     }
     for (const [file, text] of Object.entries(written)) writeFileSync(resolve(dir, file), text)
     const files = [...spellFiles, ...Object.keys(written)].map((file) => ({ path: `/${file}`, active: true }))
@@ -347,7 +346,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
 /** Scope packs:  what `<spell-app>` shows of a project, with no parser -- see `LSP.ScopePack`. */
 describe("ScopeExplorer scope packs", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-packs-"))
-  copyFixtureWithLibraries("solitaire", resolve(dir, "Solitaire"))
+  copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
@@ -399,8 +398,8 @@ describe("ScopeExplorer scope packs", () => {
   })
 
   test("a page with NO sources finds each entry's compiled code by its declarations -- all but variables", async () => {
-    // the project the pack is of:  the card library's files and Solitaire's, compiled as one
-    const { code, declarations: compiledDeclarations } = compiledSpellProject(loadFixtureWithLibraries("solitaire"))
+    // the project the pack is of:  Solitaire's files, compiled as one
+    const { code, declarations: compiledDeclarations } = compiledSpellProject(loadFixtureProject("Solitaire"))
     const scopes = scopesFromPacks([builtIns, pack], {
       loadCompiled: async () => code,
       loadDeclarations: async () => compiledDeclarations
@@ -461,7 +460,7 @@ describe("ScopeExplorer scope packs", () => {
 /** Built-in types' docs, from `SP.BUILT_IN_TYPE_TABLE` -- what VS Code's Type Explorer shows. */
 describe("ScopeExplorer built-in types", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-built-ins-"))
-  copyFixtureWithLibraries("solitaire", resolve(dir, "Solitaire"))
+  copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
@@ -508,11 +507,11 @@ describe("ScopeExplorer built-in types", () => {
   })
 })
 
-/** The scope tree of a project written in Spanish:  a temp copy of the frozen `cartas` project. */
+/** The scope tree of a project written in Spanish:  a temp copy of the Solitario example. */
 describe("ScopeExplorer in Spanish", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scopes-es-"))
-  cpSync(fixturePath("cartas"), resolve(dir, "cartas"), { recursive: true })
-  const cartaPath = resolve(dir, "cartas/Carta.es.spell")
+  cpSync(fixtureFolder("Solitario"), resolve(dir, "Solitario"), { recursive: true })
+  const cartaPath = resolve(dir, "Solitario/Carta.es.spell")
   const cartaUri = pathToFileURL(cartaPath).href
   const workspace = new SpellDiskWorkspace()
   const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(workspace))
@@ -525,7 +524,7 @@ describe("ScopeExplorer in Spanish", () => {
 
   test("its types come from Spanish's built-in types, and show their rules in Spanish", () => {
     const tree = explorer.tree(project)
-    expect(find(tree, "Carta").super).toBe("type:Thing")
+    expect(find(tree, "Carta").super).toBe("type:Drawable")
     expect(find(tree, "Mazo").super).toBe("type:List")
     expect(explorer.details(project, "type:List/method:number of (items) in (a list)")!.rules).toContainEqual({
       name: "list_count",

@@ -1,12 +1,363 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, css, sendCall, position } from "@spell/core"
-import { Card, Suit, Rank, Deck, Pile } from "@spell/project/@spell/library/cards"
+import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, sendTrigger, sendCall, css, position } from "@spell/core"
 
+///////////////////////////////////////////////////////////////////////////////
+// ## A playing card -- in the outline style:  its name, then what's true of it
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
+ * A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`.
+ */
+export class Card extends Drawable {
+  static elementTag = core.defineElement(this, "test-project")
+
+  /** its suit and rank */
+  // - its "suit" is a suit
+  static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
+  get suit() { return this.getProp("suit") }
+  set suit(value) { this.setProp("suit", value) }
+
+  // - its "rank" is a rank
+  static { this.declareProp("rank", { oneOf: () => Card.Ranks }) }
+  get rank() { return this.getProp("rank") }
+  set rank(value) { this.setProp("rank", value) }
+
+  get color() {
+    return Suit.color(this.suit)
+  }
+
+  /** ace 1 ... king 13 */
+  get value() {
+    return spellPosition(positionOf(Card.Ranks, this.rank))
+  }
+
+  /** e.g. "the card is a spade" */
+  isASuit(suit) {
+    return this.suit === suit
+  }
+
+  /** e.g. "the card is a queen" */
+  isARank(rank) {
+    return this.rank === rank
+  }
+
+  /** e.g. "the card is the queen of spades" */
+  isTheRankOfSuits(rank, suit) {
+    return this.rank === rank && this.suit === suit
+  }
+
+  get isAFaceCard() {
+    return Rank.isAFaceCard(this.rank)
+  }
+
+  isTheColorJoker(color) {
+    return this instanceof Joker && this.color == color
+  }
+
+  /** its direction:  face up or face down */
+  // - its "direction" is up or down
+  static Directions = ["up", "down"]
+  static { this.declareProp("direction", { oneOf: Card.Directions }) }
+  get direction() { return this.getProp("direction") }
+  set direction(value) { this.setProp("direction", value) }
+
+  get isFaceUp() {
+    return this.direction == "up"
+  }
+
+  get isFaceDown() {
+    return this.direction == "down"
+  }
+
+  /** its names */
+  // e.g. "queen-of-spades"
+  get name() {
+    return `${this.rank}-of-${this.suit}`
+  }
+
+  get shortSuit() {
+    return Suit.symbol(this.suit)
+  }
+
+  get shortRank() {
+    if (this.rank === undefined) return "?"
+    if (typeof this.rank === "number") return `${this.rank}`
+    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
+  }
+
+  get shortDirection() {
+    if (this.direction == "up") return "+"
+    return "—"
+  }
+
+  get shortName() {
+    return this.shortRank + this.shortSuit
+  }
+
+  get state() {
+    return this.shortRank + this.shortSuit + this.shortDirection
+  }
+
+  //////////////////////////////////////////////////////////
+  // ## its picture:  a character of unicode's Playing Cards
+  //////////////////////////////////////////////////////////
+  /**
+   * SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
+   * The block is a grid:  a row for each suit, and in each row, a column for each rank.
+   * - The rows start at 1F0A0 (spades), 1F0B0 (hearts), 1F0C0 (diamonds) and 1F0D0 (clubs).
+   * - The columns run ace 1, 2 ... 10, jack B, then a knight our deck doesn't have, C, then queen D and king E.
+   */
+  get pictureColumn() {
+    // past the knight
+    if (this.isARank("queen") || this.isARank("king")) return this.value + 1
+    return this.value
+  }
+
+  get picture() {
+    if (this.isASuit("spades")) return core.unicode(0x1F0A0 + this.pictureColumn)
+    if (this.isASuit("hearts")) return core.unicode(0x1F0B0 + this.pictureColumn)
+    if (this.isASuit("diamonds")) return core.unicode(0x1F0C0 + this.pictureColumn)
+    return core.unicode(0x1F0D0 + this.pictureColumn)
+  }
+
+  /** drawing:  its picture face up, the back every card shares face down */
+  draw() {
+    if (this.isFaceDown) {
+      return h("ui-text", {
+        class: "Card",
+        size: "massive",
+        color: "blue",
+        onClick: () => sendTrigger("card-click", { card: this })
+      }, "🂠")
+    }
+    return h("ui-text", {
+      class: "Card",
+      size: "massive",
+      "prop:color": () => this.color,
+      onClick: () => sendTrigger("card-click", { card: this })
+    }, () => this.picture)
+  }
+
+  /////////////////////
+  // ## turning it over
+  /////////////////////
+  /** each pauses a moment, so `wait for: turn the card face up` animates */
+  async turnFaceUp() {
+    this.direction = "up"
+    await core.pauseFor(50, "msec")
+  }
+
+  async turnFaceDown() {
+    this.direction = "down"
+    await core.pauseFor(50, "msec")
+  }
+
+  async turnOver() {
+    if (this.isFaceUp) this.turnFaceDown()
+    else this.turnFaceUp()
+    await core.pauseFor(50, "msec")
+  }
+
+  ////////////////////////////////////////
+  // ## Playing a card:  what a click does
+  ////////////////////////////////////////
+  /** the card, and every card on it, onto the first pile that can take it;  it says whether it moved */
+  async play() {
+    const startPile = this.pile
+    if (!core.canGiveUp(startPile, this)) return false
+
+    if (startPile === solitaire.stock) {
+      solitaire.playFromTheStock()
+      return
+    }
+
+    const endPile = core.filter(core.everyThing(Pile), (pile) => core.canTake(pile, this)).firstItem
+    if (endPile === undefined) return false
+
+    const movingCards = startPile.startingWith(this)
+    movingCards.name = startPile.name
+    core.console.log(`moving (${movingCards.state}) to (${endPile.state})`)
+
+    movingCards.forEach((card) => core.move(card, endPile))
+
+    if (startPile instanceof Tableau && !startPile.isEmpty) {
+      await core.pauseFor(200, "msec")
+      const it = startPile.lastItem
+      core.console.log(`turning over (${startPile.name}: ${it?.state})`)
+      it?.turnFaceUp()
+    }
+
+    if (endPile instanceof Foundation) solitaire.score = solitaire.score + 10
+    else if (startPile === solitaire.discards) solitaire.score = solitaire.score + 5
+    return true
+  }
+
+  // "suits" as one of clubs, diamonds, hearts or spades
+  static Suits = ["clubs", "diamonds", "hearts", "spades"]
+
+  // "ranks" as one of ace, 2 ... 10, jack, queen or king
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
+
+  // "colors" as one of red or black
+  static Colors = ["red", "black"]
+
+  get pile() {
+    return Pile.ownerOf(this)
+  }
+}
+
+/** A joker:  a wild card with no rank or suit -- there's a red one and a black one */
+export class Joker extends Card {
+  static elementTag = core.defineElement(this, "test-project")
+
+  /** set when it's made:  it has no suit to work its color out from */
+  // - its "color" is a color
+  static { this.declareProp("color", { oneOf: () => Card.Colors }) }
+  get color() { return this.getProp("color") }
+  set color(value) { this.setProp("color", value) }
+
+  /** e.g. "red-joker" */
+  get name() {
+    return `${this.color}-joker`
+  }
+
+  get shortName() {
+    return "🃏"
+  }
+
+  get state() {
+    return this.shortName + this.shortDirection
+  }
+
+  get picture() {
+    if (this.color == "red") return "🂿"
+    return "🃏"
+  }
+}
+
+/** suits, ranks and colors:  the card's own kinds of values */
+export class Suit {
+  static color(suit) {
+    if (core.includes(["diamonds", "hearts"], suit)) return "red"
+    return "black"
+  }
+
+  static symbol(suit) {
+    if (suit == "clubs") return "♣️"
+    if (suit == "diamonds") return "♦️"
+    if (suit == "hearts") return "♥️"
+    if (suit == "spades") return "♠️"
+    return "?"
+  }
+}
+export class Rank {
+  static isAFaceCard(rank) {
+    return core.includes(["jack", "queen", "king"], rank)
+  }
+}
+export class Color {}
+
+/** Tests */
+export function testCardSetup(...args) {
+  return sendCall("test_card_setup", args)
+}
+
+export function testJokers(...args) {
+  return sendCall("test_jokers", args)
+}
+// -----------
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// ## A deck:  the 52 cards of a US standard deck, ace of clubs first -- and its two jokers, if you ask
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+/** It reads the card's own suits and ranks:  `card suits`, `card ranks`. */
+export class Deck extends List {
+  static instanceType = Card
+
+  /** no jokers, unless it's made `with jokers` */
+  // - its "jokers" is yes or no
+  static { this.declareProp("jokers", { type: "choice" }) }
+  get jokers() { return this.getProp("jokers") }
+  set jokers(value) { this.setProp("jokers", value) }
+
+  /** a new deck holds one of each card, ace of clubs first, then its two jokers, red then black */
+  create() {
+    Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => {
+      // `the deck`, not `it`:  in a `for each`, `it` is the loop's item, here the suit
+      this.append(new Card({ rank: rank, suit: suit }))
+    }))
+    if (this.jokers) {
+      this.append(new Joker({ color: "red" }))
+      this.append(new Joker({ color: "black" }))
+    }
+  }
+
+  /** echo its cards' short names, top to bottom */
+  display() {
+    const cardNames = new List({ instanceType: "text" })
+    this.forEach((card) => cardNames.append(card.shortName))
+    core.echo(`deck: ${cardNames}`)
+  }
+}
+
+/** Tests */
+export function testDeckCreation(...args) {
+  return sendCall("test_deck_creation", args)
+}
+
+export function testDeckWithJokers(...args) {
+  return sendCall("test_deck_with_jokers", args)
+}
+// -----------
+//////////////////////////////////////////////////////////
+// ## A pile of cards, e.g. a game's stock or its discards
+//////////////////////////////////////////////////////////
+/**
+ * The game that uses these cards names its piles, and says what each kind of pile takes.
+ * A drawable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
+ */
+export class Pile extends DrawableList {
+  static instanceType = Card
+  static elementTag = core.defineElement(this, "test-project")
+
+  /** what the game calls it, e.g. "stock" */
+  // - its "name" is text
+  static { this.declareProp("name", { type: "text" }) }
+  get name() { return this.getProp("name") }
+  set name(value) { this.setProp("name", value) }
+
+  /** the color and value of its last card:  what the next card goes on */
+  get color() {
+    if (this.isEmpty) return "none"
+    return this.lastItem.color
+  }
+
+  get value() {
+    if (this.isEmpty) return 0
+    return this.lastItem.value
+  }
+
+  /** its name, then each card's state, e.g. "stock: Q♠️+ 7♥️—" */
+  get state() {
+    let state = `${this.name || "pile"}:`
+    this.forEach((card) => (state = `${state} ${card.state}`))
+    return state
+  }
+
+  static exclusive = true
+}
+
+/** a card is in one pile at a time:  putting it on another pile takes it off this one */
+
+/** Tests */
+export function testPiles(...args) {
+  return sendCall("test_piles", args)
+}
+// -----------
 ////////////////////////
 // ## Klondike Solitaire
 ////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for its rules, and what each pile is called.
-// The cards, the deck and the piles are the cards library's, `@spell/library/cards`:
-// this file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
+// The cards, the deck and the piles are this project's own:  Card, Deck and Pile.
+// This file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
 // What's where, top to bottom:
 //   the solitaire:  its piles, its moves, auto play and drawing
 //   playing a card:  what a click does
@@ -326,16 +677,16 @@ export class Solitaire extends App {
     })
 
     // each tableau's face-up cards, all together, onto another tableau
-    await core.forEachSequential(core.everyThing(Tableau), async (pile) => {
+    await (core.forEachSequential(core.everyThing(Tableau), async (pile) => {
       const faceUpCards = pile.filter((card) => card.isFaceUp)
       if (faceUpCards.isEmpty) return
       const testCard = faceUpCards.firstItem
-      if (testCard.isARank("king") && testCard == pile.firstItem) return
+      if (testCard.isARank("king") && testCard === pile.firstItem) return
       if (await testCard.play()) {
         anythingChanged = true
         await core.pauseFor(500, "msec")
       }
-    })
+    }))
 
     if (anythingChanged) await this.autoPlay()
   }
@@ -376,40 +727,6 @@ export class Solitaire extends App {
   }
 }
 export let solitaire
-
-////////////////////////////////////////
-// ## Playing a card:  what a click does
-////////////////////////////////////////
-/** the card, and every card on it, onto the first pile that can take it;  it says whether it moved */
-Card.prototype.play = async function () {
-  const startPile = this.pile
-  if (!core.canGiveUp(startPile, this)) return false
-
-  if (startPile === solitaire.stock) {
-    solitaire.playFromTheStock()
-    return
-  }
-
-  const endPile = core.filter(core.everyThing(Pile), (pile) => core.canTake(pile, this)).firstItem
-  if (endPile === undefined) return false
-
-  const movingCards = startPile.startingWith(this)
-  movingCards.name = startPile.name
-  core.console.log(`moving (${movingCards.state}) to (${endPile.state})`)
-
-  movingCards.forEach((card) => core.move(card, endPile))
-
-  if (startPile instanceof Tableau && !startPile.isEmpty) {
-    await core.pauseFor(200, "msec")
-    const it = startPile.lastItem
-    core.console.log(`turning over (${startPile.name}: ${it?.state})`)
-    it?.turnFaceUp()
-  }
-
-  if (endPile instanceof Foundation) solitaire.score = solitaire.score + 10
-  else if (startPile === solitaire.discards) solitaire.score = solitaire.score + 5
-  return true
-}
 
 //## Start
 

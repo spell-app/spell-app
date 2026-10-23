@@ -1,0 +1,172 @@
+## A playing card -- in the outline style:  its name, then what's true of it
+// The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
+// A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`.
+a "card" is a drawable thing where:
+
+	## suits, ranks and colors:  the card's own kinds of values
+	- "suits" as one of clubs, diamonds, hearts or spades
+	- "ranks" as one of ace, 2 ... 10, jack, queen or king
+	- "colors" as one of red or black
+
+	- the "color" of a suit is:
+		red if it is diamonds or hearts
+		black otherwise
+	- the "symbol" of a suit is:
+		"♣️" if it is clubs
+		"♦️" if it is diamonds
+		"♥️" if it is hearts
+		"♠️" if it is spades
+		"?" otherwise
+	- a rank "is a face card" if it is jack, queen or king
+
+	## its suit and rank
+	- its "suit" is a suit
+	- its "rank" is a rank
+	- its "color" is the color of its suit
+	- its "value" is the position of its rank      // ace 1 ... king 13
+
+	- it "is a (suit)"                              // e.g. "the card is a spade"
+	- it "is a (rank)"                              // e.g. "the card is a queen"
+	- it "is the (rank) of (suits)"                 // e.g. "the card is the queen of spades"
+	- it "is a face card" if its rank is a face card
+	- it "is the (color as a color) joker" if it is a joker and its color is color
+
+	## its direction:  face up or face down
+	- its "direction" is up or down
+	- it "is face up" if its direction is up
+	- it "is face down" if its direction is down
+
+	## its names
+	- its "name" is: its rank + "-of-" + its suit   // e.g. "queen-of-spades"
+	- its "short suit" is the symbol of its suit
+	- its "short rank" is:
+		"?" if its rank is nothing
+		"" + its rank if its rank is a number
+		the first character of its rank as uppercase otherwise
+	- its "short direction" is:
+		"+" if its direction is up
+		"—" otherwise
+	- its "short name" is: its short rank + its short suit
+	- its "state" is: its short rank + its short suit + its short direction
+
+	## its picture:  a character of unicode's Playing Cards
+	// SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
+	// The block is a grid:  a row for each suit, and in each row, a column for each rank.
+	// - The rows start at 1F0A0 (spades), 1F0B0 (hearts), 1F0C0 (diamonds) and 1F0D0 (clubs).
+	// - The columns run ace 1, 2 ... 10, jack B, then a knight our deck doesn't have, C, then queen D and king E.
+	- its "picture column" is:
+		its value + 1 if it is a queen or it is a king      // past the knight
+		its value otherwise
+	- its "picture" is:
+		unicode 1F0A0 + its picture column if it is a spade
+		unicode 1F0B0 + its picture column if it is a heart
+		unicode 1F0C0 + its picture column if it is a diamond
+		unicode 1F0D0 + its picture column otherwise
+
+	## drawing:  its picture face up, the back every card shares face down
+	- to draw it:
+		if it is face down
+			return <ui-text class="Card" size="massive" color="blue" onClick={fire event card click with card = it}>
+				{unicode 1F0A0}
+			</ui-text>
+		return <ui-text class="Card" size="massive" color={its color} onClick={fire event card click with card = it}>
+			{its picture}
+		</ui-text>
+
+	## turning it over
+	// each pauses a moment, so `wait for: turn the card face up` animates
+	- to turn it face up:
+		set its direction to up
+		pause for 50 msec
+	- to turn it face down:
+		set its direction to down
+		pause for 50 msec
+	- to turn it over:
+		if it is face up: turn it face down
+		otherwise: turn it face up
+		pause for 50 msec
+
+
+## A joker:  a wild card with no rank or suit -- there's a red one and a black one
+a "joker" is a card where:
+	// set when it's made:  it has no suit to work its color out from
+	- its "color" is a color
+	- its "name" is: its color + "-joker"           // e.g. "red-joker"
+	- its "short name" is "🃏"
+	- its "state" is: its short name + its short direction
+	- its "picture" is:
+		unicode 1F0BF if its color is red
+		unicode 1F0CF otherwise
+
+
+## Tests
+to test card setup
+	get a new card whose rank is queen, suit is spades and direction is up
+	echo it
+	its rank should be queen
+	its suit should be spades
+	its name should be "queen-of-spades"
+	its color should be black
+	its value should be 12
+	its short suit should be "♠️"
+	its short rank should be "Q"
+	its short name should be "Q♠️"
+	its state should be "Q♠️+"
+	its picture should be "🂭"
+
+	it is face up should be yes
+	it is face down should be no
+
+	it is a face card should be yes
+	it is not a face card should be no
+
+	it is a spade should be yes
+	it is a club should be no
+
+	it is a queen should be yes
+	it is an ace should be no
+	it is a 2 should be no
+
+	it is the queen of spades should be yes
+	it is the queen of clubs should be no
+	it is not the 2 of diamonds should be yes
+
+	turn it face down
+	its direction should be down
+	it is face down should be yes
+
+	turn it over
+	it is face up should be yes
+
+	// a number card:  its rank as it is, and its picture in the row of its suit
+	set the seven to a new card whose rank is 7, suit is hearts and direction is up
+	the short name of the seven should be "7♥️"
+	the color of the seven should be red
+	the picture of the seven should be "🂷"
+	the picture of a new card whose rank is ace and suit is clubs should be "🃑"
+	the picture of a new card whose rank is king and suit is diamonds should be "🃎"
+
+to test jokers
+	get a new joker whose color is red and direction is up
+	echo it
+	it is a joker should be yes
+	it is a card should be yes
+	its color should be red
+	its name should be "red-joker"
+	its short name should be "🃏"
+	its picture should be "🂿"
+	it is the red joker should be yes
+	it is the black joker should be no
+	it is not the black joker should be yes
+
+	it is face up should be yes
+	turn it over
+	it is face down should be yes
+
+	set black joker to a new joker whose color is black
+	the picture of black joker should be "🃏"
+
+	set the card to a new card whose rank is queen and suit is spades
+	the card is a joker should be no
+	the card is not a joker should be yes
+	the card is the red joker should be no

@@ -1,6 +1,6 @@
-import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "fs"
+import { copyFileSync, mkdirSync, readdirSync, readFileSync } from "fs"
 import JSON5 from "json5"
-import { resolve } from "path"
+import { basename, resolve } from "path"
 
 import { hasProjectFile, projectFileFor } from "spell-lang/spell/node/projectFile"
 import { P } from "spell-lang/parser"
@@ -9,23 +9,24 @@ import { parseSpellProject, type SpellSourceFile } from "spell-lang/spell/test"
 import environment from "spell-app/spaces/server/node/environment"
 
 /*
- * The frozen test projects' helpers:  each one read from disk, parsed and compiled headlessly, as a compile would.
+ * The test projects' helpers:  each one read from disk, parsed and compiled headlessly, as a compile would.
  * - Node only, for tests:  imported as `spell-app/spaces/test`, never from spaces' barrel.
  * - spell-lang's `spell-lang/spell/test` parses and compiles the projects a test writes inline (`parseSpellProject()`);
  *   these are the ones on disk, spell-app's own.
+ * - Two kinds, each by its name, e.g. `fizzbuzz`, `Solitaire`:
+ *   - the FROZEN test projects, `@spell/test` (`FIXTURES_DIR`):  tests' own, never edited to follow anything
+ *   - a few built-in EXAMPLES, `@spell/examples` (`EXAMPLE_FIXTURES`):  read where they are, so they're tested as
+ *     they are;  their snapshots are tests' own, in `EXAMPLE_SNAPSHOTS_DIR`
  */
 
 /**
  * Frozen projects tests run against, the `@spell/test` group.
- * - Their folder:  `spaces/@spell/test/<project>/` at spell-app's root, e.g. `solitaire`:
+ * - Their folder:  `spaces/@spell/test/<project>/` at spell-app's root, e.g. `fizzbuzz`:
  *   spaces' `environment.testFilesRoot`, beside the other built-in groups (epic `spanish` P18).
- *   - spell-lang's until then (epic `repo-split` C11):  every `@spell` group is spell-app's now,
- *     so a test project may import the card library.
- * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.
- * - Tests read ONLY here.
- *   So editing or deleting a built-in example (`spaces/@spell/examples/` ...) or your own project (spell.spaces)
- *   can't break one.
- * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.
+ *   - spell-lang's until then (epic `repo-split` C11):  every `@spell` group is spell-app's now.
+ * - Why:  tests assert exact lines, docstrings and compiled output, and your own projects get edited.
+ * - Their snapshots are beside them:  `fizzbuzz.snapshot.js` ...
+ * - NEVER update a fixture to follow an example:  it's frozen so tests don't move.
  *   - Change a test's input in the test, or add another fixture:
  *     copy a project in, then `yarn spell:test:fixtures:bless`.  See `compiledFixture()`.
  */
@@ -34,17 +35,46 @@ export const FIXTURES_DIR = environment.testFilesRoot
 /** The fixtures' group, `@spell/test` (spaces' `PROJECT_GROUPS`). */
 export const FIXTURES_GROUP = "@spell/test"
 
-/** Path of `parts` under `FIXTURES_DIR`, e.g. `fixturePath("solitaire", "Solitaire.spell")`. */
+/**
+ * The built-in examples tested as they are, by their names in `@spell/examples` (epic `spanish` P21).
+ * - Solitaire, and Solitario, its Spanish twin:  each a whole game, its own cards, deck and piles in it.
+ * - NOT frozen:  read from `spaces/@spell/examples/<name>/`, where people (and agents) edit them.
+ *   - A change to one changes its snapshots:  `yarn spell:test:fixtures:bless`, then read the diff.
+ * - Their snapshots are tests', never beside the example:  `EXAMPLE_SNAPSHOTS_DIR`.
+ */
+export const EXAMPLE_FIXTURES = new Set(["Solitaire", "Solitario"])
+
+/** The examples' group, `@spell/examples`:  where `EXAMPLE_FIXTURES` are read from. */
+export const EXAMPLES_GROUP = "@spell/examples"
+
+/**
+ * Folder of the snapshots of `EXAMPLE_FIXTURES`:  `tests/spell/__examples__/<name>/`, at spell-app's root.
+ * - So an example's folder holds only what a person wrote, and what compiling it writes beside it.
+ */
+export const EXAMPLE_SNAPSHOTS_DIR = resolve(environment.repoDir, "tests", "spell", "__examples__")
+
+/** Path of `parts` under `FIXTURES_DIR`, e.g. `fixturePath("fizzbuzz", "FizzBuzz.spell")`. */
 export function fixturePath(...parts: string[]): string {
   return resolve(FIXTURES_DIR, ...parts)
 }
 
 /**
- * Project id of fixture `projectName`, e.g. `@spell/test/solitaire` -- to load it as a `SpellProject`.
+ * Path of snapshot `file` of test project `projectName`:
+ * - a frozen fixture's beside it, `spaces/@spell/test/fizzbuzz/fizzbuzz.snapshot.js`
+ * - an example's in `EXAMPLE_SNAPSHOTS_DIR`, `tests/spell/__examples__/Solitaire/Solitaire.snapshot.js`
+ */
+export function snapshotPath(projectName: string, file: string): string {
+  if (EXAMPLE_FIXTURES.has(projectName)) return resolve(EXAMPLE_SNAPSHOTS_DIR, projectName, file)
+  return fixturePath(projectName, file)
+}
+
+/**
+ * Project id of test project `projectName`, e.g. `@spell/test/fizzbuzz`, `@spell/examples/Solitaire` --
+ * to load it as a `SpellProject`.
  * - Loads from disk in node, after `installDiskFetch()`.
  */
 export function fixtureProjectId(projectName: string): string {
-  return `${FIXTURES_GROUP}/${projectName}`
+  return `${EXAMPLE_FIXTURES.has(projectName) ? EXAMPLES_GROUP : FIXTURES_GROUP}/${projectName}`
 }
 
 /**
@@ -53,7 +83,7 @@ export function fixtureProjectId(projectName: string): string {
  * - The core contract runs them under Python.
  * - Each phase adds the ones it makes write:  things and lists, pauses, drawing.
  */
-export const PYTHON_FIXTURES = new Set(["fizzbuzz", "lists-from-zero", "people", "solitaire", "thing-references"])
+export const PYTHON_FIXTURES = new Set(["fizzbuzz", "lists-from-zero", "people", "Solitaire", "thing-references"])
 
 /**
  * The fixtures compiled as a LIBRARY too (the `ts/lib` target, epic `people-and-orgs` P3).
@@ -62,12 +92,16 @@ export const PYTHON_FIXTURES = new Set(["fizzbuzz", "lists-from-zero", "people",
  */
 export const LIBRARY_FIXTURES = new Set(["people"])
 
-/** Name of each fixture project:  each folder of `FIXTURES_DIR` with a project file, alphabetically. */
+/**
+ * Name of each test project:  each folder of `FIXTURES_DIR` with a project file, alphabetically,
+ * then `EXAMPLE_FIXTURES`.
+ */
 export function fixtureProjectNames(): string[] {
-  return readdirSync(FIXTURES_DIR, { withFileTypes: true })
+  const frozen = readdirSync(FIXTURES_DIR, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && hasProjectFile(resolve(FIXTURES_DIR, entry.name)))
     .map((entry) => entry.name)
     .sort()
+  return [...frozen, ...EXAMPLE_FIXTURES]
 }
 
 /**
@@ -93,7 +127,7 @@ export function fixtureDeclarations(projectName: string): string {
 
 /**
  * The human languages fixture `projectName`'s files are written in, by their names, the one it speaks first:
- * `["es"]` for `cartas`, whose files are `Carta.es.spell` ... -- see `SP.SpellDeclarations.languagesOf()`.
+ * `["es"]` for `Solitario`, whose files are `Carta.es.spell` ... -- see `SP.SpellDeclarations.languagesOf()`.
  * - It has a words file in each:  `fixtureWords()`.
  */
 export function fixtureLanguages(projectName: string): string[] {
@@ -101,7 +135,7 @@ export function fixtureLanguages(projectName: string): string[] {
 }
 
 /**
- * Fixture `projectName`'s words in `lang`, as its `<Project>.<lang>.js` would hold them (`cards.en.js`, `cartas.es.js`):
+ * Fixture `projectName`'s words in `lang`, as its `<Project>.<lang>.js` would hold them (`Solitaire.en.js`, `Solitario.es.js`):
  * from its declarations, by javascript's names -- see `SP.SpellWords`.
  * - `lang`:  the one it speaks, by default (`fixtureLanguages()`).
  */
@@ -116,7 +150,7 @@ export function fixtureWords(projectName: string, lang = fixtureLanguages(projec
  *   They split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
- * - Against the projects it imports, e.g. `@spell/library/cards`:
+ * - Against the projects it imports, e.g. `lists-from-zero` the card library, `@spell/test/cards`:
  *   - their declarations, as a compiled import's (see `fixtureImportScope()`)
  *   - NOT their code:  that's theirs
  * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
@@ -127,7 +161,7 @@ function compileFixture(
   projectName: string,
   target: string | P.ProgramWriter = SP.RUNNING_TARGET
 ): { code: string; declarations: SP.SpellDeclarationsData; draws: boolean } {
-  const projectDir = folderOf(projectName)
+  const projectDir = fixtureFolder(projectName)
   const { version, exports, imports, listsStartAt } = readProjectFile(projectDir)
   const parentScope = fixtureImportScope(projectName)
   const sources = loadFixtureProject(projectName)
@@ -155,43 +189,34 @@ function compileFixture(
 }
 
 /**
- * The projects fixture `projectName` imports, by the module its compiled code imports each from.
- * - e.g. `{ "@spell/project/@spell/library/cards": "@spell/library/cards" }`
- * - Each by what the fixture helpers take:  another fixture by its name, a library by its address.
+ * The projects test project `projectName` imports, by the module its compiled code imports each from.
+ * - e.g. `{ "@spell/project/@spell/test/cards": "cards" }`
+ * - Each by its name, as the fixture helpers take it.
  * - none:  `{}`
- * - throws if it imports a project that's neither a fixture nor in `@spell/library`:
- *   tests read ONLY `FIXTURES_DIR`, and the built-in libraries a fixture imports (see `LIBRARY_GROUP`).
+ * - throws if it imports a project that isn't a frozen fixture:
+ *   tests read ONLY `FIXTURES_DIR`, and `EXAMPLE_FIXTURES`.
  */
 export function fixtureImports(projectName: string): Record<string, string> {
   const fixtures = `${FIXTURES_GROUP}/`
   const imported: Record<string, string> = {}
-  for (const { path, active } of readProjectFile(folderOf(projectName)).imports) {
+  for (const { path, active } of readProjectFile(fixtureFolder(projectName)).imports) {
     if (active === false || /\.(spell|css)$/.test(path)) continue
     const projectId = SP.SpellProject.projectIdForImport(path)
-    if (projectId.startsWith(fixtures)) imported[moduleFor(projectId)] = projectId.slice(fixtures.length)
-    else if (projectId.startsWith(`${LIBRARY_GROUP}/`)) imported[moduleFor(projectId)] = projectId
-    else
-      throw new TypeError(
-        `fixtureImports():  fixture ${projectName} imports ${path}, which isn't a fixture or a library`
-      )
+    if (!projectId.startsWith(fixtures))
+      throw new TypeError(`fixtureImports():  ${projectName} imports ${path}, which isn't a frozen fixture`)
+    imported[moduleFor(projectId)] = projectId.slice(fixtures.length)
   }
   return imported
 }
 
 /**
- * The built-in libraries' group, `@spell/library`:  a fixture may import one, e.g. `solitaire` the card library.
- * - NOT frozen:  a change to the library changes the fixture's snapshots, re-blessed with it
- *   (Owen, 2026-10-22, epic `spanish` P11).
+ * Path of `parts` in test project `projectName`'s folder:  a frozen fixture's (`FIXTURES_DIR`), or an example's
+ * (`EXAMPLE_FIXTURES`), e.g. `fixtureFolder("Solitaire", "Card.spell")`.
+ * - NEVER write there:  copy it first (`copyFixtureProject()`).
  */
-export const LIBRARY_GROUP = "@spell/library"
-
-/**
- * Folder of `projectName`:  a fixture's, by its name (`FIXTURES_DIR`), or a library's, by its address,
- * e.g. `@spell/library/cards` => `spaces/@spell/library/cards`.
- */
-function folderOf(projectName: string): string {
-  if (!projectName.startsWith(`${LIBRARY_GROUP}/`)) return fixturePath(projectName)
-  return resolve(environment.systemFilesRoot, projectName.slice("@spell/".length))
+export function fixtureFolder(projectName: string, ...parts: string[]): string {
+  if (!EXAMPLE_FIXTURES.has(projectName)) return fixturePath(projectName, ...parts)
+  return resolve(environment.systemFilesRoot, "examples", projectName, ...parts)
 }
 
 /**
@@ -199,10 +224,10 @@ function folderOf(projectName: string): string {
  * as `SpellProject.loadImportScope()` loads a compiled import's.
  * - Imports none:  the root scope.
  * - A test parsing a fixture's files itself parses them under it:
- *   `parseSpellProject(loadFixtureProject("solitaire"), { parentScope: fixtureImportScope("solitaire") })`.
+ *   `parseSpellProject(loadFixtureProject("lists-from-zero"), { parentScope: fixtureImportScope("lists-from-zero") })`.
  */
 export function fixtureImportScope(projectName: string): P.Scope {
-  const { imports } = readProjectFile(folderOf(projectName))
+  const { imports } = readProjectFile(fixtureFolder(projectName))
   const loaded: SP.DeclarationsImport[] = Object.entries(fixtureImports(projectName)).map(([module, fixture]) => {
     const { path, import: picks } = imports.find(
       (it) => moduleFor(SP.SpellProject.projectIdForImport(it.path)) === module
@@ -216,52 +241,31 @@ export function fixtureImportScope(projectName: string): P.Scope {
   return loaded.length ? SP.SpellDeclarations.importScope(root, loaded) : root
 }
 
-/** The module compiled code imports project `projectId` from, e.g. `@spell/project/@spell/library/cards`. */
+/** The module compiled code imports project `projectId` from, e.g. `@spell/project/@spell/test/cards`. */
 function moduleFor(projectId: string): string {
   return `${SP.SPELL_PROJECT_MODULE}${encodeURI(projectId)}`
 }
 
-/** `{ path, contents }` of each spell file in fixture `projectName`, in its project file's order -- see `FIXTURES_DIR`. */
+/** `{ path, contents }` of each spell file in test project `projectName`, in its project file's order. */
 export function loadFixtureProject(projectName: string): SpellSourceFile[] {
-  const projectDir = folderOf(projectName)
+  const projectDir = fixtureFolder(projectName)
   return readProjectFile(projectDir)
     .imports.filter(({ path, active }) => active !== false && path.endsWith(".spell"))
     .map(({ path }) => ({ path, contents: readFileSync(resolve(projectDir, `.${path}`), "utf8") }))
 }
 
 /**
- * `{ path, contents }` of each spell file of the libraries fixture `projectName` imports, then its own:
- * ONE project, as if the library's files were the fixture's -- e.g. the card library's `Card.spell` ..., then
- * `solitaire`'s `Solitaire.spell`.
- * - For a test that parses a whole game from source, with no import layer:  `parseSpellProject()`.
- * - Its imports' order, then the project file's.
- */
-export function loadFixtureWithLibraries(projectName: string): SpellSourceFile[] {
-  const libraries = Object.values(fixtureImports(projectName)).filter((it) => it.startsWith(`${LIBRARY_GROUP}/`))
-  return [...libraries.flatMap((library) => loadFixtureProject(library)), ...loadFixtureProject(projectName)]
-}
-
-/**
- * Write fixture `projectName` into folder `dir` as ONE project, its libraries' files ahead of its own:
- * see `loadFixtureWithLibraries()`.
- * - Its project file lists them all, in that order, its own `.css` files too:  a project an editor opens whole,
- *   as the frozen Solitaire was before it imported the card library (epic `spanish` P11).
+ * Write test project `projectName` into folder `dir`:  its project file, and each file it lists.
+ * - Not its snapshots:  a copy a test may edit, or an editor open, as a person's project.
  * - SIDE EFFECT:  makes `dir`.
  */
-export function copyFixtureWithLibraries(projectName: string, dir: string): void {
+export function copyFixtureProject(projectName: string, dir: string): void {
   mkdirSync(dir, { recursive: true })
-  const libraries = Object.values(fixtureImports(projectName)).filter((it) => it.startsWith(`${LIBRARY_GROUP}/`))
-  const imports: Array<{ path: string; active: boolean }> = []
-  for (const project of [...libraries, projectName]) {
-    const folder = folderOf(project)
-    for (const { path, active } of readProjectFile(folder).imports) {
-      if (active === false || !/\.(spell|css)$/.test(path)) continue
-      copyFileSync(resolve(folder, `.${path}`), resolve(dir, `.${path}`))
-      imports.push({ path, active: true })
-    }
+  const folder = fixtureFolder(projectName)
+  for (const { path } of readProjectFile(folder).imports) {
+    if (path.startsWith("/")) copyFileSync(resolve(folder, `.${path}`), resolve(dir, `.${path}`))
   }
-  const { imports: _ownImports, ...settings } = readProjectFile(folderOf(projectName))
-  writeFileSync(resolve(dir, "__project.json5"), JSON.stringify({ ...settings, imports }, null, 2))
+  copyFileSync(projectFileFor(folder), resolve(dir, basename(projectFileFor(folder))))
 }
 
 /** CSS `contents` compiled as `SpellCSSFile.compile()` does:  one `P.TextToken`, through the root scope's `css` rule. */

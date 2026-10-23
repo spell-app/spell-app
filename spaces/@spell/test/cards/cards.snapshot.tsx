@@ -1,9 +1,13 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, trigger } from "@spell/core"
+import { Show } from "solid-js"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, trigger } from "@spell/core"
+import { E, SpellElement } from "@spell/elements"
 
 core.heading("A playing card -- in the outline style:  its name, then what's true of it")
 ///////////////////////////////////////////////////////////////////////////////
 // ## A playing card -- in the outline style:  its name, then what's true of it
 ///////////////////////////////////////////////////////////////////////////////
+export type Direction = (typeof Card.Directions)[number]
+
 /**
  * The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
  * A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
@@ -13,14 +17,12 @@ export class Card extends Drawable {
 
   /** its suit and rank */
   // - its "suit" is a suit
-  static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
-  get suit() { return this.getProp("suit") }
-  set suit(value) { this.setProp("suit", value) }
+  @prop({ oneOf: () => Card.Suits })
+  accessor suit!: (typeof Card.Suits)[number]
 
   // - its "rank" is a rank
-  static { this.declareProp("rank", { oneOf: () => Card.Ranks }) }
-  get rank() { return this.getProp("rank") }
-  set rank(value) { this.setProp("rank", value) }
+  @prop({ oneOf: () => Card.Ranks })
+  accessor rank!: (typeof Card.Ranks)[number]
 
   get color() {
     return Suit.color(this.suit)
@@ -32,17 +34,17 @@ export class Card extends Drawable {
   }
 
   /** e.g. "the card is a spade" */
-  isASuit(suit) {
+  isASuit(suit: (typeof Card.Suits)[number]) {
     return this.suit === suit
   }
 
   /** e.g. "the card is a queen" */
-  isARank(rank) {
+  isARank(rank: (typeof Card.Ranks)[number]) {
     return this.rank === rank
   }
 
   /** e.g. "the card is the queen of spades" */
-  isTheRankOfSuits(rank, suit) {
+  isTheRankOfSuits(rank: (typeof Card.Ranks)[number], suit: (typeof Card.Suits)[number]) {
     return this.rank === rank && this.suit === suit
   }
 
@@ -50,16 +52,15 @@ export class Card extends Drawable {
     return Rank.isAFaceCard(this.rank)
   }
 
-  isTheColorJoker(color) {
+  isTheColorJoker(color: Color) {
     return this instanceof Joker && this.color == color
   }
 
   /** its direction:  face up or face down */
   // - its "direction" is up or down
-  static Directions = ["up", "down"]
-  static { this.declareProp("direction", { oneOf: Card.Directions }) }
-  get direction() { return this.getProp("direction") }
-  set direction(value) { this.setProp("direction", value) }
+  static Directions = ["up", "down"] as const
+  @prop({ oneOf: () => Card.Directions })
+  accessor direction!: Direction
 
   get isFaceUp() {
     return this.direction == "up"
@@ -121,18 +122,16 @@ export class Card extends Drawable {
   }
 
   /** drawing:  its picture face up, the back every card shares face down */
-  draw() {
-    if (this.isFaceDown) {
-      return h("ui-text", { class: "Card", size: "massive", color: "blue", onClick: () => trigger("card-click", { card: this }) },
-        "🂠"
-      )
-    }
-    return h("ui-text", {
-      class: "Card",
-      size: "massive",
-      "prop:color": () => this.color,
-      onClick: () => trigger("card-click", { card: this })
-    }, () => this.picture)
+  @drawn draw() {
+    const click = () => trigger("card-click", { card: this })
+    return (
+      <Show
+        when={this.isFaceDown}
+        fallback={<ui-text class="Card" size="massive" prop:color={this.color} onClick={click}>{this.picture}</ui-text>}
+      >
+        <ui-text class="Card" size="massive" color="blue" onClick={click}>{"🂠"}</ui-text>
+      </Show>
+    )
   }
 
   /////////////////////
@@ -156,18 +155,61 @@ export class Card extends Drawable {
   }
 
   // "suits" as one of clubs, diamonds, hearts or spades
-  static Suits = ["clubs", "diamonds", "hearts", "spades"]
+  static Suits = ["clubs", "diamonds", "hearts", "spades"] as const
 
   // "ranks" as one of ace, 2 ... 10, jack, queen or king
-  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
 
   // "colors" as one of red or black
-  static Colors = ["red", "black"]
+  static Colors = ["red", "black"] as const
 
   get pile() {
-    return Pile.ownerOf(this)
+    return Pile.ownerOf(this)!
   }
 }
+
+/**
+ * `<test-project-card>`:  a card, drawn in its own element, e.g. by `draw the card`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its card's properties;  its methods call its card's.
+ * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.
+ */
+export class CardElement extends SpellElement<Card> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-card", "card", [
+    { name: "suit", kind: "string", description: "Its suit." },
+    { name: "rank", kind: "string", description: "Its rank." },
+    { name: "direction", kind: "string", description: "Its direction." }
+  ])
+
+  isASuit(suit: (typeof Card.Suits)[number]) {
+    return this.currentThing?.isASuit(suit)
+  }
+
+  isARank(rank: (typeof Card.Ranks)[number]) {
+    return this.currentThing?.isARank(rank)
+  }
+
+  isTheRankOfSuits(rank: (typeof Card.Ranks)[number], suit: (typeof Card.Suits)[number]) {
+    return this.currentThing?.isTheRankOfSuits(rank, suit)
+  }
+
+  isTheColorJoker(color: Color) {
+    return this.currentThing?.isTheColorJoker(color)
+  }
+
+  turnFaceUp() {
+    return this.currentThing?.turnFaceUp()
+  }
+
+  turnFaceDown() {
+    return this.currentThing?.turnFaceDown()
+  }
+
+  turnOver() {
+    return this.currentThing?.turnOver()
+  }
+}
+core.useElement(Card, CardElement)
 
 /** A joker:  a wild card with no rank or suit -- there's a red one and a black one */
 export class Joker extends Card {
@@ -176,8 +218,8 @@ export class Joker extends Card {
   /** set when it's made:  it has no suit to work its color out from */
   // - its "color" is a color
   static { this.declareProp("color", { oneOf: () => Card.Colors }) }
-  get color() { return this.getProp("color") }
-  set color(value) { this.setProp("color", value) }
+  get color(): (typeof Card.Colors)[number] { return this.getProp("color") as (typeof Card.Colors)[number] }
+  set color(value: (typeof Card.Colors)[number]) { this.setProp("color", value) }
 
   /** e.g. "red-joker" */
   get name() {
@@ -198,14 +240,27 @@ export class Joker extends Card {
   }
 }
 
+/**
+ * `<test-project-joker>`:  a joker, drawn in its own element, e.g. by `draw the joker`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its joker's properties;  its methods call its joker's.
+ * - What every drawable thing's element does, e.g. drawing its joker, is `SpellElement`'s.
+ */
+export class JokerElement extends SpellElement<Joker> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-joker", "joker", [
+    { name: "color", kind: "string", description: "Its color." }
+  ])
+}
+core.useElement(Joker, JokerElement)
+
 /** suits, ranks and colors:  the card's own kinds of values */
 export class Suit {
-  static color(suit) {
+  static color(suit: (typeof Card.Suits)[number]) {
     if (core.includes(["diamonds", "hearts"], suit)) return "red"
     return "black"
   }
 
-  static symbol(suit) {
+  static symbol(suit: (typeof Card.Suits)[number]) {
     if (suit == "clubs") return "♣️"
     if (suit == "diamonds") return "♦️"
     if (suit == "hearts") return "♥️"
@@ -214,7 +269,7 @@ export class Suit {
   }
 }
 export class Rank {
-  static isAFaceCard(rank) {
+  static isAFaceCard(rank: (typeof Card.Ranks)[number]) {
     return core.includes(["jack", "queen", "king"], rank)
   }
 }
@@ -319,14 +374,14 @@ core.heading("A deck:  the 52 cards of a US standard deck, ace of clubs first --
 // ## A deck:  the 52 cards of a US standard deck, ace of clubs first -- and its two jokers, if you ask
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 /** It reads the card's own suits and ranks:  `card suits`, `card ranks`. */
-export class Deck extends List {
+@thing
+export class Deck extends List<Card> {
   static instanceType = Card
 
   /** no jokers, unless it's made `with jokers` */
   // - its "jokers" is yes or no
-  static { this.declareProp("jokers", { type: "choice" }) }
-  get jokers() { return this.getProp("jokers") }
-  set jokers(value) { this.setProp("jokers", value) }
+  @prop({ type: "choice" })
+  accessor jokers!: boolean
 
   /** a new deck holds one of each card, ace of clubs first, then its two jokers, red then black */
   create() {
@@ -342,7 +397,7 @@ export class Deck extends List {
 
   /** echo its cards' short names, top to bottom */
   display() {
-    const cardNames = new List({ instanceType: "text" })
+    const cardNames = new List<string>({ instanceType: "text" })
     this.forEach((card) => cardNames.append(card.shortName))
     core.echo(`deck: ${cardNames}`)
   }
@@ -358,10 +413,10 @@ export function testDeckCreation() {
     core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is queen`)
     const queens = deck.filter((card) => card.rank == "queen")
     core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
-    core.expect(deck.firstItem?.name, `the name of the top card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
-    core.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    core.expect(deck.firstItem?.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
-    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
+    core.expect(deck.firstItem?.name!, `the name of the top card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
+    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    core.expect(deck.firstItem?.shortName!, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
 
     core.echo("the deck before shuffling:")
     core.echoTestAction(`display the deck`)
@@ -383,10 +438,10 @@ export function testDeckWithJokers() {
     core.echoTestAction(`set wild cards to the cards in the deck where it is a joker`)
     const wildCards = deck.filter((card) => card instanceof Joker)
     core.expect(wildCards.length, `the number of cards in wild cards`, 2, `2`)
-    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
+    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
     // the red joker, then the black one, last
-    core.expect(deck.lastItem?.isTheColorJoker("black"), `the last card of the deck is the black joker`, true, `yes`)
-    core.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "black-joker", `"black-joker"`)
+    core.expect(deck.lastItem?.isTheColorJoker("black")!, `the last card of the deck is the black joker`, true, `yes`)
+    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "black-joker", `"black-joker"`)
   })
 }
 // -----------
@@ -398,29 +453,28 @@ core.heading("A pile of cards, e.g. a game's stock or its discards")
  * The game that uses these cards names its piles, and says what each kind of pile takes.
  * A drawable list:  its element holds its cards' elements, e.g. `<cards-pile>` around `<cards-card>`s.
  */
-export class Pile extends DrawableList {
+export class Pile extends DrawableList<Card> {
   static instanceType = Card
   static elementTag = core.defineElement(this, "test-project")
 
   /** what the game calls it, e.g. "stock" */
   // - its "name" is text
-  static { this.declareProp("name", { type: "text" }) }
-  get name() { return this.getProp("name") }
-  set name(value) { this.setProp("name", value) }
+  @prop({ type: "text" })
+  accessor name!: string
 
   /** the color and value of its last card:  what the next card goes on */
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem.color
+    return this.lastItem!.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem.value
+    return this.lastItem!.value
   }
 
   /** its name, then each card's state, e.g. "stock: Q♠️+ 7♥️—" */
-  get state() {
+  @derived get state() {
     let state = `${this.name || "pile"}:`
     this.forEach((card) => (state = `${state} ${card.state}`))
     return state
@@ -428,6 +482,19 @@ export class Pile extends DrawableList {
 
   static exclusive = true
 }
+
+/**
+ * `<test-project-pile>`:  a pile, drawn in its own element, e.g. by `draw the pile`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its pile's properties;  its methods call its pile's.
+ * - What every drawable thing's element does, e.g. drawing its pile, is `SpellElement`'s.
+ */
+export class PileElement extends SpellElement<Pile> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-pile", "pile", [
+    { name: "name", kind: "string", description: "Its name." }
+  ])
+}
+core.useElement(Pile, PileElement)
 
 /** a card is in one pile at a time:  putting it on another pile takes it off this one */
 
@@ -461,7 +528,7 @@ export function testPiles() {
     /** a card is in one pile at a time */
     const card = stock.lastItem
     core.echoTestAction(`add the card to the discards`)
-    discards.append(card)
+    discards.append(card!)
     core.expect(stock.length, `the number of cards in the stock`, 1, `1`)
     core.expect(card?.pile === discards, `the pile of the card is the discards`, true, `yes`)
     core.expect(discards.state, `the state of the discards`, "discards: 7♥️—", `"discards: 7♥️—"`)
@@ -473,3 +540,17 @@ if (!core.isCarryingOver) testJokers()
 if (!core.isCarryingOver) testDeckCreation()
 if (!core.isCarryingOver) testDeckWithJokers()
 if (!core.isCarryingOver) testPiles()
+
+// each drawable type's tag, for the JSX
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      /** `CardElement` */
+      "test-project-card": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `JokerElement` */
+      "test-project-joker": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `PileElement` */
+      "test-project-pile": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+    }
+  }
+}

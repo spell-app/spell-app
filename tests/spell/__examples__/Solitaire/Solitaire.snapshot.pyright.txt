@@ -1,0 +1,6 @@
+233 reportAssignmentType Type "Prop" is not assignable to declared type "property"
+377 reportArgumentType Argument of type "Literal['red']" cannot be assigned to parameter "color" of type "Color" in function "is_the_color_joker"
+378 reportArgumentType Argument of type "Literal['black']" cannot be assigned to parameter "color" of type "Color" in function "is_the_color_joker"
+380 reportArgumentType Argument of type "Literal['black']" cannot be assigned to parameter "color" of type "Color" in function "is_the_color_joker"
+401 reportArgumentType Argument of type "Literal['red']" cannot be assigned to parameter "color" of type "Color" in function "is_the_color_joker"
+835 reportOptionalMemberAccess "filter" is not a known attribute of "None"

@@ -9,7 +9,7 @@ import {
   type SpellProjectSummary,
   type SpellSourceFile
 } from "spell-lang/spell/test"
-import { loadFixtureWithLibraries } from "spell-app/spaces/test"
+import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * `P.IncrementalProject` MUST give exactly what a full parse gives:
@@ -32,7 +32,7 @@ const EDITS: Record<string, (lines: string[], index: number) => void> = {
 }
 
 describe("incremental parsing ~== full parse", () => {
-  const files = loadFixtureWithLibraries("solitaire")
+  const files = loadFixtureProject("Solitaire")
   const original = summarize(parseSpellProject(files))
 
   test("item-by-item parse ~== full parse", () => {

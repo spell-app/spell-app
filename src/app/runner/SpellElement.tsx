@@ -1,8 +1,9 @@
 import { createEffect } from "solid-js"
 import { insert, type JSX } from "@solidjs/web"
 
-import { E, UI } from "spell-ui/core"
 import { drawableAttributeFor } from "spell-kit/util"
+import { E, UI } from "spell-ui/core"
+import { RootLoader } from "spell-ui/components/ui-root"
 import type { ElementApi, Core } from "spell-lang/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 
@@ -165,7 +166,33 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
       null
     )
     this.keepThingAndElementAgreeing()
+    this.loadSpellUIFamilies()
     return super.onMount()
+  }
+
+  /**
+   * Load each Spell UI family our drawing uses, the first time one of its tags shows in our shadow root:
+   * a card drawn as `<ui-text>`, or as `<es-texto>` in a Spanish program.
+   * - Why here:  a root (`<spell-app>`, `<ui-root>`) loads the tags in its own content and shadow root,
+   *   never inside another element's shadow root, where our drawing is.
+   * - A page language's tags load once the runner has turned the language on (`RootLoader.useLanguage()`).
+   * - Watches until we're released:  a drawing that changes may draw a tag of another family.
+   * - NEVER throws:  a family that won't load leaves its tags undrawn, and says so in the console.
+   */
+  private loadSpellUIFamilies() {
+    const shadowRoot = this.domElement.renderRoot
+    const loadNew = () => {
+      for (const tag of RootLoader.undefinedTags(shadowRoot)) {
+        RootLoader.loadTag(tag)?.catch((error: unknown) =>
+          E.Warnings.warn(`<${this.domElement.localName}>`, `can't load the Spell UI family of <${tag}>`, error)
+        )
+      }
+    }
+    loadNew()
+    // our SHADOW root:  `@E.watches` watches the light DOM
+    const observer = new MutationObserver(loadNew)
+    observer.observe(shadowRoot, { childList: true, subtree: true })
+    this.domElement.addReleaseCallback(() => observer.disconnect())
   }
 
   /**

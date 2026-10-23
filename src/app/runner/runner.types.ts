@@ -17,9 +17,12 @@ import type { UI } from "spell-app/app/ui"
  *   - see `SP.SpellWords`
  *   - one per language its files are in, the one it speaks first (epic `spanish` P19)
  *   - sent after each `run`;  `undefined` if it has none
+ * - `imported`:  answer to our `loadImport`:  project `projectId`'s compiled javascript,
+ *   or `error`, why it couldn't be loaded
  */
 export type ToRunnerMessage =
   | { type: "run"; compiled: string }
+  | { type: "imported"; projectId: string; compiled?: string; error?: string }
   | { type: "words"; words?: string[] }
   | { type: "scopes"; tree: LSP.ScopeNode }
   | { type: "settings"; settings: ProjectSettings }
@@ -34,6 +37,8 @@ export type ToRunnerMessage =
  * - `saveSettings`:  write these sections of `settings.json5` -- see `ProjectSettings`
  * - `details`:  send the details of Type Explorer node or member `path` -- answered by a `details` message
  * - `refreshScopes`:  the Type Explorer's Refresh button -- send fresh `scopes`
+ * - `loadImport`:  the program imports project `projectId`, e.g. `@spell/library/people` --
+ *   send its compiled javascript, as the language server's `spell/compiledImport`, in an `imported` message
  */
 export type FromRunnerMessage =
   | { type: "ready" }
@@ -43,6 +48,7 @@ export type FromRunnerMessage =
   | { type: "saveSettings"; settings: ProjectSettings }
   | { type: "details"; path: string }
   | { type: "refreshScopes" }
+  | { type: "loadImport"; projectId: string }
 
 /**
  * How a project is shown, remembered in its `settings.json5`:

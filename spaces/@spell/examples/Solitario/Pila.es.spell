@@ -6,10 +6,10 @@ una "pila" es una lista dibujable de cartas donde:
 	- su "nombre" es texto
 	// el color y el valor de su última carta:  sobre qué va la siguiente carta
 	- su "color" es:
-		"ninguno" si la pila está vacía
+		"ninguno" si está vacía
 		el color de su última carta de lo contrario
 	- su "valor" es:
-		0 si la pila está vacía
+		0 si está vacía
 		el valor de su última carta de lo contrario
 	// su nombre, luego el estado de cada carta, p. ej. "reserva: D♠️+ 7♥️—"
 	- su "estado" es:

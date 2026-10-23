@@ -2,7 +2,7 @@
   "listsStartAt": 0,
   "imports": [
     {
-      "path": "@spell/library/cards",
+      "path": "@spell/test/cards",
       "active": true,
       "import": ["Card", "Deck"]
     },

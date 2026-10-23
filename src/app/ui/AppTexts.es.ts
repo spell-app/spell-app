@@ -111,7 +111,7 @@ const APP_TEXTS_ES: AppTextPack = {
   "theType.library": "la biblioteca",
   "title.library": "Bibliotecas",
   "description.library":
-    "Bibliotecas que importan otros proyectos, p. ej. `@spell/library/cards` en un archivo de proyecto",
+    "Bibliotecas que importan otros proyectos, p. ej. `@spell/library/people` en un archivo de proyecto",
   "type.fixture": "proyecto de prueba",
   "Type.fixture": "Proyecto de prueba",
   "theType.fixture": "el proyecto de prueba",

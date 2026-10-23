@@ -9,15 +9,15 @@ una "carta" es una cosa dibujable donde:
 	- "colores" como uno de rojo o negro
 
 	- el "color" de un palo es:
-		rojo si el palo es diamantes o corazones
+		rojo si es diamantes o corazones
 		negro de lo contrario
 	- el "símbolo" de un palo es:
-		"♣️" si el palo es tréboles
-		"♦️" si el palo es diamantes
-		"♥️" si el palo es corazones
-		"♠️" si el palo es espadas
+		"♣️" si es tréboles
+		"♦️" si es diamantes
+		"♥️" si es corazones
+		"♠️" si es espadas
 		"?" de lo contrario
-	- un rango "es una figura" si el rango es jota, dama o rey
+	- un rango "es una figura" si es jota, dama o rey
 
 	## su palo y su rango
 	- su "palo" es un palo
@@ -29,7 +29,7 @@ una "carta" es una cosa dibujable donde:
 	- "es un (rango)"                             // p. ej. "la carta es una dama"
 	- "es el (rango) de (palos)"                  // p. ej. "la carta es la dama de espadas"
 	- "es una figura" si su rango es una figura
-	- "es el comodín (color como un color)" si la carta es un comodín y su color es color
+	- "es el comodín (color como un color)" si es un comodín y su color es color
 
 	## su dirección:  boca arriba o boca abajo
 	- su "dirección" es arriba o abajo
@@ -50,41 +50,41 @@ una "carta" es una cosa dibujable donde:
 	- su "estado" es: su rango corto + su palo corto + su dirección corta
 
 	## su imagen:  un carácter de los naipes de unicode
-	// SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
+	// MIRA:  https://www.compart.com/en/unicode/block/U+1F0A0
 	// El bloque es una cuadrícula:  una fila por palo, y en cada fila, una columna por rango.
 	// - Las filas empiezan en 1F0A0 (espadas), 1F0B0 (corazones), 1F0C0 (diamantes) y 1F0D0 (tréboles).
 	// - Las columnas van as 1, 2 ... 10, jota B, luego un caballo que nuestro mazo no tiene, C, luego dama D y rey E.
 	- su "columna de imagen" es:
-		su valor + 1 si la carta es una dama o la carta es un rey      // pasado el caballo
+		su valor + 1 si es una dama o es un rey      // pasado el caballo
 		su valor de lo contrario
 	- su "imagen" es:
-		unicode 1F0A0 + su columna de imagen si la carta es una espada
-		unicode 1F0B0 + su columna de imagen si la carta es un corazón
-		unicode 1F0C0 + su columna de imagen si la carta es un diamante
+		unicode 1F0A0 + su columna de imagen si es una espada
+		unicode 1F0B0 + su columna de imagen si es un corazón
+		unicode 1F0C0 + su columna de imagen si es un diamante
 		unicode 1F0D0 + su columna de imagen de lo contrario
 
 	## dibujarla:  su imagen boca arriba, boca abajo el dorso que comparten todas las cartas
-	// el color de Spell UI va en inglés:  `red` o `black`
+	// con el texto de Spell UI en español, `<es-texto>`:  toma su color tal cual, `rojo` o `negro`
 	- para dibujarla:
-		si la carta está boca abajo
-			devolver <ui-text class="Card" size="massive" color="blue" onClick={disparar evento clic-carta con carta = la carta}>
+		si está boca abajo
+			devolver <es-texto class="Card" tamano="gigante" color="azul" onClick={disparar evento clic-carta con carta = eso}>
 				{unicode 1F0A0}
-			</ui-text>
-		devolver <ui-text class="Card" size="massive" color={"red" si su color es rojo sino "black"} onClick={disparar evento clic-carta con carta = la carta}>
+			</es-texto>
+		devolver <es-texto class="Card" tamano="gigante" color={su color} onClick={disparar evento clic-carta con carta = eso}>
 			{su imagen}
-		</ui-text>
+		</es-texto>
 
 	## voltearla
 	// cada una se detiene un momento, así `esperar a: voltear la carta boca arriba` se anima
-	- para voltear una carta boca arriba:
+	- para voltearla boca arriba:
 		poner su dirección a arriba
 		pausar 50 mseg
-	- para voltear una carta boca abajo:
+	- para voltearla boca abajo:
 		poner su dirección a abajo
 		pausar 50 mseg
-	- para dar vuelta una carta:
-		si la carta está boca arriba: voltear la carta boca abajo
-		de lo contrario: voltear la carta boca arriba
+	- para voltearla:
+		si está boca arriba: voltear eso boca abajo
+		de lo contrario: voltear eso boca arriba
 		pausar 50 mseg
 
 
@@ -102,67 +102,67 @@ un "comodín" es una carta donde:
 
 ## Pruebas
 para probar la preparación de la carta
-	la carta es una nueva carta cuyo rango es dama, palo es espadas y dirección es arriba
-	eco la carta
-	el rango de la carta debería ser dama
-	el palo de la carta debería ser espadas
-	el nombre de la carta debería ser "dama-de-espadas"
-	el color de la carta debería ser negro
-	el valor de la carta debería ser 12
-	el palo corto de la carta debería ser "♠️"
-	el rango corto de la carta debería ser "D"
-	el nombre corto de la carta debería ser "D♠️"
-	el estado de la carta debería ser "D♠️+"
-	la imagen de la carta debería ser "🂭"
+	obtener una nueva carta cuyo rango es dama, palo es espadas y dirección es arriba
+	eco eso
+	su rango debería ser dama
+	su palo debería ser espadas
+	su nombre debería ser "dama-de-espadas"
+	su color debería ser negro
+	su valor debería ser 12
+	su palo corto debería ser "♠️"
+	su rango corto debería ser "D"
+	su nombre corto debería ser "D♠️"
+	su estado debería ser "D♠️+"
+	su imagen debería ser "🂭"
 
-	la carta está boca arriba debería ser sí
-	la carta está boca abajo debería ser no
+	está boca arriba debería ser sí
+	está boca abajo debería ser no
 
-	la carta es una figura debería ser sí
-	la carta no es una figura debería ser no
+	es una figura debería ser sí
+	no es una figura debería ser no
 
-	la carta es una espada debería ser sí
-	la carta es un trébol debería ser no
+	es una espada debería ser sí
+	es un trébol debería ser no
 
-	la carta es una dama debería ser sí
-	la carta es un as debería ser no
-	la carta es un 2 debería ser no
+	es una dama debería ser sí
+	es un as debería ser no
+	es un 2 debería ser no
 
-	la carta es la dama de espadas debería ser sí
-	la carta es la dama de tréboles debería ser no
-	la carta no es el 2 de diamantes debería ser sí
+	es la dama de espadas debería ser sí
+	es la dama de tréboles debería ser no
+	no es el 2 de diamantes debería ser sí
 
-	voltear la carta boca abajo
-	la dirección de la carta debería ser abajo
-	la carta está boca abajo debería ser sí
+	voltear eso boca abajo
+	su dirección debería ser abajo
+	está boca abajo debería ser sí
 
-	dar vuelta la carta
-	la carta está boca arriba debería ser sí
+	voltear eso
+	está boca arriba debería ser sí
 
 	// una carta de número:  su rango tal cual, y su imagen en la fila de su palo
-	poner otra carta a una nueva carta cuyo rango es 7, palo es corazones y dirección es arriba
-	el nombre corto de otra carta debería ser "7♥️"
-	el color de otra carta debería ser rojo
-	la imagen de otra carta debería ser "🂷"
+	poner el siete a una nueva carta cuyo rango es 7, palo es corazones y dirección es arriba
+	el nombre corto del siete debería ser "7♥️"
+	el color del siete debería ser rojo
+	la imagen del siete debería ser "🂷"
 	la imagen de una nueva carta cuyo rango es as y palo es tréboles debería ser "🃑"
 	la imagen de una nueva carta cuyo rango es rey y palo es diamantes debería ser "🃎"
 
 para probar los comodines
-	el comodín es un nuevo comodín cuyo color es rojo y dirección es arriba
-	eco el comodín
-	el comodín es un comodín debería ser sí
-	el comodín es una carta debería ser sí
-	el color del comodín debería ser rojo
-	el nombre del comodín debería ser "comodín-rojo"
-	el nombre corto del comodín debería ser "🃏"
-	la imagen del comodín debería ser "🂿"
-	el comodín es el comodín rojo debería ser sí
-	el comodín es el comodín negro debería ser no
-	el comodín no es el comodín negro debería ser sí
+	obtener un nuevo comodín cuyo color es rojo y dirección es arriba
+	eco eso
+	es un comodín debería ser sí
+	es una carta debería ser sí
+	su color debería ser rojo
+	su nombre debería ser "comodín-rojo"
+	su nombre corto debería ser "🃏"
+	su imagen debería ser "🂿"
+	es el comodín rojo debería ser sí
+	es el comodín negro debería ser no
+	no es el comodín negro debería ser sí
 
-	el comodín está boca arriba debería ser sí
-	dar vuelta el comodín
-	el comodín está boca abajo debería ser sí
+	está boca arriba debería ser sí
+	voltear eso
+	está boca abajo debería ser sí
 
 	poner comodín negro a un nuevo comodín cuyo color es negro
 	la imagen de comodín negro debería ser "🃏"
