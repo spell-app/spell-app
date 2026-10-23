@@ -3,7 +3,7 @@
   "displayName": "Spell",
   "version": "0.8.0",
   "private": true,
-  "description": "Spell language support:  errors, hover, completion, go to definition, rename -- from spell's language server.",
+  "description": "Spell language support:  errors, hover, completion, go to definition, rename -- from spell's language server;  and custom elements' slots, parts, attributes and CSS data in JSX, HTML and CSS files.",
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
   "publisher": "spell-app",
@@ -11,6 +11,7 @@
   "scripts": {
     "build": "node build.mjs",
     "check": "cd ../.. && node_modules/.bin/tsc --noEmit -p spell-app/vscode",
+    "test": "../../node_modules/.bin/vp test run",
     "package": "vsce package --no-dependencies --skip-license --out spell-language.vsix",
     "install-extension": "code --install-extension spell-language.vsix --force"
   },
@@ -66,6 +67,18 @@
         "enablement": "editorLangId == spell"
       }
     ],
+    "html": {
+      "customData": [
+        "./out/data/spell-ui.html-custom-data.json",
+        "./out/data/spell-brand.html-custom-data.json"
+      ]
+    },
+    "css": {
+      "customData": [
+        "./out/data/spell-ui.css-custom-data.json",
+        "./out/data/spell-brand.css-custom-data.json"
+      ]
+    },
     "configuration": {
       "title": "Spell",
       "properties": {
@@ -232,7 +245,9 @@
     ]
   },
   "activationEvents": [
-    "onLanguage:spell"
+    "onLanguage:spell",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact"
   ],
   "engines": {
     "vscode": "^1.100.0"

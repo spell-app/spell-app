@@ -110,6 +110,11 @@ More on some of them:
   its own `package.json` and `yarn.lock`.
   - `spell app vscode` builds and installs it.
   - Or its two steps:  `spell app vscode build`, then `install`.
+  - Its tests run in plain node, as two projects of spell-app's `yarn test`:
+    - `vscode`:  its plain-node parts, in this repo's [tests/vscode/](tests/vscode/) ([spellAppRoot.test.ts](tests/vscode/spellAppRoot.test.ts))
+    - `vscode:elements`:  the elements help, in [vscode/tests/](vscode/tests/), by the extension's own
+      [config](vscode/vitest.config.ts), with a stand-in for the `vscode` module ([fakeVscode.ts](vscode/tests/fakeVscode.ts));
+      `yarn test` in `vscode/` runs it alone, and its `yarn check` type-checks it
   - Its language server runs lsp's source, [server.ts](src/lsp/server.ts), with `tsx`, from the checkout's root
     (`LSP_SERVER`, [extension.ts](vscode/src/extension.ts)).
     - A checkout from before epic `repo-split` P14 (`lsp/src/server.ts`) doesn't run:  it says so, naming the file.
@@ -120,8 +125,10 @@ More on some of them:
       checkout's, whatever order the window lists them in (a worktree's `.git` is a file)
     - else, last, the checkout it was built in
     - The extension's output says which it picked;  the code is `findSpellApp()` ([spellAppRoot.ts](vscode/src/spellAppRoot.ts)).
-    - Its tests are this repo's `vscode` project ([spellAppRoot.test.ts](tests/vscode/spellAppRoot.test.ts)):
-      the extension has no test runner of its own.
+  - In `.tsx` / `.jsx` files it also gives custom elements' slot, part and dashed-attribute help
+    ([ElementsHelp.ts](vscode/src/ElementsHelp.ts), the kit's `JsxElementHelp` bundled in, with TypeScript 6 to read JSX);
+    and it carries Spell UI's and the brand's HTML and CSS data, copied in by its build:
+    a vocabulary change shows there after `spell app vscode`.
   - The Review tab, the Epic Docs view and the window bridge are spell-epic's own extension, not this one.
 - THE PAGE SERVER is the kit's, started from the kit's root only (`spell server start`, from any folder;
   epic `repo-split` P16):  [the kit's server AGENTS.md](../src/server/AGENTS.md).
@@ -350,7 +357,8 @@ As the kit's ([AGENTS.md](../AGENTS.md), "Toolchain:  Vite+"), plus:
   - `lint`:  oxlint over `src`, `tests`, `scripts` and `app`, then ruff;  `format`:  oxfmt, then ruff format.
     - spaces' Python is a uv project, `src/spaces/server/py/`:  `uv run --directory src/spaces/server/py ...`.
   - One folder's tests:  `yarn vp test run --project spaces`.
-    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`, `vscode`.
+    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`, `vscode`;
+      and `vscode:elements`, the extension's elements help, by its own [config](vscode/vitest.config.ts).
   - No more `yarn workspaces foreach`, nor `vp run -F`:  the repo is one workspace of the kit's install.
 - `yarn vitest` here (and the VS Code vitest extension) reads the same [vitest.config.ts](vitest.config.ts).
 

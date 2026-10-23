@@ -2,9 +2,12 @@
  * VS Code extension for spell:  runs the spell parser's language server, and shows the code a file compiles to:
  *   javascript, TypeScript or Python, from the editor's title bar.
  * - And runs a project, in a panel beside it -- see `RunnerPanel`.
+ * - And, in `.tsx` / `.jsx` files, custom elements' slot, part and dashed-attribute help -- see `ElementsHelp`;
+ *   and Spell UI's and Spell Brand's HTML and CSS data, from `package.json` (`contributes.html.customData` ...).
  * - The spell LANGUAGE only:  the docs and Review tabs, "Open Epic...", the window bridge and the handoff are
  *   spell-epic's own extension's (`spell-app.spell-epic`, built from spell-epic's `vscode/`;  epic `epic-eject` I7).
- * - Activates on the window's first spell file (`onLanguage:spell`):  a window without spell files runs no server.
+ * - Activates on the window's first spell, `.tsx` or `.jsx` file (`activationEvents`).
+ *   - The language server starts with the first SPELL file:  a window without spell files runs no server.
  * - The server is a spell-app checkout's own `src/lsp/server.ts`, run by its `tsx` from its root (`LSP_SERVER`).
  *   - Which checkout:  the window's, found when the server starts (`findSpellApp()`), so one installed copy works
  *     from the kit's main checkout and from every epic's worktree.
@@ -21,6 +24,7 @@ import {
   type ServerOptions
 } from "vscode-languageclient/node"
 
+import { ElementsHelp } from "./ElementsHelp"
 import { RunnerPanel } from "./RunnerPanel"
 import { findSpellApp } from "./spellAppRoot"
 
@@ -62,9 +66,22 @@ declare const BUILT_IN_SPELL_APP: string
 /** Client for the running language server, once `activate()` has started it. */
 let client: LanguageClient | undefined
 
-/** Start the language server, once a spell file is open (`onLanguage:spell`) -- see `startLanguageServer()`. */
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  return startLanguageServer(context)
+/** Whether `startLanguageServer()` has run:  it runs once per window. */
+let serverStarted = false
+
+/**
+ * Turn on the elements help, and start the language server once a spell file is open.
+ * - `startLanguageServer()` for the first spell file:  open now, or opened later.
+ */
+export function activate(context: vscode.ExtensionContext): void {
+  ElementsHelp.register(context)
+  const startFor = (document: vscode.TextDocument) => {
+    if (serverStarted || document.languageId !== "spell") return
+    serverStarted = true
+    void startLanguageServer(context).catch((error) => vscode.window.showErrorMessage(`Spell:  ${error}`))
+  }
+  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(startFor))
+  vscode.workspace.textDocuments.forEach(startFor)
 }
 
 /**
