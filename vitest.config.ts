@@ -34,7 +34,7 @@ const APP_TESTS = "tests/app"
  *   whole-project parsing.
  *   - No folder of `src/` of its own:  it tests spell-lang's `spell`, by package, on this repo's projects.
  * - `vscode`:  the VS Code extension's plain-node parts (`vscode/src/`), in `tests/vscode/`;
- *   the extension is its own yarn project, with no test runner of its own.
+ *   the extension is its own yarn project;  these parts need no stand-in `vscode`.
  * - `vscode:elements`:  the extension's elements help (`vscode/tests/`), by ITS config, `vscode/vitest.config.ts`:
  *   it needs a stand-in `vscode` module.
  * - Python's tests (spaces' web server, `tests/spaces/server/py/`) are pytest's:  `yarn test` runs them after.
