@@ -21,6 +21,7 @@ export type {
   SpeedtestOptions,
   TestOptions,
   TranslateOptions,
+  TranslateTimeOptions,
   WatchOptions
 } from "spell-lang/cli"
 

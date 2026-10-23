@@ -4,6 +4,7 @@ import { fileURLToPath } from "url"
 
 import { readJSON5File } from "spell-kit/util/node/json5"
 import { SP } from "spell-lang/spell"
+import type { TranslateSource } from "spell-lang/cli/translateProject"
 import type {
   DeclarationStatement,
   ImportedProject,
@@ -32,23 +33,36 @@ export async function translateCommand(
   options: CLI.TranslateOptions
 ): Promise<number> {
   const project = await CLI.projectFor(session, args[0] ?? (await session.defaultProject()))
-  const seed = options.seed ? await CLI.projectFor(session, options.seed) : undefined
   const { translateProject } = await import("spell-lang/cli/translateProject")
+  return translateProject(await translateSourceFor(session, project, options), options)
+}
+
+/**
+ * `project` as spell-lang's `translateProject()` takes it:  parsed, with all the app knows of it (see above).
+ * - `options.seed`:  that project, parsed too
+ * - `reference`:  a person's translation of it, by address, parsed, to compare names with (`spell lang translate-time`)
+ */
+export async function translateSourceFor(
+  session: CLI.CliSession,
+  project: SP.SpellProject,
+  options: CLI.TranslateOptions,
+  reference?: string
+): Promise<TranslateSource> {
+  const seed = options.seed ? await CLI.projectFor(session, options.seed) : undefined
+  const theirs = reference ? await CLI.projectFor(session, reference) : undefined
   const declarations = await declarationsOf(project)
-  return translateProject(
-    {
-      projectName: project.projectName ?? "Project",
-      folder: project.location.serverPath,
-      files: await sourceFiles(project),
-      seed: seed && (await sourceFiles(seed)),
-      declarations: declarations?.statements as DeclarationStatement[] | undefined,
-      words: declarations && SP.SpellWords.of(declarations),
-      imports: await importsOf(project, options.to),
-      ui: await uiVocabulary(options.to),
-      checker: translationChecker
-    },
-    options
-  )
+  return {
+    projectName: project.projectName ?? "Project",
+    folder: project.location.serverPath,
+    files: await sourceFiles(project),
+    seed: seed && (await sourceFiles(seed)),
+    reference: theirs && (await sourceFiles(theirs)),
+    declarations: declarations?.statements as DeclarationStatement[] | undefined,
+    words: declarations && SP.SpellWords.of(declarations),
+    imports: await importsOf(project, options.to),
+    ui: await uiVocabulary(options.to),
+    checker: translationChecker
+  }
 }
 
 /** `project`'s spell files, parsed, in its project file's order:  their paths in the project, e.g. `/Card.spell`. */
