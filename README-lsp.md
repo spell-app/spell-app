@@ -483,7 +483,7 @@ yarn vp test run --project lsp                           # its tests:  149, in s
 | [SpellLanguageServer.ts](src/lsp/SpellLanguageServer.ts) | wires the service and a workspace to an LSP connection:  the queue, the 50 ms wait, Spell's own requests |
 | [SpellDiskWorkspace.ts](src/lsp/SpellDiskWorkspace.ts) | loads projects from disk, through [spaces'](README-spaces.md) disk reader, and follows changes on disk;  node only |
 | [SpellCSS.ts](src/lsp/SpellCSS.ts) | the `<css>` blocks in a file, answered as CSS |
-| [LspTexts.ts](src/lsp/LspTexts.ts), [LspTexts.en.ts](src/lsp/LspTexts.en.ts), [LspTexts.es.ts](src/lsp/LspTexts.es.ts) | the labels it shows people (`declared in`, `statement` ...), in the PROJECT's language:  `LspTexts.of(scope)` |
+| [LspTexts.ts](src/lsp/LspTexts.ts), [LspTexts.en.ts](src/lsp/LspTexts.en.ts), [LspTexts.es.ts](src/lsp/LspTexts.es.ts) | the labels it shows people (`declared in`, `statement` ...), in the language of the file they're about, by its name (`Carta.es.spell`):  `LspTexts.of(scope)` |
 | [SpellKeywords.ts](src/lsp/SpellKeywords.ts) | a language pack's keywords, as editors want them:  the accent fixes, the VS Code grammar's keyword lists, the `else` that goes back out a level |
 | [ScopeExplorer.ts](src/lsp/ScopeExplorer.ts) | the tree of what a project declares, for the Type Explorer and `spell describe` |
 | [ScopesSource.ts](src/lsp/ScopesSource.ts) | `ScopesSource` and `ScopePack`:  the same tree, read from scope packs on a page with no parser |
