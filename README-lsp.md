@@ -339,7 +339,7 @@ The extension's compiled views and its Run Project panel ask the server for more
 | `spell/project` `{ uri }` | the project's files in parse order, with each one's error count, and where its compiled output and words file go |
 | `spell/compileProject` `{ uri }` | compile the project to its `<Project>.spell.js`, queued like a change;  answers `{ ok }`, and on a clean compile writes the scope pack and sends `spell/projectCompiled` |
 | `spell/projectCompiled` (a notification, to the editor) | `{ project, compiled }`:  the JavaScript it wrote, for a running app to re-run |
-| `spell/compiledImport` `{ uri, projectId }` | the compiled JavaScript of a project it imports, e.g. `@spell/library/cards`, read fresh, compiled first if it has none;  `null` if it can't be loaded.  VS Code's runner links it in, as the app's does |
+| `spell/compiledImport` `{ uri, projectId }` | the compiled JavaScript of a project it imports, e.g. `@spell/library/people`, read fresh, compiled first if it has none;  `null` if it can't be loaded.  VS Code's runner links it in, as the app's does |
 | `spell/scopes` `{ uri }` | the live scope tree, for a Type Explorer |
 | `spell/scopeDetails` `{ uri, path }` | one node's details, fetched when it's shown |
 | `spell/setDescription` `{ uri, line \| file, text }` | an edit making `text` the docstring of what's declared on that line:  sent back for the editor to apply, so it can be undone |
@@ -404,24 +404,21 @@ It reads a SCOPE PACK, `<Project>.scopes.js`:  the scope explorer's tree, writte
 ;(globalThis.SPELL_SCOPES ??= {})[document.currentScript.src] = {
   id: "@spell/examples/Solitaire",
   entries: [
+    { path: "project:Solitaire" },
     {
-      path: "project:cards",
-      detail: "imported"
+      path: "project:Solitaire/file:Card.spell",
+      uri: "spell:/@spell/examples/Solitaire/Card.spell"
     },
     {
-      path: "project:cards/file:Card.spell",
-      uri: "spell:/@spell/library/cards/Card.spell"
-    },
-    {
-      path: "project:cards/file:Card.spell/type:Card", line: [4, 87],
+      path: "project:Solitaire/file:Card.spell/type:Card", line: [4, 87],
       super: "type:Drawable",
       section: "A playing card -- in the outline style:  its name, then what's true of it",
-      description: "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\nA drawable thing:  each card is its own element on the page, e.g. `<cards-card>`."
+      description: "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\nA drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`."
     },
     // ...
 ```
 
-_The top of drawable Solitaire's pack, 82 entries and 17 KB in all:  one flat entry per declaration,
+_The top of Solitaire's pack, 109 entries and 27 KB in all:  one flat entry per declaration,
 its `path` saying where it sits in the tree._
 
 - The server writes a project's pack after each clean compile;  so do `spell compile` and `spell watch`,

@@ -82,7 +82,7 @@ in the editor's address bar, on the command line, or inside another project that
 | --- | --- |
 | `@spell/examples/todos-form-based` | the to-do list above, in Spell's own space |
 | `@spell/examples/todos-form-based/todo.spell` | one file of it |
-| `@spell/library/cards` | a library:  a project other projects use, here cards, decks and piles |
+| `@spell/library/people` | a library:  a project other projects use, here people |
 | `owen@spell/errors` | a project in a person's own space |
 
 Even the people who own the spaces are written in Spell.
@@ -169,7 +169,7 @@ Each step in detail, with the code behind it:  [the editor's page](README-app.md
 All of this runs now, on your own machine.
 
 - **Write in sentences, or in outlines.**  The to-do list is sentences;  the person above is an outline.
-  [Solitaire](spaces/@spell/examples/Solitaire/) is a whole card game written that way, on the card library.
+  [Solitaire](spaces/@spell/examples/Solitaire/) is a whole card game written that way, its cards, deck and piles too.
 - **See mistakes as you type.**  On a line Spell can't read at all, it offers to teach Spell the phrase:
   "Define `to <phrase>`".
   The same checker runs in VS Code and on the command line ([the language server](README-lsp.md)).
@@ -262,13 +262,13 @@ Five example apps come with the editor, simplest first:
 FizzBuzz, which counts to 100;
 a calculator whose buttons run Spell;
 the to-do list at the top of this page;
-and Klondike solitaire, written in outlines on the card library, every card a piece of the page of its own;
+and Klondike solitaire, written in outlines, every card a piece of the page of its own;
 and Solitario, the same game in Spanish.
-Two libraries come with them, of playing cards and of people, for your own projects to build on.
+A library comes with them, of people, for your own projects to build on.
 
 <img src="docs/images/examples/Solitaire.png" width="720" alt="Solitaire running:  the stock, the discards and four foundations across the top, seven tableaus dealt below">
 
-_Solitaire, dealt:  every card on the table is a `<cards-card>`, the card library's, inside the pile that holds it._
+_Solitaire, dealt:  every card on the table is a `<solitaire-card>`, inside the pile that holds it._
 
 [The examples page](README-examples.md) has each one running and taken apart,
 and eight ideas for a project of your own.

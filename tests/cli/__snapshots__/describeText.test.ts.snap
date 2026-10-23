@@ -8,7 +8,7 @@ exports[`describeOverview() > a file:  each thing it declares, a type's members 
                 short name, state, picture column, picture, pile
     Actions     is a (suit), is a (rank), is the (rank) of (suits), is a face card,
                 is the (color as a color) joker, is face up, is face down, draw it, turn it face up,
-                turn it face down, turn it over
+                turn it face down, turn it over, play a card
     Constants   Suits (clubs, diamonds, hearts, spades), Ranks (ace, jack, queen, king),
                 Colors (red, black), Directions (up, down)
   type Suit
@@ -44,13 +44,13 @@ exports[`describeThing() > a type 1`] = `
 Card.spell:4
 
 The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
-A drawable thing:  each card is its own element on the page, e.g. <cards-card>.
+A drawable thing:  each card is its own element on the page, e.g. <solitaire-card>.
 
 Properties  suit, rank, color, value, direction, name, short suit, short rank, short direction,
             short name, state, picture column, picture, pile
 Actions     is a (suit), is a (rank), is the (rank) of (suits), is a face card,
             is the (color as a color) joker, is face up, is face down, draw it, turn it face up,
-            turn it face down, turn it over
+            turn it face down, turn it over, play a card
 Constants   Suits (clubs, diamonds, hearts, spades), Ranks (ace, jack, queen, king),
             Colors (red, black), Directions (up, down)
 

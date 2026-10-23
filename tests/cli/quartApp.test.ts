@@ -11,24 +11,28 @@ import { SRV } from "spell-kit/server"
 /**
  * A Python spell app in a real browser (epic `python-target` P20):
  * Solitaire compiled to `py`, served on Quart as `spell run --target py` serves it, and played in headless Chromium.
- * - The card library it imports goes beside it, as `cards.py` and its drawing half:
+ * - Its cards and its piles are drawable:  each its own element, `<solitaire-card>` inside
+ *   `<solitaire-tableau>` ... (epic `python-target` P28;  epic `spanish` P11, P21).
+ * - A project it imports goes beside it, as `cards.py` and its drawing half:
  *   `spell run` writes them in its temp folder, `spell compile` beside the compiled program (J97),
- *   so the app compiling writes (`Solitaire.app.py`) runs as it is.
- * - Its cards, the card library's, and its piles are drawable:  each its own element, `<cards-card>` inside
- *   `<solitaire-tableau>` ... (epic `python-target` P28;  epic `spanish` P11).
- * - A temp copy of the fixture:  tests never write into `spaces/@spell/test/`.
+ *   so the app compiling writes runs as it is.
+ *   - Solitaire imports nothing since epic `spanish` P21:  `lists-from-zero`, which imports the frozen card library,
+ *     checks it.
+ * - Temp copies:  tests never write into `spaces/@spell/`.
  * - Seeded (`$SPELL_SEED`), so its deal is the javascript run's, the core contract's snapshot.
  * - The page side, `app/dist-page/`, is built first (`yarn build:page`, a few seconds):  never a stale one.
  */
 const REPO = resolve(import.meta.dirname, "../..")
 /** The kit's `spell`, by package:  `spell-kit`'s `bin/spell.mjs` (spell-app's own until epic `repo-split` P13). */
 const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "bin/spell.mjs")
-/** spell's frozen test projects, beside the built-in groups:  `spaces/@spell/test/`. */
-const FIXTURES = resolve(REPO, "spaces/@spell/test")
+/** The Solitaire example, which this plays. */
+const SOLITAIRE = resolve(REPO, "spaces/@spell/examples/Solitaire")
+/** A frozen test project that imports another:  the card library, `@spell/test/cards`. */
+const IMPORTER = resolve(REPO, "spaces/@spell/test/lists-from-zero")
 /** `spell_quart`'s uv project, which serves a Python app:  Python's web server, in spaces. */
 const SPELL_QUART_DIR = resolve(REPO, "src/spaces/server/py")
-/** A card's element, the card library's. */
-const CARD = "cards-card"
+/** A card's element, Solitaire's own. */
+const CARD = "solitaire-card"
 /** The cards on the stock, and on the discards. */
 const STOCK = `solitaire-stock-pile ${CARD}`
 const DISCARDS = `solitaire-discard-pile ${CARD}`
@@ -42,9 +46,10 @@ beforeAll(async () => {
   const built = spawnSync("yarn", ["build:page"], { cwd: resolve(REPO, "app"), encoding: "utf8" })
   expect(built.status, built.stderr).toBe(0)
   folder = mkdtempSync(join(tmpdir(), "spell-quart-"))
-  cpSync(resolve(FIXTURES, "solitaire"), join(folder, "Solitaire"), {
+  cpSync(SOLITAIRE, join(folder, "Solitaire"), { recursive: true })
+  cpSync(IMPORTER, join(folder, "lists-from-zero"), {
     recursive: true,
-    filter: (file) => !file.includes(".snapshot.") && !file.endsWith(".snapshot.js")
+    filter: (file) => !file.includes(".snapshot.")
   })
   compile()
   server = spawn(process.execPath, [SPELL, "run", join(folder, "Solitaire"), "--target", "py", "--seed", "1"], {
@@ -67,22 +72,22 @@ afterAll(async () => {
 })
 
 describe("a Python spell app, in a real browser", () => {
-  test("compiling to py writes the program, its drawing half and its app;  and the card library's, beside them", () => {
+  test("compiling to py writes the program, its drawing half and its app", () => {
     const files = readdirSync(join(folder, "Solitaire"))
     expect(files).toEqual(
-      expect.arrayContaining([
-        "Solitaire.spell.py",
-        "Solitaire.elements.spell.js",
-        "Solitaire.app.py",
-        "cards.py",
-        "cards.elements.spell.js"
-      ])
+      expect.arrayContaining(["Solitaire.spell.py", "Solitaire.elements.spell.js", "Solitaire.app.py"])
     )
-    expect(readFileSync(join(folder, "Solitaire", "cards.py"), "utf8")).toMatch(/^class Card\(/m)
-    // the app's page loads the card library's drawing half too
-    expect(readFileSync(appFile(), "utf8")).toContain(
-      '"@spell/project/@spell/library/cards": "/cards.elements.spell.js"'
-    )
+    expect(readFileSync(join(folder, "Solitaire", "Solitaire.spell.py"), "utf8")).toMatch(/^class Card\(/m)
+  })
+
+  test("compiling a project that imports another writes that one's beside it too (J97)", () => {
+    const compiled = spawnSync("node", [SPELL, "compile", join(folder, "lists-from-zero"), "--target", "py"], {
+      encoding: "utf8"
+    })
+    expect(compiled.status, compiled.stderr).toBe(0)
+    const files = readdirSync(join(folder, "lists-from-zero"))
+    expect(files).toEqual(expect.arrayContaining(["lists-from-zero.spell.py", "cards.py"]))
+    expect(readFileSync(join(folder, "lists-from-zero", "cards.py"), "utf8")).toMatch(/^class Card\(/m)
   })
 
   test("the app compiling wrote runs as it is:  `uv run python Solitaire.app.py`", async () => {
@@ -248,7 +253,7 @@ describe("a Python spell app, in a real browser", () => {
       readdirSync(join(folder, "Solitaire"))
         .filter((file) => file.endsWith(".py"))
         .sort()
-    ).toEqual(["Solitaire.app.py", "Solitaire.spell.py", "cards.py"])
+    ).toEqual(["Solitaire.app.py", "Solitaire.spell.py"])
   }, 120_000)
 
   test("compiling again leaves an edited app be, and rewrites an unedited one", () => {

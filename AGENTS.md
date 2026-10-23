@@ -73,9 +73,11 @@ working with code in this repository, `spell-app`.
   - Spell's frozen test projects (`@spell/test`) are HERE, beside the other `@spell` groups:
     [spaces/@spell/test/](spaces/@spell/test/) (spell-lang's from epic `repo-split` P8 until epic `spanish` P18).
     - Owen, 2026-10-22:  "Seems like all of the @spell/ packages should live in spell-app":
-      so a test project may import the card library.
+      so a test project may import another `@spell` project:  `lists-from-zero` imports `cards`, a frozen card library.
     - The tests that compile them whole are here too, in [tests/spell/](tests/spell/), the `spell` project:
       their snapshots, `tsc` and pyright on them, whole-project parsing.
+      - The examples Solitaire and Solitario are tested as they are, never a frozen copy:
+        their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
       - The same paths they had in spell-lang:  `tests/spell/test/fixtures.test.ts`, `tests/spell/parserTests/...`.
       - Their helpers:  [spell-app/spaces/test](src/spaces/test/index.ts) (`loadFixtureProject()`, `compiledFixture()` ...).
       - `yarn spell:test:fixtures` runs the snapshot tests;  `yarn spell:test:fixtures:bless` rewrites the snapshots.

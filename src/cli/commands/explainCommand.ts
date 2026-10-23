@@ -24,7 +24,7 @@ export async function explainCommand(
 ): Promise<number> {
   const [word = ""] = args
   const project = options.in ? await CLI.projectFor(session, options.in) : undefined
-  // what it imports too, e.g. the cards library's `card` for Solitaire
+  // what it imports too, e.g. the people library's `person` for a project that imports it
   if (project) await session.parseImports(project)
   const parser = project?.scope?.parser ?? SP.spellParser
   const rules = rulesFor(word, parser).map((rule) => ({

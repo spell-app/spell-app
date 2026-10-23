@@ -62,8 +62,8 @@
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
               Solitaire, drawn with drawable things: each card is its own
-              <code>&lt;cards-card&gt;</code> element, the card library's, and each pile, e.g. a
-              <code>&lt;solitaire-tableau&gt;</code>, holds its cards' elements.
+              <code>&lt;solitaire-card&gt;</code> element, and each pile, e.g. a <code>&lt;solitaire-tableau&gt;</code>,
+              holds its cards' elements.
             </p>
             <ui-docs-example
               description="Every card and pile in this game is a SpellElement, styled by its type's own CSS."
@@ -79,13 +79,13 @@
               <spell-app project="@spell/examples/Solitaire" hidden></spell-app>
               <ui-grid columns="4">
                 <ui-column>
-                  <cards-card rank="ace" suit="spades" direction="up"></cards-card>
+                  <solitaire-card rank="ace" suit="spades" direction="up"></solitaire-card>
                 </ui-column>
                 <ui-column>
-                  <cards-card rank="queen" suit="hearts" direction="up"></cards-card>
+                  <solitaire-card rank="queen" suit="hearts" direction="up"></solitaire-card>
                 </ui-column>
                 <ui-column>
-                  <cards-card rank="7" suit="clubs" direction="down"></cards-card>
+                  <solitaire-card rank="7" suit="clubs" direction="down"></solitaire-card>
                 </ui-column>
               </ui-grid>
             </ui-docs-example>

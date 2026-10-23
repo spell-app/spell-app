@@ -35,7 +35,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
   static get fixtures(): SpellProjectRoot {
     return new SpellProjectRoot("@spell/test")
   }
-  /** Singleton `@spell/library` root -- projects others import, e.g. `@spell/library/cards` in a project file. */
+  /** Singleton `@spell/library` root -- projects others import, e.g. `@spell/library/people` in a project file. */
   static get library(): SpellProjectRoot {
     return new SpellProjectRoot("@spell/library")
   }

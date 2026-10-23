@@ -4,7 +4,7 @@ import { describeTypecheckError, typecheck } from "spell-lang/spell/node/typeche
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { parseSpellProject } from "spell-lang/spell/test"
-import { loadFixtureWithLibraries } from "spell-app/spaces/test"
+import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * Each output language names things by its own map (`P.Naming`, epic `drawable-thing` P11):
@@ -18,7 +18,7 @@ describe("a writer's naming map", () => {
   /** Solitaire and its cards, compiled by `writer` (javascript's or TypeScript's) with its types in `typeCase`. */
   function typedIn(typeCase: P.NameCase, writer: P.JSWriter): string {
     writer.naming = new P.Naming({ ...P.Naming.JAVASCRIPT, type: typeCase })
-    const { scope, files } = parseSpellProject(loadFixtureWithLibraries("solitaire"))
+    const { scope, files } = parseSpellProject(loadFixtureProject("Solitaire"))
     const parts = files.map(({ match, compiled }) => (match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled))
     const importLines = SP.SpellProject.importHeaderFor(scope, writer)
     return scope.parser!.inPlay(() => SP.SpellProject.combineCompiled(parts, writer, importLines, scope))

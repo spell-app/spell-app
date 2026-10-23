@@ -37,7 +37,7 @@ export type ToRunnerMessage =
  * - `saveSettings`:  write these sections of `settings.json5` -- see `ProjectSettings`
  * - `details`:  send the details of Type Explorer node or member `path` -- answered by a `details` message
  * - `refreshScopes`:  the Type Explorer's Refresh button -- send fresh `scopes`
- * - `loadImport`:  the program imports project `projectId`, e.g. `@spell/library/cards` --
+ * - `loadImport`:  the program imports project `projectId`, e.g. `@spell/library/people` --
  *   send its compiled javascript, as the language server's `spell/compiledImport`, in an `imported` message
  */
 export type FromRunnerMessage =

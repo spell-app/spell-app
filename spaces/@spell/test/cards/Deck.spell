@@ -1,0 +1,51 @@
+## A deck:  the 52 cards of a US standard deck, ace of clubs first -- and its two jokers, if you ask
+// It reads the card's own suits and ranks:  `card suits`, `card ranks`.
+a "deck" is a list of cards where:
+	// no jokers, unless it's made `with jokers`
+	- its "jokers" is yes or no
+
+	// a new deck holds one of each card, ace of clubs first, then its two jokers, red then black
+	- to create it:
+		for each rank in card ranks
+			for each suit in card suits
+				// `the deck`, not `it`:  in a `for each`, `it` is the loop's item, here the suit
+				add (a new card with rank = the rank, suit = the suit) to the deck
+		if its jokers is yes
+			add (a new joker with color = red) to the deck
+			add (a new joker with color = black) to the deck
+
+	// echo its cards' short names, top to bottom
+	- to display it:
+		set card names to a new list of text
+		for each card in the deck
+			add the short name of the card to card names
+		echo "deck: " + card names
+
+
+## Tests
+to test deck creation
+	the deck is a new deck
+	the number of cards in the deck should be 52
+	set the queens to the cards in the deck where the rank of the card is queen
+	the number of cards in the queens should be 4
+	the name of the top card of the deck should be "ace-of-clubs"
+	the name of the bottom card of the deck should be "king-of-spades"
+	the short name of the top card of the deck should be "A♣️"
+	the first card of the deck is the ace of clubs should be yes
+
+	echo "the deck before shuffling:"
+	display the deck
+	shuffle the deck
+	the number of cards in the deck should be 52
+	echo "the deck after shuffling:"
+	display the deck
+
+to test deck with jokers
+	the deck is a new deck with jokers
+	the number of cards in the deck should be 54
+	set wild cards to the cards in the deck where it is a joker
+	the number of cards in wild cards should be 2
+	the first card of the deck is the ace of clubs should be yes
+	// the red joker, then the black one, last
+	the last card of the deck is the black joker should be yes
+	the name of the bottom card of the deck should be "black-joker"

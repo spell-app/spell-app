@@ -200,7 +200,7 @@ export class RunnerPanel {
   }
 
   /**
-   * Send the webview the compiled javascript of project `projectId`, which ours imports, e.g. `@spell/library/cards`:
+   * Send the webview the compiled javascript of project `projectId`, which ours imports, e.g. `@spell/library/people`:
    * the language server's `spell/compiledImport`, which compiles it first if it has none yet.
    * - Asked for on every run, so a library compiled since shows at once.
    * - Can't:  sends why instead, which the runner shows as the run's error.

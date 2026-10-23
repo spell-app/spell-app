@@ -6,13 +6,13 @@ import { fixtureProjectId } from "spell-app/spaces/test"
 
 /**
  * `SpellProject` as an editor drives it:  which files it parses, and `updateText()` on each edit.
- * - Loads the Solitaire fixture from disk, but never saves:  edits stay in memory, and each test puts its
+ * - Loads the Solitaire example from disk, but never saves:  edits stay in memory, and each test puts its
  *   text back.
  * - spaces' since epic `repo-split` C11 (spell-lang's `tests/spell/` before):  it loads projects through spaces'
  *   disk reader, which spell-lang's tests never import.
  */
 describe("SpellProject editing", () => {
-  const solitaire = fixtureProjectId("solitaire")
+  const solitaire = fixtureProjectId("Solitaire")
   const project = new SP.SpellProject(solitaire)
   const game = new SP.SpellFile(`${solitaire}/Solitaire.spell`)
   let gameText: string
@@ -29,8 +29,13 @@ describe("SpellProject editing", () => {
   })
 
   test("`spellFiles` are its active `.spell` imports, in order -- and each `isActive`", () => {
-    // its own:  the card library's files are its import's, read as declarations
-    expect(project.spellFiles.map((file) => file.filePath)).toEqual(["/Solitaire.spell"])
+    // its cards, deck and piles, then its game
+    expect(project.spellFiles.map((file) => file.filePath)).toEqual([
+      "/Card.spell",
+      "/Deck.spell",
+      "/Pile.spell",
+      "/Solitaire.spell"
+    ])
     expect(project.spellFiles.every((file) => file.isActive)).toBe(true)
     expect(new SP.SpellFile(`${solitaire}/NotImported.spell`).isActive).toBe(false)
   })

@@ -84,7 +84,7 @@ export async function runTarget(
  * One project a program imports, as written beside it for a target -- see `writeImports()`.
  * - `file`:  its code's file name, in that folder, e.g. `cards.py`
  * - `url`:  that file's URL
- * - `module`:  the module the program's drawing half imports it as, e.g. `@spell/project/@spell/library/cards`
+ * - `module`:  the module the program's drawing half imports it as, e.g. `@spell/project/@spell/test/cards`
  * - `elements`:  its drawing half's file name, in that folder, if it draws, e.g. `cards.elements.spell.js`
  */
 export type WrittenImport = { file: string; url: string; module: string; elements?: string }

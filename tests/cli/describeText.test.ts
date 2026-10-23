@@ -6,19 +6,17 @@ import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 
 /**
- * `spell describe`'s text, for the card library and the Solitaire fixture that imports it --
+ * `spell describe`'s text, for the Solitaire example:  its cards, deck and piles, and its game --
  * colour is off, as vitest's output isn't a terminal.
  * - The tree comes from the real `ScopeExplorer`, as in `ScopeExplorer.test.ts`.
  */
-let cards: Described
 let solitaire: Described
 
 /** A project's scope tree, and how to describe what's in it. */
 type Described = { tree: LSP.ScopeNode; options: CLI.DescribeTextOptions }
 
 beforeAll(async () => {
-  cards = await describedProject("@spell/library/cards")
-  solitaire = await describedProject("@spell/test/solitaire")
+  solitaire = await describedProject("@spell/examples/Solitaire")
 })
 
 /** Project `projectId` parsed, its tree, and options that describe it. */
@@ -53,16 +51,21 @@ function find({ tree }: Described, ...path: string[]): LSP.ScopeNode | LSP.Scope
 
 describe("describeOverview()", () => {
   test("a file:  each thing it declares, a type's members grouped", () => {
-    expect(CLI.describeOverview(find(cards, "Card.spell") as LSP.ScopeNode, cards.options).join("\n")).toMatchSnapshot()
+    expect(
+      CLI.describeOverview(find(solitaire, "Card.spell") as LSP.ScopeNode, solitaire.options).join("\n")
+    ).toMatchSnapshot()
   })
 
   test("an enumeration gathers only the constants its own statement made", () => {
-    const text = CLI.describeOverview(find(cards, "Card.spell") as LSP.ScopeNode, cards.options).join("\n")
+    const text = CLI.describeOverview(find(solitaire, "Card.spell") as LSP.ScopeNode, solitaire.options).join("\n")
     expect(text).toContain("Suits (clubs, diamonds, hearts, spades)")
   })
 
   test("wraps member lists to `width`, never mid-item", () => {
-    const lines = CLI.describeOverview(find(cards, "Card.spell") as LSP.ScopeNode, { ...cards.options, width: 60 })
+    const lines = CLI.describeOverview(find(solitaire, "Card.spell") as LSP.ScopeNode, {
+      ...solitaire.options,
+      width: 60
+    })
     // descriptions aren't wrapped:  just lists, each under its heading, e.g. `Actions`, then indented to it
     const listLines = lines.filter((line) => /^ {4}(Properties|Actions|Constants) |^ {16}\S/.test(line))
     expect(Math.max(...listLines.map((line) => line.length))).toBeLessThanOrEqual(60)
@@ -81,17 +84,17 @@ describe("describeOverview()", () => {
 
 describe("describeThing()", () => {
   test("a type", () => {
-    expect(CLI.describeThing(find(cards, "Card.spell", "Card"), cards.options).join("\n")).toMatchSnapshot()
+    expect(CLI.describeThing(find(solitaire, "Card.spell", "Card"), solitaire.options).join("\n")).toMatchSnapshot()
   })
 
   test("a property, with its compiled javascript", () => {
-    const color = find(cards, "Card.spell", "Card", "color")
-    const text = CLI.describeThing(color, { ...cards.options, compiled: true }).join("\n")
+    const color = find(solitaire, "Card.spell", "Card", "color")
+    const text = CLI.describeThing(color, { ...solitaire.options, compiled: true }).join("\n")
     expect(text).toMatchSnapshot()
   })
 
   test("a method lists the rule for calling it", () => {
-    const text = CLI.describeThing(find(cards, "Card.spell", "Card", "draw it"), cards.options).join("\n")
+    const text = CLI.describeThing(find(solitaire, "Card.spell", "Card", "draw it"), solitaire.options).join("\n")
     expect(text).toContain("Rules\n  draw  draw {thisArg:expression}")
   })
 })

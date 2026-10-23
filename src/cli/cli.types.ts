@@ -29,7 +29,7 @@ export type {
 /**
  * What one command-line argument names -- see `resolveProject()`.
  * - `arg`:  what was typed, for messages.
- * - `project`:  one spell project, e.g. `@spell/library/cards`, a project folder, `@here`.
+ * - `project`:  one spell project, e.g. `@spell/examples/Solitaire`, a project folder, `@here`.
  * - `file`:  one `.spell` file, inside its project.
  * - `root`:  a whole project root, e.g. `@spell/library` -- commands turn it into projects with `CliSession.projectsFor()`.
  */

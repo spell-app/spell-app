@@ -45,7 +45,7 @@ describe("Python's name clashes in today's spell", () => {
     const writer = new PY.PyWriter()
     writer.naming = naming
     for (const name of fixtureProjectNames()) {
-      // its place, e.g. `@spell/test/solitaire`
+      // its place, e.g. `@spell/examples/Solitaire`
       naming.where = fixtureProjectId(name)
       // as it compiles:  against what it imports, e.g. the card library
       const { scope, files } = parseSpellProject(loadFixtureProject(name), { parentScope: fixtureImportScope(name) })

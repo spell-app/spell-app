@@ -3,7 +3,7 @@ import { describe, test, expect } from "vite-plus/test"
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { compiledSpellProject, parseSpellProject, summarize } from "spell-lang/spell/test"
-import { loadFixtureProject, loadFixtureWithLibraries } from "spell-app/spaces/test"
+import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * A project's declarations:  marked inline while compiling, then split out into its declarations file.
@@ -15,7 +15,7 @@ describe("SpellDeclarations, inline", () => {
     marked: compiled,
     code,
     declarations
-  } = compiledSpellProject(loadFixtureWithLibraries("solitaire"), { version: "1.0.0" })
+  } = compiledSpellProject(loadFixtureProject("Solitaire"), { version: "1.0.0" })
 
   test("Solitaire's declarations", () => {
     expect(declarations).toMatchSnapshot()
@@ -87,9 +87,9 @@ describe("SpellDeclarations, inline", () => {
   })
 
   test("`exports` in `project.json` limits what it provides", () => {
-    const limited = compiledSpellProject(loadFixtureWithLibraries("solitaire"), { exports: ["Card"] }).declarations
+    const limited = compiledSpellProject(loadFixtureProject("Solitaire"), { exports: ["Card"] }).declarations
     expect(limited?.provides).toEqual(["Card"])
-    expect(() => compiledSpellProject(loadFixtureWithLibraries("solitaire"), { exports: ["Wombat"] })).toThrow(
+    expect(() => compiledSpellProject(loadFixtureProject("Solitaire"), { exports: ["Wombat"] })).toThrow(
       /exports 'Wombat', which it doesn't declare/
     )
   })
@@ -101,7 +101,7 @@ describe("SpellDeclarations, inline", () => {
  * - A method with typed parameters:  `PILES`, a library of its own, as the card library has none.
  */
 describe("SpellDeclarations.importScope()", () => {
-  const all = loadFixtureWithLibraries("solitaire")
+  const all = loadFixtureProject("Solitaire")
   const library = all.filter(({ path }) => path !== "/Solitaire.spell")
   const app = all.filter(({ path }) => path === "/Solitaire.spell")
   // read back out of compiled text, as another project would

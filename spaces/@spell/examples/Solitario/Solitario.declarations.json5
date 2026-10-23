@@ -292,7 +292,7 @@
       "kind": "method",
       "name": "jugar una carta",
       "waits": true,
-      "defined": "/Solitario.es.spell:6385-7467"
+      "defined": "/Solitario.es.spell:6485-7567"
     },
     {
       "type": "Comodín",
@@ -524,42 +524,42 @@
       "type": "PilaApilada",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:7993-8573"
+      "defined": "/Solitario.es.spell:8093-8673"
     },
     {
       "type": "PilaDeReserva",
       "superType": "PilaApilada",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:8658-8926"
+      "defined": "/Solitario.es.spell:8758-9026"
     },
     {
       "type": "PilaDeDescartes",
       "superType": "PilaApilada",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:8996-9135"
+      "defined": "/Solitario.es.spell:9096-9235"
     },
     {
       "type": "Fundación",
       "superType": "PilaApilada",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:9193-9652"
+      "defined": "/Solitario.es.spell:9293-9752"
     },
     {
       "property": "palo",
       "of": "Fundación",
       "datatype": "Palo",
-      "defined": "/Solitario.es.spell:9239-9259"
+      "defined": "/Solitario.es.spell:9339-9359"
     },
     {
       "type": "Columna",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:9731-10263"
+      "defined": "/Solitario.es.spell:9831-10363"
     },
     {
       "type": "Solitario",
       "superType": "App",
-      "defined": "/Solitario.es.spell:657-6251"
+      "defined": "/Solitario.es.spell:657-6351"
     },
     {
       "property": "puntuación",
@@ -767,7 +767,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "los movimientos",
-      "defined": "/Solitario.es.spell:10277-11862"
+      "defined": "/Solitario.es.spell:10377-11962"
     }
   ],
   "codeLines": [

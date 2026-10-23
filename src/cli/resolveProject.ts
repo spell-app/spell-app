@@ -1,8 +1,8 @@
 /**
  * Turns a command-line argument into what it names:  a project, a `.spell` file, or a whole project root.
  * - Spell addresses (`SP.SpellLocation.isAddress()`, epic `people-and-orgs` P4):
- *   - `@spell/library/cards`, `owen@spell/errors`:  a project
- *   - `@spell/test/solitaire/Solitaire.spell`:  a file in one
+ *   - `@spell/examples/Solitaire`, `owen@spell/errors`:  a project
+ *   - `@spell/examples/Solitaire/Card.spell`:  a file in one
  *   - `@spell/examples`, `owen@spell`:  a whole group;  `@spell`:  every group in that space
  * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:
  *   the command line's own word, not an address.
@@ -62,7 +62,7 @@ export function rootName(spec: SP.ProjectRootSpec): string {
 }
 
 /**
- * Ids of the projects in `roots`, e.g. `["@spell/library/cards"]`.
+ * Ids of the projects in `roots`, e.g. `["@spell/library/people"]`.
  * - Only folders holding a project file -- see the header.
  * - A root whose folder doesn't exist, e.g. `@spell/guides` before any guide is written, has none.
  */

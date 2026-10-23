@@ -1,11 +1,11 @@
 import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"
-import { Card, Suit, Rank, Deck, Pile } from "@spell/project/@spell/library/cards"
+import { Card, Suit, Rank, Deck, Pile } from "@spell/project/@spell/test/cards"
 
 core.heading("Counting from 0:  this project's lists start at 0 (its project file)")
 //////////////////////////////////////////////////////////////////////////
 // ## Counting from 0:  this project's lists start at 0 (its project file)
 //////////////////////////////////////////////////////////////////////////
-/** Numbers count from 0;  ordinal words don't change.  Its deck is the cards library's:  ace of clubs first. */
+/** Numbers count from 0;  ordinal words don't change.  Its deck is the frozen card library's (`@spell/test/cards`):  ace of clubs first. */
 export function testCountingFromZero() {
   return core.test("test counting from zero", function testCountingFromZero() {
     core.echoTestAction(`the deck is a new deck`)

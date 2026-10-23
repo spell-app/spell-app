@@ -12,7 +12,7 @@ from cards import Card, Suit, Rank, Deck, Pile
 
 
 def test_counting_from_zero() -> Any:
-    """Numbers count from 0;  ordinal words don't change.  Its deck is the cards library's:  ace of clubs first."""
+    """Numbers count from 0;  ordinal words don't change.  Its deck is the frozen card library's (`@spell/test/cards`):  ace of clubs first."""
     with core.test("test counting from zero"):
         core.echo_test_action("the deck is a new deck")
         deck = Deck()

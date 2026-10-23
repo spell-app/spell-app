@@ -178,7 +178,7 @@ describe("spell language server over stdio", () => {
       resolve(projectDir, "project.json"),
       JSON.stringify({
         imports: [
-          { path: "@spell/library/cards", active: true, import: ["Card"] },
+          { path: "@spell/library/people", active: true, import: ["Person"] },
           { path: "/main.spell", active: true }
         ]
       })
@@ -189,8 +189,8 @@ describe("spell language server over stdio", () => {
     await connection.sendNotification("textDocument/didOpen", {
       textDocument: { uri, languageId: "spell", version: 1, text }
     })
-    const cards = await connection.sendRequest("spell/compiledImport", { uri, projectId: "@spell/library/cards" })
-    expect(cards).toContain("class Card extends")
+    const people = await connection.sendRequest("spell/compiledImport", { uri, projectId: "@spell/library/people" })
+    expect(people).toContain("class Person extends")
     expect(await connection.sendRequest("spell/compiledImport", { uri, projectId: "@spell/library/nowhere" })).toBe(
       null
     )

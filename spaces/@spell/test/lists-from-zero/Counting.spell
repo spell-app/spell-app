@@ -1,5 +1,5 @@
 ## Counting from 0:  this project's lists start at 0 (its project file)
-// Numbers count from 0;  ordinal words don't change.  Its deck is the cards library's:  ace of clubs first.
+// Numbers count from 0;  ordinal words don't change.  Its deck is the frozen card library's (`@spell/test/cards`):  ace of clubs first.
 to test counting from zero
 	the deck is a new deck
 	the name of card 0 of the deck should be "ace-of-clubs"

@@ -124,38 +124,38 @@ solitario es una aplicación donde:
 		si hubo cambios esperar a jugar solo
 
 	- para dibujarlo:
-		devolver <ui-container>
-			<ui-menu>
-				<ui-item type="header">Solitario Klondike</ui-item>
-				<ui-item>{"Puntos: " + su puntuación}</ui-item>
-				<ui-menu position="right">
-					<ui-item onClick={jugar solo}>Jugar solo</ui-item>
-					<ui-item onClick={hacer trampa}>Trampa</ui-item>
-					<ui-item onClick={depurar}>Depurar</ui-item>
-					<ui-item onClick={empezar el juego}>Reiniciar</ui-item>
-				</ui-menu>
-			</ui-menu>
-			<ui-grid columns="7">
-				<ui-row>
-					<ui-column>{dibujar su reserva}</ui-column>
-					<ui-column>{dibujar sus descartes}</ui-column>
-					<ui-column/>
-					<ui-column>{dibujar sus tréboles}</ui-column>
-					<ui-column>{dibujar sus diamantes}</ui-column>
-					<ui-column>{dibujar sus corazones}</ui-column>
-					<ui-column>{dibujar sus espadas}</ui-column>
-				</ui-row>
-				<ui-row>
-					<ui-column>{dibujar su C1}</ui-column>
-					<ui-column>{dibujar su C2}</ui-column>
-					<ui-column>{dibujar su C3}</ui-column>
-					<ui-column>{dibujar su C4}</ui-column>
-					<ui-column>{dibujar su C5}</ui-column>
-					<ui-column>{dibujar su C6}</ui-column>
-					<ui-column>{dibujar su C7}</ui-column>
-				</ui-row>
-			</ui-grid>
-		</ui-container>
+		devolver <es-contenedor>
+			<es-menu>
+				<es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
+				<es-elemento>{"Puntos: " + su puntuación}</es-elemento>
+				<es-menu posicion="derecha">
+					<es-elemento onClick={jugar solo}>Jugar solo</es-elemento>
+					<es-elemento onClick={hacer trampa}>Trampa</es-elemento>
+					<es-elemento onClick={depurar}>Depurar</es-elemento>
+					<es-elemento onClick={empezar el juego}>Reiniciar</es-elemento>
+				</es-menu>
+			</es-menu>
+			<es-cuadricula columnas="7">
+				<es-fila>
+					<es-columna>{dibujar su reserva}</es-columna>
+					<es-columna>{dibujar sus descartes}</es-columna>
+					<es-columna/>
+					<es-columna>{dibujar sus tréboles}</es-columna>
+					<es-columna>{dibujar sus diamantes}</es-columna>
+					<es-columna>{dibujar sus corazones}</es-columna>
+					<es-columna>{dibujar sus espadas}</es-columna>
+				</es-fila>
+				<es-fila>
+					<es-columna>{dibujar su C1}</es-columna>
+					<es-columna>{dibujar su C2}</es-columna>
+					<es-columna>{dibujar su C3}</es-columna>
+					<es-columna>{dibujar su C4}</es-columna>
+					<es-columna>{dibujar su C5}</es-columna>
+					<es-columna>{dibujar su C6}</es-columna>
+					<es-columna>{dibujar su C7}</es-columna>
+				</es-fila>
+			</es-cuadricula>
+		</es-contenedor>
 
 
 ## Jugar una carta:  qué hace un clic

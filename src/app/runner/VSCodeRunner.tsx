@@ -28,7 +28,7 @@ import "./VSCodeRunner.css"
  * - Runs whatever the extension sends in a `run` message, on its OWN copy of the spell runtime -- see `loadRuntime()`.
  *   - One sent before that's loaded runs once it is.
  *   - Each run keeps the program's things, e.g. the game in progress:  only Restart starts afresh (see `run()`).
- * - A project it imports, e.g. `@spell/library/cards`, it asks the extension for (`loadImport`), each run.
+ * - A project it imports, e.g. `@spell/library/people`, it asks the extension for (`loadImport`), each run.
  * - Its Thing Explorer shows things' members in spell's words, from the `words` message after each run:
  *   the project's `<Project>.en.js` (`SP.SpellWords`).
  * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
@@ -224,7 +224,7 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   }
 
   /**
-   * Compiled javascript of project `projectId`, which the program imports, e.g. `@spell/library/cards`:
+   * Compiled javascript of project `projectId`, which the program imports, e.g. `@spell/library/people`:
    * from the extension, which asks the language server (`spell/compiledImport`).
    * - Asked for afresh each run, so a library compiled since shows at once;  once, however many wait.
    * - Rejects with why, if the extension couldn't load it:  the run shows it as its error.

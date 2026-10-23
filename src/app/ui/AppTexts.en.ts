@@ -105,7 +105,7 @@ export const APP_TEXTS = {
   "Type.library": "Library",
   "theType.library": "the library",
   "title.library": "Libraries",
-  "description.library": "Libraries other projects import, e.g. `@spell/library/cards` in a project file",
+  "description.library": "Libraries other projects import, e.g. `@spell/library/people` in a project file",
   "type.fixture": "fixture",
   "Type.fixture": "Fixture",
   "theType.fixture": "the fixture",

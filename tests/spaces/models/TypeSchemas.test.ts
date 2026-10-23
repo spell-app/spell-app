@@ -5,10 +5,10 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { SPACES } from "spell-app/spaces"
 
-/** The card library's compiled declarations, as committed. */
+/** The Solitaire example's compiled declarations, as committed beside it:  its cards, deck and piles among them. */
 const CARDS = JSON5.parse(
   fs.readFileSync(
-    path.resolve(import.meta.dirname, "../../../spaces/@spell/library/cards/cards.declarations.json5"),
+    path.resolve(import.meta.dirname, "../../../spaces/@spell/examples/Solitaire/Solitaire.declarations.json5"),
     "utf8"
   )
 )
