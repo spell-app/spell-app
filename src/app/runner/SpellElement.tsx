@@ -483,13 +483,15 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   @E.state
   accessor isLifted = false
 
-  /** Is what's dragged over us going in somewhere among our items, a line showing where?  `:state(placing)`. */
+  /** Is what's dragged over us going in somewhere among our items?  `:state(placing)`. */
   @E.cssState("placing")
-  get isPlacing(): boolean {
-    return this.dropLineAt !== undefined
-  }
+  @E.state
+  accessor isPlacing = false
 
-  /** Where the line showing where dragged items go is, in pixels from our top (or left, for a row) -- none:  no line. */
+  /**
+   * Where the line showing where dragged items go is, in pixels from our top (or left, for a row) -- none:  no line.
+   * - None for a list reordered immediately:  the items move as the pointer does, so they show where they go.
+   */
   @E.state private accessor dropLineAt: number | undefined = undefined
 
   /** Do our items lie in a row, so the line stands up between two of them? */
@@ -551,12 +553,16 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const things = this.placeOffer
     if (!things) return this.stopPlacing()
     const place = this.placeAt(event.clientX, event.clientY, things)
-    if (this.dropLineAt !== undefined && place.before === this.placeBefore) return
+    // the same place:  nothing changes, so the line stays put and the wait goes on
+    if (this.isPlacing && place.before === this.placeBefore) return
+    const delay = this.secondsBeforeMoving ?? 0
+    this.isPlacing = true
     this.placeBefore = place.before
     this.isRow = place.isRow
-    this.dropLineAt = place.at
     this.placing?.cancel()
-    const delay = this.secondsBeforeMoving ?? 0
+    // where they are already, e.g. as the drag starts:  nothing to move, and no line
+    if (this.hasThere(things, place.before)) return void (this.dropLineAt = undefined)
+    this.dropLineAt = delay > 0 ? place.at : undefined
     this.placing = E.after(delay, () => this.moveHere(things))
     // a wait already over:  `after()` rejects as it's canceled, which nothing needs to hear
     this.placing.catch(() => {})
@@ -569,8 +575,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 
   /** Dropped on us while placing:  the dragged items move to the line now, and the dropped item hears it (`dropOn()`). */
   private placeDrop() {
-    const things = this.dropLineAt === undefined ? undefined : this.placeOffer
-    if (things) this.moveHere(things)
+    const things = this.isPlacing ? this.placeOffer : undefined
+    if (things && !this.hasThere(things, this.placeBefore)) this.moveHere(things)
     this.placed = things
     this.stopPlacing()
   }
@@ -600,12 +606,21 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     this.dropLineAt = undefined
   }
 
+  /** Are `things` already just before `before` among our items, in that order (at our end, for none)? */
+  private hasThere(things: object[], before: object | undefined): boolean {
+    const items = [...((this.currentThing ?? []) as Iterable<object>)]
+    const at = before === undefined ? items.length : items.indexOf(before)
+    const there = items.slice(at - things.length, at)
+    return at >= things.length && there.every((item, index) => item === things[index])
+  }
+
   /** No more placing:  the line goes, and the wait stops. */
   private stopPlacing() {
     this.placing?.cancel()
     this.placing = undefined
     this.placeBefore = undefined
     this.dropLineAt = undefined
+    this.isPlacing = false
   }
 
   /**
@@ -616,7 +631,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   private placeAt(x: number, y: number, carried: object[]): { before: object | undefined; at: number; isRow: boolean } {
     const host = this.domElement.getBoundingClientRect()
     const items = [...this.domElement.children].filter((child) => SpellElement.thingOf(child) !== undefined)
-    const boxes = items.map((item) => item.getBoundingClientRect())
+    const boxes = items.map((item) => SpellElement.layoutBox(item))
     const isRow =
       boxes.length > 1 && Math.abs(boxes[1]!.left - boxes[0]!.left) > Math.abs(boxes[1]!.top - boxes[0]!.top)
     const [start, end, pointer, origin] = isRow
@@ -633,6 +648,18 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const previous = boxes[index - 1]
     const gap = previous ? (boxes[index]![start] - previous[end]) / 2 : LINE_GAP_PX
     return { before: SpellElement.thingOf(items[index]!), at: boxes[index]![start] - gap - origin, isRow }
+  }
+
+  /**
+   * Where `element` lies, as the layout puts it:  its box less any `translate` it's gliding by (`Glides`).
+   * - So a place doesn't jump about while items glide to theirs, which would move them again, and again.
+   */
+  private static layoutBox(element: Element): DOMRect {
+    const box = element.getBoundingClientRect()
+    const [dx = 0, dy = 0] = getComputedStyle(element)
+      .translate.split(" ")
+      .map((part) => Number.parseFloat(part) || 0)
+    return new DOMRect(box.x - dx, box.y - dy, box.width, box.height)
   }
 
   /**
