@@ -109,6 +109,8 @@ Spell
         return item column of ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭","🂮"]
   
     ## drawing:  its picture face up, the back every card shares face down
+    // on the page, a card can be dragged to another pile:  its pile's rules say which cards it gives up
+    - it can be dragged
     // one letter, at the size of the text around it:  its pile scales it to fit -- styles.css
     - to draw it:
       return

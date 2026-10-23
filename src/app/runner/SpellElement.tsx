@@ -7,17 +7,24 @@ import { RootLoader } from "spell-ui/components/ui-root"
 import type { ElementApi, Core } from "spell-lang/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 import { Glides } from "./Glides"
-import { DRAG_END_EVENT, DRAG_START_EVENT, Dragging } from "./Dragging"
+import { Dragging } from "./Dragging"
 
 // Above the class:  its `elementSetup` reads it while the class is defined
 /**
  * What a draggable thing looks like:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
  * `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
+ * - A list that will take what's dragged over it glows:  `--spell-drop-glow` (a `box-shadow`) and
+ *   `--spell-drop-glow-radius` change it.
  */
 const DRAGGING_CSS = `
   :host(:state(draggable)) { touch-action: none; }
   :host(:state(draggable)), :host(:state(draggable)) * { cursor: grab !important; }
   :host(:state(dragging)), :host(:state(dragging)) * { cursor: grabbing !important; }
+  :host(:state(accepting-drop)) {
+    border-radius: var(--spell-drop-glow-radius, 0.5em);
+    box-shadow: var(--spell-drop-glow, 0 0 0 0.2em rgb(255 196 0 / 0.9), 0 0 1.2em 0.4em rgb(255 196 0 / 0.6));
+    transition: box-shadow 120ms;
+  }
 `
 
 /****************
@@ -52,9 +59,12 @@ const DRAGGING_CSS = `
  *   `class CardElement extends SpellElement<Card>`, with its attributes, its methods and its sheet.
  *   - The page builds the tag on that class (`core.useElement()`), so both targets draw the same element.
  *   - It reaches compiled code as `@spell/elements`:  see `spellElements.ts`.
- * - A thing its list may give up can be dragged, with a mouse or a finger (epic `outline-spell` P28):
- *   it, and its list's items after it, follow the pointer;  dropped on a drawable list's element, the program hears
- *   `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`.
+ * - Dragging is opt-in, by the program's own words (epic `outline-spell` P28):
+ *   - `a card can be dragged`:  a card its list will give up can be dragged, with a mouse or a finger;
+ *     it, and its list's items after it, follow the pointer
+ *   - `a pile can be dropped on`:  a pile that will take the card glows as it comes over (`:state(accepting-drop)`),
+ *     and on the drop the program hears `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`
+ *   - The web's own drag events say so as it goes:  `dragstart`, `dragenter`, `drop` ... (`Dragging`).
  *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`DRAGGING_CSS`).
  * - Part of `spell-runtime.js`:  NEVER value-imports `spell-lang/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
@@ -210,7 +220,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Can our thing be dragged?  Only when its list will give it up, by the list's own rules (`can give up`):
+   * Can our thing be dragged?  Only when its type says so (`a card can be dragged`),
+   * and its list will give it up, by the list's own rules (`can give up`):
    * e.g. a tableau's face-up card, the discards' last card -- never a card of a list that never lets go.
    * - Followed:  a card turned face up becomes draggable at once.
    */
@@ -218,7 +229,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   get isDraggable(): boolean {
     const thing = this.currentThing
     const list = this.ownerList
-    return !!thing && !!list && !!this.entry?.core.canGiveUp(list, thing)
+    if (!thing || !list || !SpellElement.flag(thing, "canBeDragged")) return false
+    return !!this.entry?.core.canGiveUp(list, thing)
   }
 
   /** Is it being dragged now?  Its cursor is grabbing meanwhile. */
@@ -233,29 +245,70 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     new Dragging(this.domElement, event, (target) => this.dropOn(target))
   }
 
-  @E.on(DRAG_START_EVENT)
-  protected onDragStart() {
-    this.isDragging = true
+  @E.on("dragstart")
+  protected onDragStart(event: DragEvent) {
+    // ours, not a card's within us:  the events bubble
+    if (event.target === this.domElement) this.isDragging = true
   }
 
-  @E.on(DRAG_END_EVENT)
-  protected onDragEnd() {
-    this.isDragging = false
+  @E.on("dragend")
+  protected onDragEnd(event: DragEvent) {
+    if (event.target === this.domElement) this.isDragging = false
+  }
+
+  ////////////////
+  // ## Dropping (epic `outline-spell` P28)
+  ////////////////
+
+  /** Will we take what's being dragged over us now?  We glow while we will (`DRAGGING_CSS`). */
+  @E.cssState("accepting-drop")
+  @E.state
+  accessor isAcceptingDrop = false
+
+  @E.on("dragenter")
+  protected onDragEnter(event: DragEvent) {
+    if (event.target === this.domElement) this.isAcceptingDrop = this.takesDrag()
+  }
+
+  @E.on("dragleave")
+  protected onDragLeave(event: DragEvent) {
+    if (event.target === this.domElement) this.isAcceptingDrop = false
+  }
+
+  @E.on("drop")
+  protected onDrop(event: DragEvent) {
+    if (event.target === this.domElement) this.isAcceptingDrop = false
+  }
+
+  /**
+   * Would we take the thing being dragged (`Dragging.current`)?
+   * - Only a list whose type says `can be dropped on`, and not the one it came from.
+   * - Then by our own rules:  `can take a card if: ...` (`core.canTake()`).
+   */
+  takesDrag(): boolean {
+    const dragged = Dragging.current?.element
+    const thing = dragged && SpellElement.thingOf(dragged)
+    const list = this.currentThing
+    if (!thing || !list || !("items" in list) || !SpellElement.flag(list, "canBeDroppedOn")) return false
+    const component = (dragged as Partial<E.DOMElement>).component
+    if (component instanceof SpellElement && component.ownerList === list) return false
+    return !!this.entry?.core.canTake(list, thing)
   }
 
   /**
    * Our thing, dropped on `target`, a drawable list's element:  the program hears `<thing>-drop`, e.g. `card-drop`.
+   * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing.
    * - In the program's language (core's `drop-event` message):  a Spanish program hears `soltar-carta`.
    * - Its details name the thing by its type, and the list by each of its types up to its family's:
    *   `{ card, tableau, pile }`, so `on card drop with a card and a pile` gets both.
    * - Nobody listening:  it moves there, if the lists' rules let it (`core.move()`).
-   * - Nothing, dropped on no list or on its own.
    */
   private dropOn(target: HTMLElement | undefined) {
-    const list = target && SpellElement.listOf(target)
+    const component = (target as Partial<E.DOMElement> | undefined)?.component
+    const list = component instanceof SpellElement && component.takesDrag() ? component.currentThing : undefined
     const thing = this.currentThing
     const { entry } = this
-    if (!list || !thing || !entry || list === this.ownerList) return
+    if (!list || !thing || !entry) return
     const name = SpellElement.instanceName(thing.constructor)
     const details: Record<string, object> = { [name]: thing }
     for (
@@ -274,6 +327,11 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const component = (element as Partial<E.DOMElement>).component
     const thing = component instanceof SpellElement ? component.currentThing : undefined
     return thing && "items" in thing ? thing : undefined
+  }
+
+  /** Does `thing`'s type say yes to `flag`, e.g. `canBeDragged` for `a card can be dragged`? */
+  private static flag(thing: object, flag: "canBeDragged" | "canBeDroppedOn"): boolean {
+    return (thing.constructor as Partial<Record<typeof flag, boolean>>)[flag] === true
   }
 
   /** What a program calls a thing of `Class`, e.g. `card` for `Card`, `stockPile` for `StockPile`. */
@@ -782,8 +840,11 @@ const SPELL_ELEMENTS: Map<string, SpellElementEntry> = ((globalThis as SpellElem
 /** `globalThis`, holding `SPELL_ELEMENTS`. */
 type SpellElementsGlobal = typeof globalThis & { [key: symbol]: Map<string, SpellElementEntry> | undefined }
 
-// a drop lands on a drawable list's element:  `Dragging` knows only what we tell it
-Dragging.isDropTarget = (element) => SpellElement.listOf(element) !== undefined
+// a drop lands on the element of a drawable list its type says can be dropped on:  `Dragging` knows only what we tell it
+Dragging.isDropTarget = (element) => {
+  const list = SpellElement.listOf(element)
+  return !!list && (list.constructor as { canBeDroppedOn?: boolean }).canBeDroppedOn === true
+}
 
 /** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
 const BASE_LIST_NAMES = new Set(["DrawableList", "List", "Observable", "Object"])

@@ -129,10 +129,6 @@ class Card(Drawable):
                 position(column),
             )
 
-    ########################################################################
-    # ## drawing:  its picture face up, the back every card shares face down
-    ########################################################################
-
     def draw(self) -> Any:
         """one letter, at the size of the text around it:  its pile scales it to fit -- styles.css"""
         return h(
@@ -215,9 +211,17 @@ class Card(Drawable):
             solitaire.score = solitaire.score + 5
         return True
 
+    can_be_dragged = True
+
     @property
     def pile(self) -> Pile | None:
         return Pile.owner_of(self)
+
+
+########################################################################
+# ## drawing:  its picture face up, the back every card shares face down
+########################################################################
+# on the page, a card can be dragged to another pile:  its pile's rules say which cards it gives up
 
 
 class Joker(Card):
@@ -545,8 +549,12 @@ class Pile(DrawableList):
             state = f"{state} {card.state}"
         return state
 
+    can_be_dropped_on = True
+
     exclusive = True
 
+
+# on the page, a card can be dropped on it:  it glows when it would take the card, by its own rules
 
 # a card is in one pile at a time:  putting it on another pile takes it off this one
 
@@ -1134,7 +1142,8 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
 [layout]::part(placeholder) {
   position: absolute;
   top: 0;
-  left: 0;
+  /* where its pile's content starts, inside the cell's gutters */
+  left: auto;
   font-size: calc(100cqi / var(--card-width));
   width: calc(var(--card-width) * 1em);
   height: calc(var(--card-width) * var(--card-height) * 1em);
@@ -1181,7 +1190,7 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
 }
 [layout="horizontal"] > * {
   font-size: calc(100cqi / var(--card-width) / var(--spread));
-  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));
+  margin-left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));
 }
 
 /* fanned:  as a hand of cards is held, each turned a little from the one before, around a point below them */

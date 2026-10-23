@@ -287,8 +287,11 @@ describe("SpellElement", () => {
       done()
     })
 
-    /** Drag `element` from its middle to `target`'s, with pointer events, as a finger does. */
-    async function drag(element: HTMLElement, target: HTMLElement) {
+    /**
+     * Drag `element` from its middle to `target`'s, with pointer events, as a finger does.
+     * - `before`:  what to check over the target, before the pointer's let go.
+     */
+    async function drag(element: HTMLElement, target: HTMLElement, before?: () => void) {
       const at = (box: HTMLElement) => {
         const rect = box.getBoundingClientRect()
         return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
@@ -309,6 +312,12 @@ describe("SpellElement", () => {
       for (const step of [0.25, 0.5, 0.75, 1]) {
         send(window, "pointermove", { x: from.x + (to.x - from.x) * step, y: from.y + (to.y - from.y) * step })
       }
+      if (before) {
+        // the page's states, as the browser draws them
+        core.flush()
+        await ElementFixture.settle(document.body)
+        before()
+      }
       send(window, "pointerup", to)
       core.flush()
       // the dragged element is gone once its thing moves:  drawn again in its new list
@@ -321,11 +330,15 @@ describe("SpellElement", () => {
     class Tray extends DrawableList<Token> {
       static elementTag = core.defineElement(this, "Game")
       static exclusive = true
+      // `a tray can be dropped on`
+      static canBeDroppedOn = true
     }
     const trays = [new Tray(), new Tray()]
     /** A token, drawn as its label;  its tray is the one holding it. */
     class Token extends Drawable {
       static elementTag = core.defineElement(this, "Game")
+      // `a token can be dragged`
+      static canBeDragged = true
       constructor(public label = "") {
         super()
       }
@@ -340,6 +353,11 @@ describe("SpellElement", () => {
       configurable: true
     })
     Object.assign(Tray, { instanceType: Token })
+    /** A token whose type never says `can be dragged`. */
+    class Pebble extends Token {
+      static elementTag = core.defineElement(this, "Game")
+      static canBeDragged = false
+    }
 
     /** `trays`, drawn side by side, big enough to drop on even empty:  returns the root and how to take it down. */
     async function drawTrays() {
@@ -386,6 +404,34 @@ describe("SpellElement", () => {
         trigger.mockRestore()
         done()
       }
+    })
+
+    test("the tray under a token it would take glows;  the web's own drag events say so (outline-spell P28)", async () => {
+      const token = new Token("a")
+      core.append(trays[0]!, token)
+      const { root, done } = await drawTrays()
+      const element = root.querySelector("game-token") as HTMLElement
+      const [from, to] = [...root.querySelectorAll<HTMLElement>("game-tray")] as [HTMLElement, HTMLElement]
+      const heard: string[] = []
+      for (const type of ["dragstart", "dragend"]) element.addEventListener(type, (event) => heard.push(event.type))
+      for (const type of ["dragenter", "drop"]) to.addEventListener(type, (event) => heard.push(`tray ${event.type}`))
+      await drag(element, to, () => {
+        expect(to.matches(":state(accepting-drop)")).toBe(true)
+        expect(from.matches(":state(accepting-drop)")).toBe(false)
+        expect(element.matches(":state(dragging)")).toBe(true)
+      })
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      expect(to.matches(":state(accepting-drop)")).toBe(false)
+      expect(heard).toEqual(["dragstart", "tray dragenter", "tray drop", "dragend"])
+      done()
+    })
+
+    test("dragging is opt-in:  a thing whose type doesn't say `can be dragged` can't be dragged (outline-spell P28)", async () => {
+      core.append(trays[0]!, new Token("a"), new Pebble("b"))
+      const { root, done } = await drawTrays()
+      expect((root.querySelector("game-token") as HTMLElement).matches(":state(draggable)")).toBe(true)
+      expect((root.querySelector("game-pebble") as HTMLElement).matches(":state(draggable)")).toBe(false)
+      done()
     })
 
     test("a chip its pot won't give up can't be dragged (outline-spell P28)", async () => {

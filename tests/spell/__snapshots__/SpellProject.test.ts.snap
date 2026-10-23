@@ -13,7 +13,7 @@ exports[`Solitaire project > compiled output + errors 1`] = `
  */
 /*! SPELL: DECLARES {
   type: "Card", superType: "Drawable",
-  defined: "/Card.spell:260-2997",
+  defined: "/Card.spell:260-3120",
 } */
 export class Card extends Drawable {
   static elementTag = core.defineElement(this, "test-project")
@@ -211,14 +211,11 @@ export class Card extends Drawable {
     if (this.isASuit("spades")) return core.getItemAt(["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"], position(column))
   }
 
-  /////////////////////////////////////////////////////////////////////////
-  // ## drawing:  its picture face up, the back every card shares face down
-  /////////////////////////////////////////////////////////////////////////
   /** one letter, at the size of the text around it:  its pile scales it to fit -- styles.css */
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Card",
     alias: ["statement", "expression"], kind: "method", name: "draw it",
-    defined: "/Card.spell:2426-2618",
+    defined: "/Card.spell:2549-2741",
   } */
   draw() {
     return h("ui-text", {
@@ -231,7 +228,7 @@ export class Card extends Drawable {
 
   /*! SPELL: DECLARES {
     property: "symbol", of: "Card", datatype: "text",
-    defined: "/Card.spell:2623-2748",
+    defined: "/Card.spell:2746-2871",
   } */
   get symbol() {
     if (this.isASuit("clubs")) return "♣"
@@ -245,7 +242,7 @@ export class Card extends Drawable {
   /** card "state", used for debugging */
   /*! SPELL: DECLARES {
     property: "state", of: "Card", datatype: "text",
-    defined: "/Card.spell:2793-2997",
+    defined: "/Card.spell:2916-3120",
   } */
   get state() {
     const rank = this.value === 10 ? 10 : \`\${core.getItemAt(this.rank, 0) ?? ""}\`.toLocaleUpperCase()
@@ -253,20 +250,27 @@ export class Card extends Drawable {
     const direction = this.isFaceDirection("up") ? "↑" : "↓"
     return rank + suit + direction
   }
+
+  static canBeDragged = true
 }
+
+/////////////////////////////////////////////////////////////////////////
+// ## drawing:  its picture face up, the back every card shares face down
+/////////////////////////////////////////////////////////////////////////
+// on the page, a card can be dragged to another pile:  its pile's rules say which cards it gives up
 
 core.heading("Tests")
 /** A joker:  a wild card with no rank or suit -- there's a red one and a black one */
 /*! SPELL: DECLARES {
   type: "Joker", superType: "Card",
-  defined: "/Card.spell:4366-4785",
+  defined: "/Card.spell:4489-4908",
 } */
 export class Joker extends Card {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "color", classVariable: "Colors", of: "Joker", enumeration: ["red", "black"],
-    defined: "/Card.spell:4396-4430",
+    defined: "/Card.spell:4519-4553",
   } */
   // - its "color" is one of red or black
   static Colors = ["red", "black"]
@@ -279,7 +283,7 @@ export class Joker extends Card {
     syntax: "{operator:is_or_is_not} {definite_article} (expression:red|reds|black|blacks) joker",
     output: "is_the_$color_joker", rule: "quoted_property", of: "Joker", kind: "method",
     name: '"is the (color) joker"', values: { color: ["red", "black"] }, staticOf: "Joker",
-    defined: "/Card.spell:4434-4459",
+    defined: "/Card.spell:4557-4582",
   } */
   static isTheColorJoker(card, color) {
     return card instanceof Joker && card.color === color
@@ -287,7 +291,7 @@ export class Joker extends Card {
 
   /*! SPELL: DECLARES {
     property: "value", of: "Joker", datatype: "number",
-    defined: "/Card.spell:4496-4552",
+    defined: "/Card.spell:4619-4675",
   } */
   get value() {
     if (Joker.isTheColorJoker(this, "red")) return 53
@@ -296,7 +300,7 @@ export class Joker extends Card {
 
   /*! SPELL: DECLARES {
     property: "picture", of: "Joker", datatype: "text",
-    defined: "/Card.spell:4557-4587",
+    defined: "/Card.spell:4680-4710",
   } */
   get picture() {
     return "🃟"
@@ -304,7 +308,7 @@ export class Joker extends Card {
 
   /*! SPELL: DECLARES {
     property: "name", of: "Joker", datatype: "text",
-    defined: "/Card.spell:4593-4625",
+    defined: "/Card.spell:4716-4748",
   } */
   get name() {
     return \`\${this.color} joker\`
@@ -312,7 +316,7 @@ export class Joker extends Card {
 
   /*! SPELL: DECLARES {
     property: "state", of: "Joker", datatype: "text",
-    defined: "/Card.spell:4629-4785",
+    defined: "/Card.spell:4752-4908",
   } */
   get state() {
     const color = \`\${core.getItemAt(this.color, 0) ?? ""}\`.toLocaleUpperCase()
@@ -325,7 +329,7 @@ export class Joker extends Card {
 /*! SPELL: DECLARES {
   syntax: "test card setup", output: "test_card_setup", rule: "method_call", alias: "statement",
   kind: "function", name: "card setup",
-  defined: "/Card.spell:3009-4280",
+  defined: "/Card.spell:3132-4403",
 } */
 export function testCardSetup() {
   return core.test("test card setup", function testCardSetup() {
@@ -385,7 +389,7 @@ core.heading("A joker:  a wild card with no rank or suit -- there's a red one an
 /*! SPELL: DECLARES {
   syntax: "test jokers", output: "test_jokers", rule: "method_call", alias: "statement",
   kind: "function", name: "jokers",
-  defined: "/Card.spell:4787-5500",
+  defined: "/Card.spell:4910-5623",
 } */
 export function testJokers() {
   return core.test("test jokers", function testJokers() {
@@ -543,7 +547,7 @@ export function testDeckWithJokers() {
  */
 /*! SPELL: DECLARES {
   type: "Pile", superType: "DrawableList", itemType: "Card",
-  defined: "/Pile.spell:258-961",
+  defined: "/Pile.spell:258-1087",
 } */
 export class Pile extends DrawableList {
   static instanceType = Card
@@ -574,7 +578,7 @@ export class Pile extends DrawableList {
   /** the color and value of its last card:  what the next card goes on */
   /*! SPELL: DECLARES {
     property: "color", of: "Pile",
-    defined: "/Pile.spell:620-698",
+    defined: "/Pile.spell:746-824",
   } */
   get color() {
     if (this.isEmpty) return "none"
@@ -583,7 +587,7 @@ export class Pile extends DrawableList {
 
   /*! SPELL: DECLARES {
     property: "value", of: "Pile", datatype: "number",
-    defined: "/Pile.spell:702-775",
+    defined: "/Pile.spell:828-901",
   } */
   get value() {
     if (this.isEmpty) return 0
@@ -593,7 +597,7 @@ export class Pile extends DrawableList {
   /** pile state for debugging */
   /*! SPELL: DECLARES {
     property: "state", of: "Pile", datatype: "text",
-    defined: "/Pile.spell:809-961",
+    defined: "/Pile.spell:935-1087",
   } */
   get state() {
     let state = \`\${this.name || "pile"}:\`
@@ -601,13 +605,16 @@ export class Pile extends DrawableList {
     return state
   }
 
+  static canBeDroppedOn = true
+
   static exclusive = true
 }
+// on the page, a card can be dropped on it:  it glows when it would take the card, by its own rules
 
 /** a card is in one pile at a time:  putting it on another pile takes it off this one */
 /*! SPELL: DECLARES {
   property: "pile", of: "Card", datatype: "Pile", exclusive: true,
-  defined: "/Pile.spell:1049-1075",
+  defined: "/Pile.spell:1175-1201",
 } */
 Object.defineProperty(Card.prototype, "pile", {
   get() {
@@ -621,7 +628,7 @@ core.heading("Tests")
 /*! SPELL: DECLARES {
   syntax: "test piles", output: "test_piles", rule: "method_call", alias: "statement",
   kind: "function", name: "piles",
-  defined: "/Pile.spell:1087-1900",
+  defined: "/Pile.spell:1213-2026",
 } */
 export function testPiles() {
   return core.test("test piles", function testPiles() {
