@@ -34,9 +34,13 @@ import { fixturePath, fixtureFolder } from "spell-app/spaces/test"
  */
 const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "bin/spell.mjs")
 
-// each `spell` run starts node and loads spell's source through `tsx`, ~2s;
-// a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
-vi.setConfig({ testTimeout: 30_000 })
+/**
+ * How long a test may take, and so each `spell` run in one (`spell()`).
+ * - each run starts node and loads spell's source through `tsx`, ~2s;
+ *   a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
+ */
+const TEST_TIMEOUT_MS = 30_000
+vi.setConfig({ testTimeout: TEST_TIMEOUT_MS })
 
 /** This checkout:  its page server is the one `spell app serve` uses. */
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..")
@@ -80,9 +84,26 @@ function tempProject(name: string, source: string): string {
   return folder
 }
 
-/** Run `spell ...args` from `cwd`. */
-function spell(args: string[], cwd = fixturePath()) {
-  const { status, stdout, stderr } = spawnSync(process.execPath, [SPELL, ...args], { cwd, encoding: "utf8" })
+/**
+ * Run `spell ...args` from `cwd`, `input` on its stdin, and wait for it to end -- at most `TEST_TIMEOUT_MS`.
+ * - throws if it's still running then, naming it and showing what it printed:  it's stopped (`SIGTERM`)
+ * - Why the limit:  this waits SYNCHRONOUSLY, which vitest's test timeout can't interrupt.
+ *   A run that never ends held the whole file, and so `yarn test`, with nothing reported, until CI was cancelled
+ *   (epic `repo-split` I73).
+ */
+function spell(args: string[], cwd = fixturePath(), input?: string) {
+  const { status, stdout, stderr, error } = spawnSync(process.execPath, [SPELL, ...args], {
+    cwd,
+    input,
+    encoding: "utf8",
+    timeout: TEST_TIMEOUT_MS
+  })
+  if ((error as NodeJS.ErrnoException | undefined)?.code === "ETIMEDOUT") {
+    throw new Error(
+      `\`spell ${args.join(" ")}\` was still running after ${TEST_TIMEOUT_MS / 1000}s, so it was stopped.\n` +
+        `stdout:\n${stdout}\nstderr:\n${stderr}`
+    )
+  }
   return { status, stdout, stderr }
 }
 
@@ -766,11 +787,7 @@ describe("spell parse", () => {
 
 describe("spell repl", () => {
   test("piped:  each line in turn -- what one declares, the next knows", () => {
-    const { status, stdout } = spawnSync(process.execPath, [SPELL, "repl"], {
-      cwd: fixturePath(),
-      input: "x is 3\nprint x + 1\n",
-      encoding: "utf8"
-    })
+    const { status, stdout } = spell(["repl"], fixturePath(), "x is 3\nprint x + 1\n")
     expect(status).toBe(0)
     expect(stdout).toContain("=> export const x = 3\n")
     expect(stdout).toContain("lhs: operand › known_variable  x\n")
