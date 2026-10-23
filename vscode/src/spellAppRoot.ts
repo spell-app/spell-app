@@ -15,13 +15,16 @@ const SPELL_APP = "spell-app"
  * The spell-app checkout to run, and why it was picked;  `undefined` when none of `places` leads to one.
  * - In this order:
  *   1. `configured`, the `spell.parserRoot` setting:  if it's set, it's the only place looked at
- *   2. the window's folders, each one's checkout (see `spellAppAbove()`), the folders after the FIRST before it:
- *      a worktree's window lists the MAIN checkout first only so its Claude panel lists every session,
- *      and the worktree, the one being worked on, right after it
+ *   2. the window's folders:  first a folder that IS a checkout, or holds one (`spellAppAt()`);
+ *      only then a folder INSIDE one (`spellAppAbove()`), e.g. a spell project in the kit's `spell-lang/`
+ *      - Why:  a worktree's window holds the worktree and the content repo, `spell.epics`,
+ *        which lives inside the MAIN checkout's kit:  climbing from it found main's spell-app,
+ *        so the worktree's window ran main's language server
+ *      - In each pass, the folders after the FIRST come before it:
+ *        a worktree's window from before `windows.worktreeOnly` lists the MAIN checkout first
+ *        only so its Claude panel lists every session, and the worktree, the one being worked on, right after it
  *   3. `builtIn`, the checkout the extension was built in, if it's still a spell-app checkout:
  *      for a spell file opened in a window with no checkout in it
- * - A folder leads to a checkout when it's spell-app itself, holds it (the kit's folder, `spell-app/` in it),
- *   or is anywhere inside one of those, e.g. a spell project in the kit's `spell-lang/`.
  */
 export function findSpellApp({ configured, workspaceFolders, builtIn }: SpellAppPlaces): SpellAppChoice | undefined {
   if (configured) {
@@ -29,9 +32,12 @@ export function findSpellApp({ configured, workspaceFolders, builtIn }: SpellApp
     return root ? { root, reason: `setting \`spell.parserRoot\` (${configured})` } : undefined
   }
   const [first, ...rest] = workspaceFolders
-  for (const folder of [...rest, ...(first ? [first] : [])]) {
-    const root = spellAppAbove(folder)
-    if (root) return { root, reason: `window folder ${folder}` }
+  const folders = [...rest, ...(first ? [first] : [])]
+  for (const findIn of [spellAppAt, spellAppAbove]) {
+    for (const folder of folders) {
+      const root = findIn(folder)
+      if (root) return { root, reason: `window folder ${folder}` }
+    }
   }
   if (spellAppAt(builtIn) === builtIn) return { root: builtIn, reason: "the checkout the extension was built in" }
   return undefined
