@@ -54,7 +54,6 @@ export function ProjectSettings(props: ProjectSettingsProps) {
           <ui-property name="version" apply="on leave"></ui-property>
           <ui-property name="targets" as={CHOICES}></ui-property>
           <ui-property name="listsStartAt" as="buttons"></ui-property>
-          <ui-property name="language"></ui-property>
         </ui-property-editor>
       </ui-content>
     </ui-modal>
@@ -129,8 +128,7 @@ function settingsOf(project: SP.SpellProject): SPACES.ProjectSettings {
     title: contents?.title ?? "",
     version: contents?.version ?? "",
     targets: (contents?.targets ?? []).filter((name) => name !== SP.RUNNING_TARGET),
-    listsStartAt: contents?.listsStartAt ?? 1,
-    language: contents?.language ?? SP.Language.default.lang
+    listsStartAt: contents?.listsStartAt ?? 1
   }
 }
 
@@ -178,16 +176,6 @@ function projectSettingsSchema(): V.PropertySchema {
         description: "",
         label: appTexts.text("listsStartAtLabel"),
         tip: appTexts.text("listsStartAtTip")
-      },
-      {
-        name: "language",
-        kind: "enum",
-        type: "choice",
-        // every language spell reads, by its code:  `en`, `es` ...
-        values: [...SP.Language.all.keys()],
-        description: "",
-        label: appTexts.text("languageLabel"),
-        tip: appTexts.text("languageTip")
       }
     ]
   }

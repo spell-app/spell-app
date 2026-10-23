@@ -5,7 +5,7 @@
  * - Plain node (`fs`, `path`), NO `vscode`:  `extension.ts` hands it the setting and the window's folders,
  *   so a script can check it without VS Code.
  */
-import { existsSync, readFileSync } from "fs"
+import { existsSync, readFileSync, statSync } from "fs"
 import { dirname, join, resolve } from "path"
 
 /** spell-app's package name:  its `package.json` says so, wherever the checkout lives. */
@@ -15,23 +15,30 @@ const SPELL_APP = "spell-app"
  * The spell-app checkout to run, and why it was picked;  `undefined` when none of `places` leads to one.
  * - In this order:
  *   1. `configured`, the `spell.parserRoot` setting:  if it's set, it's the only place looked at
- *   2. the window's folders, each one's checkout (see `spellAppAbove()`), the folders after the FIRST before it:
- *      a worktree's window lists the MAIN checkout first only so its Claude panel lists every session,
- *      and the worktree, the one being worked on, right after it
+ *   2. the window's folders:  first a folder that IS a checkout, or holds one (`spellAppAt()`);
+ *      only then a folder INSIDE one (`spellAppAbove()`), e.g. a spell project in the kit's `spell-lang/`
+ *      - Why:  a worktree's window holds the worktree and the content repo, `spell.epics`,
+ *        which lives inside the MAIN checkout's kit:  climbing from it found main's spell-app,
+ *        so the worktree's window ran main's language server
+ *      - In each pass, a git WORKTREE's checkout before the main one, else the first folder's:
+ *        a worktree's window may list the main checkout too, before the worktree or after it
+ *        (the worktree first since epic `epic-engine` P12;  epic `repo-split` I71)
  *   3. `builtIn`, the checkout the extension was built in, if it's still a spell-app checkout:
  *      for a spell file opened in a window with no checkout in it
- * - A folder leads to a checkout when it's spell-app itself, holds it (the kit's folder, `spell-app/` in it),
- *   or is anywhere inside one of those, e.g. a spell project in the kit's `spell-lang/`.
  */
 export function findSpellApp({ configured, workspaceFolders, builtIn }: SpellAppPlaces): SpellAppChoice | undefined {
   if (configured) {
     const root = spellAppAbove(resolve(configured))
     return root ? { root, reason: `setting \`spell.parserRoot\` (${configured})` } : undefined
   }
-  const [first, ...rest] = workspaceFolders
-  for (const folder of [...rest, ...(first ? [first] : [])]) {
-    const root = spellAppAbove(folder)
-    if (root) return { root, reason: `window folder ${folder}` }
+  for (const findIn of [spellAppAt, spellAppAbove]) {
+    const found = workspaceFolders.flatMap((folder) => {
+      const root = findIn(folder)
+      return root ? [{ root, folder }] : []
+    })
+    const worktree = found.find(({ root }) => isWorktree(root))
+    if (worktree) return { root: worktree.root, reason: `window folder ${worktree.folder}, a worktree` }
+    if (found[0]) return { root: found[0].root, reason: `window folder ${found[0].folder}` }
   }
   if (spellAppAt(builtIn) === builtIn) return { root: builtIn, reason: "the checkout the extension was built in" }
   return undefined
@@ -59,6 +66,11 @@ export function spellAppAt(folder: string): string | undefined {
     if (packageNameOf(candidate) === SPELL_APP) return candidate
   }
   return undefined
+}
+
+/** Whether checkout `root` is a git worktree:  its `.git` is a FILE pointing at the main checkout's, not a folder. */
+function isWorktree(root: string): boolean {
+  return statSync(join(root, ".git"), { throwIfNoEntry: false })?.isFile() ?? false
 }
 
 /** The `name` in `folder`'s `package.json`;  `undefined` if it has none, or it can't be read. */

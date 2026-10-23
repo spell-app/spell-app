@@ -9,7 +9,7 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  */
 describe("expectedAfter()", () => {
   test("quick enough for every keystroke, on every line of Solitaire", () => {
-    const project = parseSpellProject(loadFixtureProject("solitaire"))
+    const project = parseSpellProject(loadFixtureProject("Solitaire"))
     let calls = 0
     const start = performance.now()
     for (const file of project.files) {

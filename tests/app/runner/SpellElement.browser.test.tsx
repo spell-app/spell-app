@@ -5,6 +5,7 @@ import h from "@solidjs/h"
 import { core, App, Drawable, DrawableList } from "spell-lang/core"
 import { P } from "spell-lang/parser"
 import { E } from "spell-ui/core"
+import { RootLoader } from "spell-ui/components/ui-root"
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
 import { installSpellElements, SpellElement } from "spell-app/app/runner/SpellElement"
 
@@ -72,6 +73,30 @@ describe("SpellElement", () => {
     const note = element.shadowRoot!.querySelector(".note")!
     expect(getComputedStyle(note).color).toBe("rgb(1, 2, 3)")
     expect(getComputedStyle(note).backgroundColor).toBe("rgb(4, 5, 6)")
+  })
+
+  test("loads the Spell UI families its drawing uses, a Spanish program's <es-*> tags and values too (J96)", async () => {
+    // what the runner does for a Spanish program, before it runs it
+    await RootLoader.useLanguage("es")
+    /** A Spanish card:  its own colour words, as Spell UI's Spanish tag takes them. */
+    class Carta extends Drawable {
+      color = "rojo"
+      draw(): ReturnType<Drawable["draw"]> {
+        const text = h("es-texto", { tamano: "gigante", "prop:color": () => this.color }, "🂱")
+        return (text as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    core.defineElement(Carta, "Solitario")
+    await Promise.resolve()
+    const element = await ElementFixture.render<HTMLElement & { thing?: Carta }>("<solitario-carta></solitario-carta>")
+    element.thing = new Carta()
+    flush()
+    // nothing but the card loads `<ui-text>`'s family:  the card's shadow root is no root's content
+    await customElements.whenDefined("es-texto")
+    const texto = element.shadowRoot!.querySelector("es-texto") as E.DOMElement
+    await texto.ready
+    await ElementFixture.settle()
+    expect(texto.shadowRoot!.querySelector("span")!.className).toBe("ui massive red text")
   })
 
   test("defining it again, as a program run again does, keeps the tag", () => {
@@ -188,6 +213,40 @@ describe("SpellElement", () => {
       await ElementFixture.settle(root)
       expect(labels(left!)).toEqual(["game-chip b"])
       expect(labels(right!)).toEqual(["game-chip a"])
+      root.remove()
+    })
+
+    /** A heap with no drawing of its own:  its wrapper just the slot, each chip as itself. */
+    class Bare extends DrawableList<Chip> {
+      static elementTag = core.defineElement(this, "Game")
+      static instanceType = Chip
+    }
+    /** A heap that draws each chip in a spot of its own (`to draw each item`). */
+    class Spots extends DrawableList<Chip> {
+      static elementTag = core.defineElement(this, "Game")
+      static instanceType = Chip
+      drawEachItem(chip: Chip): ReturnType<Drawable["draw"]> {
+        const spot = h("div", { class: "spot" }, () => core.drawThing(chip))
+        return (spot as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+
+    test("by default its wrapper is just its slot;  `to draw each item` puts each chip in a spot, as its children (P20)", async () => {
+      const [bare, spots] = [new Bare(), new Spots()]
+      core.append(bare, new Chip("a"))
+      core.append(spots, new Chip("b"))
+      const root = document.createElement("div")
+      document.body.append(root)
+      const dispose = core.mountApp({ draw: () => [core.drawThing(bare), core.drawThing(spots)] }, root)
+      flush()
+      await ElementFixture.settle(root)
+      const [bareElement, spotsElement] = [root.querySelector("game-bare")!, root.querySelector("game-spots")!]
+      expect(bareElement.shadowRoot!.innerHTML).toContain("<slot></slot>")
+      expect([...bareElement.children].map((child) => child.localName)).toEqual(["game-chip"])
+      expect([...spotsElement.children].map((child) => child.outerHTML)).toEqual([
+        expect.stringMatching(/^<div class="spot"><game-chip[^>]*><\/game-chip><\/div>$/)
+      ])
+      dispose.unmount()
       root.remove()
     })
   })

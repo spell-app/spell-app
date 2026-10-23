@@ -115,11 +115,11 @@ describe("spell language server over stdio", () => {
       connection.onNotification("spell/projectCompiled", resolveWait)
     )
     expect(await connection.sendRequest("spell/compileProject", { uri })).toEqual({ ok: true })
-    const { project, compiledUri, folderUri, wordsUri } = (await connection.sendRequest("spell/project", { uri })) as {
+    const { project, compiledUri, folderUri, wordsUris } = (await connection.sendRequest("spell/project", { uri })) as {
       project: string
       compiledUri: string
       folderUri: string
-      wordsUri: string
+      wordsUris: string[]
     }
     const sent = await compiled
     expect(sent).toMatchObject({ project, compiled: expect.stringContaining("foo") })
@@ -128,7 +128,7 @@ describe("spell language server over stdio", () => {
     expect(readFileSync(fileURLToPath(compiledUri), "utf8")).toBe(sent.compiled)
     // ...its folder (for the runner's `settings.json5`) and words, by their own URIs, not worked out from it
     expect(fileURLToPath(folderUri)).toBe(projectDir)
-    expect(wordsUri).toMatch(/\/Runs\/Runs\.en\.js$/)
+    expect(wordsUris).toEqual([expect.stringMatching(/\/Runs\/Runs\.en\.js$/)])
   }, 30_000)
 
   test("`spell/compiled` answers a file's code for its target:  javascript by default, TypeScript, Python", async () => {
@@ -170,6 +170,31 @@ describe("spell language server over stdio", () => {
     const card = project.children[0]!.children.find((child) => child.name === "Card")!
     expect(card.members.map((member) => member.name)).toContain("suit")
   }, 30_000)
+
+  test("`spell/compiledImport` answers the javascript of a project it imports, for VS Code's runner;  `null` for none", async () => {
+    const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Imports")
+    mkdirSync(projectDir)
+    writeFileSync(
+      resolve(projectDir, "project.json"),
+      JSON.stringify({
+        imports: [
+          { path: "@spell/library/people", active: true, import: ["Person"] },
+          { path: "/main.spell", active: true }
+        ]
+      })
+    )
+    const text = "set foo to 1"
+    writeFileSync(resolve(projectDir, "main.spell"), text)
+    const uri = pathToFileURL(resolve(projectDir, "main.spell")).href
+    await connection.sendNotification("textDocument/didOpen", {
+      textDocument: { uri, languageId: "spell", version: 1, text }
+    })
+    const people = await connection.sendRequest("spell/compiledImport", { uri, projectId: "@spell/library/people" })
+    expect(people).toContain("class Person extends")
+    expect(await connection.sendRequest("spell/compiledImport", { uri, projectId: "@spell/library/nowhere" })).toBe(
+      null
+    )
+  }, 60_000)
 
   test("`spell/compileProject` of a project that doesn't parse:  not ok, and sends nothing", async () => {
     const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Broken")

@@ -72,7 +72,7 @@ Put them on a page either way:
 ```html
 <!-- by itself:  a <spell-app> is a root, and loads what it draws -->
 <script type="module" src="/element/spell-app.js"></script>
-<spell-app project="@spell/examples/drawable-solitaire" toolbar debug="explorer" height="640px"></spell-app>
+<spell-app project="@spell/examples/Solitaire" toolbar debug="explorer" height="640px"></spell-app>
 
 <!-- as a component pack, under a <ui-root>:  here an editor beside the app it feeds -->
 <script type="module" src="/element/spell-ui.js"></script>
@@ -119,7 +119,7 @@ Where it stops:
 
 | `<spell-app>` | What it does |
 | --- | --- |
-| `project` | what to run, from the page server's `/api`, sources and all:  `@spell/examples/drawable-solitaire`;  its Type Explorer then shows each declaration's Spell and compiled code |
+| `project` | what to run, from the page server's `/api`, sources and all:  `@spell/examples/Solitaire`;  its Type Explorer then shows each declaration's Spell and compiled code |
 | `src` | what to run, from anywhere:  `apps/Solitaire.spell.js`, with its scope pack, declarations, words and the projects it imports beside it |
 | `scopes` | where its scope pack is, if not where `project` or `src` says |
 | `name` | its name in the toolbar;  default, its project's |
@@ -133,7 +133,7 @@ Where it stops:
 | `run(compiled)` | runs code pushed to it, a `SpellCompiled`:  `{ projectId, compiled }`, and the scope pack, declarations and words if you have them.  Pushed code wins over `project` and `src`, and works before the element joins the page |
 | `restart()` | runs it again afresh:  the toolbar's Restart |
 | `pushed` | the property holding the code pushed to it last;  dropped when `project`, `src`, `scopes`, `name` or `editor` changes |
-| `spell-open` | the event a Type Explorer link sends:  `detail.href` is the source it points at, `spell:/@spell/examples/drawable-solitaire/Card.spell#L12` |
+| `spell-open` | the event a Type Explorer link sends:  `detail.href` is the source it points at, `spell:/@spell/examples/Solitaire/Solitaire.spell#L12` |
 
 | `<spell-editor>` | What it does |
 | --- | --- |
@@ -163,18 +163,18 @@ Where it stops:
 Put markup inside a `<spell-app>`, and that markup is what the app draws, with the program's things in it:
 
 ```html
-<spell-app project="@spell/examples/drawable-solitaire" name="Solitaire">
+<spell-app project="@spell/examples/Solitaire" name="Solitaire">
   <div class="row">
     <div class="title">Klondike Solitaire</div>
-    <div class="score">Score {the score of the game}</div>
-    <button on-click="{auto-play}">AutoPlay</button>
+    <div class="score">Score {the score of the solitaire}</div>
+    <button on-click="{auto play}">AutoPlay</button>
   </div>
   <div class="row">
-    <solitaire-pile id="discards"></solitaire-pile>
+    <solitaire-discard-pile id="discards"></solitaire-discard-pile>
     <solitaire-stock-pile>
       <spell>
         when double clicked
-          play from the stock pile
+          play from the stock
       </spell>
     </solitaire-stock-pile>
     <div></div>
@@ -185,15 +185,15 @@ Put markup inside a `<spell-app>`, and that markup is what the app draws, with t
     <solitaire-tableau id="T1"></solitaire-tableau>
     <!-- T2 to T7 the same -->
   </div>
-  <div>{the number of cards in the stock} cards left in the stock</div>
+  <div>{the number of cards in the stock of the solitaire} cards left in the stock</div>
 </spell-app>
 ```
 
 _Trimmed from [the Klondike layout demo](app/demo/klondike-layout.html):  the game's own drawing isn't drawn;
 this markup is._
 
-- `{the score of the game}` is a hole:  Spell, read against the running program, its value kept live.
-- `on-click="{auto-play}"`, and a `<spell>` block inside any element, are its handlers.
+- `{the score of the solitaire}` is a hole:  Spell, read against the running program, its value kept live.
+- `on-click="{auto play}"`, and a `<spell>` block inside any element, are its handlers.
 - Each drawable tag is the program's thing its `id` names:  `<solitaire-tableau id="T1">` is the game's `Tableau#T1`.
   With no `id`, it's the program's one thing of that type, like the stock.
 - A `<markdown>` block draws as formatted text, its holes live too.
@@ -231,7 +231,8 @@ No import map:  a page has only one, and each `<spell-app>` needs its own `@spel
 
 The edges:
 - Two projects that import each other stop the run:  `Projects import each other: ...`, naming the loop.
-- VS Code's runner can't load a project that imports another yet:  it says so, and asks you to run it in the app.
+- VS Code's runner asks its extension for each project the program imports, which asks the language server
+  (`spell/compiledImport`):  that project's compiled file, compiled first if it has none yet.
 
 ### Every program gets its own runtime
 
@@ -438,7 +439,7 @@ to the browser's console.
 
 | Address | Page |
 | --- | --- |
-| `/edit/<address>` | the editor, on a project or one file:  `/edit/@spell/examples/drawable-solitaire/Card.spell` |
+| `/edit/<address>` | the editor, on a project or one file:  `/edit/@spell/examples/Solitaire/Solitaire.spell` |
 | `/run/<address>` | the app alone, full size, with its console:  `/run/@spell/examples/calculator` |
 | anything else | the chooser:  your projects, the examples and the guides side by side, each with a Create button;  in dev, the frozen test projects too |
 
@@ -490,7 +491,7 @@ A Spanish browser gets "Guardar" where an English one gets "Save":
   and the rest, from [the language service](README-lsp.md#what-it-answers-request-by-request),
   called in the page itself.
   - That's why the language service must stay safe to run in a browser.
-- Each file is a Monaco model at an address like `spell:/@spell/examples/drawable-solitaire/Card.spell`,
+- Each file is a Monaco model at an address like `spell:/@spell/examples/Solitaire/Solitaire.spell`,
   a view of its file:  the project's files stay the source of truth, and each edit re-parses as little as it can.
 - A rename saves every file it touched.
 - The editors on it are Solid components, `MonacoEditor` and `FileEditor`.

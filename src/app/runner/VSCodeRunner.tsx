@@ -11,7 +11,7 @@ import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
-import { wordsIn } from "./words"
+import { wordsIn, wordsOfLanguages } from "./words"
 
 import "spell-app/app/solid/AppContainer.css"
 import "./VSCodeRunner.css"
@@ -28,6 +28,7 @@ import "./VSCodeRunner.css"
  * - Runs whatever the extension sends in a `run` message, on its OWN copy of the spell runtime -- see `loadRuntime()`.
  *   - One sent before that's loaded runs once it is.
  *   - Each run keeps the program's things, e.g. the game in progress:  only Restart starts afresh (see `run()`).
+ * - A project it imports, e.g. `@spell/library/people`, it asks the extension for (`loadImport`), each run.
  * - Its Thing Explorer shows things' members in spell's words, from the `words` message after each run:
  *   the project's `<Project>.en.js` (`SP.SpellWords`).
  * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
@@ -55,6 +56,8 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   let wordsSent = 0
   // who's waiting for which details -- see `loadDetails()`
   const detailsWaiting = new Map<string, Array<(details: LSP.ScopeDetails | null) => void>>()
+  // who's waiting for which imported project's javascript -- see `loadImport()`
+  const importsWaiting = new Map<string, Array<ImportWaiting>>()
   // what the last `run` message sent, if it came before the runtime -- run once that's loaded
   let toRun: string | undefined
   // Restart was pressed:  the `run` it brings starts afresh, a new deal.
@@ -145,8 +148,9 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
       else toRun = data.compiled
     } else if (data?.type === "words") {
       const sent = ++wordsSent
-      void (data.words === undefined ? Promise.resolve(undefined) : wordsIn(data.words)).then((loaded) => {
-        if (sent === wordsSent) setWords(loaded)
+      // a words file per language its files are in:  as one
+      void Promise.all((data.words ?? []).map(wordsIn)).then((loaded) => {
+        if (sent === wordsSent) setWords(wordsOfLanguages(loaded))
       })
     } else if (data?.type === "scopes") setTree(data.tree)
     else if (data?.type === "settings") setSettings(data.settings)
@@ -154,6 +158,13 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
       const waiting = detailsWaiting.get(data.path)
       detailsWaiting.delete(data.path)
       waiting?.forEach((resolve) => resolve(data.details))
+    } else if (data?.type === "imported") {
+      const waiting = importsWaiting.get(data.projectId)
+      importsWaiting.delete(data.projectId)
+      const { compiled, error } = data
+      waiting?.forEach(({ resolve, reject }) =>
+        compiled !== undefined ? resolve(compiled) : reject(new Error(error ?? `Couldn't load '${data.projectId}'`))
+      )
     }
   }
 
@@ -166,7 +177,7 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   function run(copy: LoadedRuntime, compiled: string) {
     const keepThings = !startAfresh
     startAfresh = false
-    void copy.runtime.runApp(compiled, { appRoot, coreUrl: copy.coreUrl, keepThings }).then((problem) => {
+    void copy.runtime.runApp(compiled, { appRoot, coreUrl: copy.coreUrl, keepThings, loadImport }).then((problem) => {
       setError(problem)
       setHasApp(copy.runtime.appIsMounted())
     })
@@ -212,6 +223,21 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     )
   }
 
+  /**
+   * Compiled javascript of project `projectId`, which the program imports, e.g. `@spell/library/people`:
+   * from the extension, which asks the language server (`spell/compiledImport`).
+   * - Asked for afresh each run, so a library compiled since shows at once;  once, however many wait.
+   * - Rejects with why, if the extension couldn't load it:  the run shows it as its error.
+   */
+  function loadImport(projectId: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const waiting = importsWaiting.get(projectId) ?? []
+      waiting.push({ resolve, reject })
+      importsWaiting.set(projectId, waiting)
+      if (waiting.length === 1) post({ type: "loadImport", projectId })
+    })
+  }
+
   /** Details of Type Explorer node or member `path`, from the extension -- asked for once, however many wait. */
   function loadDetails(path: string): Promise<LSP.ScopeDetails | null> {
     return new Promise((resolve) => {
@@ -228,6 +254,9 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     post({ type: "saveSettings", settings: changed })
   }
 }
+
+/** A run waiting for an imported project's javascript -- see `loadImport()`. */
+type ImportWaiting = { resolve: (compiled: string) => void; reject: (error: Error) => void }
 
 /** Props for `<VSCodeRunner>`. */
 export type VSCodeRunnerProps = {

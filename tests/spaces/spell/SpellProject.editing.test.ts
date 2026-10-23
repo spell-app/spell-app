@@ -6,29 +6,30 @@ import { fixtureProjectId } from "spell-app/spaces/test"
 
 /**
  * `SpellProject` as an editor drives it:  which files it parses, and `updateText()` on each edit.
- * - Loads the frozen Solitaire fixture from disk, but never saves:  edits stay in memory, and each test puts its
+ * - Loads the Solitaire example from disk, but never saves:  edits stay in memory, and each test puts its
  *   text back.
  * - spaces' since epic `repo-split` C11 (spell-lang's `tests/spell/` before):  it loads projects through spaces'
  *   disk reader, which spell-lang's tests never import.
  */
 describe("SpellProject editing", () => {
-  const solitaire = fixtureProjectId("solitaire")
+  const solitaire = fixtureProjectId("Solitaire")
   const project = new SP.SpellProject(solitaire)
-  const card = new SP.SpellFile(`${solitaire}/Card.spell`)
-  let cardText: string
+  const game = new SP.SpellFile(`${solitaire}/Solitaire.spell`)
+  let gameText: string
 
   beforeAll(async () => {
     installDiskFetch()
     await project.parse()
-    cardText = card.contents!
+    gameText = game.contents!
   })
 
   afterEach(async () => {
     vi.restoreAllMocks()
-    await project.updateText(card, cardText)
+    await project.updateText(game, gameText)
   })
 
   test("`spellFiles` are its active `.spell` imports, in order -- and each `isActive`", () => {
+    // its cards, deck and piles, then its game
     expect(project.spellFiles.map((file) => file.filePath)).toEqual([
       "/Card.spell",
       "/Deck.spell",
@@ -40,12 +41,12 @@ describe("SpellProject editing", () => {
   })
 
   test("`updateText()` takes the text, and returns the files whose parse changed", async () => {
-    const before = card.match
-    const changed = await project.updateText(card, `${cardText}\nprint 1`)
-    expect(card.contents).toBe(`${cardText}\nprint 1`)
-    expect(card.match).not.toBe(before)
-    expect(changed).toContain(card)
-    expect(await project.updateText(card, card.contents!)).toEqual([])
+    const before = game.match
+    const changed = await project.updateText(game, `${gameText}\nprint 1`)
+    expect(game.contents).toBe(`${gameText}\nprint 1`)
+    expect(game.match).not.toBe(before)
+    expect(changed).toContain(game)
+    expect(await project.updateText(game, game.contents!)).toEqual([])
   })
 
   test("a file it doesn't parse just takes the text", async () => {
@@ -57,7 +58,7 @@ describe("SpellProject editing", () => {
 
   test("parses from scratch straight away if the incremental parse can't cope", async () => {
     project.incremental = undefined
-    await project.updateText(card, `${cardText}\nprint 1`)
+    await project.updateText(game, `${gameText}\nprint 1`)
     expect(project.incremental).toBeDefined()
     for (const file of project.spellFiles) expect(file.match, file.path).toBeDefined()
   })
@@ -67,10 +68,10 @@ describe("SpellProject editing", () => {
       throw new Error("boom")
     })
     project.incremental = undefined
-    await expect(project.updateText(card, `${cardText}\nprint 1`)).resolves.toBeDefined()
+    await expect(project.updateText(game, `${gameText}\nprint 1`)).resolves.toBeDefined()
     expect(project.parseError).toBe("boom")
 
-    await project.updateText(card, `${cardText}\nprint 2`)
+    await project.updateText(game, `${gameText}\nprint 2`)
     expect(project.parseError).toBeUndefined()
   })
 })

@@ -44,7 +44,7 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     let file = this.#fileByUri.get(uri)
     if (file === undefined) {
       const location = uri.startsWith("file:") ? locationForDiskPath(fileURLToPath(uri)) : undefined
-      file = location?.extension === ".spell" ? new SP.SpellFile(location.path) : null
+      file = location?.isSpellFile ? new SP.SpellFile(location.path) : null
       this.#fileByUri.set(uri, file)
       if (file) this.#uriByPath.set(file.path, uri)
     }
@@ -104,11 +104,11 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     const project = new SP.SpellProject(location.projectId)
     if (!this.#firstParses.has(project)) return []
 
-    if (SP.isProjectFile(basename(path)) || (location.extension === ".spell" && change !== "changed")) {
+    if (SP.isProjectFile(basename(path)) || (location.isSpellFile && change !== "changed")) {
       this.#fileByUri.clear()
       return this.refresh(project)
     }
-    if (location.extension !== ".spell" || this.#openText.has(uri)) return []
+    if (!location.isSpellFile || this.#openText.has(uri)) return []
     return this.reloadFromDisk(new SP.SpellFile(location.path))
   }
 

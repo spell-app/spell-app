@@ -1,27 +1,27 @@
 # Spaces:  where projects and people live
 
 ```text
-@spell/examples/drawable-solitaire/Card.spell
-└──── group ──┘ └──── project ───┘ └─ file ─┘
+@spell/examples/Solitaire/Solitaire.spell
+└──── group ──┘ └project─┘ └─── file ──┘
 ```
 
-_A Spell address:  one file of the Drawable Solitaire example, named by what it is rather than where it is._
+_A Spell address:  one file of the Solitaire example, named by what it is rather than where it is._
 
 Every project and every file in Spell has an address like that one, and it's the same address everywhere:
 
 | Where | What you write |
 | --- | --- |
-| the editor | `http://localhost:3000/edit/@spell/examples/drawable-solitaire/Card.spell` |
-| the command line | `spell run @spell/examples/drawable-solitaire` |
-| another project, importing a library | `{ "path": "@spell/library/cards", "import": ["Card", "Deck", "Pile"] }` |
-| the server, reading the file | `GET /spaces/@spell/examples/drawable-solitaire/Card.spell` |
+| the editor | `http://localhost:3000/edit/@spell/examples/Solitaire/Solitaire.spell` |
+| the command line | `spell run @spell/examples/Solitaire` |
+| another project, importing a library | `{ "path": "@spell/library/people", "import": ["Person"] }` |
+| the server, reading the file | `GET /spaces/@spell/examples/Solitaire/Solitaire.spell` |
 
 None of them is a path on disk.
 One function turns an address into a folder, [`SpellUrls.folderFor()`](https://github.com/spell-app/spell-lang/blob/main/src/spell/SpellUrls.ts),
 and everything that reads a project goes through it:  so the editor, the command line and the compiler
 can't disagree about where a project is.
 
-If you know npm, `@spell/library/cards` reads like a scoped package, `@org/name`, and it's meant to:
+If you know npm, `@spell/library/people` reads like a scoped package, `@org/name`, and it's meant to:
 whose it is, then what.
 The difference is that there's no registry and no install.
 The address alone says which folder holds the project, so a library on your disk is importable the moment it exists.
@@ -72,9 +72,9 @@ here     = "@here"                       on the command line:  the project in th
 | Address | What it is |
 | --- | --- |
 | `@spell/examples` | a group:  the example projects |
-| `@spell/examples/drawable-solitaire` | a project |
-| `@spell/examples/drawable-solitaire/Card.spell` | a file in it |
-| `@spell/examples/drawable-solitaire/assets/` | a folder in it:  the slash at the end says so |
+| `@spell/examples/Solitaire` | a project |
+| `@spell/examples/Solitaire/Solitaire.spell` | a file in it |
+| `@spell/examples/Solitaire/assets/` | a folder in it:  the slash at the end says so |
 | `owen@spell/hello` | a project in a person's own group |
 
 - A group belongs to a space:  `@spell/examples` to `@spell`, an organization;
@@ -92,9 +92,9 @@ The groups, and where each one's folder is:
 | --- | --- | --- | --- |
 | `owen@spell` | Projects | `spell.spaces/@spell/owen@/`, beside the repos, in no repo | your own projects:  where `spell app create` makes one |
 | `@spell/examples` | Examples | [spaces/@spell/examples/](spaces/@spell/examples/), committed | the five example apps ([README-examples.md](README-examples.md)) |
-| `@spell/library` | Libraries | [spaces/@spell/library/](spaces/@spell/library/), committed | projects other projects import:  cards, and people |
+| `@spell/library` | Libraries | [spaces/@spell/library/](spaces/@spell/library/), committed | projects other projects import:  people |
 | `@spell/guides` | Guides | none yet | nothing:  the editor's "New Guide" makes its folder, `spaces/@spell/guides/` |
-| `@spell/test` | Test fixtures, listed only in dev | [spaces/@spell/test/](spaces/@spell/test/), committed and frozen | the 12 projects the tests in [tests/spell/](tests/spell/) compile and compare against snapshots |
+| `@spell/test` | Test fixtures, listed only in dev | [spaces/@spell/test/](spaces/@spell/test/), committed and frozen | the 6 projects the tests in [tests/spell/](tests/spell/) compile and compare against snapshots;  the examples Solitaire and Solitario are tested as they are |
 
 - `spell projects` lists them, with how many projects each holds ([README-cli.md](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app)).
 - A project in no group still runs:  `spell` makes up a group for it on the spot, `@local/<folder>`,
@@ -228,9 +228,9 @@ What each printed on a real run is under it.
    ```json5
    {
      "imports": [{
-       "path": "@spell/library/cards",
+       "path": "@spell/library/people",
        "active": true,
-       "import": ["Card", "Deck", "Pile"]
+       "import": ["Person"]
      }, {
        "path": "/hello.spell",
        "active": true
@@ -244,9 +244,9 @@ What each printed on a real run is under it.
    Then use it, at the end of `hello.spell`:
 
    ```spell
-   set the deck to a new deck
-   set up the deck
-   print the number of cards in the deck
+   set the friend to a new person
+   set the nickname of the friend to "Sam"
+   print the nickname of the friend
    ```
 
    ```sh
@@ -258,18 +258,14 @@ What each printed on a real run is under it.
 
    ```text
    ✓ Compiling owen@spell/hello
-   ✅ test card setup
-   ...
    hello from hello
-   52
+   Sam
    and more
    ```
 
    </details>
 
    - The first time, it compiles the library too, into spell-app's `build/` folder.
-   - Expect a wall of ✅ first:  a library's own tests run as it loads,
-     so about 80 lines of the cards library's checks, 45 of them ✅, scroll past before your first line.
 
 7. Keep it in git.
    Your spaces folder is in no repo, so `git init` in your project's folder (or in `spell.spaces` itself),
@@ -377,7 +373,7 @@ first, in a child process running the checkout's own `spell compile`, so the pag
 - As the page server starts, `spell compile --stale --all @spell/examples @spell/library` runs in the background,
   so the demo pages and App UI's live examples find their programs.
 - What it builds goes in spell-app's `build/` folder, mirroring each project's path, never committed:
-  `build/spaces/@spell/examples/drawable-solitaire/` holds that project's compiled program and its scope pack
+  `build/spaces/@spell/examples/Solitaire/` holds that project's compiled program and its scope pack
   (`.scopes.js`, what the Type Explorer reads).
 - A file already built is served as it is, even when its sources changed since:
   the startup compile and `spell compile --stale` are what catch those.
@@ -447,7 +443,7 @@ That's `spell_quart`, a [Quart](https://quart.palletsprojects.com/) app (Flask's
 in spaces' [Python folder](src/spaces/server/py/).
 
 ```sh
-spell run @spell/examples/outline-solitaire --target py
+spell run @spell/examples/Solitaire --target py
 ```
 
 1. It compiles the project to Python, on `spell_core` (spell-lang's Python runtime), into a temporary folder:

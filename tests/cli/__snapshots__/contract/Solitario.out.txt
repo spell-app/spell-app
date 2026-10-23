@@ -1,0 +1,121 @@
+✅ test la preparación de la carta
+  ▶️ Ejecutando   `obtener una nueva carta cuyo rango es dama, palo es espadas y dirección es arriba`
+  ✅ Como se esperaba, `su rango` es `dama`
+  ✅ Como se esperaba, `su palo` es `espadas`
+  ✅ Como se esperaba, `su nombre` es `"dama-de-espadas"`
+  ✅ Como se esperaba, `su color` es `negro`
+  ✅ Como se esperaba, `su valor` es `12`
+  ✅ Como se esperaba, `su palo corto` es `"♠️"`
+  ✅ Como se esperaba, `su rango corto` es `"D"`
+  ✅ Como se esperaba, `su nombre corto` es `"D♠️"`
+  ✅ Como se esperaba, `su estado` es `"D♠️+"`
+  ✅ Como se esperaba, `su imagen` es `"🂭"`
+  ✅ Como se esperaba, `está boca arriba` es `sí`
+  ✅ Como se esperaba, `está boca abajo` es `no`
+  ✅ Como se esperaba, `es una figura` es `sí`
+  ✅ Como se esperaba, `no es una figura` es `no`
+  ✅ Como se esperaba, `es una espada` es `sí`
+  ✅ Como se esperaba, `es un trébol` es `no`
+  ✅ Como se esperaba, `es una dama` es `sí`
+  ✅ Como se esperaba, `es un as` es `no`
+  ✅ Como se esperaba, `es un 2` es `no`
+  ✅ Como se esperaba, `es la dama de espadas` es `sí`
+  ✅ Como se esperaba, `es la dama de tréboles` es `no`
+  ✅ Como se esperaba, `no es el 2 de diamantes` es `sí`
+  ▶️ Ejecutando   `voltear eso boca abajo`
+  ✅ Como se esperaba, `su dirección` es `abajo`
+  ✅ Como se esperaba, `está boca abajo` es `sí`
+  ▶️ Ejecutando   `voltear eso`
+  ✅ Como se esperaba, `está boca arriba` es `sí`
+  ✅ Como se esperaba, `el nombre corto del siete` es `"7♥️"`
+  ✅ Como se esperaba, `el color del siete` es `rojo`
+  ✅ Como se esperaba, `la imagen del siete` es `"🂷"`
+  ✅ Como se esperaba, `la imagen de una nueva carta cuyo rango es as y palo es tréboles` es `"🃑"`
+  ✅ Como se esperaba, `la imagen de una nueva carta cuyo rango es rey y palo es diamantes` es `"🃎"`
+✅ test los comodines
+  ▶️ Ejecutando   `obtener un nuevo comodín cuyo color es rojo y dirección es arriba`
+  ✅ Como se esperaba, `es un comodín` es `sí`
+  ✅ Como se esperaba, `es una carta` es `sí`
+  ✅ Como se esperaba, `su color` es `rojo`
+  ✅ Como se esperaba, `su nombre` es `"comodín-rojo"`
+  ✅ Como se esperaba, `su nombre corto` es `"🃏"`
+  ✅ Como se esperaba, `su imagen` es `"🂿"`
+  ✅ Como se esperaba, `es el comodín rojo` es `sí`
+  ✅ Como se esperaba, `es el comodín negro` es `no`
+  ✅ Como se esperaba, `no es el comodín negro` es `sí`
+  ✅ Como se esperaba, `está boca arriba` es `sí`
+  ▶️ Ejecutando   `voltear eso`
+  ✅ Como se esperaba, `está boca abajo` es `sí`
+  ▶️ Ejecutando   `poner comodín negro a un nuevo comodín cuyo color es negro`
+  ✅ Como se esperaba, `la imagen de comodín negro` es `"🃏"`
+  ▶️ Ejecutando   `poner la carta a una nueva carta cuyo rango es dama y palo es espadas`
+  ✅ Como se esperaba, `la carta es un comodín` es `no`
+  ✅ Como se esperaba, `la carta no es un comodín` es `sí`
+  ✅ Como se esperaba, `la carta es el comodín rojo` es `no`
+✅ test la creación del mazo
+  ▶️ Ejecutando   `el mazo es un nuevo mazo`
+  ✅ Como se esperaba, `el número de cartas en el mazo` es `52`
+  ▶️ Ejecutando   `poner las damas a las cartas en el mazo donde el rango de la carta es dama`
+  ✅ Como se esperaba, `el número de cartas en las damas` es `4`
+  ✅ Como se esperaba, `el nombre de la carta de arriba del mazo` es `"as-de-tréboles"`
+  ✅ Como se esperaba, `el nombre de la carta de abajo del mazo` es `"rey-de-espadas"`
+  ✅ Como se esperaba, `el nombre corto de la carta de arriba del mazo` es `"A♣️"`
+  ✅ Como se esperaba, `la primera carta del mazo es el as de tréboles` es `sí`
+  el mazo antes de barajar:
+  ▶️ Ejecutando   `mostrar el mazo`
+  mazo: A♣️, A♦️, A♥️, A♠️, 2♣️, 2♦️, 2♥️, 2♠️, 3♣️, 3♦️, 3♥️, 3♠️, 4♣️, 4♦️, 4♥️, 4♠️, 5♣️, 5♦️, 5♥️, 5♠️, 6♣️, 6♦️, 6♥️, 6♠️, 7♣️, 7♦️, 7♥️, 7♠️, 8♣️, 8♦️, 8♥️, 8♠️, 9♣️, 9♦️, 9♥️, 9♠️, 10♣️, 10♦️, 10♥️, 10♠️, J♣️, J♦️, J♥️, J♠️, D♣️, D♦️, D♥️, D♠️, R♣️, R♦️, R♥️, R♠️
+  ▶️ Ejecutando   `barajar el mazo`
+  ✅ Como se esperaba, `el número de cartas en el mazo` es `52`
+  el mazo después de barajar:
+  ▶️ Ejecutando   `mostrar el mazo`
+  mazo: 4♣️, 4♠️, 5♠️, 3♠️, 7♠️, D♠️, 2♦️, 3♦️, 2♥️, 8♥️, 8♠️, 7♣️, R♠️, 9♣️, A♠️, 5♥️, R♥️, A♥️, 9♠️, 3♥️, 8♣️, R♦️, 10♦️, 10♣️, 5♣️, 7♥️, D♦️, D♥️, 3♣️, 5♦️, 2♠️, 7♦️, 6♦️, D♣️, 6♣️, 9♥️, A♣️, 4♥️, J♦️, J♥️, 9♦️, 2♣️, A♦️, 6♥️, 10♠️, J♠️, J♣️, 4♦️, 8♦️, R♣️, 10♥️, 6♠️
+✅ test el mazo con comodines
+  ▶️ Ejecutando   `el mazo es un nuevo mazo con comodines`
+  ✅ Como se esperaba, `el número de cartas en el mazo` es `54`
+  ▶️ Ejecutando   `poner las cartas salvajes a las cartas en el mazo donde es un comodín`
+  ✅ Como se esperaba, `el número de cartas en las cartas salvajes` es `2`
+  ✅ Como se esperaba, `la primera carta del mazo es el as de tréboles` es `sí`
+  ✅ Como se esperaba, `la última carta del mazo es el comodín negro` es `sí`
+  ✅ Como se esperaba, `el nombre de la carta de abajo del mazo` es `"comodín-negro"`
+✅ test las pilas
+  ▶️ Ejecutando   `poner la reserva a una nueva pila con nombre = "reserva"`
+  ▶️ Ejecutando   `poner los descartes a una nueva pila con nombre = "descartes"`
+  ✅ Como se esperaba, `el color de la reserva` es `"ninguno"`
+  ✅ Como se esperaba, `el valor de la reserva` es `0`
+  ▶️ Ejecutando   `agregar (una nueva carta cuyo rango es dama, palo es espadas y dirección es arriba) a la reserva`
+  ▶️ Ejecutando   `agregar (una nueva carta cuyo rango es 7, palo es corazones y dirección es abajo) a la reserva`
+  ✅ Como se esperaba, `el color de la reserva` es `rojo`
+  ✅ Como se esperaba, `el valor de la reserva` es `7`
+  ✅ Como se esperaba, `el estado de la reserva` es `"reserva: D♠️+ 7♥️—"`
+  ▶️ Ejecutando   `agregar la carta a los descartes`
+  ✅ Como se esperaba, `el número de cartas en la reserva` es `1`
+  ✅ Como se esperaba, `la pila de la carta es los descartes` es `sí`
+  ✅ Como se esperaba, `el estado de los descartes` es `"descartes: 7♥️—"`
+✅ test los movimientos
+  ▶️ Ejecutando   `poner la columna a una nueva columna con nombre = "C1"`
+  ▶️ Ejecutando   `poner el rey a una nueva carta cuyo rango es rey, palo es espadas y dirección es arriba`
+  ▶️ Ejecutando   `poner la dama a una nueva carta cuyo rango es dama, palo es corazones y dirección es arriba`
+  ▶️ Ejecutando   `poner la jota a una nueva carta cuyo rango es jota, palo es tréboles y dirección es arriba`
+  ✅ Como se esperaba, `la columna puede tomar la dama` es `no`
+  ✅ Como se esperaba, `la columna puede tomar el rey` es `sí`
+  ▶️ Ejecutando   `agregar el rey a la columna`
+  ✅ Como se esperaba, `la columna puede tomar la jota` es `no`
+  ✅ Como se esperaba, `la columna puede tomar la dama` es `sí`
+  ▶️ Ejecutando   `agregar la dama a la columna`
+  ✅ Como se esperaba, `el estado de la columna` es `"C1: R♠️+ D♥️+"`
+  ✅ Como se esperaba, `la columna puede soltar la dama` es `sí`
+  ▶️ Ejecutando   `voltear la dama boca abajo`
+  ✅ Como se esperaba, `la columna puede soltar la dama` es `no`
+  ▶️ Ejecutando   `poner el dos a una nueva carta cuyo rango es 2, palo es corazones y dirección es arriba`
+  ▶️ Ejecutando   `poner el as a una nueva carta cuyo rango es as, palo es corazones y dirección es arriba`
+  ▶️ Ejecutando   `poner la columna a una nueva columna con nombre = "C2"`
+  ▶️ Ejecutando   `agregar el dos a la columna`
+  ▶️ Ejecutando   `agregar el as a la columna`
+  ✅ Como se esperaba, `la fundación puede tomar el dos` es `no`
+  ✅ Como se esperaba, `la fundación puede tomar el as` es `sí`
+  ▶️ Ejecutando   `mover el as a la fundación`
+  ✅ Como se esperaba, `la fundación puede tomar el dos` es `sí`
+  ▶️ Ejecutando   `agregar la dama a la columna`
+  ✅ Como se esperaba, `la fundación puede tomar la dama` es `no`
+
+<div id="spell-app-root"><es-contenedor><es-menu><es-elemento tipo="encabezado">Solitario Klondike</es-elemento><es-elemento>Puntos: 0</es-elemento><es-menu posicion="derecha"><es-elemento>Jugar solo</es-elemento><es-elemento>Trampa</es-elemento><es-elemento>Depurar</es-elemento><es-elemento>Reiniciar</es-elemento></es-menu></es-menu><es-cuadricula columnas="7"><es-fila><es-columna><test-project-pila-de-reserva><div class="Stock"><div class="Placeholder"></div><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta></div></test-project-pila-de-reserva></es-columna><es-columna><test-project-pila-de-descartes><test-project-carta><es-texto class="Card" tamano="gigante">🃃</es-texto></test-project-carta></test-project-pila-de-descartes></es-columna><es-columna></es-columna><es-columna><test-project-fundacion><div class="Foundation"><div class="Placeholder">♣️</div></div></test-project-fundacion></es-columna><es-columna><test-project-fundacion><div class="Foundation"><div class="Placeholder">♦️</div></div></test-project-fundacion></es-columna><es-columna><test-project-fundacion><div class="Foundation"><div class="Placeholder">♥️</div></div></test-project-fundacion></es-columna><es-columna><test-project-fundacion><div class="Foundation"><div class="Placeholder">♠️</div></div></test-project-fundacion></es-columna></es-fila><es-fila><es-columna><test-project-columna><test-project-carta><es-texto class="Card" tamano="gigante">🂣</es-texto></test-project-carta></test-project-columna></es-columna><es-columna><test-project-columna><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" tamano="gigante">🂡</es-texto></test-project-carta></test-project-columna></es-columna><es-columna><test-project-columna><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" tamano="gigante">🂮</es-texto></test-project-carta></test-project-columna></es-columna><es-columna><test-project-columna><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" tamano="gigante">🃖</es-texto></test-project-carta></test-project-columna></es-columna><es-columna><test-project-columna><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" tamano="gigante">🃔</es-texto></test-project-carta></test-project-columna></es-columna><es-columna><test-project-columna><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" tamano="gigante">🃘</es-texto></test-project-carta></test-project-columna></es-columna><es-columna><test-project-columna><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" color="azul" tamano="gigante">🂠</es-texto></test-project-carta><test-project-carta><es-texto class="Card" tamano="gigante">🂭</es-texto></test-project-carta></test-project-columna></es-columna></es-fila></es-cuadricula></es-contenedor></div>

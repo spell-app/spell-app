@@ -9,7 +9,7 @@ import { SpellRunnerRoute } from "./SpellRunner"
 
 /**
  * The app's routes (`@solidjs/router`):  `/edit/` or `/run/`, then an address (decision Q40, epic `people-and-orgs` P4).
- * - `/edit/<address>`:  `<SpellEditor>`, e.g. `/edit/@spell/examples/drawable-solitaire/Card.spell`
+ * - `/edit/<address>`:  `<SpellEditor>`, e.g. `/edit/@spell/examples/Solitaire/Solitaire.spell`
  * - `/run/<address>`:  `<SpellRunner>`, e.g. `/run/owen@spell/errors`
  * - anything else:  `<ProjectChooser>`
  * - Each page is ONE route:  it stays mounted while only its address changes, e.g.

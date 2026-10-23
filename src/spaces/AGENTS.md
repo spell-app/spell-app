@@ -19,7 +19,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Its folders:
   - [@spell/](../../spaces/@spell/):  the `@spell` space's built-in projects, committed (see "Projects" below)
     - `examples/`:  the `@spell/examples` group (fizzbuzz, calculator ...)
-    - `library/`:  the `@spell/library` group (cards, people)
+    - `library/`:  the `@spell/library` group (people)
       - `people/`, the people library (P7):  people, orgs and what they keep
       - compiled to `people.lib.ts` (the `ts/lib` target):
         the app, the people store and the spell command import it
@@ -42,7 +42,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Python:  [the Python server's tests](../../tests/spaces/server/py/tests/), found by its pytest (`testpaths`)
   - The frozen test projects themselves are beside the built-ins, `spaces/@spell/test/` (see "Projects" below);
     the tests that compile them whole are the repo's `tests/spell/` (the `spell` project), not ours.
-- [test/](test/index.ts), node only:  the test helpers for the frozen test projects, `spell-app/spaces/test`
+    - Among them `cards`, a frozen card library:  `lists-from-zero` imports it.
+    - The examples Solitaire and Solitario are tested as they are, not as frozen copies:
+      their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
+- [test/](test/index.ts), node only:  the test helpers for the frozen test projects and the tested examples,
+  `spell-app/spaces/test`
   - `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`, `compiledFixture()` ...
   - Imported by tests only, by name, never from the barrel.
   - Inline projects are spell-lang's helpers', `spell-lang/spell/test` (`parseSpellProject()`).
@@ -72,9 +76,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`:  who this machine's person is, until a machine can have more than one person.
-  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39).
-    - e.g. `@spell/examples/drawable-solitaire`
-    - a file in it:  its name, which has a dot (Q41), e.g. `@spell/examples/drawable-solitaire/Card.spell`
+  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39) --
+    or as titled, as `Solitaire` and `Solitaire`'s Spanish twin `Solitario` are (Owen, epic `spanish` P11).
+    - e.g. `@spell/examples/Solitaire`
+    - a file in it:  its name, which has a dot (Q41), e.g. `@spell/examples/Solitaire/Solitaire.spell`
   - A `@local/<folder>` group, added at runtime for a folder an editor opened, says its own folder (`serverPath`).
 - Where the folders are:  [environment.ts](server/node/environment.ts).
 
@@ -105,8 +110,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | Source | Built into | e.g. |
   | --- | --- | --- |
   | this repo's `tests/X` | `build/X` | |
-  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/drawable-solitaire/`, `build/spaces/@spell/test/fizzbuzz/` |
+  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/Solitaire/`, `build/spaces/@spell/test/fizzbuzz/` |
   | spell.spaces' `X` | `build/spell-spaces/X` | `build/spell-spaces/@spell/owen@/errors/` |
+  | another spell-app checkout's `spaces/X` or `tests/X` | THAT checkout's `build/...` | a worktree's example, opened by the main checkout's language server (epic `spanish` P21) |
   | anywhere else | beside the source | |
 
   - `buildFolderFor()`, in project-utils;  "Projects" in [spell's PARSING.md](../../../spell-lang/src/spell/PARSING.md) has the rest.
@@ -156,7 +162,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Its handlers are our [project-utils.ts](server/node/projects/project-utils.ts)'s.
   - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
     [SpellUrls.ts](../../../spell-lang/src/spell/SpellUrls.ts)):
-    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell`
+    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell`
     - and SAVED by `POST /api/projects/file/<project>/<file>`
     - a project's index:  `/api/projects/index/<project>`
     - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`

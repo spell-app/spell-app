@@ -32,7 +32,7 @@ export default function appCommands(spell: Command): void {
     .description("run the spell app -- editor and server, which saves to disk -- and open it, until Ctrl-C")
     .argument(
       "[project]",
-      "open the editor on this, e.g. @spell/examples/drawable-solitaire -- default the project here, else the chooser"
+      "open the editor on this, e.g. @spell/examples/Solitaire -- default the project here, else the chooser"
     )
     .option(
       "--port <port>",

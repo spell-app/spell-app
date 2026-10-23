@@ -10,5 +10,5 @@ import { defineConfig } from "vite-plus"
  */
 export default defineConfig({
   resolve: { alias: { vscode: resolve(import.meta.dirname, "tests/fakeVscode.ts") } },
-  test: { name: "vscode", environment: "node", include: ["tests/**/*.test.ts"] }
+  test: { name: "vscode:elements", environment: "node", include: ["tests/**/*.test.ts"] }
 })

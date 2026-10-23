@@ -95,7 +95,7 @@ const vocabulary = {
  * runs a compiled spell project in any page, in its own shadow root, with no editor.
  * It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
  * - What to run, one of (see the vocabulary, `SpellApp.en.ts`):
- *   - `project="@spell/examples/drawable-solitaire"`, a project's address:  from the spell server's `/api`
+ *   - `project="@spell/examples/Solitaire"`, a project's address:  from the spell server's `/api`
  *   - `src="apps/Solitaire.spell.js"`:  from anywhere, what goes with it beside it
  *   - `editor="#ed"`:  what that `<spell-editor>` compiles (`SPELL_COMPILED_EVENT`), and what it compiled already
  *   - `run(compiled)`:  code pushed to us, e.g. by an editor whose `app` names us
@@ -350,7 +350,7 @@ function projectSource(project: string): SpellAppSource {
     importDeclarationsUrl: (id) => builtUrl(id, DECLARATIONS_JSON),
     wordsUrl: builtUrl(projectId, WORDS_JS),
     importWordsUrl: (id) => builtUrl(id, WORDS_JS),
-    // `spell:/@spell/examples/drawable-solitaire/Card.spell` => its project id, then its file
+    // `spell:/@spell/examples/Solitaire/Solitaire.spell` => its project id, then its file
     sourceUrl: (uri) => SpellUrls.fileUrl(decodeURI(uri.replace(/^spell:\//, "")))
   }
 }
@@ -360,7 +360,7 @@ function nameOf(projectId: string): string {
   return projectId.slice(projectId.lastIndexOf("/") + 1)
 }
 
-/** URL of project `projectId`'s `<project><suffix>`, e.g. `/spaces/@spell/examples/drawable-solitaire/drawable-solitaire.spell.js`. */
+/** URL of project `projectId`'s `<project><suffix>`, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell.js`. */
 function builtUrl(projectId: string, suffix: string): string {
   return SpellUrls.fileUrl(`${projectId}/${nameOf(projectId)}${suffix}`)
 }
@@ -396,8 +396,9 @@ const SCOPES_JS = ".scopes.js"
 const DECLARATIONS_JSON = ".declarations.json5"
 
 /**
- * End of a project's words file's name, in its own language:  `SP.wordsSuffixFor()`, e.g. `.en.js`, `.es.js`.
- * - `{lang}` is filled in from its declarations when the words load (`SpellAppRunner`'s `inLanguage()`).
+ * End of a project's words file's name, in one of its languages:  `SP.wordsSuffixFor()`, e.g. `.en.js`, `.es.js`.
+ * - `{lang}` is filled in with each language its declarations name when the words load
+ *   (`SpellAppRunner`'s `wordsInLanguages()`):  a project mixing languages has a file in each (epic `spanish` P19).
  */
 const WORDS_JS = ".{lang}.js"
 

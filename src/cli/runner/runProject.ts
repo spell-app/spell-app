@@ -26,7 +26,7 @@ else headless()
 core.resetRuntime()
 // `--seed`, and the core contract:  the same random numbers every run, so a shuffle deals the same cards
 if (spec.seed !== undefined) core.seedRandom(spec.seed)
-// a test's lines in the project's language, e.g. Spanish:  English when it has no messages
+// a test's lines in the language the program speaks, e.g. Spanish:  English when it has no messages
 core.useMessages(spec.messages)
 // a dump of a thing (`print the card`) to stderr, so stdout holds only the program's data
 // (epic page python-target, Q17);  at call time, so `quiet()` silences it too
@@ -180,15 +180,20 @@ function headless() {
 /**
  * SIDE EFFECT:  a fake page for `spec.dom`, so what needs a browser runs:
  * linkedom's `document`, and `App.start()` draws into it.
+ * - A drawable thing draws as its own element, as on a page:  `<solitaire-card>`, its drawing in its shadow root,
+ *   a drawable list's items its children -- see `fakeElements()`.
  * - When the program is done, prints the page's `<body>`:  what it drew, to compare.
- *   Each tag's attributes are sorted first (`withSortedAttributes()`).
+ *   - As it shows:  each element's shadow root in its place, its `<slot>`s holding its children
+ *     (`withShadowsInPlace()`).
+ *   - Each tag's attributes are sorted (`withSortedAttributes()`).
  * - Only for the core contract test, `contract.test.ts`:  a real browser is `spell run`'s.
  *   The contract seeds the random numbers too (`spec.seed`), so a shuffle deals the same cards on every target.
  */
 async function fakeDom() {
   const { parseHTML } = await import("linkedom")
   const page = parseHTML("<!doctype html><html><head></head><body></body></html>")
-  for (const name of ["window", "document", "navigator", "HTMLElement", "Element", "Node", "Event", "CustomEvent"]) {
+  const globals = ["window", "document", "navigator", "customElements", "HTMLElement", "Element", "Node", "Event"]
+  for (const name of [...globals, "CustomEvent"]) {
     Object.defineProperty(globalThis, name, {
       value: page[name as keyof typeof page],
       configurable: true,
@@ -199,11 +204,63 @@ async function fakeDom() {
   // Solid follows spell's values, as a runner's page does (`cellsBridge.ts`):  the hooks give us its browser build
   const { enableExternalSource, flush } = await import("solid-js")
   bridgeSolid({ enableExternalSource, flush })
+  await fakeElements()
   process.once("beforeExit", () => {
     core.flush()
+    withShadowsInPlace(page.document.body)
     const drawn = withSortedAttributes(page.document.body.innerHTML)
     if (drawn) process.stdout.write(`\n${drawn}\n`)
   })
+}
+
+/**
+ * SIDE EFFECT:  the fake page defines each drawable thing's element, e.g. `<solitaire-card>`, as app's runners do
+ * (`installSpellElements()`), so the contract compares what a page draws:  cards in their piles.
+ * - Just enough of app's `SpellElement`, which needs Spell UI, which can't load here:
+ *   its `thing` drawn in its shadow root (`core.drawOwn()`);  a drawable list's items are its children,
+ *   shown in its drawing's `<slot>` (`core.drawThing()` puts them there).
+ * - No attributes, no layout:  just the drawing.
+ * - Its events are handled in its shadow root, as Solid delegates them per render root.
+ */
+async function fakeElements() {
+  const { insert, registerDelegatedRoot } = await import("@solidjs/web")
+  core.elementDefiner = (tag) => {
+    if (customElements.get(tag)) return
+    customElements.define(
+      tag,
+      class extends HTMLElement {
+        /** Draw `thing`, as the program hands it:  `draw the card`. */
+        set thing(thing: unknown) {
+          const root = this.shadowRoot ?? this.attachShadow({ mode: "open" })
+          registerDelegatedRoot(root as unknown as Element)
+          insert(root as unknown as Element, () => core.drawOwn(thing))
+        }
+      }
+    )
+  }
+}
+
+/**
+ * SIDE EFFECT:  each element's shadow root put in its place under `root`, as the page shows it:
+ * its `<slot>`s holding the element's children, a named one those with that `slot`.
+ * - So the printed page shows what a person sees:  `<solitaire-tableau>` holding its drawing, its cards in it.
+ * - Shadow roots inside shadow roots too.
+ */
+function withShadowsInPlace(root: ParentNode) {
+  for (const host of [...root.querySelectorAll("*")]) {
+    const shadow = host.shadowRoot
+    if (!shadow) continue
+    withShadowsInPlace(shadow)
+    const children = [...host.childNodes]
+    for (const slot of [...shadow.querySelectorAll("slot")]) {
+      const name = slot.getAttribute("name")
+      const slotted = children.filter((child) =>
+        child instanceof Element ? child.getAttribute("slot") === name : name === null
+      )
+      slot.replaceWith(...slotted)
+    }
+    host.replaceChildren(...shadow.childNodes)
+  }
 }
 
 /**

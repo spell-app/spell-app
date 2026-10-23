@@ -48,7 +48,7 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
 
   const { loadImport } = options
   if (!loadImport && projectImportsOf(compiled).length) {
-    return "This project imports another, which the VS Code runner can't load yet -- run it in the app."
+    return "This project imports another, which this runner can't load."
   }
   const { coreUrl } = options
   // blob URL of each project linked this run, by id
@@ -282,7 +282,7 @@ export function linkModule(source: string, coreUrl: string, imports: Record<stri
   })
 }
 
-/** Ids of the projects `source` imports, each once, in order -- e.g. `@spell/examples/drawable-solitaire`. */
+/** Ids of the projects `source` imports, each once, in order -- e.g. `@spell/examples/Solitaire`. */
 export function projectImportsOf(source: string): string[] {
   const ids = [...source.matchAll(SPELL_IMPORT)]
     .map(([, , specifier]) => specifier)

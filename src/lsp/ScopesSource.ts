@@ -32,9 +32,9 @@ export type ScopesSource = {
 
 /** How a `ScopesSource` from packs gets what they leave out -- see `scopesFromPacks()`. */
 export type ScopesSourceHooks = {
-  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell` -- if it can be had. */
+  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell` -- if it can be had. */
   loadSource?: (uri: string) => Promise<string | undefined>
-  /** Compiled javascript of project `projectId`, e.g. `@spell/examples/drawable-solitaire` -- if it can be had. */
+  /** Compiled javascript of project `projectId`, e.g. `@spell/examples/Solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
   /**
    * Project `projectId`'s declarations, its `<Project>.declarations.json5` -- if it can be had:
@@ -52,7 +52,12 @@ export type CompiledDeclarations = {
   statements: MarkerDeclaration[]
   /** Where each statement's code starts in the compiled javascript:  its line, from 0. */
   codeLines?: number[]
-  /** The human language the project is written in, e.g. `es`;  missing for English. */
+  /**
+   * The human languages the project's files are written in, the one it speaks first, e.g. `["es", "en"]`;
+   * missing for English alone -- see `SP.SpellDeclarationsData.languages`.
+   */
+  languages?: string[]
+  /** DEPRECATED:  the ONE language of declarations from before epic `spanish` P19 -- read, never written. */
   language?: string
 }
 
@@ -354,7 +359,7 @@ function linesOf(source: string | undefined, line: ScopeLine): string | undefine
     .trimEnd()
 }
 
-/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell`. */
+/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell`. */
 function splitSpellUri(uri: string): { projectId: string; filePath: string } {
   const { projectId, rest } = SpellUrls.split(decodeURI(uri.replace(/^spell:\//, "")))
   return { projectId, filePath: rest && `/${rest}` }

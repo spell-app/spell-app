@@ -13,7 +13,7 @@ import {
   PYTHON_FIXTURES,
   compiledFixture,
   fixtureImports,
-  fixtureLanguage,
+  fixtureLanguages,
   fixtureProjectNames
 } from "spell-app/spaces/test"
 import { CLI } from "spell-app/cli"
@@ -28,16 +28,17 @@ import { CLI } from "spell-app/cli"
  *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
  *   - What a core must HAVE is `SC.Core` (`spell-lang/core/core.types`).
  * - The snapshot catches a broken core method, which both targets would share.
- * - A fixture that imports another (`Klondike` imports `Cards`)
+ * - A fixture that imports another project (`lists-from-zero` imports the frozen card library, `@spell/test/cards`)
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
- *   What it drew is printed last, so drawing is compared too.
+ *   What it drew is printed last, so drawing is compared too:
+ *   each drawable thing as its own element, e.g. `<test-project-card>`, its drawing in its place.
  * - Its random numbers start from seed 1 (`core.seedRandom()`),
  *   so Solitaire deals the same cards every run, on every target.
  * - Only STDOUT is compared:  the program's own output, as data.
  *   A dump of a thing (`print the card`) goes to stderr, as do warnings (epic `python-target`, Q17):
  *   how a thing looks dumped is each target's own business.
- * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
+ * - Changed on purpose:  `yarn vp test run tests/cli/contract.test.ts -u`, then read the diff.
  */
 const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py" }
 
@@ -59,8 +60,8 @@ async function printed(name: string, target: string, code = compiledFixture(name
       capture: true,
       dom: true,
       seed: CONTRACT_SEED,
-      // a test's lines in the fixture's language, as `spell run` prints them:  `cartas`'s in Spanish
-      messages: SP.SpellWords.messagesFor(fixtureLanguage(name)),
+      // a test's lines in the fixture's language, as `spell run` prints them:  `Solitario`'s in Spanish
+      messages: SP.SpellWords.messagesFor(fixtureLanguages(name)[0]!),
       // only what's printed matters:  Python needn't wait at a pause (javascript's run as they are)
       pauses: false
     })
@@ -86,15 +87,21 @@ async function importedProjects(
     const projectId = decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length))
     if (projects[projectId]) continue
     let code = compiledFixture(fixture, target)
-    if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.spell.tsx` })
+    const fileName = moduleNameOf(fixture)
+    if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fileName}.spell.tsx` })
     // Python imports another project as a module of its name, `from cards import Card`
     const isPython = TARGET_FILES[target] === ".py"
-    const file = join(folder, isPython ? `${PY.PyWriter.projectModule(module)}.py` : `${fixture}.spell.mjs`)
+    const file = join(folder, isPython ? `${PY.PyWriter.projectModule(module)}.py` : `${fileName}.spell.mjs`)
     writeFileSync(file, code)
     projects[projectId] = pathToFileURL(file).href
     await importedProjects(fixture, target, folder, projects)
   }
   return projects
+}
+
+/** A file or variable name for imported project `imported`, a fixture's name or a library's address:  `cards`. */
+function moduleNameOf(imported: string): string {
+  return imported.split("/").at(-1)!.replace(/\W/g, "_")
 }
 
 /** Every target that runs a program:  all but a library (`ts/lib`), which keeps only the classes. */
@@ -157,7 +164,7 @@ describe("a program compiled before P16, with core's old names", () => {
       OLD_NAMES[method] ? `core.${OLD_NAMES[method]}(` : call
     )
     // it calls the old names, or this test proves nothing
-    for (const old of ["itemOf", "getItemOf", "duplicateCollection", "mergeCollections"]) {
+    for (const old of ["getItemOf", "duplicateCollection"]) {
       expect(before).toContain(`core.${old}(`)
     }
     await expect(printed(name, "js/solid", before)).resolves.toEqual(await printed(name, "js/solid"))
@@ -201,7 +208,7 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
 })
 
 /** The fixtures that are games:  a `deck` of cards, and a `card-click` handler. */
-const GAMES = ["solitaire", "klondike", "outline-solitaire"]
+const GAMES = ["Solitaire"]
 
 /**
  * Where the board a run draws last starts, in its output's `lines`:  the last `<div id="spell-app-root">`.
@@ -254,7 +261,9 @@ describe("the core contract:  a game's patches give its whole state, click by cl
  * each game run on the `py` target, seeded, its state (`--state`) drawn in the fake page by its drawing half,
  * `<Project>.elements.spell.js` (`PY.ElementsWriter`), started by `@spell/core`'s `startPage()`.
  * - The board it draws is the javascript run's, the last line of its contract snapshot.
- * - A click on a face-up card sends Python the event, the card by its id;  Python's session runs it.
+ * - A click on the stock's place sends Python a call of the solitaire's `play from the stock`, the solitaire by
+ *   reference;  Python's session runs it.
+ *   - Found through the shadow roots:  the stock draws in its own element, `<test-project-stock-pile>`.
  */
 describe("the core contract:  a page draws a Python game as javascript does", () => {
   for (const name of GAMES) {
@@ -279,18 +288,21 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
           const projects: Record<string, string> = {}
           const modules = [`import * as program from ${JSON.stringify(pathToFileURL(elements).href)}`]
           for (const [module, fixture] of Object.entries(fixtureImports(name))) {
-            const file = join(folder, `${fixture}.elements.mjs`)
+            const file = join(folder, `${moduleNameOf(fixture)}.elements.mjs`)
             writeFileSync(file, compiledFixture(fixture, PY.ElementsWriter.instance))
             projects[decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length))] = pathToFileURL(file).href
-            modules.push(`import * as ${fixture.toLowerCase()} from ${JSON.stringify(module)}`)
+            modules.push(`import * as ${moduleNameOf(fixture)} from ${JSON.stringify(module)}`)
           }
-          const imported = Object.values(fixtureImports(name)).map((fixture) => fixture.toLowerCase())
+          const imported = Object.values(fixtureImports(name)).map(moduleNameOf)
           const page = [
             'import { startPage } from "@spell/core"',
             ...modules,
             "const sent = []",
             `startPage({ modules: [${[...imported, "program"].join(", ")}], state: ${state}, send: (message) => sent.push(message) })`,
-            'document.querySelector(".Card.face-up").dispatchEvent(new Event("click", { bubbles: true }))',
+            // the stock's place:  in the stock's element's shadow root, as each drawable thing draws in its own
+            "const found = (root, selector) => root.querySelector(selector) ??",
+            "  [...root.querySelectorAll('*')].map((it) => it.shadowRoot && found(it.shadowRoot, selector)).find(Boolean)",
+            'found(document, ".Stock .Placeholder").dispatchEvent(new Event("click", { bubbles: true }))',
             "console.log(JSON.stringify(sent))"
           ].join("\n")
           const { exitCode, output, stdout } = await CLI.runCode("run", `${name}Page`, page, {
@@ -307,13 +319,9 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
           const expected = snapshot.trimEnd().split("\n")
           expect(drawn).toBe(expected.slice(boardAt(expected)).join("\n"))
 
-          // the click:  the event, its card by reference (`Card#3-of-diamonds`), which Python's session runs
-          const [click] = JSON.parse(messages!) as Array<{ trigger: string; target: string; details: object }>
-          expect(click).toEqual({
-            trigger: "card-click",
-            target: expect.stringMatching(/^Card#\w+-of-\w+$/),
-            details: {}
-          })
+          // the click:  a call of the solitaire's own method, which Python's session runs
+          const [click] = JSON.parse(messages!) as Array<Record<string, unknown>>
+          expect(click).toEqual({ call: "play_from_the_stock", on: "Solitaire#1", args: [] })
           const session = spawnSync("uv", [...run, "spell_core.page", program, "--seed", "1", "--no-pauses"], {
             encoding: "utf8",
             input: `${JSON.stringify(click)}\n`

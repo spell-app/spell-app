@@ -15,13 +15,13 @@ import { createRequire } from "module"
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, dirname, resolve } from "path"
-import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
+import { afterAll, beforeAll, describe, test, expect, onTestFinished, vi } from "vite-plus/test"
 
 import { SRV } from "spell-kit/server"
 import { pageServerRoot } from "spell-kit/server/page/settings"
 import { buildFolderFor } from "spell-app/spaces/server/node/projects/project-utils"
 import { SP } from "spell-lang/spell"
-import { fixturePath } from "spell-app/spaces/test"
+import { fixturePath, fixtureFolder } from "spell-app/spaces/test"
 
 /**
  * The real `spell` command, end to end:  the kit's `bin/spell.mjs` run as a separate process, as a user would,
@@ -45,6 +45,9 @@ const REPO_ROOT = resolve(import.meta.dirname, "..", "..")
 const SERVER_ROOT = pageServerRoot(REPO_ROOT)
 
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
+/** The card library's folder:  its files are spell files a test can name, `Card.spell`. */
+const SOLITAIRE = fixtureFolder("Solitaire")
+
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 
@@ -56,8 +59,8 @@ function filesIn(folder: string): Record<string, number> {
 
 /** Each file in fixture `name`'s folder AND its build folder (`buildFolderFor()`), by path:  see `filesIn()`. */
 function fixtureFiles(name: string): Record<string, number> {
-  const built = buildFolderFor(fixturePath(name))
-  return { ...filesIn(fixturePath(name)), ...prefixed("build/", filesIn(built)) }
+  const built = buildFolderFor(fixtureFolder(name))
+  return { ...filesIn(fixtureFolder(name)), ...prefixed("build/", filesIn(built)) }
 }
 
 /** `files`, each name starting with `prefix`. */
@@ -162,26 +165,37 @@ describe("spell app serve", () => {
       const port = 3700 + Math.floor(Math.random() * 200) * 2
       const child = spawn(
         process.execPath,
-        [SPELL, "app", "serve", "@spell/test/solitaire", "--headless", "--port", String(port)],
+        [SPELL, "app", "serve", "@spell/examples/Solitaire", "--headless", "--port", String(port)],
         {
           cwd: TEMP,
           stdio: ["ignore", "pipe", "pipe"]
         }
       )
+      // a failed check skips the Ctrl-C below:  stop it anyway, and so the page server it started
+      onTestFinished(() => {
+        if (child.exitCode === null && child.signalCode === null) child.kill("SIGINT")
+      })
       let out = ""
       let err = ""
       child.stdout.on("data", (data) => (out += data))
       child.stderr.on("data", (data) => (err += data))
       await until(() => out.includes("http://") || child.exitCode !== null, 120_000)
-      expect(out, err).toMatch(/^http:\/\/localhost:\d+\/edit\/@spell\/test\/solitaire\n$/)
+      expect(out, err).toMatch(/^http:\/\/localhost:\d+\/edit\/@spell\/examples\/Solitaire\n$/)
       const editor = new URL(out.trim()).origin
       if (!running) expect(editor).toBe(`http://localhost:${port}`)
       expect(await (await fetch(`${editor}/`)).text()).toContain("<html")
-      const projects = await (await fetch(`${editor}/api/projects/list/@spell/test`)).text()
-      expect(projects).toContain("@spell/test/solitaire")
+      // the page it opens loads its app:  each module script, and what each imports, asked for as a browser asks
+      const scripts = await moduleScripts(out.trim())
+      expect(scripts.filter((script) => script.endsWith("/src/app/index.tsx"))).toHaveLength(1)
+      for (const script of scripts) {
+        const response = await fetch(script, { headers: SCRIPT_REQUEST })
+        expect(`${response.status} ${response.headers.get("content-type")}`, script).toBe("200 text/javascript")
+      }
+      const projects = await (await fetch(`${editor}/api/projects/list/@spell/examples`)).text()
+      expect(projects).toContain("@spell/examples/Solitaire")
       // a file by its URL, `/spaces/<address>`, through vite's proxy
-      const card = await fetch(`${editor}/spaces/@spell/test/solitaire/Card.spell`)
-      expect(card.status).toBe(200)
+      const file = await fetch(`${editor}/spaces/@spell/examples/Solitaire/Solitaire.spell`)
+      expect(file.status).toBe(200)
 
       child.kill("SIGINT")
       expect(await new Promise((done) => child.on("exit", done))).toBe(0)
@@ -236,10 +250,11 @@ describe("spell compile", () => {
   })
 
   test("a spell file prints its javascript", () => {
-    const { status, stdout } = spell(["compile", "Card.spell"], fixturePath("solitaire"))
+    // Solitaire's card
+    const { status, stdout } = spell(["compile", "Card.spell"], SOLITAIRE)
     expect(status).toBe(0)
     // after the file's heading and docstring;  just code:  declarations go in the project's declarations file
-    expect(stdout).toMatch(/^core\.heading\(.*\n.*\nexport class Card extends Thing \{/)
+    expect(stdout).toMatch(/^core\.heading\([^]*\nexport class Card extends Drawable \{/)
     expect(stdout).not.toContain("SPELL:")
   })
 
@@ -247,9 +262,7 @@ describe("spell compile", () => {
     const { status, stdout, stderr } = spell(["compile", "@spell/test"])
     expect(status).toBe(2)
     expect(stdout).toBe("")
-    expect(stderr).toContain(
-      "@spell/test holds several projects -- name one, or pass --all:\n  @spell/test/card-table\n"
-    )
+    expect(stderr).toContain("@spell/test holds several projects -- name one, or pass --all:\n  @spell/test/cards\n")
   })
 
   test("an unknown project", () => {
@@ -262,16 +275,16 @@ describe("spell compile", () => {
   // which `yarn scopes` can't show here:  it takes a root's project id, not a temp folder.
   test("a clean project writes its words and scope pack too", () => {
     const copy = resolve(TEMP, "Solitaire")
-    cpSync(fixturePath("solitaire"), copy, { recursive: true })
+    cpSync(fixtureFolder("Solitaire"), copy, { recursive: true })
     const { status, stderr } = spell(["compile", "."], copy)
     expect(status).toBe(0)
     const wrote = [SP.COMPILED_JS_SUFFIX, SP.DECLARATIONS_JSON_SUFFIX, SP.WORDS_JS_SUFFIX, SP.SCOPES_JS_SUFFIX]
     expect(stderr).toContain(`wrote ${wrote.map((suffix) => `Solitaire${suffix}`).join(", ")}`)
     const pack = readFileSync(resolve(copy, `Solitaire${SP.SCOPES_JS_SUFFIX}`), "utf8")
-    expect(pack).toContain("type:Card")
+    expect(pack).toContain("type:Tableau")
     expect(pack).not.toContain("file://")
     const words = readFileSync(resolve(copy, `Solitaire${SP.WORDS_JS_SUFFIX}`), "utf8")
-    expect(words).toContain('moveToPile: "move (a card) to (a pile)"')
+    expect(words).toContain('dealTheCards: "deal the cards"')
   }, 30_000)
 
   test("a project with errors writes no scope pack", () => {
@@ -301,8 +314,8 @@ describe("spell lint", () => {
   })
 
   test("a clean project:  nothing on stdout, exit 0", () => {
-    const { status, stdout, stderr } = spell(["lint", "@spell/test/solitaire"])
-    expect(stderr).toContain("✓ @spell/test/solitaire")
+    const { status, stdout, stderr } = spell(["lint", "@spell/examples/Solitaire"])
+    expect(stderr).toContain("✓ @spell/examples/Solitaire")
     expect(stdout).toBe("")
     expect(status).toBe(0)
   })
@@ -415,26 +428,26 @@ const CARD_PAGE = `<ui-property-editor schema="Card" label="Card">
 
 describe("spell describe", () => {
   test("a file:  what it declares", () => {
-    const { status, stdout } = spell(["describe", "Card.spell"], fixturePath("solitaire"))
+    const { status, stdout } = spell(["describe", "Card.spell"], SOLITAIRE)
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Card\.spell\n {2}type Card {2}is a Thing\n/)
+    expect(stdout).toMatch(/^Card\.spell\n {2}type Card {2}is a Drawable\n/)
   })
 
   test("one thing, by name -- ignoring case, and spaces ~== `_`", () => {
-    const { status, stdout } = spell(["describe", ".", "STOCK pile"], fixturePath("solitaire"))
+    const { status, stdout } = spell(["describe", ".", "STOCK pile"], fixtureFolder("Solitaire"))
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^type StockPile is a Pile\nSolitaire\.spell:\d+\n/)
+    expect(stdout).toMatch(/^type StockPile is a StackedPile\nSolitaire\.spell:\d+\n/)
   })
 
   test("a member of a thing", () => {
-    const { stdout } = spell(["describe", "@spell/test/solitaire", "card", "color"])
+    const { stdout } = spell(["describe", "@spell/examples/Solitaire", "card", "color"])
     expect(stdout).toMatch(/^property color of Card\n/)
   })
 
   test("an unknown name", () => {
-    const { status, stderr } = spell(["describe", "@spell/test/solitaire", "wombat"])
+    const { status, stderr } = spell(["describe", "@spell/examples/Solitaire", "wombat"])
     expect(status).toBe(2)
-    expect(stderr).toContain("Nothing called 'wombat' in @spell/test/solitaire")
+    expect(stderr).toContain("Nothing called 'wombat' in @spell/examples/Solitaire")
   })
 })
 
@@ -460,8 +473,8 @@ describe("spell run", () => {
   })
 
   test("--target ts on a program that draws:  runs what it can, and says it can't open in a browser yet", () => {
-    const { status, stderr } = spell(["run", "@spell/test/solitaire", "--target", "ts", "--seed", "1"])
-    expect(stderr).toContain("solitaire draws:  its ts/solid can't open in a browser yet")
+    const { status, stderr } = spell(["run", "@spell/examples/Solitaire", "--target", "ts", "--seed", "1"])
+    expect(stderr).toContain("Solitaire draws:  its ts/solid can't open in a browser yet")
     expect(status).toBe(0)
   })
 
@@ -472,15 +485,15 @@ describe("spell run", () => {
   })
 
   test("--no-browser:  skips what needs a browser, and says so", () => {
-    const { status, stderr } = spell(["run", "@spell/test/solitaire", "--no-browser"])
-    expect(stderr).toContain("solitaire shows a UI (start the game), which needs a browser")
+    const { status, stderr } = spell(["run", "@spell/examples/Solitaire", "--no-browser"])
+    expect(stderr).toContain("Solitaire shows a UI (start the solitaire), which needs a browser")
     expect(status).toBe(0)
   })
 
   test("a UI project runs in the browser, in <spell-app>, until interrupted -- writing nothing into it", async () => {
     // the fixture's files and its build folder's, each by when it last changed:  none added or written by the run
-    const before = fixtureFiles("solitaire")
-    const child = spawn(process.execPath, [SPELL, "run", "@spell/test/solitaire"], {
+    const before = fixtureFiles("Solitaire")
+    const child = spawn(process.execPath, [SPELL, "run", "@spell/examples/Solitaire"], {
       cwd: fixturePath(),
       env: { ...process.env, SPELL_NO_BROWSER: "1" },
       stdio: ["ignore", "pipe", "pipe"]
@@ -490,23 +503,24 @@ describe("spell run", () => {
     // after what the program printed as it ran under node
     await until(() => /http:\/\/localhost:\d+\/\n/.test(out), 120_000)
     const url = /http:\/\/localhost:\d+\//.exec(out)![0]
-    expect(await (await fetch(url)).text()).toContain('<spell-app src="app/solitaire.spell.js" toolbar>')
-    expect(await (await fetch(new URL("app/solitaire.spell.js", url))).text()).toContain("class Card")
-    expect(await (await fetch(new URL("app/solitaire.scopes.js", url))).text()).toContain("type:Card")
+    expect(await (await fetch(url)).text()).toContain('<spell-app src="app/Solitaire.spell.js" toolbar>')
+    expect(await (await fetch(new URL("app/Solitaire.spell.js", url))).text()).toContain("class Tableau")
+    expect(await (await fetch(new URL("app/Solitaire.scopes.js", url))).text()).toContain("type:Tableau")
     expect((await fetch(new URL("element/spell-app.js", url))).status).toBe(200)
     expect((await fetch(new URL("element/../../package.json", url))).status).toBe(404)
 
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)
-    expect(fixtureFiles("solitaire")).toEqual(before)
+    expect(fixtureFiles("Solitaire")).toEqual(before)
   }, 180_000)
 })
 
 describe("spell test", () => {
-  test("reports each test -- counting one the project ran itself only once", () => {
-    const { status, stdout } = spell(["test", "@spell/test/solitaire"])
-    expect(stdout).toMatch(
-      /^✓ test card setup {2}\(\d+ checks\)\n✓ test deck creation {2}\(\d+ checks\)\n\n2 passed\n$/
+  test("reports each test -- its cards', deck's and piles', then its game's", () => {
+    const { status, stdout } = spell(["test", "@spell/examples/Solitaire"])
+    const tests = ["card setup", "jokers", "deck creation", "deck with jokers", "piles", "the moves"]
+    expect(stdout).toBe(
+      `${tests.map((name) => `✓ test ${name}  (${stdout.match(new RegExp(`test ${name}  \\((\\d+) checks`))?.[1]} checks)\n`).join("")}\n6 passed\n`
     )
     expect(status).toBe(0)
   })
@@ -652,9 +666,11 @@ describe("spell compile --stale", () => {
 
 describe("spell test --name", () => {
   test("only tests whose names contain it", () => {
-    const { status, stdout } = spell(["test", "@spell/test/solitaire", "--name", "deck"])
+    const { status, stdout } = spell(["test", "@spell/examples/Solitaire", "--name", "deck"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^✓ test deck creation {2}\(\d+ checks\)\n\n1 passed\n$/)
+    expect(stdout).toMatch(
+      /^✓ test deck creation {2}\(\d+ checks\)\n✓ test deck with jokers {2}\(\d+ checks\)\n\n2 passed\n$/
+    )
   })
 })
 
@@ -662,23 +678,17 @@ describe("spell projects", () => {
   test("lists the groups, each by its address", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@spell\/test +Test fixtures +12 projects$/m)
+    expect(stdout).toMatch(/^@spell\/test +Test fixtures +6 projects$/m)
     expect(stdout).toMatch(/^owen@spell +Projects /m)
   })
 
   test("one group's projects, as JSON", () => {
     const { stdout } = spell(["projects", "@spell/test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
-      { name: "card-table", id: "@spell/test/card-table" },
       { name: "cards", id: "@spell/test/cards" },
-      { name: "cards-from-zero", id: "@spell/test/cards-from-zero" },
-      { name: "cartas", id: "@spell/test/cartas" },
-      { name: "drawable-solitaire", id: "@spell/test/drawable-solitaire" },
       { name: "fizzbuzz", id: "@spell/test/fizzbuzz" },
-      { name: "klondike", id: "@spell/test/klondike" },
-      { name: "outline-solitaire", id: "@spell/test/outline-solitaire" },
+      { name: "lists-from-zero", id: "@spell/test/lists-from-zero" },
       { name: "people", id: "@spell/test/people" },
-      { name: "solitaire", id: "@spell/test/solitaire" },
       { name: "thing-references", id: "@spell/test/thing-references" },
       { name: "todos-form-based", id: "@spell/test/todos-form-based" }
     ])
@@ -699,7 +709,7 @@ describe("spell format", () => {
   })
 
   test("never writes into a test project", () => {
-    const { status, stderr } = spell(["format", "@spell/test/solitaire"])
+    const { status, stderr } = spell(["format", "@spell/test/fizzbuzz"])
     expect(status).toBe(2)
     expect(stderr).toContain("Won't format test projects")
   })
@@ -726,7 +736,7 @@ describe("spell parse", () => {
 
   test("--in a project knows its types", () => {
     expect(spell(["parse", "a new card"]).status).toBe(1)
-    const { status, stdout } = spell(["parse", "a new card", "--in", "@spell/test/solitaire"])
+    const { status, stdout } = spell(["parse", "a new card", "--in", "@spell/examples/Solitaire"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/\nnew Card\(\)\n$/)
   })
@@ -775,9 +785,16 @@ describe("spell explain", () => {
   })
 
   test("--in a project:  what it declares, as the editor's hover shows it", () => {
-    const { status, stdout } = spell(["explain", "card", "--in", "@spell/test/solitaire"])
+    const { status, stdout } = spell(["explain", "tableau", "--in", "@spell/examples/Solitaire"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/Card\.spell:2\ntype Card is a Thing\n/)
+    expect(stdout).toMatch(/Solitaire\.spell:\d+\ntype Tableau is a Pile\n/)
+  })
+
+  test("--in a project:  what the projects it imports declare, too", () => {
+    // `card` is the frozen card library's, which lists-from-zero imports
+    const { status, stdout } = spell(["explain", "card", "--in", "@spell/test/lists-from-zero"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/(^|\/)cards\/Card\.spell:\d+\ntype Card is a Drawable\n/)
   })
 
   test("nothing by that name", () => {
@@ -814,4 +831,31 @@ async function until(condition: () => boolean, ms = 15_000): Promise<void> {
     if (Date.now() - start > ms) throw new Error("timed out")
     await new Promise((done) => setTimeout(done, 50))
   }
+}
+
+/**
+ * The headers a browser sends for a module script.
+ * - Vite answers a file it can't find with a 404 only when asked this way:
+ *   any other request for it gets the editor's page, a 200 (its fallback for the app's own URLs, `/edit/...`).
+ */
+const SCRIPT_REQUEST = { accept: "*/*", "sec-fetch-dest": "script" }
+
+/**
+ * The module scripts the page at `url` loads, and the ones each of them imports by path, as full URLs.
+ * - Only one level of imports:  the app's entry, under Vite's inline-script module, and Vite's own client's.
+ * - Epic `repo-split` I72:  the editor's page asked for its entry outside Vite's root, `/src/app/index.tsx`,
+ *   and drew nothing.
+ */
+async function moduleScripts(url: string): Promise<string[]> {
+  const page = await (await fetch(url, { headers: { accept: "text/html" } })).text()
+  const scripts = [...page.matchAll(/<script\b[^>]*\btype="module"[^>]*\bsrc="([^"]+)"/g)].map(
+    ([, src]) => new URL(src!.replaceAll("&amp;", "&"), url).href
+  )
+  const imported = await Promise.all(
+    scripts.map(async (script) => {
+      const code = await (await fetch(script, { headers: SCRIPT_REQUEST })).text()
+      return [...code.matchAll(/\b(?:from|import)\s*["'](\/[^"']+)["']/g)].map(([, path]) => new URL(path!, url).href)
+    })
+  )
+  return [...new Set([...scripts, ...imported.flat()])]
 }

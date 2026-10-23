@@ -7,7 +7,7 @@ const ROOT = {
   kind: "root",
   arg: "@spell/test",
   title: "Test fixtures",
-  projectIds: ["@spell/test/fizzbuzz", "@spell/test/solitaire"]
+  projectIds: ["@spell/test/fizzbuzz", "@spell/test/people"]
 } as const satisfies CLI.CliProject
 
 const DOWN = "\u001B[B"
@@ -46,7 +46,7 @@ describe("<ProjectPicker>", () => {
 
   test("picks just one", async () => {
     const { onPick } = await pickWith(DOWN, DOWN, ENTER)
-    expect(onPick).toHaveBeenCalledWith(["@spell/test/solitaire"])
+    expect(onPick).toHaveBeenCalledWith(["@spell/test/people"])
   })
 
   test("Esc cancels", async () => {

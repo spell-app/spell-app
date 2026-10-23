@@ -60,7 +60,7 @@ async function runPython(
     if (seed !== undefined) args.push("--seed", String(seed))
     if (!pauses) args.push("--no-pauses")
     if (dom) args.push("--page")
-    // what the core says in the project's language:  a words file of messages alone, as `load_words()` reads one
+    // what the core says in the language the program speaks:  a words file of messages alone, as `load_words()` reads one
     if (messages) {
       const words = resolve(folder, `${name}.py.words.json5`)
       writeFileSync(words, JSON.stringify({ types: {}, messages }))
@@ -179,7 +179,8 @@ export async function runCompiled(
 ): Promise<ChildResult> {
   const name = project.projectName ?? project.projectId
   const code = project.outputFile.contents ?? ""
-  const messages = SP.SpellWords.messagesFor(project.language.lang)
+  // in the language it speaks:  its app's file's, else its first file's (`SP.SpellDeclarations.speakingFirst()`)
+  const messages = SP.SpellWords.messagesFor(project.wordsLanguages[0]!)
   return runCode(mode, name, code, { ...options, projects: importedOutputs(project), capture, messages })
 }
 
@@ -192,7 +193,7 @@ export async function runCompiled(
  * - `dom`:  in a fake page, printing what it draws -- see `CLI.RunSpec`.
  * - `seed`:  its random numbers start from it -- see `CLI.RunSpec`.
  * - `pauses`:  `false`, a pause doesn't wait -- Python only, so far (`runPython()`).
- * - `messages`:  what the core says, in the project's language, e.g. a test's lines -- see `CLI.RunSpec`.
+ * - `messages`:  what the core says, in the language the program speaks, e.g. a test's lines -- see `CLI.RunSpec`.
  * - A `.py` (the `py` target's Python) runs under Python instead -- see `runPython()`.
  * - Used by the core contract test, `contract.test.ts`, to run each target's code the same way.
  */

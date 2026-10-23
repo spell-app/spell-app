@@ -104,7 +104,7 @@ export type HighlightSpan = {
 
 /** Answer to `spell/project`:  a project's spell files in parse order, with their error counts. */
 export type ProjectInfo = {
-  /** Project id, e.g. `@spell/examples/drawable-solitaire`. */
+  /** Project id, e.g. `@spell/examples/Solitaire`. */
   project: string
   /** Active spell files, in the order they parse. */
   files: Array<{ uri: string; file: string; errors: number }>
@@ -117,8 +117,11 @@ export type ProjectInfo = {
    * - NOT necessarily where its compiled javascript is:  ask for that by `compiledUri`.
    */
   folderUri: string
-  /** URI of its words, `<Project>.en.js`, beside its spell files -- whether or not it's been compiled yet. */
-  wordsUri: string
+  /**
+   * URIs of its words, `<Project>.en.js`, beside its spell files -- whether or not it's been compiled yet.
+   * - One per language its files are in, the one it speaks first (epic `spanish` P19):  `SP.SpellProject.wordsFiles`.
+   */
+  wordsUris: string[]
 }
 
 /**
@@ -263,6 +266,19 @@ export type CompiledParams = {
   uri: string
   /** Which code:  javascript if left out. */
   target?: CompiledTarget
+}
+
+/**
+ * Asked as `spell/compiledImport`:  the compiled javascript of a project the project of `uri` imports,
+ * e.g. `@spell/library/people`, for a runner to link it in -- see `runCompiled()`'s `loadImport`.
+ * - Answered with its `<Project>.spell.js`, read fresh;  compiled first if it has none yet.
+ * - `null` if it can't be loaded or compiled.
+ */
+export type CompiledImportParams = {
+  /** One of the importing project's spell files. */
+  uri: string
+  /** Project imported, as compiled spell names it after `@spell/project/`:  `@spell/library/people`. */
+  projectId: string
 }
 
 /** Sent as `spell/projectCompiled` after a project compiles, e.g. from `spell/compileProject`. */
@@ -436,7 +452,7 @@ const MEMBER_KINDS = SCOPE_MEMBER_GROUPS.flatMap(({ kinds }) => kinds)
 export type ScopePack = {
   /** Version of this FILE FORMAT, for readers -- NOT of the project.  `undefined` === 1. */
   format?: 1
-  /** What it describes, e.g. `@spell/examples/drawable-solitaire`, or `@spell/core` for the built-in types. */
+  /** What it describes, e.g. `@spell/examples/Solitaire`, or `@spell/core` for the built-in types. */
   id: string
   /** What it adds to the tree, in tree order, each with its details -- e.g. its project and those it imports. */
   entries: ScopeEntry[]

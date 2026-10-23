@@ -8,7 +8,13 @@ import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { parseSpellProject, describeParseErrors } from "spell-lang/spell/test"
 import { SPACES } from "spell-app/spaces"
-import { loadFixtureProject, fixturePath, fixtureProjectId, FIXTURES_DIR } from "spell-app/spaces/test"
+import {
+  loadFixtureProject,
+  fixtureFolder,
+  fixtureImportScope,
+  fixtureProjectId,
+  FIXTURES_DIR
+} from "spell-app/spaces/test"
 import { diskFetch, installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { serverPathForRoot } from "spell-app/spaces/server/node/projects/project-utils"
 
@@ -18,7 +24,7 @@ import { serverPathForRoot } from "spell-app/spaces/server/node/projects/project
  */
 describe("diskFetch", () => {
   beforeAll(installDiskFetch)
-  const solitaire = fixtureProjectId("solitaire")
+  const solitaire = fixtureProjectId("Solitaire")
 
   test("a SpellProject loads, parses and compiles from disk the same as the headless reference", async () => {
     const project = new SP.SpellProject(solitaire)
@@ -32,20 +38,30 @@ describe("diskFetch", () => {
     ])
 
     await project.parse()
-    const reference = parseSpellProject(loadFixtureProject("solitaire"))
+    const reference = parseSpellProject(loadFixtureProject("Solitaire"), {
+      parentScope: fixtureImportScope("Solitaire")
+    })
     spellFiles.forEach((file, index) => {
       expect(file.match, file.path).toBeDefined()
       expect(describeParseErrors(file.match)).toEqual(reference.files[index]!.errors)
-      expect(P.JSWriter.instance.writeMatch(file.match)).toEqual(reference.files[index]!.compiled)
+      // its elements' tags say its project's name, `Solitaire`;  the reference's, `test-project`
+      const compiled = String(P.JSWriter.instance.writeMatch(file.match)).replaceAll(
+        'this, "Solitaire")',
+        'this, "test-project")'
+      )
+      expect(compiled).toEqual(reference.files[index]!.compiled)
     })
   })
 
   test("it answers a file's URL, split by its group and project:  `/spaces/<project>/<file>`", async () => {
-    const url = SP.SpellUrls.fileUrl(`${solitaire}/Card.spell`)
-    expect(url).toBe("/spaces/@spell/test/solitaire/Card.spell")
-    expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("solitaire", "Card.spell"), "utf8"))
+    const url = SP.SpellUrls.fileUrl(`${solitaire}/Solitaire.spell`)
+    expect(url).toBe("/spaces/@spell/examples/Solitaire/Solitaire.spell")
+    expect(await diskFetch({ url })).toBe(readFileSync(fixtureFolder("Solitaire", "Solitaire.spell"), "utf8"))
     expect(await diskFetch({ url: SP.SpellUrls.indexUrl(solitaire) })).toHaveProperty("imports")
-    expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/test") })).toContainEqual({ path: solitaire })
+    expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/examples") })).toContainEqual({
+      path: solitaire,
+      title: "Solitaire"
+    })
   })
 
   test("a missing file falls back to `defaultContents`, else fails like a 404", async () => {
@@ -58,7 +74,9 @@ describe("diskFetch", () => {
 
   describe("locationForDiskPath", () => {
     test("a file under a known root's folder maps onto that root", () => {
-      expect(locationForDiskPath(fixturePath("solitaire", "Card.spell"))?.path).toBe(`${solitaire}/Card.spell`)
+      expect(locationForDiskPath(fixtureFolder("Solitaire", "Solitaire.spell"))?.path).toBe(
+        `${solitaire}/Solitaire.spell`
+      )
     })
 
     // where each group's folder is -- NOT what's in it, which tests never depend on
@@ -71,7 +89,7 @@ describe("diskFetch", () => {
       expect(environment.systemFilesRoot).toBe(resolve(environment.packagesDir, "spaces", "@spell"))
       // spell's frozen test projects:  beside the built-in groups (spell-lang's until epic `spanish` P18)
       expect(environment.testFilesRoot).toBe(resolve(environment.systemFilesRoot, "test"))
-      expect(existsSync(resolve(environment.testFilesRoot, "solitaire", "__project.json5"))).toBe(true)
+      expect(existsSync(resolve(environment.testFilesRoot, "fizzbuzz", "__project.json5"))).toBe(true)
     })
 
     test("the test helpers and spaces agree where the test projects are, and whose space is yours", () => {

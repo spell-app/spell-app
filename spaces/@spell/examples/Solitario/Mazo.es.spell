@@ -1,0 +1,51 @@
+## Un mazo:  las 52 cartas de una baraja estándar de EE. UU., el as de tréboles primero -- y sus dos comodines, si los pides
+// Lee los palos y rangos propios de la carta:  `palos de carta`, `rangos de carta`.
+un "mazo" es una lista de cartas donde:
+	// sin comodines, a menos que se haga `con comodines`
+	- su "comodines" es sí o no
+
+	// un mazo nuevo tiene una carta de cada, el as de tréboles primero, luego sus dos comodines, el rojo y luego el negro
+	- para crearlo:
+		para cada rango en rangos de carta
+			para cada palo en palos de carta
+				// `el mazo`, no `eso`:  en un `para cada`, `eso` es el elemento del bucle, aquí el palo
+				agregar (una nueva carta con rango = el rango, palo = el palo) al mazo
+		si sus comodines es sí
+			agregar (un nuevo comodín con color = rojo) al mazo
+			agregar (un nuevo comodín con color = negro) al mazo
+
+	// muestra los nombres cortos de sus cartas, de arriba abajo
+	- para mostrarlo:
+		poner nombres cortos a una nueva lista de texto
+		para cada carta en el mazo
+			agregar el nombre corto de la carta a nombres cortos
+		eco "mazo: " + nombres cortos
+
+
+## Pruebas
+para probar la creación del mazo
+	el mazo es un nuevo mazo
+	el número de cartas en el mazo debería ser 52
+	poner las damas a las cartas en el mazo donde el rango de la carta es dama
+	el número de cartas en las damas debería ser 4
+	el nombre de la carta de arriba del mazo debería ser "as-de-tréboles"
+	el nombre de la carta de abajo del mazo debería ser "rey-de-espadas"
+	el nombre corto de la carta de arriba del mazo debería ser "A♣️"
+	la primera carta del mazo es el as de tréboles debería ser sí
+
+	eco "el mazo antes de barajar:"
+	mostrar el mazo
+	barajar el mazo
+	el número de cartas en el mazo debería ser 52
+	eco "el mazo después de barajar:"
+	mostrar el mazo
+
+para probar el mazo con comodines
+	el mazo es un nuevo mazo con comodines
+	el número de cartas en el mazo debería ser 54
+	poner las cartas salvajes a las cartas en el mazo donde es un comodín
+	el número de cartas en las cartas salvajes debería ser 2
+	la primera carta del mazo es el as de tréboles debería ser sí
+	// el comodín rojo, luego el negro, al final
+	la última carta del mazo es el comodín negro debería ser sí
+	el nombre de la carta de abajo del mazo debería ser "comodín-negro"

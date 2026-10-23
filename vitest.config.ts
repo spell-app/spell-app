@@ -33,8 +33,10 @@ const APP_TESTS = "tests/app"
  *   same paths their tests had in spell-lang (epic `spanish` P18):  the projects' snapshots, `tsc` and pyright on them,
  *   whole-project parsing.
  *   - No folder of `src/` of its own:  it tests spell-lang's `spell`, by package, on this repo's projects.
- * - The VS Code extension's tests (`vscode/tests/`) are a project of their own, `vscode`, by ITS config:
- *   `vscode/vitest.config.ts`.
+ * - `vscode`:  the VS Code extension's plain-node parts (`vscode/src/`), in `tests/vscode/`;
+ *   the extension is its own yarn project, with no test runner of its own.
+ * - `vscode:elements`:  the extension's elements help (`vscode/tests/`), by ITS config, `vscode/vitest.config.ts`:
+ *   it needs a stand-in `vscode` module.
  * - Python's tests (spaces' web server, `tests/spaces/server/py/`) are pytest's:  `yarn test` runs them after.
  */
 export default defineConfig({
@@ -46,7 +48,8 @@ export default defineConfig({
       ...appProjects(),
       { extends: true, test: { name: "cli", dir: "tests/cli" } },
       { extends: true, test: { name: "spell", dir: "tests/spell" } },
-      // the VS Code extension's:  its own yarn project, so its own config (a stand-in `vscode`)
+      { extends: true, test: { name: "vscode", dir: "tests/vscode", environment: "node" } },
+      // the extension's elements help:  its own config, for a stand-in `vscode`
       "vscode/vitest.config.ts"
     ]
   }

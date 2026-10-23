@@ -18,7 +18,7 @@ import {
  * The spell written in a `<spell-app>`'s layout, compiled in the page against its program (epic `drawable-thing` P9):
  *
  * ```html
- * <spell-app project="@spell/examples/drawable-solitaire">
+ * <spell-app project="@spell/examples/Solitaire">
  *   <ui-text>Score {the score of the game}</ui-text>          <!-- a hole:  shown, and kept up to date -->
  *   <ui-button action={auto-play}>AutoPlay</ui-button>       <!-- an action:  run on a click -->
  *   <solitaire-stock-pile>
@@ -447,7 +447,7 @@ export class LayoutSpell {
 export type LayoutSpellOptions = {
   /** The layout:  the `<spell-app>` whose markup it is. */
   root: Element
-  /** Its project's id, e.g. `@spell/examples/drawable-solitaire`. */
+  /** Its project's id, e.g. `@spell/examples/Solitaire`. */
   projectId: string
   /** Its project's declarations, as its `.declarations.json5` holds them. */
   declarations: unknown

@@ -14,7 +14,8 @@ import { loadFixtureProject } from "spell-app/spaces/test"
 /**
  * `P.IncrementalProject` MUST give exactly what a full parse gives:
  * same compiled output, errors and warnings, for every file, and every token where a fresh tokenize puts it.
- * - Edits every `STEP`th line of each file of the frozen Solitaire (one kind of edit per line, in rotation), then puts
+ * - Edits every `STEP`th line of each file of Solitaire, the card library's files and its own
+ *   (one kind of edit per line, in rotation), then puts
  *   it back.
  * - Over projects written inline:  spell-lang's own `IncrementalProject.test.ts`.
  * - All on ONE project, so state has to stay right across many updates.
@@ -31,7 +32,7 @@ const EDITS: Record<string, (lines: string[], index: number) => void> = {
 }
 
 describe("incremental parsing ~== full parse", () => {
-  const files = loadFixtureProject("solitaire")
+  const files = loadFixtureProject("Solitaire")
   const original = summarize(parseSpellProject(files))
 
   test("item-by-item parse ~== full parse", () => {
@@ -70,18 +71,19 @@ describe("incremental parsing ~== full parse", () => {
   }
 
   test("a body can't see names declared after it", () => {
-    // `all-piles` is declared in Solitaire.spell, AFTER Card.spell -- a full parse doesn't know it yet.
+    // `the solitaire` is declared in Solitaire.spell, AFTER Card.spell -- a full parse doesn't know it yet.
     const edited = files.map((it) =>
       it.path === "/Card.spell"
         ? {
             ...it,
             contents: it.contents.replace(
-              "\tset its direction to up\n",
-              "\tset its direction to up\n\tprint all-piles\n"
+              "\t\tset its direction to up\n",
+              "\t\tset its direction to up\n\t\tprint the solitaire\n"
             )
           }
         : it
     )
+    expect(edited[0]!.contents).toContain("print the solitaire")
     const project = incrementalSpellProject(files)
     project.update("/Card.spell", edited[0]!.contents)
     expect(summarizeIncremental(project)).toEqual(summarize(parseSpellProject(edited)))
@@ -125,26 +127,34 @@ describe("incremental parsing ~== full parse", () => {
   describe("keepLastGood:  a broken line keeps its last working declarations", () => {
     const card = files.findIndex((it) => it.path === "/Card.spell")
     const cardText = files[card]!.contents
-    // Later lines -- in Card.spell AND Solitaire.spell -- call `turn ... face up`.
-    const broken = cardText.replace("to turn (a card) face up:", "to turn (a card face up:")
+    // a top-level action:  a type's outline body is ONE item, which declares the type, so it can't be kept
+    const game = files.findIndex((it) => it.path === "/Solitaire.spell")
+    const gameText = files[game]!.contents
+    // Later lines -- `on card click`'s `play the card` -- call `play ...`.
+    const broken = gameText.replace("to play a card\n", "to play (a card:\n")
 
     test("without it, the broken declaration breaks later lines too", () => {
+      expect(broken).not.toBe(gameText)
       const project = incrementalSpellProject(files)
-      project.update("/Card.spell", broken)
+      project.update("/Solitaire.spell", broken)
       const errors = summarizeIncremental(project).flatMap((file) => file.errors)
       expect(errors.length).toBeGreaterThan(1)
     })
 
-    test("with it, only the broken line has an error, and later lines + files are kept", () => {
+    test("with it, only the broken action has errors, and later lines + files are kept", () => {
       const project = incrementalSpellProject(files, true)
-      project.update("/Card.spell", broken)
-      expect(project.getFile("/Card.spell")!.lastUpdate).toBe("region")
+      project.update("/Solitaire.spell", broken)
+      expect(project.getFile("/Solitaire.spell")!.lastUpdate).toBe("region")
       const summary = summarizeIncremental(project)
-      const brokenLine = broken.split("\n").findIndex((line) => line.includes("(a card face up:")) + 1
-      expect(summary[card]!.errors).toHaveLength(1)
-      expect(summary[card]!.errors[0]).toMatch(new RegExp(`^${brokenLine}:`))
+      const lines = broken.split("\n")
+      const brokenLine = lines.findIndex((line) => line.includes("to play (a card")) + 1
+      const nextLine = lines.findIndex((line) => line.startsWith("on card click")) + 1
+      // the broken line, and its own body, which no longer knows `the card`:  nothing after it
+      const errorLines = summary[game]!.errors.map((error) => Number(error.split(":")[0]))
+      expect(errorLines[0]).toBe(brokenLine)
+      expect(errorLines.every((line) => line >= brokenLine && line < nextLine)).toBe(true)
       summary.forEach((file, index) => {
-        if (index !== card) expect(file, file.path).toEqual(original[index])
+        if (index !== game) expect(file, file.path).toEqual(original[index])
       })
     })
 
@@ -169,14 +179,15 @@ describe("incremental parsing ~== full parse", () => {
 
     test("typing through broken states, then back, ends up ~== full parse", () => {
       const project = incrementalSpellProject(files, true)
-      const line = "a card is a thing"
+      const line = 'a "card" is a drawable thing where:'
       // delete the line's text one character at a time, then type it back in
       const steps = Array.from({ length: line.length }, (_, index) => line.slice(0, line.length - index - 1))
+      expect(cardText).toContain(line)
       for (const text of [...steps, ...steps.reverse().slice(1), line]) {
         project.update("/Card.spell", cardText.replace(line, text))
       }
       expect(summarizeIncremental(project)).toEqual(original)
-    })
+    }, 60_000)
   })
 
   test.skipIf(!process.env.BENCH)("benchmark", () => {

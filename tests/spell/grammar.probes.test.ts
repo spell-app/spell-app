@@ -17,7 +17,7 @@ import { loadFixtureProject } from "spell-app/spaces/test"
  *     NOT an epic phase.
  *   - Titles match the page's experiment, `guides/precedence/experiments/grammar-today.mts`.
  * - Each probe parses scratch file `/Probe.spell` in memory with `parseSpellProject()`, exactly as a project
- *   compile does, after the frozen Solitaire fixture's `Card` / `Deck` / `Pile` (`spaces/@spell/test/solitaire/`).
+ *   compile does, after the frozen card library's `Card` / `Deck` / `Pile` (`spaces/@spell/test/cards/`).
  *   - Those predate jokers, so no joker phrasing here.
  * - Snapshot:  the probe's compiled lines (after `SETUP`'s),
  *   then one `ERROR <line>:<ch> <message>` per parse error.
@@ -92,6 +92,12 @@ describe("grammar probes", () => {
   test("P2c  prefix function vs arithmetic", () => {
     expect(probe("print the absolute value of x + 1")).toMatchInlineSnapshot(
       `"core.console.log(core.absoluteValue(x + 1))"`
+    )
+  })
+
+  test("P2c+ `unicode 1F0A0 +` takes the sum, but stops before a comparison (epic `spanish` P11)", () => {
+    expect(probe("print unicode 1F0A0 + x * 2 is y")).toMatchInlineSnapshot(
+      `"core.console.log(core.unicode(0x1F0A0 + x * 2) == y)"`
     )
   })
 
@@ -178,8 +184,8 @@ describe("grammar probes", () => {
   })
 
   test("P7b  setting a property the type never declared", () => {
-    // `Pile.spell`'s own `set the pile of the card to the pile` declared it (P6, epic phase):  reactive
-    expect(probe("set the pile of the card to the pile")).toMatchInlineSnapshot(`"card.pile = pile"`)
+    // its first `set` declares it (P6, epic phase):  reactive -- the card's `pile` is the library's own, read-only
+    expect(probe("set the stack of the card to the pile")).toMatchInlineSnapshot(`"card.stack = pile"`)
   })
 
   ////////////////
@@ -750,7 +756,7 @@ describe("datatypes", () => {
       the name of the card  =>  text
       the value of the card  =>  number
       the short rank of the card  =>  text
-      the suits of the card  =>  list
+      the suits of the card  =>  list of suits
       card suits  =>  list
       the pile of the card  =>  Pile"
     `)
@@ -856,8 +862,11 @@ describe("datatypes", () => {
 // ## Harness
 ////////////////
 
-/** The frozen cards library:  `Card`, `Deck`, `Pile` -- not `Solitaire.spell`, which runs a game. */
-const CARDS = loadFixtureProject("solitaire").filter((file) => !file.path.endsWith("Solitaire.spell"))
+/**
+ * The frozen card library's files, `Card`, `Deck`, `Pile` (`@spell/test/cards`), parsed as the probe project's own.
+ * - NOT frozen:  a change to the library may change a probe's snapshot (epic `spanish` P11).
+ */
+const CARDS = loadFixtureProject("cards")
 
 /**
  * Types the probes use beside the cards library's, in a file of their own before the probe's.

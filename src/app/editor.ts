@@ -378,12 +378,21 @@ export class EditorStore extends Observable {
     const keepThings = !editor.startAfresh && editor.lastExecutedPath === project.path
     editor.startAfresh = false
     editor.lastExecutedPath = project.path
+    // a program in another language draws with that language's tags (`<es-texto>`) and says its tests' lines in it,
+    // as `<SpellAppRunner>` runs it:  Spell UI defines the tags first (epic `spanish` P21)
+    const lang = project.wordsLanguages[0]
+    if (lang && lang !== "en") {
+      const { RootLoader } = await import("spell-ui/components/ui-root")
+      // oxlint-disable-next-line react-hooks/rules-of-hooks -- Spell UI's `useLanguage()` is no React hook
+      await RootLoader.useLanguage(lang)
+    }
     const error = await runtime.runApp(compiled, {
       appRoot,
       coreUrl: runtimeUrl(),
       keepConsole: true,
       keepThings,
-      loadImport: fetchCompiled
+      loadImport: fetchCompiled,
+      messages: lang ? SP.SpellWords.messagesFor(lang) : undefined
     })
     output.groupEnd()
     if (error) output.error(appTexts.text("consoleFailed", words), error)

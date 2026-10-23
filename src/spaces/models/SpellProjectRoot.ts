@@ -35,7 +35,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
   static get fixtures(): SpellProjectRoot {
     return new SpellProjectRoot("@spell/test")
   }
-  /** Singleton `@spell/library` root -- projects others import, e.g. `@spell/library/cards` in a project file. */
+  /** Singleton `@spell/library` root -- projects others import, e.g. `@spell/library/people` in a project file. */
   static get library(): SpellProjectRoot {
     return new SpellProjectRoot("@spell/library")
   }
@@ -394,7 +394,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
 }
 
 /** The project file's settings a person edits:  what `saveSettings()` sends, and the server's route keeps. */
-export const PROJECT_SETTINGS = ["title", "version", "targets", "listsStartAt", "language"] as const
+export const PROJECT_SETTINGS = ["title", "version", "targets", "listsStartAt"] as const
 
 /** A project's settings, as Project Settings edits them:  each optional, `null` to remove it from the file. */
 export type ProjectSettings = {

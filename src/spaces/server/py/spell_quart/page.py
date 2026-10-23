@@ -36,7 +36,7 @@ def page_html(
     - `elements`:  the URL of the program's drawing half, e.g. `/Solitaire.elements.spell.js`.
     - `projects`:  the URL of each imported project's drawing half,
       by the module name the program's drawing half imports it as:
-      `{"@spell/project/@spell/library/cards": "/cards.elements.spell.js"}`.
+      `{"@spell/project/@spell/test/cards": "/cards.elements.spell.js"}`.
     - `socket`:  the path of the WebSocket it connects to.
     - `log_frames`:  write each frame to the browser's console, both ways, to watch the page and the program talk
       (`logFrame()`, in the javascript core's `page.ts`).  `?frames=off` on the page's address turns it off.
@@ -87,7 +87,7 @@ def assets_folder() -> Path:
 def built_folder(path: str) -> Path:
     """Folder `path` in the build folder of the checkout this spell_quart is in:  `$SPELL_BUILD_DIR`, else its `build/`.
 
-    - e.g. `built_folder("spaces/@spell/examples/drawable-solitaire")`:  where `spell compile` builds Solitaire
+    - e.g. `built_folder("spaces/@spell/examples/Solitaire")`:  where `spell compile` builds Solitaire
       (epic `people-and-orgs` J33).
     - Found as `assets_folder()` finds the page side:  each checkout's app runs its own spell_quart,
       so it loads its own checkout's build, in a worktree or after a move.

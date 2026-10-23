@@ -1,0 +1,20 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "test_counting_from_zero"
+  ],
+  "statements": [
+    {
+      "syntax": "test counting from zero",
+      "output": "test_counting_from_zero",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "counting from zero",
+      "defined": "/Counting.spell:209-1283"
+    }
+  ],
+  "codeLines": [
+    8
+  ]
+}

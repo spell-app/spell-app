@@ -5,32 +5,33 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { SPACES } from "spell-app/spaces"
 
-/** Solitaire's compiled declarations, as committed. */
-const SOLITAIRE = JSON5.parse(
+/** The Solitaire example's compiled declarations, as committed beside it:  its cards, deck and piles among them. */
+const CARDS = JSON5.parse(
   fs.readFileSync(
-    path.resolve(
-      import.meta.dirname,
-      "../../../spaces/@spell/examples/drawable-solitaire/drawable-solitaire.declarations.json5"
-    ),
+    path.resolve(import.meta.dirname, "../../../spaces/@spell/examples/Solitaire/Solitaire.declarations.json5"),
     "utf8"
   )
 )
 
 describe("SPACES.TypeSchemas.fromDeclarations()", () => {
-  it("reads a type's properties:  choices from an enumeration, types from a datatype, labels as written", () => {
-    const card = SPACES.TypeSchemas.fromDeclarations(SOLITAIRE, "Card")!
+  it("reads a type's properties:  choices from a value kind, types from a datatype, labels as written", () => {
+    const card = SPACES.TypeSchemas.fromDeclarations(CARDS, "Card")!
     const byName = Object.fromEntries(card.attributes.map((spec) => [spec.name, spec]))
     expect(byName.suit).toMatchObject({ type: "choice", values: ["clubs", "diamonds", "hearts", "spades"] })
     expect(byName.rank!.values).toContain("ace")
     expect(byName.value).toMatchObject({ type: "number" })
     expect(byName.short_suit).toMatchObject({ type: "text", label: "Short suit" })
-    // worked out from others (`constants`):  a person can't set it
-    expect(byName.color).toBeUndefined()
+  })
+
+  it("a property holding a value kind is a choice of its values:  a joker's color", () => {
+    const joker = SPACES.TypeSchemas.fromDeclarations(CARDS, "Joker")!
+    const color = joker.attributes.find((spec) => spec.name === "color")
+    expect(color).toMatchObject({ type: "choice", values: ["red", "black"] })
   })
 
   it("is `undefined` for a type it doesn't declare;  typesIn() lists the ones it does", () => {
-    expect(SPACES.TypeSchemas.fromDeclarations(SOLITAIRE, "Nope")).toBeUndefined()
-    expect(SPACES.TypeSchemas.typesIn(SOLITAIRE)).toEqual(expect.arrayContaining(["Card", "Deck", "Pile"]))
+    expect(SPACES.TypeSchemas.fromDeclarations(CARDS, "Nope")).toBeUndefined()
+    expect(SPACES.TypeSchemas.typesIn(CARDS)).toEqual(expect.arrayContaining(["Card", "Deck", "Pile"]))
   })
 })
 

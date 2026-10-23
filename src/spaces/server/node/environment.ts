@@ -23,7 +23,7 @@ const packagesDir = repoDir
  * Where compiled output goes, `build/` at the repo root (epic `people-and-orgs` P11):  never committed.
  * - Each project's own folder there MIRRORS its path:  `buildFolderFor()`, in `projects/project-utils.ts`.
  *   - under this repo:  the same path under `build/`
- *     - `spaces/@spell/examples/drawable-solitaire` => `build/spaces/@spell/examples/drawable-solitaire`
+ *     - `spaces/@spell/examples/Solitaire` => `build/spaces/@spell/examples/Solitaire`
  *     - the frozen test projects too:  `spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  *   - under spell.spaces:  under `build/spell-spaces/`, `build/spell-spaces/@spell/owen@/errors`
  * - `SPELL_BUILD_DIR` sets it, e.g. the server's contract test's temporary folder.
@@ -106,10 +106,10 @@ const environment = {
   spellSpacesDir,
   packageFolder,
   spaceFolders,
-  /** The built-in projects, e.g. `spaces/@spell/examples/drawable-solitaire` -- the `@spell/...` groups. */
+  /** The built-in projects, e.g. `spaces/@spell/examples/Solitaire` -- the `@spell/...` groups. */
   systemFilesRoot: resolve(spaceFolders.builtins, "@spell"),
   /**
-   * Frozen projects tests run against, e.g. `spaces/@spell/test/solitaire` -- `@spell/test`.
+   * Frozen projects tests run against, e.g. `spaces/@spell/test/fizzbuzz` -- `@spell/test`.
    * See `spell-app/spaces/test`.
    */
   testFilesRoot: resolve(spaceFolders.builtins, "@spell", "test"),

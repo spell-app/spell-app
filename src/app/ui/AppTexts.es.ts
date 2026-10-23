@@ -111,7 +111,7 @@ const APP_TEXTS_ES: AppTextPack = {
   "theType.library": "la biblioteca",
   "title.library": "Bibliotecas",
   "description.library":
-    "Bibliotecas que importan otros proyectos, p. ej. `@spell/library/cards` en un archivo de proyecto",
+    "Bibliotecas que importan otros proyectos, p. ej. `@spell/library/people` en un archivo de proyecto",
   "type.fixture": "proyecto de prueba",
   "Type.fixture": "Proyecto de prueba",
   "theType.fixture": "el proyecto de prueba",
@@ -237,9 +237,7 @@ const APP_TEXTS_ES: AppTextPack = {
   targetsLabel: "También compila a",
   targetsTip: "Lenguajes a los que compila además de JavaScript, al que compila siempre.",
   listsStartAtLabel: "Las listas empiezan en",
-  listsStartAtTip: "Dónde empiezan a contar sus listas:  en 1, como spell, o en 0, como JavaScript y Python.",
-  languageLabel: "Escrito en",
-  languageTip: "El idioma en que está escrito su spell:  sus reglas, y las palabras que muestra su Explorador de cosas."
+  listsStartAtTip: "Dónde empiezan a contar sus listas:  en 1, como spell, o en 0, como JavaScript y Python."
 }
 
 /** Everything Spanish the app shows:  its own texts, then each web component's. */

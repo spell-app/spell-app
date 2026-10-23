@@ -79,6 +79,23 @@ describe("buildFolderFor()", () => {
     )
   })
 
+  test("a project of ANOTHER spell-app checkout:  under that checkout's `build/`, never beside its source (P21)", () => {
+    // e.g. a worktree's example, which the main checkout's language server compiles
+    const other = mkdtempSync(resolve(tmpdir(), "spell-other-checkout-"))
+    try {
+      writeFileSync(resolve(other, "package.json"), JSON.stringify({ name: "spell-app" }))
+      const example = resolve(other, "spaces/@spell/examples/Solitaire")
+      expect(projectUtils.buildFolderFor(example, folders)).toBe(
+        resolve(other, "build/spaces/@spell/examples/Solitaire")
+      )
+      // not spell-app:  beside its source, as anywhere else
+      writeFileSync(resolve(other, "package.json"), JSON.stringify({ name: "my-app" }))
+      expect(projectUtils.buildFolderFor(example, folders)).toBe(example)
+    } finally {
+      rmSync(other, { recursive: true, force: true })
+    }
+  })
+
   test("a project anywhere else:  its own folder, beside its source", () => {
     expect(projectUtils.buildFolderFor("/tmp/ws/Proj", folders)).toBe("/tmp/ws/Proj")
     expect(projectUtils.buildFolderFor("/repo/packages-old/Proj", folders)).toBe("/repo/packages-old/Proj")
@@ -89,11 +106,11 @@ describe("buildFolderFor()", () => {
 describe("SpellLocation.serverPath, in this repo", () => {
   test("a built-in project's built file is in `build/`, at its path in the repo", () => {
     expect(environment.buildDir).toBe(resolve(environment.repoDir, "build"))
-    expect(new SP.SpellLocation("@spell/examples/drawable-solitaire/drawable-solitaire.spell.js").serverPath).toBe(
-      resolve(environment.buildDir, "spaces/@spell/examples/drawable-solitaire/drawable-solitaire.spell.js")
+    expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.spell.js").serverPath).toBe(
+      resolve(environment.buildDir, "spaces/@spell/examples/Solitaire/Solitaire.spell.js")
     )
-    expect(new SP.SpellLocation("@spell/examples/drawable-solitaire/drawable-solitaire.en.js").serverPath).toBe(
-      resolve(environment.systemFilesRoot, "examples/drawable-solitaire/drawable-solitaire.en.js")
+    expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.en.js").serverPath).toBe(
+      resolve(environment.systemFilesRoot, "examples/Solitaire/Solitaire.en.js")
     )
   })
 })

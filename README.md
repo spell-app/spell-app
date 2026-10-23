@@ -82,7 +82,7 @@ in the editor's address bar, on the command line, or inside another project that
 | --- | --- |
 | `@spell/examples/todos-form-based` | the to-do list above, in Spell's own space |
 | `@spell/examples/todos-form-based/todo.spell` | one file of it |
-| `@spell/library/cards` | a library:  a project other projects use, here cards, decks and piles |
+| `@spell/library/people` | a library:  a project other projects use, here people |
 | `owen@spell/errors` | a project in a person's own space |
 
 Even the people who own the spaces are written in Spell.
@@ -169,13 +169,13 @@ Each step in detail, with the code behind it:  [the editor's page](README-app.md
 All of this runs now, on your own machine.
 
 - **Write in sentences, or in outlines.**  The to-do list is sentences;  the person above is an outline.
-  [Outline Solitaire](spaces/@spell/examples/outline-solitaire/) is a whole card game written that way.
+  [Solitaire](spaces/@spell/examples/Solitaire/) is a whole card game written that way, its cards, deck and piles too.
 - **See mistakes as you type.**  On a line Spell can't read at all, it offers to teach Spell the phrase:
   "Define `to <phrase>`".
   The same checker runs in VS Code and on the command line ([the language server](README-lsp.md)).
 - **Make an app that draws itself.**  A thing you declare `drawable`, like a playing card,
   becomes a piece of the page of its own, with its look written inside its definition
-  ([Drawable Solitaire](spaces/@spell/examples/drawable-solitaire/), below).
+  ([Solitaire](spaces/@spell/examples/Solitaire/), below).
 - **Watch it while it runs:**  the things it made, and the kinds of thing it declares.
 - **Turn it into other programming languages:**  JavaScript always, and TypeScript or Python when the project asks
   ([spell-lang's targets](https://github.com/spell-app/spell-lang/blob/main/README-targets.md)).
@@ -262,13 +262,13 @@ Five example apps come with the editor, simplest first:
 FizzBuzz, which counts to 100;
 a calculator whose buttons run Spell;
 the to-do list at the top of this page;
-and Klondike solitaire twice, once written in outlines, once with every card a piece of the page of its own.
-Two libraries come with them, of playing cards and of people, for your own projects to build on.
+and Klondike solitaire, written in outlines, every card a piece of the page of its own;
+and Solitario, the same game in Spanish.
+A library comes with them, of people, for your own projects to build on.
 
-<img src="docs/images/examples/drawable-solitaire.png" width="720" alt="Drawable Solitaire open in the Spell editor:  the card's definition and its styles on the left, the game running on the right">
+<img src="docs/images/examples/Solitaire.png" width="720" alt="Solitaire running:  the stock, the discards and four foundations across the top, seven tableaus dealt below">
 
-_Drawable Solitaire, mid-game:  the card's definition and its styles on the left;
-every card on the right is a `<solitaire-card>`._
+_Solitaire, dealt:  every card on the table is a `<solitaire-card>`, inside the pile that holds it._
 
 [The examples page](README-examples.md) has each one running and taken apart,
 and eight ideas for a project of your own.

@@ -1,0 +1,318 @@
+## Solitario Klondike
+-- Mira la [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) para sus reglas, y cómo se llama cada pila.
+// Las cartas, el mazo y las pilas son los de este proyecto:  Carta, Mazo y Pila.
+// Este archivo agrega el juego, sus tipos de pilas, qué puede tomar o soltar cada una, y cómo se dibuja cada una.
+// Qué hay dónde, de arriba abajo:
+//   el solitario:  sus pilas, sus movimientos, el juego solo y su dibujo
+//   jugar una carta:  qué hace un clic
+//   inicio
+//   las pilas:  cada tipo, qué puede tomar o soltar, y cómo se dibuja
+//   pruebas
+
+
+## El solitario:  sus pilas, sus movimientos, el juego solo y su dibujo
+solitario es una aplicación donde:
+	- su "puntuación" es un número
+	- su "mazo" es un nuevo mazo
+
+	// una de cada pila, hecha con el solitario
+	- su "reserva" es una nueva pila de reserva con nombre = "reserva"
+	- sus "descartes" es una nueva pila de descartes con nombre = "descartes"
+	- sus "tréboles" es una nueva fundación con nombre = "tréboles", palo = tréboles
+	- sus "diamantes" es una nueva fundación con nombre = "diamantes", palo = diamantes
+	- sus "corazones" es una nueva fundación con nombre = "corazones", palo = corazones
+	- sus "espadas" es una nueva fundación con nombre = "espadas", palo = espadas
+	- su "C1" es una nueva columna con nombre = "C1"
+	- su "C2" es una nueva columna con nombre = "C2"
+	- su "C3" es una nueva columna con nombre = "C3"
+	- su "C4" es una nueva columna con nombre = "C4"
+	- su "C5" es una nueva columna con nombre = "C5"
+	- su "C6" es una nueva columna con nombre = "C6"
+	- su "C7" es una nueva columna con nombre = "C7"
+
+	// una vez, al hacerse el solitario:  cada carta del mazo a la reserva
+	// - su mazo y sus pilas se hacen con él, antes de que esto corra
+	// - dentro del bucle `eso` es la carta:  así la reserva es `la reserva del solitario`
+	- para crearlo:
+		para cada carta en su mazo
+			agregar eso a la reserva del solitario
+
+	// imprime las cartas de cada pila, p. ej. "reserva: D♠️— 7♥️—"
+	- para depurarlo:
+		para cada pila en cada pila
+			imprimir el estado de la pila
+
+	// los descartes, volteados, de vuelta a la reserva
+	- para rehacer la reserva:
+		poner cartas a una copia de la lista (sus descartes) como una pila
+		invertir las cartas
+		para cada carta en las cartas
+			agregar la carta a la reserva del solitario
+			voltear la carta boca abajo
+
+	// voltea la siguiente carta de la reserva, sobre los descartes
+	- animación robar de la reserva:
+		si su reserva está vacía
+			esperar a: rehacer la reserva
+
+		obtener la última carta de su reserva
+		voltear eso boca arriba
+		agregar eso a los descartes del solitario
+
+	// junta todas las cartas de su mazo en la reserva, barájala, y reparte las columnas:  una carta más en cada una, de izquierda a derecha
+	- animación repartir las cartas:
+		para cada carta en su mazo
+			poner pila inicial a la pila de la carta
+			voltear la carta boca abajo
+			si pila inicial no es la reserva del solitario
+				agregar la carta a la reserva del solitario
+				pausar 50 mseg
+		barajar su reserva
+
+		para fila desde 1 hasta 7
+			voltear la última carta de su reserva boca arriba
+			para lugar desde fila hasta 7
+				agregar la última carta de su reserva al elemento lugar de las columnas
+				pausar 50 mseg
+
+		esperar a: robar de la reserva
+
+	- para empezar el juego:
+		poner su puntuación a 0
+		repartir las cartas
+
+	// voltea una carta boca abajo de una columna, al azar, sobre los descartes
+	- para hacer trampa:
+		poner pilas restantes a las pilas en las columnas donde no está vacía y su primera carta está boca abajo
+		si pilas restantes está vacía devolver
+		poner la pila a una pila al azar de pilas restantes
+		poner cartas ocultas a las cartas en la pila donde la carta está boca abajo
+		poner la carta a una carta al azar de cartas ocultas
+		voltear la carta boca arriba
+		pausar 30 tics
+		agregar la carta a los descartes del solitario
+
+	// juega cada carta que puede ir a algún lado, hasta que ninguna pueda
+	- para jugar solo:
+		poner hubo cambios a no
+		si sus descartes no está vacía
+			poner candidata a la última carta de sus descartes
+			si esperar a jugar candidata
+				poner hubo cambios a sí
+				pausar 500 mseg
+
+		// la última carta de cada columna a su fundación
+		para cada pila en las columnas
+			si la pila está vacía devolver
+			poner candidata a la última carta de la pila
+			poner fundación a la primera pila en las fundaciones donde su palo es el palo de candidata
+			si la fundación puede tomar candidata
+				poner hubo cambios a sí
+				esperar a jugar candidata
+				pausar 100 mseg
+
+		// las cartas boca arriba de cada columna, todas juntas, a otra columna
+		para cada pila en las columnas
+			poner cartas visibles a las cartas en la pila donde la carta está boca arriba
+			si cartas visibles está vacía devolver
+			poner candidata a la primera carta de cartas visibles
+			si candidata es un rey y candidata es la primera carta de la pila devolver
+			si esperar a jugar candidata
+				poner hubo cambios a sí
+				pausar 500 mseg
+
+		si hubo cambios esperar a jugar solo
+
+	- para dibujarlo:
+		devolver <es-contenedor>
+			<es-menu>
+				<es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
+				<es-elemento>{"Puntos: " + su puntuación}</es-elemento>
+				<es-menu posicion="derecha">
+					<es-elemento onClick={jugar solo}>Jugar solo</es-elemento>
+					<es-elemento onClick={hacer trampa}>Trampa</es-elemento>
+					<es-elemento onClick={depurar}>Depurar</es-elemento>
+					<es-elemento onClick={empezar el juego}>Reiniciar</es-elemento>
+				</es-menu>
+			</es-menu>
+			<es-cuadricula columnas="7">
+				<es-fila>
+					<es-columna>{dibujar su reserva}</es-columna>
+					<es-columna>{dibujar sus descartes}</es-columna>
+					<es-columna/>
+					<es-columna>{dibujar sus tréboles}</es-columna>
+					<es-columna>{dibujar sus diamantes}</es-columna>
+					<es-columna>{dibujar sus corazones}</es-columna>
+					<es-columna>{dibujar sus espadas}</es-columna>
+				</es-fila>
+				<es-fila>
+					<es-columna>{dibujar su C1}</es-columna>
+					<es-columna>{dibujar su C2}</es-columna>
+					<es-columna>{dibujar su C3}</es-columna>
+					<es-columna>{dibujar su C4}</es-columna>
+					<es-columna>{dibujar su C5}</es-columna>
+					<es-columna>{dibujar su C6}</es-columna>
+					<es-columna>{dibujar su C7}</es-columna>
+				</es-fila>
+			</es-cuadricula>
+		</es-contenedor>
+
+
+## Jugar una carta:  qué hace un clic
+// la carta, y cada carta sobre ella, a la primera pila que pueda tomarla;  dice si se movió
+para jugar una carta
+	poner pila inicial a la pila de la carta
+	si pila inicial no puede soltar la carta devolver no
+
+	si pila inicial es la reserva del solitario
+		robar de la reserva
+		devolver
+
+	poner pila final a la primera pila en cada pila donde puede tomar la carta
+	si no hay una pila final devolver no
+
+	poner cartas movidas a las cartas en pila inicial empezando con la carta
+	poner el nombre de cartas movidas al nombre de pila inicial
+	imprimir "moviendo (" + el estado de cartas movidas + ") a (" + el estado de pila final + ")"
+
+	para cada carta en cartas movidas
+		mover la carta a pila final
+
+	si pila inicial es una columna y pila inicial no está vacía
+		pausar 200 mseg
+		obtener la última carta de pila inicial
+		imprimir "volteando (" + el nombre de pila inicial + ": " + su estado + ")"
+		voltear eso boca arriba
+
+	si pila final es una fundación: poner la puntuación del solitario a la puntuación del solitario + 10
+	de lo contrario si pila inicial es los descartes del solitario: poner la puntuación del solitario a la puntuación del solitario + 5
+	devolver sí
+
+al clic-carta con una carta
+	jugar la carta
+
+
+## Inicio
+imprimir solitario
+empezar el juego
+iniciar solitario
+
+
+## Las pilas:  cada tipo, qué puede tomar o soltar, y cómo se dibuja
+// Cada pila es una lista dibujable:  un elemento propio, p. ej. `<solitario-columna>`, alrededor de los elementos de sus cartas.
+// Así cada tipo se da estilo a sí mismo, en su `<css>`, y dónde van sus cartas:  styles.css no llega dentro.
+
+// una pila apilada:  sus cartas una sobre otra, la última a la vista, sobre un lugar para la primera
+una "pila apilada" es una pila donde:
+	<css>
+		:host {
+			display: block;
+			position: relative;
+			min-height: 6.5rem;
+		}
+		/* donde va su primera carta:  un contorno del tamaño de una carta */
+		.Placeholder {
+			position: absolute;
+			top: 1.5rem;
+			left: 0.3rem;
+			width: 4.25rem;
+			height: 5.65rem;
+			box-sizing: border-box;
+			border: 2px dashed #c8c8c8;
+			border-radius: 0.4rem;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 2rem;
+			cursor: pointer;
+		}
+		::slotted(*) {
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+	</css>
+
+// la reserva:  las cartas aún sin jugar, boca abajo;  un clic voltea la siguiente
+una "pila de reserva" es una pila apilada donde:
+	- nunca puede tomar una carta
+	- puede soltar una carta si: la carta es su última carta
+	- para dibujarla:
+		devolver <div class="Stock">
+			<div class="Placeholder" onClick={robar de la reserva}/>
+			<hijos/>
+		</div>
+
+// los descartes:  adonde van las cartas de la reserva al voltearse
+una "pila de descartes" es una pila apilada donde:
+	- nunca puede tomar una carta
+	- puede soltar una carta si: la carta es su última carta
+
+// una fundación:  donde se arma un palo, del as al rey
+una "fundación" es una pila apilada donde:
+	- su "palo" es un palo
+	- nunca puede soltar una carta
+	// una carta a la vez:  la última de su pila
+	- puede tomar una carta si:
+		si la carta no es la última carta de la pila de la carta devolver no
+		devolver su palo es el palo de la carta y su valor + 1 es el valor de la carta
+	- para dibujarla:
+		devolver <div class="Foundation">
+			<div class="Placeholder">{el símbolo de su palo}</div>
+			<hijos/>
+		</div>
+
+// una columna:  se arma hacia abajo, del rey al as, rojo y negro alternados
+una "columna" es una pila donde:
+	- puede soltar una carta si: la carta está boca arriba
+	- puede tomar una carta si:
+		si está vacía
+			devolver la carta es un rey
+		devolver su color no es el color de la carta y su valor es el valor de la carta + 1
+	<css>
+		:host {
+			display: block;
+			min-height: 30rem;
+		}
+		/* cada carta debajo de la anterior, con su parte de arriba a la vista;  la última entera */
+		::slotted(*) {
+			display: block;
+		}
+		::slotted(:not(:last-child)) {
+			height: 2.6rem;
+			overflow: hidden;
+		}
+	</css>
+
+
+## Pruebas
+para probar los movimientos
+	poner la columna a una nueva columna con nombre = "C1"
+	poner el rey a una nueva carta cuyo rango es rey, palo es espadas y dirección es arriba
+	poner la dama a una nueva carta cuyo rango es dama, palo es corazones y dirección es arriba
+	poner la jota a una nueva carta cuyo rango es jota, palo es tréboles y dirección es arriba
+	// una columna vacía toma solo un rey, luego uno más bajo del otro color
+	la columna puede tomar la dama debería ser no
+	la columna puede tomar el rey debería ser sí
+	agregar el rey a la columna
+	la columna puede tomar la jota debería ser no
+	la columna puede tomar la dama debería ser sí
+	agregar la dama a la columna
+	el estado de la columna debería ser "C1: R♠️+ D♥️+"
+	la columna puede soltar la dama debería ser sí
+	voltear la dama boca abajo
+	la columna puede soltar la dama debería ser no
+
+	// una fundación toma su palo, el as primero, luego uno más alto:  cada una la última carta de su pila
+	poner la fundación a una nueva fundación con nombre = "corazones", palo = corazones
+	poner el dos a una nueva carta cuyo rango es 2, palo es corazones y dirección es arriba
+	poner el as a una nueva carta cuyo rango es as, palo es corazones y dirección es arriba
+	poner la columna a una nueva columna con nombre = "C2"
+	agregar el dos a la columna
+	agregar el as a la columna
+	la fundación puede tomar el dos debería ser no
+	la fundación puede tomar el as debería ser sí
+	mover el as a la fundación
+	la fundación puede tomar el dos debería ser sí
+	agregar la dama a la columna
+	la fundación puede tomar la dama debería ser no

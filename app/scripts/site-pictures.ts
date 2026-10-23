@@ -4,8 +4,8 @@
  * - For the Solid components that can't be drawn alone on a docs page (they need the whole editor around them):
  *   the editor's page shell, its panes and editors, its menus, dialogs and notices.
  *   The runner's pieces and the explorers are drawn LIVE on their pages instead, inside a `<spell-app>`.
- * - Needs this checkout's editor running:  `spell server start` (repo root) starts it,
- *   and writes its URL to `.spell-server.editor.json`.
+ * - Needs this checkout's editor running:  `spell server start` starts it,
+ *   and writes its URL to `.spell-server.editor.json`, at the kit's root.
  * - Rerun after changing how one of them looks, then look at the pictures and commit them.
  * - Headless Playwright, never a real browser window.
  */
@@ -14,18 +14,21 @@ import path from "node:path"
 
 import { chromium, type Page } from "playwright"
 
+import { pageServerRoot } from "spell-kit/server/page/settings"
+
 /** `app/`:  the app's build folder, its docs pages in `docs/`. */
 const APP = path.resolve(import.meta.dirname, "..")
 
 /** Where the pictures go. */
 const IMAGES = path.join(APP, "docs", "_images")
 
-/** The editor's address, from the page server's note at the checkout's root. */
-const EDITOR = (JSON.parse(readFileSync(path.join(APP, "..", ".spell-server.editor.json"), "utf8")) as { url: string })
-  .url
+/** The editor's address, from the page server's note at its root:  the kit's (epic `repo-split` P16). */
+const EDITOR = (
+  JSON.parse(readFileSync(path.join(pageServerRoot(APP), ".spell-server.editor.json"), "utf8")) as { url: string }
+).url
 
 /** The project the pictures show. */
-const PROJECT = "edit/@spell/examples/drawable-solitaire"
+const PROJECT = "edit/@spell/examples/Solitaire"
 
 /** The window the pictures are taken in. */
 const WINDOW = { width: 1280, height: 800 }

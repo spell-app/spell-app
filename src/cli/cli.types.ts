@@ -29,7 +29,7 @@ export type {
 /**
  * What one command-line argument names -- see `resolveProject()`.
  * - `arg`:  what was typed, for messages.
- * - `project`:  one spell project, e.g. `@spell/library/cards`, a project folder, `@here`.
+ * - `project`:  one spell project, e.g. `@spell/examples/Solitaire`, a project folder, `@here`.
  * - `file`:  one `.spell` file, inside its project.
  * - `root`:  a whole project root, e.g. `@spell/library` -- commands turn it into projects with `CliSession.projectsFor()`.
  */
@@ -101,7 +101,7 @@ export type NewOptions = GlobalOptions & {
  * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
  * - `seed`:  start its random numbers from it, before it loads -- see `core.seedRandom()`.
  *   Left out:  random, as in a browser.
- * - `messages`:  what the core says, e.g. a test's lines, in the project's language (epic `spanish` P12):
+ * - `messages`:  what the core says, e.g. a test's lines, in the language the program speaks (epic `spanish` P12, P19):
  *   see `core.useMessages()`.
  *   Left out:  English.
  */

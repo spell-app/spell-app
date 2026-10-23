@@ -8,7 +8,7 @@ import { LSP_TEXTS_ES } from "./LspTexts.es"
  * ### `LspTexts`
  * The language server's words in one language:
  * the labels around a hover, a completion, the Type Explorer's tree (epic `spanish` P13).
- * - In the PROJECT's language, not the editor's:
+ * - In the FILE's language, by its name (epic `spanish` P19), not the editor's:
  *   a Spanish program's hover says `declarado en` in any editor, VS Code's included.
  *   `LspTexts.of(scope)` asks `SP.Language.of(scope)`.
  * - Read one with `text(key, params)`:  `LspTexts.of(scope).text("declaredIn", { where })`.

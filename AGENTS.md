@@ -73,9 +73,11 @@ working with code in this repository, `spell-app`.
   - Spell's frozen test projects (`@spell/test`) are HERE, beside the other `@spell` groups:
     [spaces/@spell/test/](spaces/@spell/test/) (spell-lang's from epic `repo-split` P8 until epic `spanish` P18).
     - Owen, 2026-10-22:  "Seems like all of the @spell/ packages should live in spell-app":
-      so a test project may import the card library.
+      so a test project may import another `@spell` project:  `lists-from-zero` imports `cards`, a frozen card library.
     - The tests that compile them whole are here too, in [tests/spell/](tests/spell/), the `spell` project:
       their snapshots, `tsc` and pyright on them, whole-project parsing.
+      - The examples Solitaire and Solitario are tested as they are, never a frozen copy:
+        their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
       - The same paths they had in spell-lang:  `tests/spell/test/fixtures.test.ts`, `tests/spell/parserTests/...`.
       - Their helpers:  [spell-app/spaces/test](src/spaces/test/index.ts) (`loadFixtureProject()`, `compiledFixture()` ...).
       - `yarn spell:test:fixtures` runs the snapshot tests;  `yarn spell:test:fixtures:bless` rewrites the snapshots.
@@ -108,18 +110,19 @@ More on some of them:
   its own `package.json` and `yarn.lock`.
   - `spell app vscode` builds and installs it.
   - Or its two steps:  `spell app vscode build`, then `install`.
-  - Its tests, in [vscode/tests/](vscode/tests/), run in plain node,
-    with a stand-in for the `vscode` module ([fakeVscode.ts](vscode/tests/fakeVscode.ts)):
-    spell-app's `yarn test` runs them, as project `vscode`;
-    `yarn test` in `vscode/` alone.
-    Its `yarn check` type-checks them too.
+  - Its tests run in plain node, as two projects of spell-app's `yarn test`:
+    - `vscode`:  its plain-node parts, in this repo's [tests/vscode/](tests/vscode/) ([spellAppRoot.test.ts](tests/vscode/spellAppRoot.test.ts))
+    - `vscode:elements`:  the elements help, in [vscode/tests/](vscode/tests/), by the extension's own
+      [config](vscode/vitest.config.ts), with a stand-in for the `vscode` module ([fakeVscode.ts](vscode/tests/fakeVscode.ts));
+      `yarn test` in `vscode/` runs it alone, and its `yarn check` type-checks it
   - Its language server runs lsp's source, [server.ts](src/lsp/server.ts), with `tsx`, from the checkout's root
     (`LSP_SERVER`, [extension.ts](vscode/src/extension.ts)).
     - A checkout from before epic `repo-split` P14 (`lsp/src/server.ts`) doesn't run:  it says so, naming the file.
   - Whose lsp:  the WINDOW's spell-app checkout, found when the server starts, so one install works everywhere:
     - the `spell.parserRoot` setting, if set
-    - else the window's folders, the worktree's before the main checkout's
-      (a folder that is spell-app, holds it, or is inside one)
+    - else the window's folders:  first one that is spell-app or holds it, only then one inside a checkout
+      (the content repo sits inside the main checkout's kit);  in each pass the worktree's before the main
+      checkout's, whatever order the window lists them in (a worktree's `.git` is a file)
     - else, last, the checkout it was built in
     - The extension's output says which it picked;  the code is `findSpellApp()` ([spellAppRoot.ts](vscode/src/spellAppRoot.ts)).
   - In `.tsx` / `.jsx` files it also gives custom elements' slot, part and dashed-attribute help
@@ -228,7 +231,9 @@ any folder here -> any repo below       (by npm name:  spell-lang/spell, spell-u
     - a folder by its barrel's entry
   - This repo's own folders are read by no repo above:  no declarations, no `"spellTypes"`.
 - `tsx` reads ONE tsconfig for every file it runs, the one where it runs:
-  - the kit's `spell` (its `bin/spell.mjs`) and the page server, the kit's `tsconfig.node.json`
+  - the kit's `spell` (its `bin/spell.mjs`):  the kit's `tsconfig.tsx.json`, its node settings over every repo's
+    files (`tsx` applies a tsconfig only to the files it includes;  epic `repo-split` I69)
+  - the page server:  the kit's `tsconfig.node.json`
   - this repo's scripts, from its root:  [tsconfig.json](tsconfig.json) (`tsx app/scripts/site-data.ts`)
   - `spell run`'s runner:  [tsconfig.node.json](tsconfig.node.json) (`TSX_TSCONFIG_PATH`)
   - each with `target: ES2020`, so spell-lang's standard decorators are lowered
@@ -352,8 +357,8 @@ As the kit's ([AGENTS.md](../AGENTS.md), "Toolchain:  Vite+"), plus:
   - `lint`:  oxlint over `src`, `tests`, `scripts` and `app`, then ruff;  `format`:  oxfmt, then ruff format.
     - spaces' Python is a uv project, `src/spaces/server/py/`:  `uv run --directory src/spaces/server/py ...`.
   - One folder's tests:  `yarn vp test run --project spaces`.
-    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`;
-      and `vscode`, the extension's, by its own [config](vscode/vitest.config.ts).
+    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`, `vscode`;
+      and `vscode:elements`, the extension's elements help, by its own [config](vscode/vitest.config.ts).
   - No more `yarn workspaces foreach`, nor `vp run -F`:  the repo is one workspace of the kit's install.
 - `yarn vitest` here (and the VS Code vitest extension) reads the same [vitest.config.ts](vitest.config.ts).
 

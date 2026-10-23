@@ -126,7 +126,9 @@
           "spell"
         ],
         "extensions": [
-          ".spell"
+          ".spell",
+          ".en.spell",
+          ".es.spell"
         ],
         "configuration": "./language-configuration.json"
       }

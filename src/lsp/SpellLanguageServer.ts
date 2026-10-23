@@ -9,7 +9,7 @@ import {
 } from "vscode-languageserver"
 import { TextDocument } from "vscode-languageserver-textdocument"
 
-import type { SP } from "spell-lang/spell"
+import { SP } from "spell-lang/spell"
 import { LSP } from "spell-app/lsp"
 import type { SpellDiskWorkspace } from "./SpellDiskWorkspace"
 
@@ -176,6 +176,9 @@ export class SpellLanguageServer {
       this.answer(uri, null, (file) => service.projectInfo(file))
     )
     connection.onRequest("spell/compileProject", ({ uri }: { uri: string }) => this.compileProject(uri))
+    connection.onRequest("spell/compiledImport", ({ uri, projectId }: LSP.CompiledImportParams) =>
+      this.compiledImport(uri, projectId)
+    )
     connection.onRequest("spell/scopes", ({ uri }: { uri: string }) => this.scopeTree(uri))
     connection.onRequest("spell/scopeDetails", ({ uri, path }: { uri: string; path: string }) =>
       this.answer(uri, null, (file) => this.scopes.details(file.project, path))
@@ -256,6 +259,28 @@ export class SpellLanguageServer {
           .catch((error: unknown) => this.logError(error))
       }
       return { ok }
+    })
+  }
+
+  /**
+   * `spell/compiledImport`:  the compiled javascript of project `projectId`, which the project of document `uri`
+   * imports -- for VS Code's runner, which links it in as the app's runner does (`runCompiled()`'s `loadImport`).
+   * - Its `<Project>.spell.js`, read fresh each time:  so a library compiled since shows at once.
+   * - None yet, e.g. a fresh checkout's `build/`:  compiles it first, as the page server's `ProjectBuild` does.
+   * - `null` if it can't be loaded or compiled (logged).
+   * - Queued like a change, as compiling parses.
+   */
+  private compiledImport(uri: string, projectId: string): Promise<string | null> {
+    return this.inQueue(uri, null, async () => {
+      const imported = new SP.SpellProject(projectId)
+      await imported.load(undefined)
+      const { outputFile } = imported
+      outputFile.cacheDuration = 0
+      const compiled = await outputFile.load(undefined).catch(() => undefined)
+      if (compiled) return compiled
+      await this.workspace.track(imported)
+      await imported.compile()
+      return imported.outputFile.contents ?? null
     })
   }
 

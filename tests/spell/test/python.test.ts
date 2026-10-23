@@ -2,12 +2,12 @@ import { beforeAll, describe, test, expect } from "vite-plus/test"
 
 import { PY } from "spell-lang/py"
 import { describePyrightError, pyright, type PyrightResult } from "spell-lang/spell/node/pyright"
-import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixturePath } from "spell-app/spaces/test"
+import { PYTHON_FIXTURES, compiledFixture, fixtureImports, snapshotPath } from "spell-app/spaces/test"
 
 /**
  * The Python fixtures' compiled Python (the `py` target, `PY.PyWriter`), type-checked by pyright:  see `pyright()`.
- * - What pyright reports is a snapshot beside each fixture, one error a line:
- *   `spaces/@spell/test/<Project>/<Project>.snapshot.pyright.txt`.
+ * - What pyright reports is a snapshot with each fixture's others (`snapshotPath()`), one error a line:
+ *   `<Project>.snapshot.pyright.txt`.
  *   So every place the type-hinted Python falls short shows there:  a change is a diff to read.
  * - Refresh it after a deliberate change:  `yarn spell:test:fixtures:bless`.
  * - Each fixture's error count is printed on stderr on every run, e.g. `Cards:  0 pyright errors`.
@@ -40,7 +40,7 @@ describe("fixture projects as Python, checked by pyright", () => {
       const errors = result.errors[moduleFile(name)]!
       process.stderr.write(`${name}:  ${errors.length} pyright error${errors.length === 1 ? "" : "s"}\n`)
       const report = errors.map(describePyrightError).join("\n")
-      await expect(report ? `${report}\n` : "").toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.pyright.txt`))
+      await expect(report ? `${report}\n` : "").toMatchFileSnapshot(snapshotPath(name, `${name}.snapshot.pyright.txt`))
     })
   }
 })

@@ -26,32 +26,27 @@ describe("projectChoices()", () => {
 
   test("a group:  its projects, to go into", async () => {
     expect(await values("@spell/test/")).toEqual([
-      "@spell/test/card-table/",
       "@spell/test/cards/",
-      "@spell/test/cards-from-zero/",
-      "@spell/test/cartas/",
-      "@spell/test/drawable-solitaire/",
       "@spell/test/fizzbuzz/",
-      "@spell/test/klondike/",
-      "@spell/test/outline-solitaire/",
+      "@spell/test/lists-from-zero/",
       "@spell/test/people/",
-      "@spell/test/solitaire/",
       "@spell/test/thing-references/",
       "@spell/test/todos-form-based/"
     ])
-    expect(await values("@spell/test/sol")).toEqual(["@spell/test/solitaire/"])
+    expect(await values("@spell/test/li")).toEqual(["@spell/test/lists-from-zero/"])
   })
 
   test("a project:  the entire project first, then its spell files", async () => {
-    const choices = await CLI.projectChoices("@spell/test/solitaire/")
-    expect(choices[0]).toEqual({ value: "@spell/test/solitaire", label: "entire project", isFinal: true })
+    const choices = await CLI.projectChoices("@spell/examples/Solitaire/")
+    expect(choices[0]).toEqual({ value: "@spell/examples/Solitaire", label: "entire project", isFinal: true })
     expect(choices.slice(1).map((it) => it.value)).toEqual([
-      "@spell/test/solitaire/Card.spell",
-      "@spell/test/solitaire/Deck.spell",
-      "@spell/test/solitaire/Pile.spell",
-      "@spell/test/solitaire/Solitaire.spell"
+      "@spell/examples/Solitaire/Card.spell",
+      "@spell/examples/Solitaire/Deck.spell",
+      "@spell/examples/Solitaire/Pile.spell",
+      "@spell/examples/Solitaire/Solitaire.spell"
     ])
-    expect(await values("@spell/test/solitaire/d")).toEqual(["@spell/test/solitaire/Deck.spell"])
+    expect(await values("@spell/examples/Solitaire/s")).toEqual(["@spell/examples/Solitaire/Solitaire.spell"])
+    expect(await values("@spell/examples/Solitaire/x")).toEqual([])
   })
 
   test("nothing for what isn't there", async () => {
@@ -62,7 +57,7 @@ describe("projectChoices()", () => {
 
 describe("commonPrefix()", () => {
   test("as far as they all agree", () => {
-    expect(CLI.commonPrefix(["@spell/test/fizzbuzz/", "@spell/test/solitaire/"])).toBe("@spell/test/")
+    expect(CLI.commonPrefix(["@spell/test/fizzbuzz/", "@spell/test/people/"])).toBe("@spell/test/")
     expect(CLI.commonPrefix(["@spell/examples/"])).toBe("@spell/examples/")
     expect(CLI.commonPrefix([])).toBe("")
   })
@@ -92,7 +87,7 @@ describe("recentProjects()", () => {
     expect(existsSync(oldFile)).toBe(false)
     expect(readFileSync(newFile, "utf8")).toBe('["@spell/test/fizzbuzz"]')
 
-    writeFileSync(oldFile, '["@spell/test/solitaire"]')
+    writeFileSync(oldFile, '["@spell/examples/Solitaire"]')
     expect(CLI.recentProjects(newFile)).toEqual(["@spell/test/fizzbuzz"])
     expect(existsSync(oldFile)).toBe(true)
   })
