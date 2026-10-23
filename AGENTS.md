@@ -110,16 +110,25 @@ More on some of them:
   its own `package.json` and `yarn.lock`.
   - `spell app vscode` builds and installs it.
   - Or its two steps:  `spell app vscode build`, then `install`.
+  - Its tests run in plain node, as two projects of spell-app's `yarn test`:
+    - `vscode`:  its plain-node parts, in this repo's [tests/vscode/](tests/vscode/) ([spellAppRoot.test.ts](tests/vscode/spellAppRoot.test.ts))
+    - `vscode:elements`:  the elements help, in [vscode/tests/](vscode/tests/), by the extension's own
+      [config](vscode/vitest.config.ts), with a stand-in for the `vscode` module ([fakeVscode.ts](vscode/tests/fakeVscode.ts));
+      `yarn test` in `vscode/` runs it alone, and its `yarn check` type-checks it
   - Its language server runs lsp's source, [server.ts](src/lsp/server.ts), with `tsx`, from the checkout's root
     (`LSP_SERVER`, [extension.ts](vscode/src/extension.ts)).
     - A checkout from before epic `repo-split` P14 (`lsp/src/server.ts`) doesn't run:  it says so, naming the file.
   - Whose lsp:  the WINDOW's spell-app checkout, found when the server starts, so one install works everywhere:
     - the `spell.parserRoot` setting, if set
-    - else the window's folders, the worktree's before the main checkout's:
-      a folder that is spell-app or holds it first, and only then one inside a checkout
-      (so `spell.epics`, inside the main checkout's kit, never wins a worktree's window for main)
+    - else the window's folders:  first one that is spell-app or holds it, only then one inside a checkout
+      (the content repo sits inside the main checkout's kit);  in each pass the worktree's before the main
+      checkout's, whatever order the window lists them in (a worktree's `.git` is a file)
     - else, last, the checkout it was built in
     - The extension's output says which it picked;  the code is `findSpellApp()` ([spellAppRoot.ts](vscode/src/spellAppRoot.ts)).
+  - In `.tsx` / `.jsx` files it also gives custom elements' slot, part and dashed-attribute help
+    ([ElementsHelp.ts](vscode/src/ElementsHelp.ts), the kit's `JsxElementHelp` bundled in, with TypeScript 6 to read JSX);
+    and it carries Spell UI's and the brand's HTML and CSS data, copied in by its build:
+    a vocabulary change shows there after `spell app vscode`.
   - The Review tab, the Epic Docs view and the window bridge are spell-epic's own extension, not this one.
 - THE PAGE SERVER is the kit's, started from the kit's root only (`spell server start`, from any folder;
   epic `repo-split` P16):  [the kit's server AGENTS.md](../src/server/AGENTS.md).
@@ -222,7 +231,9 @@ any folder here -> any repo below       (by npm name:  spell-lang/spell, spell-u
     - a folder by its barrel's entry
   - This repo's own folders are read by no repo above:  no declarations, no `"spellTypes"`.
 - `tsx` reads ONE tsconfig for every file it runs, the one where it runs:
-  - the kit's `spell` (its `bin/spell.mjs`) and the page server, the kit's `tsconfig.node.json`
+  - the kit's `spell` (its `bin/spell.mjs`):  the kit's `tsconfig.tsx.json`, its node settings over every repo's
+    files (`tsx` applies a tsconfig only to the files it includes;  epic `repo-split` I69)
+  - the page server:  the kit's `tsconfig.node.json`
   - this repo's scripts, from its root:  [tsconfig.json](tsconfig.json) (`tsx app/scripts/site-data.ts`)
   - `spell run`'s runner:  [tsconfig.node.json](tsconfig.node.json) (`TSX_TSCONFIG_PATH`)
   - each with `target: ES2020`, so spell-lang's standard decorators are lowered
@@ -346,7 +357,8 @@ As the kit's ([AGENTS.md](../AGENTS.md), "Toolchain:  Vite+"), plus:
   - `lint`:  oxlint over `src`, `tests`, `scripts` and `app`, then ruff;  `format`:  oxfmt, then ruff format.
     - spaces' Python is a uv project, `src/spaces/server/py/`:  `uv run --directory src/spaces/server/py ...`.
   - One folder's tests:  `yarn vp test run --project spaces`.
-    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`.
+    - The projects:  `spaces`, `lsp`, `app:node`, `app:browser`, `cli`, `spell`, `vscode`;
+      and `vscode:elements`, the extension's elements help, by its own [config](vscode/vitest.config.ts).
   - No more `yarn workspaces foreach`, nor `vp run -F`:  the repo is one workspace of the kit's install.
 - `yarn vitest` here (and the VS Code vitest extension) reads the same [vitest.config.ts](vitest.config.ts).
 

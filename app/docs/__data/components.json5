@@ -727,7 +727,7 @@
         },
         {
           "name": "color",
-          "type": "string",
+          "type": "UIButtonAttributes[\"color\"]",
           "description": "Hue:  of the item while `active`;  of the button always."
         },
         {
@@ -833,8 +833,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIMenuJSXAttributes",
+          "type": "UIMenuJSXAttributes",
           "description": "Every prop of this type too."
         }
       ],
@@ -1329,8 +1329,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIItemJSXAttributes",
+          "type": "UIItemJSXAttributes",
           "description": "Every prop of this type too."
         }
       ],
@@ -1518,8 +1518,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIDropdownJSXAttributes",
+          "type": "UIDropdownJSXAttributes",
           "description": "Every prop of this type too."
         },
         {
@@ -1797,8 +1797,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIItemJSXAttributes",
+          "type": "UIItemJSXAttributes",
           "description": "Every prop of this type too."
         }
       ],
@@ -1915,8 +1915,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIDropdownJSXAttributes",
+          "type": "UIDropdownJSXAttributes",
           "description": "Every prop of this type too."
         },
         {
@@ -2125,8 +2125,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIMenuJSXAttributes",
+          "type": "UIMenuJSXAttributes",
           "description": "Every prop of this type too."
         }
       ],
@@ -2175,8 +2175,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIDropdownJSXAttributes",
+          "type": "UIDropdownJSXAttributes",
           "description": "Every prop of this type too."
         },
         {
@@ -2272,8 +2272,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIMenuJSXAttributes",
+          "type": "UIMenuJSXAttributes",
           "description": "Every prop of this type too."
         },
         {
@@ -3057,8 +3057,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIItemJSXAttributes",
+          "type": "UIItemJSXAttributes",
           "description": "Every prop of this type too."
         }
       ],
@@ -3091,8 +3091,8 @@
       "texts": [],
       "props": [
         {
-          "name": "...UIElementAttributes",
-          "type": "UIElementAttributes",
+          "name": "...UIMenuJSXAttributes",
+          "type": "UIMenuJSXAttributes",
           "description": "Every prop of this type too."
         },
         {

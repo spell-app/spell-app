@@ -1,6 +1,9 @@
 {
-  // The TypeScript settings every repo shares;  the extension imports only its own files and its own packages
-  // (`vscode`, `vscode-languageclient`), never spell-app's:  it runs a checkout's language server as a process.
+  // The TypeScript settings every repo shares.
+  // - The extension imports its own files, its own packages (`vscode`, `vscode-languageclient`),
+  //   and the kit's elements help (`spell-kit/element-tools/jsx-help/...`, read here as the kit's declarations).
+  // - Never spell-app's:  it runs a checkout's language server as a process.
+  // - Its tests too (`tests/`, run as `vscode` by `vitest.config.ts`):  their `vscode` is VS Code's own types.
   "extends": "spell-kit/toolchain/tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
@@ -13,5 +16,5 @@
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["src"]
+  "include": ["src", "tests", "vitest.config.ts"]
 }

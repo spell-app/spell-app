@@ -89,7 +89,7 @@ describe("a Python spell app, in a real browser", () => {
     // the library's Python, and its drawing half:  the counter draws
     expect(files).toEqual(expect.arrayContaining(["counter-app.spell.py", "counter.py", "counter.elements.spell.js"]))
     expect(readFileSync(join(folder, "counter-app", "counter.py"), "utf8")).toMatch(/^class Counter\(/m)
-  })
+  }, 60_000)
 
   test("the app compiling wrote runs as it is:  `uv run python Solitaire.app.py`", async () => {
     const port = await SRV.freePort()

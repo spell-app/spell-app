@@ -33,7 +33,7 @@ export function ProjectSettings(props: ProjectSettingsProps) {
       class="ProjectSettings"
       size="small"
       closedby="closerequest"
-      label={appTexts.text("projectSettings", { title: props.project.title })}
+      aria-label={appTexts.text("projectSettings", { title: props.project.title })}
       visible=""
       ref={(element: HTMLElement) => {
         modal = element

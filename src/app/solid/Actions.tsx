@@ -1,6 +1,7 @@
 import { Show, omit } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
+import type { UIButtonAttributes } from "spell-ui/jsx"
 import { editor, runtimeConsole } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import type * as Modals from "spell-app/app/solid/modals"
@@ -47,7 +48,7 @@ export type ActionProps = {
   /** Highlighted:  the item's `selected`, the button's `active`. */
   active?: boolean
   /** Hue:  of the item while `active`;  of the button always. */
-  color?: string
+  color?: UIButtonAttributes["color"]
   /** Can't be used. */
   disabled?: boolean
   /** Class of the element. */

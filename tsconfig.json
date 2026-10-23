@@ -2,11 +2,12 @@
   // spell-app's TypeScript settings for its browser code:  the app (`src/app/`), spaces' models (`src/spaces/`)
   // and the language server's service (`src/lsp/`).
   // - Every import is a package name, spell-app's own too (`spell-app/app/solid`, epic `repo-split` Q47):  NO `paths`.
-  //   `spell-app-source` reads this repo's names as its source, through `package.json`'s `exports`;  another repo's
-  //   (`spell-kit/util` ...) as its declarations, its `types`.
+  //   - `spell-app-source` reads this repo's names as its source, through `package.json`'s `exports`.
+  //   - Another repo's names (`spell-kit/util` ...) are read as its declarations, its `types`.
   // - Solid's JSX everywhere here (`@solidjs/web`).
-  // - The node-only parts are `tsconfig.node.json`'s:  the cli, the page server's routes, spaces' servers, the
-  //   language server's process, the app's docs-data tools, the scripts and configs.
+  // - The node-only parts are `tsconfig.node.json`'s:
+  //   the cli, the page server's routes, spaces' servers, the language server's process,
+  //   the app's docs-data tools, the scripts and configs.
   // - The tests:  `tests/tsconfig.json` (node's settings), `tests/app/tsconfig.json` (these, with node's types).
   // - No declarations (`spell-types`):  no repo above reads spell-app.
   "extends": "spell-kit/toolchain/tsconfig.base.json",

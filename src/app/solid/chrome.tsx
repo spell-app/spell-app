@@ -1,15 +1,17 @@
 import { Show, omit } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Actions, on, type UIElementAttributes } from "spell-app/app/solid"
+import type { UIDropdownJSXAttributes, UIItemJSXAttributes, UIMenuJSXAttributes } from "spell-ui/jsx"
+import { Actions, on } from "spell-app/app/solid"
 
 import "./chrome.css"
 
 //
-//  ## App chrome on `spell-ui`:  menus, sub-menus and the "..." dropdown.
-//  Same names and props as React's `spell-app/app/ui/chrome.tsx` had.  Look:  `chrome.css`.
+//  ## App chrome on `spell-ui`:  menus, sub-menus and the "..." dropdown.  Look:  `chrome.css`.
 //  - Menus are `<ui-menu>` of `<ui-item>`s;  a sub-menu is a `<ui-menu position>` inside one.
-//  - Hosts are `display: contents`:  style the boxes with `::part(menu)` / `::part(item)`, never the host.
+//  - The `<ui-*>` elements themselves are `display: contents`:
+//    style their boxes with `::part(menu)` / `::part(item)`, never the element.
+//  - Same names and props as the React app's `chrome.tsx` (`spell-app/app/ui/chrome.tsx`) had.
 //
 
 /****************
@@ -50,7 +52,7 @@ export function PanelMenu(props: MenuProps) {
 }
 
 /** Props for `<AppMenu>` / `<PanelMenu>`:  any `<ui-menu>` attribute (`size`, `color` ...), its items as children. */
-export type MenuProps = UIElementAttributes
+export type MenuProps = UIMenuJSXAttributes
 
 /****************
  * ### `<Submenu>`
@@ -76,7 +78,7 @@ export function Submenu(props: SubmenuProps) {
 }
 
 /** Props for `<Submenu>`. */
-export type SubmenuProps = UIElementAttributes & {
+export type SubmenuProps = UIMenuJSXAttributes & {
   /** Left-aligned section -- a `33.3%` min-width, so left / center / right line up. */
   left?: boolean
   /** Center section -- a `33.3%` min-width, so left / center / right line up. */
@@ -91,7 +93,7 @@ export type SubmenuProps = UIElementAttributes & {
  * ### `<MenuHeader>`
  * Menu header item.
  ****************/
-export function MenuHeader(props: UIElementAttributes) {
+export function MenuHeader(props: UIItemJSXAttributes) {
   return (
     <ui-item type="header" {...omit(props, "children")}>
       {props.children}
@@ -103,7 +105,7 @@ export function MenuHeader(props: UIElementAttributes) {
  * ### `<Spring>`
  * Invisible, borderless menu item that eats up remaining space -- pushes its neighbors apart.
  ****************/
-export function Spring(props: UIElementAttributes) {
+export function Spring(props: UIItemJSXAttributes) {
   return <ui-item {...omit(props, "class")} class={["spring", "no-border", props.class]} />
 }
 
@@ -147,7 +149,7 @@ export function MoreMenu(props: MoreMenuProps) {
 }
 
 /** Props for `<MoreMenu>`:  these, plus any `<ui-dropdown>` attribute (`direction`, `pointing` ...). */
-export type MoreMenuProps = UIElementAttributes & {
+export type MoreMenuProps = UIDropdownJSXAttributes & {
   /** A disabled placeholder item instead of the real dropdown. */
   stub?: boolean
   /** Wrapped in a `<ui-item>`, to sit in a menu.  Default:  `true`. */
@@ -159,7 +161,7 @@ export type MoreMenuProps = UIElementAttributes & {
 /**
  * A `<MoreMenu>`'s `ui-change`:  click the item chosen, and clear the value.
  * - SIDE EFFECT:  sets the dropdown's `value` DURING the event, so the dropdown keeps ours (`""`):
- *   the host decides (`requestChange()` on a `@controlled` member, the kit's `element/src/Reactive.ts`).
+ *   the element decides (`requestChange()` on a `@controlled` member, in `spell-kit/element/Reactive`).
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }
@@ -175,7 +177,7 @@ function choose(event: CustomEvent<{ value: string }>) {
  * ### `<DropdownLabel>`
  * Label that goes next to a dropdown in a menu, e.g. a project dropdown's "Project:".
  ****************/
-export function DropdownLabel(props: UIElementAttributes) {
+export function DropdownLabel(props: UIItemJSXAttributes) {
   return (
     <ui-item {...omit(props, "class", "children")} class={["dropdown-label", props.class]}>
       {props.children}
