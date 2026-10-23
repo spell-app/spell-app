@@ -50,11 +50,9 @@ export class TodosApp extends App {
             <ui-item type="header">To Do:</ui-item>
             <ui-menu position="right">
               <ui-item>Show:</ui-item>
-              <ui-item onClick={() => (app.filter = "all")} prop:selected={app.filter == "all"}>All</ui-item>
-              <ui-item onClick={() => (app.filter = "active")} prop:selected={app.filter == "active"}>Active</ui-item>
-              <ui-item onClick={() => (app.filter = "completed")} prop:selected={app.filter == "completed"}>
-                Completed
-              </ui-item>
+              <ui-item onClick={() => (app.filter = "all")} selected={app.filter == "all"}>All</ui-item>
+              <ui-item onClick={() => (app.filter = "active")} selected={app.filter == "active"}>Active</ui-item>
+              <ui-item onClick={() => (app.filter = "completed")} selected={app.filter == "completed"}>Completed</ui-item>
             </ui-menu>
           </ui-menu>
           <ui-form debug={true} prop:value={app}>
@@ -73,7 +71,7 @@ export class TodosApp extends App {
                 <ui-input name="newTaskName" placeholder="New task name" label="New task:" />
               </ui-field>
               <ui-field>
-                <ui-button prop:disabled={app.newTaskName === ""} onClick={() => createANewTask()}>Add Task</ui-button>
+                <ui-button disabled={app.newTaskName === ""} onClick={() => createANewTask()}>Add Task</ui-button>
               </ui-field>
             </ui-fields>
           </ui-form>
