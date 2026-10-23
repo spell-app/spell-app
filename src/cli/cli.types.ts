@@ -19,6 +19,7 @@ export type {
   SeedOptions,
   SpeedtestOptions,
   TestOptions,
+  TranslateOptions,
   WatchOptions
 } from "spell-lang/cli"
 

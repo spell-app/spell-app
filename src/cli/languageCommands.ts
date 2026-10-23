@@ -20,7 +20,8 @@ export const languageCommands: LanguageCommands = {
   speedtest: (args, options) => CLI.speedtestCommand(session(options), args, options),
   parse: (args, options) => CLI.parseCommand(session(options), args, options),
   repl: (args, options) => CLI.replCommand(session(options), args, options),
-  explain: (args, options) => CLI.explainCommand(session(options), args, options)
+  explain: (args, options) => CLI.explainCommand(session(options), args, options),
+  translate: (args, options) => CLI.translateCommand(session(options), args, options)
 }
 
 /**
