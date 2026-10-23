@@ -1,24 +1,38 @@
 ## Counting from 0:  this project's lists start at 0 (its project file)
-// Numbers count from 0;  ordinal words don't change.  Its deck is the frozen card library's (`@spell/test/cards`):  ace of clubs first.
+// Numbers count from 0;  ordinal words don't change.  Its rack is its own:  five tiles, A first.
+a "tile" is a thing where:
+	- its "letter" is text
+
+a "rack" is a list of tiles where:
+	// a new rack holds five tiles, A to E
+	- to create it:
+		add (a new tile with letter = "A") to the rack
+		add (a new tile with letter = "B") to the rack
+		add (a new tile with letter = "C") to the rack
+		add (a new tile with letter = "D") to the rack
+		add (a new tile with letter = "E") to the rack
+
+
+## Tests
 to test counting from zero
-	the deck is a new deck
-	the name of card 0 of the deck should be "ace-of-clubs"
-	the name of card 1 of the deck should be "ace-of-diamonds"
-	the name of card -1 of the deck should be "king-of-spades"
-	the name of the first card of the deck should be "ace-of-clubs"
-	the name of the second card of the deck should be "ace-of-diamonds"
-	the name of the last card of the deck should be "king-of-spades"
-	set the ace to the first card of the deck
-	the position of the ace in the deck should be 0
-	set the aces to cards 0 to 3 of the deck
-	the number of cards in the aces should be 4
-	the name of the last card of the aces should be "ace-of-spades"
-	set the kings to last two cards of the deck
-	the number of cards in the kings should be 2
-	the name of the first card of the kings should be "king-of-hearts"
+	the rack is a new rack
+	the letter of tile 0 of the rack should be "A"
+	the letter of tile 1 of the rack should be "B"
+	the letter of tile -1 of the rack should be "E"
+	the letter of the first tile of the rack should be "A"
+	the letter of the second tile of the rack should be "B"
+	the letter of the last tile of the rack should be "E"
+	set the start to the first tile of the rack
+	the position of the start in the rack should be 0
+	set the front to tiles 0 to 2 of the rack
+	the number of tiles in the front should be 3
+	the letter of the last tile of the front should be "C"
+	set the back to last two tiles of the rack
+	the number of tiles in the back should be 2
+	the letter of the first tile of the back should be "D"
 	set the positions to a new list of numbers
-	for each card, position in the aces
+	for each tile, position in the front
 		add position to the positions
 	echo "positions: " + the positions
-	remove card 0 of the deck
-	the name of the first card of the deck should be "ace-of-diamonds"
+	remove tile 0 of the rack
+	the letter of the first tile of the rack should be "B"

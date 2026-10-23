@@ -37,7 +37,7 @@ solitario es una aplicación donde:
 		para cada carta en su mazo
 			agregar eso a la reserva del solitario
 
-	// imprime las cartas de cada pila, p. ej. "reserva: D♠️— 7♥️—"
+	// imprime las cartas de cada pila, p. ej. "reserva: D♠↓ 7♥↓"
 	- para depurarlo:
 		para cada pila en cada pila
 			imprimir el estado de la pila
@@ -208,15 +208,16 @@ una "pila apilada" es una pila donde:
 		:host {
 			display: block;
 			position: relative;
-			min-height: 6.5rem;
+			min-width: var(--card-width);
+			min-height: var(--card-height);
 		}
 		/* donde va su primera carta:  un contorno del tamaño de una carta */
 		.Placeholder {
 			position: absolute;
-			top: 1.5rem;
-			left: 0.3rem;
-			width: 4.25rem;
-			height: 5.65rem;
+			top: 0;
+			left: 0;
+			width: var(--card-width);
+			height: var(--card-height);
 			box-sizing: border-box;
 			border: 2px dashed #c8c8c8;
 			border-radius: 0.4rem;
@@ -250,7 +251,7 @@ una "pila de descartes" es una pila apilada donde:
 
 // una fundación:  donde se arma un palo, del as al rey
 una "fundación" es una pila apilada donde:
-	- su "palo" es un palo
+	- su "palo" es un palo de carta
 	- nunca puede soltar una carta
 	// una carta a la vez:  la última de su pila
 	- puede tomar una carta si:
@@ -258,7 +259,7 @@ una "fundación" es una pila apilada donde:
 		devolver su palo es el palo de la carta y su valor + 1 es el valor de la carta
 	- para dibujarla:
 		devolver <div class="Foundation">
-			<div class="Placeholder">{el símbolo de su palo}</div>
+			<div class="Placeholder">{el símbolo de una nueva carta con palo = su palo}</div>
 			<hijos/>
 		</div>
 
@@ -274,13 +275,12 @@ una "columna" es una pila donde:
 			display: block;
 			min-height: 30rem;
 		}
-		/* cada carta debajo de la anterior, con su parte de arriba a la vista;  la última entera */
+		/* cada carta debajo de la anterior, con una franja de su parte de arriba a la vista (--card-strip);  la última entera */
 		::slotted(*) {
 			display: block;
 		}
 		::slotted(:not(:last-child)) {
-			height: 2.6rem;
-			overflow: hidden;
+			height: var(--card-strip);
 		}
 	</css>
 
@@ -298,7 +298,7 @@ para probar los movimientos
 	la columna puede tomar la jota debería ser no
 	la columna puede tomar la dama debería ser sí
 	agregar la dama a la columna
-	el estado de la columna debería ser "C1: R♠️+ D♥️+"
+	el estado de la columna debería ser "C1: R♠↑ D♥↑"
 	la columna puede soltar la dama debería ser sí
 	voltear la dama boca abajo
 	la columna puede soltar la dama debería ser no

@@ -14,146 +14,73 @@ from spell_core import core, List, App, Drawable, DrawableList, prop, h, positio
 class Card(Drawable):
     """
     The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
-    A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`.
+    A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
     """
 
     element_tag = "test-project-card"
 
-    # its suit and rank
-    # - its "suit" is a suit
-    suit = prop(one_of=lambda: Card.SUITS)
-
-    # - its "rank" is a rank
-    rank = prop(one_of=lambda: Card.RANKS)
-
-    @property
-    def color(self) -> Any:
-        return Suit.color(self.suit)
+    # card rank
+    # - its "rank" is one of ace, 2 ... 10, jack, queen, king
+    RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
+    rank = prop(one_of=RANKS)
 
     @property
     def value(self) -> float:
-        """ace 1 ... king 13"""
+        """ace = 1 ... king = 13"""
         return spell_position(core.position_of(Card.RANKS, self.rank))
 
-    def is_a_suit(self, suit: Any) -> bool:
-        """e.g. "the card is a spade\""""
-        return self.suit == suit
-
     def is_a_rank(self, rank: Any) -> bool:
-        """e.g. "the card is a queen\""""
+        """\"card is a king\""""
         return self.rank == rank
-
-    def is_the_rank_of_suits(self, rank: Any, suit: Any) -> bool:
-        """e.g. "the card is the queen of spades\""""
-        return self.rank == rank and self.suit == suit
 
     @property
     def is_a_face_card(self) -> bool:
-        return Rank.is_a_face_card(self.rank)
+        """\"card is a face card\""""
+        return self.rank in ["jack", "queen", "king"]
 
-    def is_the_color_joker(self, color: Color) -> bool:
-        return isinstance(self, Joker) and self.color == color
+    @property
+    def is_a_number_card(self) -> bool:
+        """\"card is a number card\""""
+        return not self.is_a_face_card
+
+    # card suit
+    # - its "suit" is one of clubs, diamonds, hearts or spades
+    SUITS = ("clubs", "diamonds", "hearts", "spades")
+    suit = prop(one_of=SUITS)
+
+    def is_a_suit(self, suit: Any) -> bool:
+        """\"card is a diamond\""""
+        return self.suit == suit
+
+    @property
+    def color(self) -> Any:
+        if self.suit in ["diamonds", "hearts"]:
+            return "red"
+        return "black"
+
+    # specific cards
+    # "queen of spades"
+
+    @property
+    def name(self) -> str:
+        return f"{self.rank} of {self.suit}"
+
+    def is_the_rank_of_suit(self, rank: Any, suit: Any) -> bool:
+        """\"card is the queen of spades\""""
+        return self.rank == rank and self.suit == suit
 
     # its direction:  face up or face down
     # - its "direction" is up or down
     DIRECTIONS = ("up", "down")
     direction = prop(one_of=DIRECTIONS)
 
-    @property
-    def is_face_up(self) -> bool:
-        return self.direction == "up"
+    def is_face_direction(self, direction: Any) -> bool:
+        """card is face up"""
+        return self.direction == direction
 
-    @property
-    def is_face_down(self) -> bool:
-        return self.direction == "down"
-
-    # its names
-    # e.g. "queen-of-spades"
-
-    @property
-    def name(self) -> str:
-        return f"{self.rank}-of-{self.suit}"
-
-    @property
-    def short_suit(self) -> str:
-        return Suit.symbol(self.suit)
-
-    @property
-    def short_rank(self) -> str:
-        if self.rank is None:
-            return "?"
-        if isinstance(self.rank, (int, float)):
-            return f"{self.rank}"
-        return core.upper_case(core.get_item_at(self.rank, 0))
-
-    @property
-    def short_direction(self) -> str:
-        if self.direction == "up":
-            return "+"
-        return "—"
-
-    @property
-    def short_name(self) -> str:
-        return self.short_rank + self.short_suit
-
-    @property
-    def state(self) -> str:
-        return self.short_rank + self.short_suit + self.short_direction
-
-    #########################################################
-    # ## its picture:  a character of unicode's Playing Cards
-    #########################################################
-
-    @property
-    def picture_column(self) -> float:
-        """
-        SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
-        The block is a grid:  a row for each suit, and in each row, a column for each rank.
-        - The rows start at 1F0A0 (spades), 1F0B0 (hearts), 1F0C0 (diamonds) and 1F0D0 (clubs).
-        - The columns run ace 1, 2 ... 10, jack B, then a knight our deck doesn't have, C, then queen D and king E.
-        """
-        # past the knight
-        if self.is_a_rank("queen") or self.is_a_rank("king"):
-            return self.value + 1
-        return self.value
-
-    @property
-    def picture(self) -> str:
-        if self.is_a_suit("spades"):
-            return core.unicode(0x1F0A0 + self.picture_column)
-        if self.is_a_suit("hearts"):
-            return core.unicode(0x1F0B0 + self.picture_column)
-        if self.is_a_suit("diamonds"):
-            return core.unicode(0x1F0C0 + self.picture_column)
-        return core.unicode(0x1F0D0 + self.picture_column)
-
-    def draw(self) -> Any:
-        """drawing:  its picture face up, the back every card shares face down"""
-        if self.is_face_down:
-            return h(
-                "ui-text",
-                {
-                    "class": "Card",
-                    "size": "massive",
-                    "color": "blue",
-                    "onClick": lambda event: core.trigger("card-click", card=self),
-                },
-                "🂠",
-            )
-        return h(
-            "ui-text",
-            {
-                "class": "Card",
-                "size": "massive",
-                "prop:color": self.color,
-                "onClick": lambda event: core.trigger("card-click", card=self),
-            },
-            self.picture,
-        )
-
-    ####################
-    # ## turning it over
-    ####################
+    ##########################
+    # ## turning the card over
+    ##########################
 
     async def turn_face_up(self) -> None:
         """each pauses a moment, so `wait for: turn the card face up` animates"""
@@ -165,11 +92,77 @@ class Card(Drawable):
         await core.pause_for(50, "msec")
 
     async def turn_over(self) -> None:
-        if self.is_face_up:
+        if self.is_face_direction("up"):
             await self.turn_face_down()
         else:
             await self.turn_face_up()
-        await core.pause_for(50, "msec")
+
+    @property
+    def picture(self) -> Any:
+        """
+        Card picture:  drawn with special letters in the unicode character set
+        - SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
+        """
+        if self.is_face_direction("down"):
+            # "Playing Card Back"
+            return "🂠"
+
+        column = self.value
+        if self.is_a_suit("clubs"):
+            return core.get_item_at(
+                ["🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞"],
+                position(column),
+            )
+        if self.is_a_suit("diamonds"):
+            return core.get_item_at(
+                ["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎"],
+                position(column),
+            )
+        if self.is_a_suit("hearts"):
+            return core.get_item_at(
+                ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂽", "🂾"],
+                position(column),
+            )
+        if self.is_a_suit("spades"):
+            return core.get_item_at(
+                ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"],
+                position(column),
+            )
+
+    def draw(self) -> Any:
+        """drawing:  its picture face up, the back every card shares face down"""
+        return h(
+            "ui-text",
+            {
+                "class": "Card",
+                "size": "massive",
+                "color": self.color if self.is_face_direction("up") else "blue",
+                "onClick": lambda event: core.trigger("card-click", card=self),
+            },
+            self.picture,
+        )
+
+    css = "\n  /* a card is a card-sized box:  its size is the board's, --card-width x --card-height in styles.css */\n  :host {\n  \tdisplay: block;\n  \tposition: relative;\n  \twidth: var(--card-width);\n  \theight: var(--card-height);\n  \toverflow: hidden;\n  \tcursor: pointer;\n  }\n  /* its picture, a character of unicode's Playing Cards:  moved so the card it draws fills the box */\n  ui-text::part(text) {\n  \tposition: absolute;\n  \tleft: -0.049em;\n  \ttop: -0.222em;\n  }\n"
+
+    @property
+    def symbol(self) -> Any:
+        if self.is_a_suit("clubs"):
+            return "♣"
+        if self.is_a_suit("diamonds"):
+            return "♦"
+        if self.is_a_suit("hearts"):
+            return "♥"
+        if self.is_a_suit("spades"):
+            return "♠"
+        return "?"
+
+    @property
+    def state(self) -> str:
+        """card "state", used for debugging"""
+        rank = 10 if self.value == 10 else core.upper_case(core.get_item_at(self.rank, 0))
+        suit = self.symbol
+        direction = "↑" if self.is_face_direction("up") else "↓"
+        return f"{rank}{suit}{direction}"
 
     #######################################
     # ## Playing a card:  what a click does
@@ -209,15 +202,6 @@ class Card(Drawable):
             solitaire.score = solitaire.score + 5
         return True
 
-    # "suits" as one of clubs, diamonds, hearts or spades
-    SUITS = ("clubs", "diamonds", "hearts", "spades")
-
-    # "ranks" as one of ace, 2 ... 10, jack, queen or king
-    RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
-
-    # "colors" as one of red or black
-    COLORS = ("red", "black")
-
     @property
     def pile(self) -> Pile | None:
         return Pile.owner_of(self)
@@ -228,86 +212,60 @@ class Joker(Card):
 
     element_tag = "test-project-joker"
 
-    # set when it's made:  it has no suit to work its color out from
-    # - its "color" is a color
-    color = prop(one_of=lambda: Card.COLORS)
+    # - its "color" is one of red or black
+    COLORS = ("red", "black")
+    color = prop(one_of=COLORS)
+
+    @staticmethod
+    def is_the_color_joker(card: Card, color: Any) -> bool:
+        """\"card is the red joker\""""
+        return isinstance(card, Joker) and card.color == color
 
     @property
-    def name(self) -> str:
-        """e.g. "red-joker\""""
-        return f"{self.color}-joker"
-
-    @property
-    def short_name(self) -> str:
-        return "🃏"
-
-    @property
-    def state(self) -> str:
-        return self.short_name + self.short_direction
+    def value(self) -> float:
+        if Joker.is_the_color_joker(self, "red"):
+            return 53
+        return 54
 
     @property
     def picture(self) -> str:
-        if self.color == "red":
-            return "🂿"
-        return "🃏"
+        return "🃟"
 
+    @property
+    def name(self) -> str:
+        return f"{self.color} joker"
 
-class Suit:
-    """suits, ranks and colors:  the card's own kinds of values"""
-
-    @staticmethod
-    def color(suit: Any) -> str:
-        if suit in ["diamonds", "hearts"]:
-            return "red"
-        return "black"
-
-    @staticmethod
-    def symbol(suit: Any) -> str:
-        if suit == "clubs":
-            return "♣️"
-        if suit == "diamonds":
-            return "♦️"
-        if suit == "hearts":
-            return "♥️"
-        if suit == "spades":
-            return "♠️"
-        return "?"
-
-
-class Rank:
-    @staticmethod
-    def is_a_face_card(rank: Any) -> bool:
-        return rank in ["jack", "queen", "king"]
-
-
-class Color:
-    pass
+    @property
+    def state(self) -> str:
+        color = core.upper_case(core.get_item_at(self.color, 0))
+        direction = "↑" if self.is_face_direction("up") else "↓"
+        return f"*{color}{direction}"
 
 
 async def test_card_setup() -> Any:
     """Tests"""
     with core.test("test card setup"):
         core.echo_test_action(
-            "get a new card whose rank is queen, suit is spades and direction is up",
+            "get a new card whose rank is queen, suit is spades and direction is down",
         )
-        it = Card(rank="queen", suit="spades", direction="up")
-        core.echo(it)
+        it = Card(rank="queen", suit="spades", direction="down")
+        core.echo(f"testing the {it.name}")
         core.expect(it.rank, "its rank", "queen", "queen")
         core.expect(it.suit, "its suit", "spades", "spades")
-        core.expect(it.name, "its name", "queen-of-spades", "\"queen-of-spades\"")
+        core.expect(it.name, "its name", "queen of spades", "\"queen of spades\"")
         core.expect(it.color, "its color", "black", "black")
         core.expect(it.value, "its value", 12, "12")
-        core.expect(it.short_suit, "its short suit", "♠️", "\"♠️\"")
-        core.expect(it.short_rank, "its short rank", "Q", "\"Q\"")
-        core.expect(it.short_name, "its short name", "Q♠️", "\"Q♠️\"")
-        core.expect(it.state, "its state", "Q♠️+", "\"Q♠️+\"")
+        core.expect(it.state, "its state", "Q♠↓", "\"Q♠↓\"")
+
+        core.expect(it.is_face_direction("down"), "it is face down", True, "yes")
+        core.expect(it.picture, "its picture", "🂠", "\"🂠\"")
+        core.echo_test_action("turn it face up")
+        await it.turn_face_up()
+        core.expect(it.is_face_direction("up"), "it is face up", True, "yes")
         core.expect(it.picture, "its picture", "🂭", "\"🂭\"")
 
-        core.expect(it.is_face_up, "it is face up", True, "yes")
-        core.expect(it.is_face_down, "it is face down", False, "no")
-
         core.expect(it.is_a_face_card, "it is a face card", True, "yes")
-        core.expect(not it.is_a_face_card, "it is not a face card", False, "no")
+        core.expect(not it.is_a_number_card, "it is not a number card", True, "yes")
 
         core.expect(it.is_a_suit("spades"), "it is a spade", True, "yes")
         core.expect(it.is_a_suit("clubs"), "it is a club", False, "no")
@@ -317,36 +275,24 @@ async def test_card_setup() -> Any:
         core.expect(it.is_a_rank(2), "it is a 2", False, "no")
 
         core.expect(
-            it.is_the_rank_of_suits("queen", "spades"),
+            it.is_the_rank_of_suit("queen", "spades"),
             "it is the queen of spades",
             True,
             "yes",
         )
         core.expect(
-            it.is_the_rank_of_suits("queen", "clubs"),
+            it.is_the_rank_of_suit("queen", "clubs"),
             "it is the queen of clubs",
             False,
             "no",
         )
-        core.expect(
-            not it.is_the_rank_of_suits(2, "diamonds"),
-            "it is not the 2 of diamonds",
-            True,
-            "yes",
-        )
-
-        core.echo_test_action("turn it face down")
-        await it.turn_face_down()
-        core.expect(it.direction, "its direction", "down", "down")
-        core.expect(it.is_face_down, "it is face down", True, "yes")
-
-        core.echo_test_action("turn it over")
-        await it.turn_over()
-        core.expect(it.is_face_up, "it is face up", True, "yes")
+        core.expect(it.is_the_rank_of_suit(2, "clubs"), "it is the 2 of clubs", False, "no")
+        # it is the red joker should be no
 
         # a number card:  its rank as it is, and its picture in the row of its suit
         seven = Card(rank=7, suit="hearts", direction="up")
-        core.expect(seven.short_name, "the short name of the seven", "7♥️", "\"7♥️\"")
+        core.echo(f"testing the {seven.name}")
+        core.expect(seven.is_a_number_card, "seven is a number card", True, "yes")
         core.expect(seven.color, "the color of the seven", "red", "red")
         core.expect(seven.picture, "the picture of the seven", "🂷", "\"🂷\"")
         core.expect(
@@ -368,29 +314,29 @@ async def test_jokers() -> Any:
         core.echo_test_action("get a new joker whose color is red and direction is up")
         it = Joker(color="red", direction="up")
         core.echo(it)
-        core.expect(isinstance(it, Joker), "it is a joker", True, "yes")
         core.expect(isinstance(it, Card), "it is a card", True, "yes")
+        core.expect(isinstance(it, Joker), "it is a joker", True, "yes")
         core.expect(it.color, "its color", "red", "red")
-        core.expect(it.name, "its name", "red-joker", "\"red-joker\"")
-        core.expect(it.short_name, "its short name", "🃏", "\"🃏\"")
-        core.expect(it.picture, "its picture", "🂿", "\"🂿\"")
-        core.expect(it.is_the_color_joker("red"), "it is the red joker", True, "yes")
-        core.expect(it.is_the_color_joker("black"), "it is the black joker", False, "no")
+        core.expect(it.name, "its name", "red joker", "\"red joker\"")
+        core.expect(it.state, "its state", "*R↑", "\"*R↑\"")
+        core.expect(it.picture, "its picture", "🃟", "\"🃟\"")
+        core.expect(Joker.is_the_color_joker(it, "red"), "it is the red joker", True, "yes")
+        core.expect(Joker.is_the_color_joker(it, "black"), "it is the black joker", False, "no")
         core.expect(
-            not it.is_the_color_joker("black"),
+            not Joker.is_the_color_joker(it, "black"),
             "it is not the black joker",
             True,
             "yes",
         )
 
-        core.expect(it.is_face_up, "it is face up", True, "yes")
+        core.expect(it.is_face_direction("up"), "it is face up", True, "yes")
         core.echo_test_action("turn it over")
         await it.turn_over()
-        core.expect(it.is_face_down, "it is face down", True, "yes")
+        core.expect(it.is_face_direction("down"), "it is face down", True, "yes")
 
         core.echo_test_action("set black joker to a new joker whose color is black")
         black_joker = Joker(color="black")
-        core.expect(black_joker.picture, "the picture of black joker", "🃏", "\"🃏\"")
+        core.expect(black_joker.picture, "the picture of black joker", "🃟", "\"🃟\"")
 
         core.echo_test_action(
             "set the card to a new card whose rank is queen and suit is spades",
@@ -398,7 +344,12 @@ async def test_jokers() -> Any:
         card = Card(rank="queen", suit="spades")
         core.expect(isinstance(card, Joker), "the card is a joker", False, "no")
         core.expect(not isinstance(card, Joker), "the card is not a joker", True, "yes")
-        core.expect(card.is_the_color_joker("red"), "the card is the red joker", False, "no")
+        core.expect(
+            Joker.is_the_color_joker(card, "red"),
+            "the card is the red joker",
+            False,
+            "no",
+        )
 
 
 # -----------
@@ -418,22 +369,24 @@ class Deck(List):
     # - its "jokers" is yes or no
     jokers = prop(type="choice")
 
-    def create(self) -> None:
+    async def create(self) -> None:
         """a new deck holds one of each card, ace of clubs first, then its two jokers, red then black"""
         for rank in Card.RANKS:
             for suit in Card.SUITS:
-                # `the deck`, not `it`:  in a `for each`, `it` is the loop's item, here the suit
                 self.append(Card(rank=rank, suit=suit))
         if self.jokers:
             self.append(Joker(color="red"))
             self.append(Joker(color="black"))
+        for card in self:
+            await card.turn_face_down()
 
-    def display(self) -> None:
+    @property
+    def state(self) -> str:
         """echo its cards' short names, top to bottom"""
         card_names = List(item_type="text")
         for card in self:
-            card_names.append(card.short_name)
-        core.echo(f"deck: {card_names}")
+            card_names.append(card.state)
+        return f"deck: {card_names}"
 
 
 def test_deck_creation() -> Any:
@@ -447,40 +400,59 @@ def test_deck_creation() -> Any:
         )
         queens = deck.filter(lambda card: card.rank == "queen")
         core.expect(len(queens), "the number of cards in the queens", 4, "4")
+        # ace of clubs is the top card
         core.expect(
             getattr(deck.first_item, "name", None),
             "the name of the top card of the deck",
-            "ace-of-clubs",
-            "\"ace-of-clubs\"",
+            "ace of clubs",
+            "\"ace of clubs\"",
         )
         core.expect(
-            getattr(deck.last_item, "name", None),
-            "the name of the bottom card of the deck",
-            "king-of-spades",
-            "\"king-of-spades\"",
+            getattr(deck.first_item, "state", None),
+            "the state of the top card of the deck",
+            "A♣↓",
+            "\"A♣↓\"",
         )
         core.expect(
-            getattr(deck.first_item, "short_name", None),
-            "the short name of the top card of the deck",
-            "A♣️",
-            "\"A♣️\"",
+            getattr(deck.first_item, "direction", None),
+            "the direction of the top card of the deck",
+            "down",
+            "down",
         )
         core.expect(
-            deck.first_item.is_the_rank_of_suits("ace", "clubs"),
+            deck.first_item.is_the_rank_of_suit("ace", "clubs"),
             "the first card of the deck is the ace of clubs",
             True,
             "yes",
         )
 
+        core.expect(
+            getattr(deck.last_item, "name", None),
+            "the name of the bottom card of the deck",
+            "king of spades",
+            "\"king of spades\"",
+        )
+        # no jokers!
+        core.expect(
+            isinstance(deck.random_item(), Joker),
+            "a random card of the deck is a joker",
+            False,
+            "no",
+        )
+        core.expect(
+            Joker.is_the_color_joker(deck.random_item(), "red"),
+            "a random card of the deck is the red joker",
+            False,
+            "no",
+        )
+
         core.echo("the deck before shuffling:")
-        core.echo_test_action("display the deck")
-        deck.display()
+        core.echo(deck.state)
         core.echo_test_action("shuffle the deck")
         deck.randomize()
         core.expect(len(deck), "the number of cards in the deck", 52, "52")
         core.echo("the deck after shuffling:")
-        core.echo_test_action("display the deck")
-        deck.display()
+        core.echo(deck.state)
 
 
 def test_deck_with_jokers() -> Any:
@@ -491,15 +463,16 @@ def test_deck_with_jokers() -> Any:
         core.echo_test_action("set wild cards to the cards in the deck where it is a joker")
         wild_cards = deck.filter(lambda card: isinstance(card, Joker))
         core.expect(len(wild_cards), "the number of cards in wild cards", 2, "2")
+        # first card is still ace of clubs
         core.expect(
-            deck.first_item.is_the_rank_of_suits("ace", "clubs"),
+            deck.first_item.is_the_rank_of_suit("ace", "clubs"),
             "the first card of the deck is the ace of clubs",
             True,
             "yes",
         )
-        # the red joker, then the black one, last
+        # last card should be the black joker
         core.expect(
-            deck.last_item.is_the_color_joker("black"),
+            Joker.is_the_color_joker(deck.last_item, "black"),
             "the last card of the deck is the black joker",
             True,
             "yes",
@@ -507,8 +480,8 @@ def test_deck_with_jokers() -> Any:
         core.expect(
             getattr(deck.last_item, "name", None),
             "the name of the bottom card of the deck",
-            "black-joker",
-            "\"black-joker\"",
+            "black joker",
+            "\"black joker\"",
         )
 
 
@@ -534,7 +507,7 @@ class Pile(DrawableList):
     name = prop(type="text")
 
     @property
-    def color(self) -> Any:
+    def color(self) -> str:
         """the color and value of its last card:  what the next card goes on"""
         if not self:
             return "none"
@@ -548,7 +521,7 @@ class Pile(DrawableList):
 
     @property
     def state(self) -> str:
-        """its name, then each card's state, e.g. "stock: Q♠️+ 7♥️—\""""
+        """pile state for debugging"""
         state = f"{self.name or "pile"}:"
         for card in self:
             state = f"{state} {card.state}"
@@ -565,8 +538,6 @@ def test_piles() -> Any:
     with core.test("test piles"):
         core.echo_test_action("set the stock to a new pile with name = \"stock\"")
         stock = Pile(name="stock")
-        core.echo_test_action("set the discards to a new pile with name = \"discards\"")
-        discards = Pile(name="discards")
         core.expect(stock.color, "the color of the stock", "none", "\"none\"")
         core.expect(stock.value, "the value of the stock", 0, "0")
 
@@ -578,31 +549,37 @@ def test_piles() -> Any:
             "add (a new card whose rank is 7, suit is hearts and direction is down) to the stock",
         )
         stock.append(Card(rank=7, suit="hearts", direction="down"))
+        core.echo(stock.state)
         core.expect(stock.color, "the color of the stock", "red", "red")
         core.expect(stock.value, "the value of the stock", 7, "7")
         core.expect(
             stock.state,
             "the state of the stock",
-            "stock: Q♠️+ 7♥️—",
-            "\"stock: Q♠️+ 7♥️—\"",
+            "stock: Q♠↑ 7♥↓",
+            "\"stock: Q♠↑ 7♥↓\"",
         )
 
-        # a card is in one pile at a time
-        card = stock.last_item
-        core.echo_test_action("add the card to the discards")
-        discards.append(card)
-        core.expect(len(stock), "the number of cards in the stock", 1, "1")
+        # a card can only be in one pile at a time
+        discards = Pile(name="discards")
+
+        core.echo_test_action("get the last card of the stock")
+        it = stock.last_item
+        core.echo_test_action("add it to the discards")
+        discards.append(it)
         core.expect(
-            getattr(card, "pile", None) == discards,
-            "the pile of the card is the discards",
+            getattr(it, "pile", None) == discards,
+            "its pile is the discards",
             True,
             "yes",
         )
+
+        core.expect(len(stock), "the number of cards in the stock", 1, "1")
+        core.expect(len(discards), "the number of cards in the discards", 1, "1")
         core.expect(
             discards.state,
             "the state of the discards",
-            "discards: 7♥️—",
-            "\"discards: 7♥️—\"",
+            "discards: 7♥↓",
+            "\"discards: 7♥↓\"",
         )
 
 
@@ -628,7 +605,7 @@ class StackedPile(Pile):
 
     element_tag = "test-project-stacked-pile"
 
-    css = "\n  :host {\n  \tdisplay: block;\n  \tposition: relative;\n  \tmin-height: 6.5rem;\n  }\n  /* where its first card goes:  a card-sized outline */\n  .Placeholder {\n  \tposition: absolute;\n  \ttop: 1.5rem;\n  \tleft: 0.3rem;\n  \twidth: 4.25rem;\n  \theight: 5.65rem;\n  \tbox-sizing: border-box;\n  \tborder: 2px dashed #c8c8c8;\n  \tborder-radius: 0.4rem;\n  \tdisplay: flex;\n  \talign-items: center;\n  \tjustify-content: center;\n  \tfont-size: 2rem;\n  \tcursor: pointer;\n  }\n  ::slotted(*) {\n  \tposition: absolute;\n  \ttop: 0;\n  \tleft: 0;\n  }\n"
+    css = "\n  :host {\n  \tdisplay: block;\n  \tposition: relative;\n  \tmin-width: var(--card-width);\n  \tmin-height: var(--card-height);\n  }\n  /* where its first card goes:  a card-sized outline */\n  .Placeholder {\n  \tposition: absolute;\n  \ttop: 0;\n  \tleft: 0;\n  \twidth: var(--card-width);\n  \theight: var(--card-height);\n  \tbox-sizing: border-box;\n  \tborder: 2px dashed #c8c8c8;\n  \tborder-radius: 0.4rem;\n  \tdisplay: flex;\n  \talign-items: center;\n  \tjustify-content: center;\n  \tfont-size: 2rem;\n  \tcursor: pointer;\n  }\n  ::slotted(*) {\n  \tposition: absolute;\n  \ttop: 0;\n  \tleft: 0;\n  }\n"
 
 
 class StockPile(StackedPile):
@@ -671,7 +648,7 @@ class Foundation(StackedPile):
 
     element_tag = "test-project-foundation"
 
-    # - its "suit" is a suit
+    # - its "suit" is a card suit
     suit = prop(one_of=lambda: Card.SUITS)
 
     def can_give_up(self, card: Card) -> bool:
@@ -688,7 +665,7 @@ class Foundation(StackedPile):
         return h(
             "div",
             {"class": "Foundation"},
-            h("div", {"class": "Placeholder"}, Suit.symbol(self.suit)),
+            h("div", {"class": "Placeholder"}, Card(suit=self.suit).symbol),
             h("slot"),
         )
 
@@ -699,14 +676,14 @@ class Tableau(Pile):
     element_tag = "test-project-tableau"
 
     def can_give_up(self, card: Card) -> bool:
-        return card.is_face_up
+        return card.is_face_direction("up")
 
     def can_take(self, card: Card) -> bool:
         if not self:
             return card.is_a_rank("king")
         return self.color != card.color and self.value == card.value + 1
 
-    css = "\n  :host {\n  \tdisplay: block;\n  \tmin-height: 30rem;\n  }\n  /* each card below the one before, its top showing;  the last one whole */\n  ::slotted(*) {\n  \tdisplay: block;\n  }\n  ::slotted(:not(:last-child)) {\n  \theight: 2.6rem;\n  \toverflow: hidden;\n  }\n"
+    css = "\n  :host {\n  \tdisplay: block;\n  \tmin-height: 30rem;\n  }\n  /* each card below the one before, a strip of its top showing (--card-strip);  the last one whole */\n  ::slotted(*) {\n  \tdisplay: block;\n  }\n  ::slotted(:not(:last-child)) {\n  \theight: var(--card-strip);\n  }\n"
 
 
 class Solitaire(App):
@@ -758,7 +735,7 @@ class Solitaire(App):
     # - its "T7" is a new tableau with name = "T7"
     t7 = prop(init=lambda: Tableau(name="T7"), early=True)
 
-    def create(self) -> None:
+    async def create(self) -> None:
         """
         once, as the solitaire is made:  every card of the deck into the stock
         - its deck and piles are made with it, before this runs
@@ -768,7 +745,7 @@ class Solitaire(App):
             self.stock.append(card)
 
     def debug(self) -> None:
-        """print each pile's cards, e.g. "stock: Q♠️— 7♥️—\""""
+        """print each pile's cards, e.g. "stock: Q♠↓ 7♥↓\""""
         for pile in core.every_thing(Pile):
             print(pile.state)
 
@@ -827,12 +804,12 @@ class Solitaire(App):
         """turn up a face-down card from a tableau, at random, onto the discards"""
         remaining_piles = core.filter(
             core.every_thing(Tableau),
-            lambda pile: (pile) and getattr(pile.first_item, "is_face_down", None),
+            lambda pile: (pile) and pile.first_item.is_face_direction("down"),
         )
         if core.is_empty(remaining_piles):
             return
         pile = core.random_item_of(remaining_piles)
-        hidden_cards = pile.filter(lambda card: card.is_face_down)
+        hidden_cards = pile.filter(lambda card: card.is_face_direction("down"))
         card = hidden_cards.random_item()
         await card.turn_face_up()
         await core.pause_for(30, "ticks")
@@ -860,7 +837,7 @@ class Solitaire(App):
 
         # each tableau's face-up cards, all together, onto another tableau
         for pile in core.every_thing(Tableau):
-            face_up_cards = pile.filter(lambda card: card.is_face_up)
+            face_up_cards = pile.filter(lambda card: card.is_face_direction("up"))
             if not face_up_cards:
                 continue
             test_card = face_up_cards.first_item
@@ -972,12 +949,7 @@ async def test_the_moves() -> Any:
         core.expect(core.can_take(column, queen), "the column can take the queen", True, "yes")
         core.echo_test_action("add the queen to the column")
         column.append(queen)
-        core.expect(
-            column.state,
-            "the state of the column",
-            "T1: K♠️+ Q♥️+",
-            "\"T1: K♠️+ Q♥️+\"",
-        )
+        core.expect(column.state, "the state of the column", "T1: K♠↑ Q♥↑", "\"T1: K♠↑ Q♥↑\"")
         core.expect(
             core.can_give_up(column, queen),
             "the column can give up the queen",
@@ -1045,6 +1017,24 @@ async def test_the_moves() -> Any:
 core.install_styles(None, """/* File styles.css:  the board's own styles.
    Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.
    A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */
+
+/* The size of a card, which every card and pile reads:  custom properties reach inside their shadow roots.
+   - A card's picture, a character of unicode's Playing Cards, is 68 x 90px at the size the card draws it. */
+:root,
+:host {
+  --card-width: 4.25rem;
+  --card-height: 5.65rem;
+  /* how much of a card shows under the one on it, in a tableau */
+  --card-strip: 1.4rem;
+}
+
+/* Each column at least a card wide, and a little more:  a narrow board scrolls sideways, never squeezes them. */
+ui-row::part(row) {
+  flex-wrap: nowrap;
+}
+ui-column::part(column) {
+  min-width: calc(var(--card-width) + 1rem);
+}
 """)
 
 

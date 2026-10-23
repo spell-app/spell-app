@@ -146,6 +146,85 @@ export class SpellLanguageService {
     return [...errors, ...warnings, ...this.css.diagnostics(text)]
   }
 
+  /**
+   * `spell/testDiagnostics`:  each failed check of `tests` as an error on its line, in the file it's in --
+   * for EVERY spell file of `project`, so a file whose tests now pass has its errors cleared.
+   * - e.g. `it is the queen of spades should be yes` that was `no`:
+   *   "Unexpected: `it is the queen of spades` should be `yes` but is actually `false`", under that line.
+   * - A test is found by its function's name, `testCardSetup`;  a check by the spell it was written as
+   *   (`TestFailure.what`, `expected`), then by `occurrence` when its test says the same thing more than once.
+   *   - So the compiled code needs no line numbers:  `core.expect()` is called with that spell already.
+   *   - A check run more often than it's written, e.g. in a loop, is the last one written so.
+   * - A test that threw, or a failed check found nowhere (the file changed since), is an error on its `to test` line.
+   * - From the files as last parsed:  the runner reports on what it ran, which compiled from them.
+   */
+  testDiagnostics(project: SP.SpellProject, tests: LSP.TestReport[]): LSP.FileDiagnostics[] {
+    const definitions = new Map<string, TestDefinition>()
+    for (const file of project.spellFiles) {
+      if (file.match) this.testDefinitionsIn(file, file.match, definitions)
+    }
+    const byFile = new Map<SP.SpellFile, Diagnostic[]>(project.spellFiles.map((file) => [file, []]))
+    const add = (file: SP.SpellFile, match: P.Match, message: string) => {
+      const range = this.rangeOf(file, match)
+      if (range) byFile.get(file)?.push({ range, severity: DiagnosticSeverity.Error, source: TEST_SOURCE, message })
+    }
+    for (const test of tests) {
+      const definition = test.method === undefined ? undefined : definitions.get(test.method)
+      if (!definition) continue
+      for (const { what, expected, message, occurrence } of test.failures) {
+        const written = definition.checks.filter((check) => check.what === what && check.expected === expected)
+        const check = written[Math.min(occurrence, written.length - 1)]
+        add(definition.file, check?.match ?? definition.match, message)
+      }
+      if (test.threw !== undefined) add(definition.file, definition.match, test.threw)
+    }
+    return [...byFile].map(([file, diagnostics]) => ({ uri: this.addresses.uriFor(file), diagnostics }))
+  }
+
+  /**
+   * Each `to test ...` in `block` of `file`, and the ones in the bodies under it, into `definitions`,
+   * by its function's name:  with its checks, in the order they're written.
+   */
+  private testDefinitionsIn(file: SP.SpellFile, block: P.Match, definitions: Map<string, TestDefinition>): void {
+    for (const statement of SpellLanguageService.statementsIn(block)) {
+      if (!statement.groups.asTest) continue
+      const ast = statement.AST
+      const statements = ast instanceof P.ASTStatementGroup ? (ast.statements ?? []) : [ast]
+      // spell's own name, `test_card_setup`:  as javascript names it, as the runner reports it
+      const name = statements.find((node) => node instanceof P.ASTMethodDefinition)?.methodName
+      if (!name) continue
+      const method = P.camelCaseOf(name)
+      const checks: TestDefinition["checks"] = []
+      const body = statement.data.body as P.Match | undefined
+      for (const inBody of body ? SpellLanguageService.statementsIn(body) : []) {
+        const check = inBody.AST
+        if (!(check instanceof P.ASTExpectMethodInvocation)) continue
+        const [, what, , expected] = (check.args.args ?? []) as Array<P.ASTStringLiteral | undefined>
+        checks.push({ what: String(what?.value), expected: expected && String(expected.value), match: inBody })
+      }
+      definitions.set(method, { file, match: statement, checks })
+    }
+  }
+
+  /**
+   * Every statement in `block`, in the order they're written:  each line's, then the ones in its indented body.
+   * - Not what JSX or a rule keeps in `match.data` otherwise:  statements only.
+   */
+  private static *statementsIn(block: P.Match): Generator<P.Match> {
+    for (const item of block.matched) {
+      if (!(item instanceof P.Match)) continue
+      if (item.rule.name === "block") {
+        yield* SpellLanguageService.statementsIn(item)
+        continue
+      }
+      const statement = item.data.statement as P.Match | undefined
+      if (!statement) continue
+      yield statement
+      const body = statement.data.body as P.Match | undefined
+      if (body?.rule.name === "block") yield* SpellLanguageService.statementsIn(body)
+    }
+  }
+
   ////////////////
   // ## Structure
   ////////////////
@@ -2338,3 +2417,16 @@ const JSX_TAG_TYPED = /(?:^|[\s>({])<[a-z][\w-]*$/
 
 /** Where a scope record says it's declared:  its scope, or the match declaring it (a method's). */
 type RecordScopes = { scope?: P.Scope; declaredBy?: P.Match }
+
+/** Where a test's errors show, in a project's VS Code problems:  apart from the parser's, `spell`. */
+const TEST_SOURCE = "spell test"
+
+/** A `to test ...` as written:  where it is, and its checks -- see `SpellLanguageService.testDiagnostics()`. */
+type TestDefinition = {
+  /** File it's in. */
+  file: SP.SpellFile
+  /** Its `to test ...` statement:  where a check found nowhere, or a throw, shows. */
+  match: P.Match
+  /** Each `... should be ...` in it, in the order they're written:  the spell its call names, and its statement. */
+  checks: Array<{ what: string; expected?: string; match: P.Match }>
+}

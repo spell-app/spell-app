@@ -47,7 +47,7 @@ describe("Python's name clashes in today's spell", () => {
     for (const name of fixtureProjectNames()) {
       // its place, e.g. `@spell/examples/Solitaire`
       naming.where = fixtureProjectId(name)
-      // as it compiles:  against what it imports, e.g. the card library
+      // as it compiles:  against what it imports, e.g. counter-app the counter library
       const { scope, files } = parseSpellProject(loadFixtureProject(name), { parentScope: fixtureImportScope(name) })
       const parts = files.map(({ match, compiled }) =>
         match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled

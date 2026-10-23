@@ -26,7 +26,8 @@ describe("projectChoices()", () => {
 
   test("a group:  its projects, to go into", async () => {
     expect(await values("@spell/test/")).toEqual([
-      "@spell/test/cards/",
+      "@spell/test/counter/",
+      "@spell/test/counter-app/",
       "@spell/test/fizzbuzz/",
       "@spell/test/lists-from-zero/",
       "@spell/test/people/",

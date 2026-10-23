@@ -2,11 +2,6 @@
   "listsStartAt": 0,
   "imports": [
     {
-      "path": "@spell/test/cards",
-      "active": true,
-      "import": ["Card", "Deck"]
-    },
-    {
       "path": "/Counting.spell",
       "active": true
     }

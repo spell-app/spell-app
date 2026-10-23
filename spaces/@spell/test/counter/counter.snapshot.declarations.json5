@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0",
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Counter",
+    "test_counting"
+  ],
+  "statements": [
+    {
+      "type": "Counter",
+      "superType": "Drawable",
+      "defined": "/Counter.spell:240-591"
+    },
+    {
+      "property": "count",
+      "of": "Counter",
+      "datatype": "number",
+      "defined": "/Counter.spell:282-305"
+    },
+    {
+      "syntax": "create {thisArg:expression}",
+      "output": "create",
+      "rule": "method_call",
+      "of": "Counter",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "create it",
+      "defined": "/Counter.spell:339-373"
+    },
+    {
+      "syntax": "increment {thisArg:expression}",
+      "output": "increment",
+      "rule": "method_call",
+      "of": "Counter",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "increment it",
+      "defined": "/Counter.spell:378-427"
+    },
+    {
+      "syntax": "test counting",
+      "output": "test_counting",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "counting",
+      "defined": "/Counter.spell:603-712"
+    }
+  ],
+  "codeLines": [
+    10,
+    13,
+    19,
+    23,
+    35
+  ]
+}

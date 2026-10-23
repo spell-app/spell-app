@@ -28,7 +28,7 @@ import { CLI } from "spell-app/cli"
  *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
  *   - What a core must HAVE is `SC.Core` (`spell-lang/core/core.types`).
  * - The snapshot catches a broken core method, which both targets would share.
- * - A fixture that imports another project (`lists-from-zero` imports the frozen card library, `@spell/test/cards`)
+ * - A fixture that imports another project (`counter-app` imports the frozen counter library, `@spell/test/counter`)
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
  *   What it drew is printed last, so drawing is compared too:
@@ -89,7 +89,7 @@ async function importedProjects(
     let code = compiledFixture(fixture, target)
     const fileName = moduleNameOf(fixture)
     if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fileName}.spell.tsx` })
-    // Python imports another project as a module of its name, `from cards import Card`
+    // Python imports another project as a module of its name, `from counter import Counter`
     const isPython = TARGET_FILES[target] === ".py"
     const file = join(folder, isPython ? `${PY.PyWriter.projectModule(module)}.py` : `${fileName}.spell.mjs`)
     writeFileSync(file, code)
@@ -99,7 +99,7 @@ async function importedProjects(
   return projects
 }
 
-/** A file or variable name for imported project `imported`, a fixture's name or a library's address:  `cards`. */
+/** A file or variable name for imported project `imported`, a fixture's name or a library's address:  `counter`. */
 function moduleNameOf(imported: string): string {
   return imported.split("/").at(-1)!.replace(/\W/g, "_")
 }

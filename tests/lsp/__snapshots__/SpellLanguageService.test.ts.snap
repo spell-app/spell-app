@@ -10,103 +10,106 @@ exports[`SpellLanguageService > highlighting > semantic tokens 1`] = `
   "4:23 "thing" type defaultLibrary",
   "4:29 "where" keyword",
   "4:34 ":" operator",
-  "7:3 "\\"suits\\"" property",
-  "7:11 "as" keyword",
-  "7:14 "one" keyword",
-  "7:18 "of" keyword",
-  "7:21 "clubs" enumMember",
-  "7:26 "," operator",
-  "7:28 "diamonds" enumMember",
-  "7:36 "," operator",
-  "7:38 "hearts" enumMember",
-  "7:45 "or" keyword",
-  "7:48 "spades" enumMember",
-  "23:3 "its" variable",
-  "23:7 "\\"suit\\"" property declaration",
-  "23:14 "is" keyword",
-  "23:17 "a" keyword",
-  "23:19 "suit" type",
-  "32:3 "it" variable",
-  "32:6 "\\"is the (color as a color) joker\\"" function declaration",
-  "32:15 "color" variable",
-  "32:21 "as" keyword",
-  "32:24 "a" keyword",
-  "32:26 "color" type",
-  "32:31 ")" operator",
-  "32:40 "if" keyword",
-  "32:43 "it" variable",
-  "32:46 "is" keyword",
-  "32:49 "a" keyword",
-  "32:51 "joker" type",
-  "32:57 "and" keyword",
-  "32:61 "its" keyword",
-  "32:65 "color" property",
-  "32:71 "is" keyword",
-  "32:74 "color" parameter",
-  "67:3 "to" keyword",
-  "67:6 "draw" function declaration",
-  "67:11 "it" function declaration",
-  "67:13 ":" operator",
-  "78:3 "to" keyword",
-  "78:6 "turn" function declaration",
-  "78:11 "it" function declaration",
-  "78:14 "face" function declaration",
-  "78:19 "up" function declaration",
-  "78:21 ":" operator",
-  "85:2 "if" keyword",
-  "85:5 "it" variable",
-  "85:8 "is" function",
-  "85:11 "face" function",
-  "85:16 "up" function",
-  "85:18 ":" operator",
-  "85:20 "turn" function",
-  "85:25 "it" variable",
-  "85:28 "face" function",
-  "85:33 "down" function",
+  "6:3 "its" variable",
+  "6:7 "\\"rank\\"" property declaration",
+  "6:14 "is" keyword",
+  "6:17 "one" keyword",
+  "6:21 "of" keyword",
+  "6:24 "ace" enumMember",
+  "6:27 "," operator",
+  "6:29 "2" number",
+  "6:31 "." operator",
+  "6:32 "." operator",
+  "6:33 "." operator",
+  "6:35 "10" number",
+  "6:37 "," operator",
+  "6:39 "jack" enumMember",
+  "6:43 "," operator",
+  "6:45 "queen" enumMember",
+  "6:50 "," operator",
+  "6:52 "king" enumMember",
+  "9:3 "it" variable",
+  "9:6 "\\"is a face card\\"" function declaration",
+  "9:23 "if" keyword",
+  "9:26 "its" keyword",
+  "9:30 "rank" property",
+  "9:35 "is" keyword",
+  "9:38 "jack" enumMember",
+  "9:42 "," operator",
+  "9:44 "queen" enumMember",
+  "9:50 "or" keyword",
+  "9:53 "king" enumMember",
+  "9:58 "// \\"card is a face card\\"" comment",
+  "13:3 "its" variable",
+  "13:7 "\\"suit\\"" property declaration",
+  "13:14 "is" keyword",
+  "13:17 "one" keyword",
+  "13:21 "of" keyword",
+  "13:24 "clubs" enumMember",
+  "13:29 "," operator",
+  "13:31 "diamonds" enumMember",
+  "13:39 "," operator",
+  "13:41 "hearts" enumMember",
+  "13:48 "or" keyword",
+  "13:51 "spades" enumMember",
+  "30:3 "to" keyword",
+  "30:6 "turn" function declaration",
+  "30:11 "it" function declaration",
+  "30:14 "face" function declaration",
+  "30:19 "up" function declaration",
+  "30:21 ":" operator",
+  "38:3 "await" keyword",
+  "38:9 "turn" function",
+  "38:14 "it" variable",
+  "38:17 "face" function",
+  "38:22 "down" function",
+  "60:3 "to" keyword",
+  "60:6 "draw" function declaration",
+  "60:11 "it" function declaration",
+  "60:13 ":" operator",
+  "62:4 "ui-text" type",
+  "67:5 "its" keyword",
+  "67:9 "picture" property",
 ]
 `;
 
 exports[`SpellLanguageService > structure > document symbols:  properties and methods nest under their type 1`] = `
 [
   "Card (Class)
-  Suit (Class)
-    color (Property)
-    symbol (Property)
-  Rank (Class)
-    "is a face card" (Method)
-  Color (Class)
-  suit (Property)
   rank (Property)
-  color (Property)
   value (Property)
-  "is a (suit)" (Method)
   "is a (rank)" (Method)
-  "is the (rank) of (suits)" (Method)
   "is a face card" (Method)
-  "is the (color as a color) joker" (Method)
-  direction (Property)
-  "is face up" (Method)
-  "is face down" (Method)
+  "is a number card" (Method)
+  suit (Property)
+  "is a (suit)" (Method)
+  color (Property)
   name (Property)
-  short suit (Property)
-  short rank (Property)
-  short direction (Property)
-  short name (Property)
-  state (Property)
-  picture column (Property)
-  picture (Property)
-  draw it (Method)
+  "is the (rank) of (suit)" (Method)
+  direction (Property)
+  "is face (direction)" (Method)
   turn it face up (Method)
   turn it face down (Method)
-  turn it over (Method)",
+  turn it over (Method)
+  picture (Property)
+    column (Variable)
+  draw it (Method)
+  symbol (Property)
+  state (Property)
+    rank (Variable)
+    suit (Variable)
+    direction (Variable)",
+  "card setup (Function)
+  seven (Variable)",
   "Joker (Class)
   color (Property)
+  "is the (color) joker" (Method)
+  value (Property)
+  picture (Property)
   name (Property)
-  short name (Property)
   state (Property)
-  picture (Property)",
-  "card setup (Function)
-  the seven (Variable)",
+    color (Variable)
+    direction (Variable)",
   "jokers (Function)
   black joker (Variable)
   the card (Variable)",
@@ -115,26 +118,34 @@ exports[`SpellLanguageService > structure > document symbols:  properties and me
 
 exports[`SpellLanguageService > structure > folding ranges 1`] = `
 [
-  "4-87",
-  "11-13",
-  "14-19",
-  "42-45",
-  "46-48",
-  "57-59",
-  "60-64",
-  "67-74",
-  "68-71",
-  "78-80",
-  "81-83",
-  "84-87",
-  "91-99",
-  "97-99",
-  "103-147",
-  "149-172",
-  "69-71",
-  "72-74",
+  "4-99",
+  "16-18",
+  "30-32",
+  "33-35",
+  "36-40",
+  "37-38",
+  "39-40",
+  "45-57",
+  "46-47",
+  "50-51",
+  "52-53",
+  "54-55",
+  "56-57",
+  "60-68",
+  "61-68",
+  "87-92",
+  "95-99",
+  "103-142",
+  "146-161",
+  "150-152",
+  "154-155",
+  "158-161",
+  "163-186",
+  "62-68",
+  "69-85",
   "1-3 comment",
-  "52-56 comment",
-  "76-77 comment",
+  "28-29 comment",
+  "43-44 comment",
+  "69-85",
 ]
 `;

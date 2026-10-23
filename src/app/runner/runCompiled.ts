@@ -26,6 +26,7 @@ import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "spell-lang/core"
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL:
  *   once per run, however many import it, deepest first.
  *   Without `loadImport`, a project which imports another won't run.
+ * - `runTests`:  then the tests it didn't run itself, as `spell test` does.
  * - SIDE EFFECT:  hands its top-level things to `core.things`, for the Thing Explorer --
  *   NOT those of the projects it imports.
  *   Its classes AND theirs too, so `core.fromJSON()` finds them by name.
@@ -72,6 +73,8 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
       core.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
     }
     core.things.setTopLevel(program)
+    // the tests it didn't run itself as it loaded:  never on a run that carries things over, which skipped its own
+    if (options.runTests && !previous) core.runTests(program)
     const problems = previous ? core.carryProblems(previous.things, program) : []
     if (problems.length) {
       // with its start skipped, a thing that starts afresh by itself would miss what the start does to it
@@ -131,6 +134,11 @@ export type RunCompiledOptions = {
    * - Never for Restart, which starts afresh on purpose (Q25), nor for another program.
    */
   keepThings?: boolean
+  /**
+   * Then run each `to test ...` it exports which it didn't run itself as it loaded (`core.runTests()`):
+   * how they went is in `core.testResults()`.  See `testApp()`.
+   */
+  runTests?: boolean
   /**
    * The program's words for what the core says to the person running it, e.g. a test's lines:
    * its words file's `messages` (epic `spanish` P12) -- English with none.

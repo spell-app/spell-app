@@ -83,7 +83,15 @@ export function fixtureProjectId(projectName: string): string {
  * - The core contract runs them under Python.
  * - Each phase adds the ones it makes write:  things and lists, pauses, drawing.
  */
-export const PYTHON_FIXTURES = new Set(["fizzbuzz", "lists-from-zero", "people", "Solitaire", "thing-references"])
+export const PYTHON_FIXTURES = new Set([
+  "counter",
+  "counter-app",
+  "fizzbuzz",
+  "lists-from-zero",
+  "people",
+  "Solitaire",
+  "thing-references"
+])
 
 /**
  * The fixtures compiled as a LIBRARY too (the `ts/lib` target, epic `people-and-orgs` P3).
@@ -150,7 +158,7 @@ export function fixtureWords(projectName: string, lang = fixtureLanguages(projec
  *   They split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
- * - Against the projects it imports, e.g. `lists-from-zero` the card library, `@spell/test/cards`:
+ * - Against the projects it imports, e.g. `counter-app` the counter library, `@spell/test/counter`:
  *   - their declarations, as a compiled import's (see `fixtureImportScope()`)
  *   - NOT their code:  that's theirs
  * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
@@ -190,7 +198,7 @@ function compileFixture(
 
 /**
  * The projects test project `projectName` imports, by the module its compiled code imports each from.
- * - e.g. `{ "@spell/project/@spell/test/cards": "cards" }`
+ * - e.g. `{ "@spell/project/@spell/test/counter": "counter" }`
  * - Each by its name, as the fixture helpers take it.
  * - none:  `{}`
  * - throws if it imports a project that isn't a frozen fixture:
@@ -224,7 +232,7 @@ export function fixtureFolder(projectName: string, ...parts: string[]): string {
  * as `SpellProject.loadImportScope()` loads a compiled import's.
  * - Imports none:  the root scope.
  * - A test parsing a fixture's files itself parses them under it:
- *   `parseSpellProject(loadFixtureProject("lists-from-zero"), { parentScope: fixtureImportScope("lists-from-zero") })`.
+ *   `parseSpellProject(loadFixtureProject("counter-app"), { parentScope: fixtureImportScope("counter-app") })`.
  */
 export function fixtureImportScope(projectName: string): P.Scope {
   const { imports } = readProjectFile(fixtureFolder(projectName))
@@ -241,7 +249,7 @@ export function fixtureImportScope(projectName: string): P.Scope {
   return loaded.length ? SP.SpellDeclarations.importScope(root, loaded) : root
 }
 
-/** The module compiled code imports project `projectId` from, e.g. `@spell/project/@spell/test/cards`. */
+/** The module compiled code imports project `projectId` from, e.g. `@spell/project/@spell/test/counter`. */
 function moduleFor(projectId: string): string {
   return `${SP.SPELL_PROJECT_MODULE}${encodeURI(projectId)}`
 }
@@ -266,6 +274,19 @@ export function copyFixtureProject(projectName: string, dir: string): void {
     if (path.startsWith("/")) copyFileSync(resolve(folder, `.${path}`), resolve(dir, `.${path}`))
   }
   copyFileSync(projectFileFor(folder), resolve(dir, basename(projectFileFor(folder))))
+}
+
+/**
+ * 1-based line of `text` that starts with `start`, its indent left off:  the `nth` (0-based) such line.
+ * - So a test names a line of an example by what it says, not by its number:
+ *   an edit to the example above it doesn't move the test's line.
+ * - throws if there's no such line
+ */
+export function lineOf(text: string, start: string, nth = 0): number {
+  const lines = text.split("\n").flatMap((line, index) => (line.trimStart().startsWith(start) ? [index + 1] : []))
+  const line = lines[nth]
+  if (line === undefined) throw new Error(`lineOf():  no line #${nth + 1} starts \`${start}\`;  has the text changed?`)
+  return line
 }
 
 /** CSS `contents` compiled as `SpellCSSFile.compile()` does:  one `P.TextToken`, through the root scope's `css` rule. */

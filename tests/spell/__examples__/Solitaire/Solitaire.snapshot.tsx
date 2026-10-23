@@ -1,59 +1,72 @@
-import { Show } from "solid-js"
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, trigger, css, position, on } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, css, on } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("A playing card -- in the outline style:  its name, then what's true of it")
 ///////////////////////////////////////////////////////////////////////////////
 // ## A playing card -- in the outline style:  its name, then what's true of it
 ///////////////////////////////////////////////////////////////////////////////
+export type Rank = (typeof Card.Ranks)[number]
+export type Suit = (typeof Card.Suits)[number]
 export type Direction = (typeof Card.Directions)[number]
 
 /**
  * The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
- * A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`.
+ * A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
  */
 export class Card extends Drawable {
   static elementTag = core.defineElement(this, "test-project")
 
-  /** its suit and rank */
-  // - its "suit" is a suit
-  @prop({ oneOf: () => Card.Suits })
-  accessor suit!: (typeof Card.Suits)[number]
-
-  // - its "rank" is a rank
+  /** card rank */
+  // - its "rank" is one of ace, 2 ... 10, jack, queen, king
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
   @prop({ oneOf: () => Card.Ranks })
-  accessor rank!: (typeof Card.Ranks)[number]
+  accessor rank!: Rank
 
-  get color() {
-    return Suit.color(this.suit)
-  }
-
-  /** ace 1 ... king 13 */
+  /** ace = 1 ... king = 13 */
   get value() {
     return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
-  /** e.g. "the card is a spade" */
-  isASuit(suit: (typeof Card.Suits)[number]) {
-    return this.suit === suit
-  }
-
-  /** e.g. "the card is a queen" */
-  isARank(rank: (typeof Card.Ranks)[number]) {
+  /** "card is a king" */
+  isARank(rank: Rank) {
     return this.rank === rank
   }
 
-  /** e.g. "the card is the queen of spades" */
-  isTheRankOfSuits(rank: (typeof Card.Ranks)[number], suit: (typeof Card.Suits)[number]) {
-    return this.rank === rank && this.suit === suit
-  }
-
+  /** "card is a face card" */
   get isAFaceCard() {
-    return Rank.isAFaceCard(this.rank)
+    return core.includes(["jack", "queen", "king"], this.rank)
   }
 
-  isTheColorJoker(color: Color) {
-    return this instanceof Joker && this.color == color
+  /** "card is a number card" */
+  get isANumberCard() {
+    return !this.isAFaceCard
+  }
+
+  /** card suit */
+  // - its "suit" is one of clubs, diamonds, hearts or spades
+  static Suits = ["clubs", "diamonds", "hearts", "spades"] as const
+  @prop({ oneOf: () => Card.Suits })
+  accessor suit!: Suit
+
+  /** "card is a diamond" */
+  isASuit(suit: Suit) {
+    return this.suit === suit
+  }
+
+  get color() {
+    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
+    return "black"
+  }
+
+  /** specific cards */
+  // "queen of spades"
+  get name() {
+    return `${this.rank} of ${this.suit}`
+  }
+
+  /** "card is the queen of spades" */
+  isTheRankOfSuit(rank: Rank, suit: Suit) {
+    return this.rank === rank && this.suit === suit
   }
 
   /** its direction:  face up or face down */
@@ -62,81 +75,14 @@ export class Card extends Drawable {
   @prop({ oneOf: () => Card.Directions })
   accessor direction!: Direction
 
-  get isFaceUp() {
-    return this.direction == "up"
+  /** card is face up */
+  isFaceDirection(direction: Direction) {
+    return this.direction === direction
   }
 
-  get isFaceDown() {
-    return this.direction == "down"
-  }
-
-  /** its names */
-  // e.g. "queen-of-spades"
-  get name() {
-    return `${this.rank}-of-${this.suit}`
-  }
-
-  get shortSuit() {
-    return Suit.symbol(this.suit)
-  }
-
-  get shortRank() {
-    if (this.rank === undefined) return "?"
-    if (typeof this.rank === "number") return `${this.rank}`
-    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
-  }
-
-  get shortDirection() {
-    if (this.direction == "up") return "+"
-    return "—"
-  }
-
-  get shortName() {
-    return this.shortRank + this.shortSuit
-  }
-
-  get state() {
-    return this.shortRank + this.shortSuit + this.shortDirection
-  }
-
-  //////////////////////////////////////////////////////////
-  // ## its picture:  a character of unicode's Playing Cards
-  //////////////////////////////////////////////////////////
-  /**
-   * SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
-   * The block is a grid:  a row for each suit, and in each row, a column for each rank.
-   * - The rows start at 1F0A0 (spades), 1F0B0 (hearts), 1F0C0 (diamonds) and 1F0D0 (clubs).
-   * - The columns run ace 1, 2 ... 10, jack B, then a knight our deck doesn't have, C, then queen D and king E.
-   */
-  get pictureColumn() {
-    // past the knight
-    if (this.isARank("queen") || this.isARank("king")) return this.value + 1
-    return this.value
-  }
-
-  get picture() {
-    if (this.isASuit("spades")) return core.unicode(0x1F0A0 + this.pictureColumn)
-    if (this.isASuit("hearts")) return core.unicode(0x1F0B0 + this.pictureColumn)
-    if (this.isASuit("diamonds")) return core.unicode(0x1F0C0 + this.pictureColumn)
-    return core.unicode(0x1F0D0 + this.pictureColumn)
-  }
-
-  /** drawing:  its picture face up, the back every card shares face down */
-  @drawn draw() {
-    const click = () => trigger("card-click", { card: this })
-    return (
-      <Show
-        when={this.isFaceDown}
-        fallback={<ui-text class="Card" size="massive" prop:color={this.color} onClick={click}>{this.picture}</ui-text>}
-      >
-        <ui-text class="Card" size="massive" color="blue" onClick={click}>{"🂠"}</ui-text>
-      </Show>
-    )
-  }
-
-  /////////////////////
-  // ## turning it over
-  /////////////////////
+  ///////////////////////////
+  // ## turning the card over
+  ///////////////////////////
   /** each pauses a moment, so `wait for: turn the card face up` animates */
   async turnFaceUp() {
     this.direction = "up"
@@ -149,9 +95,69 @@ export class Card extends Drawable {
   }
 
   async turnOver() {
-    if (this.isFaceUp) this.turnFaceDown()
-    else this.turnFaceUp()
-    await core.pauseFor(50, "msec")
+    if (this.isFaceDirection("up")) await this.turnFaceDown()
+    else await this.turnFaceUp()
+  }
+
+  /**
+   * Card picture:  drawn with special letters in the unicode character set
+   * - SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
+   */
+  get picture() {
+    if (this.isFaceDirection("down")) {
+      // "Playing Card Back"
+      return "🂠"
+    }
+
+    let column = this.value
+    if (this.isASuit("clubs")) return core.getItemAt(["🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞"], position(column))
+    if (this.isASuit("diamonds")) return core.getItemAt(["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎"], position(column))
+    if (this.isASuit("hearts")) return core.getItemAt(["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂽", "🂾"], position(column))
+    if (this.isASuit("spades")) return core.getItemAt(["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"], position(column))
+  }
+
+  /** drawing:  its picture face up, the back every card shares face down */
+  @drawn draw() {
+    return (
+      <ui-text class="Card" size="massive" color={this.isFaceDirection("up") ? this.color : "blue"} onClick={() => trigger("card-click", { card: this })}>
+        {this.picture}
+      </ui-text>
+    )
+  }
+
+  static css = css`
+    /* a card is a card-sized box:  its size is the board's, --card-width x --card-height in styles.css */
+    :host {
+    	display: block;
+    	position: relative;
+    	width: var(--card-width);
+    	height: var(--card-height);
+    	overflow: hidden;
+    	cursor: pointer;
+    }
+    /* its picture, a character of unicode's Playing Cards:  moved so the card it draws fills the box */
+    ui-text::part(text) {
+    	position: absolute;
+    	left: -0.049em;
+    	top: -0.222em;
+    }
+  `
+
+  get symbol() {
+    if (this.isASuit("clubs")) return "♣"
+    if (this.isASuit("diamonds")) return "♦"
+    if (this.isASuit("hearts")) return "♥"
+    if (this.isASuit("spades")) return "♠"
+    return "?"
+
+  }
+
+  /** card "state", used for debugging */
+  get state() {
+    const rank = this.value === 10 ? 10 : `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
+    const suit = this.symbol
+    const direction = this.isFaceDirection("up") ? "↑" : "↓"
+    return rank + suit + direction
   }
 
   ////////////////////////////////////////
@@ -188,15 +194,6 @@ export class Card extends Drawable {
     return true
   }
 
-  // "suits" as one of clubs, diamonds, hearts or spades
-  static Suits = ["clubs", "diamonds", "hearts", "spades"] as const
-
-  // "ranks" as one of ace, 2 ... 10, jack, queen or king
-  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
-
-  // "colors" as one of red or black
-  static Colors = ["red", "black"] as const
-
   get pile() {
     return Pile.ownerOf(this)!
   }
@@ -210,25 +207,28 @@ export class Card extends Drawable {
  */
 export class CardElement extends SpellElement<Card> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-card", "card", [
-    { name: "suit", kind: "string", description: "Its suit." },
     { name: "rank", kind: "string", description: "Its rank." },
+    { name: "suit", kind: "string", description: "Its suit." },
     { name: "direction", kind: "string", description: "Its direction." }
   ])
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "test-project-card": Card.css }
+  } satisfies Partial<E.ElementSetup>
 
-  isASuit(suit: (typeof Card.Suits)[number]) {
-    return this.currentThing?.isASuit(suit)
-  }
-
-  isARank(rank: (typeof Card.Ranks)[number]) {
+  isARank(rank: Rank) {
     return this.currentThing?.isARank(rank)
   }
 
-  isTheRankOfSuits(rank: (typeof Card.Ranks)[number], suit: (typeof Card.Suits)[number]) {
-    return this.currentThing?.isTheRankOfSuits(rank, suit)
+  isASuit(suit: Suit) {
+    return this.currentThing?.isASuit(suit)
   }
 
-  isTheColorJoker(color: Color) {
-    return this.currentThing?.isTheColorJoker(color)
+  isTheRankOfSuit(rank: Rank, suit: Suit) {
+    return this.currentThing?.isTheRankOfSuit(rank, suit)
+  }
+
+  isFaceDirection(direction: Direction) {
+    return this.currentThing?.isFaceDirection(direction)
   }
 
   turnFaceUp() {
@@ -249,32 +249,41 @@ export class CardElement extends SpellElement<Card> {
 }
 core.useElement(Card, CardElement)
 
+core.heading("Tests")
+export type Color = (typeof Joker.Colors)[number]
+
 /** A joker:  a wild card with no rank or suit -- there's a red one and a black one */
 export class Joker extends Card {
   static elementTag = core.defineElement(this, "test-project")
 
-  /** set when it's made:  it has no suit to work its color out from */
-  // - its "color" is a color
-  static { this.declareProp("color", { oneOf: () => Card.Colors }) }
-  get color(): (typeof Card.Colors)[number] { return this.getProp("color") as (typeof Card.Colors)[number] }
-  set color(value: (typeof Card.Colors)[number]) { this.setProp("color", value) }
+  // - its "color" is one of red or black
+  static Colors = ["red", "black"] as const
+  static { this.declareProp("color", { oneOf: Joker.Colors }) }
+  get color(): Color { return this.getProp("color") as Color }
+  set color(value: Color) { this.setProp("color", value) }
 
-  /** e.g. "red-joker" */
-  get name() {
-    return `${this.color}-joker`
+  /** "card is the red joker" */
+  static isTheColorJoker(card: Card, color: Color) {
+    return card instanceof Joker && card.color === color
   }
 
-  get shortName() {
-    return "🃏"
-  }
-
-  get state() {
-    return this.shortName + this.shortDirection
+  get value() {
+    if (Joker.isTheColorJoker(this, "red")) return 53
+    return 54
   }
 
   get picture() {
-    if (this.color == "red") return "🂿"
-    return "🃏"
+    return "🃟"
+  }
+
+  get name() {
+    return `${this.color} joker`
+  }
+
+  get state() {
+    const color = `${core.getItemAt(this.color, 0) ?? ""}`.toLocaleUpperCase()
+    const direction = this.isFaceDirection("up") ? "↑" : "↓"
+    return `*${color}${direction}`
   }
 }
 
@@ -291,55 +300,33 @@ export class JokerElement extends SpellElement<Joker> {
 }
 core.useElement(Joker, JokerElement)
 
-/** suits, ranks and colors:  the card's own kinds of values */
-export class Suit {
-  static color(suit: (typeof Card.Suits)[number]) {
-    if (core.includes(["diamonds", "hearts"], suit)) return "red"
-    return "black"
-  }
-
-  static symbol(suit: (typeof Card.Suits)[number]) {
-    if (suit == "clubs") return "♣️"
-    if (suit == "diamonds") return "♦️"
-    if (suit == "hearts") return "♥️"
-    if (suit == "spades") return "♠️"
-    return "?"
-  }
-}
-export class Rank {
-  static isAFaceCard(rank: (typeof Card.Ranks)[number]) {
-    return core.includes(["jack", "queen", "king"], rank)
-  }
-}
-export class Color {}
-
-core.heading("Tests")
 /** Tests */
 export function testCardSetup() {
   return core.test("test card setup", function testCardSetup() {
-    core.echoTestAction(`get a new card whose rank is queen, suit is spades and direction is up`)
+    core.echoTestAction(`get a new card whose rank is queen, suit is spades and direction is down`)
     const it = new Card({
       rank: "queen",
       suit: "spades",
-      direction: "up"
+      direction: "down"
     })
-    core.echo(it)
+    core.echo(`testing the ${it.name}`)
     core.expect(it.rank, `its rank`, "queen", `queen`)
     core.expect(it.suit, `its suit`, "spades", `spades`)
-    core.expect(it.name, `its name`, "queen-of-spades", `"queen-of-spades"`)
+    core.expect(it.name, `its name`, "queen of spades", `"queen of spades"`)
     core.expect(it.color, `its color`, "black", `black`)
     core.expect(it.value, `its value`, 12, `12`)
-    core.expect(it.shortSuit, `its short suit`, "♠️", `"♠️"`)
-    core.expect(it.shortRank, `its short rank`, "Q", `"Q"`)
-    core.expect(it.shortName, `its short name`, "Q♠️", `"Q♠️"`)
-    core.expect(it.state, `its state`, "Q♠️+", `"Q♠️+"`)
+    core.expect(it.state, `its state`, "Q♠↓", `"Q♠↓"`)
+
+
+    core.expect(it.isFaceDirection("down"), `it is face down`, true, `yes`)
+    core.expect(it.picture, `its picture`, "🂠", `"🂠"`)
+    core.echoTestAction(`turn it face up`)
+    it.turnFaceUp()
+    core.expect(it.isFaceDirection("up"), `it is face up`, true, `yes`)
     core.expect(it.picture, `its picture`, "🂭", `"🂭"`)
 
-    core.expect(it.isFaceUp, `it is face up`, true, `yes`)
-    core.expect(it.isFaceDown, `it is face down`, false, `no`)
-
     core.expect(it.isAFaceCard, `it is a face card`, true, `yes`)
-    core.expect(!it.isAFaceCard, `it is not a face card`, false, `no`)
+    core.expect(!it.isANumberCard, `it is not a number card`, true, `yes`)
 
     core.expect(it.isASuit("spades"), `it is a spade`, true, `yes`)
     core.expect(it.isASuit("clubs"), `it is a club`, false, `no`)
@@ -348,18 +335,10 @@ export function testCardSetup() {
     core.expect(it.isARank("ace"), `it is an ace`, false, `no`)
     core.expect(it.isARank(2), `it is a 2`, false, `no`)
 
-    core.expect(it.isTheRankOfSuits("queen", "spades"), `it is the queen of spades`, true, `yes`)
-    core.expect(it.isTheRankOfSuits("queen", "clubs"), `it is the queen of clubs`, false, `no`)
-    core.expect(!it.isTheRankOfSuits(2, "diamonds"), `it is not the 2 of diamonds`, true, `yes`)
-
-    core.echoTestAction(`turn it face down`)
-    it.turnFaceDown()
-    core.expect(it.direction, `its direction`, "down", `down`)
-    core.expect(it.isFaceDown, `it is face down`, true, `yes`)
-
-    core.echoTestAction(`turn it over`)
-    it.turnOver()
-    core.expect(it.isFaceUp, `it is face up`, true, `yes`)
+    core.expect(it.isTheRankOfSuit("queen", "spades"), `it is the queen of spades`, true, `yes`)
+    core.expect(it.isTheRankOfSuit("queen", "clubs"), `it is the queen of clubs`, false, `no`)
+    core.expect(it.isTheRankOfSuit(2, "clubs"), `it is the 2 of clubs`, false, `no`)
+    // it is the red joker should be no
 
     /** a number card:  its rank as it is, and its picture in the row of its suit */
     const seven = new Card({
@@ -367,7 +346,8 @@ export function testCardSetup() {
       suit: "hearts",
       direction: "up"
     })
-    core.expect(seven.shortName, `the short name of the seven`, "7♥️", `"7♥️"`)
+    core.echo(`testing the ${seven.name}`)
+    core.expect(seven.isANumberCard, `seven is a number card`, true, `yes`)
     core.expect(seven.color, `the color of the seven`, "red", `red`)
     core.expect(seven.picture, `the picture of the seven`, "🂷", `"🂷"`)
     core.expect((new Card({ rank: "ace", suit: "clubs" })).picture, `the picture of a new card whose rank is ace and suit is clubs`, "🃑", `"🃑"`)
@@ -375,35 +355,36 @@ export function testCardSetup() {
   })
 }
 
+core.heading("A joker:  a wild card with no rank or suit -- there's a red one and a black one")
 export function testJokers() {
   return core.test("test jokers", function testJokers() {
     core.echoTestAction(`get a new joker whose color is red and direction is up`)
     const it = new Joker({ color: "red", direction: "up" })
     core.echo(it)
-    core.expect(it instanceof Joker, `it is a joker`, true, `yes`)
     core.expect(it instanceof Card, `it is a card`, true, `yes`)
+    core.expect(it instanceof Joker, `it is a joker`, true, `yes`)
     core.expect(it.color, `its color`, "red", `red`)
-    core.expect(it.name, `its name`, "red-joker", `"red-joker"`)
-    core.expect(it.shortName, `its short name`, "🃏", `"🃏"`)
-    core.expect(it.picture, `its picture`, "🂿", `"🂿"`)
-    core.expect(it.isTheColorJoker("red"), `it is the red joker`, true, `yes`)
-    core.expect(it.isTheColorJoker("black"), `it is the black joker`, false, `no`)
-    core.expect(!it.isTheColorJoker("black"), `it is not the black joker`, true, `yes`)
+    core.expect(it.name, `its name`, "red joker", `"red joker"`)
+    core.expect(it.state, `its state`, "*R↑", `"*R↑"`)
+    core.expect(it.picture, `its picture`, "🃟", `"🃟"`)
+    core.expect(Joker.isTheColorJoker(it, "red"), `it is the red joker`, true, `yes`)
+    core.expect(Joker.isTheColorJoker(it, "black"), `it is the black joker`, false, `no`)
+    core.expect(!Joker.isTheColorJoker(it, "black"), `it is not the black joker`, true, `yes`)
 
-    core.expect(it.isFaceUp, `it is face up`, true, `yes`)
+    core.expect(it.isFaceDirection("up"), `it is face up`, true, `yes`)
     core.echoTestAction(`turn it over`)
     it.turnOver()
-    core.expect(it.isFaceDown, `it is face down`, true, `yes`)
+    core.expect(it.isFaceDirection("down"), `it is face down`, true, `yes`)
 
     core.echoTestAction(`set black joker to a new joker whose color is black`)
     const blackJoker = new Joker({ color: "black" })
-    core.expect(blackJoker.picture, `the picture of black joker`, "🃏", `"🃏"`)
+    core.expect(blackJoker.picture, `the picture of black joker`, "🃟", `"🃟"`)
 
     core.echoTestAction(`set the card to a new card whose rank is queen and suit is spades`)
     const card = new Card({ rank: "queen", suit: "spades" })
     core.expect(card instanceof Joker, `the card is a joker`, false, `no`)
     core.expect(!(card instanceof Joker), `the card is not a joker`, true, `yes`)
-    core.expect(card.isTheColorJoker("red"), `the card is the red joker`, false, `no`)
+    core.expect(Joker.isTheColorJoker(card, "red"), `the card is the red joker`, false, `no`)
   })
 }
 // -----------
@@ -423,21 +404,19 @@ export class Deck extends List<Card> {
 
   /** a new deck holds one of each card, ace of clubs first, then its two jokers, red then black */
   create() {
-    Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => {
-      // `the deck`, not `it`:  in a `for each`, `it` is the loop's item, here the suit
-      this.append(new Card({ rank: rank, suit: suit }))
-    }))
+    Card.Ranks.forEach((rank: Rank) => Card.Suits.forEach((suit: Suit) => this.append(new Card({ rank: rank, suit: suit }))))
     if (this.jokers) {
       this.append(new Joker({ color: "red" }))
       this.append(new Joker({ color: "black" }))
     }
+    this.forEach((card) => card.turnFaceDown())
   }
 
   /** echo its cards' short names, top to bottom */
-  display() {
+  @derived get state() {
     const cardNames = new List<string>({ instanceType: "text" })
-    this.forEach((card) => cardNames.append(card.shortName))
-    core.echo(`deck: ${cardNames}`)
+    this.forEach((card) => cardNames.append(card.state))
+    return `deck: ${cardNames}`
   }
 }
 
@@ -451,20 +430,24 @@ export function testDeckCreation() {
     core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is queen`)
     const queens = deck.filter((card) => card.rank == "queen")
     core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
-    core.expect(deck.firstItem?.name!, `the name of the top card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
-    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    core.expect(deck.firstItem?.shortName!, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
-    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
+    // ace of clubs is the top card
+    core.expect(deck.firstItem?.name!, `the name of the top card of the deck`, "ace of clubs", `"ace of clubs"`)
+    core.expect(deck.firstItem?.state!, `the state of the top card of the deck`, "A♣↓", `"A♣↓"`)
+    core.expect(deck.firstItem?.direction!, `the direction of the top card of the deck`, "down", `down`)
+    core.expect(deck.firstItem?.isTheRankOfSuit("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
+
+    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "king of spades", `"king of spades"`)
+    // no jokers!
+    core.expect((deck.randomItem() instanceof Joker)!, `a random card of the deck is a joker`, false, `no`)
+    core.expect(Joker.isTheColorJoker(deck.randomItem()!, "red"), `a random card of the deck is the red joker`, false, `no`)
 
     core.echo("the deck before shuffling:")
-    core.echoTestAction(`display the deck`)
-    deck.display()
+    core.echo(deck.state)
     core.echoTestAction(`shuffle the deck`)
     deck.randomize()
     core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
     core.echo("the deck after shuffling:")
-    core.echoTestAction(`display the deck`)
-    deck.display()
+    core.echo(deck.state)
   })
 }
 
@@ -476,10 +459,11 @@ export function testDeckWithJokers() {
     core.echoTestAction(`set wild cards to the cards in the deck where it is a joker`)
     const wildCards = deck.filter((card) => card instanceof Joker)
     core.expect(wildCards.length, `the number of cards in wild cards`, 2, `2`)
-    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
-    // the red joker, then the black one, last
-    core.expect(deck.lastItem?.isTheColorJoker("black")!, `the last card of the deck is the black joker`, true, `yes`)
-    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "black-joker", `"black-joker"`)
+    // first card is still ace of clubs
+    core.expect(deck.firstItem?.isTheRankOfSuit("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
+    // last card should be the black joker
+    core.expect(Joker.isTheColorJoker(deck.lastItem!, "black"), `the last card of the deck is the black joker`, true, `yes`)
+    core.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "black joker", `"black joker"`)
   })
 }
 // -----------
@@ -511,7 +495,7 @@ export class Pile extends DrawableList<Card> {
     return this.lastItem!.value
   }
 
-  /** its name, then each card's state, e.g. "stock: Q♠️+ 7♥️—" */
+  /** pile state for debugging */
   @derived get state() {
     let state = `${this.name || "pile"}:`
     this.forEach((card) => (state = `${state} ${card.state}`))
@@ -546,8 +530,6 @@ export function testPiles() {
   return core.test("test piles", function testPiles() {
     core.echoTestAction(`set the stock to a new pile with name = "stock"`)
     const stock = new Pile({ name: "stock" })
-    core.echoTestAction(`set the discards to a new pile with name = "discards"`)
-    const discards = new Pile({ name: "discards" })
     core.expect(stock.color, `the color of the stock`, "none", `"none"`)
     core.expect(stock.value, `the value of the stock`, 0, `0`)
 
@@ -563,17 +545,23 @@ export function testPiles() {
       suit: "hearts",
       direction: "down"
     }))
+    core.echo(stock.state)
     core.expect(stock.color, `the color of the stock`, "red", `red`)
     core.expect(stock.value, `the value of the stock`, 7, `7`)
-    core.expect(stock.state, `the state of the stock`, "stock: Q♠️+ 7♥️—", `"stock: Q♠️+ 7♥️—"`)
+    core.expect(stock.state, `the state of the stock`, "stock: Q♠↑ 7♥↓", `"stock: Q♠↑ 7♥↓"`)
 
-    /** a card is in one pile at a time */
-    const card = stock.lastItem
-    core.echoTestAction(`add the card to the discards`)
-    discards.append(card!)
+    /** a card can only be in one pile at a time */
+    const discards = new Pile({ name: "discards" })
+
+    core.echoTestAction(`get the last card of the stock`)
+    const it = stock.lastItem
+    core.echoTestAction(`add it to the discards`)
+    discards.append(it!)
+    core.expect(it?.pile === discards, `its pile is the discards`, true, `yes`)
+
     core.expect(stock.length, `the number of cards in the stock`, 1, `1`)
-    core.expect(card?.pile === discards, `the pile of the card is the discards`, true, `yes`)
-    core.expect(discards.state, `the state of the discards`, "discards: 7♥️—", `"discards: 7♥️—"`)
+    core.expect(discards.length, `the number of cards in the discards`, 1, `1`)
+    core.expect(discards.state, `the state of the discards`, "discards: 7♥↓", `"discards: 7♥↓"`)
   })
 }
 // -----------
@@ -600,15 +588,16 @@ export class StackedPile extends Pile {
     :host {
     	display: block;
     	position: relative;
-    	min-height: 6.5rem;
+    	min-width: var(--card-width);
+    	min-height: var(--card-height);
     }
     /* where its first card goes:  a card-sized outline */
     .Placeholder {
     	position: absolute;
-    	top: 1.5rem;
-    	left: 0.3rem;
-    	width: 4.25rem;
-    	height: 5.65rem;
+    	top: 0;
+    	left: 0;
+    	width: var(--card-width);
+    	height: var(--card-height);
     	box-sizing: border-box;
     	border: 2px dashed #c8c8c8;
     	border-radius: 0.4rem;
@@ -717,9 +706,9 @@ core.useElement(DiscardPile, DiscardPileElement)
 export class Foundation extends StackedPile {
   static elementTag = core.defineElement(this, "test-project")
 
-  // - its "suit" is a suit
+  // - its "suit" is a card suit
   @prop({ oneOf: () => Card.Suits })
-  accessor suit!: (typeof Card.Suits)[number]
+  accessor suit!: Suit
 
   canGiveUp(card: Card) {
     return false
@@ -734,7 +723,7 @@ export class Foundation extends StackedPile {
   @drawn draw() {
     return (
       <div class="Foundation">
-        <div class="Placeholder">{Suit.symbol(this.suit)}</div>
+        <div class="Placeholder">{(new Card({ suit: this.suit })).symbol}</div>
         <slot />
       </div>
     )
@@ -767,12 +756,12 @@ export class Tableau extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   canGiveUp(card: Card) {
-    return card.isFaceUp
+    return card.isFaceDirection("up")
   }
 
   canTake(card: Card) {
     if (this.isEmpty) return card.isARank("king")
-    return this.color != card.color && this.value === card.value + 1
+    return this.color !== card.color && this.value === card.value + 1
   }
 
   static css = css`
@@ -780,13 +769,12 @@ export class Tableau extends Pile {
     	display: block;
     	min-height: 30rem;
     }
-    /* each card below the one before, its top showing;  the last one whole */
+    /* each card below the one before, a strip of its top showing (--card-strip);  the last one whole */
     ::slotted(*) {
     	display: block;
     }
     ::slotted(:not(:last-child)) {
-    	height: 2.6rem;
-    	overflow: hidden;
+    	height: var(--card-strip);
     }
   `
 }
@@ -886,7 +874,7 @@ export class Solitaire extends App {
     this.deck.forEach((card) => this.stock.append(card))
   }
 
-  /** print each pile's cards, e.g. "stock: Q♠️— 7♥️—" */
+  /** print each pile's cards, e.g. "stock: Q♠↓ 7♥↓" */
   debug() {
     core.map(core.everyThing(Pile), (pile: Pile) => core.console.log(pile.state))
   }
@@ -954,10 +942,10 @@ export class Solitaire extends App {
 
   /** turn up a face-down card from a tableau, at random, onto the discards */
   async cheat() {
-    const remainingPiles = core.filter(core.everyThing(Tableau), (pile: Tableau) => !pile.isEmpty && pile.firstItem?.isFaceDown)
+    const remainingPiles = core.filter(core.everyThing(Tableau), (pile: Tableau) => !pile.isEmpty && pile.firstItem?.isFaceDirection("down"))
     if (core.isEmpty(remainingPiles)) return
     const pile = core.randomItemOf<Tableau>(remainingPiles)
-    const hiddenCards = pile?.filter((card) => card.isFaceDown)
+    const hiddenCards = pile?.filter((card) => card.isFaceDirection("down"))
     const card = hiddenCards?.randomItem()
     card?.turnFaceUp()
     await core.pauseFor(30, "ticks")
@@ -979,7 +967,7 @@ export class Solitaire extends App {
     await core.forEachSequential(core.everyThing(Tableau), async (pile: Tableau) => {
       if (pile.isEmpty) return
       const testCard = pile.lastItem!
-      const foundation = core.filter(core.everyThing(Foundation), (pile: Foundation) => pile.suit == testCard.suit).firstItem
+      const foundation = core.filter(core.everyThing(Foundation), (pile: Foundation) => pile.suit === testCard.suit).firstItem
       if (core.canTake(foundation!, testCard)) {
         anythingChanged = true
         await testCard.play()
@@ -988,8 +976,8 @@ export class Solitaire extends App {
     })
 
     // each tableau's face-up cards, all together, onto another tableau
-    await (core.forEachSequential(core.everyThing(Tableau), async (pile: Tableau) => {
-      const faceUpCards = pile.filter((card) => card.isFaceUp)
+    await core.forEachSequential(core.everyThing(Tableau), async (pile: Tableau) => {
+      const faceUpCards = pile.filter((card) => card.isFaceDirection("up"))
       if (faceUpCards.isEmpty) return
       const testCard = faceUpCards.firstItem!
       if (testCard.isARank("king") && testCard === pile.firstItem) return
@@ -997,7 +985,7 @@ export class Solitaire extends App {
         anythingChanged = true
         await core.pauseFor(500, "msec")
       }
-    }))
+    })
 
     if (anythingChanged) await this.autoPlay()
   }
@@ -1090,7 +1078,7 @@ export function testTheMoves() {
     core.expect(core.canTake(column, queen), `the column can take the queen`, true, `yes`)
     core.echoTestAction(`add the queen to the column`)
     column.append(queen)
-    core.expect(column.state, `the state of the column`, "T1: K♠️+ Q♥️+", `"T1: K♠️+ Q♥️+"`)
+    core.expect(column.state, `the state of the column`, "T1: K♠↑ Q♥↑", `"T1: K♠↑ Q♥↑"`)
     core.expect(core.canGiveUp(column, queen), `the column can give up the queen`, true, `yes`)
     core.echoTestAction(`turn the queen face down`)
     queen.turnFaceDown()
@@ -1127,7 +1115,7 @@ export function testTheMoves() {
   })
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬`)
+core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬¬/* The size of a card, which every card and pile reads:  custom properties reach inside their shadow roots.¬   - A card's picture, a character of unicode's Playing Cards, is 68 x 90px at the size the card draws it. */¬:root,¬:host {¬  --card-width: 4.25rem;¬  --card-height: 5.65rem;¬  /* how much of a card shows under the one on it, in a tableau */¬  --card-strip: 1.4rem;¬}¬¬/* Each column at least a card wide, and a little more:  a narrow board scrolls sideways, never squeezes them. */¬ui-row::part(row) {¬  flex-wrap: nowrap;¬}¬ui-column::part(column) {¬  min-width: calc(var(--card-width) + 1rem);¬}¬`)
 // -----------
 if (!core.isCarryingOver) testCardSetup()
 if (!core.isCarryingOver) testJokers()

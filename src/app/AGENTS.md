@@ -126,6 +126,10 @@ and in the app's build folder, `app/` at the repo's root.
   - the runners:
     - the web app's editor
     - VS Code's "Run Project" webview (`VSCodeRunner`, `yarn build:runner`)
+      - Its Run Tests runs the project's tests on a runtime copy of their own (`testApp()`),
+        as `spell test` does (`core.runTests()`, which both share).
+      - How they went shows in Program Output ([testResults.ts](runner/testResults.ts)),
+        and goes to the extension, which shows each failed check on its line (lsp's `spell/testDiagnostics`).
     - the `<spell-app>` web component, in `components/spell-app/`
       - built by `yarn build:element`, into `dist-element/`
       - its demo:  `/demo/spell-app.html`, on the dev server
@@ -191,7 +195,7 @@ and in the app's build folder, `app/` at the repo's root.
       - The code:  `SP.SpellWords`, and the runner's [words.ts](runner/words.ts).
       - Each runner loads the file beside the scope pack:
         - `<spell-app>`, by URL
-        - VS Code's, from the extension's `words` message
+        - VS Code's, from the extension's `run` message, which brings them
         - an editor's, in what it pushes
       - No words file:  each by its name, `move to pile`.
 - `components/`:  `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4);

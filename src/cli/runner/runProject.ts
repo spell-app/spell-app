@@ -6,15 +6,16 @@
  * - Headless:  what needs a browser does nothing, and says so -- see `headless()`.
  * - `run`:  loads the project, which runs its top-level statements.
  *   Its `print`s go straight to the terminal:  its data to stdout, a dump of a thing (`print the card`) to stderr.
- * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run,
- *   and reports each one:  ✓, or ✗ with the checks that failed.  Exits 1 if any failed.
+ * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run
+ *   (`core.runTests()`, which the runners' Run Tests share), and reports each one:  ✓, or ✗ with the checks that
+ *   failed.  Exits 1 if any failed.
  * - NEVER imports `spell-app/cli`'s values:  this process needs only spell's runtime.
  */
 import chalk from "chalk"
 import { format } from "util"
 
 import { bridgeSolid } from "spell-kit/util"
-import { App, core } from "spell-lang/core"
+import { App, core, type TestResult } from "spell-lang/core"
 import type { CLI } from "spell-app/cli"
 
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec
@@ -60,28 +61,18 @@ async function runProject() {
 }
 
 /**
- * Load the project quietly, then run each `test ...` function it exports, and report.
+ * Load the project quietly, then run each `test ...` function it exports, and report -- see `core.runTests()`.
  * - Tests the project runs ITSELF as it loads count, and don't run again:
  *   a second run would start from what the first left behind, e.g. a dealt deck.
  * - `spec.filter`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`.
  */
 async function testProject() {
   const restore = quiet()
-  const all: TestResult[] = []
-  core.test = (message: unknown, testMethod: () => void) => runTest(message, testMethod, all)
   const module = await load()
   if (!module) process.exit(1)
-
-  const wanted = (name: string) => !spec.filter || comparable(name).includes(comparable(spec.filter))
-  const tests = Object.entries(module).filter(
-    ([name, value]) => /^test[A-Z_]/.test(name) && typeof value === "function" && wanted(name.replace(/^test_?/, ""))
-  )
-  for (const [name, test] of tests) {
-    if (!all.some((result) => comparable(result.name) === comparable(name))) (test as () => void)()
-  }
+  const results = core.runTests(module, spec.filter)
   restore()
 
-  const results = all.filter((result) => wanted(result.name.replace(/^test[\s_]/, "")))
   if (!results.length) {
     note(
       spec.filter
@@ -97,39 +88,12 @@ async function testProject() {
   process.exit(failed ? 1 : 0)
 }
 
-/** A test's name or its function's, for comparing:  `testDeckCreation` ~== `test deck creation`. */
-function comparable(name: string): string {
-  return name
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .toLowerCase()
-    .replace(/[\s_-]+/g, " ")
-    .trim()
-}
-
 ////////////////
 // ## Tests
 ////////////////
 
-/**
- * Stand-in for `core.test()`:  run `testMethod` as test `message`, into `results`.
- * - As `core.test()`, but a test which THROWS fails, with why -- rather than being silently swallowed.
- */
-function runTest(message: unknown, testMethod: () => void, results: TestResult[]) {
-  core.startTest(message, true)
-  const test = core.ACTIVE_TEST!
-  let threw: unknown
-  try {
-    testMethod()
-  } catch (error) {
-    threw = error
-  }
-  core.ACTIVE_TEST = undefined
-  results.push({ name: String(message), passed: !threw && test.result !== false, output: test.output, threw })
-}
-
 /** Print how `result` went:  ✓ and how many checks, or ✗ and the checks that failed -- every check if `verbose`. */
-function report({ name, passed, output, threw }: TestResult) {
-  const checks = output.filter((line) => Array.isArray(line) && /^[✅❌]$/.test(String(line[0])))
+function report({ name, passed, checks, output, threw }: TestResult) {
   const count = checks.length ? chalk.dim(`  (${checks.length} check${checks.length === 1 ? "" : "s"})`) : ""
   process.stdout.write(`${passed ? chalk.green("✓") : chalk.red("✗")} ${name}${count}\n`)
   for (const line of output) {
@@ -137,18 +101,6 @@ function report({ name, passed, output, threw }: TestResult) {
     if (spec.verbose || isFailure) process.stdout.write(`    ${Array.isArray(line) ? format(...line) : format(line)}\n`)
   }
   if (threw) process.stdout.write(chalk.red(`    threw:  ${threw instanceof Error ? threw.message : format(threw)}\n`))
-}
-
-/**
- * How one test went.
- * - `output`:  what it logged -- each `expect` an `[icon, message]` array, see `core.expect()`
- * - `threw`:  what it threw, if it didn't finish
- */
-type TestResult = {
-  name: string
-  passed: boolean
-  output: unknown[]
-  threw?: unknown
 }
 
 ////////////////

@@ -1,0 +1,20 @@
+## A counter app:  a counter from another project, made and drawn
+// Its counter is the frozen counter library's (`@spell/test/counter`), which its project file imports.
+tally is an app where:
+	- its "counter" is a new counter
+
+	// the counter draws itself:  a button showing its count
+	- to "draw it":
+		<div class="Tally">{draw its counter}</div>
+
+
+## Tests
+to test the imported counter
+	set the counter to a new counter
+	the count of the counter should be 0
+	increment the counter
+	the count of the counter should be 1
+
+
+## Start
+start tally

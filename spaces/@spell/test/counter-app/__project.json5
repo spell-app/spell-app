@@ -1,0 +1,14 @@
+{
+  "description": "A program that imports another project:  the counter library's counter, made and drawn",
+  "imports": [
+    {
+      "path": "@spell/test/counter",
+      "active": true,
+      "import": ["Counter"]
+    },
+    {
+      "path": "/CounterApp.spell",
+      "active": true
+    }
+  ]
+}

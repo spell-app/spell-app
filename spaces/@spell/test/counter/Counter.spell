@@ -1,0 +1,24 @@
+## A counter -- in the outline style:  its name, then what's true of it
+// A library other projects import:  `counter-app` makes one and draws it.
+// A drawable thing:  each counter is its own element on the page, e.g. `<counter-counter>`.
+a "counter" is a drawable thing where:
+	- its "count" is a number
+	// a new counter starts at 0
+	- to create it:
+		set its count to 0
+
+	- to increment it:
+		set its count to its count + 1
+
+	## drawing:  a button showing its count;  a click counts
+	- to "draw it":
+		<ui-button class="Counter" onClick={increment it}>{"Count: " + its count}</ui-button>
+
+
+## Tests
+to test counting
+	get a new counter
+	its count should be 0
+	increment it
+	increment it
+	its count should be 2

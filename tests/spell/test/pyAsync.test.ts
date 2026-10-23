@@ -10,8 +10,8 @@ import { compiledFixture } from "spell-app/spaces/test"
  * - Its whole output is pinned by the fixtures' `.snapshot.py`, and run by the core contract.
  */
 describe("Python on asyncio", () => {
-  // the card library, as the fixtures that import it compile it
-  const cards = compiledFixture("cards", PY.PyWriter.instance)
+  // Solitaire, its cards its own
+  const cards = compiledFixture("Solitaire", PY.PyWriter.instance)
   if (process.env.SPELL_DUMP_ASYNC) writeFileSync(process.env.SPELL_DUMP_ASYNC, cards)
 
   test("a method that pauses waits:  `async def`, `await core.pause_for(...)`", () => {
@@ -25,7 +25,14 @@ describe("Python on asyncio", () => {
   })
 
   test("a getter that doesn't wait stays a plain property", () => {
-    expect(cards).toMatch(/@property\n {4}def short_suit\(self\) -> str:/)
+    expect(cards).toMatch(/@property\n {4}def name\(self\) -> str:/)
+  })
+
+  test("a `create()` that waits is `async def` too:  `spell_core` runs it to its end as the thing is made", () => {
+    // the deck's `to create it:` turns each card face down, which pauses
+    expect(cards).toMatch(
+      /\n {4}async def create\(self\) -> None:\n(?: {8}.*\n)*? {12}await card\.turn_face_down\(\)\n/
+    )
   })
 
   test("the top level runs what waits with asyncio.run()", () => {

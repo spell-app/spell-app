@@ -119,7 +119,7 @@ describe("SpellLanguageService, in Spanish", () => {
   })
 
   test("completion at a statement's start offers Spanish's words, not English's", () => {
-    const line = mazoText.split("\n").findIndex((it) => it.startsWith("\t- para mostrarlo:")) + 1
+    const line = mazoText.split("\n").findIndex((it) => it.startsWith('\t- su "estado" es:')) + 1
     const words = service
       .completion(mazo, { line, character: 2 })
       .filter((item) => item.kind === CompletionItemKind.Keyword)

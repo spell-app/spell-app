@@ -447,10 +447,11 @@ describe("compiled spell draws with Solid", () => {
     await ElementFixture.settle(host)
     expect(tableaus().map((tableau) => tableau.children.length)).toEqual([1, 2, 3, 4, 5, 6, 7])
     expect(tableaus()[0]!.shadowRoot!.querySelector("slot")).not.toBeNull()
-    // the tableau's own <css>:  each card but the last shows only its top
+    // the tableau's own <css>:  each card but the last shows only a strip of its top
+    // (every card is a clipped, card-sized box:  the card's own <css>)
     const column = tableaus()[6]!
-    expect(getComputedStyle(column.firstElementChild!).overflow).toBe("hidden")
-    expect(getComputedStyle(column.lastElementChild!).overflow).not.toBe("hidden")
+    const heightOf = (card: Element | null) => card!.getBoundingClientRect().height
+    expect(heightOf(column.firstElementChild as Element)).toBeLessThan(heightOf(column.lastElementChild as Element))
     // a stacked pile's, which its kinds inherit:  a stock's cards sit on each other
     const stock = host.querySelector<Element>("test-project-stock-pile")!
     expect(getComputedStyle(stock.lastElementChild!).position).toBe("absolute")
@@ -544,23 +545,34 @@ describe("compiled spell draws with Solid", () => {
     for (const place of places) expect(getComputedStyle(place).borderTopColor).toBe(EDITED_COLOR)
   })
 
-  test("`lists-from-zero` run, then the card library it imports recompiled:  its start is skipped, its tests don't run again (P16)", async () => {
-    const { setSource } = await mountSettable(await countingSource())
-    await waitFor(() => consoleText().includes("test counting from zero"), 10_000)
-    const before = consoleText()
+  test("the counter app counted, then its counter library recompiled to draw differently:  the same count, drawn the new way (P16)", async () => {
+    const { host, setSource } = await mountSettable(await counterAppSource())
+    const button = () => counterButton(host)
+    // drawn, and its run finished:  its things are the runtime's, to carry over
+    await waitFor(() => button()?.textContent === "Count: 0" && topLevelNames().includes("tally"), 10_000)
+    await ElementFixture.settle(host)
+    // counted:  two clicks
+    button()!.click()
+    button()!.click()
+    await waitFor(() => button()?.textContent === "Count: 2")
+    expect(consoleText()).toContain("test the imported counter")
+    expect(consoleText()).toContain("test counting")
 
-    // the card library's card, edited:  a new colour for its back
-    // (Solitaire imported it until epic `spanish` P21, and showed the game kept, drawn the new way;
-    //  its cards are its own now, so an edit there starts afresh:  P17, below)
-    const edited = await countingSource((cards) => cards.replace('color: "blue"', 'color: "green"'))
+    // the counter library's drawing, edited:  a new label
+    // (Solitaire imported a card library until epic `spanish` P21, and showed the game kept, drawn the new way;
+    //  an edit to the counter app's own file would start afresh:  it starts the app -- P17, below)
     let asked = false
+    const edited = await counterAppSource((counter) => counter.replace("`Count: ", "`Clicks: "))
     setSource({ ...edited, importUrl: (id) => ((asked = true), edited.importUrl!(id)) })
     await waitFor(() => asked, 10_000)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    // neither its tests nor the library's print again:  the same program, its things carried over
+    // the same count, drawn the new way:  the counter carried over
+    await waitFor(() => button()?.textContent === "Clicks: 2", 10_000)
+    await ElementFixture.settle(host)
+    expect(host.querySelector(".spell-draw-error")).toBeNull()
+    // neither the app's tests nor the library's run again:  the same program, its things carried over
     const printed = consoleText()
-    expect(printed.split("test counting from zero").length).toBe(before.split("test counting from zero").length)
-    expect(printed.split("test card setup").length).toBe(before.split("test card setup").length)
+    expect(printed).not.toContain("test the imported counter")
+    expect(printed).not.toContain("test counting")
   })
 
   test("`Solitaire` played, then its app's own file edited:  a fresh game, as Restart deals (P17)", async () => {
@@ -664,26 +676,90 @@ describe("compiled spell draws with Solid", () => {
 })
 
 describe("<VSCodeRunner>", () => {
-  test("a project that imports another:  it asks the extension for the import's javascript, and runs (lists-from-zero)", async () => {
-    const [program, cards] = await Promise.all([fixtureCompiled("lists-from-zero"), fixtureCompiled("cards")])
+  test("a project that imports another:  it asks the extension for the import's javascript, and runs (counter-app)", async () => {
+    const [program, counter] = await Promise.all([fixtureCompiled("counter-app"), fixtureCompiled("counter")])
     const { host, posted } = await mountVSCode()
     await waitFor(() => posted.some(({ type }) => type === "ready"))
     tellRunner({ type: "run", compiled: program })
     const asked = await waitFor(() => posted.find((message) => message.type === "loadImport"))
-    expect(asked).toEqual({ type: "loadImport", projectId: CARD_LIBRARY })
-    tellRunner({ type: "imported", projectId: CARD_LIBRARY, compiled: cards })
-    await waitFor(() => host.textContent!.includes("test counting from zero"), 10_000)
+    expect(asked).toEqual({ type: "loadImport", projectId: COUNTER_LIBRARY })
+    tellRunner({ type: "imported", projectId: COUNTER_LIBRARY, compiled: counter })
+    // it runs:  the counter app draws the library's counter
+    await waitFor(() => counterButton(host)?.textContent === "Count: 0", 10_000)
     expect(host.querySelector(".VSCodeRunnerToolbar .error")).toBeNull()
   })
 
   test("an import the extension couldn't load:  its reason, as the run's error", async () => {
-    const program = await fixtureCompiled("lists-from-zero")
+    const program = await fixtureCompiled("counter-app")
     const { host, posted } = await mountVSCode()
     tellRunner({ type: "run", compiled: program })
     await waitFor(() => posted.some(({ type }) => type === "loadImport"))
-    tellRunner({ type: "imported", projectId: CARD_LIBRARY, error: "Couldn't load project 'x'" })
+    tellRunner({ type: "imported", projectId: COUNTER_LIBRARY, error: "Couldn't load project 'x'" })
     const error = await waitFor(() => host.querySelector(".VSCodeRunnerToolbar .error"))
     expect(error.textContent).toContain("Couldn't load project 'x'")
+  })
+})
+
+describe("<VSCodeRunner>'s Run Tests", () => {
+  /** A project with no app:  two tests, the first run by the program itself as it loads, as spell compiles it. */
+  const TESTS_ONLY = `
+import { core } from "@spell/core"
+export function testMath() {
+  return core.test("test math", function testMath() {
+    core.expect(4, \`2 + 2\`, 4, \`4\`)
+    core.expect(5, \`2 + 3\`, 4, \`4\`)
+  })
+}
+export function testLetters() {
+  return core.test("test letters", function testLetters() { core.expect("a", \`the letter\`, "a", \`"a"\`) })
+}
+if (!core.isCarryingOver) testMath()
+`
+  /** Its words, in Spanish:  what the core says as its tests run. */
+  const SPANISH_WORDS = `export const words = { lang: "es", types: {}, messages: {
+    "expect-failed": "Inesperado: {what} debería ser {expected} pero en realidad es {actual}"
+  } }`
+
+  test("a project with no app runs its tests by itself:  how they went in Program Output, and to the extension", async () => {
+    const { posted } = await mountVSCode()
+    tellRunner({ type: "run", compiled: TESTS_ONLY, words: [SPANISH_WORDS] })
+    const sent = await waitFor(() => posted.find((message) => message.type === "testResults"))
+    // each test once:  `test math` as the program loaded, `test letters` after;  a failed check in the program's words
+    expect(sent).toEqual({
+      type: "testResults",
+      tests: [
+        {
+          name: "test math",
+          method: "testMath",
+          passed: false,
+          failures: [
+            {
+              what: "2 + 3",
+              expected: "4",
+              message: "Inesperado: `2 + 3` debería ser `4` pero en realidad es `5`",
+              occurrence: 0
+            }
+          ]
+        },
+        { name: "test letters", method: "testLetters", passed: true, failures: [] }
+      ]
+    })
+    const output = consoleText()
+    expect(output).toContain("Tests:  1 passed, 1 failed")
+    expect(output).toContain("✗ test math\nInesperado: `2 + 3` debería ser `4` pero en realidad es `5`")
+    expect(output).toContain("✓ test letters")
+  })
+
+  test("the Run Tests button and the extension's `runTests` each run them again", async () => {
+    const { host, posted } = await mountVSCode()
+    const results = () => posted.filter((message) => message.type === "testResults").length
+    tellRunner({ type: "run", compiled: TESTS_ONLY })
+    await waitFor(() => results() === 1)
+    tellRunner({ type: "runTests" })
+    await waitFor(() => results() === 2)
+    const button = await waitFor(() => host.querySelector<HTMLElement>(".VSCodeRunnerToolbar .run-tests"))
+    await userEvent.click(button)
+    await waitFor(() => results() === 3)
   })
 })
 
@@ -831,6 +907,11 @@ function consoleText(): string {
   return textOf(testCore!.console.lines as Line[]).join("\n")
 }
 
+/** Names of the things the running program made at its top level, e.g. `tally`:  what a recompile carries over. */
+function topLevelNames(): string[] {
+  return (testCore?.things.topLevel() ?? []).map(({ name }) => name)
+}
+
 /** The test runtime's `core`, once a runner has loaded it -- see `testRuntime()`. */
 let testCore: (typeof import("spell-app/app/runner/spellRuntime"))["core"] | undefined
 
@@ -846,22 +927,27 @@ async function solitaireSource(): Promise<SpellAppSource> {
 }
 
 /**
- * The frozen `lists-from-zero`, as a runner runs it:  its compiled javascript, and the card library's it imports
- * (`@spell/test/cards`), each its blessed snapshot.
+ * The frozen `counter-app`, as a runner runs it:  its compiled javascript, and the counter library's it imports
+ * (`@spell/test/counter`), each its blessed snapshot.
  * - The import is handed over as a `blob:` URL, which the runner fetches.
- * - `editCards`:  an edit to the card library's, as recompiling it would make.
+ * - `editCounter`:  an edit to the counter library's, as recompiling it would make.
  */
-async function countingSource(editCards = (cards: string) => cards): Promise<SpellAppSource> {
-  const [program, written] = await Promise.all([fixtureCompiled("lists-from-zero"), fixtureCompiled("cards")])
-  const cardsUrl = URL.createObjectURL(new Blob([editCards(written)], { type: "text/javascript" }))
+async function counterAppSource(editCounter = (counter: string) => counter): Promise<SpellAppSource> {
+  const [program, written] = await Promise.all([fixtureCompiled("counter-app"), fixtureCompiled("counter")])
+  const counterUrl = URL.createObjectURL(new Blob([editCounter(written)], { type: "text/javascript" }))
   return {
-    ...source(program, "lists-from-zero"),
-    importUrl: (id) => (id === CARD_LIBRARY ? cardsUrl : `/nowhere/${id}`)
+    ...source(program, "counter-app"),
+    importUrl: (id) => (id === COUNTER_LIBRARY ? counterUrl : `/nowhere/${id}`)
   }
 }
 
-/** The frozen card library `lists-from-zero` imports. */
-const CARD_LIBRARY = "@spell/test/cards"
+/** The frozen counter library `counter-app` imports. */
+const COUNTER_LIBRARY = "@spell/test/counter"
+
+/** The counter's button, in `host`:  in the counter's own element, `<test-project-counter>`, its shadow root. */
+function counterButton(host: HTMLElement): HTMLElement | null | undefined {
+  return host.querySelector("test-project-counter")?.shadowRoot?.querySelector<HTMLElement>("ui-button.Counter")
+}
 
 /** Fixture project `name`'s compiled javascript, as text:  its blessed snapshot, `<name>.snapshot.js`. */
 async function fixtureCompiled(name: string): Promise<string> {

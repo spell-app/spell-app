@@ -73,7 +73,7 @@ working with code in this repository, `spell-app`.
   - Spell's frozen test projects (`@spell/test`) are HERE, beside the other `@spell` groups:
     [spaces/@spell/test/](spaces/@spell/test/) (spell-lang's from epic `repo-split` P8 until epic `spanish` P18).
     - Owen, 2026-10-22:  "Seems like all of the @spell/ packages should live in spell-app":
-      so a test project may import another `@spell` project:  `lists-from-zero` imports `cards`, a frozen card library.
+      so a test project may import another `@spell` project:  `counter-app` imports `counter`, a frozen counter library.
     - The tests that compile them whole are here too, in [tests/spell/](tests/spell/), the `spell` project:
       their snapshots, `tsc` and pyright on them, whole-project parsing.
       - The examples Solitaire and Solitario are tested as they are, never a frozen copy:

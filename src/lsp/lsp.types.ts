@@ -1,7 +1,7 @@
 /**
  * Shared types for the spell language server.
  */
-import type { DocumentSymbol } from "vscode-languageserver"
+import type { Diagnostic, DocumentSymbol } from "vscode-languageserver"
 
 import type { P } from "spell-lang/parser"
 import type { SP } from "spell-lang/spell"
@@ -287,6 +287,60 @@ export type ProjectCompiled = {
   project: string
   /** Project's javascript, EXACTLY as written to its `<Project>.spell.js` -- see `ProjectInfo.compiledUri`. */
   compiled: string
+}
+
+// ## Test results
+
+/**
+ * Params of `spell/testDiagnostics`:  how a project's tests went, from a runner's Run Tests --
+ * answered with each of its spell files' failed checks, as `FileDiagnostics`.
+ * - see `SpellLanguageService.testDiagnostics()`
+ */
+export type TestDiagnosticsParams = {
+  /** One of the project's spell files. */
+  uri: string
+  /** Each test that ran. */
+  tests: TestReport[]
+}
+
+/**
+ * How one test went, as a runner sends it:  a slim `TestResult` (`spell-lang/core`), with only what can't pass left.
+ * - `method` finds the test:  the function a `to test ...` compiles to, `testCardSetup`.
+ *   A test with none, a `start test`, finds no line.
+ */
+export type TestReport = {
+  /** Its name, e.g. `test card setup`. */
+  name: string
+  /** Its function's, e.g. `testCardSetup`. */
+  method?: string
+  /** Did every check pass, and did it finish? */
+  passed: boolean
+  /** Its checks that failed, in the order they ran. */
+  failures: TestFailure[]
+  /** What it said when it threw, if it didn't finish:  `Error in test "test jokers": ...`, in the program's language. */
+  threw?: string
+}
+
+/**
+ * One check that failed:  `it is the queen of spades should be yes`, which was `no`.
+ * - `what`, `expected`:  the spell it was written as, `it is the queen of spades` and `yes` -- see `TestCheck`.
+ * - `occurrence`:  how many checks of the same test, written the same, ran before it, from 0:
+ *   which of them it is, when one test says the same thing twice, e.g. `it is face up` before and after a flip.
+ */
+export type TestFailure = {
+  what: string
+  expected?: string
+  /** What it printed, in the program's language:  the diagnostic's message. */
+  message: string
+  occurrence: number
+}
+
+/** A spell file's diagnostics, by its URI:  what `spell/testDiagnostics` answers, one per file of the project. */
+export type FileDiagnostics = {
+  /** The file's URI. */
+  uri: string
+  /** Its diagnostics:  none clears the ones it had. */
+  diagnostics: Diagnostic[]
 }
 
 // ## Scope trees, flat

@@ -38,7 +38,8 @@ import {
   position,
   spellPosition,
   endPosition,
-  withSpellPositions
+  withSpellPositions,
+  type TestResult
 } from "spell-lang/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
 import { installSpellElements } from "./SpellElement"
@@ -99,6 +100,42 @@ export function runApp(compiled: string, { appRoot, layout, ...options }: RunApp
   if (appRoot) core.appRoot = appRoot
   core.appLayout = !!layout
   return runCompiled(compiled, options)
+}
+
+/**
+ * Run `compiled`'s tests in this copy, as `spell test` does:  load it afresh, which runs the tests it runs itself,
+ * then each other `to test ...` it exports -- and answer how each went, and the error message if it threw.
+ * - Headless while it loads:  starting its app does nothing, nor does adding its styles, so the page shows nothing of it.
+ *   - Its drawable types' tags aren't defined either:  the page's `<solitaire-card>`s stay the app's copy's.
+ *   - Put back as they were after.
+ * - MUST be a copy of its own, never the one an app runs in (the VS Code runner's Run Tests):
+ *   loading afresh takes down that copy's app, and clears its things and console.
+ * - NEVER throws:  a test that throws fails.
+ */
+export async function testApp(compiled: string, options: RunCompiledOptions): Promise<TestRun> {
+  const { start } = App.prototype
+  const { installStyles, elementDefiner, appRoot } = core
+  App.prototype.start = function start() {}
+  core.installStyles = () => {}
+  core.elementDefiner = undefined
+  core.appRoot = document.createElement("div")
+  try {
+    const problem = await runCompiled(compiled, { ...options, keepThings: false, runTests: true })
+    // a drawable class tells the definer a microtask after it's declared:  let that pass, with none, first
+    await new Promise((resolve) => setTimeout(resolve))
+    return { problem, results: core.testResults() }
+  } finally {
+    App.prototype.start = start
+    Object.assign(core, { installStyles, elementDefiner, appRoot })
+  }
+}
+
+/** How a project's tests went, as `testApp()` answers it. */
+export type TestRun = {
+  /** The error message, if loading it threw:  then only the tests it ran before that are in `results`. */
+  problem?: string
+  /** Each test that ran, in the order they ended. */
+  results: TestResult[]
 }
 
 /** Options for `runApp()`. */

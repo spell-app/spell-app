@@ -37,7 +37,7 @@ solitaire is an app where:
 		for each card in its deck
 			add it to the stock of solitaire
 
-	// print each pile's cards, e.g. "stock: Q♠️— 7♥️—"
+	// print each pile's cards, e.g. "stock: Q♠↓ 7♥↓"
 	- to debug it:
 		for each pile in every pile
 			print the state of the pile
@@ -208,15 +208,16 @@ a "stacked pile" is a pile where:
 		:host {
 			display: block;
 			position: relative;
-			min-height: 6.5rem;
+			min-width: var(--card-width);
+			min-height: var(--card-height);
 		}
 		/* where its first card goes:  a card-sized outline */
 		.Placeholder {
 			position: absolute;
-			top: 1.5rem;
-			left: 0.3rem;
-			width: 4.25rem;
-			height: 5.65rem;
+			top: 0;
+			left: 0;
+			width: var(--card-width);
+			height: var(--card-height);
 			box-sizing: border-box;
 			border: 2px dashed #c8c8c8;
 			border-radius: 0.4rem;
@@ -250,7 +251,7 @@ a "discard pile" is a stacked pile where:
 
 // a foundation:  where a suit is built up, ace to king
 a "foundation" is a stacked pile where:
-	- its "suit" is a suit
+	- its "suit" is a card suit
 	- it can never let go of a card
 	// one card at a time:  the last of its pile
 	- it can take a card if:
@@ -258,7 +259,7 @@ a "foundation" is a stacked pile where:
 		return its suit is the suit of the card and its value + 1 is the value of the card
 	- to draw it:
 		return <div class="Foundation">
-			<div class="Placeholder">{the symbol of its suit}</div>
+			<div class="Placeholder">{the symbol of a new card with suit = its suit}</div>
 			<children/>
 		</div>
 
@@ -274,13 +275,12 @@ a "tableau" is a pile where:
 			display: block;
 			min-height: 30rem;
 		}
-		/* each card below the one before, its top showing;  the last one whole */
+		/* each card below the one before, a strip of its top showing (--card-strip);  the last one whole */
 		::slotted(*) {
 			display: block;
 		}
 		::slotted(:not(:last-child)) {
-			height: 2.6rem;
-			overflow: hidden;
+			height: var(--card-strip);
 		}
 	</css>
 
@@ -298,7 +298,7 @@ to test the moves
 	the column can take the jack should be no
 	the column can take the queen should be yes
 	add the queen to the column
-	the state of the column should be "T1: K♠️+ Q♥️+"
+	the state of the column should be "T1: K♠↑ Q♥↑"
 	the column can give up the queen should be yes
 	turn the queen face down
 	the column can give up the queen should be no

@@ -12,6 +12,7 @@ import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
 import { wordsIn, wordsOfLanguages } from "./words"
+import { showTestResults, testReportsOf } from "./testResults"
 
 import "spell-app/app/solid/AppContainer.css"
 import "./VSCodeRunner.css"
@@ -29,8 +30,15 @@ import "./VSCodeRunner.css"
  *   - One sent before that's loaded runs once it is.
  *   - Each run keeps the program's things, e.g. the game in progress:  only Restart starts afresh (see `run()`).
  * - A project it imports, e.g. `@spell/library/people`, it asks the extension for (`loadImport`), each run.
- * - Its Thing Explorer shows things' members in spell's words, from the `words` message after each run:
+ * - Its Thing Explorer shows things' members in spell's words, from the words each `run` message brings:
  *   the project's `<Project>.en.js` (`SP.SpellWords`).
+ *   - Their `messages` are what the core says as the program runs, e.g. its tests' lines, in its language.
+ * - Runs the project's tests, as `spell test` does (`testApp()`), on a copy of the runtime of their own,
+ *   so the game in progress is left alone:
+ *   - after a run that started no app and didn't throw, e.g. a project of types and their tests
+ *   - on its Run Tests button, and the extension's `runTests` (the Run Tests command)
+ *   - How they went shows in "Program Output" (`showTestResults()`), and goes to the extension (`testResults`),
+ *     which shows each failed check in the editor, on its line.
  * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
  * - NEVER imports `spell-lang/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
@@ -52,17 +60,27 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   const [hasApp, setHasApp] = createSignal(true)
   const [tree, setTree] = createSignal<LSP.ScopeNode>()
   const [words, setWords] = createSignal<SP.SpellWordsData>()
-  // how many `words` messages came:  a slow load of an older one mustn't win
-  let wordsSent = 0
+  // how many `run` messages came:  a slow load of an older one's words mustn't win
+  let runsSent = 0
+  // how many test runs started:  only the last one's results show
+  let testRuns = 0
+  // the javascript of the last run, and its words' messages:  what Run Tests runs
+  let lastRun: PendingRun | undefined
+  // Run Tests was asked for before anything ran:  run them after the first run
+  let testsWanted = false
+  // the copy of the runtime the tests run on, loaded the first time they run -- see `runTests()`
+  let testCopy: Promise<LoadedRuntime> | undefined
   // who's waiting for which details -- see `loadDetails()`
   const detailsWaiting = new Map<string, Array<(details: LSP.ScopeDetails | null) => void>>()
   // who's waiting for which imported project's javascript -- see `loadImport()`
   const importsWaiting = new Map<string, Array<ImportWaiting>>()
   // what the last `run` message sent, if it came before the runtime -- run once that's loaded
-  let toRun: string | undefined
+  let toRun: PendingRun | undefined
   // Restart was pressed:  the `run` it brings starts afresh, a new deal.
+  // So does the panel's first run:  it has nothing of its own to carry over
+  // (a runtime shared with another runner, as in tests, may still hold that one's things).
   // Every other run keeps the program's things.
-  let startAfresh = false
+  let startAfresh = true
 
   // NOTE: the app's pane is ALWAYS first, just hidden without an app -- so its mount point is never redrawn.
   const appRoot = (<div class="App" />) as HTMLDivElement
@@ -109,6 +127,7 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
           startAfresh = true
           post({ type: "restart" })
         }}
+        onRunTests={() => void runTests()}
         showConsole={hasApp() ? showConsole() : undefined}
         onToggleConsole={() => save({ runner: { ...settings().runner, showConsole: !showConsole() } })}
       />
@@ -143,16 +162,20 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   /** Keep what a `run` message carries, to run -- or a `scopes` message's tree, a `words` message's words ... */
   function onMessage({ data }: MessageEvent<ToRunnerMessage>) {
     if (data?.type === "run") {
-      const copy = loaded()
-      if (copy) run(copy, data.compiled)
-      else toRun = data.compiled
-    } else if (data?.type === "words") {
-      const sent = ++wordsSent
-      // a words file per language its files are in:  as one
-      void Promise.all((data.words ?? []).map(wordsIn)).then((loaded) => {
-        if (sent === wordsSent) setWords(wordsOfLanguages(loaded))
+      const sent = ++runsSent
+      const { compiled, runTests: andTests } = data
+      // its words first:  a words file per language its files are in, as one
+      void Promise.all((data.words ?? []).map(wordsIn)).then((loadedWords) => {
+        if (sent !== runsSent) return
+        const words = wordsOfLanguages(loadedWords)
+        setWords(words)
+        const pending = { compiled, messages: words?.messages, runTests: !!andTests }
+        const copy = loaded()
+        if (copy) run(copy, pending)
+        else toRun = pending
       })
-    } else if (data?.type === "scopes") setTree(data.tree)
+    } else if (data?.type === "runTests") void runTests()
+    else if (data?.type === "scopes") setTree(data.tree)
     else if (data?.type === "settings") setSettings(data.settings)
     else if (data?.type === "details") {
       const waiting = detailsWaiting.get(data.path)
@@ -174,13 +197,49 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
    *   - Restart asked for a fresh start (Q25)
    *   - or the edit changed its start (`runCompiled()`, P17)
    */
-  function run(copy: LoadedRuntime, compiled: string) {
+  function run(copy: LoadedRuntime, pending: PendingRun) {
+    const { compiled, messages } = pending
     const keepThings = !startAfresh
     startAfresh = false
-    void copy.runtime.runApp(compiled, { appRoot, coreUrl: copy.coreUrl, keepThings, loadImport }).then((problem) => {
+    lastRun = pending
+    const options = { appRoot, coreUrl: copy.coreUrl, keepThings, loadImport, messages }
+    void copy.runtime.runApp(compiled, options).then((problem) => {
       setError(problem)
-      setHasApp(copy.runtime.appIsMounted())
+      const startedApp = copy.runtime.appIsMounted()
+      setHasApp(startedApp)
+      // a program that threw isn't worth testing by itself:  Run Tests still does
+      if (pending.runTests || testsWanted || (!problem && !startedApp)) void runTests()
     })
+  }
+
+  /**
+   * Run the project's tests, as `spell test` does, on the copy of the runtime they run on:
+   * the javascript the last run ran, afresh -- see `testApp()`.
+   * - Then show how they went on the program's console, and send them to the extension.
+   * - Nothing run yet:  after the first run.
+   * - NEVER throws:  a test copy that won't load shows as the run's error.
+   */
+  async function runTests() {
+    const copy = loaded()
+    const ran = lastRun
+    if (!copy || !ran) {
+      testsWanted = true
+      return
+    }
+    testsWanted = false
+    const sent = ++testRuns
+    try {
+      testCopy ??= loadRuntime(runtimeUrl)
+      const tester = await testCopy
+      const options = { coreUrl: tester.coreUrl, loadImport, messages: ran.messages }
+      const tested = await tester.runtime.testApp(ran.compiled, options)
+      if (sent !== testRuns) return
+      showTestResults(copy.runtime.core.console, tested, tester.runtime.core)
+      post({ type: "testResults", tests: testReportsOf(tested.results, tester.runtime.core) })
+    } catch (problem) {
+      testCopy = undefined
+      setError(problem instanceof Error ? problem.message : String(problem))
+    }
   }
 
   /** The Type Explorer, from the scopes the extension sends. */
@@ -255,6 +314,16 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   }
 }
 
+/** What a `run` message asks for, its words loaded:  run now, or once the runtime's loaded -- see `run()`. */
+type PendingRun = {
+  /** The project's javascript. */
+  compiled: string
+  /** What the core says as it runs, in the program's language:  its words' `messages`. */
+  messages?: Record<string, string>
+  /** Run its tests after it, as `runTests()` does. */
+  runTests: boolean
+}
+
 /** A run waiting for an imported project's javascript -- see `loadImport()`. */
 type ImportWaiting = { resolve: (compiled: string) => void; reject: (error: Error) => void }
 
@@ -268,7 +337,7 @@ export type VSCodeRunnerProps = {
 
 /****************
  * ### `<VSCodeRunnerToolbar>`
- * Restart button, the last run's error if it threw, then "Show Console" at the right -- if there's an app.
+ * Restart and Run Tests buttons, the last run's error if it threw, then "Show Console" at the right -- if there's an app.
  * - HACK: icons are slotted `<ui-icon>`s, not the items' `icon`:  see `<RunnerPane>`.
  ****************/
 function VSCodeRunnerToolbar(props: VSCodeRunnerToolbarProps) {
@@ -277,6 +346,10 @@ function VSCodeRunnerToolbar(props: VSCodeRunnerToolbarProps) {
       <ui-item link="" class="restart" onClick={() => props.onRestart()}>
         <ui-icon name="redo" />
         {appTexts.text("restart")}
+      </ui-item>
+      <ui-item link="" class="run-tests" onClick={() => props.onRunTests()}>
+        <ui-icon name="flask" />
+        {appTexts.text("runTests")}
       </ui-item>
       <Show when={props.error}>
         <ui-item class="error">
@@ -302,6 +375,8 @@ type VSCodeRunnerToolbarProps = {
   error?: string
   /** Restart button pressed. */
   onRestart: () => void
+  /** Run Tests button pressed. */
+  onRunTests: () => void
   /** Is the console showing?  `undefined` for no button:  a program with no app always shows it. */
   showConsole?: boolean
   /** "Show Console" / "Hide Console" pressed. */

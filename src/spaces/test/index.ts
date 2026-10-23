@@ -7,6 +7,7 @@
 export {
   loadFixtureProject,
   copyFixtureProject,
+  lineOf,
   fixturePath,
   fixtureFolder,
   snapshotPath,

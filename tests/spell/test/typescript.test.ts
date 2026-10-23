@@ -31,7 +31,7 @@ beforeAll(() => {
   const files = Object.fromEntries(
     fixtureProjectNames().map((name) => [`${name}.tsx`, compiledFixture(name, "ts/solid")])
   )
-  // a fixture's imports are files checked beside it, another fixture's:  `@spell/test/cards` => `cards.tsx`
+  // a fixture's imports are files checked beside it, another fixture's:  `@spell/test/counter` => `counter.tsx`
   const imports = fixtureProjectNames().flatMap((name) => Object.entries(fixtureImports(name)))
   const fileOf = (imported: string) => `${imported.split("/").at(-1)}.tsx`
   for (const [, imported] of imports) files[fileOf(imported)] ??= compiledFixture(imported, "ts/solid")

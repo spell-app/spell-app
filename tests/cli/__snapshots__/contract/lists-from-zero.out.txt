@@ -1,114 +1,21 @@
-✅ test card setup
-  ▶️ Executing   `get a new card whose rank is queen, suit is spades and direction is up`
-  ✅ As expected `its rank` is `queen`
-  ✅ As expected `its suit` is `spades`
-  ✅ As expected `its name` is `"queen-of-spades"`
-  ✅ As expected `its color` is `black`
-  ✅ As expected `its value` is `12`
-  ✅ As expected `its short suit` is `"♠️"`
-  ✅ As expected `its short rank` is `"Q"`
-  ✅ As expected `its short name` is `"Q♠️"`
-  ✅ As expected `its state` is `"Q♠️+"`
-  ✅ As expected `its picture` is `"🂭"`
-  ✅ As expected `it is face up` is `yes`
-  ✅ As expected `it is face down` is `no`
-  ✅ As expected `it is a face card` is `yes`
-  ✅ As expected `it is not a face card` is `no`
-  ✅ As expected `it is a spade` is `yes`
-  ✅ As expected `it is a club` is `no`
-  ✅ As expected `it is a queen` is `yes`
-  ✅ As expected `it is an ace` is `no`
-  ✅ As expected `it is a 2` is `no`
-  ✅ As expected `it is the queen of spades` is `yes`
-  ✅ As expected `it is the queen of clubs` is `no`
-  ✅ As expected `it is not the 2 of diamonds` is `yes`
-  ▶️ Executing   `turn it face down`
-  ✅ As expected `its direction` is `down`
-  ✅ As expected `it is face down` is `yes`
-  ▶️ Executing   `turn it over`
-  ✅ As expected `it is face up` is `yes`
-  ✅ As expected `the short name of the seven` is `"7♥️"`
-  ✅ As expected `the color of the seven` is `red`
-  ✅ As expected `the picture of the seven` is `"🂷"`
-  ✅ As expected `the picture of a new card whose rank is ace and suit is clubs` is `"🃑"`
-  ✅ As expected `the picture of a new card whose rank is king and suit is diamonds` is `"🃎"`
-✅ test jokers
-  ▶️ Executing   `get a new joker whose color is red and direction is up`
-  ✅ As expected `it is a joker` is `yes`
-  ✅ As expected `it is a card` is `yes`
-  ✅ As expected `its color` is `red`
-  ✅ As expected `its name` is `"red-joker"`
-  ✅ As expected `its short name` is `"🃏"`
-  ✅ As expected `its picture` is `"🂿"`
-  ✅ As expected `it is the red joker` is `yes`
-  ✅ As expected `it is the black joker` is `no`
-  ✅ As expected `it is not the black joker` is `yes`
-  ✅ As expected `it is face up` is `yes`
-  ▶️ Executing   `turn it over`
-  ✅ As expected `it is face down` is `yes`
-  ▶️ Executing   `set black joker to a new joker whose color is black`
-  ✅ As expected `the picture of black joker` is `"🃏"`
-  ▶️ Executing   `set the card to a new card whose rank is queen and suit is spades`
-  ✅ As expected `the card is a joker` is `no`
-  ✅ As expected `the card is not a joker` is `yes`
-  ✅ As expected `the card is the red joker` is `no`
-✅ test deck creation
-  ▶️ Executing   `the deck is a new deck`
-  ✅ As expected `the number of cards in the deck` is `52`
-  ▶️ Executing   `set the queens to the cards in the deck where the rank of the card is queen`
-  ✅ As expected `the number of cards in the queens` is `4`
-  ✅ As expected `the name of the top card of the deck` is `"ace-of-clubs"`
-  ✅ As expected `the name of the bottom card of the deck` is `"king-of-spades"`
-  ✅ As expected `the short name of the top card of the deck` is `"A♣️"`
-  ✅ As expected `the first card of the deck is the ace of clubs` is `yes`
-  the deck before shuffling:
-  ▶️ Executing   `display the deck`
-  deck: A♣️, A♦️, A♥️, A♠️, 2♣️, 2♦️, 2♥️, 2♠️, 3♣️, 3♦️, 3♥️, 3♠️, 4♣️, 4♦️, 4♥️, 4♠️, 5♣️, 5♦️, 5♥️, 5♠️, 6♣️, 6♦️, 6♥️, 6♠️, 7♣️, 7♦️, 7♥️, 7♠️, 8♣️, 8♦️, 8♥️, 8♠️, 9♣️, 9♦️, 9♥️, 9♠️, 10♣️, 10♦️, 10♥️, 10♠️, J♣️, J♦️, J♥️, J♠️, Q♣️, Q♦️, Q♥️, Q♠️, K♣️, K♦️, K♥️, K♠️
-  ▶️ Executing   `shuffle the deck`
-  ✅ As expected `the number of cards in the deck` is `52`
-  the deck after shuffling:
-  ▶️ Executing   `display the deck`
-  deck: A♣️, 2♠️, 10♠️, 7♦️, 8♦️, 4♠️, 3♣️, 10♦️, A♦️, K♦️, 7♥️, 9♣️, Q♦️, 4♥️, 5♣️, 9♥️, J♣️, 5♦️, 8♠️, 6♦️, 9♦️, J♥️, A♥️, 3♦️, Q♠️, 6♥️, 8♣️, J♠️, 2♥️, 4♣️, K♥️, 7♣️, 3♥️, 6♣️, 5♥️, 4♦️, Q♥️, K♣️, K♠️, 7♠️, 5♠️, 10♥️, 6♠️, 9♠️, A♠️, 2♣️, Q♣️, J♦️, 10♣️, 8♥️, 2♦️, 3♠️
-✅ test deck with jokers
-  ▶️ Executing   `the deck is a new deck with jokers`
-  ✅ As expected `the number of cards in the deck` is `54`
-  ▶️ Executing   `set wild cards to the cards in the deck where it is a joker`
-  ✅ As expected `the number of cards in wild cards` is `2`
-  ✅ As expected `the first card of the deck is the ace of clubs` is `yes`
-  ✅ As expected `the last card of the deck is the black joker` is `yes`
-  ✅ As expected `the name of the bottom card of the deck` is `"black-joker"`
-✅ test piles
-  ▶️ Executing   `set the stock to a new pile with name = "stock"`
-  ▶️ Executing   `set the discards to a new pile with name = "discards"`
-  ✅ As expected `the color of the stock` is `"none"`
-  ✅ As expected `the value of the stock` is `0`
-  ▶️ Executing   `add (a new card whose rank is queen, suit is spades and direction is up) to the stock`
-  ▶️ Executing   `add (a new card whose rank is 7, suit is hearts and direction is down) to the stock`
-  ✅ As expected `the color of the stock` is `red`
-  ✅ As expected `the value of the stock` is `7`
-  ✅ As expected `the state of the stock` is `"stock: Q♠️+ 7♥️—"`
-  ▶️ Executing   `add the card to the discards`
-  ✅ As expected `the number of cards in the stock` is `1`
-  ✅ As expected `the pile of the card is the discards` is `yes`
-  ✅ As expected `the state of the discards` is `"discards: 7♥️—"`
 ✅ test counting from zero
-  ▶️ Executing   `the deck is a new deck`
-  ✅ As expected `the name of card 0 of the deck` is `"ace-of-clubs"`
-  ✅ As expected `the name of card 1 of the deck` is `"ace-of-diamonds"`
-  ✅ As expected `the name of card -1 of the deck` is `"king-of-spades"`
-  ✅ As expected `the name of the first card of the deck` is `"ace-of-clubs"`
-  ✅ As expected `the name of the second card of the deck` is `"ace-of-diamonds"`
-  ✅ As expected `the name of the last card of the deck` is `"king-of-spades"`
-  ▶️ Executing   `set the ace to the first card of the deck`
-  ✅ As expected `the position of the ace in the deck` is `0`
-  ▶️ Executing   `set the aces to cards 0 to 3 of the deck`
-  ✅ As expected `the number of cards in the aces` is `4`
-  ✅ As expected `the name of the last card of the aces` is `"ace-of-spades"`
-  ▶️ Executing   `set the kings to last two cards of the deck`
-  ✅ As expected `the number of cards in the kings` is `2`
-  ✅ As expected `the name of the first card of the kings` is `"king-of-hearts"`
+  ▶️ Executing   `the rack is a new rack`
+  ✅ As expected `the letter of tile 0 of the rack` is `"A"`
+  ✅ As expected `the letter of tile 1 of the rack` is `"B"`
+  ✅ As expected `the letter of tile -1 of the rack` is `"E"`
+  ✅ As expected `the letter of the first tile of the rack` is `"A"`
+  ✅ As expected `the letter of the second tile of the rack` is `"B"`
+  ✅ As expected `the letter of the last tile of the rack` is `"E"`
+  ▶️ Executing   `set the start to the first tile of the rack`
+  ✅ As expected `the position of the start in the rack` is `0`
+  ▶️ Executing   `set the front to tiles 0 to 2 of the rack`
+  ✅ As expected `the number of tiles in the front` is `3`
+  ✅ As expected `the letter of the last tile of the front` is `"C"`
+  ▶️ Executing   `set the back to last two tiles of the rack`
+  ✅ As expected `the number of tiles in the back` is `2`
+  ✅ As expected `the letter of the first tile of the back` is `"D"`
   ▶️ Executing   `set the positions to a new list of numbers`
-  ▶️ Executing   `for each card, position in the aces`
-  positions: 0, 1, 2, 3
-  ▶️ Executing   `remove card 0 of the deck`
-  ✅ As expected `the name of the first card of the deck` is `"ace-of-diamonds"`
+  ▶️ Executing   `for each tile, position in the front`
+  positions: 0, 1, 2
+  ▶️ Executing   `remove tile 0 of the rack`
+  ✅ As expected `the letter of the first tile of the rack` is `"B"`

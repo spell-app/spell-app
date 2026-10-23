@@ -1,9 +1,41 @@
 {
   "spellVersion": "0.8.0",
   "provides": [
+    "Tile",
+    "Rack",
     "test_counting_from_zero"
   ],
   "statements": [
+    {
+      "type": "Tile",
+      "superType": "Thing",
+      "defined": "/Counting.spell:170-220"
+    },
+    {
+      "property": "letter",
+      "of": "Tile",
+      "datatype": "text",
+      "defined": "/Counting.spell:200-220"
+    },
+    {
+      "type": "Rack",
+      "superType": "List",
+      "itemType": "Tile",
+      "defined": "/Counting.spell:222-558"
+    },
+    {
+      "syntax": "create {thisArg:expression}",
+      "output": "create",
+      "rule": "method_call",
+      "of": "Rack",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "create it",
+      "defined": "/Counting.spell:300-558"
+    },
     {
       "syntax": "test counting from zero",
       "output": "test_counting_from_zero",
@@ -11,10 +43,14 @@
       "alias": "statement",
       "kind": "function",
       "name": "counting from zero",
-      "defined": "/Counting.spell:209-1283"
+      "defined": "/Counting.spell:570-1552"
     }
   ],
   "codeLines": [
-    8
+    7,
+    8,
+    14,
+    18,
+    29
   ]
 }
