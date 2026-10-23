@@ -500,9 +500,9 @@ spell test @spell/examples/Solitaire
 
 </details>
 
-<img src="docs/images/examples/Solitaire.png" width="640" alt="Solitaire running:  the stock, the discards and four foundations across the top, seven tableaus dealt below, each card a Unicode playing card">
+<img src="docs/images/examples/Solitaire.png" width="640" alt="Solitaire open in the Spell editor:  its Spell on the left;  on the right the game, dealt, the stock, the discards and four foundations across the top, seven tableaus below">
 
-_Solitaire, dealt:  every card on the table one Unicode character, drawn large._
+_Solitaire in the editor, dealt:  its Spell on the left, the game on the right._
 
 ### Solitario:  the same game, in Spanish
 

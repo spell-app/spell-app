@@ -339,6 +339,7 @@ The extension's compiled views and its Run Project panel ask the server for more
 | `spell/project` `{ uri }` | the project's files in parse order, with each one's error count, and where its compiled output and words file go |
 | `spell/compileProject` `{ uri }` | compile the project to its `<Project>.spell.js`, queued like a change;  answers `{ ok }`, and on a clean compile writes the scope pack and sends `spell/projectCompiled` |
 | `spell/projectCompiled` (a notification, to the editor) | `{ project, compiled }`:  the JavaScript it wrote, for a running app to re-run |
+| `spell/compiledImport` `{ uri, projectId }` | the compiled JavaScript of a project it imports, e.g. `@spell/library/cards`, read fresh, compiled first if it has none;  `null` if it can't be loaded.  VS Code's runner links it in, as the app's does |
 | `spell/scopes` `{ uri }` | the live scope tree, for a Type Explorer |
 | `spell/scopeDetails` `{ uri, path }` | one node's details, fetched when it's shown |
 | `spell/setDescription` `{ uri, line \| file, text }` | an edit making `text` the docstring of what's declared on that line:  sent back for the editor to apply, so it can be undone |

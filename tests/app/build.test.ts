@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process"
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
+import { createServer } from "vite-plus"
 import { describe, test, expect } from "vite-plus/test"
 
 /**
@@ -65,6 +66,41 @@ describe("production build", () => {
       }
     } finally {
       rmSync(outDir, { recursive: true, force: true })
+    }
+  }, 60_000)
+})
+
+/**
+ * The editor's dev server, `vp dev` in `app/` (`EditorServer`, `yarn start:dev`):  its page's entry loads.
+ * - `index.html` loads `../src/app/index.tsx`;  the dev server asks for it as `/src/app/index.tsx`,
+ *   outside its root, so `vite.config.ts`'s `repoSourceInDev()` finds it in the repo's `src/` (epic `spanish` J94).
+ */
+describe("dev server", () => {
+  test("serves the editor's page, `/edit/...`, and its entry, from the repo's `src/`", async () => {
+    // a cache of its own:  sharing `node_modules/.vite` would make a running editor's optimized deps outdated
+    const cacheDir = mkdtempSync(join(tmpdir(), "spell-vite-"))
+    const server = await createServer({
+      configFile: join(import.meta.dirname, "../../app/vite.config.ts"),
+      root: join(import.meta.dirname, "../../app"),
+      cacheDir,
+      logLevel: "silent",
+      // any free port, and no proxy:  the page server's API isn't needed for the page itself
+      server: { port: 0, strictPort: false, hmr: false, proxy: {} }
+    })
+    try {
+      await server.listen()
+      const base = server.resolvedUrls!.local[0]!
+      const page = new URL("edit/@spell/examples/Solitaire", base)
+      const html = await (await fetch(page)).text()
+      const entry = /<script type="module" src="([^"]+index\.tsx)"/.exec(html)?.[1]
+      expect(entry).toBeDefined()
+      const response = await fetch(new URL(entry!, page))
+      expect(response.status).toBe(200)
+      expect(response.headers.get("content-type")).toMatch(/javascript/)
+      expect(await response.text()).toContain("spell-app/src/app/editor.ts")
+    } finally {
+      await server.close()
+      rmSync(cacheDir, { recursive: true, force: true })
     }
   }, 60_000)
 })

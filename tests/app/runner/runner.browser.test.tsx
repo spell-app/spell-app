@@ -4,10 +4,11 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import type { SpellCompiled } from "spell-app/app/runner/runner.types"
+import type { FromRunnerMessage, SpellCompiled, ToRunnerMessage } from "spell-app/app/runner/runner.types"
 import { uiReady } from "spell-app/app/solid/loadUI"
 import { SpellAppRunner, type SpellAppControls, type SpellAppSource } from "spell-app/app/runner/SpellAppRunner"
 import { RunnerSplit } from "spell-app/app/runner/RunnerSplit"
+import { VSCodeRunner } from "spell-app/app/runner/VSCodeRunner"
 import type { DOMSpellAppElement } from "spell-app/app/components/spell-app"
 
 /**
@@ -722,6 +723,33 @@ describe("compiled spell draws with Solid", () => {
   })
 })
 
+describe("<VSCodeRunner>", () => {
+  test("a project that imports another:  it asks the extension for the import's javascript, and runs (Solitaire)", async () => {
+    const [program, cards] = await Promise.all([
+      fixtureText("solitaire", "solitaire.snapshot.js"),
+      fixtureText("solitaire", "cards.import.snapshot.js")
+    ])
+    const { host, posted } = await mountVSCode()
+    await waitFor(() => posted.some(({ type }) => type === "ready"))
+    tellRunner({ type: "run", compiled: program })
+    const asked = await waitFor(() => posted.find((message) => message.type === "loadImport"))
+    expect(asked).toEqual({ type: "loadImport", projectId: "@spell/library/cards" })
+    tellRunner({ type: "imported", projectId: "@spell/library/cards", compiled: cards })
+    await waitFor(() => host.querySelectorAll("test-project-card").length === 52, 10_000)
+    expect(host.querySelector(".VSCodeRunnerToolbar .error")).toBeNull()
+  })
+
+  test("an import the extension couldn't load:  its reason, as the run's error", async () => {
+    const program = await fixtureText("solitaire", "solitaire.snapshot.js")
+    const { host, posted } = await mountVSCode()
+    tellRunner({ type: "run", compiled: program })
+    await waitFor(() => posted.some(({ type }) => type === "loadImport"))
+    tellRunner({ type: "imported", projectId: "@spell/library/cards", error: "Couldn't load project 'x'" })
+    const error = await waitFor(() => host.querySelector(".VSCodeRunnerToolbar .error"))
+    expect(error.textContent).toContain("Couldn't load project 'x'")
+  })
+})
+
 describe("<RunnerSplit>", () => {
   test("the bottom pane and its bar show only with `showBottom`;  the top pane is never redrawn", async () => {
     const host = document.createElement("div")
@@ -961,6 +989,37 @@ async function mountSettable(
   flush()
   await ElementFixture.settle(host)
   return { host, setSource }
+}
+
+/**
+ * Render a `<VSCodeRunner>` in a fresh `<div>`, as the extension's webview does;  unmounted after the test.
+ * - `posted`:  every message it sent the extension.
+ */
+async function mountVSCode() {
+  await uiReady
+  const host = document.createElement("div")
+  host.style.height = "600px"
+  document.body.append(host)
+  const posted: FromRunnerMessage[] = []
+  const dispose = render(
+    () => (
+      <ui-root icons="fomantic" display="immediately">
+        <VSCodeRunner post={(message) => posted.push(message)} runtimeUrl="/test-runtime.js" />
+      </ui-root>
+    ),
+    host
+  )
+  cleanups.push(() => {
+    dispose()
+    host.remove()
+  })
+  flush()
+  return { host, posted }
+}
+
+/** Send the `<VSCodeRunner>` `message`, as the extension does. */
+function tellRunner(message: ToRunnerMessage) {
+  window.dispatchEvent(new MessageEvent("message", { data: message }))
 }
 
 /** Add `<spell-app>` markup `html` to the page;  removed after the test. */
