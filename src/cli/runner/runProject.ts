@@ -138,12 +138,14 @@ function headless() {
  *   - As it shows:  each element's shadow root in its place, its `<slot>`s holding its children
  *     (`withShadowsInPlace()`).
  *   - Each tag's attributes are sorted (`withSortedAttributes()`).
+ *   - Without the empty comments Solid marks its places with, which javascript's `h()` never writes.
  * - Only for the core contract test, `contract.test.ts`:  a real browser is `spell run`'s.
  *   The contract seeds the random numbers too (`spec.seed`), so a shuffle deals the same cards on every target.
  */
 async function fakeDom() {
   const { parseHTML } = await import("linkedom")
   const page = parseHTML("<!doctype html><html><head></head><body></body></html>")
+  readsEmptyComments(page.HTMLTemplateElement.prototype)
   const globals = ["window", "document", "navigator", "customElements", "HTMLElement", "Element", "Node", "Event"]
   for (const name of [...globals, "CustomEvent"]) {
     Object.defineProperty(globalThis, name, {
@@ -160,8 +162,30 @@ async function fakeDom() {
   process.once("beforeExit", () => {
     core.flush()
     withShadowsInPlace(page.document.body)
-    const drawn = withSortedAttributes(page.document.body.innerHTML)
+    // without Solid's empty markers, `<!---->`:  javascript's `h()` writes none, so both targets print the same
+    const drawn = withSortedAttributes(page.document.body.innerHTML.replaceAll("<!---->", ""))
     if (drawn) process.stdout.write(`\n${drawn}\n`)
+  })
+}
+
+/**
+ * SIDE EFFECT:  the fake page's templates (`proto`, theirs) read an empty comment, `<!>`, as a comment,
+ *   as a browser does.
+ * - Solid's compiled JSX marks where each of two dynamic children side by side goes with one:
+ *   `<ui-grid columns=7><!><div></div><!>...` for `{draw its stock}<div/>{draw its clubs}`.
+ * - linkedom's parser drops it and what follows, so the drawing can't find its places ("reading 'nextSibling'").
+ * - So a template's markup has each written out, `<!---->`, which it reads.
+ */
+function readsEmptyComments(proto: object) {
+  let owner: object | null = proto
+  while (owner && !Object.getOwnPropertyDescriptor(owner, "innerHTML")) owner = Object.getPrototypeOf(owner)
+  const innerHTML = owner && Object.getOwnPropertyDescriptor(owner, "innerHTML")
+  if (!innerHTML?.set) return
+  Object.defineProperty(proto, "innerHTML", {
+    ...innerHTML,
+    set(this: Element, html: string) {
+      innerHTML.set!.call(this, html.replaceAll("<!>", "<!---->"))
+    }
   })
 }
 

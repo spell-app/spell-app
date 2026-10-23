@@ -6,6 +6,7 @@ import { E, UI } from "spell-ui/core"
 import { RootLoader } from "spell-ui/components/ui-root"
 import type { ElementApi, Core } from "spell-lang/core"
 import { spellElementVocabulary } from "./SpellElement.en"
+import { Glides } from "./Glides"
 
 /****************
  * ### `SpellElement`
@@ -167,7 +168,32 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     )
     this.keepThingAndElementAgreeing()
     this.loadSpellUIFamilies()
+    this.numberItems()
     return super.onMount()
+  }
+
+  /** The thing we draw is drawn HERE now:  if it was moving, it glides here (`Glides`). */
+  @E.onChange("currentThing")
+  protected onThingDrawn(thing: Thing | undefined) {
+    if (thing) Glides.drawn(thing, this.domElement)
+  }
+
+  /**
+   * Number our children, so CSS alone can lay out a drawable list's items:
+   * each child's `--index` (from 0), and our `--count`.
+   * - e.g. a pile's cards, each 10% lower than the one before:  `top: calc(var(--index) * 10%)`.
+   * - Again whenever they change:  a card added, taken away, or moved within the list.
+   * - Every child element, the page's too:  `<solitaire-tableau>` written by hand, with cards inside.
+   * - A drawable LIST's element only:  a card numbering its own (no) children would hide its pile's `--count`.
+   * - SIDE EFFECT:  writes the custom properties into each child's `style` and ours.
+   */
+  @E.watches({ childList: true })
+  protected numberItems() {
+    const thing = this.currentThing
+    if (!thing || !("items" in thing)) return
+    const children = [...this.domElement.children] as HTMLElement[]
+    children.forEach((child, index) => child.style.setProperty("--index", String(index)))
+    this.domElement.style.setProperty("--count", String(children.length))
   }
 
   /**
@@ -274,11 +300,25 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     return this.domElement.hasAttribute(property.spec.name)
   }
 
-  /** Write the element's `value` of `property` to `thing`, as `thing` takes it -- nothing when they agree already. */
+  /**
+   * Write the element's `value` of `property` to `thing`, as `thing` takes it -- nothing when they agree already.
+   * - A property its type always gives the same value can't be set, e.g. a tableau's `layout`
+   *   (`- its layout is vertical`, a getter):  the element shows the thing's value again.
+   */
   private writeThing(property: TypeProperty, thing: object, value: unknown) {
     if (this.agree(property, value, this.shownValueOf(property, thing))) return
     if (property.reference) return this.writeReference(property, thing, value)
+    if (SpellElement.isReadOnly(thing, property.name)) return this.writeElement(property, thing)
     ;(thing as Record<string, unknown>)[property.name] = SpellElement.valueFor(property, value)
+  }
+
+  /** Is `thing`'s property `name` a getter with no setter, e.g. one its type always gives the same value? */
+  private static isReadOnly(thing: object, name: string): boolean {
+    for (let at: object | null = thing; at; at = Object.getPrototypeOf(at)) {
+      const descriptor = Object.getOwnPropertyDescriptor(at, name)
+      if (descriptor) return !!descriptor.get && !descriptor.set
+    }
+    return false
   }
 
   /**
@@ -594,10 +634,12 @@ export interface SpellElement<Thing extends object = object> extends E.Attribute
 
 /**
  * Let `core` define its drawable classes' elements:  sets `core.elementDefiner`.
+ * - And `core.beforeMove`:  a thing that moves glides to where it lands (`Glides`).
  * - Called once per runtime copy, by `spellRuntime.ts`.
  */
 export function installSpellElements(core: Core): void {
   core.elementDefiner = (tag, Class) => SpellElement.defineFor(tag, Class, core)
+  core.beforeMove = (things) => Glides.noteWhereThingsAre(things)
 }
 
 /** One of a type's properties, as its element shows it -- see `SpellElement.typePropertiesOf()`. */

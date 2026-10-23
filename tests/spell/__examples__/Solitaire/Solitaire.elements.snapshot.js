@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, position, sendTrigger, css, sendCall } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, position, sendTrigger, sendCall } from "@spell/core"
 
 ///////////////////////////////////////////////////////////////////////////////
 // ## A playing card -- in the outline style:  its name, then what's true of it
@@ -113,33 +113,17 @@ export class Card extends Drawable {
     if (this.isASuit("spades")) return core.getItemAt(["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"], position(column))
   }
 
-  /** drawing:  its picture face up, the back every card shares face down */
+  /////////////////////////////////////////////////////////////////////////
+  // ## drawing:  its picture face up, the back every card shares face down
+  /////////////////////////////////////////////////////////////////////////
+  /** one letter, at the size of the text around it:  its pile scales it to fit -- styles.css */
   draw() {
     return h("ui-text", {
-      class: "Card",
-      size: "massive",
+      part: "picture",
       color: () => this.isFaceDirection("up") ? this.color : "blue",
       onClick: () => sendTrigger("card-click", { card: this })
     }, () => this.picture)
   }
-
-  static css = css`
-    /* a card is a card-sized box:  its size is the board's, --card-width x --card-height in styles.css */
-    :host {
-    	display: block;
-    	position: relative;
-    	width: var(--card-width);
-    	height: var(--card-height);
-    	overflow: hidden;
-    	cursor: pointer;
-    }
-    /* its picture, a character of unicode's Playing Cards:  moved so the card it draws fills the box */
-    ui-text::part(text) {
-    	position: absolute;
-    	left: -0.049em;
-    	top: -0.222em;
-    }
-  `
 
   get symbol() {
     if (this.isASuit("clubs")) return "♣"
@@ -298,6 +282,13 @@ export class Pile extends DrawableList {
   get name() { return this.getProp("name") }
   set name(value) { this.setProp("name", value) }
 
+  /** how its cards lie:  on top of each other, down a column, along a row, or fanned as a hand is held -- styles.css */
+  // - its "layout" is one of stacked, vertical, horizontal or fanned
+  static Layouts = ["stacked", "vertical", "horizontal", "fanned"]
+  static { this.declareProp("layout", { oneOf: Pile.Layouts }) }
+  get layout() { return this.getProp("layout") }
+  set layout(value) { this.setProp("layout", value) }
+
   /** the color and value of its last card:  what the next card goes on */
   get color() {
     if (this.isEmpty) return "none"
@@ -336,47 +327,16 @@ export function testPiles(...args) {
 //   the solitaire:  its piles, its moves, auto play and drawing
 //   playing a card:  what a click does
 //   start
-//   the piles:  each kind, what it may take or give up, and how it draws
+//   the piles:  each kind, what it may take or give up, and how it lies
 //   tests
 
-/** a stacked pile:  its cards on top of each other, the last one showing, over a place for the first */
-export class StackedPile extends Pile {
-  static elementTag = core.defineElement(this, "test-project")
-
-  static css = css`
-    :host {
-    	display: block;
-    	position: relative;
-    	min-width: var(--card-width);
-    	min-height: var(--card-height);
-    }
-    /* where its first card goes:  a card-sized outline */
-    .Placeholder {
-    	position: absolute;
-    	top: 0;
-    	left: 0;
-    	width: var(--card-width);
-    	height: var(--card-height);
-    	box-sizing: border-box;
-    	border: 2px dashed #c8c8c8;
-    	border-radius: 0.4rem;
-    	display: flex;
-    	align-items: center;
-    	justify-content: center;
-    	font-size: 2rem;
-    	cursor: pointer;
-    }
-    ::slotted(*) {
-    	position: absolute;
-    	top: 0;
-    	left: 0;
-    }
-  `
-}
-
 /** the stock:  the cards not played yet, face down;  a click turns the next one over */
-export class StockPile extends StackedPile {
+export class StockPile extends Pile {
   static elementTag = core.defineElement(this, "test-project")
+
+  get layout() {
+    return "stacked"
+  }
 
   canTake(card) {
     return false
@@ -386,17 +346,19 @@ export class StockPile extends StackedPile {
     return card === this.lastItem
   }
 
-  draw() {
-    return h("div", { class: "Stock" },
-      h("div", { class: "Placeholder", onClick: () => sendCall("play_from_the_stock", [], solitaire) }),
-      h("slot")
-    )
+  // empty:  a light grey card, face down -- a click turns the discards back over
+  drawItsPlaceholder() {
+    return h("div", { part: "placeholder", onClick: () => sendCall("play_from_the_stock", [], solitaire) }, "🂠")
   }
 }
 
 /** the discards:  where the stock's cards go as they're turned over */
-export class DiscardPile extends StackedPile {
+export class DiscardPile extends Pile {
   static elementTag = core.defineElement(this, "test-project")
+
+  get layout() {
+    return "stacked"
+  }
 
   canTake(card) {
     return false
@@ -408,8 +370,12 @@ export class DiscardPile extends StackedPile {
 }
 
 /** a foundation:  where a suit is built up, ace to king */
-export class Foundation extends StackedPile {
+export class Foundation extends Pile {
   static elementTag = core.defineElement(this, "test-project")
+
+  get layout() {
+    return "stacked"
+  }
 
   // - its "suit" is a card suit
   static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
@@ -426,10 +392,14 @@ export class Foundation extends StackedPile {
     return this.suit === card.suit && this.value + 1 === card.value
   }
 
-  draw() {
-    return h("div", { class: "Foundation" },
-      h("div", { class: "Placeholder" }, () => (new Card({ suit: this.suit })).symbol),
-      h("slot")
+  // empty:  a light grey ace of its suit, face up
+  drawItsPlaceholder() {
+    return h("div", { part: "placeholder" },
+      () => (new Card({
+        rank: "ace",
+        suit: this.suit,
+        direction: "up"
+      })).picture
     )
   }
 }
@@ -437,6 +407,10 @@ export class Foundation extends StackedPile {
 /** a tableau:  a column, built down from king to ace, red and black in turn */
 export class Tableau extends Pile {
   static elementTag = core.defineElement(this, "test-project")
+
+  get layout() {
+    return "vertical"
+  }
 
   canGiveUp(card) {
     return card.isFaceDirection("up")
@@ -446,20 +420,6 @@ export class Tableau extends Pile {
     if (this.isEmpty) return card.isARank("king")
     return this.color !== card.color && this.value === card.value + 1
   }
-
-  static css = css`
-    :host {
-    	display: block;
-    	min-height: 30rem;
-    }
-    /* each card below the one before, a strip of its top showing (--card-strip);  the last one whole */
-    ::slotted(*) {
-    	display: block;
-    }
-    ::slotted(:not(:last-child)) {
-    	height: var(--card-strip);
-    }
-  `
 }
 
 /** The solitaire:  its piles, its moves, auto play and drawing */
@@ -665,6 +625,7 @@ export class Solitaire extends App {
     if (anythingChanged) await this.autoPlay()
   }
 
+  /** its menu, then its piles:  seven to a line, each a cell of its own, the third left empty */
   draw() {
     return h("ui-container",
       h("ui-menu",
@@ -678,24 +639,20 @@ export class Solitaire extends App {
         )
       ),
       h("ui-grid", { columns: "7" },
-        h("ui-row",
-          h("ui-column", () => core.drawThing(this.stock)),
-          h("ui-column", () => core.drawThing(this.discards)),
-          h("ui-column"),
-          h("ui-column", () => core.drawThing(this.clubs)),
-          h("ui-column", () => core.drawThing(this.diamonds)),
-          h("ui-column", () => core.drawThing(this.hearts)),
-          h("ui-column", () => core.drawThing(this.spades))
-        ),
-        h("ui-row",
-          h("ui-column", () => core.drawThing(this.T1)),
-          h("ui-column", () => core.drawThing(this.T2)),
-          h("ui-column", () => core.drawThing(this.T3)),
-          h("ui-column", () => core.drawThing(this.T4)),
-          h("ui-column", () => core.drawThing(this.T5)),
-          h("ui-column", () => core.drawThing(this.T6)),
-          h("ui-column", () => core.drawThing(this.T7))
-        )
+        () => core.drawThing(this.stock),
+        () => core.drawThing(this.discards),
+        h("div"),
+        () => core.drawThing(this.clubs),
+        () => core.drawThing(this.diamonds),
+        () => core.drawThing(this.hearts),
+        () => core.drawThing(this.spades),
+        () => core.drawThing(this.T1),
+        () => core.drawThing(this.T2),
+        () => core.drawThing(this.T3),
+        () => core.drawThing(this.T4),
+        () => core.drawThing(this.T5),
+        () => core.drawThing(this.T6),
+        () => core.drawThing(this.T7)
       )
     )
   }
@@ -704,18 +661,19 @@ export let solitaire
 
 //## Start
 
-//////////////////////////////////////////////////////////////////////////
-// ## The piles:  each kind, what it may take or give up, and how it draws
-//////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+// ## The piles:  each kind, what it may take or give up, and how it lies
+/////////////////////////////////////////////////////////////////////////
 // Each pile is a drawable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
-// So each kind styles itself, in its `<css>`, and where its cards go:  styles.css can't reach inside it.
+// How its cards lie is its layout:  styles.css draws each one.
+// While it's empty, it shows its placeholder, if it has one.
 
 /** Tests */
 export function testTheMoves(...args) {
   return sendCall("test_the_moves", args)
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitaire.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬¬/* The size of a card, which every card and pile reads:  custom properties reach inside their shadow roots.¬   - A card's picture, a character of unicode's Playing Cards, is 68 x 90px at the size the card draws it. */¬:root,¬:host {¬  --card-width: 4.25rem;¬  --card-height: 5.65rem;¬  /* how much of a card shows under the one on it, in a tableau */¬  --card-strip: 1.4rem;¬}¬¬/* Each column at least a card wide, and a little more:  a narrow board scrolls sideways, never squeezes them. */¬ui-row::part(row) {¬  flex-wrap: nowrap;¬}¬ui-column::part(column) {¬  min-width: calc(var(--card-width) + 1rem);¬}¬`)
+core.installStyles(undefined, `/* File styles.css:  how the board looks -- each card, and how each pile lays its cards out.¬   - Every pile and card is an element of its own on the board, so these rules reach them all:¬     - a pile by its layout, e.g. <solitaire-tableau layout="vertical">¬     - each card in it by its place, --index from 0, and how many there are, --count:  the pile numbers them¬     - an empty pile's placeholder, which it draws itself, by its part:  ::part(placeholder)¬   - A card is one letter of unicode's Playing Cards, at its pile's width:¬     so a card is as wide as its column, whatever the window's width. */¬¬/* A card's picture, in ems of its own letter (measured in Chrome on a Mac):¬   0.604em wide, 0.805em tall, its left edge 0.049em into the letter. */¬:root,¬:host {¬  /* how wide a card is, for each em of its letter */¬  --card-width: 0.604;¬  /* how tall it is, for each of its widths:  0.805 / 0.604 */¬  --card-height: 1.333;¬  /* down a column, how much of each card shows under the next:  a tenth of it */¬  --card-step-down: 0.1;¬  /* along a row, how much of each card the next one covers:  a tenth of it */¬  --card-overlap: 0.1;¬  /* fanned, how far each card turns from the one before */¬  --card-turn: 8deg;¬}¬¬/****************¬ * A pile:  as wide as its cell of the board, and as tall as its cards¬ ****************/¬¬[layout] {¬  display: block;¬  position: relative;¬  /* its cards size themselves by its width */¬  container-type: inline-size;¬}¬/* its height:  a card's, by default -- a percentage of padding is one of its width */¬[layout]::before {¬  content: "";¬  display: block;¬  padding-top: calc(100% * var(--card-height));¬}¬¬/* Each card, and the placeholder:  a card's letter as wide as the pile, cut to the card it draws */¬[layout] > *,¬[layout]::part(placeholder) {¬  position: absolute;¬  top: 0;¬  left: 0;¬  font-size: calc(100cqi / var(--card-width));¬  width: calc(var(--card-width) * 1em);¬  height: calc(var(--card-width) * var(--card-height) * 1em);¬  overflow: hidden;¬  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.552 starts it at the top */¬  line-height: 0.552;¬  --ui-text-line-height: 0.552;¬  text-indent: -0.049em;¬  user-select: none;¬}¬/* a card's letter is only its ink:  a white face, its corners rounded as the letter's are, hides the cards below */¬[layout] > * {¬  background: #fff;¬  border-radius: 0.035em;¬  cursor: pointer;¬}¬¬/* An empty pile's placeholder:  a light grey card */¬[layout]::part(placeholder) {¬  color: #000;¬  opacity: 0.15;¬}¬[layout]::part(placeholder):hover {¬  opacity: 0.25;¬}¬¬/****************¬ * The layouts:  stacked puts every card on top of the one before¬ ****************/¬¬/* vertical:  each card a step below the one before */¬[layout="vertical"]::before {¬  padding-top: calc(100% * var(--card-height) * (1 + (max(var(--count, 1), 1) - 1) * var(--card-step-down)));¬}¬[layout="vertical"] > * {¬  top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));¬}¬¬/* horizontal:  side by side, each covering the edge of the one before;  smaller as there are more, to fit the pile */¬[layout="horizontal"] {¬  --spread: calc(1 + (max(var(--count, 1), 1) - 1) * (1 - var(--card-overlap)));¬}¬[layout="horizontal"]::before {¬  padding-top: calc(100% * var(--card-height) / var(--spread));¬}¬[layout="horizontal"] > * {¬  font-size: calc(100cqi / var(--card-width) / var(--spread));¬  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));¬}¬¬/* fanned:  as a hand of cards is held, each turned a little from the one before, around a point below them */¬[layout="fanned"] > * {¬  font-size: calc(60cqi / var(--card-width));¬  left: calc(50% - var(--card-width) * 0.5em);¬  top: 10%;¬  transform-origin: 50% 200%;¬  rotate: calc((var(--index) - (var(--count) - 1) / 2) * var(--card-turn));¬}¬`)
 // -----------
 
 /** Binds each thing the program keeps, from Python's state. */

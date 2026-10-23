@@ -57,32 +57,15 @@ a "card" is a drawable thing where:
 			return item column of ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭","🂮"]
 
 	## drawing:  its picture face up, the back every card shares face down
+	// one letter, at the size of the text around it:  its pile scales it to fit -- styles.css
 	- to draw it:
-		return 
-			<ui-text 
-				class="Card" 
-				size="massive" 
+		return
+			<ui-text
+				part="picture"
 				color={its color if it is face up otherwise "blue" }
 				onClick={fire event card click with card = it}>
 				{its picture}
 			</ui-text>
-	<css>
-		/* a card is a card-sized box:  its size is the board's, --card-width x --card-height in styles.css */
-		:host {
-			display: block;
-			position: relative;
-			width: var(--card-width);
-			height: var(--card-height);
-			overflow: hidden;
-			cursor: pointer;
-		}
-		/* its picture, a character of unicode's Playing Cards:  moved so the card it draws fills the box */
-		ui-text::part(text) {
-			position: absolute;
-			left: -0.049em;
-			top: -0.222em;
-		}
-	</css>
 
 	- its "symbol" is:
 		"♣" if it is a club

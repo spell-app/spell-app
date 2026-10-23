@@ -6,7 +6,7 @@
 //   the solitaire:  its piles, its moves, auto play and drawing
 //   playing a card:  what a click does
 //   start
-//   the piles:  each kind, what it may take or give up, and how it draws
+//   the piles:  each kind, what it may take or give up, and how it lies
 //   tests
 
 
@@ -123,6 +123,7 @@ solitaire is an app where:
 
 		if anything changed await auto play
 
+	// its menu, then its piles:  seven to a line, each a cell of its own, the third left empty
 	- to draw it:
 		return <ui-container>
 			<ui-menu>
@@ -136,24 +137,20 @@ solitaire is an app where:
 				</ui-menu>
 			</ui-menu>
 			<ui-grid columns="7">
-				<ui-row>
-					<ui-column>{draw its stock}</ui-column>
-					<ui-column>{draw its discards}</ui-column>
-					<ui-column/>
-					<ui-column>{draw its clubs}</ui-column>
-					<ui-column>{draw its diamonds}</ui-column>
-					<ui-column>{draw its hearts}</ui-column>
-					<ui-column>{draw its spades}</ui-column>
-				</ui-row>
-				<ui-row>
-					<ui-column>{draw its T1}</ui-column>
-					<ui-column>{draw its T2}</ui-column>
-					<ui-column>{draw its T3}</ui-column>
-					<ui-column>{draw its T4}</ui-column>
-					<ui-column>{draw its T5}</ui-column>
-					<ui-column>{draw its T6}</ui-column>
-					<ui-column>{draw its T7}</ui-column>
-				</ui-row>
+				{draw its stock}
+				{draw its discards}
+				<div/>
+				{draw its clubs}
+				{draw its diamonds}
+				{draw its hearts}
+				{draw its spades}
+				{draw its T1}
+				{draw its T2}
+				{draw its T3}
+				{draw its T4}
+				{draw its T5}
+				{draw its T6}
+				{draw its T7}
 			</ui-grid>
 		</ui-container>
 
@@ -198,91 +195,47 @@ start a new game
 start solitaire
 
 
-## The piles:  each kind, what it may take or give up, and how it draws
+## The piles:  each kind, what it may take or give up, and how it lies
 // Each pile is a drawable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
-// So each kind styles itself, in its `<css>`, and where its cards go:  styles.css can't reach inside it.
-
-// a stacked pile:  its cards on top of each other, the last one showing, over a place for the first
-a "stacked pile" is a pile where:
-	<css>
-		:host {
-			display: block;
-			position: relative;
-			min-width: var(--card-width);
-			min-height: var(--card-height);
-		}
-		/* where its first card goes:  a card-sized outline */
-		.Placeholder {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: var(--card-width);
-			height: var(--card-height);
-			box-sizing: border-box;
-			border: 2px dashed #c8c8c8;
-			border-radius: 0.4rem;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 2rem;
-			cursor: pointer;
-		}
-		::slotted(*) {
-			position: absolute;
-			top: 0;
-			left: 0;
-		}
-	</css>
+// How its cards lie is its layout:  styles.css draws each one.
+// While it's empty, it shows its placeholder, if it has one.
 
 // the stock:  the cards not played yet, face down;  a click turns the next one over
-a "stock pile" is a stacked pile where:
+a "stock pile" is a pile where:
+	- its layout is stacked
 	- it can never take a card
 	- it can give up a card if: the card is its last card
-	- to draw it:
-		return <div class="Stock">
-			<div class="Placeholder" onClick={play from the stock}/>
-			<children/>
-		</div>
+	// empty:  a light grey card, face down -- a click turns the discards back over
+	- to draw its placeholder:
+		return <div part="placeholder" onClick={play from the stock}>🂠</div>
 
 // the discards:  where the stock's cards go as they're turned over
-a "discard pile" is a stacked pile where:
+a "discard pile" is a pile where:
+	- its layout is stacked
 	- it can never take a card
 	- it can give up a card if: the card is its last card
 
 // a foundation:  where a suit is built up, ace to king
-a "foundation" is a stacked pile where:
+a "foundation" is a pile where:
+	- its layout is stacked
 	- its "suit" is a card suit
 	- it can never let go of a card
 	// one card at a time:  the last of its pile
 	- it can take a card if:
 		if the card is not the last card of the pile of the card return no
 		return its suit is the suit of the card and its value + 1 is the value of the card
-	- to draw it:
-		return <div class="Foundation">
-			<div class="Placeholder">{the symbol of a new card with suit = its suit}</div>
-			<children/>
-		</div>
+	// empty:  a light grey ace of its suit, face up
+	- to draw its placeholder:
+		return <div part="placeholder">{the picture of a new card whose rank is ace, suit is its suit and direction is up}</div>
 
 // a tableau:  a column, built down from king to ace, red and black in turn
 a "tableau" is a pile where:
+	- its layout is vertical
 	- it can give up a card if: the card is face up
 	- it can take a card if:
 		if it is empty
 			return the card is a king
 		return its color is not the color of the card and its value is the value of the card + 1
-	<css>
-		:host {
-			display: block;
-			min-height: 30rem;
-		}
-		/* each card below the one before, a strip of its top showing (--card-strip);  the last one whole */
-		::slotted(*) {
-			display: block;
-		}
-		::slotted(:not(:last-child)) {
-			height: var(--card-strip);
-		}
-	</css>
 
 
 ## Tests

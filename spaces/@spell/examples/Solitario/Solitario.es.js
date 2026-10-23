@@ -39,12 +39,23 @@ export const words = {
     },
     Pila: {
       name: "nombre",
+      disposición: "disposición",
       color: "color",
       valor: "valor",
       estado: "estado"
     },
+    PilaDeReserva: {
+      disposición: "disposición"
+    },
+    PilaDeDescartes: {
+      disposición: "disposición"
+    },
     Fundación: {
+      disposición: "disposición",
       palo: "palo"
+    },
+    Columna: {
+      disposición: "disposición"
     },
     Solitario: {
       puntuación: "puntuación",
