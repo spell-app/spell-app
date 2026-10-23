@@ -695,7 +695,7 @@ describe("spell test --name", () => {
   })
 })
 
-describe("spell lang translate (epic spanish P24)", () => {
+describe("spell lang translate (epic spanish P24-P25)", () => {
   /** A small game, in English. */
   const GAME = [
     'a "card" is a thing where:',
@@ -749,14 +749,14 @@ describe("spell lang translate (epic spanish P24)", () => {
     )
     writeFileSync(
       resolve(folder, "Game.spell"),
-      GAME.replace("it is a king should be no", "it is a king should be yes")
+      GAME.replace("it is a king should be no", "it is not a king should be yes")
     )
     const update = spell(["lang", "translate", folder, "--to", "es", "--no-ai", "--update", "--out", out])
     expect(update.status).toBe(0)
     expect(update.stdout).toContain("1 of 9 lines translated")
     const lines = readFileSync(spanish, "utf8").split("\n")
     expect(lines[4]).toBe("para probar las cartas  // a mano")
-    expect(lines[7]).toBe("\tes un rey debería ser sí")
+    expect(lines[7]).toBe("\tno es un rey debería ser sí")
   })
 
   test("a name the dictionary lacks, with --no-ai:  kept as written, marked TODO in the line and the dictionary, exit 1", () => {
@@ -772,7 +772,8 @@ describe("spell lang translate (epic spanish P24)", () => {
       resolve(TEMP, "Mazo")
     ])
     expect(status).toBe(1)
-    expect(stdout).toContain('Deck.spell:1  types "deck"')
+    // where the line to fix is:  in the translation
+    expect(stdout).toContain('Deck.es.spell:1  types "deck"')
     expect(readFileSync(resolve(TEMP, "Mazo", "Deck.es.spell"), "utf8")).toBe(
       'un "deck" es una cosa  // TODO: translate (types "deck")\n'
     )

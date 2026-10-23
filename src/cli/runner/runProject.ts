@@ -9,13 +9,15 @@
  * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run
  *   (`core.runTests()`, which the runners' Run Tests share), and reports each one:  ✓, or ✗ with the checks that
  *   failed.  Exits 1 if any failed.
- * - NEVER imports `spell-app/cli`'s values:  this process needs only spell's runtime.
+ * - NEVER imports `spell-app/cli`'s values:  this process needs only spell's runtime
+ *   (and the app's `testReportsOf()`, plain data, for `spec.reports`).
  */
 import chalk from "chalk"
 import { format } from "util"
 
 import { bridgeSolid } from "spell-kit/util"
 import { App, core, type TestResult } from "spell-lang/core"
+import { testReportsOf } from "spell-app/app/runner/testResults"
 import type { CLI } from "spell-app/cli"
 
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec
@@ -85,6 +87,12 @@ async function testProject() {
   const failed = results.filter((result) => !result.passed).length
   const summary = `${results.length - failed} passed${failed ? `, ${failed} failed` : ""}`
   process.stdout.write(`\n${failed ? chalk.red(summary) : chalk.green(summary)}\n`)
+  // how each went, for the lines its failures are on:  sent before we go
+  if (spec.reports && process.send) {
+    const sent: CLI.TestsReport = { tests: testReportsOf(results, core) }
+    process.send(sent, () => process.exit(failed ? 1 : 0))
+    return
+  }
   process.exit(failed ? 1 : 0)
 }
 
