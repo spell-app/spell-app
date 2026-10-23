@@ -7,7 +7,7 @@ exports[`describeOverview() > a file:  each thing it declares, a type's members 
     Properties  rank, value, suit, color, name, direction, picture, symbol, state, pile
     Actions     is a (rank), is a face card, is a number card, is a (suit), is the (rank) of (suit),
                 is face (direction), turn it face up, turn it face down, turn it over, draw it,
-                play a card, put a card on a pile
+                play a card, put a card on a pile, count the points for a card on a pile
     Constants   Ranks (ace, jack, queen, king), Suits (clubs, diamonds, hearts, spades),
                 Directions (up, down)
   function test card setup
@@ -48,7 +48,7 @@ A drawable thing:  each card is its own element on the page, e.g. <cards-card>.
 Properties  rank, value, suit, color, name, direction, picture, symbol, state, pile
 Actions     is a (rank), is a face card, is a number card, is a (suit), is the (rank) of (suit),
             is face (direction), turn it face up, turn it face down, turn it over, draw it,
-            play a card, put a card on a pile
+            play a card, put a card on a pile, count the points for a card on a pile
 Constants   Ranks (ace, jack, queen, king), Suits (clubs, diamonds, hearts, spades),
             Directions (up, down)
 

@@ -191,6 +191,7 @@ class Card(Drawable):
             return False
         if not core.can_take(pile, self):
             return False
+        points = self.count_the_points_for_card_on_pile(pile)
 
         moving_cards = start_pile.starting_with(self)
         moving_cards.name = start_pile.name
@@ -205,11 +206,16 @@ class Card(Drawable):
             print(f"turning over ({start_pile.name}: {getattr(it, "state", None)})")
             await it.turn_face_up()
 
-        if isinstance(pile, Foundation):
-            solitaire.score = solitaire.score + 10
-        elif start_pile == solitaire.discards:
-            solitaire.score = solitaire.score + 5
+        solitaire.score = solitaire.score + points
         return True
+
+    def count_the_points_for_card_on_pile(self, pile: Pile) -> float:
+        """what putting the card on the pile scores:  10 on a foundation, 5 from the discards, else nothing"""
+        if isinstance(pile, Foundation):
+            return 10
+        if self.pile == solitaire.discards:
+            return 5
+        return 0
 
     can_be_dragged = True
 
@@ -549,6 +555,12 @@ class Pile(DrawableList):
             state = f"{state} {card.state}"
         return state
 
+    def while_card_dragged_over(self, card: Card) -> None:
+        """while a card it would take is over it, the score shows what the move would add -- gone as the card leaves"""
+        points = card.count_the_points_for_card_on_pile(self)
+        if core.can_take(self, card) and points > 0:
+            solitaire.hint = f" (+{points})"
+
     async def when_card_dropped_on(self, card: Card) -> None:
         await card.put_on_pile(self)
 
@@ -730,6 +742,10 @@ class Solitaire(App):
     # - its "score" is a number
     score = prop(type="number")
 
+    # what the move being dragged would add to the score, e.g. " (+10)":  shown beside it, while a card is over a pile
+    # - its "hint" is text
+    hint = prop(type="text")
+
     # - its "deck" is a new deck
     deck = prop(init=lambda: Deck(), early=True)
 
@@ -836,6 +852,7 @@ class Solitaire(App):
 
     async def start_a_new_game(self) -> None:
         self.score = 0
+        self.hint = ""
         await self.deal_the_cards()
 
     async def cheat(self) -> None:
@@ -907,7 +924,7 @@ class Solitaire(App):
             h(
                 "ui-menu",
                 h("ui-item", {"type": "header"}, "Klondike Solitaire"),
-                h("ui-item", f"Score: {self.score}"),
+                h("ui-item", f"Score: {self.score}{self.hint}"),
                 h(
                     "ui-menu",
                     {"position": "right"},

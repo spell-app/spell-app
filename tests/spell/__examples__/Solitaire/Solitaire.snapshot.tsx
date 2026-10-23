@@ -168,6 +168,7 @@ export class Card extends Drawable {
     const startPile = this.pile
     if (!core.canGiveUp(startPile, this)) return false
     if (!core.canTake(pile, this)) return false
+    const points = this.countThePointsForCardOnPile(pile)
 
     const movingCards = startPile.startingWith(this)
     movingCards.name = startPile.name
@@ -182,9 +183,15 @@ export class Card extends Drawable {
       it?.turnFaceUp()
     }
 
-    if (pile instanceof Foundation) solitaire.score = solitaire.score + 10
-    else if (startPile === solitaire.discards) solitaire.score = solitaire.score + 5
+    solitaire.score = solitaire.score + points
     return true
+  }
+
+  /** what putting the card on the pile scores:  10 on a foundation, 5 from the discards, else nothing */
+  countThePointsForCardOnPile(pile: Pile) {
+    if (pile instanceof Foundation) return 10
+    if (this.pile === solitaire.discards) return 5
+    return 0
   }
 
   static canBeDragged = true
@@ -241,6 +248,10 @@ export class CardElement extends SpellElement<Card> {
 
   putOnPile(pile: Pile) {
     return this.currentThing?.putOnPile(pile)
+  }
+
+  countThePointsForCardOnPile(pile: Pile) {
+    return this.currentThing?.countThePointsForCardOnPile(pile)
   }
 }
 core.useElement(Card, CardElement)
@@ -511,6 +522,12 @@ export class Pile extends DrawableList<Card> {
     return state
   }
 
+  /** while a card it would take is over it, the score shows what the move would add -- gone as the card leaves */
+  whileCardDraggedOver(card: Card) {
+    const points = card.countThePointsForCardOnPile(this)
+    if (core.canTake(this, card) && points > 0) solitaire.hint = ` (+${points})`
+  }
+
   whenCardDroppedOn(card: Card) {
     card.putOnPile(this)
   }
@@ -536,6 +553,10 @@ export class PileElement extends SpellElement<Pile> {
     { name: "name", kind: "string", description: "Its name." },
     { name: "layout", kind: "string", description: "Its layout." }
   ])
+
+  whileCardDraggedOver(card: Card) {
+    return this.currentThing?.whileCardDraggedOver(card)
+  }
 
   whenCardDroppedOn(card: Card) {
     return this.currentThing?.whenCardDroppedOn(card)
@@ -793,6 +814,11 @@ export class Solitaire extends App {
   @prop({ type: "number" })
   accessor score!: number
 
+  /** what the move being dragged would add to the score, e.g. " (+10)":  shown beside it, while a card is over a pile */
+  // - its "hint" is text
+  @prop({ type: "text" })
+  accessor hint!: string
+
   // - its "deck" is a new deck
   @prop({ init: () => new Deck(), early: true })
   accessor deck!: Deck
@@ -922,6 +948,7 @@ export class Solitaire extends App {
 
   startANewGame() {
     this.score = 0
+    this.hint = ""
     this.dealTheCards()
   }
 
@@ -984,7 +1011,7 @@ export class Solitaire extends App {
       <ui-container>
         <ui-menu>
           <ui-item type="header">Klondike Solitaire</ui-item>
-          <ui-item>{`Score: ${this.score}`}</ui-item>
+          <ui-item>{`Score: ${this.score}${this.hint}`}</ui-item>
           <ui-menu position="right">
             <ui-item aria-label="Auto play" onClick={() => this.autoPlay()} style="cursor:pointer;user-select:none">
               <ui-icon name="fast forward" />

@@ -13,6 +13,8 @@
 ## El solitario:  sus pilas, sus movimientos, el juego solo y su dibujo
 solitario es una aplicación donde:
 	- su "puntuación" es un número
+	// lo que sumaría el movimiento que se arrastra, p. ej. " (+10)":  se ve a su lado, mientras una carta está sobre una pila
+	- su "pista" es texto
 	- su "mazo" es un nuevo mazo
 
 	// una de cada pila, hecha con el solitario
@@ -78,7 +80,8 @@ solitario es una aplicación donde:
 		esperar a: robar de la reserva
 
 	- para empezar el juego:
-		poner su puntuación a 0
+		limpiar su puntuación
+		limpiar su pista
 		repartir las cartas
 
 	// voltea una carta boca abajo de una columna, al azar, sobre los descartes
@@ -130,7 +133,7 @@ solitario es una aplicación donde:
 		devolver <es-contenedor>
 			<es-menu>
 				<es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
-				<es-elemento>{"Puntos: " + su puntuación}</es-elemento>
+				<es-elemento>{"Puntos: " + su puntuación + su pista}</es-elemento>
 				<es-menu posicion="derecha">
 					<es-elemento aria-label="Jugar solo" onClick={jugar solo}>
 						<es-icono name="fast forward"/>
@@ -183,6 +186,7 @@ para poner una carta en una pila
 	poner pila inicial a la pila de la carta
 	si pila inicial no puede soltar la carta devolver no
 	si la pila no puede tomar la carta devolver no
+	poner puntos a contar los puntos de la carta en la pila
 
 	poner cartas movidas a las cartas en pila inicial empezando con la carta
 	poner el nombre de cartas movidas al nombre de pila inicial
@@ -197,15 +201,24 @@ para poner una carta en una pila
 		imprimir "volteando (" + el nombre de pila inicial + ": " + su estado + ")"
 		voltear eso boca arriba
 
-	si la pila es una fundación: poner la puntuación del solitario a la puntuación del solitario + 10
-	de lo contrario si pila inicial es los descartes del solitario: poner la puntuación del solitario a la puntuación del solitario + 5
+	poner la puntuación del solitario a la puntuación del solitario + puntos
 	devolver sí
+
+// lo que suma poner la carta en la pila:  10 en una fundación, 5 desde los descartes, si no nada
+para contar los puntos de una carta en una pila
+	si la pila es una fundación devolver 10
+	si la pila de la carta es los descartes del solitario devolver 5
+	devolver 0
 
 // un clic juega la carta;  un arrastre la pone donde se suelta
 al clic-carta con una carta
 	jugar la carta
 
 una pila:
+	// mientras una carta que tomaría está sobre ella, la puntuación muestra lo que sumaría -- se va al irse la carta
+	- mientras una carta se arrastra sobre ella:
+		poner puntos a contar los puntos de la carta en la pila
+		si la pila puede tomar la carta y puntos > 0: poner la pista del solitario a " (+" + puntos + ")"
 	- cuando una carta se suelta sobre ella:
 		poner la carta en la pila
 
