@@ -13,17 +13,28 @@ import { Dragging } from "./Dragging"
 /**
  * What a draggable thing looks like:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
  * `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
- * - A list that will take what's dragged over it glows:  `--spell-drop-glow` (a `box-shadow`) and
- *   `--spell-drop-glow-radius` change it.
+ * - A list that will take what's dragged over it glows, a soft purple halo outside and in, a little out from its edges:
+ *   - drawn by its `::after`, over its items, so it never moves them
+ *   - `--spell-drop-glow` (a `box-shadow`), `--spell-drop-glow-gap` (how far out) and `--spell-drop-glow-radius`
+ *     change it;  `--spell-drop-glow-inset` places it exactly, e.g. around a list's content, inside its padding
  */
 const DRAGGING_CSS = `
   :host(:state(draggable)) { touch-action: none; }
   :host(:state(draggable)), :host(:state(draggable)) * { cursor: grab !important; }
   :host(:state(dragging)), :host(:state(dragging)) * { cursor: grabbing !important; }
-  :host(:state(accepting-drop)) {
-    border-radius: var(--spell-drop-glow-radius, 0.5em);
-    box-shadow: var(--spell-drop-glow, 0 0 0 0.2em rgb(255 196 0 / 0.9), 0 0 1.2em 0.4em rgb(255 196 0 / 0.6));
-    transition: box-shadow 120ms;
+  :host(:state(accepting-drop)) { position: relative; }
+  :host(:state(accepting-drop))::after {
+    content: "";
+    position: absolute;
+    inset: var(--spell-drop-glow-inset, calc(-1 * var(--spell-drop-glow-gap, 0.6em)));
+    border-radius: var(--spell-drop-glow-radius, 0.8em);
+    box-shadow: var(
+      --spell-drop-glow,
+      0 0 1.4em 0.2em rgb(150 80 255 / 0.55),
+      inset 0 0 1.2em 0.2em rgb(150 80 255 / 0.45)
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 `
 
@@ -64,6 +75,9 @@ const DRAGGING_CSS = `
  *     it, and its list's items after it, follow the pointer
  *   - `a pile can be dropped on`:  a pile that will take the card glows as it comes over (`:state(accepting-drop)`),
  *     and on the drop the program hears `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`
+ *   - the pile hears it too, by its own handlers:  `- when a card is dragged over it:`, `dragged out of it`,
+ *     `dropped on it` (`handlerFor()`);  `dropped on it` takes the place of the `<thing>-drop` event;
+ *     `- while a card is dragged over it:` sets what goes back as it leaves (`core.startWhile()`)
  *   - The web's own drag events say so as it goes:  `dragstart`, `dragenter`, `drop` ... (`Dragging`).
  *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`DRAGGING_CSS`).
  * - Part of `spell-runtime.js`:  NEVER value-imports `spell-lang/core`.
@@ -267,40 +281,121 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 
   @E.on("dragenter")
   protected onDragEnter(event: DragEvent) {
-    if (event.target === this.domElement) this.isAcceptingDrop = this.takesDrag()
+    if (event.target !== this.domElement) return
+    this.isAcceptingDrop = this.takesDrag()
+    const thing = this.dragOffer()
+    if (!thing) return
+    this.draggedOver = thing
+    this.whileRunning = this.handlerFor("while", "DraggedOver", thing)
+    if (this.whileRunning)
+      this.runHandler(() => this.entry!.core.startWhile(this.currentThing!, this.whileRunning!, thing))
+    const over = this.handlerFor("when", "DraggedOver", thing)
+    if (over) this.runHandler(() => this.entry!.core.runHandler(this.currentThing!, over, thing))
   }
 
   @E.on("dragleave")
   protected onDragLeave(event: DragEvent) {
-    if (event.target === this.domElement) this.isAcceptingDrop = false
-  }
-
-  @E.on("drop")
-  protected onDrop(event: DragEvent) {
-    if (event.target === this.domElement) this.isAcceptingDrop = false
+    if (event.target !== this.domElement) return
+    this.isAcceptingDrop = false
+    this.endDragOver("left")
   }
 
   /**
-   * Would we take the thing being dragged (`Dragging.current`)?
-   * - Only a list whose type says `can be dropped on`, and not the one it came from.
-   * - Then by our own rules:  `can take a card if: ...` (`core.canTake()`).
+   * Dropped on us:  what `while a card is dragged over it` set is put back.
+   * - A drop we take runs `when a card is dropped on it` next (`dropOn()`);  one we don't, `... dragged out of it`.
    */
-  takesDrag(): boolean {
+  @E.on("drop")
+  protected onDrop(event: DragEvent) {
+    if (event.target !== this.domElement) return
+    this.endDragOver(this.isAcceptingDrop ? "taken" : "left")
+    this.isAcceptingDrop = false
+  }
+
+  /** The thing the program heard is dragged over us (`when a card is dragged over it`), till it hears it's gone. */
+  private draggedOver: object | undefined
+
+  /** Our `while ... dragged over it` handler running for it, e.g. `whileCardDraggedOver` -- see `onDragEnter()`. */
+  private whileRunning: string | undefined
+
+  /**
+   * The thing dragged over us has gone:  what our `while` handler set is put back,
+   * then, if it `left`, the program hears `when a card is dragged out of it`.
+   * - `taken`:  dropped on us, and we took it:  `when a card is dropped on it` is next instead.
+   */
+  private endDragOver(how: "left" | "taken") {
+    const thing = this.draggedOver
+    const list = this.currentThing
+    const ending = this.whileRunning
+    this.draggedOver = this.whileRunning = undefined
+    if (!thing || !list) return
+    if (ending) this.runHandler(() => this.entry!.core.endWhile(list, ending))
+    const out = how === "left" && this.handlerFor("when", "DraggedOutOf", thing)
+    if (out) this.runHandler(() => this.entry!.core.runHandler(list, out, thing))
+  }
+
+  /**
+   * The thing being dragged over us (`Dragging.current`), if we're a list it may be dropped on:
+   * our type says `can be dropped on`, and it's not from us.
+   * - Whether we'd TAKE it is our rules' call, after:  see `takesDrag()`.
+   */
+  private dragOffer(): object | undefined {
     const dragged = Dragging.current?.element
     const thing = dragged && SpellElement.thingOf(dragged)
     const list = this.currentThing
-    if (!thing || !list || !("items" in list) || !SpellElement.flag(list, "canBeDroppedOn")) return false
+    if (!thing || !list || !("items" in list) || !SpellElement.flag(list, "canBeDroppedOn")) return undefined
     const component = (dragged as Partial<E.DOMElement>).component
-    if (component instanceof SpellElement && component.ownerList === list) return false
-    return !!this.entry?.core.canTake(list, thing)
+    return component instanceof SpellElement && component.ownerList === list ? undefined : thing
   }
 
   /**
-   * Our thing, dropped on `target`, a drawable list's element:  the program hears `<thing>-drop`, e.g. `card-drop`.
-   * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing.
-   * - In the program's language (core's `drop-event` message):  a Spanish program hears `soltar-carta`.
-   * - Its details name the thing by its type, and the list by each of its types up to its family's:
-   *   `{ card, tableau, pile }`, so `on card drop with a card and a pile` gets both.
+   * Would we take the thing being dragged over us?
+   * - Only one we're offered (`dragOffer()`), then by our own rules:  `can take a card if: ...` (`core.canTake()`).
+   */
+  takesDrag(): boolean {
+    const thing = this.dragOffer()
+    const list = this.currentThing
+    return !!thing && !!list && !!this.entry?.core.canTake(list, thing)
+  }
+
+  /**
+   * Our list's drag handler for `thing`, e.g. `whenCardDroppedOn` for `- when a card is dropped on it:`
+   * (spell-lang's `DragHandler`) -- `undefined` if it has none.
+   * - `when` or `while`, then the moment:  `whileCardDraggedOver` for `- while a card is dragged over it:`.
+   * - The thing's own type's first, then each type above it:  a joker runs `when a card ...` too,
+   *   and every thing `when something ...` (`whenThingDroppedOn`).
+   */
+  private handlerFor(timing: "when" | "while", moment: DragMoment, thing: object): string | undefined {
+    const list = this.currentThing as Record<string, unknown> | undefined
+    if (!list) return undefined
+    for (let Class: Function = thing.constructor; Class?.name; Class = Object.getPrototypeOf(Class)) {
+      const method = `${timing}${Class.name}${moment}`
+      if (typeof list[method] === "function") return method
+    }
+    return undefined
+  }
+
+  /**
+   * Run a drag handler through our program's core, `run`:  where the program runs, Python's too (`core.remote`).
+   * - The program's own code:  a throw, or a promise that fails, goes to its console, and the drag goes on.
+   */
+  private runHandler(run: () => unknown) {
+    const { entry } = this
+    try {
+      void Promise.resolve(run()).catch((error) => entry?.core.console.error(error))
+    } catch (error) {
+      entry?.core.console.error(error)
+    }
+  }
+
+  /**
+   * Our thing, dropped on `target`, a drawable list's element.
+   * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing of it.
+   * - The list's `when a card is dropped on it:` runs, if it has one (`handlerFor()`).
+   * - Else the program hears `<thing>-drop`, e.g. `card-drop`,
+   *   in its own language (core's `drop-event` message):  a Spanish program hears `soltar-carta`.
+   *   - Its details name the thing by its type, and the list by each of its types up to its family's:
+   *     `{ card, tableau, pile }`, so `on card drop with a card and a pile` gets both.
+   *   - A program running elsewhere hears it there (`core.remote`), and decides there.
    * - Nobody listening:  it moves there, if the lists' rules let it (`core.move()`).
    */
   private dropOn(target: HTMLElement | undefined) {
@@ -309,6 +404,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const thing = this.currentThing
     const { entry } = this
     if (!list || !thing || !entry) return
+    const dropped = (component as SpellElement).handlerFor("when", "DroppedOn", thing)
+    if (dropped) return this.runHandler(() => entry.core.runHandler(list, dropped, thing))
     const name = SpellElement.instanceName(thing.constructor)
     const details: Record<string, object> = { [name]: thing }
     for (
@@ -318,7 +415,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     ) {
       details[SpellElement.instanceName(Class)] ??= list
     }
-    const heard = entry.core.trigger(entry.core.message("drop-event", { thing: kebabCase(name) }), details)
+    const event = entry.core.message("drop-event", { thing: kebabCase(name) })
+    if (entry.core.remote) return entry.core.remote.trigger(event, details)
+    const heard = entry.core.trigger(event, details)
     if (!heard.length) entry.core.move(thing, list)
   }
 
@@ -848,3 +947,9 @@ Dragging.isDropTarget = (element) => {
 
 /** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
 const BASE_LIST_NAMES = new Set(["DrawableList", "List", "Observable", "Object"])
+
+/**
+ * Each moment a list's drag handler is for:  the end of its method's name, e.g. `whenCardDraggedOver`.
+ * - spell-lang's `DragHandler` names them the same.
+ */
+type DragMoment = "DraggedOver" | "DraggedOutOf" | "DroppedOn"

@@ -205,8 +205,9 @@ para poner una carta en una pila
 al clic-carta con una carta
 	jugar la carta
 
-al soltar-carta con una carta y una pila
-	poner la carta en la pila
+una pila:
+	- cuando una carta se suelta sobre ella:
+		poner la carta en la pila
 
 
 ## Inicio
