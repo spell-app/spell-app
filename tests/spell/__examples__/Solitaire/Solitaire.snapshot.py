@@ -861,7 +861,10 @@ class Solitaire(App):
             await self.auto_play()
 
     def draw(self) -> Any:
-        """its menu, then its piles:  seven to a line, each a cell of its own, the third left empty"""
+        """
+        its menu, then its piles:  seven to a line, each a cell of its own, the third left empty
+        - its buttons are icons, each with a tooltip:  the popup right after its icon shows as the pointer rests on it
+        """
         async def _each_1(event: Any) -> Any:
             return await self.auto_play()
 
@@ -880,15 +883,29 @@ class Solitaire(App):
                 h(
                     "ui-menu",
                     {"position": "right"},
-                    h("ui-item", {"onClick": _each_1}, "AutoPlay"),
-                    h("ui-item", {"onClick": _each_2}, "Cheat"),
-                    h("ui-item", {"onClick": lambda event: self.debug()}, "Debug"),
-                    h("ui-item", {"onClick": _each_3}, "Restart"),
+                    h(
+                        "ui-item",
+                        {"aria-label": "Auto play", "onClick": _each_1},
+                        h("ui-icon", {"name": "fast forward"}),
+                        h("ui-popup", {"content": "Auto play", "inverted": True, "size": "small"}),
+                    ),
+                    h(
+                        "ui-item",
+                        {"aria-label": "Cheat", "onClick": _each_2},
+                        h("ui-icon", {"name": "eye"}),
+                        h("ui-popup", {"content": "Cheat", "inverted": True, "size": "small"}),
+                    ),
+                    h(
+                        "ui-item",
+                        {"aria-label": "Restart", "onClick": _each_3},
+                        h("ui-icon", {"name": "redo"}),
+                        h("ui-popup", {"content": "Restart", "inverted": True, "size": "small"}),
+                    ),
                 ),
             ),
             h(
                 "ui-grid",
-                {"columns": "7"},
+                {"class": "Board", "columns": "7"},
                 core.draw_thing(self.stock),
                 core.draw_thing(self.discards),
                 h("div"),
@@ -1036,12 +1053,31 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
   --card-width: 0.604;
   /* how tall it is, for each of its widths:  0.805 / 0.604 */
   --card-height: 1.333;
-  /* down a column, how much of each card shows under the next:  a tenth of it */
-  --card-step-down: 0.1;
+  /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */
+  --card-step-down: 0.2;
   /* along a row, how much of each card the next one covers:  a tenth of it */
   --card-overlap: 0.1;
   /* fanned, how far each card turns from the one before */
   --card-turn: 8deg;
+}
+
+/****************
+ * The board:  below the game's menu, its piles seven to a line
+ ****************/
+
+.Board {
+  /* gutters that shrink with a narrow window, so the cards keep most of its width */
+  --ui-grid-gutter: min(2rem, 2.5vw);
+  --ui-grid-row-spacing: min(2rem, 4vw);
+  /* 1.5rem below the menu:  the grid pulls itself up by half a row's spacing */
+  margin-top: calc(1.5rem + var(--ui-grid-row-spacing) / 2);
+}
+
+/* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */
+@media (width < 36rem) {
+  ui-item[type="header"] {
+    display: none;
+  }
 }
 
 /****************

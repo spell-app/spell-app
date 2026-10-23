@@ -2,7 +2,7 @@ import { Loading, Show } from "solid-js"
 
 import { editor } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
-import { ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
+import { ErrorBoundary, MenuHeader, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
 import { LazyMonaco } from "./LazyMonaco"
 
 import "./OutputEditor.css"
@@ -37,9 +37,6 @@ export function OutputToolbar() {
     <PanelMenu>
       <Submenu left spring>
         <MenuHeader>{appTexts.text("javascriptOutput")}</MenuHeader>
-      </Submenu>
-      <Submenu right spring>
-        <MoreMenu stub />
       </Submenu>
     </PanelMenu>
   )

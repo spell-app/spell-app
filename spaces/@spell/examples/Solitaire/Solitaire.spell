@@ -124,19 +124,28 @@ solitaire is an app where:
 		if anything changed await auto play
 
 	// its menu, then its piles:  seven to a line, each a cell of its own, the third left empty
+	// - its buttons are icons, each with a tooltip:  the popup right after its icon shows as the pointer rests on it
 	- to draw it:
 		return <ui-container>
 			<ui-menu>
 				<ui-item type="header">Klondike Solitaire</ui-item>
 				<ui-item>{"Score: " + its score}</ui-item>
 				<ui-menu position="right">
-					<ui-item onClick={auto play}>AutoPlay</ui-item>
-					<ui-item onClick={cheat}>Cheat</ui-item>
-					<ui-item onClick={debug it}>Debug</ui-item>
-					<ui-item onClick={start a new game}>Restart</ui-item>
+					<ui-item aria-label="Auto play" onClick={auto play}>
+						<ui-icon name="fast forward"/>
+						<ui-popup content="Auto play" inverted size="small"/>
+					</ui-item>
+					<ui-item aria-label="Cheat" onClick={cheat}>
+						<ui-icon name="eye"/>
+						<ui-popup content="Cheat" inverted size="small"/>
+					</ui-item>
+					<ui-item aria-label="Restart" onClick={start a new game}>
+						<ui-icon name="redo"/>
+						<ui-popup content="Restart" inverted size="small"/>
+					</ui-item>
 				</ui-menu>
 			</ui-menu>
-			<ui-grid columns="7">
+			<ui-grid class="Board" columns="7">
 				{draw its stock}
 				{draw its discards}
 				<div/>

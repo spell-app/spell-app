@@ -4,7 +4,7 @@ import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { editor, runtimeConsole } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
-import { Actions, ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
+import { Actions, ErrorBoundary, MenuHeader, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
 import { ConsoleInspectorContext, ConsoleLines, type ConsoleInspector } from "./ConsoleLines"
 
 import "./ConsoleViewer.css"
@@ -63,7 +63,6 @@ export function ConsoleToolbar() {
           defaultValue={["a", "b"]}
         />
         <Actions.clearConsole />
-        <MoreMenu stub />
       </Submenu>
     </PanelMenu>
   )

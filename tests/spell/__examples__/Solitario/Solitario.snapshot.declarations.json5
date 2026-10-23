@@ -280,7 +280,7 @@
       "kind": "method",
       "name": "jugar una carta",
       "waits": true,
-      "defined": "/Solitario.es.spell:6178-7260"
+      "defined": "/Solitario.es.spell:6649-7731"
     },
     {
       "type": "Comodín",
@@ -469,56 +469,56 @@
       "type": "PilaDeReserva",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:7796-8141"
+      "defined": "/Solitario.es.spell:8267-8612"
     },
     {
       "property": "disposición",
       "of": "PilaDeReserva",
-      "defined": "/Solitario.es.spell:7840-7865"
+      "defined": "/Solitario.es.spell:8311-8336"
     },
     {
       "type": "PilaDeDescartes",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:8211-8371"
+      "defined": "/Solitario.es.spell:8682-8842"
     },
     {
       "property": "disposición",
       "of": "PilaDeDescartes",
-      "defined": "/Solitario.es.spell:8257-8282"
+      "defined": "/Solitario.es.spell:8728-8753"
     },
     {
       "type": "Fundación",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:8429-8991"
+      "defined": "/Solitario.es.spell:8900-9462"
     },
     {
       "property": "disposición",
       "of": "Fundación",
-      "defined": "/Solitario.es.spell:8467-8492"
+      "defined": "/Solitario.es.spell:8938-8963"
     },
     {
       "property": "palo",
       "of": "Fundación",
       "datatype": "PaloDeCarta",
-      "defined": "/Solitario.es.spell:8496-8525"
+      "defined": "/Solitario.es.spell:8967-8996"
     },
     {
       "type": "Columna",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/Solitario.es.spell:9070-9350"
+      "defined": "/Solitario.es.spell:9541-9821"
     },
     {
       "property": "disposición",
       "of": "Columna",
-      "defined": "/Solitario.es.spell:9106-9132"
+      "defined": "/Solitario.es.spell:9577-9603"
     },
     {
       "type": "Solitario",
       "superType": "App",
-      "defined": "/Solitario.es.spell:662-6044"
+      "defined": "/Solitario.es.spell:662-6515"
     },
     {
       "property": "puntuación",
@@ -726,7 +726,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "los movimientos",
-      "defined": "/Solitario.es.spell:9364-10947"
+      "defined": "/Solitario.es.spell:9835-11418"
     }
   ],
   "codeLines": [
@@ -808,6 +808,6 @@
     733,
     739,
     751,
-    844
+    854
   ]
 }

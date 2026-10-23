@@ -302,8 +302,7 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
             // the menu's AutoPlay:  in the solitaire's drawing, as each drawable thing draws in its own shadow root
             "const found = (root, selector) => root.querySelector(selector) ??",
             "  [...root.querySelectorAll('*')].map((it) => it.shadowRoot && found(it.shadowRoot, selector)).find(Boolean)",
-            'const autoPlay = [...found(document, "ui-menu[position=right]").children].find((it) => it.textContent === "AutoPlay")',
-            'autoPlay.dispatchEvent(new Event("click", { bubbles: true }))',
+            `found(document, 'ui-item[aria-label="Auto play"]').dispatchEvent(new Event("click", { bubbles: true }))`,
             "console.log(JSON.stringify(sent))"
           ].join("\n")
           const { exitCode, output, stdout } = await CLI.runCode("run", `${name}Page`, page, {

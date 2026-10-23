@@ -19,7 +19,6 @@ export const APP_TEXTS = {
   preview: "Preview",
   settings: "Settings",
   openOrCreate: "Open or Create...",
-  docs: "Docs",
   help: "Help",
   you: "You",
   createApp: "Create {Type}",

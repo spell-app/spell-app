@@ -47,8 +47,7 @@ export function SpellEditor() {
 
 /****************
  * ### `<EditorToolbar>`
- * Top menu of `<SpellEditor>`:  the project dropdown, preview / settings / project actions;  the chooser;  about
- * and docs.
+ * Top menu of `<SpellEditor>`:  the project dropdown, preview / settings / project actions;  the chooser;  about.
  ****************/
 export function EditorToolbar() {
   return (
@@ -64,7 +63,6 @@ export function EditorToolbar() {
       </Submenu>
       <Submenu right spring>
         <Actions.aboutSpell />
-        <Actions.showDocs />
         <Actions.you />
         <MoreMenu stub />
       </Submenu>

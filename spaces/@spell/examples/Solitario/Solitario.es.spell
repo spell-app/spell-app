@@ -124,19 +124,29 @@ solitario es una aplicación donde:
 		si hubo cambios esperar a jugar solo
 
 	// su menú, luego sus pilas:  siete por línea, cada una en su propia celda, la tercera vacía
+	// - sus botones son iconos, cada uno con su ayuda:  la ventana emergente justo después de su icono se muestra
+	//   al dejar el puntero sobre él
 	- para dibujarlo:
 		devolver <es-contenedor>
 			<es-menu>
 				<es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
 				<es-elemento>{"Puntos: " + su puntuación}</es-elemento>
 				<es-menu posicion="derecha">
-					<es-elemento onClick={jugar solo}>Jugar solo</es-elemento>
-					<es-elemento onClick={hacer trampa}>Trampa</es-elemento>
-					<es-elemento onClick={depurar}>Depurar</es-elemento>
-					<es-elemento onClick={empezar el juego}>Reiniciar</es-elemento>
+					<es-elemento aria-label="Jugar solo" onClick={jugar solo}>
+						<es-icono name="fast forward"/>
+						<es-emergente contenido="Jugar solo" invertido tamano="pequeño"/>
+					</es-elemento>
+					<es-elemento aria-label="Trampa" onClick={hacer trampa}>
+						<es-icono name="eye"/>
+						<es-emergente contenido="Trampa" invertido tamano="pequeño"/>
+					</es-elemento>
+					<es-elemento aria-label="Reiniciar" onClick={empezar el juego}>
+						<es-icono name="redo"/>
+						<es-emergente contenido="Reiniciar" invertido tamano="pequeño"/>
+					</es-elemento>
 				</es-menu>
 			</es-menu>
-			<es-cuadricula columnas="7">
+			<es-cuadricula class="Board" columnas="7">
 				{dibujar su reserva}
 				{dibujar sus descartes}
 				<div/>

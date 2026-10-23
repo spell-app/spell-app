@@ -14,12 +14,31 @@
   --card-width: 0.604;
   /* how tall it is, for each of its widths:  0.805 / 0.604 */
   --card-height: 1.333;
-  /* down a column, how much of each card shows under the next:  a tenth of it */
-  --card-step-down: 0.1;
+  /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */
+  --card-step-down: 0.2;
   /* along a row, how much of each card the next one covers:  a tenth of it */
   --card-overlap: 0.1;
   /* fanned, how far each card turns from the one before */
   --card-turn: 8deg;
+}
+
+/****************
+ * The board:  below the game's menu, its piles seven to a line
+ ****************/
+
+.Board {
+  /* gutters that shrink with a narrow window, so the cards keep most of its width */
+  --ui-grid-gutter: min(2rem, 2.5vw);
+  --ui-grid-row-spacing: min(2rem, 4vw);
+  /* 1.5rem below the menu:  the grid pulls itself up by half a row's spacing */
+  margin-top: calc(1.5rem + var(--ui-grid-row-spacing) / 2);
+}
+
+/* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */
+@media (width < 36rem) {
+  es-elemento[tipo="encabezado"] {
+    display: none;
+  }
 }
 
 /****************

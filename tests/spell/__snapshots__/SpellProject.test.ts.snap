@@ -683,14 +683,14 @@ core.heading("The solitaire:  its piles, its moves, auto play and drawing")
 /** the stock:  the cards not played yet, face down;  a click turns the next one over */
 /*! SPELL: DECLARES {
   type: "StockPile", superType: "Pile",
-  defined: "/Solitaire.spell:7144-7464",
+  defined: "/Solitaire.spell:7553-7873",
 } */
 export class StockPile extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "StockPile",
-    defined: "/Solitaire.spell:7179-7200",
+    defined: "/Solitaire.spell:7588-7609",
   } */
   get layout() {
     return "stacked"
@@ -713,14 +713,14 @@ export class StockPile extends Pile {
 /** the discards:  where the stock's cards go as they're turned over */
 /*! SPELL: DECLARES {
   type: "DiscardPile", superType: "Pile",
-  defined: "/Solitaire.spell:7534-7675",
+  defined: "/Solitaire.spell:7943-8084",
 } */
 export class DiscardPile extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "DiscardPile",
-    defined: "/Solitaire.spell:7571-7592",
+    defined: "/Solitaire.spell:7980-8001",
   } */
   get layout() {
     return "stacked"
@@ -738,14 +738,14 @@ export class DiscardPile extends Pile {
 /** a foundation:  where a suit is built up, ace to king */
 /*! SPELL: DECLARES {
   type: "Foundation", superType: "Pile",
-  defined: "/Solitaire.spell:7733-8278",
+  defined: "/Solitaire.spell:8142-8687",
 } */
 export class Foundation extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "Foundation",
-    defined: "/Solitaire.spell:7768-7789",
+    defined: "/Solitaire.spell:8177-8198",
   } */
   get layout() {
     return "stacked"
@@ -753,7 +753,7 @@ export class Foundation extends Pile {
 
   /*! SPELL: DECLARES {
     property: "suit", of: "Foundation", datatype: "CardSuit",
-    defined: "/Solitaire.spell:7793-7818",
+    defined: "/Solitaire.spell:8202-8227",
   } */
   // - its "suit" is a card suit
   static { this.declareProp("suit", { oneOf: () => Card.Suits }) }
@@ -785,14 +785,14 @@ export class Foundation extends Pile {
 /** a tableau:  a column, built down from king to ace, red and black in turn */
 /*! SPELL: DECLARES {
   type: "Tableau", superType: "Pile",
-  defined: "/Solitaire.spell:8356-8622",
+  defined: "/Solitaire.spell:8765-9031",
 } */
 export class Tableau extends Pile {
   static elementTag = core.defineElement(this, "test-project")
 
   /*! SPELL: DECLARES {
     property: "layout", of: "Tableau",
-    defined: "/Solitaire.spell:8388-8410",
+    defined: "/Solitaire.spell:8797-8819",
   } */
   get layout() {
     return "vertical"
@@ -811,7 +811,7 @@ export class Tableau extends Pile {
 /** The solitaire:  its piles, its moves, auto play and drawing */
 /*! SPELL: DECLARES {
   type: "Solitaire", superType: "App",
-  defined: "/Solitaire.spell:623-5499",
+  defined: "/Solitaire.spell:623-5908",
 } */
 export class Solitaire extends App {
   /*! SPELL: DECLARES {
@@ -1121,11 +1121,14 @@ export class Solitaire extends App {
     if (anythingChanged) await this.autoPlay()
   }
 
-  /** its menu, then its piles:  seven to a line, each a cell of its own, the third left empty */
+  /**
+   * its menu, then its piles:  seven to a line, each a cell of its own, the third left empty
+   * - its buttons are icons, each with a tooltip:  the popup right after its icon shows as the pointer rests on it
+   */
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Solitaire",
     alias: ["statement", "expression"], kind: "method", name: "draw it",
-    defined: "/Solitaire.spell:4753-5499",
+    defined: "/Solitaire.spell:4868-5908",
   } */
   draw() {
     return h("ui-container",
@@ -1133,13 +1136,21 @@ export class Solitaire extends App {
         h("ui-item", { type: "header" }, "Klondike Solitaire"),
         h("ui-item", () => \`Score: \${this.score}\`),
         h("ui-menu", { position: "right" },
-          h("ui-item", { onClick: () => this.autoPlay() }, "AutoPlay"),
-          h("ui-item", { onClick: () => this.cheat() }, "Cheat"),
-          h("ui-item", { onClick: () => this.debug() }, "Debug"),
-          h("ui-item", { onClick: () => this.startANewGame() }, "Restart")
+          h("ui-item", { "aria-label": "Auto play", onClick: () => this.autoPlay() },
+            h("ui-icon", { name: "fast forward" }),
+            h("ui-popup", { content: "Auto play", inverted: true, size: "small" })
+          ),
+          h("ui-item", { "aria-label": "Cheat", onClick: () => this.cheat() },
+            h("ui-icon", { name: "eye" }),
+            h("ui-popup", { content: "Cheat", inverted: true, size: "small" })
+          ),
+          h("ui-item", { "aria-label": "Restart", onClick: () => this.startANewGame() },
+            h("ui-icon", { name: "redo" }),
+            h("ui-popup", { content: "Restart", inverted: true, size: "small" })
+          )
         )
       ),
-      h("ui-grid", { columns: "7" },
+      h("ui-grid", { class: "Board", columns: "7" },
         () => core.drawThing(this.stock),
         () => core.drawThing(this.discards),
         h("div"),
@@ -1168,7 +1179,7 @@ core.heading("Playing a card:  what a click does")
 /*! SPELL: DECLARES {
   syntax: "play {thisArg:expression}", output: "play", rule: "method_call", of: "Card",
   alias: ["statement", "expression"], kind: "method", name: "play a card", waits: true,
-  defined: "/Solitaire.spell:5639-6643",
+  defined: "/Solitaire.spell:6048-7052",
 } */
 Card.prototype.play = async function () {
   const startPile = this.pile
@@ -1224,7 +1235,7 @@ core.heading("Tests")
 /*! SPELL: DECLARES {
   syntax: "test the moves", output: "test_the_moves", rule: "method_call", alias: "statement",
   kind: "function", name: "the moves",
-  defined: "/Solitaire.spell:8634-10111",
+  defined: "/Solitaire.spell:9043-10520",
 } */
 export function testTheMoves() {
   return core.test("test the moves", function testTheMoves() {

@@ -24,7 +24,6 @@ const APP_TEXTS_ES: AppTextPack = {
   preview: "Vista previa",
   settings: "Ajustes",
   openOrCreate: "Abrir o crear...",
-  docs: "Documentación",
   help: "Ayuda",
   you: "Tú",
   createApp: "Crear {type}",
