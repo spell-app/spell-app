@@ -51,7 +51,7 @@
         {
           "name": "project",
           "kind": "string",
-          "description": "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/drawable-solitaire`.  The Type Explorer shows each declaration's spell and compiled code."
+          "description": "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/Solitaire`.  The Type Explorer shows each declaration's spell and compiled code."
         },
         {
           "name": "src",
@@ -193,7 +193,7 @@
         {
           "name": "spell-open",
           "detail": "{ href: string }",
-          "description": "A Type Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell#L12`."
+          "description": "A Type Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`."
         }
       ],
       "parts": [],
@@ -401,7 +401,7 @@
         {
           "name": "project",
           "kind": "string",
-          "description": "What to edit, from the spell server's `/api`, as `<spell-app project>`:  `@spell/examples/drawable-solitaire`.  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves."
+          "description": "What to edit, from the spell server's `/api`, as `<spell-app project>`:  `@spell/examples/Solitaire`.  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves."
         },
         {
           "name": "file",

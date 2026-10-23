@@ -45,7 +45,7 @@ export class EditorPages {
    * - Returns what's wrong (`problems`) and, with `fix`, what it put right (`fixes`):
    *   a fixed problem is in `fixes` only, where it WAS on the page.
    * - What a fix can't put right stays a problem:  a page with no editor, or naming no type of the project.
-   * - NEVER writes a test project's page (`tests/spaces/@spell/test/`):  they stay frozen.
+   * - NEVER writes a test project's page (`spaces/@spell/test/`):  they stay frozen.
    * - SIDE EFFECT:  compiles the project in memory, writing nothing, when it has pages -- see `declarations()`.
    */
   async check({ fix = false }: { fix?: boolean } = {}): Promise<EditorPageResults> {

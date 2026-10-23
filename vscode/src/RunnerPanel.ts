@@ -38,8 +38,8 @@ export class RunnerPanel {
   declare uri: string
   /** The project's `settings.json5`, beside its project file -- see `readSettings()`. */
   declare settingsUri: vscode.Uri
-  /** The project's words, `<Project>.en.js`, beside its spell files -- see `sendWords()`. */
-  declare wordsUri: vscode.Uri
+  /** The project's words, `<Project>.en.js`, beside its spell files, one per language -- see `sendWords()`. */
+  declare wordsUris: vscode.Uri[]
   /** Its settings, as last read or saved. */
   #settings: ProjectSettings = {}
   /** Pending write of `#settings` -- see `saveSettings()`. */
@@ -54,7 +54,7 @@ export class RunnerPanel {
     this.project = info.project
     this.uri = uri
     this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.folderUri), SETTINGS_FILE)
-    this.wordsUri = vscode.Uri.parse(info.wordsUri)
+    this.wordsUris = info.wordsUris.map((uri) => vscode.Uri.parse(uri))
     const runner = vscode.Uri.file(resolve(repoRoot, "app/dist-runner"))
     const statics = vscode.Uri.file(resolve(repoRoot, "app/static"))
     this.panel = vscode.window.createWebviewPanel(
@@ -180,14 +180,20 @@ export class RunnerPanel {
 
   /**
    * Send the webview the project's words, as text:  `<Project>.en.js`, which compiling wrote beside its spell files.
+   * - One per language its files are in, the one it speaks first (epic `spanish` P19).
    * - None, e.g. compiled before words had a file:  sends none, and the Thing Explorer shows names as they are.
    */
   async sendWords(): Promise<void> {
-    const words = await vscode.workspace.fs.readFile(this.wordsUri).then(
-      (bytes) => new TextDecoder().decode(bytes),
-      () => undefined
+    const texts = await Promise.all(
+      this.wordsUris.map((uri) =>
+        vscode.workspace.fs.readFile(uri).then(
+          (bytes) => new TextDecoder().decode(bytes),
+          () => undefined
+        )
+      )
     )
-    this.post({ type: "words", words })
+    const words = texts.filter((text) => text !== undefined)
+    this.post({ type: "words", words: words.length ? words : undefined })
   }
 
   /** Send the webview the project's live scope tree, from the server's `spell/scopes`, for its Type Explorer. */
@@ -347,14 +353,14 @@ const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
 /** Answer to `spell/project`, as `LSP.ProjectInfo` -- just what we read. */
 type ProjectInfo = {
-  /** Project id, e.g. `@spell/examples/drawable-solitaire`. */
+  /** Project id, e.g. `@spell/examples/Solitaire`. */
   project: string
   /** URI of its compiled javascript, `<Project>.spell.js`. */
   compiledUri: string
   /** URI of its folder, where its spell files and `settings.json5` are. */
   folderUri: string
-  /** URI of its words, `<Project>.en.js`. */
-  wordsUri: string
+  /** URIs of its words, `<Project>.en.js`, one per language its files are in, the one it speaks first. */
+  wordsUris: string[]
 }
 
 /** `spell/projectCompiled` notification, as `LSP.ProjectCompiled`. */

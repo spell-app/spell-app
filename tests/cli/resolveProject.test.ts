@@ -5,7 +5,7 @@ import { describe, test, expect } from "vite-plus/test"
 
 import { SP } from "spell-lang/spell"
 import { CLI } from "spell-app/cli"
-import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from "spell-lang/spell/test"
+import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from "spell-app/spaces/test"
 
 /** What `arg` names, reduced to `kind` + id for comparing. */
 async function named(arg: string, cwd?: string) {
@@ -17,7 +17,7 @@ async function named(arg: string, cwd?: string) {
 
 const FIZZBUZZ = fixtureProjectId("fizzbuzz")
 const SOLITAIRE = fixtureProjectId("solitaire")
-const CARD = `${SOLITAIRE}/Card.spell`
+const GAME = `${SOLITAIRE}/Solitaire.spell`
 // in the order a group lists its projects:  by name
 const ALL_FIXTURES = fixtureProjectNames()
   .map(fixtureProjectId)
@@ -32,7 +32,7 @@ describe("resolveProject()", () => {
       expect(await named(SOLITAIRE)).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file", async () => {
-      expect(await named("@spell/test/solitaire/Card.spell")).toEqual({ kind: "file", id: CARD })
+      expect(await named("@spell/test/solitaire/Solitaire.spell")).toEqual({ kind: "file", id: GAME })
     })
     test("a group, by its address, holds only folders with a project.json", async () => {
       expect(await named("@spell/test")).toEqual({ kind: "root", ids: ALL_FIXTURES })
@@ -47,14 +47,14 @@ describe("resolveProject()", () => {
       expect(await named(fixturePath("solitaire", SP.PROJECT_FILE))).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file, relative to cwd", async () => {
-      expect(await named("Card.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: CARD })
+      expect(await named("Solitaire.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: GAME })
     })
     test("a known root's folder", async () => {
       expect(await named(FIXTURES_DIR)).toEqual({ kind: "root", ids: ALL_FIXTURES })
     })
     test("`@here` is the current folder", async () => {
       expect(await named("@here", fixturePath("solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
-      expect(await named("@here/Card.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: CARD })
+      expect(await named("@here/Solitaire.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: GAME })
     })
   })
 

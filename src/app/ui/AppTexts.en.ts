@@ -110,7 +110,7 @@ export const APP_TEXTS = {
   "Type.fixture": "Fixture",
   "theType.fixture": "the fixture",
   "title.fixture": "Test fixtures",
-  "description.fixture": "Frozen projects tests run against -- edit one, then `yarn test:fixtures:bless`",
+  "description.fixture": "Frozen projects tests run against -- edit one, then `yarn spell:test:fixtures:bless`",
 
   ////////////////
   // ## Notices and errors (`editor.ts`)
@@ -231,9 +231,7 @@ export const APP_TEXTS = {
   targetsLabel: "Also compiles to",
   targetsTip: "Languages it compiles to as well as JavaScript, which it always does.",
   listsStartAtLabel: "Lists start at",
-  listsStartAtTip: "Where its lists start counting:  1 as spell does, or 0 as JavaScript and Python do.",
-  languageLabel: "Written in",
-  languageTip: "The human language its spell is written in:  its rules, and the words its Thing Explorer shows."
+  listsStartAtTip: "Where its lists start counting:  1 as spell does, or 0 as JavaScript and Python do."
 } as const
 
 /** Key of one of the editor's texts, e.g. `"save"`. */

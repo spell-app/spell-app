@@ -1,43 +1,121 @@
 ✅ test card setup
-  ▶️ Executing   `the card is a new card whose rank is queen, suit is spades and direction is up`
-  ✅ As expected `the rank of the card` is `queen`
-  ✅ As expected `the suit of the card` is `spades`
-  ✅ As expected `the name of the card` is `"queen-of-spades"`
-  ✅ As expected `the color of the card` is `black`
-  ✅ As expected `the value of the card` is `12`
-  ✅ As expected `the short-suit of the card` is `"♠️"`
-  ✅ As expected `the short-rank of the card` is `"Q"`
-  ✅ As expected `the short-name of the card` is `"Q♠️"`
-  ✅ As expected `the card is face up` is `yes`
-  ✅ As expected `the card is face down` is `no`
-  ✅ As expected `the card is a face card` is `yes`
-  ✅ As expected `the card is not a face card` is `false`
-  ✅ As expected `the card is a spade` is `true`
-  ✅ As expected `the card is a club` is `false`
-  ✅ As expected `the card is a queen` is `true`
-  ✅ As expected `the card is an ace` is `false`
-  ✅ As expected `the card is a 2` is `false`
-  ✅ As expected `the card is the queen of spades` is `true`
-  ✅ As expected `the card is the queen of clubs` is `false`
-  ✅ As expected `the card is not the 2 of diamonds` is `true`
-  ▶️ Executing   `turn the card face down`
-  ✅ As expected `the direction of the card` is `down`
-  ▶️ Executing   `turn the card over`
-  ✅ As expected `the card is face up` is `true`
+  ▶️ Executing   `get a new card whose rank is queen, suit is spades and direction is up`
+  ✅ As expected `its rank` is `queen`
+  ✅ As expected `its suit` is `spades`
+  ✅ As expected `its name` is `"queen-of-spades"`
+  ✅ As expected `its color` is `black`
+  ✅ As expected `its value` is `12`
+  ✅ As expected `its short suit` is `"♠️"`
+  ✅ As expected `its short rank` is `"Q"`
+  ✅ As expected `its short name` is `"Q♠️"`
+  ✅ As expected `its state` is `"Q♠️+"`
+  ✅ As expected `its picture` is `"🂭"`
+  ✅ As expected `it is face up` is `yes`
+  ✅ As expected `it is face down` is `no`
+  ✅ As expected `it is a face card` is `yes`
+  ✅ As expected `it is not a face card` is `no`
+  ✅ As expected `it is a spade` is `yes`
+  ✅ As expected `it is a club` is `no`
+  ✅ As expected `it is a queen` is `yes`
+  ✅ As expected `it is an ace` is `no`
+  ✅ As expected `it is a 2` is `no`
+  ✅ As expected `it is the queen of spades` is `yes`
+  ✅ As expected `it is the queen of clubs` is `no`
+  ✅ As expected `it is not the 2 of diamonds` is `yes`
+  ▶️ Executing   `turn it face down`
+  ✅ As expected `its direction` is `down`
+  ✅ As expected `it is face down` is `yes`
+  ▶️ Executing   `turn it over`
+  ✅ As expected `it is face up` is `yes`
+  ✅ As expected `the short name of the seven` is `"7♥️"`
+  ✅ As expected `the color of the seven` is `red`
+  ✅ As expected `the picture of the seven` is `"🂷"`
+  ✅ As expected `the picture of a new card whose rank is ace and suit is clubs` is `"🃑"`
+  ✅ As expected `the picture of a new card whose rank is king and suit is diamonds` is `"🃎"`
+✅ test jokers
+  ▶️ Executing   `get a new joker whose color is red and direction is up`
+  ✅ As expected `it is a joker` is `yes`
+  ✅ As expected `it is a card` is `yes`
+  ✅ As expected `its color` is `red`
+  ✅ As expected `its name` is `"red-joker"`
+  ✅ As expected `its short name` is `"🃏"`
+  ✅ As expected `its picture` is `"🂿"`
+  ✅ As expected `it is the red joker` is `yes`
+  ✅ As expected `it is the black joker` is `no`
+  ✅ As expected `it is not the black joker` is `yes`
+  ✅ As expected `it is face up` is `yes`
+  ▶️ Executing   `turn it over`
+  ✅ As expected `it is face down` is `yes`
+  ▶️ Executing   `set black joker to a new joker whose color is black`
+  ✅ As expected `the picture of black joker` is `"🃏"`
+  ▶️ Executing   `set the card to a new card whose rank is queen and suit is spades`
+  ✅ As expected `the card is a joker` is `no`
+  ✅ As expected `the card is not a joker` is `yes`
+  ✅ As expected `the card is the red joker` is `no`
 ✅ test deck creation
   ▶️ Executing   `the deck is a new deck`
-  ▶️ Executing   `set up the deck`
   ✅ As expected `the number of cards in the deck` is `52`
-  ▶️ Executing   `set up the deck`
-  ✅ As expected `the number of cards in the deck` is `52`
-  ▶️ Executing   `set the queens to the cards in the deck where the rank of the card is "queen"`
+  ▶️ Executing   `set the queens to the cards in the deck where the rank of the card is queen`
   ✅ As expected `the number of cards in the queens` is `4`
+  ✅ As expected `the name of the top card of the deck` is `"ace-of-clubs"`
   ✅ As expected `the name of the bottom card of the deck` is `"king-of-spades"`
-  ✅ As expected `the short-name of the top card of the deck` is `"A♣️"`
+  ✅ As expected `the short name of the top card of the deck` is `"A♣️"`
+  ✅ As expected `the first card of the deck is the ace of clubs` is `yes`
   the deck before shuffling:
   ▶️ Executing   `display the deck`
   deck: A♣️, A♦️, A♥️, A♠️, 2♣️, 2♦️, 2♥️, 2♠️, 3♣️, 3♦️, 3♥️, 3♠️, 4♣️, 4♦️, 4♥️, 4♠️, 5♣️, 5♦️, 5♥️, 5♠️, 6♣️, 6♦️, 6♥️, 6♠️, 7♣️, 7♦️, 7♥️, 7♠️, 8♣️, 8♦️, 8♥️, 8♠️, 9♣️, 9♦️, 9♥️, 9♠️, 10♣️, 10♦️, 10♥️, 10♠️, J♣️, J♦️, J♥️, J♠️, Q♣️, Q♦️, Q♥️, Q♠️, K♣️, K♦️, K♥️, K♠️
-  ▶️ Executing   `get the first card of the deck`
-  ✅ As expected `it is the ace of clubs` is `yes`
+  ▶️ Executing   `shuffle the deck`
+  ✅ As expected `the number of cards in the deck` is `52`
+  the deck after shuffling:
+  ▶️ Executing   `display the deck`
+  deck: A♣️, 2♠️, 10♠️, 7♦️, 8♦️, 4♠️, 3♣️, 10♦️, A♦️, K♦️, 7♥️, 9♣️, Q♦️, 4♥️, 5♣️, 9♥️, J♣️, 5♦️, 8♠️, 6♦️, 9♦️, J♥️, A♥️, 3♦️, Q♠️, 6♥️, 8♣️, J♠️, 2♥️, 4♣️, K♥️, 7♣️, 3♥️, 6♣️, 5♥️, 4♦️, Q♥️, K♣️, K♠️, 7♠️, 5♠️, 10♥️, 6♠️, 9♠️, A♠️, 2♣️, Q♣️, J♦️, 10♣️, 8♥️, 2♦️, 3♠️
+✅ test deck with jokers
+  ▶️ Executing   `the deck is a new deck with jokers`
+  ✅ As expected `the number of cards in the deck` is `54`
+  ▶️ Executing   `set wild cards to the cards in the deck where it is a joker`
+  ✅ As expected `the number of cards in wild cards` is `2`
+  ✅ As expected `the first card of the deck is the ace of clubs` is `yes`
+  ✅ As expected `the last card of the deck is the black joker` is `yes`
+  ✅ As expected `the name of the bottom card of the deck` is `"black-joker"`
+✅ test piles
+  ▶️ Executing   `set the stock to a new pile with name = "stock"`
+  ▶️ Executing   `set the discards to a new pile with name = "discards"`
+  ✅ As expected `the color of the stock` is `"none"`
+  ✅ As expected `the value of the stock` is `0`
+  ▶️ Executing   `add (a new card whose rank is queen, suit is spades and direction is up) to the stock`
+  ▶️ Executing   `add (a new card whose rank is 7, suit is hearts and direction is down) to the stock`
+  ✅ As expected `the color of the stock` is `red`
+  ✅ As expected `the value of the stock` is `7`
+  ✅ As expected `the state of the stock` is `"stock: Q♠️+ 7♥️—"`
+  ▶️ Executing   `add the card to the discards`
+  ✅ As expected `the number of cards in the stock` is `1`
+  ✅ As expected `the pile of the card is the discards` is `yes`
+  ✅ As expected `the state of the discards` is `"discards: 7♥️—"`
+✅ test the moves
+  ▶️ Executing   `set the column to a new tableau with name = "T1"`
+  ▶️ Executing   `set the king to a new card whose rank is king, suit is spades and direction is up`
+  ▶️ Executing   `set the queen to a new card whose rank is queen, suit is hearts and direction is up`
+  ▶️ Executing   `set the jack to a new card whose rank is jack, suit is clubs and direction is up`
+  ✅ As expected `the column can take the queen` is `no`
+  ✅ As expected `the column can take the king` is `yes`
+  ▶️ Executing   `add the king to the column`
+  ✅ As expected `the column can take the jack` is `no`
+  ✅ As expected `the column can take the queen` is `yes`
+  ▶️ Executing   `add the queen to the column`
+  ✅ As expected `the state of the column` is `"T1: K♠️+ Q♥️+"`
+  ✅ As expected `the column can give up the queen` is `yes`
+  ▶️ Executing   `turn the queen face down`
+  ✅ As expected `the column can give up the queen` is `no`
+  ▶️ Executing   `set the two to a new card whose rank is 2, suit is hearts and direction is up`
+  ▶️ Executing   `set the ace to a new card whose rank is ace, suit is hearts and direction is up`
+  ▶️ Executing   `set the column to a new tableau with name = "T2"`
+  ▶️ Executing   `add the two to the column`
+  ▶️ Executing   `add the ace to the column`
+  ✅ As expected `the foundation can take the two` is `no`
+  ✅ As expected `the foundation can take the ace` is `yes`
+  ▶️ Executing   `move the ace to the foundation`
+  ✅ As expected `the foundation can take the two` is `yes`
+  ▶️ Executing   `add the queen to the column`
+  ✅ As expected `the foundation can take the queen` is `no`
 
-<div id="spell-app-root"><div class="ui container"><div class="board"><table class="ui table fixed"><thead><tr><th class="left aligned" colspan="2">Klondike Solitaire</th><th class="right aligned">Score: 0</th><th><div class="tiny fluid ui button compact">AutoPlay</div></th><th><div class="tiny fluid ui button compact">Cheat</div></th><th><div class="tiny fluid ui button compact">Debug</div></th><th><div class="tiny fluid ui button compact">Restart</div></th></tr></thead><tbody><tr><td><div class="Pile Stock stacked"><div class="Placeholder ui button basic compact fluid"></div><div class="Card face-down ace hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div></div></td><td><div class="Pile Discards stacked"><div class="Card face-up 3 diamonds ui button compact fluid red">3 <span class="suit">♦️</span></div></div></td><td></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid black clubs"><div class="suit clubs">♣️</div></div></div></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid red diamonds"><div class="suit diamonds">♦️</div></div></div></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid red hearts"><div class="suit hearts">♥️</div></div></div></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid black spades"><div class="suit spades">♠️</div></div></div></td></tr><tr><td><div class="Pile Tableau staggered"><div class="Card face-up 3 spades ui button compact fluid black">3 <span class="suit">♠️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 2 diamonds ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up ace spades ui button compact fluid black">A <span class="suit">♠️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 8 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 9 spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up king spades ui button compact fluid black">K <span class="suit">♠️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 10 clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 6 spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down king clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 6 clubs ui button compact fluid black">6 <span class="suit">♣️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down jack diamonds ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 10 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down queen hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 3 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 4 clubs ui button compact fluid black">4 <span class="suit">♣️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down queen clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 5 spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 4 diamonds ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 7 clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 2 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 8 clubs ui button compact fluid black">8 <span class="suit">♣️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 2 clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 7 spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 5 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down king hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down jack spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 6 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up queen spades ui button compact fluid black">Q <span class="suit">♠️</span></div></div></td></tr></tbody></table></div></div></div>
+<div id="spell-app-root"><ui-container><ui-menu><ui-item type="header">Klondike Solitaire</ui-item><ui-item>Score: 0</ui-item><ui-menu position="right"><ui-item>AutoPlay</ui-item><ui-item>Cheat</ui-item><ui-item>Debug</ui-item><ui-item>Restart</ui-item></ui-menu></ui-menu><ui-grid columns="7"><ui-row><ui-column><div class="Stock"><div class="Placeholder"></div><slot></slot></div></ui-column><ui-column><slot></slot></ui-column><ui-column></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♣️</div><slot></slot></div></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♦️</div><slot></slot></div></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♥️</div><slot></slot></div></ui-column><ui-column><div class="Foundation"><div class="Placeholder">♠️</div><slot></slot></div></ui-column></ui-row><ui-row><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column><ui-column><slot></slot></ui-column></ui-row></ui-grid></ui-container></div>

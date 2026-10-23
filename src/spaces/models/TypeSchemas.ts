@@ -10,6 +10,8 @@ import type * as VT from "spell-kit/element/vocabulary.types"
  *   - its name, as javascript has it (`short_suit`):  what a form binds
  *   - its label, from how it was written (`asWritten`, `short suit` => `Short suit`)
  *   - `enumeration`:  a choice of those values
+ *     - and a value kind's, for a property holding one:  `- its "suit" is a suit` is a choice of the suits
+ *       (`Suit`'s statement holds them, epic `spanish` P11)
  *   - `datatype`, as a form edits it:
  *     - `text`, `number`, `date` as they are
  *     - `choice`:  a yes or no
@@ -34,7 +36,7 @@ export class TypeSchemas {
     const attributes: VT.AttributeSpec[] = []
     for (const statement of statements) {
       if (statement.of !== type || !statement.property || statement.constants) continue
-      attributes.push(TypeSchemas.attributeOf(statement))
+      attributes.push(TypeSchemas.attributeOf(TypeSchemas.withValueKind(statement, statements)))
     }
     return { name: type, attributes }
   }
@@ -42,6 +44,19 @@ export class TypeSchemas {
   /** The types `declarations` declares, in order. */
   static typesIn(declarations: Declarations): string[] {
     return (declarations.statements ?? []).flatMap((statement) => (statement.type ? [statement.type] : []))
+  }
+
+  /**
+   * `statement`, with the values of the value kind it holds, if it holds one:
+   * `{ property: "suit", datatype: "Suit" }` takes `Suit`'s `enumeration`, clubs ... spades.
+   */
+  private static withValueKind(
+    statement: DeclarationStatement,
+    statements: readonly DeclarationStatement[]
+  ): DeclarationStatement {
+    if (statement.enumeration || !statement.datatype) return statement
+    const kind = statements.find((it) => it.type === statement.datatype && it.enumeration)
+    return kind ? { ...statement, enumeration: kind.enumeration } : statement
   }
 
   /** One property statement, as an attribute. */

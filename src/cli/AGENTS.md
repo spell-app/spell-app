@@ -105,8 +105,8 @@ As WWOD §20, plus:
 - They live in the repo's [tests/cli/](../../tests/cli/), at the same paths as the code.
   - E.g. the core contract's test is [contract.test.ts](../../tests/cli/contract.test.ts).
   - The core contract's pinned outputs too:  one `<Project>.out.txt` each, in that folder's `__snapshots__/contract/`.
-- They read spell's frozen test projects, spell-lang's `tests/spaces/@spell/test/` (`@test/<Project>`).
-  See "Projects live in spaces" in [spell's AGENTS.md](../../../spell-lang/src/spell/AGENTS.md).
+- They read spell's frozen test projects, `spaces/@spell/test/` at the repo's root (`@spell/test/<project>`).
+  See "Projects" in [spaces' AGENTS.md](../spaces/AGENTS.md).
   - NEVER write into one, nor into its build folder (`build/spaces/@spell/test/...`).
     Compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
 - [cli.test.ts](../../tests/cli/cli.test.ts) runs the real `spell`:

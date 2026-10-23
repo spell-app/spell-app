@@ -150,7 +150,7 @@ export class ScopeExplorer {
     this.addBuiltIns(tree, project.contents?.listsStartAt)
     const builtIns = tree.entries
     tree.entries = []
-    const importedDetail = LSP.LspTexts.for(project.language).text("imported")
+    const importedDetail = LSP.LspTexts.for(tree.language).text("imported")
     projects.forEach((it, index) => this.addProject(it, tree, index < projects.length - 1 ? importedDetail : undefined))
     this.#details.set(project, tree.details)
     return { builtIns, projects: tree.entries }
@@ -158,20 +158,21 @@ export class ScopeExplorer {
 
   /**
    * A new `Tree` for `projects`:  what's declared in them, to find each type's and file's.
-   * - In the language of the last, the project the tree is for -- the default (English) for none.
+   * - In the languages of the last, the project the tree is for, its first file's first -- English for none.
+   *   Its built-in types are its root scope's:  a project mixing languages lists their members in each.
    */
   private newTree(projects: SP.SpellProject[]): Tree {
     const imported = projects.slice(0, -1)
-    const language = projects.at(-1)?.language ?? SP.Language.default
+    const languages = projects.at(-1)?.languages ?? [SP.Language.default]
+    const root = SP.Language.rootScopeFor(languages)
     return {
-      language,
+      language: languages[0]!,
+      root,
       methods: projects.flatMap((it) => ScopeExplorer.methodRules(it)),
       importedMethods: projects.flatMap((it) => ScopeExplorer.importedMethodRules(it)),
       rules: projects.flatMap((it) => it.scope?.rules.get() ?? []),
       constants: projects.flatMap((it) => it.scope?.constants.get() ?? []),
-      typePaths: new Map(
-        ScopeExplorer.builtInTypes(language).map((type) => [type, LSP.scopePath("", "type", type.name)])
-      ),
+      typePaths: new Map(ScopeExplorer.builtInTypes(root).map((type) => [type, LSP.scopePath("", "type", type.name)])),
       fileOrder: new Map(projects.flatMap((it) => it.spellFiles).map((file, index) => [file, index])),
       sourceTypes: new Map(imported.flatMap((it) => it.scope?.types.get() ?? []).map((type) => [type.name, type])),
       fileUris: new Map(),
@@ -181,15 +182,15 @@ export class ScopeExplorer {
   }
 
   /**
-   * Built-in types a Type Explorer lists, from `language`'s root scope:
+   * Built-in types a Type Explorer lists, from `root`, its project's root scope (`SP.Language.rootScopeFor()`):
    * - those in `SP.BUILT_IN_TYPE_TABLE`, in its order
    * - then any other spell class (`SPELL_CLASSES`), bare
    * - NOT the rest of its root types, e.g. javascript's `Object`, which spell knows by name but isn't a spell class,
    *   or `integer`, which has no members of its own.
    * - A project's type made from one says so in its `detail` instead, e.g. `is a Object`.
    */
-  private static builtInTypes(language: SP.Language): P.TypeScope[] {
-    const { types } = language.rootScope
+  private static builtInTypes(root: P.RootScope): P.TypeScope[] {
+    const { types } = root
     const listed = SP.BUILT_IN_TYPE_TABLE.map((entry) => types.get(entry.name, "LOCAL_ONLY")!)
     const classes = types.get().filter((type) => SPELL_CLASSES.includes(type.name) && !listed.includes(type))
     return [...listed, ...classes]
@@ -205,7 +206,7 @@ export class ScopeExplorer {
    *   so a list's docs say "counts from 0" in a project that does -- see `SP.docsCountingFrom()`.
    */
   private addBuiltIns(tree: Tree, startAt: 0 | 1 = 1) {
-    for (const type of ScopeExplorer.builtInTypes(tree.language)) {
+    for (const type of ScopeExplorer.builtInTypes(tree.root)) {
       const table = SP.builtInTypeEntry(type.name)
       if (!table) {
         this.addType(type, tree)
@@ -263,7 +264,7 @@ export class ScopeExplorer {
     const path = ScopeExplorer.projectPath(project)
     const { scope } = project
     if (!scope) {
-      tree.entries.push({ path, detail: LSP.LspTexts.for(project.language).text("notParsed") })
+      tree.entries.push({ path, detail: LSP.LspTexts.for(tree.language).text("notParsed") })
       return
     }
     tree.entries.push(detail ? { path, detail } : { path })
@@ -642,9 +643,14 @@ export class ScopeExplorer {
     return items.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
   }
 
-  /** PascalCase name of the type statement `declaredBy` declares something on, e.g. `Card`, if any. */
+  /**
+   * PascalCase name of the type statement `declaredBy` declares something on, e.g. `Card`, if any.
+   * - Else the type whose outline body it's in:  `- "suits" as one of clubs ...` under `a "card" is ... where:`
+   *   declares the suits on the card (epic `spanish` P11).
+   */
   private ownerOf(declaredBy: P.Match | undefined): string | undefined {
-    const of = declaredBy?.rule.getDeclaration(declaredBy)?.of
+    const of =
+      declaredBy?.rule.getDeclaration(declaredBy)?.of ?? P.SubjectScope.of(declaredBy?.scope)?.subjectType?.name
     return of ? ScopeExplorer.typeNameOf(of) : undefined
   }
 }
@@ -664,8 +670,13 @@ const PACK_KEYS: Array<keyof LSP.ScopeEntry> = [
 
 /** What working out one tree's entries needs to know throughout -- see `ScopeExplorer.entries()`. */
 type Tree = {
-  /** The language the tree's project is written in:  its built-in types, and the syntax of the rules which spell them. */
+  /**
+   * The language the tree's project is written in -- its first file's, if it mixes them (epic `spanish` P19):
+   * the syntax of the rules which spell its built-in members, and the tree's own words.
+   */
   language: SP.Language
+  /** The tree's project's root scope (`SP.Language.rootScopeFor()`):  its built-in types and their members. */
+  root: P.RootScope
   /** Every method and function rule of the projects in the tree, to find each type's and file's. */
   methods: P.ScopeRule[]
   /** Method and function rules imported from compiled declarations, for types with no sources to show. */

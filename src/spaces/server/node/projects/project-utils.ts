@@ -77,7 +77,7 @@ export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
 }
 
 /**
- * Folder on disk of `place`, e.g. `@spell/examples/drawable-solitaire` => `spaces/@spell/examples/drawable-solitaire`.
+ * Folder on disk of `place`, e.g. `@spell/examples/Solitaire` => `spaces/@spell/examples/Solitaire`.
  * - Throws if `place` has no folder of its own, e.g. `@local/my-folder`.
  */
 export function folderForPlace(place: string): string {
@@ -116,21 +116,19 @@ export function isBuiltFile(location: SP.SpellLocation): boolean {
 /**
  * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`:
  * its path MIRRORED under `build/` at the repo root (epic `people-and-orgs` P11).
- * - The frozen test projects (the `tests` space folder, spell-lang's `tests/spaces/`):  under `build/spaces/`
- *   - `<spell-lang>/tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  * - Under the repo (its packages, its `tests/`):  the same path under `build/`
- *   - `spaces/@spell/examples/drawable-solitaire` => `build/spaces/@spell/examples/drawable-solitaire`
+ *   - `spaces/@spell/examples/Solitaire` => `build/spaces/@spell/examples/Solitaire`
+ *   - the frozen test projects too:  `spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
  * - Under spell-spaces:  under `build/spell-spaces/`, so each checkout builds its own
  *   - `<spell-spaces>/@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
  * - A project anywhere else -- a temporary `@local/<folder>` group, a VS Code workspace elsewhere:
  *   `projectFolder` itself, beside its source, as before `build/`.
  *   - NEVER a `build/` inside its root's folder:  that would list as one of its projects.
- * - `folders`:  where the packages, the test projects, spell.spaces and `build/` are.
+ * - `folders`:  where the packages, spell.spaces and `build/` are.
  *   - `environment`'s by default;  tests pass their own.
  */
 export function buildFolderFor(projectFolder: string, folders: BuildFolders = environment): string {
   const mirrors: Array<[string | undefined, string]> = [
-    [folders.testsDir, resolve(folders.buildDir, "spaces")],
     [folders.repoDir && resolve(folders.repoDir, "tests"), folders.buildDir],
     [folders.packagesDir, folders.buildDir],
     [folders.spellSpacesDir, resolve(folders.buildDir, "spell-spaces")]
@@ -147,21 +145,19 @@ export function buildFolderFor(projectFolder: string, folders: BuildFolders = en
  * Where `buildFolderFor()` mirrors from, and to.
  * - `packagesDir`, `buildDir`:  where the repo's packages are (its root, epic `repo-split` P8) and its `build/`
  * - `repoDir`:  the checkout, whose `tests/` mirror too
- * - `testsDir`:  the `tests` space folder, the frozen test projects' (spell-lang's `tests/spaces/`):  under `build/spaces/`
  * - `spellSpacesDir`:  spell-spaces, mirrored under `build/spell-spaces/`
  */
 export type BuildFolders = {
   packagesDir: string
   buildDir: string
   repoDir?: string
-  testsDir?: string
   spellSpacesDir?: string
 }
 
 /**
  * Where project `projectId`'s built files go, inside the checkout's build folder:
  * its index's `buildFolder`, `/`-separated.
- * - e.g. `spaces/@spell/examples/drawable-solitaire`, for `build/spaces/@spell/examples/drawable-solitaire`
+ * - e.g. `spaces/@spell/examples/Solitaire`, for `build/spaces/@spell/examples/Solitaire`
  * - No `../` (decision J33):  a Python web app names it so, and `spell_quart.built_folder()` finds the checkout's.
  * - `undefined` for a project whose built files sit beside its source (`buildFolderFor()`).
  */
@@ -374,7 +370,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  const { title, version, exports, targets, listsStartAt, language } = importsFile
+  const { title, version, exports, targets, listsStartAt } = importsFile
   const buildFolder = buildFolderInBuild(projectId)
   return {
     imports: importsFile.imports,
@@ -384,14 +380,13 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
     exports,
     targets,
     listsStartAt,
-    language,
     buildFolder
   }
 }
 
 /**
  * `GET /api/projects/index/<project>` -- fetch (and resync) a project's index.
- * - e.g. `/api/projects/index/@spell/examples/drawable-solitaire`
+ * - e.g. `/api/projects/index/@spell/examples/Solitaire`
  * - Returns: `ProjectIndexJSON`.
  * - Failure: 500 if the place isn't a project's (`SP.SpellUrls.projectIdFor()`).
  */
@@ -416,7 +411,7 @@ function tailOf(request: Request, prefix: string): string {
 
 /**
  * The file a file's URL names, as a `SpellLocation`.
- * - e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell` or `/api/projects/file/<project>/<file>`
+ * - e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell` or `/api/projects/file/<project>/<file>`
  * - Split by its group and project BEFORE any path is made (`SP.SpellUrls.fileForUrl()`),
  *   then checked part by part (`new SP.SpellLocation()`).
  * - throws `TypeError` if it names no project's file
@@ -438,7 +433,7 @@ export function fileOrOldName(serverPath: string): string {
 }
 
 /**
- * `GET /spaces/<project>/<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell`.
+ * `GET /spaces/<project>/<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell`.
  * - A file spell BUILDS (`Solitaire.spell.js`, `.scopes.js` ...) is served from the project's build folder
  *   (`serverPath`):  its URL sits beside its source's.
  * - Returns:  raw file body via `SRV.Reply.sendFile()`, `{ dotfiles: "allow" }`, so dotfiles can be fetched too.

@@ -6,10 +6,10 @@
   - Each drawable tag is the program's thing its `id` names, as the part of a reference after its `#` (P18, J43):
     - `T1` ... the tableaus
     - `clubs` ... the foundations
-    - `<solitaire-pile id="discards">` is the discards, a discard-pile, which is a pile:  `Pile#discards`
+    - `<solitaire-discard-pile id="discards">` is the discards, a discard pile, which is a pile:  `Pile#discards`
     - With no `id`:  its one thing of that type (the stock).
   - Each card the program draws is named after its card, by its id, e.g. `id="queen-of-hearts"`.
-  - A tag's name leaves out the project's word "drawable":  `<solitaire-tableau>`, not `<drawable-solitaire-tableau>`.
+  - A tag's name is its project's, then its type's:  `<solitaire-tableau>`;  the card library's card is `<cards-card>`.
   - Each card shows the pile holding it as that pile's reference, e.g. `pile="Tableau#T1"`:  see the inspector.
   - The curly-bracket holes and the handlers are spell, compiled in the page against the program:
     the page loads spell's parser for them, and only for them.
@@ -46,20 +46,20 @@
     </style>
   </head>
   <body>
-    <spell-app project="@spell/examples/drawable-solitaire" name="Solitaire">
+    <spell-app project="@spell/examples/Solitaire" name="Solitaire">
       <div class="row">
         <div class="title">Klondike Solitaire</div>
-        <div class="score">Score {the score of the game}</div>
-        <button on-click="{auto-play}">AutoPlay</button>
+        <div class="score">Score {the score of the solitaire}</div>
+        <button on-click="{auto play}">AutoPlay</button>
       </div>
       <div class="row">
-        <solitaire-pile id="discards"></solitaire-pile>
+        <solitaire-discard-pile id="discards"></solitaire-discard-pile>
         <!-- a <spell> block's lines and indents are spell's:  the formatter leaves them alone -->
         <!-- prettier-ignore -->
         <solitaire-stock-pile>
           <spell>
             when double clicked
-              play from the stock pile
+              play from the stock
           </spell>
         </solitaire-stock-pile>
         <div></div>
@@ -77,7 +77,7 @@
         <solitaire-tableau id="T6"></solitaire-tableau>
         <solitaire-tableau id="T7"></solitaire-tableau>
       </div>
-      <div>{the number of cards in the stock} cards left in the stock</div>
+      <div>{the number of cards in the stock of the solitaire} cards left in the stock</div>
     </spell-app>
   </body>
 </html>

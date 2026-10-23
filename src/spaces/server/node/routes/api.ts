@@ -3,8 +3,8 @@
  * - The route table below just wires paths to `project-utils.ts` handlers.
  *   Each `request_*` function there has its full contract:  what the client sends, what comes back, failure modes.
  * - A project or a file is named by its ADDRESS in a URL (`SP.SpellUrls`):
- *   - a project:  `@spell/examples/drawable-solitaire`
- *   - a file in it:  `/spaces/@spell/examples/drawable-solitaire/Card.spell`
+ *   - a project:  `@spell/examples/Solitaire`
+ *   - a file in it:  `/spaces/@spell/examples/Solitaire/Solitaire.spell`
  * - Handlers split the URL as it arrived, by its group and project, before any path on disk is made
  *   (`SP.SpellUrls.split()`).
  */
@@ -112,7 +112,7 @@ api.all("*", (request, response) => response.status(404).send(`API routine not d
 /**
  * Router mounted at `/spaces` by `./cli.ts` and `./appRoutes.ts`:
  * a project's file, by its URL, `/spaces/<project>/<file>` -- see `projectUtils.request_getFile`.
- * - Compiled files are files, e.g. `/spaces/@spell/examples/drawable-solitaire/drawable-solitaire.spell.js` (its program):
+ * - Compiled files are files, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell.js` (its program):
  *   - `.scopes.js`, its scope pack
  *   - `.declarations.json5`, `.en.js`
  *   - The handler finds a built one in `build/`.

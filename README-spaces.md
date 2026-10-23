@@ -1,20 +1,20 @@
 # Spaces:  where projects and people live
 
 ```text
-@spell/examples/drawable-solitaire/Card.spell
-└──── group ──┘ └──── project ───┘ └─ file ─┘
+@spell/examples/Solitaire/Solitaire.spell
+└──── group ──┘ └project─┘ └─── file ──┘
 ```
 
-_A Spell address:  one file of the Drawable Solitaire example, named by what it is rather than where it is._
+_A Spell address:  one file of the Solitaire example, named by what it is rather than where it is._
 
 Every project and every file in Spell has an address like that one, and it's the same address everywhere:
 
 | Where | What you write |
 | --- | --- |
-| the editor | `http://localhost:3000/edit/@spell/examples/drawable-solitaire/Card.spell` |
-| the command line | `spell run @spell/examples/drawable-solitaire` |
+| the editor | `http://localhost:3000/edit/@spell/examples/Solitaire/Solitaire.spell` |
+| the command line | `spell run @spell/examples/Solitaire` |
 | another project, importing a library | `{ "path": "@spell/library/cards", "import": ["Card", "Deck", "Pile"] }` |
-| the server, reading the file | `GET /spaces/@spell/examples/drawable-solitaire/Card.spell` |
+| the server, reading the file | `GET /spaces/@spell/examples/Solitaire/Solitaire.spell` |
 
 None of them is a path on disk.
 One function turns an address into a folder, [`SpellUrls.folderFor()`](https://github.com/spell-app/spell-lang/blob/main/src/spell/SpellUrls.ts),
@@ -42,21 +42,18 @@ flowchart LR
     examples["@spell/examples"]
     library["@spell/library"]
     guides["@spell/guides, empty so far"]
-  end
-  subgraph lang["spell-lang's tests/spaces/:  frozen"]
-    tests["@spell/test"]
+    tests["@spell/test, frozen"]
   end
   subgraph yours["spell.spaces/, beside the repos:  in no repo"]
     own["owen@spell, your own"]
   end
   server --> app
-  server --> lang
   server --> yours
   %% the Spell look:  yarn mermaid:pretty
   classDef default fill:#EFECFB,stroke:#6550CA,stroke-width:1.5px,color:#1A1C27,rx:8px,ry:8px
 ```
 
-_Five groups in three folders, and one way in:  the server takes an address and works out the folder itself._
+_Five groups in two folders, and one way in:  the server takes an address and works out the folder itself._
 
 ## Addresses:  the folder is in the name
 
@@ -75,9 +72,9 @@ here     = "@here"                       on the command line:  the project in th
 | Address | What it is |
 | --- | --- |
 | `@spell/examples` | a group:  the example projects |
-| `@spell/examples/drawable-solitaire` | a project |
-| `@spell/examples/drawable-solitaire/Card.spell` | a file in it |
-| `@spell/examples/drawable-solitaire/assets/` | a folder in it:  the slash at the end says so |
+| `@spell/examples/Solitaire` | a project |
+| `@spell/examples/Solitaire/Solitaire.spell` | a file in it |
+| `@spell/examples/Solitaire/assets/` | a folder in it:  the slash at the end says so |
 | `owen@spell/hello` | a project in a person's own group |
 
 - A group belongs to a space:  `@spell/examples` to `@spell`, an organization;
@@ -97,7 +94,7 @@ The groups, and where each one's folder is:
 | `@spell/examples` | Examples | [spaces/@spell/examples/](spaces/@spell/examples/), committed | the five example apps ([README-examples.md](README-examples.md)) |
 | `@spell/library` | Libraries | [spaces/@spell/library/](spaces/@spell/library/), committed | projects other projects import:  cards, and people |
 | `@spell/guides` | Guides | none yet | nothing:  the editor's "New Guide" makes its folder, `spaces/@spell/guides/` |
-| `@spell/test` | Test fixtures, listed only in dev | spell-lang's [tests/spaces/@spell/test/](https://github.com/spell-app/spell-lang/tree/main/tests/spaces/@spell/test), frozen | the 12 projects spell-lang's tests compile and compare against snapshots |
+| `@spell/test` | Test fixtures, listed only in dev | [spaces/@spell/test/](spaces/@spell/test/), committed and frozen | the 12 projects the tests in [tests/spell/](tests/spell/) compile and compare against snapshots |
 
 - `spell projects` lists them, with how many projects each holds ([README-cli.md](https://github.com/spell-app/spell-kit/blob/main/README-cli.md#spell-app)).
 - A project in no group still runs:  `spell` makes up a group for it on the spot, `@local/<folder>`,
@@ -380,7 +377,7 @@ first, in a child process running the checkout's own `spell compile`, so the pag
 - As the page server starts, `spell compile --stale --all @spell/examples @spell/library` runs in the background,
   so the demo pages and App UI's live examples find their programs.
 - What it builds goes in spell-app's `build/` folder, mirroring each project's path, never committed:
-  `build/spaces/@spell/examples/drawable-solitaire/` holds that project's compiled program and its scope pack
+  `build/spaces/@spell/examples/Solitaire/` holds that project's compiled program and its scope pack
   (`.scopes.js`, what the Type Explorer reads).
 - A file already built is served as it is, even when its sources changed since:
   the startup compile and `spell compile --stale` are what catch those.
@@ -429,8 +426,7 @@ the table is [api.ts](src/spaces/server/node/routes/api.ts), and
 | Variable | What it sets | Default |
 | --- | --- | --- |
 | `SPELL_SPACES_DIR` | the spaces folder;  the page server's `--spaces <dir>` sets it too | `spell.spaces`, beside the main checkout |
-| `SPELL_BUILTINS_DIR` | the built-in projects' folder | spell-app's `spaces/` |
-| `SPELL_TESTS_DIR` | the frozen test projects' folder | spell-lang's `tests/spaces/` |
+| `SPELL_BUILTINS_DIR` | the built-in projects' folder, the frozen test projects' too | spell-app's `spaces/` |
 | `SPELL_BUILD_DIR` | where compiled output goes | spell-app's `build/` |
 | `SPELL_EDITOR_PORT` | the editor's port;  `spell app serve --port` sets it | 3000, else any free one |
 | `SPELL_NO_EDITOR` | `1`:  the page server doesn't start the editor | |
@@ -451,7 +447,7 @@ That's `spell_quart`, a [Quart](https://quart.palletsprojects.com/) app (Flask's
 in spaces' [Python folder](src/spaces/server/py/).
 
 ```sh
-spell run @spell/examples/outline-solitaire --target py
+spell run @spell/examples/Solitaire --target py
 ```
 
 1. It compiles the project to Python, on `spell_core` (spell-lang's Python runtime), into a temporary folder:

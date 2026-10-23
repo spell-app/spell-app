@@ -93,7 +93,7 @@ async function compileProject(
   // `--stdout`:  the target asked for, else the one that runs
   const printed = targets.find(({ name }) => name === target) ?? targets[0]!
   if (stdout) output.push(project.outputFileFor(printed).contents ?? "")
-  const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile, project.wordsFile]
+  const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile, ...project.wordsFiles]
   const wrote = stdout ? [] : files.map((file) => file.location.serverPath)
   // a CLEAN compile writes its scope pack too, as the language server does
   if (!stdout && !session.problems(project).length) {

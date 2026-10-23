@@ -8,7 +8,7 @@ import { Actions, AppMenu, MoreMenu, ProjectMenu, SpellPage, Submenu } from "spe
  * ### `<ProjectChooser>`
  * The landing page:  projects, examples and guides side by side, each with its list and a "create" button.
  * - In dev, also the test fixtures (`@spell/test`) -- open one to look at it, edit it, then
- *   `yarn test:fixtures:bless`.  No "create" for those:  copy a project into `tests/spaces/@spell/test/`.
+ *   `yarn spell:test:fixtures:bless`.  No "create" for those:  copy a project into `spaces/@spell/test/`.
  * - Every route the others don't take (`routes.tsx`).
  ****************/
 export function ProjectChooser() {

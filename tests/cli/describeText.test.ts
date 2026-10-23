@@ -6,31 +6,42 @@ import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 
 /**
- * `spell describe`'s text, for the Solitaire fixture -- colour is off, as vitest's output isn't a terminal.
+ * `spell describe`'s text, for the card library and the Solitaire fixture that imports it --
+ * colour is off, as vitest's output isn't a terminal.
  * - The tree comes from the real `ScopeExplorer`, as in `ScopeExplorer.test.ts`.
  */
-let tree: LSP.ScopeNode
-let options: CLI.DescribeTextOptions
+let cards: Described
+let solitaire: Described
+
+/** A project's scope tree, and how to describe what's in it. */
+type Described = { tree: LSP.ScopeNode; options: CLI.DescribeTextOptions }
 
 beforeAll(async () => {
+  cards = await describedProject("@spell/library/cards")
+  solitaire = await describedProject("@spell/test/solitaire")
+})
+
+/** Project `projectId` parsed, its tree, and options that describe it. */
+async function describedProject(projectId: string): Promise<Described> {
   const session = new CLI.CliSession()
-  const resolved = await CLI.resolveProject("@spell/test/solitaire")
+  const resolved = await CLI.resolveProject(projectId)
   if (resolved.kind !== "project") throw new Error("expected a project")
   await session.parse(resolved.project)
-  tree = session.explorer.tree(resolved.project)
-  options = {
+  const tree = session.explorer.tree(resolved.project)
+  const options = {
     width: 100,
-    detailsOf: (path) => session.explorer.details(resolved.project, path),
+    detailsOf: (path: string) => session.explorer.details(resolved.project, path),
     // just `file:line`, so the snapshots don't depend on the current folder
-    whereIs: (path) => {
+    whereIs: (path: string) => {
       const at = session.declaredAt(resolved.project, tree, path)
       return at && `${basename(fileURLToPath(at.uri))}:${at.line}`
     }
   }
-})
+  return { tree, options }
+}
 
-/** Node or member of the Solitaire project node named `path`, e.g. `["Card.spell", "Card"]`. */
-function find(...path: string[]): LSP.ScopeNode | LSP.ScopeMember {
+/** Node or member named `path` of `described`'s own project node, e.g. `["Card.spell", "Card"]`. */
+function find({ tree }: Described, ...path: string[]): LSP.ScopeNode | LSP.ScopeMember {
   let node: LSP.ScopeNode | LSP.ScopeMember = tree.children.at(-1)!
   for (const name of path) {
     const parent = node as LSP.ScopeNode
@@ -42,44 +53,45 @@ function find(...path: string[]): LSP.ScopeNode | LSP.ScopeMember {
 
 describe("describeOverview()", () => {
   test("a file:  each thing it declares, a type's members grouped", () => {
-    expect(CLI.describeOverview(find("Card.spell") as LSP.ScopeNode, options).join("\n")).toMatchSnapshot()
+    expect(CLI.describeOverview(find(cards, "Card.spell") as LSP.ScopeNode, cards.options).join("\n")).toMatchSnapshot()
   })
 
   test("an enumeration gathers only the constants its own statement made", () => {
-    const text = CLI.describeOverview(find("Card.spell") as LSP.ScopeNode, options).join("\n")
-    expect(text).toContain("Suits (clubs, diamonds, hearts, spades), black, red")
+    const text = CLI.describeOverview(find(cards, "Card.spell") as LSP.ScopeNode, cards.options).join("\n")
+    expect(text).toContain("Suits (clubs, diamonds, hearts, spades)")
   })
 
   test("wraps member lists to `width`, never mid-item", () => {
-    const lines = CLI.describeOverview(find("Card.spell") as LSP.ScopeNode, { ...options, width: 60 })
-    // descriptions aren't wrapped:  just lists, whose lines all hold commas
-    const listLines = lines.filter((line) => line.includes(","))
+    const lines = CLI.describeOverview(find(cards, "Card.spell") as LSP.ScopeNode, { ...cards.options, width: 60 })
+    // descriptions aren't wrapped:  just lists, each under its heading, e.g. `Actions`, then indented to it
+    const listLines = lines.filter((line) => /^ {4}(Properties|Actions|Constants) |^ {16}\S/.test(line))
     expect(Math.max(...listLines.map((line) => line.length))).toBeLessThanOrEqual(60)
-    for (const item of ["turn (a card) face down", "move (a card) to (a pile)", "Ranks (ace, jack, queen, king)"]) {
+    for (const item of ["turn it face down", "is the (rank) of (suits)", "short direction"]) {
       expect(listLines.some((line) => line.includes(item))).toBe(true)
     }
   })
 
   test("inherited members only when asked, with where from", () => {
-    const stock = find("Solitaire.spell", "StockPile") as LSP.ScopeNode
-    const file = { ...(find("Solitaire.spell") as LSP.ScopeNode), children: [stock] }
-    expect(CLI.describeOverview(file, options).join("\n")).not.toContain("(Pile)")
-    expect(CLI.describeOverview(file, { ...options, inherited: true }).join("\n")).toContain("color (Pile)")
+    const tableau = find(solitaire, "Solitaire.spell", "Tableau") as LSP.ScopeNode
+    const file = { ...(find(solitaire, "Solitaire.spell") as LSP.ScopeNode), children: [tableau] }
+    expect(CLI.describeOverview(file, solitaire.options).join("\n")).not.toContain("(Pile)")
+    expect(CLI.describeOverview(file, { ...solitaire.options, inherited: true }).join("\n")).toContain("color (Pile)")
   })
 })
 
 describe("describeThing()", () => {
   test("a type", () => {
-    expect(CLI.describeThing(find("Card.spell", "Card"), options).join("\n")).toMatchSnapshot()
+    expect(CLI.describeThing(find(cards, "Card.spell", "Card"), cards.options).join("\n")).toMatchSnapshot()
   })
 
   test("a property, with its compiled javascript", () => {
-    const text = CLI.describeThing(find("Card.spell", "Card", "color"), { ...options, compiled: true }).join("\n")
+    const color = find(cards, "Card.spell", "Card", "color")
+    const text = CLI.describeThing(color, { ...cards.options, compiled: true }).join("\n")
     expect(text).toMatchSnapshot()
   })
 
   test("a method lists the rule for calling it", () => {
-    const text = CLI.describeThing(find("Card.spell", "Card", "draw (a card)"), options).join("\n")
+    const text = CLI.describeThing(find(cards, "Card.spell", "Card", "draw it"), cards.options).join("\n")
     expect(text).toContain("Rules\n  draw  draw {thisArg:expression}")
   })
 })

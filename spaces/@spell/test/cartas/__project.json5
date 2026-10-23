@@ -1,0 +1,16 @@
+{
+  "imports": [
+    {
+      "path": "/Carta.es.spell",
+      "active": true
+    },
+    {
+      "path": "/Mazo.es.spell",
+      "active": true
+    },
+    {
+      "path": "/Pila.es.spell",
+      "active": true
+    }
+  ]
+}

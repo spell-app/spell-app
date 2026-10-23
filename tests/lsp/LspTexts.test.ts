@@ -5,12 +5,12 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 
 import { SP } from "spell-lang/spell"
-import { fixturePath } from "spell-lang/spell/test"
+import { fixturePath } from "spell-app/spaces/test"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
 
 /**
- * The language server's labels follow the PROJECT's language (epic `spanish` P13):
+ * The language server's labels follow the FILE's language, by its name (epic `spanish` P13, P19):
  * a Spanish program's hover and completion read Spanish, in any editor.
  * - Over a temp copy of spell's frozen Spanish project, `cartas`.
  */
@@ -24,15 +24,15 @@ describe("LSP.LspTexts", () => {
   describe("over a Spanish project", () => {
     const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-es-"))
     cpSync(fixturePath("cartas"), resolve(dir, "cartas"), { recursive: true })
-    const mazoUri = pathToFileURL(resolve(dir, "cartas/Mazo.spell")).href
+    const mazoUri = pathToFileURL(resolve(dir, "cartas/Mazo.es.spell")).href
     const workspace = new SpellDiskWorkspace()
     const service = new LSP.SpellLanguageService(workspace)
     let mazo: SP.SpellFile
 
     beforeAll(async () => {
-      await workspace.update(mazoUri, readFileSync(resolve(dir, "cartas/Mazo.spell"), "utf8"))
+      await workspace.update(mazoUri, readFileSync(resolve(dir, "cartas/Mazo.es.spell"), "utf8"))
       mazo = workspace.fileFor(mazoUri)!
-      expect(mazo.project.language.lang).toBe("es")
+      expect(mazo.language.lang).toBe("es")
     })
 
     test("a hover on a type says what it is, and where it's declared, in Spanish", () => {
@@ -40,7 +40,7 @@ describe("LSP.LspTexts", () => {
       const character = mazo.parseText.split("\n")[line]!.indexOf("cartas")
       const markdown = (service.hover(mazo, { line, character })!.contents as { value: string }).value
       expect(markdown).toMatch(/tipo \*\*Carta\*\*/)
-      expect(markdown).toContain("declarado en [Carta.spell:")
+      expect(markdown).toContain("declarado en [Carta.es.spell:")
       expect(markdown).not.toContain("declared in")
     })
 

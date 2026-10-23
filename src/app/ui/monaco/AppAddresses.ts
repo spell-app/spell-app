@@ -5,7 +5,7 @@ import type { LSP } from "spell-app/lsp"
 import type { monaco } from "./monaco"
 
 /**
- * How the app's Monaco editor addresses files:  `spell:/<file.path>`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell`.
+ * How the app's Monaco editor addresses files:  `spell:/<file.path>`, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell`.
  * - Every file the editor shows gets a model at this URI -- see `SpellModels`.
  * - Only files we already know:  `fileFor()` looks in `SpellFile.registry`, it never makes one.
  */

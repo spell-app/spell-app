@@ -1,3 +1,0 @@
-/* File styles.css:  the board's own styles.
-   Each pile styles itself, and the cards it draws:  Pile.spell's <css>.
-   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */

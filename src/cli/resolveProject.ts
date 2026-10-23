@@ -2,7 +2,7 @@
  * Turns a command-line argument into what it names:  a project, a `.spell` file, or a whole project root.
  * - Spell addresses (`SP.SpellLocation.isAddress()`, epic `people-and-orgs` P4):
  *   - `@spell/library/cards`, `owen@spell/errors`:  a project
- *   - `@spell/test/solitaire/Card.spell`:  a file in one
+ *   - `@spell/test/solitaire/Solitaire.spell`:  a file in one
  *   - `@spell/examples`, `owen@spell`:  a whole group;  `@spell`:  every group in that space
  * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:
  *   the command line's own word, not an address.
@@ -105,7 +105,7 @@ async function resolveLocation(arg: string, path: string): Promise<CLI.CliProjec
     throw new CLI.CliError(`No project '${location.projectId}' (looked in ${projectDir})`)
   if (location.isProjectPath) return { kind: "project", arg, project: new SP.SpellProject(location.projectId) }
 
-  if (location.extension !== ".spell") throw new CLI.CliError(`'${arg}' isn't a .spell file`)
+  if (!location.isSpellFile) throw new CLI.CliError(`'${arg}' isn't a .spell file`)
   if (!existsSync(location.serverPath)) throw new CLI.CliError(`No file '${arg}' (looked for ${location.serverPath})`)
   return { kind: "file", arg, file: new SP.SpellFile(location.path) }
 }

@@ -67,9 +67,8 @@ describe("buildFolderFor()", () => {
     )
   })
 
-  test("a frozen test project, in the `tests` space folder (spell-lang's):  under `build/spaces/`", () => {
-    const withTests = { ...folders, testsDir: "/spell-lang/tests/spaces" }
-    expect(projectUtils.buildFolderFor("/spell-lang/tests/spaces/@spell/test/Proj", withTests)).toBe(
+  test("a frozen test project, beside the built-in groups (`spaces/@spell/test/`):  the same path under `build/`", () => {
+    expect(projectUtils.buildFolderFor("/repo/packages/spaces/@spell/test/Proj", folders)).toBe(
       "/repo/build/spaces/@spell/test/Proj"
     )
   })
@@ -90,11 +89,11 @@ describe("buildFolderFor()", () => {
 describe("SpellLocation.serverPath, in this repo", () => {
   test("a built-in project's built file is in `build/`, at its path in the repo", () => {
     expect(environment.buildDir).toBe(resolve(environment.repoDir, "build"))
-    expect(new SP.SpellLocation("@spell/examples/drawable-solitaire/drawable-solitaire.spell.js").serverPath).toBe(
-      resolve(environment.buildDir, "spaces/@spell/examples/drawable-solitaire/drawable-solitaire.spell.js")
+    expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.spell.js").serverPath).toBe(
+      resolve(environment.buildDir, "spaces/@spell/examples/Solitaire/Solitaire.spell.js")
     )
-    expect(new SP.SpellLocation("@spell/examples/drawable-solitaire/drawable-solitaire.en.js").serverPath).toBe(
-      resolve(environment.systemFilesRoot, "examples/drawable-solitaire/drawable-solitaire.en.js")
+    expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.en.js").serverPath).toBe(
+      resolve(environment.systemFilesRoot, "examples/Solitaire/Solitaire.en.js")
     )
   })
 })

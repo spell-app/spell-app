@@ -9,22 +9,26 @@ import environment from "spell-app/spaces/server/node/environment"
 import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
-import { describeParseErrors, fixturePath, tsxBinary } from "spell-lang/spell/test"
+import { describeParseErrors, tsxBinary } from "spell-lang/spell/test"
+import { fixturePath } from "spell-app/spaces/test"
 
 /**
  * A project importing another, through `project.json` -- as `SpellProject` does it in the app.
- * - Solitaire split in two, in a temp `@local/<folder>` group:  `lib` (`Card`, `Deck`, `Pile`) and apps importing it.
+ * - Solitaire split in two, in a temp `@local/<folder>` group:  `lib`, a copy of the card library (`Card`, `Deck`,
+ *   `Pile`), and apps importing it, e.g. a copy of the Solitaire fixture's own file.
  * - Nothing is written into the repo.
  * - spaces' since epic `repo-split` C11 (spell-lang's `tests/spell/` before):  it loads projects through spaces'
  *   disk reader, which spell-lang's tests never import.
  */
 describe("SpellProject imports", () => {
   const solitaire = fixturePath("solitaire")
+  const cards = resolve(environment.systemFilesRoot, "library", "cards")
   const workspace = mkdtempSync(resolve(tmpdir(), "spell-imports-"))
   let root = ""
 
   /**
-   * Project `name` in the workspace:  `spellFiles` copied from Solitaire, then `imports` ahead of them.
+   * Project `name` in the workspace:  `spellFiles` copied from Solitaire (its own file) or the card library (the rest),
+   *   then `imports` ahead of them.
    * - Or written, if given `sources` for them.
    */
   function makeProject(
@@ -37,7 +41,7 @@ describe("SpellProject imports", () => {
     mkdirSync(dir)
     for (const file of spellFiles) {
       if (sources[file] !== undefined) writeFileSync(resolve(dir, file), sources[file])
-      else copyFileSync(resolve(solitaire, file), resolve(dir, file))
+      else copyFileSync(resolve(file === "Solitaire.spell" ? solitaire : cards, file), resolve(dir, file))
     }
     const { imports = [], ...rest } = json as { imports?: unknown[] }
     const files = spellFiles.map((file) => ({ path: `/${file}`, active: true }))
@@ -139,7 +143,7 @@ describe("SpellProject imports", () => {
     expect(declarations.version).toBe("1.2.0")
     expect(declarations.provides).toEqual(expect.arrayContaining(["Card", "Deck", "Pile"]))
     const compiled = readFileSync(resolve(workspace, "lib", `lib${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    expect(compiled).toContain("export class Card extends Thing {\n")
+    expect(compiled).toContain("export class Card extends Drawable {\n")
     expect(compiled).not.toContain("SPELL:")
   })
 
@@ -212,7 +216,7 @@ describe("SpellProject imports", () => {
     await app.compile()
     const compiled = readFileSync(resolve(workspace, "linked_app", `linked_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
     expect(compiled).toContain(`import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"`)
-    expect(compiled).toMatch(/import \{ Card, Deck, Pile[^}]* \} from "@spell\/project\/@local\/[^"]*\/lib"/)
+    expect(compiled).toMatch(/import \{ Card, [^}]*Deck, Pile[^}]* \} from "@spell\/project\/@local\/[^"]*\/lib"/)
 
     const run = runLinked(app, [libId])
     expect(run.stderr).not.toMatch(/Error/)
@@ -240,7 +244,9 @@ describe("SpellProject imports", () => {
     await app.compile()
     expect(errorsIn(app)).toEqual([])
     const compiled = readFileSync(resolve(workspace, "renamed_app", `renamed_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    expect(compiled).toMatch(/import \{ Card as Playingcard, Deck, Pile[^}]* \} from "@spell\/project\/[^"]*\/lib"/)
+    expect(compiled).toMatch(
+      /import \{ Card as Playingcard, [^}]*Deck, Pile[^}]* \} from "@spell\/project\/[^"]*\/lib"/
+    )
     // its class is still `Card` when the code runs
     expect(compiled).toContain('top.isOfType("Card")')
 

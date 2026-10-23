@@ -394,7 +394,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
 }
 
 /** The project file's settings a person edits:  what `saveSettings()` sends, and the server's route keeps. */
-export const PROJECT_SETTINGS = ["title", "version", "targets", "listsStartAt", "language"] as const
+export const PROJECT_SETTINGS = ["title", "version", "targets", "listsStartAt"] as const
 
 /** A project's settings, as Project Settings edits them:  each optional, `null` to remove it from the file. */
 export type ProjectSettings = {

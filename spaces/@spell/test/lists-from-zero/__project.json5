@@ -1,0 +1,14 @@
+{
+  "listsStartAt": 0,
+  "imports": [
+    {
+      "path": "@spell/library/cards",
+      "active": true,
+      "import": ["Card", "Deck"]
+    },
+    {
+      "path": "/Counting.spell",
+      "active": true
+    }
+  ]
+}

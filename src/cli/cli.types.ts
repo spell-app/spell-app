@@ -101,7 +101,7 @@ export type NewOptions = GlobalOptions & {
  * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
  * - `seed`:  start its random numbers from it, before it loads -- see `core.seedRandom()`.
  *   Left out:  random, as in a browser.
- * - `messages`:  what the core says, e.g. a test's lines, in the project's language (epic `spanish` P12):
+ * - `messages`:  what the core says, e.g. a test's lines, in the language the program speaks (epic `spanish` P12, P19):
  *   see `core.useMessages()`.
  *   Left out:  English.
  */

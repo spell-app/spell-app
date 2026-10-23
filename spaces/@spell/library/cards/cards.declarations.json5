@@ -4,105 +4,45 @@
   "provides": [
     "Card",
     "Joker",
+    "Suit",
+    "Rank",
+    "Color",
     "Deck",
     "Pile",
     "test_card_setup",
+    "test_jokers",
     "test_deck_creation",
-    "test_deck_with_jokers"
+    "test_deck_with_jokers",
+    "test_piles"
   ],
   "statements": [
     {
       "type": "Card",
-      "superType": "Thing",
-      "defined": "/Card.spell:69-86"
-    },
-    {
-      "property": "rank",
-      "classVariable": "Ranks",
-      "of": "Card",
-      "enumeration": [
-        "ace",
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        "jack",
-        "queen",
-        "king"
-      ],
-      "defined": "/Card.spell:125-205"
+      "superType": "Drawable",
+      "defined": "/Card.spell:260-3491"
     },
     {
       "property": "suit",
-      "classVariable": "Suits",
       "of": "Card",
-      "enumeration": [
-        "clubs",
-        "diamonds",
-        "hearts",
-        "spades"
-      ],
-      "defined": "/Card.spell:221-282"
+      "datatype": "Suit",
+      "defined": "/Card.spell:807-827"
+    },
+    {
+      "property": "rank",
+      "of": "Card",
+      "datatype": "Rank",
+      "defined": "/Card.spell:831-851"
     },
     {
       "property": "color",
       "of": "Card",
-      "constants": [
-        "red",
-        "black"
-      ],
-      "defined": "/Card.spell:315-404"
+      "defined": "/Card.spell:855-891"
     },
     {
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "defined": "/Card.spell:439-500"
-    },
-    {
-      "property": "direction",
-      "classVariable": "Directions",
-      "of": "Card",
-      "enumeration": [
-        "up",
-        "down"
-      ],
-      "defined": "/Card.spell:533-576"
-    },
-    {
-      "syntax": "{operator:is_or_is_not} face up",
-      "output": "is_face_up",
-      "rule": "method_postfix",
-      "of": "Card",
-      "kind": "method",
-      "name": "\"is face up\"",
-      "returns": "choice",
-      "defined": "/Card.spell:615-657"
-    },
-    {
-      "syntax": "{operator:is_or_is_not} face down",
-      "output": "is_face_down",
-      "rule": "method_postfix",
-      "of": "Card",
-      "kind": "method",
-      "name": "\"is face down\"",
-      "returns": "choice",
-      "defined": "/Card.spell:658-704"
-    },
-    {
-      "syntax": "{operator:is_or_is_not_a} face card",
-      "output": "is_a_face_card",
-      "rule": "method_postfix",
-      "of": "Card",
-      "kind": "method",
-      "name": "\"is a face card\"",
-      "returns": "choice",
-      "defined": "/Card.spell:730-795"
+      "defined": "/Card.spell:895-934"
     },
     {
       "syntax": "{operator:is_or_is_not_a} (expression:club|diamond|heart|spade)",
@@ -119,7 +59,7 @@
           "spades"
         ]
       },
-      "defined": "/Card.spell:837-871"
+      "defined": "/Card.spell:965-981"
     },
     {
       "syntax": "{operator:is_or_is_not_a} (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
@@ -145,7 +85,7 @@
           "king"
         ]
       },
-      "defined": "/Card.spell:913-947"
+      "defined": "/Card.spell:1044-1060"
     },
     {
       "syntax": "{operator:is_or_is_not} {definite_article} (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
@@ -177,89 +117,116 @@
           "spades"
         ]
       },
-      "defined": "/Card.spell:985-1046"
+      "defined": "/Card.spell:1123-1152"
+    },
+    {
+      "syntax": "{operator:is_or_is_not_a} face card",
+      "output": "is_a_face_card",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a face card\"",
+      "returns": "choice",
+      "defined": "/Card.spell:1214-1260"
+    },
+    {
+      "syntax": "{operator:is_or_is_not} the {expression:operand} joker",
+      "output": "is_the_$color_joker",
+      "rule": "method_infix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is the (color as a color) joker\"",
+      "params": [
+        {
+          "name": "color",
+          "datatype": "Color"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Card.spell:1264-1340"
+    },
+    {
+      "property": "direction",
+      "classVariable": "Directions",
+      "of": "Card",
+      "enumeration": [
+        "up",
+        "down"
+      ],
+      "defined": "/Card.spell:1386-1415"
+    },
+    {
+      "syntax": "{operator:is_or_is_not} face up",
+      "output": "is_face_up",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is face up\"",
+      "returns": "choice",
+      "defined": "/Card.spell:1419-1457"
+    },
+    {
+      "syntax": "{operator:is_or_is_not} face down",
+      "output": "is_face_down",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is face down\"",
+      "returns": "choice",
+      "defined": "/Card.spell:1461-1503"
     },
     {
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1085-1136"
+      "defined": "/Card.spell:1522-1565"
     },
     {
       "property": "short_suit",
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1138-1299"
+      "defined": "/Card.spell:1597-1639"
     },
     {
       "property": "short_rank",
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1301-1463"
+      "defined": "/Card.spell:1643-1789"
     },
     {
       "property": "short_direction",
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1465-1545"
+      "defined": "/Card.spell:1793-1863"
     },
     {
       "property": "short_name",
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1548-1608"
+      "defined": "/Card.spell:1867-1919"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1610-1687"
+      "defined": "/Card.spell:1923-1992"
     },
     {
-      "syntax": "turn {thisArg:expression} face up",
-      "output": "turn_face_up",
-      "rule": "method_call",
+      "property": "picture_column",
+      "asWritten": "picture column",
       "of": "Card",
-      "alias": [
-        "statement",
-        "expression"
-      ],
-      "kind": "method",
-      "name": "turn a card face up",
-      "waits": true,
-      "defined": "/Card.spell:1806-1874"
+      "datatype": "number",
+      "defined": "/Card.spell:2405-2524"
     },
     {
-      "syntax": "turn {thisArg:expression} face down",
-      "output": "turn_face_down",
-      "rule": "method_call",
+      "property": "picture",
       "of": "Card",
-      "alias": [
-        "statement",
-        "expression"
-      ],
-      "kind": "method",
-      "name": "turn a card face down",
-      "waits": true,
-      "defined": "/Card.spell:1875-1947"
-    },
-    {
-      "syntax": "turn {thisArg:expression} over",
-      "output": "turn_over",
-      "rule": "method_call",
-      "of": "Card",
-      "alias": [
-        "statement",
-        "expression"
-      ],
-      "kind": "method",
-      "name": "turn a card over",
-      "waits": true,
-      "defined": "/Card.spell:2055-2165"
+      "datatype": "text",
+      "defined": "/Card.spell:2528-2756"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -271,51 +238,153 @@
         "expression"
       ],
       "kind": "method",
-      "name": "draw a card",
-      "defined": "/Card.spell:2167-2641"
+      "name": "draw it",
+      "defined": "/Card.spell:2833-3149"
     },
     {
-      "syntax": "{operator:is_or_is_not} the {expression:operand} joker",
-      "output": "is_the_$color_joker",
-      "rule": "method_infix",
+      "syntax": "turn {thisArg:expression} face up",
+      "output": "turn_face_up",
+      "rule": "method_call",
       "of": "Card",
-      "kind": "method",
-      "name": "\"is the (color) joker\"",
-      "params": [
-        {
-          "name": "color"
-        }
+      "alias": [
+        "statement",
+        "expression"
       ],
-      "returns": "choice",
-      "defined": "/Card.spell:3110-3179"
+      "kind": "method",
+      "name": "turn it face up",
+      "waits": true,
+      "defined": "/Card.spell:3246-3311"
+    },
+    {
+      "syntax": "turn {thisArg:expression} face down",
+      "output": "turn_face_down",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn it face down",
+      "waits": true,
+      "defined": "/Card.spell:3315-3384"
+    },
+    {
+      "syntax": "turn {thisArg:expression} over",
+      "output": "turn_over",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn it over",
+      "waits": true,
+      "defined": "/Card.spell:3388-3491"
     },
     {
       "type": "Joker",
       "superType": "Card",
-      "defined": "/Card.spell:2725-2742"
+      "defined": "/Card.spell:3577-3932"
     },
     {
       "property": "color",
-      "classVariable": "Colors",
       "of": "Joker",
-      "enumeration": [
-        "red",
-        "black"
-      ],
-      "defined": "/Card.spell:2835-2877"
+      "datatype": "Color",
+      "defined": "/Card.spell:3674-3696"
     },
     {
       "property": "name",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:2918-2962"
+      "defined": "/Card.spell:3700-3735"
     },
     {
       "property": "short_name",
       "asWritten": "short name",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:2964-2998"
+      "defined": "/Card.spell:3769-3793"
+    },
+    {
+      "property": "state",
+      "of": "Joker",
+      "datatype": "text",
+      "defined": "/Card.spell:3797-3849"
+    },
+    {
+      "property": "picture",
+      "of": "Joker",
+      "datatype": "text",
+      "defined": "/Card.spell:3853-3932"
+    },
+    {
+      "type": "Suit",
+      "classVariable": "Suits",
+      "of": "Card",
+      "enumeration": [
+        "clubs",
+        "diamonds",
+        "hearts",
+        "spades"
+      ],
+      "defined": "/Card.spell:361-412"
+    },
+    {
+      "property": "color",
+      "of": "Suit",
+      "readAs": "Suit.color({it})",
+      "defined": "/Card.spell:508-585"
+    },
+    {
+      "property": "symbol",
+      "of": "Suit",
+      "datatype": "text",
+      "readAs": "Suit.symbol({it})",
+      "defined": "/Card.spell:589-724"
+    },
+    {
+      "type": "Rank",
+      "classVariable": "Ranks",
+      "of": "Card",
+      "enumeration": [
+        "ace",
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        "jack",
+        "queen",
+        "king"
+      ],
+      "defined": "/Card.spell:416-468"
+    },
+    {
+      "syntax": "{operator:is_or_is_not_a} face card",
+      "output": "is_a_face_card",
+      "rule": "method_postfix",
+      "of": "Rank",
+      "kind": "method",
+      "name": "\"is a face card\"",
+      "returns": "choice",
+      "staticOf": "Rank",
+      "defined": "/Card.spell:728-780"
+    },
+    {
+      "type": "Color",
+      "classVariable": "Colors",
+      "of": "Card",
+      "enumeration": [
+        "red",
+        "black"
+      ],
+      "defined": "/Card.spell:472-503"
     },
     {
       "syntax": "test card setup",
@@ -324,24 +393,32 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spell:3231-5011"
+      "defined": "/Card.spell:3944-5295"
+    },
+    {
+      "syntax": "test jokers",
+      "output": "test_jokers",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "jokers",
+      "defined": "/Card.spell:5297-6014"
     },
     {
       "type": "Deck",
       "superType": "List",
       "itemType": "Card",
-      "defined": "/Deck.spell:88-113"
+      "defined": "/Deck.spell:174-949"
     },
     {
-      "property": "with_jokers",
-      "asWritten": "with jokers",
+      "property": "jokers",
       "of": "Deck",
       "datatype": "choice",
-      "defined": "/Deck.spell:208-243"
+      "defined": "/Deck.spell:258-283"
     },
     {
-      "syntax": "set up {thisArg:expression}",
-      "output": "set_up",
+      "syntax": "create {thisArg:expression}",
+      "output": "create",
       "rule": "method_call",
       "of": "Deck",
       "alias": [
@@ -349,9 +426,8 @@
         "expression"
       ],
       "kind": "method",
-      "name": "set up a deck",
-      "returns": "nothing",
-      "defined": "/Deck.spell:245-614"
+      "name": "create it",
+      "defined": "/Deck.spell:383-739"
     },
     {
       "syntax": "display {thisArg:expression}",
@@ -363,16 +439,8 @@
         "expression"
       ],
       "kind": "method",
-      "name": "display a deck",
-      "defined": "/Deck.spell:616-765"
-    },
-    {
-      "property": "is_set_up",
-      "asWritten": "is-set-up",
-      "of": "Deck",
-      "datatype": "choice",
-      "autoDeclared": true,
-      "defined": "/Deck.spell:578-614"
+      "name": "display it",
+      "defined": "/Deck.spell:791-949"
     },
     {
       "syntax": "test deck creation",
@@ -381,7 +449,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "deck creation",
-      "defined": "/Deck.spell:767-1417"
+      "defined": "/Deck.spell:961-1599"
     },
     {
       "syntax": "test deck with jokers",
@@ -390,86 +458,106 @@
       "alias": "statement",
       "kind": "function",
       "name": "deck with jokers",
-      "defined": "/Deck.spell:1438-1822"
+      "defined": "/Deck.spell:1601-2046"
     },
     {
       "type": "Pile",
-      "superType": "List",
+      "superType": "DrawableList",
       "itemType": "Card",
-      "defined": "/Pile.spell:25-50"
+      "defined": "/Pile.spell:250-803"
     },
     {
       "property": "name",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:144-169"
+      "defined": "/Pile.spell:338-356"
     },
     {
       "property": "color",
       "of": "Pile",
-      "defined": "/Pile.spell:284-372"
+      "defined": "/Pile.spell:430-508"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "defined": "/Pile.spell:374-457"
+      "defined": "/Pile.spell:512-585"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:459-623"
+      "defined": "/Pile.spell:651-803"
     },
     {
       "property": "pile",
       "of": "Card",
       "datatype": "Pile",
       "exclusive": true,
-      "defined": "/Pile.spell:256-282"
+      "defined": "/Pile.spell:891-917"
+    },
+    {
+      "syntax": "test piles",
+      "output": "test_piles",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "piles",
+      "defined": "/Pile.spell:929-1686"
     }
   ],
   "codeLines": [
-    4,
-    9,
-    16,
-    23,
+    10,
+    14,
+    19,
+    24,
     29,
     34,
+    39,
     44,
     48,
-    53,
-    58,
+    52,
+    57,
     63,
-    68,
-    73,
+    67,
+    72,
     77,
-    85,
-    91,
+    81,
+    87,
+    92,
     96,
-    100,
-    110,
+    109,
     115,
-    124,
-    130,
-    144,
-    155,
-    157,
-    164,
-    168,
-    175,
-    245,
-    249,
-    254,
-    269,
-    275,
-    281,
-    314,
-    332,
-    336,
-    341,
-    346,
-    351,
-    360
+    123,
+    141,
+    146,
+    151,
+    172,
+    176,
+    182,
+    186,
+    190,
+    194,
+    201,
+    202,
+    207,
+    215,
+    216,
+    220,
+    224,
+    284,
+    321,
+    325,
+    331,
+    343,
+    352,
+    377,
+    400,
+    405,
+    411,
+    416,
+    422,
+    432,
+    435
   ]
 }

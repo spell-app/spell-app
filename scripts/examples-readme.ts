@@ -3,7 +3,7 @@
  * [README-examples.md](../README-examples.md) true to the example projects themselves.
  * - Reads every project of the `@spell/examples` and `@spell/library` groups (`spaces/@spell/<group>/<project>/`).
  *   - What each shows:  its project file's `description`, else the first comment of its first spell file.
- *   - Its name:  its project file's `title`, else its folder's name, `outline-solitaire` => `Outline Solitaire`.
+ *   - Its name:  its project file's `title`, else its folder's name, `todos-form-based` => `Todos Form Based`.
  * - Takes a picture of each example open in the editor, its spell beside it running, into `docs/images/examples/`.
  *   - Headless Playwright, at the address the kit's editor answers on (`.spell-server.editor.json`, at the page
  *     server's root, the kit's):
@@ -49,7 +49,7 @@ const GROUPS = [
  * The examples in the order a newcomer should open them;  one not listed comes after these, by name.
  * - Add a new example here where it fits.
  */
-const LEARNING_ORDER = ["fizzbuzz", "calculator", "todos-form-based", "outline-solitaire", "drawable-solitaire"]
+const LEARNING_ORDER = ["fizzbuzz", "calculator", "todos-form-based", "Solitaire", "Solitario"]
 
 /** The comments the table sits between. */
 const START = "<!-- examples:start -->"
@@ -134,7 +134,7 @@ function projectFor(group: string, name: string, hasPicture: boolean): Project {
 /** The parts of a project file this reads (spaces' `ProjectFileJSON` has them all). */
 type ProjectFile = { title?: string; description?: string; imports?: { path: string }[] }
 
-/** A folder's name as a title, as the editor makes it:  `outline-solitaire` => `Outline Solitaire`. */
+/** A folder's name as a title, as the editor makes it:  `todos-form-based` => `Todos Form Based`. */
 function titleFor(name: string): string {
   return name.replace(/(^|-)(\w)/g, (_match, dash: string, letter: string) => (dash ? " " : "") + letter.toUpperCase())
 }

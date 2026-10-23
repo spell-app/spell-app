@@ -9,7 +9,7 @@ import { TypeExplorer } from "spell-app/app/solid/TypeExplorer"
 import { ThingExplorer } from "spell-app/app/solid/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { fetchJSON, fetchText } from "./fetchFresh"
-import { mergedWords, wordsAt } from "./words"
+import { languagesOf, mergedWords, wordsAt, wordsOfLanguages } from "./words"
 import {
   loadScopePack,
   scopesFromPacks,
@@ -305,7 +305,7 @@ export type SpellAppRunnerProps = {
   runtimeUrl: string
   /** URL of the built-in types' scope pack, `core.scopes.js`. */
   builtInsUrl: string
-  /** A Type Explorer link clicked, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell#L12`. */
+  /** A Type Explorer link clicked, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`. */
   onOpen: (href: string) => void
   /** Hand over what the element can do to us, e.g. `restart()` -- every render. */
   onControls?: (controls: SpellAppControls) => void
@@ -341,14 +341,15 @@ export type SpellAppSource = {
   importDeclarationsUrl?: (projectId: string) => string
   /**
    * URL of its words, `<Project>.en.js`, if it may have them:  the Thing Explorer's labels -- see `SP.SpellWords`.
-   * - `{lang}` in it is the project's language, from its declarations:  `<Project>.{lang}.js` => `Solitario.es.js`.
+   * - `{lang}` in it is each language its files are in, from its declarations:
+   *   `<Project>.{lang}.js` => `Solitario.es.js`, and `Solitario.en.js` too for a project mixing them (epic `spanish` P19).
    */
   wordsUrl?: string
   /** Its words, in memory -- used instead of loading `wordsUrl`, e.g. fresh from an editor. */
   words?: SP.SpellWordsData
   /** URL of the words of project `projectId`, which it imports -- if it may have them;  `{lang}` as in `wordsUrl`. */
   importWordsUrl?: (projectId: string) => string
-  /** URL of spell file `uri`, e.g. `spell:/@spell/examples/drawable-solitaire/Card.spell` -- if its sources can be had. */
+  /** URL of spell file `uri`, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell` -- if its sources can be had. */
   sourceUrl?: (uri: string) => string
 }
 
@@ -504,13 +505,13 @@ async function loadScopes(
 }
 
 /**
- * `source`'s own words:  `source.words` if set, else loaded from `source.wordsUrl`, in its language.
+ * `source`'s own words:  `source.words` if set, else loaded from `source.wordsUrl`, in each of its languages.
  * - `undefined` if it has none.
  * - NEVER throws:  words are optional, as a scope pack is.
  */
 async function ownWords(source: SpellAppSource): Promise<SP.SpellWordsData | undefined> {
   const ownDeclarations = async () => source.declarations ?? fetchJSON<CompiledDeclarations>(source.declarationsUrl)
-  return source.words ?? wordsAt(await inLanguage(source.wordsUrl, ownDeclarations))
+  return source.words ?? wordsInLanguages(source.wordsUrl, ownDeclarations)
 }
 
 /**
@@ -525,30 +526,30 @@ async function loadWords(
 ): Promise<SP.SpellWordsData | undefined> {
   const { importWordsUrl, importDeclarationsUrl } = source
   const imported = await Promise.all(
-    importIds.map(async (id) =>
-      wordsAt(await inLanguage(importWordsUrl?.(id), () => fetchJSON(importDeclarationsUrl?.(id))))
-    )
+    importIds.map((id) => wordsInLanguages(importWordsUrl?.(id), () => fetchJSON(importDeclarationsUrl?.(id))))
   )
   return mergedWords([own, ...imported])
 }
 
 /**
- * `url` with `{lang}` filled in:  the language its project's declarations name, English (`en`) if none.
+ * The words at `url`, with `{lang}` filled in with each language its project's declarations name, as one:
+ * the one its program speaks first, whose `messages` they keep -- English (`en`) alone if they name none.
+ * - A project mixing languages has a words file in each (epic `spanish` P19):  `wordsOfLanguages()` joins them.
  * - Declarations are read only when the URL asks for a language.
  * - NEVER throws:  no declarations, English.
  */
-async function inLanguage(
+async function wordsInLanguages(
   url: string | undefined,
   declarations: () => Promise<CompiledDeclarations | undefined>
-): Promise<string | undefined> {
-  if (!url?.includes(LANG)) return url
-  const language = await declarations()
-    .then((it) => it?.language)
-    .catch(() => undefined)
-  return url.replace(LANG, language ?? "en")
+): Promise<SP.SpellWordsData | undefined> {
+  if (!url?.includes(LANG)) return wordsAt(url)
+  const languages = await declarations()
+    .then((it) => languagesOf(it))
+    .catch(() => languagesOf(undefined))
+  return wordsOfLanguages(await Promise.all(languages.map((lang) => wordsAt(url.replace(LANG, lang)))))
 }
 
-/** Where a words file's URL takes its project's language:  `<Project>.{lang}.js`. */
+/** Where a words file's URL takes each of its project's languages:  `<Project>.{lang}.js`. */
 const LANG = "{lang}"
 
 ////////////////

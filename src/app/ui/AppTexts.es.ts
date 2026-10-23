@@ -117,7 +117,7 @@ const APP_TEXTS_ES: AppTextPack = {
   "theType.fixture": "el proyecto de prueba",
   "title.fixture": "Proyectos de prueba",
   "description.fixture":
-    "Proyectos congelados contra los que corren las pruebas:  edita uno, y luego `yarn test:fixtures:bless`",
+    "Proyectos congelados contra los que corren las pruebas:  edita uno, y luego `yarn spell:test:fixtures:bless`",
 
   ////////////////
   // ## Notices and errors
@@ -237,9 +237,7 @@ const APP_TEXTS_ES: AppTextPack = {
   targetsLabel: "También compila a",
   targetsTip: "Lenguajes a los que compila además de JavaScript, al que compila siempre.",
   listsStartAtLabel: "Las listas empiezan en",
-  listsStartAtTip: "Dónde empiezan a contar sus listas:  en 1, como spell, o en 0, como JavaScript y Python.",
-  languageLabel: "Escrito en",
-  languageTip: "El idioma en que está escrito su spell:  sus reglas, y las palabras que muestra su Explorador de cosas."
+  listsStartAtTip: "Dónde empiezan a contar sus listas:  en 1, como spell, o en 0, como JavaScript y Python."
 }
 
 /** Everything Spanish the app shows:  its own texts, then each web component's. */

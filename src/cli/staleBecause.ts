@@ -30,7 +30,7 @@ export async function staleBecause(project: SP.SpellProject): Promise<string | u
   const built = [
     ...project.targets.map((target) => project.outputFileFor(target)),
     project.declarationsFile,
-    project.wordsFile
+    ...project.wordsFiles
   ].map((file) => file.location.serverPath)
   const missing = built.find((path) => !modifiedAt(path))
   if (missing) return `no ${basename(missing)}`

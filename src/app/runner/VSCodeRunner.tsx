@@ -11,7 +11,7 @@ import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
-import { wordsIn } from "./words"
+import { wordsIn, wordsOfLanguages } from "./words"
 
 import "spell-app/app/solid/AppContainer.css"
 import "./VSCodeRunner.css"
@@ -145,8 +145,9 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
       else toRun = data.compiled
     } else if (data?.type === "words") {
       const sent = ++wordsSent
-      void (data.words === undefined ? Promise.resolve(undefined) : wordsIn(data.words)).then((loaded) => {
-        if (sent === wordsSent) setWords(loaded)
+      // a words file per language its files are in:  as one
+      void Promise.all((data.words ?? []).map(wordsIn)).then((loaded) => {
+        if (sent === wordsSent) setWords(wordsOfLanguages(loaded))
       })
     } else if (data?.type === "scopes") setTree(data.tree)
     else if (data?.type === "settings") setSettings(data.settings)

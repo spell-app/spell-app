@@ -2,51 +2,141 @@
 
 exports[`describeOverview() > a file:  each thing it declares, a type's members grouped 1`] = `
 "Card.spell
-  type Card  is a Thing
-    definition of a Card with nice english aliases for working with it
-    Properties  rank, suit, color, value, direction, name, short-suit, short-rank, short-direction,
-                short-name, state, pile
-    Actions     is face up, is face down, is a face card, is a (suit), is a (rank),
-                is the (rank) of (suits), turn (a card) face up, turn (a card) face down,
-                turn (a card) over, draw (a card), move (a card) to (a pile), play (a card)
-    Constants   Ranks (ace, jack, queen, king), Suits (clubs, diamonds, hearts, spades), black, red,
-                Directions (up, down)
-  function test card setup"
+  type Card  is a Drawable
+    The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
+    Properties  suit, rank, color, value, direction, name, short suit, short rank, short direction,
+                short name, state, picture column, picture, pile
+    Actions     is a (suit), is a (rank), is the (rank) of (suits), is a face card,
+                is the (color as a color) joker, is face up, is face down, draw it, turn it face up,
+                turn it face down, turn it over
+    Constants   Suits (clubs, diamonds, hearts, spades), Ranks (ace, jack, queen, king),
+                Colors (red, black), Directions (up, down)
+  type Suit
+    Properties  color, symbol
+  type Rank
+    Actions     is a face card
+  type Color
+  type Joker  is a Card
+    A joker:  a wild card with no rank or suit -- there's a red one and a black one
+    Properties  color, name, short name, state, picture
+  function test card setup
+  function test jokers"
 `;
 
 exports[`describeThing() > a property, with its compiled javascript 1`] = `
 "property color of Card
-Card.spell:12
-
-color as derivation of suit
+Card.spell:25
 
 Spell
-  the color of a card is red if its suit is either diamonds or hearts otherwise it is black
+    - its "color" is the color of its suit
 
 Compiled
   Object.defineProperty(Card.prototype, "color", {
     get() {
-      if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
-      return "black"
+      return Suit.color(this.suit)
     },
     configurable: true
   })"
 `;
 
 exports[`describeThing() > a type 1`] = `
-"type Card is a Thing
-Card.spell:2
+"type Card is a Drawable
+Card.spell:4
 
-definition of a Card with nice english aliases for working with it
+The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
+A drawable thing:  each card is its own element on the page, e.g. <cards-card>.
 
-Properties  rank, suit, color, value, direction, name, short-suit, short-rank, short-direction,
-            short-name, state, pile
-Actions     is face up, is face down, is a face card, is a (suit), is a (rank),
-            is the (rank) of (suits), turn (a card) face up, turn (a card) face down,
-            turn (a card) over, draw (a card), move (a card) to (a pile), play (a card)
-Constants   Ranks (ace, jack, queen, king), Suits (clubs, diamonds, hearts, spades), black, red,
-            Directions (up, down)
+Properties  suit, rank, color, value, direction, name, short suit, short rank, short direction,
+            short name, state, picture column, picture, pile
+Actions     is a (suit), is a (rank), is the (rank) of (suits), is a face card,
+            is the (color as a color) joker, is face up, is face down, draw it, turn it face up,
+            turn it face down, turn it over
+Constants   Suits (clubs, diamonds, hearts, spades), Ranks (ace, jack, queen, king),
+            Colors (red, black), Directions (up, down)
 
 Spell
-  a card is a thing"
+  a "card" is a drawable thing where:
+  
+    ## suits, ranks and colors:  the card's own kinds of values
+    - "suits" as one of clubs, diamonds, hearts or spades
+    - "ranks" as one of ace, 2 ... 10, jack, queen or king
+    - "colors" as one of red or black
+  
+    - the "color" of a suit is:
+      red if it is diamonds or hearts
+      black otherwise
+    - the "symbol" of a suit is:
+      "♣️" if it is clubs
+      "♦️" if it is diamonds
+      "♥️" if it is hearts
+      "♠️" if it is spades
+      "?" otherwise
+    - a rank "is a face card" if it is jack, queen or king
+  
+    ## its suit and rank
+    - its "suit" is a suit
+    - its "rank" is a rank
+    - its "color" is the color of its suit
+    - its "value" is the position of its rank      // ace 1 ... king 13
+  
+    - it "is a (suit)"                              // e.g. "the card is a spade"
+    - it "is a (rank)"                              // e.g. "the card is a queen"
+    - it "is the (rank) of (suits)"                 // e.g. "the card is the queen of spades"
+    - it "is a face card" if its rank is a face card
+    - it "is the (color as a color) joker" if it is a joker and its color is color
+  
+    ## its direction:  face up or face down
+    - its "direction" is up or down
+    - it "is face up" if its direction is up
+    - it "is face down" if its direction is down
+  
+    ## its names
+    - its "name" is: its rank + "-of-" + its suit   // e.g. "queen-of-spades"
+    - its "short suit" is the symbol of its suit
+    - its "short rank" is:
+      "?" if its rank is nothing
+      "" + its rank if its rank is a number
+      the first character of its rank as uppercase otherwise
+    - its "short direction" is:
+      "+" if its direction is up
+      "—" otherwise
+    - its "short name" is: its short rank + its short suit
+    - its "state" is: its short rank + its short suit + its short direction
+  
+    ## its picture:  a character of unicode's Playing Cards
+    // SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
+    // The block is a grid:  a row for each suit, and in each row, a column for each rank.
+    // - The rows start at 1F0A0 (spades), 1F0B0 (hearts), 1F0C0 (diamonds) and 1F0D0 (clubs).
+    // - The columns run ace 1, 2 ... 10, jack B, then a knight our deck doesn't have, C, then queen D and king E.
+    - its "picture column" is:
+      its value + 1 if it is a queen or it is a king      // past the knight
+      its value otherwise
+    - its "picture" is:
+      unicode 1F0A0 + its picture column if it is a spade
+      unicode 1F0B0 + its picture column if it is a heart
+      unicode 1F0C0 + its picture column if it is a diamond
+      unicode 1F0D0 + its picture column otherwise
+  
+    ## drawing:  its picture face up, the back every card shares face down
+    - to draw it:
+      if it is face down
+        return <ui-text class="Card" size="massive" color="blue" onClick={fire event card click with card = it}>
+          {unicode 1F0A0}
+        </ui-text>
+      return <ui-text class="Card" size="massive" color={its color} onClick={fire event card click with card = it}>
+        {its picture}
+      </ui-text>
+  
+    ## turning it over
+    // each pauses a moment, so \`wait for: turn the card face up\` animates
+    - to turn it face up:
+      set its direction to up
+      pause for 50 msec
+    - to turn it face down:
+      set its direction to down
+      pause for 50 msec
+    - to turn it over:
+      if it is face up: turn it face down
+      otherwise: turn it face up
+      pause for 50 msec"
 `;

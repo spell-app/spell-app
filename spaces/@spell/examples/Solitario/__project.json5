@@ -1,0 +1,26 @@
+{
+  "title": "Solitario",
+  "description": "Solitaire's Spanish twin:  Klondike in the outline style, in Spanish, on its own Spanish cards (`Carta`, `Mazo`, `Pila`) rather than the cards library",
+  "imports": [
+    {
+      "path": "/Carta.es.spell",
+      "active": true
+    },
+    {
+      "path": "/Mazo.es.spell",
+      "active": true
+    },
+    {
+      "path": "/Pila.es.spell",
+      "active": true
+    },
+    {
+      "path": "/Solitario.es.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

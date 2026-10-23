@@ -40,7 +40,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - TypeScript, found by vitest (the root's `vitest.config.ts`, its `spaces` project):
     - [api.ts](server/node/routes/api.ts) => [api.test.ts](../../tests/spaces/server/node/routes/api.test.ts)
   - Python:  [the Python server's tests](../../tests/spaces/server/py/tests/), found by its pytest (`testpaths`)
-  - And the test projects:  `tests/spaces/@spell/test/` (see "Projects" below)
+  - The frozen test projects themselves are beside the built-ins, `spaces/@spell/test/` (see "Projects" below);
+    the tests that compile them whole are the repo's `tests/spell/` (the `spell` project), not ours.
+- [test/](test/index.ts), node only:  the test helpers for the frozen test projects, `spell-app/spaces/test`
+  - `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`, `compiledFixture()` ...
+  - Imported by tests only, by name, never from the barrel.
+  - Inline projects are spell-lang's helpers', `spell-lang/spell/test` (`parseSpellProject()`).
 - The repo's checks (its root `package.json`'s scripts) cover both:
   - the TypeScript:  tsc, oxlint / oxfmt and vitest
   - then `spell_quart`:  ruff and pytest, through uv
@@ -59,7 +64,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | Group | Folder |
   | --- | --- |
   | `@spell/examples`, `@spell/library`, `@spell/guides` | `spaces/@spell/<group>/`, committed |
-  | `@spell/test` | spell-lang's `tests/spaces/@spell/test/`, committed and frozen (epic `repo-split` C11) |
+  | `@spell/test` | `spaces/@spell/test/`, committed and frozen (spell-lang's `tests/spaces/` until epic `spanish` P18) |
   | `owen@spell` | spell.spaces' `@spell/owen@/`, outside git |
 
   - spell.spaces:  `<main checkout>/../spell.spaces`, in the kit `spell-kit`:  ONE folder for main and every worktree.
@@ -67,16 +72,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`:  who this machine's person is, until a machine can have more than one person.
-  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39).
-    - e.g. `@spell/examples/drawable-solitaire`
-    - a file in it:  its name, which has a dot (Q41), e.g. `@spell/examples/drawable-solitaire/Card.spell`
+  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39) --
+    or as titled, as `Solitaire` and `Solitaire`'s Spanish twin `Solitario` are (Owen, epic `spanish` P11).
+    - e.g. `@spell/examples/Solitaire`
+    - a file in it:  its name, which has a dot (Q41), e.g. `@spell/examples/Solitaire/Solitaire.spell`
   - A `@local/<folder>` group, added at runtime for a folder an editor opened, says its own folder (`serverPath`).
 - Where the folders are:  [environment.ts](server/node/environment.ts).
 
   | Name | Folder | Tests set it with |
   | --- | --- | --- |
-  | `spaceFolders.builtins` | `spaces/` | `SPELL_BUILTINS_DIR` |
-  | `spaceFolders.tests`, `testsDir` | spell-lang's `tests/spaces/`, through the installed `spell-lang/spell` | `SPELL_TESTS_DIR` |
+  | `spaceFolders.builtins` | `spaces/`:  the built-in groups and the test projects, `testFilesRoot` | `SPELL_BUILTINS_DIR` |
   | `spaceFolders.spaces`, `spellSpacesDir` | spell.spaces, `../spell.spaces` beside the main checkout | `SPELL_SPACES_DIR` |
   | `buildDir` | `build/` at the repo root | `SPELL_BUILD_DIR` |
   | `repoDir`, `packagesDir` | this checkout's root (its folders are there) | |
@@ -100,9 +105,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
   | Source | Built into | e.g. |
   | --- | --- | --- |
-  | the frozen test projects' `X` (spell-lang's `tests/spaces/X`) | `build/spaces/X` | `build/spaces/@spell/test/fizzbuzz/` |
   | this repo's `tests/X` | `build/X` | |
-  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/drawable-solitaire/` |
+  | this repo's `X` | `build/X` | `build/spaces/@spell/examples/Solitaire/`, `build/spaces/@spell/test/fizzbuzz/` |
   | spell.spaces' `X` | `build/spell-spaces/X` | `build/spell-spaces/@spell/owen@/errors/` |
   | anywhere else | beside the source | |
 
@@ -111,7 +115,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - a group's projects:  `SPACES.SpellProjectRoot`
   - a project's files:  `new SPACES.ProjectFiles(project)`, to create, duplicate, rename and delete them
   - `SpellProject` itself only reads, compiles and saves (decision Q20).
-- Lint and format leave the projects alone:  `spaces/@spell` (and spell-lang's `tests/spaces/@spell`).
+- Lint and format leave the projects alone:  `spaces/@spell`, the test projects among them.
   - Their ignore list is in the toolchain's [lint.ts](../../../src/toolchain/lint.ts).
 
 ## People
@@ -153,7 +157,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Its handlers are our [project-utils.ts](server/node/projects/project-utils.ts)'s.
   - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
     [SpellUrls.ts](../../../spell-lang/src/spell/SpellUrls.ts)):
-    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/drawable-solitaire/Card.spell`
+    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell`
     - and SAVED by `POST /api/projects/file/<project>/<file>`
     - a project's index:  `/api/projects/index/<project>`
     - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
@@ -226,7 +230,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     So `<spell-app>` can load it by path, `spell-app/spaces/models/projectGroups`, without the parser.
 - NEVER the app, lsp or cli folders:  they import it.
 - `spell` NEVER imports it.
-- NOT in the barrel (WWOD §8 › "Barrels"):  everything under `server/`.
+- NOT in the barrel (WWOD §8 › "Barrels"):  everything under `server/`, and `test/`.
   - [cli.ts](server/node/routes/cli.ts) and [appRoutes.ts](server/node/routes/appRoutes.ts)
     start servers or load spell's version first:  import neither from a barrel.
 

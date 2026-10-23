@@ -25,7 +25,7 @@ const EDITOR = (JSON.parse(readFileSync(path.join(APP, "..", ".spell-server.edit
   .url
 
 /** The project the pictures show. */
-const PROJECT = "edit/@spell/examples/drawable-solitaire"
+const PROJECT = "edit/@spell/examples/Solitaire"
 
 /** The window the pictures are taken in. */
 const WINDOW = { width: 1280, height: 800 }

@@ -14,7 +14,7 @@
  *   - saved by `POST /api/projects/file/<project>/<file>`
  * - SIDE EFFECT:  starts a server on a free port, its folders in a temporary folder, deleted afterwards:
  *   so the repo and your spell-spaces are never written.
- *   - `SPELL_SPACES_DIR`, `SPELL_BUILTINS_DIR`, `SPELL_TESTS_DIR`, `SPELL_BUILD_DIR`
+ *   - `SPELL_SPACES_DIR`, `SPELL_BUILTINS_DIR`, `SPELL_BUILD_DIR`
  * - Node environment (spaces' `vitest.config.ts`).
  */
 import { type ChildProcess, spawn } from "node:child_process"
@@ -38,7 +38,7 @@ const repoDir = path.resolve(import.meta.dirname, "../../../../..")
 
 let server: ChildProcess
 let baseUrl: string
-/** The temp folder:  `spaces/` (spell-spaces), `builtins/`, `tests/` and `build/`. */
+/** The temp folder:  `spaces/` (spell-spaces), `builtins/` and `build/`. */
 let tempDir: string
 /** The folders the server is pointed at, as env vars:  the disk reader is pointed at them too. */
 let folders: Record<string, string>
@@ -117,7 +117,6 @@ beforeAll(async () => {
   folders = {
     SPELL_SPACES_DIR: path.join(tempDir, "spaces"),
     SPELL_BUILTINS_DIR: path.join(tempDir, "builtins"),
-    SPELL_TESTS_DIR: path.join(tempDir, "tests"),
     SPELL_BUILD_DIR: path.join(tempDir, "build")
   }
   for (const folder of Object.values(folders)) fs.mkdirSync(folder)

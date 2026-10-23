@@ -9,6 +9,7 @@ import { appTexts } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the `spell-app/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.
 import type { SpellCompiled } from "spell-app/app/runner/runner.types"
 import { adoptShadowStyles } from "spell-app/app/runner/shadowStyles"
+import { wordsOfLanguages } from "spell-app/app/runner/words"
 import { SpellEditorPane, type SpellEditorStatus, type MonacoModule } from "spell-app/app/spellEditor/SpellEditorPane"
 import { spellEditorVocabulary } from "./SpellEditor.en"
 
@@ -57,7 +58,7 @@ export interface DOMSpellEditorElement extends E.AttributeValues<typeof spellEdi
  * ### `SpellEditor`
  * The component behind `<spell-editor>`:  edits a spell project in any page, in Monaco,
  * and feeds `<spell-app>`s on the page what it compiles.
- * - `project="@spell/examples/drawable-solitaire"`:
+ * - `project="@spell/examples/Solitaire"`:
  *   from the spell server's `/api`, as `<spell-app project>`.
  *   - Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
  * - Compiles when it opens the project, `COMPILE_DELAY` after typing stops, and at once on Cmd+Enter.
@@ -199,7 +200,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
     const detail: SpellCompiled = { projectId: project.projectId, compiled }
     const declarations = SP.SpellDeclarations.read(project.declarationsFile.contents ?? "")
     if (declarations) detail.declarations = declarations
-    const words = SP.SpellWords.read(project.wordsFile.contents ?? "")
+    // a words file per language its files are in, the one it speaks first:  as one
+    const words = wordsOfLanguages(project.wordsFiles.map((file) => SP.SpellWords.read(file.contents ?? "")))
     if (words) detail.words = words
     const scopes = await this.scopesOf(project).catch((error: unknown) => {
       console.warn("<spell-editor> couldn't make its scope pack -- apps show the server's:", error)

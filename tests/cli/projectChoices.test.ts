@@ -26,14 +26,9 @@ describe("projectChoices()", () => {
 
   test("a group:  its projects, to go into", async () => {
     expect(await values("@spell/test/")).toEqual([
-      "@spell/test/card-table/",
-      "@spell/test/cards/",
-      "@spell/test/cards-from-zero/",
       "@spell/test/cartas/",
-      "@spell/test/drawable-solitaire/",
       "@spell/test/fizzbuzz/",
-      "@spell/test/klondike/",
-      "@spell/test/outline-solitaire/",
+      "@spell/test/lists-from-zero/",
       "@spell/test/people/",
       "@spell/test/solitaire/",
       "@spell/test/thing-references/",
@@ -45,13 +40,9 @@ describe("projectChoices()", () => {
   test("a project:  the entire project first, then its spell files", async () => {
     const choices = await CLI.projectChoices("@spell/test/solitaire/")
     expect(choices[0]).toEqual({ value: "@spell/test/solitaire", label: "entire project", isFinal: true })
-    expect(choices.slice(1).map((it) => it.value)).toEqual([
-      "@spell/test/solitaire/Card.spell",
-      "@spell/test/solitaire/Deck.spell",
-      "@spell/test/solitaire/Pile.spell",
-      "@spell/test/solitaire/Solitaire.spell"
-    ])
-    expect(await values("@spell/test/solitaire/d")).toEqual(["@spell/test/solitaire/Deck.spell"])
+    expect(choices.slice(1).map((it) => it.value)).toEqual(["@spell/test/solitaire/Solitaire.spell"])
+    expect(await values("@spell/test/solitaire/s")).toEqual(["@spell/test/solitaire/Solitaire.spell"])
+    expect(await values("@spell/test/solitaire/d")).toEqual([])
   })
 
   test("nothing for what isn't there", async () => {
