@@ -17,6 +17,8 @@ class Card(Drawable):
     A drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`.
     """
 
+    element_tag = "test-project-card"
+
     # its suit and rank
     # - its "suit" is a suit
     suit = prop(one_of=lambda: Card.SUITS)
@@ -223,6 +225,8 @@ class Card(Drawable):
 
 class Joker(Card):
     """A joker:  a wild card with no rank or suit -- there's a red one and a black one"""
+
+    element_tag = "test-project-joker"
 
     # set when it's made:  it has no suit to work its color out from
     # - its "color" is a color
@@ -523,6 +527,7 @@ class Pile(DrawableList):
     """
 
     item_type = Card
+    element_tag = "test-project-pile"
 
     # what the game calls it, e.g. "stock"
     # - its "name" is text
@@ -621,11 +626,15 @@ def test_piles() -> Any:
 class StackedPile(Pile):
     """a stacked pile:  its cards on top of each other, the last one showing, over a place for the first"""
 
+    element_tag = "test-project-stacked-pile"
+
     css = "\n  :host {\n  \tdisplay: block;\n  \tposition: relative;\n  \tmin-height: 6.5rem;\n  }\n  /* where its first card goes:  a card-sized outline */\n  .Placeholder {\n  \tposition: absolute;\n  \ttop: 1.5rem;\n  \tleft: 0.3rem;\n  \twidth: 4.25rem;\n  \theight: 5.65rem;\n  \tbox-sizing: border-box;\n  \tborder: 2px dashed #c8c8c8;\n  \tborder-radius: 0.4rem;\n  \tdisplay: flex;\n  \talign-items: center;\n  \tjustify-content: center;\n  \tfont-size: 2rem;\n  \tcursor: pointer;\n  }\n  ::slotted(*) {\n  \tposition: absolute;\n  \ttop: 0;\n  \tleft: 0;\n  }\n"
 
 
 class StockPile(StackedPile):
     """the stock:  the cards not played yet, face down;  a click turns the next one over"""
+
+    element_tag = "test-project-stock-pile"
 
     def can_take(self, card: Card) -> bool:
         return False
@@ -648,6 +657,8 @@ class StockPile(StackedPile):
 class DiscardPile(StackedPile):
     """the discards:  where the stock's cards go as they're turned over"""
 
+    element_tag = "test-project-discard-pile"
+
     def can_take(self, card: Card) -> bool:
         return False
 
@@ -657,6 +668,8 @@ class DiscardPile(StackedPile):
 
 class Foundation(StackedPile):
     """a foundation:  where a suit is built up, ace to king"""
+
+    element_tag = "test-project-foundation"
 
     # - its "suit" is a suit
     suit = prop(one_of=lambda: Card.SUITS)
@@ -682,6 +695,8 @@ class Foundation(StackedPile):
 
 class Tableau(Pile):
     """a tableau:  a column, built down from king to ace, red and black in turn"""
+
+    element_tag = "test-project-tableau"
 
     def can_give_up(self, card: Card) -> bool:
         return card.is_face_up
