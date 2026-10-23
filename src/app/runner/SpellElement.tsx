@@ -76,7 +76,8 @@ const DRAGGING_CSS = `
  *   - `a pile can be dropped on`:  a pile that will take the card glows as it comes over (`:state(accepting-drop)`),
  *     and on the drop the program hears `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`
  *   - the pile hears it too, by its own handlers:  `- when a card is dragged over it:`, `dragged out of it`,
- *     `dropped on it` (`runDragHandler()`);  `dropped on it` takes the place of the `<thing>-drop` event
+ *     `dropped on it` (`handlerFor()`);  `dropped on it` takes the place of the `<thing>-drop` event;
+ *     `- while a card is dragged over it:` sets what goes back as it leaves (`core.startWhile()`)
  *   - The web's own drag events say so as it goes:  `dragstart`, `dragenter`, `drop` ... (`Dragging`).
  *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`DRAGGING_CSS`).
  * - Part of `spell-runtime.js`:  NEVER value-imports `spell-lang/core`.
@@ -285,33 +286,51 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const thing = this.dragOffer()
     if (!thing) return
     this.draggedOver = thing
-    this.runDragHandler("DraggedOver", thing)
+    this.whileRunning = this.handlerFor("while", "DraggedOver", thing)
+    if (this.whileRunning)
+      this.runHandler(() => this.entry!.core.startWhile(this.currentThing!, this.whileRunning!, thing))
+    const over = this.handlerFor("when", "DraggedOver", thing)
+    if (over) this.runHandler(() => this.entry!.core.runHandler(this.currentThing!, over, thing))
   }
 
   @E.on("dragleave")
   protected onDragLeave(event: DragEvent) {
     if (event.target !== this.domElement) return
     this.isAcceptingDrop = false
-    this.endDragOver()
+    this.endDragOver("left")
   }
 
-  /** Dropped on us:  a drop we take runs `when a card is dropped on it` instead (`dropOn()`);  one we don't, `... dragged out of it`. */
+  /**
+   * Dropped on us:  what `while a card is dragged over it` set is put back.
+   * - A drop we take runs `when a card is dropped on it` next (`dropOn()`);  one we don't, `... dragged out of it`.
+   */
   @E.on("drop")
   protected onDrop(event: DragEvent) {
     if (event.target !== this.domElement) return
-    if (this.isAcceptingDrop) this.draggedOver = undefined
-    else this.endDragOver()
+    this.endDragOver(this.isAcceptingDrop ? "taken" : "left")
     this.isAcceptingDrop = false
   }
 
   /** The thing the program heard is dragged over us (`when a card is dragged over it`), till it hears it's gone. */
   private draggedOver: object | undefined
 
-  /** The thing dragged over us has gone:  the program hears `when a card is dragged out of it`, if it heard it come. */
-  private endDragOver() {
+  /** Our `while ... dragged over it` handler running for it, e.g. `whileCardDraggedOver` -- see `onDragEnter()`. */
+  private whileRunning: string | undefined
+
+  /**
+   * The thing dragged over us has gone:  what our `while` handler set is put back,
+   * then, if it `left`, the program hears `when a card is dragged out of it`.
+   * - `taken`:  dropped on us, and we took it:  `when a card is dropped on it` is next instead.
+   */
+  private endDragOver(how: "left" | "taken") {
     const thing = this.draggedOver
-    this.draggedOver = undefined
-    if (thing) this.runDragHandler("DraggedOutOf", thing)
+    const list = this.currentThing
+    const ending = this.whileRunning
+    this.draggedOver = this.whileRunning = undefined
+    if (!thing || !list) return
+    if (ending) this.runHandler(() => this.entry!.core.endWhile(list, ending))
+    const out = how === "left" && this.handlerFor("when", "DraggedOutOf", thing)
+    if (out) this.runHandler(() => this.entry!.core.runHandler(list, out, thing))
   }
 
   /**
@@ -339,36 +358,44 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Run our list's drag handler for `thing` at `moment`, e.g. `whenCardDroppedOn(card)` for
-   * `- when a card is dropped on it:` (spell-lang's `DragHandler`) -- `false` if it has none.
-   * - The thing's own type's first, then each type above it:  a joker runs `when a card ...` too.
+   * Our list's drag handler for `thing`, e.g. `whenCardDroppedOn` for `- when a card is dropped on it:`
+   * (spell-lang's `DragHandler`) -- `undefined` if it has none.
+   * - `when` or `while`, then the moment:  `whileCardDraggedOver` for `- while a card is dragged over it:`.
+   * - The thing's own type's first, then each type above it:  a joker runs `when a card ...` too,
+   *   and every thing `when something ...` (`whenThingDroppedOn`).
+   */
+  private handlerFor(timing: "when" | "while", moment: DragMoment, thing: object): string | undefined {
+    const list = this.currentThing as Record<string, unknown> | undefined
+    if (!list) return undefined
+    for (let Class: Function = thing.constructor; Class?.name; Class = Object.getPrototypeOf(Class)) {
+      const method = `${timing}${Class.name}${moment}`
+      if (typeof list[method] === "function") return method
+    }
+    return undefined
+  }
+
+  /**
+   * Run a drag handler through our program's core, `run`:  where the program runs, Python's too (`core.remote`).
    * - The program's own code:  a throw, or a promise that fails, goes to its console, and the drag goes on.
    */
-  private runDragHandler(moment: DragMoment, thing: object): boolean {
-    const list = this.currentThing as Record<string, unknown> | undefined
+  private runHandler(run: () => unknown) {
     const { entry } = this
-    if (!list || !entry) return false
-    for (let Class: Function = thing.constructor; Class?.name; Class = Object.getPrototypeOf(Class)) {
-      const handler = list[`when${Class.name}${moment}`]
-      if (typeof handler !== "function") continue
-      try {
-        void Promise.resolve(handler.call(list, thing)).catch((error) => entry.core.console.error(error))
-      } catch (error) {
-        entry.core.console.error(error)
-      }
-      return true
+    try {
+      void Promise.resolve(run()).catch((error) => entry?.core.console.error(error))
+    } catch (error) {
+      entry?.core.console.error(error)
     }
-    return false
   }
 
   /**
    * Our thing, dropped on `target`, a drawable list's element.
    * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing of it.
-   * - The list's `when a card is dropped on it:` runs, if it has one (`runDragHandler()`).
+   * - The list's `when a card is dropped on it:` runs, if it has one (`handlerFor()`).
    * - Else the program hears `<thing>-drop`, e.g. `card-drop`,
    *   in its own language (core's `drop-event` message):  a Spanish program hears `soltar-carta`.
    *   - Its details name the thing by its type, and the list by each of its types up to its family's:
    *     `{ card, tableau, pile }`, so `on card drop with a card and a pile` gets both.
+   *   - A program running elsewhere hears it there (`core.remote`), and decides there.
    * - Nobody listening:  it moves there, if the lists' rules let it (`core.move()`).
    */
   private dropOn(target: HTMLElement | undefined) {
@@ -377,7 +404,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     const thing = this.currentThing
     const { entry } = this
     if (!list || !thing || !entry) return
-    if ((component as SpellElement).runDragHandler("DroppedOn", thing)) return
+    const dropped = (component as SpellElement).handlerFor("when", "DroppedOn", thing)
+    if (dropped) return this.runHandler(() => entry.core.runHandler(list, dropped, thing))
     const name = SpellElement.instanceName(thing.constructor)
     const details: Record<string, object> = { [name]: thing }
     for (
@@ -387,7 +415,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     ) {
       details[SpellElement.instanceName(Class)] ??= list
     }
-    const heard = entry.core.trigger(entry.core.message("drop-event", { thing: kebabCase(name) }), details)
+    const event = entry.core.message("drop-event", { thing: kebabCase(name) })
+    if (entry.core.remote) return entry.core.remote.trigger(event, details)
+    const heard = entry.core.trigger(event, details)
     if (!heard.length) entry.core.move(thing, list)
   }
 

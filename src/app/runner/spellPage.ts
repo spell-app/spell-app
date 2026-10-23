@@ -7,6 +7,8 @@
  * - It exports what `spell-runtime.js` exports for compiled javascript (`spellPage.test.ts` pins it),
  *   plus the page's side (`page.ts` in `spell-lang/core`):
  *   `connectPage()`, `startPage()`, `sendCall()`, `sendTrigger()`.
+ * - Its `connectPage()` turns on the program's language first, so a Spanish program's tags draw (`<es-texto>`):
+ *   the drawing half says it, `export const lang = "es"`, when it isn't English.
  * - Unlike a runner's, it sets up the page itself:  Spell UI's elements, Solid following spell's cells,
  *   and a drawable thing's own element, e.g. `<solitaire-card>`.
  *
@@ -39,7 +41,7 @@ import {
   spellPosition,
   endPosition,
   withSpellPositions,
-  connectPage,
+  connectPage as connectCorePage,
   startPage,
   sendCall,
   sendTrigger
@@ -48,6 +50,20 @@ import { installSpellElements } from "./SpellElement"
 
 // a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
 installSpellElements(core)
+
+/**
+ * As the core's `connectPage()`, once Spell UI speaks the program's language:
+ * the last module's `lang`, the program's drawing half, e.g. `"es"`;  English when it says none.
+ */
+async function connectPage(options: Parameters<typeof connectCorePage>[0]): Promise<WebSocket> {
+  const lang = options.modules.at(-1)?.lang
+  if (typeof lang === "string" && lang !== "en") {
+    const { RootLoader } = await import("spell-ui/components/ui-root")
+    // oxlint-disable-next-line react-hooks/rules-of-hooks -- Spell UI's `useLanguage()` is no React hook
+    await RootLoader.useLanguage(lang)
+  }
+  return connectCorePage(options)
+}
 
 export {
   core,
