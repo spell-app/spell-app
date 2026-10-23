@@ -145,7 +145,7 @@ export class Agenda extends DrawableList<Tarea> {
     return <div part="placeholder">Nada por hacer</div>
   }
 
-  static reorderItemsAfter = 2
+  static reorderItemsAfter = 0
 
   static exclusive = true
 }
@@ -170,8 +170,7 @@ export class AgendaElement extends SpellElement<Agenda> {
   }
 }
 core.useElement(Agenda, AgendaElement)
-// en la página, sus tareas se pueden arrastrar a otro lugar:  una línea azul muestra dónde,
-// y cuando el puntero se queda ahí 2 segundos se mueven, como al soltarlo
+// en la página, sus tareas se pueden arrastrar a otro lugar:  se mueven con el puntero, deslizándose
 
 /** una tarea está en una sola agenda a la vez */
 

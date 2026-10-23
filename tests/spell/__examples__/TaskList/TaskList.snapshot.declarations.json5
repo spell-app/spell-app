@@ -106,7 +106,7 @@
       "type": "Checklist",
       "superType": "DrawableList",
       "itemType": "Task",
-      "defined": "/TaskList.spell:503-1188"
+      "defined": "/TaskList.spell:503-1135"
     },
     {
       "property": "showing",
@@ -124,31 +124,31 @@
       "of": "Task",
       "datatype": "Checklist",
       "exclusive": true,
-      "defined": "/TaskList.spell:1230-1261"
+      "defined": "/TaskList.spell:1177-1208"
     },
     {
       "type": "TaskList",
       "superType": "App",
-      "defined": "/TaskList.spell:1343-3850"
+      "defined": "/TaskList.spell:1290-3797"
     },
     {
       "property": "tasks",
       "of": "TaskList",
       "datatype": "Checklist",
-      "defined": "/TaskList.spell:1373-1403"
+      "defined": "/TaskList.spell:1320-1350"
     },
     {
       "property": "draft",
       "of": "TaskList",
       "datatype": "text",
-      "defined": "/TaskList.spell:1467-1486"
+      "defined": "/TaskList.spell:1414-1433"
     },
     {
       "property": "active_count",
       "asWritten": "active count",
       "of": "TaskList",
       "datatype": "number",
-      "defined": "/TaskList.spell:1490-1565"
+      "defined": "/TaskList.spell:1437-1512"
     },
     {
       "syntax": "add the draft (of {thisArg:expression})?",
@@ -162,7 +162,7 @@
       "kind": "method",
       "name": "add the draft",
       "returns": "nothing",
-      "defined": "/TaskList.spell:1642-1779"
+      "defined": "/TaskList.spell:1589-1726"
     },
     {
       "syntax": "remove the done tasks (of {thisArg:expression})?",
@@ -175,7 +175,7 @@
       ],
       "kind": "method",
       "name": "remove the done tasks",
-      "defined": "/TaskList.spell:1784-1854"
+      "defined": "/TaskList.spell:1731-1801"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -188,7 +188,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TaskList.spell:2096-3850"
+      "defined": "/TaskList.spell:2043-3797"
     },
     {
       "syntax": "test the filter",
@@ -197,7 +197,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "the filter",
-      "defined": "/TaskList.spell:4392-4619"
+      "defined": "/TaskList.spell:4339-4566"
     }
   ],
   "codeLines": [
@@ -215,14 +215,14 @@
     82,
     110,
     115,
-    141,
+    140,
+    143,
     144,
-    145,
-    151,
-    156,
-    161,
-    167,
-    176,
-    259
+    150,
+    155,
+    160,
+    166,
+    175,
+    258
   ]
 }

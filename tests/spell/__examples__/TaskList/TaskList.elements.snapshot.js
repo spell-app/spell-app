@@ -120,12 +120,11 @@ export class Checklist extends DrawableList {
     return h("div", { part: "placeholder" }, "Nothing to do")
   }
 
-  static reorderItemsAfter = 2
+  static reorderItemsAfter = 0
 
   static exclusive = true
 }
-// on the page, its tasks can be dragged to another place:  a blue line shows where,
-// and once the pointer rests there 2 seconds they move, as they do when it lets go
+// on the page, its tasks can be dragged to another place:  they move as the pointer does, gliding there
 
 /** a task is in one checklist at a time */
 

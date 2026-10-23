@@ -12,6 +12,8 @@ import { E } from "spell-ui/core"
  *   3. before the next paint, the new element starts where the old one was, and slides home (`glide()`)
  * - The slide is the element's `translate`, not its `transform`:  a pile's layout may rotate its cards (`fanned`),
  *   and `translate` adds to that, where a `transform` would replace it.
+ * - A list being reordered (epic `outline-spell` P30) notes where its items are, and glides them when its children are
+ *   drawn again (`noteForLater()`, then `glideNoted()`):  maybe only when a program running elsewhere says, in Python.
  * - None with reduced motion:  the thing just lands.
  * - STATIC and page-wide on purpose:  every runtime copy on a page shares the page's elements.
  * - Knows nothing of core:  core hands it things, and its elements say what they draw.
@@ -32,15 +34,43 @@ export class Glides {
    * - NEVER throws.
    */
   static noteWhereThingsAre(things: unknown[]): void {
-    if (Glides.isStill) return
+    for (const thing of Glides.note(things)) {
+      // drawn again in the same element (moved within its list):  `drawn()` never hears of it
+      E.beforeNextPaint(() => Glides.glide(thing))
+    }
+  }
+
+  /**
+   * Note where each of `things` is on screen, to glide them when told (`glideNoted()`), not before the next paint:
+   * a list's items, about to be reordered, maybe by a program running elsewhere.
+   * - Forgotten after `NOTE_KEPT_S` seconds, if nothing glides them:  a move that changed nothing.
+   * - NEVER throws.
+   */
+  static noteForLater(things: unknown[]): void {
+    const noted = Glides.note(things)
+    // never canceled, and forgetting can't throw:  the catch is only for the lint
+    E.after(NOTE_KEPT_S, () => noted.forEach((thing) => Glides.startedAt.delete(thing))).catch(() => {})
+  }
+
+  /** Each of `things` noted (`noteForLater()`) slides from there to where it is now, before the next paint. */
+  static glideNoted(things: unknown[]): void {
+    E.beforeNextPaint(() => {
+      for (const thing of things) if (thing && typeof thing === "object") Glides.glide(thing)
+    })
+  }
+
+  /** Note where each of `things` with an element on the page is now:  returns them -- none with reduced motion. */
+  private static note(things: unknown[]): object[] {
+    if (Glides.isStill) return []
+    const noted: object[] = []
     for (const thing of things) {
       if (!thing || typeof thing !== "object") continue
       const element = Glides.elements.get(thing)
       if (!element?.isConnected) continue
       Glides.startedAt.set(thing, element.getBoundingClientRect())
-      // drawn again in the same element (moved within its list):  `drawn()` never hears of it
-      E.beforeNextPaint(() => Glides.glide(thing))
+      noted.push(thing)
     }
+    return noted
   }
 
   /**
@@ -83,6 +113,9 @@ const GLIDE_MS = 250
 
 /** How it slides:  quickly at first, settling into place. */
 const GLIDE_EASING = "cubic-bezier(0.2, 0.7, 0.3, 1)"
+
+/** How long a note kept for later lasts, in seconds, if nothing glides it (`noteForLater()`). */
+const NOTE_KEPT_S = 3
 
 /** Above the board while it slides. */
 const GLIDING_Z_INDEX = 1000

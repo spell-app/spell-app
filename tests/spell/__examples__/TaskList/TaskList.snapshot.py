@@ -143,13 +143,12 @@ class Checklist(DrawableList):
     def draw_its_placeholder(self) -> Any:
         return h("div", {"part": "placeholder"}, "Nothing to do")
 
-    reorder_items_after = 2
+    reorder_items_after = 0
 
     exclusive = True
 
 
-# on the page, its tasks can be dragged to another place:  a blue line shows where,
-# and once the pointer rests there 2 seconds they move, as they do when it lets go
+# on the page, its tasks can be dragged to another place:  they move as the pointer does, gliding there
 
 # a task is in one checklist at a time
 

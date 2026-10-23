@@ -663,6 +663,8 @@ describe("SpellElement", () => {
         expect(a!.style.translate).toBe("")
         await letGo()
         expect(labelsNow()).toEqual(["b", "c", "a"])
+        // each moved item glides to its new place:  `a` down, `b` and `c` up
+        expect(chits().filter((chit) => chit.getAnimations().length > 0)).toHaveLength(3)
         expect(element.matches(":state(placing)")).toBe(false)
         expect(chits().some((chit) => chit.matches(":state(lifted)"))).toBe(false)
       } finally {
