@@ -15,7 +15,7 @@ import { createRequire } from "module"
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, dirname, resolve } from "path"
-import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
+import { afterAll, beforeAll, describe, test, expect, onTestFinished, vi } from "vite-plus/test"
 
 import { SRV } from "spell-kit/server"
 import { pageServerRoot } from "spell-kit/server/page/settings"
@@ -171,6 +171,10 @@ describe("spell app serve", () => {
           stdio: ["ignore", "pipe", "pipe"]
         }
       )
+      // a failed check skips the Ctrl-C below:  stop it anyway, and so the page server it started
+      onTestFinished(() => {
+        if (child.exitCode === null && child.signalCode === null) child.kill("SIGINT")
+      })
       let out = ""
       let err = ""
       child.stdout.on("data", (data) => (out += data))
@@ -180,6 +184,13 @@ describe("spell app serve", () => {
       const editor = new URL(out.trim()).origin
       if (!running) expect(editor).toBe(`http://localhost:${port}`)
       expect(await (await fetch(`${editor}/`)).text()).toContain("<html")
+      // the page it opens loads its app:  each module script, and what each imports, asked for as a browser asks
+      const scripts = await moduleScripts(out.trim())
+      expect(scripts.filter((script) => script.endsWith("/src/app/index.tsx"))).toHaveLength(1)
+      for (const script of scripts) {
+        const response = await fetch(script, { headers: SCRIPT_REQUEST })
+        expect(`${response.status} ${response.headers.get("content-type")}`, script).toBe("200 text/javascript")
+      }
       const projects = await (await fetch(`${editor}/api/projects/list/@spell/test`)).text()
       expect(projects).toContain("@spell/test/solitaire")
       // a file by its URL, `/spaces/<address>`, through vite's proxy
@@ -814,4 +825,31 @@ async function until(condition: () => boolean, ms = 15_000): Promise<void> {
     if (Date.now() - start > ms) throw new Error("timed out")
     await new Promise((done) => setTimeout(done, 50))
   }
+}
+
+/**
+ * The headers a browser sends for a module script.
+ * - Vite answers a file it can't find with a 404 only when asked this way:
+ *   any other request for it gets the editor's page, a 200 (its fallback for the app's own URLs, `/edit/...`).
+ */
+const SCRIPT_REQUEST = { accept: "*/*", "sec-fetch-dest": "script" }
+
+/**
+ * The module scripts the page at `url` loads, and the ones each of them imports by path, as full URLs.
+ * - Only one level of imports:  the app's entry, under Vite's inline-script module, and Vite's own client's.
+ * - Epic `repo-split` I72:  the editor's page asked for its entry outside Vite's root, `/src/app/index.tsx`,
+ *   and drew nothing.
+ */
+async function moduleScripts(url: string): Promise<string[]> {
+  const page = await (await fetch(url, { headers: { accept: "text/html" } })).text()
+  const scripts = [...page.matchAll(/<script\b[^>]*\btype="module"[^>]*\bsrc="([^"]+)"/g)].map(
+    ([, src]) => new URL(src!.replaceAll("&amp;", "&"), url).href
+  )
+  const imported = await Promise.all(
+    scripts.map(async (script) => {
+      const code = await (await fetch(script, { headers: SCRIPT_REQUEST })).text()
+      return [...code.matchAll(/\b(?:from|import)\s*["'](\/[^"']+)["']/g)].map(([, path]) => new URL(path!, url).href)
+    })
+  )
+  return [...new Set([...scripts, ...imported.flat()])]
 }

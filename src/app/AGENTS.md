@@ -310,7 +310,10 @@ and in the app's build folder, `app/` at the repo's root.
 
 - As WWOD §4, with our own source as `spell-app/app` / `spell-app/app/*`:  a file's path under the repo's `src/`.
   - e.g. `import { UI } from "spell-app/app/ui"`, `import "spell-app/app/components/spell-code"`
-  - Vite's own entries and `index.html`'s script are paths from `app/`, Vite's root:  `../src/app/index.tsx`.
+  - Vite's own build entries are paths from `app/`, Vite's root:  `../src/app/runner/spellRuntime.ts`.
+  - `index.html`'s script imports the app by its NAME, `import "spell-app/app"`, never by a `src` path:
+    the dev server serves nothing above its root, so `../src/app/index.tsx` was a 404, and a blank editor
+    (epic `repo-split` I72).
 - Nothing imports THIS folder except `cli`.
   And the `<script>` entries in its own pages:  `index.html` and the demos.
 - It may import spaces' models, `spell-app/spaces` (the same repo, spell-app);

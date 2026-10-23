@@ -1,5 +1,5 @@
 import { Box, Text, render, useInput, type Key as InkKey } from "ink"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import chalk from "chalk"
 
 import { CLI } from "spell-app/cli"
@@ -63,6 +63,35 @@ export function ProjectPrompt({ choicesFor, onDone }: ProjectPromptProps) {
     }
   }, [text, choicesFor])
 
+  useInput((input, key) => {
+    queue.current.push(...keysIn(input, key))
+    setQueued(queue.current.length)
+  })
+
+  /**
+   * Act on `key`, against the current `text` and `choices`.
+   * - A new function only when what it reads changes:  the effect below runs it.
+   */
+  const handle = useCallback(
+    (key: Key) => {
+      const choice = choices[selected]
+      if (key === "escape") return onDone(undefined)
+      if (key === "up") return setSelected(Math.max(0, selected - 1))
+      if (key === "down") return setSelected(Math.min(choices.length - 1, selected + 1))
+      if (key === "tab") {
+        const prefix = CLI.commonPrefix(choices.map((it) => it.value))
+        return setText(prefix.length > text.length ? prefix : (choice?.value ?? text))
+      }
+      if (key === "return") {
+        if (!choice) return text.trim() ? onDone(text.trim()) : undefined
+        return choice.isFinal ? onDone(choice.value) : setText(choice.value)
+      }
+      if (key === "backspace") return setText(text.slice(0, -1))
+      setText(text + key.char)
+    },
+    [choices, selected, text, onDone]
+  )
+
   // one key at a time, each once the choices it acts on are in:  keys can arrive several to a chunk, e.g. typed
   // while the first choices load, or pasted -- and `Tab` must complete what was typed BEFORE it
   useEffect(() => {
@@ -70,30 +99,7 @@ export function ProjectPrompt({ choicesFor, onDone }: ProjectPromptProps) {
     const next = queue.current.shift()!
     setQueued(queue.current.length)
     handle(next)
-  }, [loadedFor, text, queued])
-
-  useInput((input, key) => {
-    queue.current.push(...keysIn(input, key))
-    setQueued(queue.current.length)
-  })
-
-  /** Act on `key`, against the current `text` and `choices`. */
-  function handle(key: Key) {
-    const choice = choices[selected]
-    if (key === "escape") return onDone(undefined)
-    if (key === "up") return setSelected(Math.max(0, selected - 1))
-    if (key === "down") return setSelected(Math.min(choices.length - 1, selected + 1))
-    if (key === "tab") {
-      const prefix = CLI.commonPrefix(choices.map((it) => it.value))
-      return setText(prefix.length > text.length ? prefix : (choice?.value ?? text))
-    }
-    if (key === "return") {
-      if (!choice) return text.trim() ? onDone(text.trim()) : undefined
-      return choice.isFinal ? onDone(choice.value) : setText(choice.value)
-    }
-    if (key === "backspace") return setText(text.slice(0, -1))
-    setText(text + key.char)
-  }
+  }, [loadedFor, text, queued, handle])
 
   // keep the chosen one in view
   const start = Math.max(0, Math.min(selected - MAX_SHOWN + 1, choices.length - MAX_SHOWN))

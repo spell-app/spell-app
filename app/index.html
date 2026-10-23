@@ -21,6 +21,10 @@
     <!-- `icons`:  the app's icon names are Fomantic's, for every `<ui-*>` in the page (see `src/app/solid/loadUI.ts`).
          `semantic.min.css` above is for running PROGRAMS, which draw with Semantic UI's React kit. -->
     <ui-root icons="fomantic"><div id="app-root"></div></ui-root>
-    <script type="module" src="../src/app/index.tsx"></script>
+    <!-- the app, by its package name (`src/app/index.tsx`), NOT a `src` path:  the dev server's root is `app/`,
+         and a URL can't climb above it -- `../src/app/index.tsx` asks for `/src/app/index.tsx`, a 404 (epic `repo-split` I72) -->
+    <script type="module">
+      import "spell-app/app"
+    </script>
   </body>
 </html>
