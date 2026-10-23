@@ -446,6 +446,10 @@ export class Pila extends DrawableList {
     return estado
   }
 
+  whenCartaDroppedOn(carta) {
+    carta.ponerEnPila(this)
+  }
+
   static canBeDroppedOn = true
 
   static exclusive = true
@@ -867,11 +871,6 @@ core.heading("Jugar una carta:  qué hace un clic o un arrastre")
 on("clic-carta", (event) => {
   const { carta } = event
   carta.jugar()
-})
-
-on("soltar-carta", (event) => {
-  const { carta, pila } = event
-  carta.ponerEnPila(pila)
 })
 
 core.heading("Inicio")

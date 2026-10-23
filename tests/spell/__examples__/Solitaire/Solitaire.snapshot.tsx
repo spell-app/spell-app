@@ -511,6 +511,10 @@ export class Pile extends DrawableList<Card> {
     return state
   }
 
+  whenCardDroppedOn(card: Card) {
+    card.putOnPile(this)
+  }
+
   static canBeDroppedOn = true
 
   static exclusive = true
@@ -532,6 +536,10 @@ export class PileElement extends SpellElement<Pile> {
     { name: "name", kind: "string", description: "Its name." },
     { name: "layout", kind: "string", description: "Its layout." }
   ])
+
+  whenCardDroppedOn(card: Card) {
+    return this.currentThing?.whenCardDroppedOn(card)
+  }
 }
 core.useElement(Pile, PileElement)
 // on the page, a card can be dropped on it:  it glows when it would take the card, by its own rules
@@ -1017,8 +1025,6 @@ export const solitaire = new Solitaire()
 core.heading("Playing a card:  what a click or a drag does")
 /** a click plays the card;  a drag puts it where it's dropped */
 on<{ card: Card }>("card-click", ({ card }) => card.play())
-
-on<{ card: Card; pile: Pile }>("card-drop", ({ card, pile }) => card.putOnPile(pile))
 
 core.heading("Start")
 //## Start

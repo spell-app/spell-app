@@ -426,6 +426,61 @@ describe("SpellElement", () => {
       done()
     })
 
+    test("a tray's own handlers hear a token come over it and land:  `dropped on it` takes the place of <thing>-drop (outline-spell P28)", async () => {
+      /** A token of a sub-type:  its tray's `when a token ...` handlers run for it too. */
+      class Coin extends Token {
+        static elementTag = core.defineElement(this, "Game")
+      }
+      const coin = new Coin("a")
+      core.append(trays[0]!, coin)
+      const { root, done } = await drawTrays()
+      // `- when a token is dragged over it:` ... as compiled, on the tray
+      const heard: string[] = []
+      const to = trays[1]! as Tray & Record<string, unknown>
+      to.whenTokenDraggedOver = (token: Token) => heard.push(`over ${token.label}`)
+      to.whenTokenDraggedOutOf = (token: Token) => heard.push(`out of ${token.label}`)
+      to.whenTokenDroppedOn = (token: Token) => heard.push(`dropped ${token.label}`)
+      const trigger = vi.spyOn(core, "trigger")
+      try {
+        await drag(root.querySelector("game-coin") as HTMLElement, root.querySelectorAll<HTMLElement>("game-tray")[1]!)
+        expect(heard).toEqual(["over a", "dropped a"])
+        // its handler answered:  no `coin-drop`, and the move is the handler's to make
+        expect(trigger).not.toHaveBeenCalled()
+        expect([...trays[0]!.items]).toEqual([coin])
+      } finally {
+        trigger.mockRestore()
+        for (const name of ["whenTokenDraggedOver", "whenTokenDraggedOutOf", "whenTokenDroppedOn"]) delete to[name]
+        done()
+      }
+    })
+
+    test("a drop a tray won't take runs its `dragged out of it`, and a handler that throws goes to the console (outline-spell P28)", async () => {
+      const token = new Token("a")
+      core.append(trays[0]!, token)
+      const { root, done } = await drawTrays()
+      const heard: string[] = []
+      const to = trays[1]! as Tray & Record<string, unknown>
+      to.canTake = () => false
+      to.whenTokenDraggedOver = () => {
+        heard.push("over")
+        throw new Error("oops")
+      }
+      to.whenTokenDraggedOutOf = () => heard.push("out of")
+      to.whenTokenDroppedOn = () => heard.push("dropped")
+      const error = vi.spyOn(core.console, "error").mockImplementation(() => {})
+      try {
+        await drag(root.querySelector("game-token") as HTMLElement, root.querySelectorAll<HTMLElement>("game-tray")[1]!)
+        expect(heard).toEqual(["over", "out of"])
+        expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: "oops" }))
+        expect([...trays[0]!.items]).toEqual([token])
+      } finally {
+        error.mockRestore()
+        for (const name of ["canTake", "whenTokenDraggedOver", "whenTokenDraggedOutOf", "whenTokenDroppedOn"])
+          delete to[name]
+        done()
+      }
+    })
+
     test("dragging is opt-in:  a thing whose type doesn't say `can be dragged` can't be dragged (outline-spell P28)", async () => {
       core.append(trays[0]!, new Token("a"), new Pebble("b"))
       const { root, done } = await drawTrays()

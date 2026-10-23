@@ -444,6 +444,10 @@ export class Pile extends DrawableList {
     return state
   }
 
+  whenCardDroppedOn(card) {
+    card.putOnPile(this)
+  }
+
   static canBeDroppedOn = true
 
   static exclusive = true
@@ -862,11 +866,6 @@ core.heading("Playing a card:  what a click or a drag does")
 on("card-click", (event) => {
   const { card } = event
   card.play()
-})
-
-on("card-drop", (event) => {
-  const { card, pile } = event
-  card.putOnPile(pile)
 })
 
 core.heading("Start")

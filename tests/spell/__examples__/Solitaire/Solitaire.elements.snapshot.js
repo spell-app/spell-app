@@ -323,6 +323,10 @@ export class Pile extends DrawableList {
     return state
   }
 
+  whenCardDroppedOn(card) {
+    card.putOnPile(this)
+  }
+
   static canBeDroppedOn = true
 
   static exclusive = true

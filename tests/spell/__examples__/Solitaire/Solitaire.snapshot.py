@@ -549,6 +549,9 @@ class Pile(DrawableList):
             state = f"{state} {card.state}"
         return state
 
+    async def when_card_dropped_on(self, card: Card) -> None:
+        await card.put_on_pile(self)
+
     can_be_dropped_on = True
 
     exclusive = True
@@ -964,13 +967,6 @@ solitaire = Solitaire()
 async def on_card_click(event: Any) -> None:
     card = event.card
     await card.play()
-
-
-@core.on("card-drop")
-async def on_card_drop(event: Any) -> None:
-    card = event.card
-    pile = event.pile
-    await card.put_on_pile(pile)
 
 
 # Start

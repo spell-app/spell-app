@@ -1252,10 +1252,9 @@ on("card-click", (event) => {
   card.play()
 })
 
-on("card-drop", (event) => {
-  const { card, pile } = event
-  card.putOnPile(pile)
-})
+Pile.prototype.whenCardDroppedOn = function (card) {
+  card.putOnPile(this)
+}
 
 core.heading("Start")
 //## Start

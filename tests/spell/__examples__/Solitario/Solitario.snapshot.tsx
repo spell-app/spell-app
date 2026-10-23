@@ -513,6 +513,10 @@ export class Pila extends DrawableList<Carta> {
     return estado
   }
 
+  whenCartaDroppedOn(carta: Carta) {
+    carta.ponerEnPila(this)
+  }
+
   static canBeDroppedOn = true
 
   static exclusive = true
@@ -534,6 +538,10 @@ export class PilaElement extends SpellElement<Pila> {
     { name: "name", kind: "string", description: "Its name." },
     { name: "disposición", kind: "string", description: "Its disposición." }
   ])
+
+  whenCartaDroppedOn(carta: Carta) {
+    return this.currentThing?.whenCartaDroppedOn(carta)
+  }
 }
 core.useElement(Pila, PilaElement)
 // en la página, se le puede soltar una carta encima:  brilla cuando la tomaría, según sus propias reglas
@@ -1018,8 +1026,6 @@ export const solitario = new Solitario()
 core.heading("Jugar una carta:  qué hace un clic o un arrastre")
 /** un clic juega la carta;  un arrastre la pone donde se suelta */
 on<{ carta: Carta }>("clic-carta", ({ carta }) => carta.jugar())
-
-on<{ carta: Carta; pila: Pila }>("soltar-carta", ({ carta, pila }) => carta.ponerEnPila(pila))
 
 core.heading("Inicio")
 //## Inicio

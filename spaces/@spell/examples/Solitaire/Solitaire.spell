@@ -204,8 +204,9 @@ to put a card on a pile
 on card click with a card
 	play the card
 
-on card drop with a card and a pile
-	put the card on the pile
+a pile:
+	- when a card is dropped on it:
+		put the card on it
 
 
 ## Start
