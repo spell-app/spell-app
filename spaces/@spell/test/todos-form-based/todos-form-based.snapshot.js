@@ -52,13 +52,11 @@ export class TodosApp extends App {
           h("ui-item", { type: "header" }, "To Do:"),
           h("ui-menu", { position: "right" },
             h("ui-item", "Show:"),
-            h("ui-item", { onClick: () => (app.filter = "all"), "prop:selected": () => app.filter == "all" },
-              "All"
-            ),
-            h("ui-item", { onClick: () => (app.filter = "active"), "prop:selected": () => app.filter == "active" },
+            h("ui-item", { onClick: () => (app.filter = "all"), selected: () => app.filter == "all" }, "All"),
+            h("ui-item", { onClick: () => (app.filter = "active"), selected: () => app.filter == "active" },
               "Active"
             ),
-            h("ui-item", { onClick: () => (app.filter = "completed"), "prop:selected": () => app.filter == "completed" },
+            h("ui-item", { onClick: () => (app.filter = "completed"), selected: () => app.filter == "completed" },
               "Completed"
             )
           )
@@ -75,7 +73,7 @@ export class TodosApp extends App {
               h("ui-input", { name: "newTaskName", placeholder: "New task name", label: "New task:" })
             ),
             h("ui-field",
-              h("ui-button", { "prop:disabled": () => app.newTaskName === "", onClick: () => createANewTask() },
+              h("ui-button", { disabled: () => app.newTaskName === "", onClick: () => createANewTask() },
                 "Add Task"
               )
             )
