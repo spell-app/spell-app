@@ -21,7 +21,7 @@
     {
       "type": "Card",
       "superType": "Drawable",
-      "defined": "/Card.spell:260-2997"
+      "defined": "/Card.spell:260-3120"
     },
     {
       "property": "rank",
@@ -264,19 +264,19 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Card.spell:2426-2618"
+      "defined": "/Card.spell:2549-2741"
     },
     {
       "property": "symbol",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2623-2748"
+      "defined": "/Card.spell:2746-2871"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2793-2997"
+      "defined": "/Card.spell:2916-3120"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -315,7 +315,7 @@
     {
       "type": "Joker",
       "superType": "Card",
-      "defined": "/Card.spell:4366-4785"
+      "defined": "/Card.spell:4489-4908"
     },
     {
       "property": "color",
@@ -325,7 +325,7 @@
         "red",
         "black"
       ],
-      "defined": "/Card.spell:4396-4430"
+      "defined": "/Card.spell:4519-4553"
     },
     {
       "syntax": "{operator:is_or_is_not} {definite_article} (expression:red|reds|black|blacks) joker",
@@ -341,31 +341,31 @@
         ]
       },
       "staticOf": "Joker",
-      "defined": "/Card.spell:4434-4459"
+      "defined": "/Card.spell:4557-4582"
     },
     {
       "property": "value",
       "of": "Joker",
       "datatype": "number",
-      "defined": "/Card.spell:4496-4552"
+      "defined": "/Card.spell:4619-4675"
     },
     {
       "property": "picture",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:4557-4587"
+      "defined": "/Card.spell:4680-4710"
     },
     {
       "property": "name",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:4593-4625"
+      "defined": "/Card.spell:4716-4748"
     },
     {
       "property": "state",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:4629-4785"
+      "defined": "/Card.spell:4752-4908"
     },
     {
       "syntax": "test card setup",
@@ -374,7 +374,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spell:3009-4280"
+      "defined": "/Card.spell:3132-4403"
     },
     {
       "syntax": "test jokers",
@@ -383,7 +383,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "jokers",
-      "defined": "/Card.spell:4787-5500"
+      "defined": "/Card.spell:4910-5623"
     },
     {
       "type": "Deck",
@@ -438,7 +438,7 @@
       "type": "Pile",
       "superType": "DrawableList",
       "itemType": "Card",
-      "defined": "/Pile.spell:258-961"
+      "defined": "/Pile.spell:258-1087"
     },
     {
       "property": "name",
@@ -461,26 +461,26 @@
     {
       "property": "color",
       "of": "Pile",
-      "defined": "/Pile.spell:620-698"
+      "defined": "/Pile.spell:746-824"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "defined": "/Pile.spell:702-775"
+      "defined": "/Pile.spell:828-901"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:809-961"
+      "defined": "/Pile.spell:935-1087"
     },
     {
       "property": "pile",
       "of": "Card",
       "datatype": "Pile",
       "exclusive": true,
-      "defined": "/Pile.spell:1049-1075"
+      "defined": "/Pile.spell:1175-1201"
     },
     {
       "syntax": "test piles",
@@ -489,7 +489,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "piles",
-      "defined": "/Pile.spell:1087-1900"
+      "defined": "/Pile.spell:1213-2026"
     },
     {
       "type": "StockPile",
@@ -784,68 +784,68 @@
     89,
     94,
     103,
-    120,
-    129,
-    139,
-    153,
-    168,
-    198,
-    201,
-    208,
+    117,
+    126,
+    136,
+    150,
+    165,
+    202,
+    205,
     212,
-    217,
+    216,
     221,
     225,
-    233,
-    288,
-    325,
+    229,
+    237,
+    292,
     329,
-    335,
-    345,
-    354,
-    383,
-    407,
-    412,
-    418,
-    425,
-    430,
-    436,
-    446,
-    449,
-    504,
-    507,
-    531,
-    534,
-    548,
-    551,
+    333,
+    339,
+    349,
+    358,
+    387,
+    411,
+    416,
+    422,
+    429,
+    434,
+    440,
+    453,
+    456,
+    511,
+    514,
+    538,
+    541,
     555,
-    583,
-    586,
-    601,
-    602,
-    607,
-    613,
-    618,
-    623,
-    628,
-    633,
-    638,
-    643,
-    648,
-    653,
-    658,
-    663,
-    668,
-    673,
-    683,
-    688,
-    693,
-    703,
-    719,
-    748,
-    754,
-    766,
-    807,
-    880
+    558,
+    562,
+    590,
+    593,
+    608,
+    609,
+    614,
+    620,
+    625,
+    630,
+    635,
+    640,
+    645,
+    650,
+    655,
+    660,
+    665,
+    670,
+    675,
+    680,
+    690,
+    695,
+    700,
+    710,
+    726,
+    755,
+    761,
+    773,
+    814,
+    887
   ]
 }

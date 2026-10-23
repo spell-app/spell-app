@@ -63,7 +63,8 @@
 [layout]::part(placeholder) {
   position: absolute;
   top: 0;
-  left: 0;
+  /* where its pile's content starts, inside the cell's gutters */
+  left: auto;
   font-size: calc(100cqi / var(--card-width));
   width: calc(var(--card-width) * 1em);
   height: calc(var(--card-width) * var(--card-height) * 1em);
@@ -110,7 +111,7 @@
 }
 [layout="horizontal"] > * {
   font-size: calc(100cqi / var(--card-width) / var(--spread));
-  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));
+  margin-left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));
 }
 
 /* fanned:  as a hand of cards is held, each turned a little from the one before, around a point below them */

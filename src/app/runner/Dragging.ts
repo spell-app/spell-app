@@ -7,7 +7,14 @@ import { E } from "spell-ui/core"
  * - What it moves:  the element, and its list's items after it, e.g. a tableau's face-up card and the cards on it.
  *   They follow the pointer by their `translate`, raised above the board, and ignore the pointer meanwhile,
  *   so what's under it can be found.
- * - Where it lands:  the drawable list's element under the pointer, as `dropped()` finds it.
+ * - Where it lands:  the drawable list's element under the pointer, as `dropTargetAt()` finds it.
+ * - It sends the web's own drag events, as `DragEvent`s with no `dataTransfer`, so a page can follow it as it would
+ *   the browser's drag and drop:
+ *   - on the dragged element:  `dragstart`, `drag` as it moves, `dragend`
+ *   - on the list under the pointer:  `dragenter`, `dragover` as it moves over it, `dragleave`, and `drop`
+ *   - What's being dragged meanwhile:  `Dragging.current`.
+ *   - Why not the browser's own drag and drop (`draggable="true"`):  it's patchy on phones, only a faded picture of one
+ *     element follows the pointer, and it can't glide or slide back.
  * - A press that doesn't move past `DRAG_START_PX` is no drag:  its click goes through as ever.
  *   A real drag swallows the click that follows it.
  * - What happens on the drop is its owner's to say (`onDrop`), e.g. `SpellElement`'s:  the program's `card-drop`.
@@ -16,9 +23,12 @@ import { E } from "spell-ui/core"
  * - Plain DOM:  no Solid, no core.  Its owner hands it the element and what to do.
  ****************/
 export class Dragging {
+  /** The drag in progress, if any:  a list under the pointer asks it what's coming. */
+  static current: Dragging | undefined
+
   /** Start watching a press on `element`, `event` its `pointerdown`:  a drag once it moves far enough. */
   constructor(
-    private readonly element: HTMLElement,
+    readonly element: HTMLElement,
     event: PointerEvent,
     private readonly onDrop: (target: HTMLElement | undefined) => void
   ) {
@@ -40,6 +50,8 @@ export class Dragging {
   private readonly listening = new AbortController()
   /** What's being dragged, once it's a drag:  the element, then its list's items after it. */
   private moving: HTMLElement[] = []
+  /** The drop target under the pointer now, if any:  it's had `dragenter`, and gets `dragleave` as the pointer leaves. */
+  private over: HTMLElement | undefined
 
   /** The pointer moved:  past `DRAG_START_PX`, a drag starts;  during one, what's dragged follows it. */
   private readonly onMove = (event: PointerEvent) => {
@@ -52,6 +64,18 @@ export class Dragging {
     }
     for (const element of this.moving) element.style.translate = `${dx}px ${dy}px`
     event.preventDefault()
+    Dragging.send(this.element, "drag", event)
+    this.moveOver(Dragging.dropTargetAt(this.element, event.clientX, event.clientY), event)
+  }
+
+  /** The pointer is over `target` now:  `dragleave` on the one it left, `dragenter` on a new one, `dragover` on it. */
+  private moveOver(target: HTMLElement | undefined, event: PointerEvent) {
+    if (target !== this.over) {
+      if (this.over) Dragging.send(this.over, "dragleave", event)
+      this.over = target
+      if (target) Dragging.send(target, "dragenter", event)
+    }
+    if (target) Dragging.send(target, "dragover", event)
   }
 
   /** The drag starts:  what's dragged is raised, and leaves the pointer to what's under it. */
@@ -65,7 +89,8 @@ export class Dragging {
       element.style.zIndex = DRAGGING_Z_INDEX
       element.style.pointerEvents = "none"
     }
-    this.element.dispatchEvent(new CustomEvent(DRAG_START_EVENT))
+    Dragging.current = this
+    this.element.dispatchEvent(new DragEvent("dragstart", { bubbles: true, composed: true }))
   }
 
   /** The pointer's let go:  a drag drops where it is;  a press with no drag is left to its click. */
@@ -75,7 +100,9 @@ export class Dragging {
     if (!this.moving.length) return
     Dragging.swallowNextClick()
     const target = Dragging.dropTargetAt(this.element, event.clientX, event.clientY)
+    this.moveOver(target, event)
     try {
+      if (target) Dragging.send(target, "drop", event)
       this.onDrop(target)
     } finally {
       // after the move is drawn:  what's still here wasn't taken, and slides back
@@ -87,6 +114,7 @@ export class Dragging {
   private readonly onCancel = (event: PointerEvent) => {
     if (event.pointerId !== this.pointerId) return
     this.listening.abort()
+    if (this.over) Dragging.send(this.over, "dragleave", event)
     this.settle()
   }
 
@@ -110,7 +138,14 @@ export class Dragging {
         )
       }
     }
-    this.element.dispatchEvent(new CustomEvent(DRAG_END_EVENT))
+    if (Dragging.current === this) Dragging.current = undefined
+    this.element.dispatchEvent(new DragEvent("dragend", { bubbles: true, composed: true }))
+  }
+
+  /** Send drag event `type` to `target`, where `event`'s pointer is:  a `DragEvent`, as the browser's own. */
+  private static send(target: HTMLElement, type: string, event: PointerEvent) {
+    const { clientX, clientY } = event
+    target.dispatchEvent(new DragEvent(type, { bubbles: true, composed: true, cancelable: true, clientX, clientY }))
   }
 
   /**
@@ -154,7 +189,3 @@ const SLIDE_BACK_MS = 200
 
 /** How it slides back:  quickly at first, settling into place. */
 const SLIDE_BACK_EASING = "cubic-bezier(0.2, 0.7, 0.3, 1)"
-
-/** Sent on the dragged element as its drag starts, and as it ends:  its owner shows the grabbing cursor between. */
-export const DRAG_START_EVENT = "spell-drag-start"
-export const DRAG_END_EVENT = "spell-drag-end"

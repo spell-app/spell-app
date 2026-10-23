@@ -57,6 +57,8 @@ una "carta" es una cosa dibujable donde:
 			devolver el elemento columna de ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭","🂮"]
 
 	## dibujarla:  su imagen boca arriba, boca abajo el dorso que comparten todas las cartas
+	// en la página, una carta se puede arrastrar a otra pila:  las reglas de su pila dicen cuáles suelta
+	- se puede arrastrar
 	// una letra, del tamaño del texto de alrededor:  su pila la escala para que quepa -- styles.css
 	- para dibujarla:
 		devolver

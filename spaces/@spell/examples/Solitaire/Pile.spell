@@ -6,6 +6,8 @@ a "pile" is a drawable list of cards where:
 	- its "name" is text
 	// how its cards lie:  on top of each other, down a column, along a row, or fanned as a hand is held -- styles.css
 	- its "layout" is one of stacked, vertical, horizontal or fanned
+	// on the page, a card can be dropped on it:  it glows when it would take the card, by its own rules
+	- it can be dropped on
 	// the color and value of its last card:  what the next card goes on
 	- its "color" is:
 		"none" if it is empty
