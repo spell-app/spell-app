@@ -40,7 +40,7 @@ export class Task extends Drawable {
 
   /** its priority label's color:  red when it's high */
   get priorityColor() {
-    if (this.priority == "high") return "red"
+    if (this.priority === "high") return "red"
     return "grey"
   }
 
@@ -132,8 +132,8 @@ export class Checklist extends DrawableList<Task> {
 
   // each task, unless the filter hides it
   drawEachItem(item: Task) {
-    if (this.showing == "active" && item.isDone) return undefined
-    if (this.showing == "done" && item.isActive) return undefined
+    if (this.showing === "active" && item.isDone) return undefined
+    if (this.showing === "done" && item.isActive) return undefined
     return core.drawThing(item)
   }
 
@@ -207,15 +207,15 @@ export class TaskList extends App {
           <ui-item type="header">Task List</ui-item>
           <ui-item>{`${this.activeCount} to do`}</ui-item>
           <ui-menu position="right">
-            <ui-item aria-label="All" selected={this.tasks.showing == "all"} onClick={() => (this.tasks.showing = "all")} style="cursor:pointer;user-select:none">
+            <ui-item aria-label="All" selected={this.tasks.showing === "all"} onClick={() => (this.tasks.showing = "all")} style="cursor:pointer;user-select:none">
               <ui-icon name="list" />
               <ui-popup content="All" inverted={true} size="small" />
             </ui-item>
-            <ui-item aria-label="To do" selected={this.tasks.showing == "active"} onClick={() => (this.tasks.showing = "active")} style="cursor:pointer;user-select:none">
+            <ui-item aria-label="To do" selected={this.tasks.showing === "active"} onClick={() => (this.tasks.showing = "active")} style="cursor:pointer;user-select:none">
               <ui-icon name="square outline" />
               <ui-popup content="To do" inverted={true} size="small" />
             </ui-item>
-            <ui-item aria-label="Done" selected={this.tasks.showing == "done"} onClick={() => (this.tasks.showing = "done")} style="cursor:pointer;user-select:none">
+            <ui-item aria-label="Done" selected={this.tasks.showing === "done"} onClick={() => (this.tasks.showing = "done")} style="cursor:pointer;user-select:none">
               <ui-icon name="check square outline" />
               <ui-popup content="Done" inverted={true} size="small" />
             </ui-item>

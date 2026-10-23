@@ -40,7 +40,7 @@ export class Tarea extends Drawable {
 
   /** el color de la etiqueta de su prioridad:  rojo cuando es alta */
   get colorDePrioridad() {
-    if (this.prioridad == "alta") return "rojo"
+    if (this.prioridad === "alta") return "rojo"
     return "gris"
   }
 
@@ -131,8 +131,8 @@ export class Agenda extends DrawableList<Tarea> {
 
   // cada tarea, salvo que el filtro la oculte
   drawEachItem(item: Tarea) {
-    if (this.mostrando == "pendientes" && item.estáHecha) return undefined
-    if (this.mostrando == "hechas" && item.estáPendiente) return undefined
+    if (this.mostrando === "pendientes" && item.estáHecha) return undefined
+    if (this.mostrando === "hechas" && item.estáPendiente) return undefined
     return core.drawThing(item)
   }
 
@@ -205,15 +205,15 @@ export class ListaDeTareas extends App {
           <es-elemento tipo="encabezado">Lista de tareas</es-elemento>
           <es-elemento>{`${this.cuentaPendiente} pendientes`}</es-elemento>
           <es-menu posicion="derecha">
-            <es-elemento aria-label="Todas" seleccionado={this.tareas.mostrando == "todas"} onClick={() => (this.tareas.mostrando = "todas")} style="cursor:pointer;user-select:none">
+            <es-elemento aria-label="Todas" seleccionado={this.tareas.mostrando === "todas"} onClick={() => (this.tareas.mostrando = "todas")} style="cursor:pointer;user-select:none">
               <es-icono name="list" />
               <es-emergente contenido="Todas" invertido={true} tamano="pequeño" />
             </es-elemento>
-            <es-elemento aria-label="Pendientes" seleccionado={this.tareas.mostrando == "pendientes"} onClick={() => (this.tareas.mostrando = "pendientes")} style="cursor:pointer;user-select:none">
+            <es-elemento aria-label="Pendientes" seleccionado={this.tareas.mostrando === "pendientes"} onClick={() => (this.tareas.mostrando = "pendientes")} style="cursor:pointer;user-select:none">
               <es-icono name="square outline" />
               <es-emergente contenido="Pendientes" invertido={true} tamano="pequeño" />
             </es-elemento>
-            <es-elemento aria-label="Hechas" seleccionado={this.tareas.mostrando == "hechas"} onClick={() => (this.tareas.mostrando = "hechas")} style="cursor:pointer;user-select:none">
+            <es-elemento aria-label="Hechas" seleccionado={this.tareas.mostrando === "hechas"} onClick={() => (this.tareas.mostrando = "hechas")} style="cursor:pointer;user-select:none">
               <es-icono name="check square outline" />
               <es-emergente contenido="Hechas" invertido={true} tamano="pequeño" />
             </es-elemento>

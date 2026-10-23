@@ -41,7 +41,7 @@ export class Task extends Drawable {
 
   /** its priority label's color:  red when it's high */
   get priorityColor() {
-    if (this.priority == "high") return "red"
+    if (this.priority === "high") return "red"
     return "grey"
   }
 
@@ -117,8 +117,8 @@ export class Checklist extends DrawableList {
 
   // each task, unless the filter hides it
   drawEachItem(item) {
-    if (this.showing == "active" && item.isDone) return undefined
-    if (this.showing == "done" && item.isActive) return undefined
+    if (this.showing === "active" && item.isDone) return undefined
+    if (this.showing === "done" && item.isActive) return undefined
     return core.drawThing(item)
   }
 
@@ -174,7 +174,7 @@ export class TaskList extends App {
         h("ui-menu", { position: "right" },
           h("ui-item", {
             "aria-label": "All",
-            selected: () => this.tasks.showing == "all",
+            selected: () => this.tasks.showing === "all",
             onClick: () => (this.tasks.showing = "all"),
             style: "cursor:pointer;user-select:none"
           },
@@ -183,7 +183,7 @@ export class TaskList extends App {
           ),
           h("ui-item", {
             "aria-label": "To do",
-            selected: () => this.tasks.showing == "active",
+            selected: () => this.tasks.showing === "active",
             onClick: () => (this.tasks.showing = "active"),
             style: "cursor:pointer;user-select:none"
           },
@@ -192,7 +192,7 @@ export class TaskList extends App {
           ),
           h("ui-item", {
             "aria-label": "Done",
-            selected: () => this.tasks.showing == "done",
+            selected: () => this.tasks.showing === "done",
             onClick: () => (this.tasks.showing = "done"),
             style: "cursor:pointer;user-select:none"
           },
