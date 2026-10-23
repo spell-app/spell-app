@@ -297,7 +297,7 @@ _FizzBuzz in the editor:  nothing to draw, so the App pane stays empty, and the 
 ## Todos:  types, phrases, a list and a form
 
 Every framework has its to-do list, and this is Spell's:
-[todo.spell](spaces/@spell/examples/todos-form-based/todo.spell), 72 lines, in the four parts above.
+[todo.spell](spaces/@spell/examples/todos-form-based/todo.spell), 73 lines, in the four parts above.
 First, what a task IS, sentence by sentence:
 
 ```spell
@@ -336,8 +336,8 @@ the shownTasks of a todos-app is:
 export class TodosApp extends App {
   // ... its tasks, newTaskName and filter
   get shownTasks() {
-    if (this.filter == "active") return core.filter(this.tasks, (task) => task.isActive)
-    if (this.filter == "completed") return core.filter(this.tasks, (task) => task.isComplete)
+    if (this.filter === "active") return core.filter(this.tasks, (task) => task.isActive)
+    if (this.filter === "completed") return core.filter(this.tasks, (task) => task.isComplete)
     return this.tasks
   }
 }
@@ -348,6 +348,25 @@ export class TodosApp extends App {
   The task's whole class is on [the front page](README.md), folded under its first picture.
 
 </details>
+
+Then what happens as a task is made:  a hook in the task's outline, which takes what it was made with.
+
+```spell
+a task:
+	- when created (with title as text, completed as a choice):
+		if the title is undefined
+			if the newTaskName of the app is "" return
+			set its title to the newTaskName of the app
+			set the newTaskName of the app to ""
+		set its completed to the completed or no
+		add it to the tasks of the app
+
+create a new task with title = "Create todos app", completed = yes
+```
+
+- `when created` runs once for each new task, after its properties are set:  `- when creating it:` says the same.
+- So making one is all a caller does:  `create a new task with title = ...`, or the Add Task button's
+  `create a new task`, which takes its title from the New task field.
 
 Then how it draws, with [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s elements, where a click runs a line of Spell:
 

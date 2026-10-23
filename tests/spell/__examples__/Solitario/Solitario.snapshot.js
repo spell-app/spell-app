@@ -125,10 +125,10 @@ export class Carta extends Drawable {
   }
 
   get símbolo() {
-    if (this.palo == "tréboles") return "♣"
-    if (this.palo == "diamantes") return "♦"
-    if (this.palo == "corazones") return "♥"
-    if (this.palo == "espadas") return "♠"
+    if (this.palo === "tréboles") return "♣"
+    if (this.palo === "diamantes") return "♦"
+    if (this.palo === "corazones") return "♥"
+    if (this.palo === "espadas") return "♠"
     return "?"
   }
 
@@ -368,7 +368,7 @@ export function testLaCreaciónDelMazo() {
     const mazo = new Mazo()
     core.expect(mazo.length, `el número de cartas en el mazo`, 52, `52`)
     core.echoTestAction(`poner las damas a las cartas en el mazo donde el rango de la carta es dama`)
-    const damas = mazo.filter((carta) => carta.rango == "dama")
+    const damas = mazo.filter((carta) => carta.rango === "dama")
     core.expect(damas.length, `el número de cartas en las damas`, 4, `4`)
     // el as de tréboles es la carta de arriba
     core.expect(mazo.firstItem?.nombre, `el nombre de la carta de arriba del mazo`, "as de tréboles", `"as de tréboles"`)

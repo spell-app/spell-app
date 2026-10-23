@@ -19,13 +19,14 @@ set app to a new todos-app
 set the filter of the app to "all"
 set the newTaskName of the app to ""
 
-to create a new task (with title as text, completed as a choice)
-	if the title is undefined
-		if the newTaskName of the app is "" return
-		set the title to the newTaskName of the app
-		set the newTaskName of the app to ""
-	get a new task with title = the title, completed = the completed or no
-	add it to the tasks of the app
+a task:
+	- when created (with title as text, completed as a choice):
+		if the title is undefined
+			if the newTaskName of the app is "" return
+			set its title to the newTaskName of the app
+			set the newTaskName of the app to ""
+		set its completed to the completed or no
+		add it to the tasks of the app
 
 create a new task with title = "Create todos app", completed = yes
 create a new task with title = "Teach it to draw"

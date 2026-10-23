@@ -2,8 +2,7 @@
   "spellVersion": "0.8.0",
   "provides": [
     "Task",
-    "TodosApp",
-    "create_a_new_task"
+    "TodosApp"
   ],
   "statements": [
     {
@@ -42,6 +41,17 @@
       "name": "\"is active\"",
       "returns": "choice",
       "defined": "/todo.spell:155-196"
+    },
+    {
+      "kind": "method",
+      "name": "created (with title as text, completed as a choice)",
+      "params": [
+        {
+          "name": "props"
+        }
+      ],
+      "returns": "nothing",
+      "defined": "/todo.spell:697-991"
     },
     {
       "type": "TodosApp",
@@ -88,25 +98,7 @@
       ],
       "kind": "method",
       "name": "draw (a todos-app)",
-      "defined": "/todo.spell:1173-2957"
-    },
-    {
-      "syntax": "create a new task (with {props:object_literal_properties})?",
-      "output": "create_a_new_task",
-      "rule": "method_call",
-      "alias": [
-        "statement",
-        "expression"
-      ],
-      "kind": "function",
-      "name": "create a new task (with title as text, completed as a choice)",
-      "params": [
-        {
-          "name": "props"
-        }
-      ],
-      "returns": "nothing",
-      "defined": "/todo.spell:686-1011"
+      "defined": "/todo.spell:1153-2937"
     }
   ],
   "codeLines": [
@@ -115,12 +107,12 @@
     10,
     15,
     19,
-    24,
-    25,
-    30,
+    23,
     35,
+    36,
     41,
-    47,
-    119
+    46,
+    52,
+    58
   ]
 }
