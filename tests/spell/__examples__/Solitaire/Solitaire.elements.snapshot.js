@@ -337,7 +337,7 @@ export function testPiles(...args) {
 // This file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
 // What's where, top to bottom:
 //   the solitaire:  its piles, its moves, auto play and drawing
-//   playing a card:  what a click does
+//   playing a card:  what a click or a drag does
 //   start
 //   the piles:  each kind, what it may take or give up, and how it lies
 //   tests

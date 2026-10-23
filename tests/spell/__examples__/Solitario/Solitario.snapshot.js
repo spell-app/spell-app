@@ -497,7 +497,7 @@ core.heading("Solitario Klondike")
 // Este archivo agrega el juego, sus tipos de pilas, qué puede tomar o soltar cada una, y cómo están sus cartas.
 // Qué hay dónde, de arriba abajo:
 //   el solitario:  sus pilas, sus movimientos, el juego solo y su dibujo
-//   jugar una carta:  qué hace un clic
+//   jugar una carta:  qué hace un clic o un arrastre
 //   inicio
 //   las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas
 //   pruebas
