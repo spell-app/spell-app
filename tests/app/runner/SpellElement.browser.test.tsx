@@ -688,6 +688,40 @@ describe("SpellElement", () => {
       }
     })
 
+    test("reordered immediately:  no line, the item moves as the pointer goes, once a place, steady while items glide (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c", "d")
+      const moves = vi.spyOn(core, "moveBefore")
+      try {
+        element.setAttribute("move-delay", "0")
+        const [a, , , d] = chits()
+        const box = a!.getBoundingClientRect()
+        const send = (target: EventTarget, type: string, y: number) =>
+          target.dispatchEvent(
+            new PointerEvent(type, { bubbles: true, composed: true, pointerId: 5, clientX: box.x + 10, clientY: y })
+          )
+        send(a!, "pointerdown", box.y + 5)
+        // slowly down past `b` and `c`, a few pixels a step:  each new place moves it once
+        const end = d!.getBoundingClientRect().top + 2
+        for (let y = box.y + 5; y <= end; y += 3) {
+          send(window, "pointermove", y)
+          await new Promise((resolve) => setTimeout(resolve, 5))
+          core.flush()
+          expect(element.shadowRoot!.querySelector("[part~=drop-line]")).toBeNull()
+        }
+        expect(labelsNow()).toEqual(["b", "c", "a", "d"])
+        expect(moves).toHaveBeenCalledTimes(2)
+        send(window, "pointerup", end)
+        core.flush()
+        await ElementFixture.settle(document.body)
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+        await new Promise((resolve) => setTimeout(resolve))
+        expect(labelsNow()).toEqual(["b", "c", "a", "d"])
+      } finally {
+        moves.mockRestore()
+        done()
+      }
+    })
+
     test("selected items drag together;  a press in a field inside one starts no drag (outline-spell P30)", async () => {
       const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c", "d")
       try {
