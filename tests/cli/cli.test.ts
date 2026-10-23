@@ -695,7 +695,7 @@ describe("spell test --name", () => {
   })
 })
 
-describe("spell lang translate (epic spanish P24-P25)", () => {
+describe("spell lang translate (epic spanish P24-P26)", () => {
   /** A small game, in English. */
   const GAME = [
     'a "card" is a thing where:',
@@ -760,6 +760,28 @@ describe("spell lang translate (epic spanish P24-P25)", () => {
   })
 
   test("a name the dictionary lacks, with --no-ai:  kept as written, marked TODO in the line and the dictionary, exit 1", () => {
+    // a word the shared glossary doesn't have either
+    const folder = tempProject("Gizmo", 'a "gizmo" is a thing\n')
+    const { status, stdout } = spell([
+      "lang",
+      "translate",
+      folder,
+      "--to",
+      "es",
+      "--no-ai",
+      "--out",
+      resolve(TEMP, "Artilugio")
+    ])
+    expect(status).toBe(1)
+    // where the line to fix is:  in the translation
+    expect(stdout).toContain('Gizmo.es.spell:1  types "gizmo"')
+    expect(readFileSync(resolve(TEMP, "Artilugio", "Gizmo.es.spell"), "utf8")).toBe(
+      'un "gizmo" es una cosa  // TODO: translate (types "gizmo")\n'
+    )
+    expect(readFileSync(resolve(folder, "Gizmo.es.names.json5"), "utf8")).toContain('"gizmo": {\n      "name": "TODO"')
+  })
+
+  test("a name the shared glossary has, with --no-ai:  no call, no TODO, the same word as every project (P26)", () => {
     const folder = tempProject("Deck", 'a "deck" is a thing\n')
     const { status, stdout } = spell([
       "lang",
@@ -771,13 +793,9 @@ describe("spell lang translate (epic spanish P24-P25)", () => {
       "--out",
       resolve(TEMP, "Mazo")
     ])
-    expect(status).toBe(1)
-    // where the line to fix is:  in the translation
-    expect(stdout).toContain('Deck.es.spell:1  types "deck"')
-    expect(readFileSync(resolve(TEMP, "Mazo", "Deck.es.spell"), "utf8")).toBe(
-      'un "deck" es una cosa  // TODO: translate (types "deck")\n'
-    )
-    expect(readFileSync(resolve(folder, "Deck.es.names.json5"), "utf8")).toContain('"deck": {\n      "name": "TODO"')
+    expect(status).toBe(0)
+    expect(stdout).toContain("1 from the glossary")
+    expect(readFileSync(resolve(TEMP, "Mazo", "Mazo.es.spell"), "utf8")).toBe('un "mazo" es una cosa\n')
   })
 
   test("a language with no pack:  says which there are, exit 2", () => {

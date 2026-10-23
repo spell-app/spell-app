@@ -369,7 +369,7 @@ export function testDeckCreation() {
     const deck = new Deck()
     core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
     core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is queen`)
-    const queens = deck.filter((card) => card.rank == "queen")
+    const queens = deck.filter((card) => card.rank === "queen")
     core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
     // ace of clubs is the top card
     core.expect(deck.firstItem?.name, `the name of the top card of the deck`, "ace of clubs", `"ace of clubs"`)

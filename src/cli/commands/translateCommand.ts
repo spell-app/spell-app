@@ -171,6 +171,7 @@ async function uiVocabulary(lang: string): Promise<UIVocabulary | undefined> {
  * (`spell lint`, `spell test`), and answers what's wrong, line by line.
  * - The project is loaded once;  each later call takes each file's text from disk again, as an editor would.
  * - A failed test's failures, on the lines that checked them (the language server's `testDiagnostics()`).
+ * - And the translation's files as it parsed them, for the shape check (`ShapeCheck`, epic `spanish` P26).
  * - NEVER throws:  a project that won't load or compile is one problem, on its first file's first line.
  */
 function translationChecker(folder: string): TranslationChecker {
@@ -209,7 +210,12 @@ function translationChecker(folder: string): TranslationChecker {
       if (!reports.length && run.exitCode !== CLI.EXIT.OK) {
         problems.push({ path: pathOf(project.spellFiles[0]!), line: 0, message: run.output.trim(), source: "test" })
       }
-      return { problems, tests: { passed: reports.length - failed, failed } }
+      // the translation as parsed in its own project, for the shape check
+      const parsed: SourceFile[] = []
+      for (const file of project.spellFiles) {
+        parsed.push({ path: pathOf(file), contents: file.contents ?? "", match: await file.parse() })
+      }
+      return { problems, tests: { passed: reports.length - failed, failed }, files: parsed }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return { problems: [{ path: project ? pathOf(project.spellFiles[0]!) : "/", line: 0, message, source: "lint" }] }

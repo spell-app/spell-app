@@ -489,7 +489,7 @@ export function testDeckCreation() {
     const deck = new Deck()
     core.expect(deck.length, \`the number of cards in the deck\`, 52, \`52\`)
     core.echoTestAction(\`set the queens to the cards in the deck where the rank of the card is queen\`)
-    const queens = deck.filter((card) => card.rank == "queen")
+    const queens = deck.filter((card) => card.rank === "queen")
     core.expect(queens.length, \`the number of cards in the queens\`, 4, \`4\`)
     // ace of clubs is the top card
     core.expect(deck.firstItem?.name, \`the name of the top card of the deck\`, "ace of clubs", \`"ace of clubs"\`)
@@ -780,7 +780,7 @@ export class Foundation extends Pile {
   /** one card at a time:  the last of its pile */
   canTake(card) {
     if (card !== card.pile.lastItem) return false
-    return this.suit == card.suit && this.value + 1 === card.value
+    return this.suit === card.suit && this.value + 1 === card.value
   }
 
   // empty:  a light grey ace of its suit, face up
@@ -817,7 +817,7 @@ export class Tableau extends Pile {
 
   canTake(card) {
     if (this.isEmpty) return card.isARank("king")
-    return this.color != card.color && this.value === card.value + 1
+    return this.color !== card.color && this.value === card.value + 1
   }
 }
 
@@ -1122,7 +1122,7 @@ export class Solitaire extends App {
     await core.forEachSequential(core.everyThing(Tableau), async (pile) => {
       if (pile.isEmpty) return
       const testCard = pile.lastItem
-      const foundation = core.filter(core.everyThing(Foundation), (pile) => pile.suit == testCard.suit).firstItem
+      const foundation = core.filter(core.everyThing(Foundation), (pile) => pile.suit === testCard.suit).firstItem
       if (core.canTake(foundation, testCard)) {
         anythingChanged = true
         await testCard.play()
@@ -1135,7 +1135,7 @@ export class Solitaire extends App {
       const faceUpCards = pile.filter((card) => card.isFaceDirection("up"))
       if (faceUpCards.isEmpty) return
       const testCard = faceUpCards.firstItem
-      if (testCard.isARank("king") && testCard == pile.firstItem) return
+      if (testCard.isARank("king") && testCard === pile.firstItem) return
       if (await testCard.play()) {
         anythingChanged = true
         await core.pauseFor(500, "msec")
