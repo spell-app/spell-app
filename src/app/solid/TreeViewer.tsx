@@ -4,7 +4,7 @@ import { P } from "spell-lang/parser"
 import { SP } from "spell-lang/spell"
 import { editor } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
-import { ErrorBoundary, MenuHeader, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
+import { ErrorBoundary, MenuHeader, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
 
 import "./TreeViewer.css"
 
@@ -44,9 +44,6 @@ export function TreeToolbar() {
     <PanelMenu>
       <Submenu left spring>
         <MenuHeader>{appTexts.text("spellTree")}</MenuHeader>
-      </Submenu>
-      <Submenu right spring>
-        <MoreMenu stub />
       </Submenu>
     </PanelMenu>
   )

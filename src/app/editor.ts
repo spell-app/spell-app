@@ -112,10 +112,6 @@ export class EditorStore extends Observable {
   aboutSpell(): void {
     console.warn("TODO: editor.aboutSpell() not yet implemented")
   }
-  /** Show documentation. TODO: not yet implemented. */
-  showDocs(): void {
-    console.warn("TODO: editor.showDocs() not yet implemented")
-  }
   /** Show help. TODO: not yet implemented. */
   showHelp(): void {
     console.warn("TODO: editor.showHelp() not yet implemented")

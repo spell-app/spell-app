@@ -57,32 +57,15 @@ una "carta" es una cosa dibujable donde:
 			devolver el elemento columna de ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭","🂮"]
 
 	## dibujarla:  su imagen boca arriba, boca abajo el dorso que comparten todas las cartas
+	// una letra, del tamaño del texto de alrededor:  su pila la escala para que quepa -- styles.css
 	- para dibujarla:
 		devolver
 			<es-texto
-				class="Card"
-				tamano="gigante"
+				part="imagen"
 				color={su color si está boca arriba de lo contrario "azul" }
 				onClick={disparar evento clic-carta con carta = eso}>
 				{su imagen}
 			</es-texto>
-	<css>
-		/* una carta es una caja del tamaño de una carta:  su tamaño es el del tablero, --card-width x --card-height en styles.css */
-		:host {
-			display: block;
-			position: relative;
-			width: var(--card-width);
-			height: var(--card-height);
-			overflow: hidden;
-			cursor: pointer;
-		}
-		/* su imagen, un carácter de los naipes de unicode:  movido para que la carta que dibuja llene la caja */
-		es-texto::part(text) {
-			position: absolute;
-			left: -0.049em;
-			top: -0.222em;
-		}
-	</css>
 
 	- su "símbolo" es:
 		"♣" si es tréboles

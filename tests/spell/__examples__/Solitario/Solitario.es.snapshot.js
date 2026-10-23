@@ -22,6 +22,7 @@ export const words = {
       símbolo: "símbolo",
       estado: "estado",
       jugar: "jugar una carta",
+      ponerEnPila: "poner una carta en una pila",
       pila: "pila"
     },
     Comodín: {
@@ -39,12 +40,23 @@ export const words = {
     },
     Pila: {
       name: "nombre",
+      disposición: "disposición",
       color: "color",
       valor: "valor",
       estado: "estado"
     },
+    PilaDeReserva: {
+      disposición: "disposición"
+    },
+    PilaDeDescartes: {
+      disposición: "disposición"
+    },
     Fundación: {
+      disposición: "disposición",
       palo: "palo"
+    },
+    Columna: {
+      disposición: "disposición"
     },
     Solitario: {
       puntuación: "puntuación",
@@ -79,6 +91,7 @@ export const words = {
     "test-step": "▶️ Ejecutando   {step}",
     "test-threw": "Error en la prueba {test}:",
     "cant-draw": "⚠ {type} no se puede dibujar",
-    "confirm-default": "{question} (sí)"
+    "confirm-default": "{question} (sí)",
+    "drop-event": "soltar-{thing}"
   }
 }

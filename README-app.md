@@ -478,7 +478,7 @@ A Spanish browser gets "Guardar" where an English one gets "Save":
     - [SpellApp.es.ts](src/app/components/spell-app/SpellApp.es.ts)
     - [SpellEditor.es.ts](src/app/components/spell-editor/SpellEditor.es.ts)
   - A Spanish page loads Spell UI's own Spanish too, so its dialogs' buttons match.
-- The language server's labels follow the PROJECT's language instead ([README-lsp.md](README-lsp.md)):
+- The language server's labels follow the language of the FILE they're about instead, by its name ([README-lsp.md](README-lsp.md)):
   a Spanish program's hover says "declarado en" in any editor.
 - Still English:  the spaces' prompts (a new project's name), Monaco's own menus, the dev-only dialog demos.
 

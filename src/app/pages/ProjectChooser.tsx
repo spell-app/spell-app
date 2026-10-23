@@ -96,7 +96,7 @@ function RootColumn(props: { projectRoot: SPACES.SpellProjectRoot }) {
 
 /****************
  * ### `<ChooserToolbar>`
- * Top menu of `<ProjectChooser>`:  the chooser (active), about and docs.
+ * Top menu of `<ProjectChooser>`:  the chooser (active), and about.
  ****************/
 export function ChooserToolbar() {
   return (
@@ -107,7 +107,6 @@ export function ChooserToolbar() {
       </Submenu>
       <Submenu right spring>
         <Actions.aboutSpell />
-        <Actions.showDocs />
         <Actions.you />
         <MoreMenu stub />
       </Submenu>

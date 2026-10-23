@@ -1,11 +1,24 @@
 import { createEffect } from "solid-js"
 import { insert, type JSX } from "@solidjs/web"
 
-import { drawableAttributeFor } from "spell-kit/util"
+import { drawableAttributeFor, kebabCase } from "spell-kit/util"
 import { E, UI } from "spell-ui/core"
 import { RootLoader } from "spell-ui/components/ui-root"
 import type { ElementApi, Core } from "spell-lang/core"
 import { spellElementVocabulary } from "./SpellElement.en"
+import { Glides } from "./Glides"
+import { DRAG_END_EVENT, DRAG_START_EVENT, Dragging } from "./Dragging"
+
+// Above the class:  its `elementSetup` reads it while the class is defined
+/**
+ * What a draggable thing looks like:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
+ * `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
+ */
+const DRAGGING_CSS = `
+  :host(:state(draggable)) { touch-action: none; }
+  :host(:state(draggable)), :host(:state(draggable)) * { cursor: grab !important; }
+  :host(:state(dragging)), :host(:state(dragging)) * { cursor: grabbing !important; }
+`
 
 /****************
  * ### `SpellElement`
@@ -39,13 +52,20 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *   `class CardElement extends SpellElement<Card>`, with its attributes, its methods and its sheet.
  *   - The page builds the tag on that class (`core.useElement()`), so both targets draw the same element.
  *   - It reaches compiled code as `@spell/elements`:  see `spellElements.ts`.
+ * - A thing its list may give up can be dragged, with a mouse or a finger (epic `outline-spell` P28):
+ *   it, and its list's items after it, follow the pointer;  dropped on a drawable list's element, the program hears
+ *   `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`.
+ *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`DRAGGING_CSS`).
  * - Part of `spell-runtime.js`:  NEVER value-imports `spell-lang/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
  * - SEE:  its App UI components page, `app/docs/spell-element.html` (`/components/app/spell-element.html`).
  ****************/
 export class SpellElement<Thing extends object = object> extends E.UIComponent<typeof spellElementVocabulary> {
   @E.proto static vocabulary = spellElementVocabulary
-  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { delegatesFocus: false }
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    delegatesFocus: false,
+    styleSheets: { "spell-element": DRAGGING_CSS }
+  }
 
   /** Each property its type declares, as an attribute -- set per tag, see `defineFor()`. */
   @E.proto static typeProperties: TypeProperty[] = []
@@ -167,7 +187,116 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     )
     this.keepThingAndElementAgreeing()
     this.loadSpellUIFamilies()
+    this.numberItems()
     return super.onMount()
+  }
+
+  /** The thing we draw is drawn HERE now:  if it was moving, it glides here (`Glides`). */
+  @E.onChange("currentThing")
+  protected onThingDrawn(thing: Thing | undefined) {
+    if (thing) Glides.drawn(thing, this.domElement)
+  }
+
+  ////////////////
+  // ## Dragging (epic `outline-spell` P28)
+  ////////////////
+
+  /** The list holding our thing, e.g. a card's pile -- `undefined` if none holds it. */
+  private get ownerList(): object | undefined {
+    const thing = this.currentThing as Record<string, unknown> | undefined
+    const owner = this.typeProperties.find((property) => property.reference === "owner")
+    const list = owner && thing?.[owner.name]
+    return list && typeof list === "object" ? list : undefined
+  }
+
+  /**
+   * Can our thing be dragged?  Only when its list will give it up, by the list's own rules (`can give up`):
+   * e.g. a tableau's face-up card, the discards' last card -- never a card of a list that never lets go.
+   * - Followed:  a card turned face up becomes draggable at once.
+   */
+  @E.cssState("draggable")
+  get isDraggable(): boolean {
+    const thing = this.currentThing
+    const list = this.ownerList
+    return !!thing && !!list && !!this.entry?.core.canGiveUp(list, thing)
+  }
+
+  /** Is it being dragged now?  Its cursor is grabbing meanwhile. */
+  @E.cssState("dragging")
+  @E.state
+  accessor isDragging = false
+
+  /** A press on a draggable thing:  a drag, if it moves -- see `Dragging`. */
+  @E.on("pointerdown")
+  protected onPointerDown(event: PointerEvent) {
+    if (!this.isDraggable || event.button !== 0) return
+    new Dragging(this.domElement, event, (target) => this.dropOn(target))
+  }
+
+  @E.on(DRAG_START_EVENT)
+  protected onDragStart() {
+    this.isDragging = true
+  }
+
+  @E.on(DRAG_END_EVENT)
+  protected onDragEnd() {
+    this.isDragging = false
+  }
+
+  /**
+   * Our thing, dropped on `target`, a drawable list's element:  the program hears `<thing>-drop`, e.g. `card-drop`.
+   * - In the program's language (core's `drop-event` message):  a Spanish program hears `soltar-carta`.
+   * - Its details name the thing by its type, and the list by each of its types up to its family's:
+   *   `{ card, tableau, pile }`, so `on card drop with a card and a pile` gets both.
+   * - Nobody listening:  it moves there, if the lists' rules let it (`core.move()`).
+   * - Nothing, dropped on no list or on its own.
+   */
+  private dropOn(target: HTMLElement | undefined) {
+    const list = target && SpellElement.listOf(target)
+    const thing = this.currentThing
+    const { entry } = this
+    if (!list || !thing || !entry || list === this.ownerList) return
+    const name = SpellElement.instanceName(thing.constructor)
+    const details: Record<string, object> = { [name]: thing }
+    for (
+      let Class = list.constructor;
+      Class && !BASE_LIST_NAMES.has(Class.name);
+      Class = Object.getPrototypeOf(Class)
+    ) {
+      details[SpellElement.instanceName(Class)] ??= list
+    }
+    const heard = entry.core.trigger(entry.core.message("drop-event", { thing: kebabCase(name) }), details)
+    if (!heard.length) entry.core.move(thing, list)
+  }
+
+  /** The list `element` draws, if it's a drawable list's element -- `undefined` if not. */
+  static listOf(element: Element): object | undefined {
+    const component = (element as Partial<E.DOMElement>).component
+    const thing = component instanceof SpellElement ? component.currentThing : undefined
+    return thing && "items" in thing ? thing : undefined
+  }
+
+  /** What a program calls a thing of `Class`, e.g. `card` for `Card`, `stockPile` for `StockPile`. */
+  private static instanceName(Class: Function): string {
+    return Class.name.charAt(0).toLowerCase() + Class.name.slice(1)
+  }
+
+  /**
+   * Number our children, so CSS alone can lay out a drawable list's items:
+   * each child's `--index` (from 0), and our `--count`.
+   * - e.g. a pile's cards, each 10% lower than the one before:  `top: calc(var(--index) * 10%)`.
+   * - Again whenever they change:  a card added, taken away, or moved within the list.
+   * - Every child element, the page's too:  `<solitaire-tableau>` written by hand, with cards inside.
+   * - A drawable LIST's element only:  a card numbering its own (no) children would hide its pile's `--count`.
+   * - SIDE EFFECT:  writes the custom properties into each child's `style` and ours.
+   */
+  @E.watches({ childList: true })
+  protected numberItems() {
+    const thing = this.currentThing
+    if (!thing || !("items" in thing)) return
+    const children = [...this.domElement.children] as HTMLElement[]
+    children.forEach((child, index) => child.style.setProperty("--index", String(index)))
+    this.domElement.style.setProperty("--count", String(children.length))
   }
 
   /**
@@ -274,11 +403,25 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     return this.domElement.hasAttribute(property.spec.name)
   }
 
-  /** Write the element's `value` of `property` to `thing`, as `thing` takes it -- nothing when they agree already. */
+  /**
+   * Write the element's `value` of `property` to `thing`, as `thing` takes it -- nothing when they agree already.
+   * - A property its type always gives the same value can't be set, e.g. a tableau's `layout`
+   *   (`- its layout is vertical`, a getter):  the element shows the thing's value again.
+   */
   private writeThing(property: TypeProperty, thing: object, value: unknown) {
     if (this.agree(property, value, this.shownValueOf(property, thing))) return
     if (property.reference) return this.writeReference(property, thing, value)
+    if (SpellElement.isReadOnly(thing, property.name)) return this.writeElement(property, thing)
     ;(thing as Record<string, unknown>)[property.name] = SpellElement.valueFor(property, value)
+  }
+
+  /** Is `thing`'s property `name` a getter with no setter, e.g. one its type always gives the same value? */
+  private static isReadOnly(thing: object, name: string): boolean {
+    for (let at: object | null = thing; at; at = Object.getPrototypeOf(at)) {
+      const descriptor = Object.getOwnPropertyDescriptor(at, name)
+      if (descriptor) return !!descriptor.get && !descriptor.set
+    }
+    return false
   }
 
   /**
@@ -594,10 +737,12 @@ export interface SpellElement<Thing extends object = object> extends E.Attribute
 
 /**
  * Let `core` define its drawable classes' elements:  sets `core.elementDefiner`.
+ * - And `core.beforeMove`:  a thing that moves glides to where it lands (`Glides`).
  * - Called once per runtime copy, by `spellRuntime.ts`.
  */
 export function installSpellElements(core: Core): void {
   core.elementDefiner = (tag, Class) => SpellElement.defineFor(tag, Class, core)
+  core.beforeMove = (things) => Glides.noteWhereThingsAre(things)
 }
 
 /** One of a type's properties, as its element shows it -- see `SpellElement.typePropertiesOf()`. */
@@ -636,3 +781,9 @@ const SPELL_ELEMENTS: Map<string, SpellElementEntry> = ((globalThis as SpellElem
 
 /** `globalThis`, holding `SPELL_ELEMENTS`. */
 type SpellElementsGlobal = typeof globalThis & { [key: symbol]: Map<string, SpellElementEntry> | undefined }
+
+// a drop lands on a drawable list's element:  `Dragging` knows only what we tell it
+Dragging.isDropTarget = (element) => SpellElement.listOf(element) !== undefined
+
+/** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
+const BASE_LIST_NAMES = new Set(["DrawableList", "List", "Observable", "Object"])

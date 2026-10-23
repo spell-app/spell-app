@@ -1937,16 +1937,8 @@
       ],
       "usedIn": [
         {
-          "name": "AppToolbar",
-          "file": "src/app/solid/AppRoot.tsx"
-        },
-        {
           "name": "ChooserToolbar",
           "file": "src/app/pages/ProjectChooser.tsx"
-        },
-        {
-          "name": "ConsoleToolbar",
-          "file": "src/app/solid/ConsoleViewer.tsx"
         },
         {
           "name": "EditorToolbar",
@@ -1957,20 +1949,8 @@
           "file": "src/app/solid/chrome.tsx"
         },
         {
-          "name": "OutputToolbar",
-          "file": "src/app/solid/OutputEditor.tsx"
-        },
-        {
           "name": "ProjectActionsDropdown",
           "file": "src/app/solid/chrome.tsx"
-        },
-        {
-          "name": "RunnerToolbar",
-          "file": "src/app/pages/SpellRunner.tsx"
-        },
-        {
-          "name": "TreeToolbar",
-          "file": "src/app/solid/TreeViewer.tsx"
         }
       ],
       "href": "chrome.html#MoreMenu"
@@ -6396,6 +6376,12 @@
     {
       "name": "fomantic-classic",
       "title": "Fomantic-classic",
+      "families": [],
+      "global": true
+    },
+    {
+      "name": "fruity",
+      "title": "Fruity",
       "families": [],
       "global": true
     },

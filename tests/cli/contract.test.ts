@@ -299,10 +299,10 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
             ...modules,
             "const sent = []",
             `startPage({ modules: [${[...imported, "program"].join(", ")}], state: ${state}, send: (message) => sent.push(message) })`,
-            // the stock's place:  in the stock's element's shadow root, as each drawable thing draws in its own
+            // the menu's AutoPlay:  in the solitaire's drawing, as each drawable thing draws in its own shadow root
             "const found = (root, selector) => root.querySelector(selector) ??",
             "  [...root.querySelectorAll('*')].map((it) => it.shadowRoot && found(it.shadowRoot, selector)).find(Boolean)",
-            'found(document, ".Stock .Placeholder").dispatchEvent(new Event("click", { bubbles: true }))',
+            `found(document, 'ui-item[aria-label="Auto play"]').dispatchEvent(new Event("click", { bubbles: true }))`,
             "console.log(JSON.stringify(sent))"
           ].join("\n")
           const { exitCode, output, stdout } = await CLI.runCode("run", `${name}Page`, page, {
@@ -321,7 +321,7 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
 
           // the click:  a call of the solitaire's own method, which Python's session runs
           const [click] = JSON.parse(messages!) as Array<Record<string, unknown>>
-          expect(click).toEqual({ call: "play_from_the_stock", on: "Solitaire#1", args: [] })
+          expect(click).toEqual({ call: "auto_play", on: "Solitaire#1", args: [] })
           const session = spawnSync("uv", [...run, "spell_core.page", program, "--seed", "1", "--no-pauses"], {
             encoding: "utf8",
             input: `${JSON.stringify(click)}\n`

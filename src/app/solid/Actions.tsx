@@ -104,9 +104,6 @@ export const Actions = {
       {...props}
     />
   ),
-  showDocs: (props: ActionProps) => (
-    <Action title={appTexts.text("docs")} icon="newspaper outline" onClick={() => editor.showDocs()} {...props} />
-  ),
   showHelp: (props: ActionProps) => (
     <Action title={appTexts.text("help")} icon="help circle" onClick={() => editor.showHelp()} {...props} />
   ),

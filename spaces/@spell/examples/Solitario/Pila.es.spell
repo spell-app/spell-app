@@ -4,6 +4,9 @@
 una "pila" es una lista dibujable de cartas donde:
 	// cómo la llama el juego, p. ej. "reserva"
 	- su "nombre" es texto
+	// cómo están sus cartas:  una sobre otra, hacia abajo en una columna, a lo largo de una fila,
+	// o en abanico, como se sostiene una mano -- styles.css
+	- su "disposición" es una de apilada, vertical, horizontal o abanico
 	// el color y el valor de su última carta:  sobre qué va la siguiente carta
 	- su "color" es:
 		"ninguno" si está vacía

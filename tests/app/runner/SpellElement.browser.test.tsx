@@ -244,10 +244,179 @@ describe("SpellElement", () => {
       expect(bareElement.shadowRoot!.innerHTML).toContain("<slot></slot>")
       expect([...bareElement.children].map((child) => child.localName)).toEqual(["game-chip"])
       expect([...spotsElement.children].map((child) => child.outerHTML)).toEqual([
-        expect.stringMatching(/^<div class="spot"><game-chip[^>]*><\/game-chip><\/div>$/)
+        expect.stringMatching(/^<div class="spot"[^>]*><game-chip[^>]*><\/game-chip><\/div>$/)
       ])
       dispose.unmount()
       root.remove()
+    })
+
+    /** A heap of a family:  a chip is in one pot at a time, so putting it in another MOVES it. */
+    class Pot extends DrawableList<Chip> {
+      static elementTag = core.defineElement(this, "Game")
+      static instanceType = Chip
+      static exclusive = true
+    }
+
+    /** `pots` drawn side by side, apart, in a new root on the page:  returns the root and how to take it down. */
+    async function drawPots(...pots: Pot[]) {
+      const root = document.createElement("div")
+      root.style.cssText = "display: flex; gap: 50px"
+      document.body.append(root)
+      const mounted = core.mountApp({ draw: () => pots.map((pot) => core.drawThing(pot)) }, root)
+      flush()
+      await ElementFixture.settle(root)
+      return { root, done: () => (mounted.unmount(), root.remove()) }
+    }
+
+    test("numbers its children for CSS:  each one's --index from 0, its own --count;  again as they change (outline-spell P27)", async () => {
+      const pot = new Pot()
+      core.append(pot, new Chip("a"), new Chip("b"))
+      const { root, done } = await drawPots(pot)
+      const element = root.querySelector("game-pot") as HTMLElement
+      const indexes = () => [...element.children].map((chip) => (chip as HTMLElement).style.getPropertyValue("--index"))
+      expect(indexes()).toEqual(["0", "1"])
+      expect(element.style.getPropertyValue("--count")).toBe("2")
+
+      core.append(pot, new Chip("c"))
+      core.flush()
+      await ElementFixture.settle(root)
+      expect(indexes()).toEqual(["0", "1", "2"])
+      expect(element.style.getPropertyValue("--count")).toBe("3")
+      // a chip numbers no children of its own:  it would hide its pot's --count
+      expect((element.children[0] as HTMLElement).style.getPropertyValue("--count")).toBe("")
+      done()
+    })
+
+    /** Drag `element` from its middle to `target`'s, with pointer events, as a finger does. */
+    async function drag(element: HTMLElement, target: HTMLElement) {
+      const at = (box: HTMLElement) => {
+        const rect = box.getBoundingClientRect()
+        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
+      }
+      const [from, to] = [at(element), at(target)]
+      const send = (on: EventTarget, type: string, { x, y }: { x: number; y: number }) =>
+        on.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            composed: true,
+            pointerId: 3,
+            pointerType: "touch",
+            clientX: x,
+            clientY: y
+          })
+        )
+      send(element, "pointerdown", from)
+      for (const step of [0.25, 0.5, 0.75, 1]) {
+        send(window, "pointermove", { x: from.x + (to.x - from.x) * step, y: from.y + (to.y - from.y) * step })
+      }
+      send(window, "pointerup", to)
+      core.flush()
+      // the dragged element is gone once its thing moves:  drawn again in its new list
+      await ElementFixture.settle(document.body)
+    }
+
+    // a tray of tokens, each in one tray at a time, as `a token belongs to one tray` compiles:  made before any token
+    // is drawn, so the token's tag knows its `tray` (`core.elementApiOf()`)
+    /** A list of a family:  dragging a token from one to another moves it. */
+    class Tray extends DrawableList<Token> {
+      static elementTag = core.defineElement(this, "Game")
+      static exclusive = true
+    }
+    const trays = [new Tray(), new Tray()]
+    /** A token, drawn as its label;  its tray is the one holding it. */
+    class Token extends Drawable {
+      static elementTag = core.defineElement(this, "Game")
+      constructor(public label = "") {
+        super()
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("b", {}, this.label) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    Object.defineProperty(Token.prototype, "tray", {
+      get(this: Token) {
+        return Tray.ownerOf(this)
+      },
+      configurable: true
+    })
+    Object.assign(Tray, { instanceType: Token })
+
+    /** `trays`, drawn side by side, big enough to drop on even empty:  returns the root and how to take it down. */
+    async function drawTrays() {
+      const root = document.createElement("div")
+      root.style.cssText = "display: flex; gap: 50px"
+      root.innerHTML = "<style>game-tray { display: block; min-width: 60px; min-height: 30px }</style>"
+      document.body.append(root)
+      const mounted = core.mountApp({ draw: () => trays.map((tray) => core.drawThing(tray)) }, root)
+      flush()
+      await ElementFixture.settle(root)
+      return { root, done: () => (mounted.unmount(), root.remove(), trays.forEach((tray) => tray.clear())) }
+    }
+
+    test("a token its tray gives up can be dragged to another tray:  it moves there, by the trays' rules (outline-spell P28)", async () => {
+      const token = new Token("a")
+      core.append(trays[0]!, token)
+      const { root, done } = await drawTrays()
+      const element = root.querySelector("game-token") as HTMLElement
+      expect(element.matches(":state(draggable)")).toBe(true)
+      await drag(element, root.querySelectorAll<HTMLElement>("game-tray")[1]!)
+      // nobody listens for token-drop:  it moved, as the trays' rules let it
+      expect([...trays[1]!.items]).toEqual([token])
+      done()
+    })
+
+    test("the program hears <thing>-drop, with the thing and the list it landed on, by each of its types (outline-spell P28)", async () => {
+      const token = new Token("a")
+      core.append(trays[0]!, token)
+      const { root, done } = await drawTrays()
+      // what the program hears:  a handler answers, so the page leaves the move to it
+      const heard: Array<[unknown, Record<string, unknown>]> = []
+      const trigger = vi.spyOn(core, "trigger").mockImplementation((event, details) => {
+        heard.push([event, details as Record<string, unknown>])
+        return [true]
+      })
+      try {
+        await drag(root.querySelector("game-token") as HTMLElement, root.querySelectorAll<HTMLElement>("game-tray")[1]!)
+        expect(heard).toHaveLength(1)
+        expect(heard[0]![0]).toBe("token-drop")
+        expect(heard[0]![1]).toMatchObject({ token, tray: trays[1] })
+        // the program decides:  it didn't move it
+        expect([...trays[0]!.items]).toEqual([token])
+      } finally {
+        trigger.mockRestore()
+        done()
+      }
+    })
+
+    test("a chip its pot won't give up can't be dragged (outline-spell P28)", async () => {
+      /** A pot that never lets a chip go. */
+      class Jar extends Pot {
+        static elementTag = core.defineElement(this, "Game")
+        canGiveUp() {
+          return false
+        }
+      }
+      const jar = new Jar()
+      core.append(jar, new Chip("a"))
+      const { root, done } = await drawPots(jar)
+      expect((root.querySelector("game-chip") as HTMLElement).matches(":state(draggable)")).toBe(false)
+      done()
+    })
+
+    test("a chip moved to another pot glides there from where it was (outline-spell P27)", async () => {
+      const [from, to] = [new Pot(), new Pot()]
+      const chip = new Chip("a")
+      core.append(from, new Chip("stays"), chip)
+      const { root, done } = await drawPots(from, to)
+      core.append(to, chip)
+      core.flush()
+      await ElementFixture.settle(root)
+      // the glide starts before the next paint
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      const moved = root.querySelectorAll("game-pot")[1]!.firstElementChild as HTMLElement
+      expect(moved.localName).toBe("game-chip")
+      expect(moved.getAnimations()).toHaveLength(1)
+      done()
     })
   })
 
@@ -469,6 +638,25 @@ describe("SpellElement", () => {
       settle()
       expect(ace.getAttribute("rank")).toBe("12")
       expect(thing.rank).toBe(12)
+    })
+
+    test("a property its type always gives the same value can't be set:  the attribute shows the thing's again (outline-spell P27)", async () => {
+      /** `- its suit is spades`:  a getter, with no setter. */
+      class Spade extends Deuce {
+        static elementTag = core.defineElement(this, "Agree")
+        get suit() {
+          return "spades"
+        }
+      }
+      const spade = await ElementFixture.render<CardElement>('<agree-spade rank="2"></agree-spade>')
+      await ElementFixture.settle(spade)
+      settle()
+      expect(spade.component!.currentThing).toBeInstanceOf(Spade)
+      expect(spade.getAttribute("suit")).toBe("spades")
+      spade.setAttribute("suit", "hearts")
+      settle()
+      expect(spade.component!.currentThing!.suit).toBe("spades")
+      expect(spade.getAttribute("suit")).toBe("spades")
     })
 
     test("a yes / no property is its attribute there or not;  nothing is no attribute", async () => {

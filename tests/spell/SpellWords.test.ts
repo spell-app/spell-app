@@ -12,7 +12,17 @@ import { fixtureWords } from "spell-app/spaces/test"
 describe("SpellWords", () => {
   test("Solitaire's:  every member of its types, its own cards, deck and piles too, by javascript's names", () => {
     const words = SP.SpellWords.read(fixtureWords("Solitaire"))!
-    expect(Object.keys(words.types)).toEqual(["Card", "Joker", "Deck", "Pile", "StockPile", "Foundation", "Solitaire"])
+    expect(Object.keys(words.types)).toEqual([
+      "Card",
+      "Joker",
+      "Deck",
+      "Pile",
+      "StockPile",
+      "DiscardPile",
+      "Foundation",
+      "Tableau",
+      "Solitaire"
+    ])
     expect(words.types.Solitaire).toMatchObject({
       dealTheCards: "deal the cards",
       startANewGame: "start a new game",
@@ -21,7 +31,8 @@ describe("SpellWords", () => {
     })
     // its card, as Card.spell writes it, and as Solitaire.spell teaches it to play
     expect(words.types.Card).toMatchObject({ turnOver: "turn it over", play: "play a card" })
-    expect(words.types.StockPile).toEqual({ draw: "draw it" })
+    // a kind of pile:  the layout it gives every stock pile (its placeholder's drawing is no member)
+    expect(words.types.StockPile).toEqual({ layout: "layout" })
   })
 
   test("the counter library's (`counter`):  its own, as written", () => {

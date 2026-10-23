@@ -46,7 +46,7 @@ describe("LSP.LspTexts", () => {
 
     test("completion at a statement's start labels spell's statements `sentencia`", () => {
       const line = mazo.parseText.split("\n").length
-      const items = service.completion(mazo, { line, character: 0 })
+      const items = service.completion(mazo, { line, character: 0 }).items
       const statements = items.filter((item) => item.detail === "sentencia")
       expect(statements.length).toBeGreaterThan(0)
       expect(items.some((item) => item.detail === "statement")).toBe(false)

@@ -17,6 +17,7 @@ import "./SplitPanel.css"
  *   - `%`:  that share of the space the fixed panes leave
  *   - `*`, or missing:  an equal share of the percent left, e.g. `"80%"` ~== `"80%,20%"` for two panes,
  *     `"*,*,200px"` ~== `"50%,50%,200px"`
+ * - A child that draws nothing (a `<Show>` that's off) is no pane:  e.g. the run page's console, while hidden.
  * - Each child becomes a pane:  wrapped in a `<SplitPane>` with the panel's `bordered`, `padded`, `light`,
  *   `rounded` and `scrolling`.  A child that IS a `<SplitPane>` (its own look) or a nested `<SplitPanel>` is a pane
  *   as it is.
@@ -31,6 +32,8 @@ import "./SplitPanel.css"
 export function SplitPanel(props: SplitPanelProps) {
   let panel: HTMLDivElement | undefined
   const kids = children(() => props.children)
+  // a child that draws nothing, e.g. a `<Show>` that's off, is no pane:  the others share its space
+  const panes = () => kids.toArray().filter((kid) => kid != null && kid !== false && kid !== "")
   /** Sizes now, one per pane.  NOT a signal:  a drag rewrites them on every mouse move. */
   let sizes: PanelSize[] = []
   /** What a drag works from, measured when it starts. */
@@ -38,7 +41,7 @@ export function SplitPanel(props: SplitPanelProps) {
 
   // size the panes once drawn, and again when their number or the size spec changes
   createEffect(
-    () => ({ count: kids.toArray().length, columns: props.columns, rows: props.rows, id: props.id }),
+    () => ({ count: panes().length, columns: props.columns, rows: props.rows, id: props.id }),
     ({ count, columns, rows, id }) => {
       if (!columns === !rows) console.warn("<SplitPanel>s need exactly one of 'columns' or 'rows'.", id)
       const stored = id ? (getPref(id, undefined) as string | undefined) : undefined
@@ -66,7 +69,7 @@ export function SplitPanel(props: SplitPanelProps) {
         props.class
       ]}
     >
-      <For each={kids.toArray()}>
+      <For each={panes()}>
         {(child, index) => (
           <>
             <Show when={index() > 0}>

@@ -10,4 +10,4 @@
   ▶️ Executing   `increment the counter`
   ✅ As expected `the count of the counter` is `1`
 
-<div id="spell-app-root"><div class="Tally"><test-project-counter><ui-button class="Counter">Count: 0</ui-button></test-project-counter></div></div>
+<div id="spell-app-root"><div class="Tally"><test-project-counter><ui-button class="Counter" style="cursor:pointer;user-select:none">Count: 0</ui-button></test-project-counter></div></div>

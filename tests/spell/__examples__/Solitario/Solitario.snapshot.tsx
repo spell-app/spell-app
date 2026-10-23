@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, css, on } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Una carta de la baraja -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
@@ -116,32 +116,17 @@ export class Carta extends Drawable {
     if (this.esUnPalo("espadas")) return core.getItemAt(["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"], position(columna))
   }
 
-  //## dibujarla:  su imagen boca arriba, boca abajo el dorso que comparten todas las cartas
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // ## dibujarla:  su imagen boca arriba, boca abajo el dorso que comparten todas las cartas
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // una letra, del tamaño del texto de alrededor:  su pila la escala para que quepa -- styles.css
   @drawn draw() {
     return (
-      <es-texto class="Card" tamano="gigante" color={this.estáBocaDirección("arriba") ? this.color : "azul"} onClick={() => trigger("clic-carta", { carta: this })}>
+      <es-texto part="imagen" color={this.estáBocaDirección("arriba") ? this.color : "azul"} onClick={() => trigger("clic-carta", { carta: this })} style="cursor:pointer;user-select:none">
         {this.imagen}
       </es-texto>
     )
   }
-
-  static css = css`
-    /* una carta es una caja del tamaño de una carta:  su tamaño es el del tablero, --card-width x --card-height en styles.css */
-    :host {
-    	display: block;
-    	position: relative;
-    	width: var(--card-width);
-    	height: var(--card-height);
-    	overflow: hidden;
-    	cursor: pointer;
-    }
-    /* su imagen, un carácter de los naipes de unicode:  movido para que la carta que dibuja llene la caja */
-    es-texto::part(text) {
-    	position: absolute;
-    	left: -0.049em;
-    	top: -0.222em;
-    }
-  `
 
   get símbolo() {
     if (this.palo == "tréboles") return "♣"
@@ -159,27 +144,38 @@ export class Carta extends Drawable {
     return rango + palo + dirección
   }
 
-  ////////////////////////////////////////
-  // ## Jugar una carta:  qué hace un clic
-  ////////////////////////////////////////
-  /** la carta, y cada carta sobre ella, a la primera pila que pueda tomarla;  dice si se movió */
-  async jugar() {
-    const pilaInicial = this.pila
-    if (!core.canGiveUp(pilaInicial, this)) return false
-
-    if (pilaInicial === solitario.reserva) {
+  //////////////////////////////////////////////////////
+  // ## Jugar una carta:  qué hace un clic o un arrastre
+  //////////////////////////////////////////////////////
+  /**
+   * la carta, y cada carta sobre ella, a la primera pila que pueda tomarla;  dice si se movió
+   * - la carta de la reserva se voltea sobre los descartes en su lugar
+   */
+  jugar() {
+    if (this.pila === solitario.reserva) {
       solitario.robarDeLaReserva()
       return
     }
 
     const pilaFinal = core.filter(core.everyThing(Pila), (pila: Pila) => core.canTake(pila, this)).firstItem
     if (pilaFinal === undefined) return false
+    return this.ponerEnPila(pilaFinal)
+  }
+
+  /**
+   * la carta, y cada carta sobre ella, a la pila, si las reglas de las pilas la dejan ir y tomarla;  dice si se movió
+   * - la pila que dejó voltea su nueva última carta, y el movimiento suma puntos
+   */
+  async ponerEnPila(pila: Pila) {
+    const pilaInicial = this.pila
+    if (!core.canGiveUp(pilaInicial, this)) return false
+    if (!core.canTake(pila, this)) return false
 
     const cartasMovidas = pilaInicial.startingWith(this)
     cartasMovidas.name = pilaInicial.name
-    core.console.log(`moviendo (${cartasMovidas.estado}) a (${pilaFinal.estado})`)
+    core.console.log(`moviendo (${cartasMovidas.estado}) a (${pila.estado})`)
 
-    cartasMovidas.forEach((carta) => core.move(carta, pilaFinal))
+    cartasMovidas.forEach((carta) => core.move(carta, pila))
 
     if (pilaInicial instanceof Columna && !pilaInicial.isEmpty) {
       await core.pauseFor(200, "msec")
@@ -188,7 +184,7 @@ export class Carta extends Drawable {
       it?.voltearBocaArriba()
     }
 
-    if (pilaFinal instanceof Fundación) solitario.puntuación = solitario.puntuación + 10
+    if (pila instanceof Fundación) solitario.puntuación = solitario.puntuación + 10
     else if (pilaInicial === solitario.descartes) solitario.puntuación = solitario.puntuación + 5
     return true
   }
@@ -210,9 +206,6 @@ export class CartaElement extends SpellElement<Carta> {
     { name: "palo", kind: "string", description: "Its palo." },
     { name: "dirección", kind: "string", description: "Its dirección." }
   ])
-  @E.protoMerged static elementSetup = {
-    styleSheets: { "test-project-carta": Carta.css }
-  } satisfies Partial<E.ElementSetup>
 
   esUnRango(rango: Rango) {
     return this.currentThing?.esUnRango(rango)
@@ -245,6 +238,10 @@ export class CartaElement extends SpellElement<Carta> {
   jugar() {
     return this.currentThing?.jugar()
   }
+
+  ponerEnPila(pila: Pila) {
+    return this.currentThing?.ponerEnPila(pila)
+  }
 }
 core.useElement(Carta, CartaElement)
 
@@ -266,7 +263,7 @@ export class Comodín extends Carta {
     return carta instanceof Comodín && carta.color === color
   }
 
-  get valor() {
+  get valor(): number {
     if (Comodín.esElComodínColor(this, "rojo")) return 53
     return 54
   }
@@ -275,11 +272,11 @@ export class Comodín extends Carta {
     return "🃟"
   }
 
-  get nombre() {
+  get nombre(): string {
     return `comodín ${this.color}`
   }
 
-  get estado() {
+  get estado(): string {
     const color = `${core.getItemAt(this.color, 0) ?? ""}`.toLocaleUpperCase()
     const dirección = this.estáBocaDirección("arriba") ? "↑" : "↓"
     return `*${color}${dirección}`
@@ -470,6 +467,8 @@ core.heading("Una pila de cartas, p. ej. el mazo de reserva de un juego o sus de
 ///////////////////////////////////////////////////////////////////////////////
 // ## Una pila de cartas, p. ej. el mazo de reserva de un juego o sus descartes
 ///////////////////////////////////////////////////////////////////////////////
+export type Disposición = (typeof Pila.Disposiciones)[number]
+
 /**
  * El juego que usa estas cartas nombra sus pilas, y dice qué toma cada tipo de pila.
  * Una lista dibujable:  su elemento contiene los elementos de sus cartas, p. ej. `<solitario-pila>` alrededor de `<solitario-carta>`s.
@@ -482,6 +481,15 @@ export class Pila extends DrawableList<Carta> {
   // su "nombre" es texto
   @prop({ type: "text" })
   accessor name!: string
+
+  /**
+   * cómo están sus cartas:  una sobre otra, hacia abajo en una columna, a lo largo de una fila,
+   * o en abanico, como se sostiene una mano -- styles.css
+   */
+  // su "disposición" es una de apilada, vertical, horizontal o abanico
+  static Disposiciones = ["apilada", "vertical", "horizontal", "abanico"] as const
+  @prop({ oneOf: () => Pila.Disposiciones })
+  accessor disposición!: Disposición
 
   /** el color y el valor de su última carta:  sobre qué va la siguiente carta */
   get color() {
@@ -506,6 +514,7 @@ export class Pila extends DrawableList<Carta> {
 export interface Pila {
   canTake(carta: Carta): boolean
   canGiveUp(carta: Carta): boolean
+  drawItsPlaceholder(): any /* spell: type unknown */
 }
 
 /**
@@ -516,7 +525,8 @@ export interface Pila {
  */
 export class PilaElement extends SpellElement<Pila> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-pila", "pila", [
-    { name: "name", kind: "string", description: "Its name." }
+    { name: "name", kind: "string", description: "Its name." },
+    { name: "disposición", kind: "string", description: "Its disposición." }
   ])
 }
 core.useElement(Pila, PilaElement)
@@ -570,81 +580,37 @@ core.heading("Solitario Klondike")
 ////////////////////////
 //-- Mira la [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) para sus reglas, y cómo se llama cada pila.
 // Las cartas, el mazo y las pilas son los de este proyecto:  Carta, Mazo y Pila.
-// Este archivo agrega el juego, sus tipos de pilas, qué puede tomar o soltar cada una, y cómo se dibuja cada una.
+// Este archivo agrega el juego, sus tipos de pilas, qué puede tomar o soltar cada una, y cómo están sus cartas.
 // Qué hay dónde, de arriba abajo:
 //   el solitario:  sus pilas, sus movimientos, el juego solo y su dibujo
 //   jugar una carta:  qué hace un clic
 //   inicio
-//   las pilas:  cada tipo, qué puede tomar o soltar, y cómo se dibuja
+//   las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas
 //   pruebas
 
 core.heading("El solitario:  sus pilas, sus movimientos, el juego solo y su dibujo")
-/** una pila apilada:  sus cartas una sobre otra, la última a la vista, sobre un lugar para la primera */
-export class PilaApilada extends Pila {
-  static elementTag = core.defineElement(this, "test-project")
-
-  static css = css`
-    :host {
-    	display: block;
-    	position: relative;
-    	min-width: var(--card-width);
-    	min-height: var(--card-height);
-    }
-    /* donde va su primera carta:  un contorno del tamaño de una carta */
-    .Placeholder {
-    	position: absolute;
-    	top: 0;
-    	left: 0;
-    	width: var(--card-width);
-    	height: var(--card-height);
-    	box-sizing: border-box;
-    	border: 2px dashed #c8c8c8;
-    	border-radius: 0.4rem;
-    	display: flex;
-    	align-items: center;
-    	justify-content: center;
-    	font-size: 2rem;
-    	cursor: pointer;
-    }
-    ::slotted(*) {
-    	position: absolute;
-    	top: 0;
-    	left: 0;
-    }
-  `
-}
-
-/**
- * `<test-project-pila-apilada>`:  a pila apilada, drawn in its own element, e.g. by `draw the pila apilada`.
- * - The page defines its tag with this class:  `core.useElement()`, below.
- * - Its attributes are its pila apilada's properties;  its methods call its pila apilada's.
- * - What every drawable thing's element does, e.g. drawing its pila apilada, is `SpellElement`'s.
- */
-export class PilaApiladaElement extends SpellElement<PilaApilada> {
-  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-pila-apilada", "pila apilada", [])
-  @E.protoMerged static elementSetup = {
-    styleSheets: { "test-project-pila-apilada": PilaApilada.css }
-  } satisfies Partial<E.ElementSetup>
-}
-core.useElement(PilaApilada, PilaApiladaElement)
-
 /** la reserva:  las cartas aún sin jugar, boca abajo;  un clic voltea la siguiente */
-export class PilaDeReserva extends PilaApilada {
+export class PilaDeReserva extends Pila {
   static elementTag = core.defineElement(this, "test-project")
 
+  get disposición(): Disposición {
+    return "apilada"
+  }
+
+  /** un clic voltea su carta:  no se le puede quitar ninguna, así que ninguna se arrastra */
   canTake(carta: Carta) {
     return false
   }
 
   canGiveUp(carta: Carta) {
-    return carta === this.lastItem
+    return false
   }
 
-  @drawn draw() {
+  // vacía:  una carta gris claro, boca abajo -- un clic vuelve a voltear los descartes
+  drawItsPlaceholder() {
     return (
-      <div class="Stock">
-        <div class="Placeholder" onClick={() => solitario.robarDeLaReserva()} />
-        <slot />
+      <div part="marcador" onClick={() => solitario.robarDeLaReserva()} style="cursor:pointer;user-select:none">
+        🂠
       </div>
     )
   }
@@ -666,12 +632,20 @@ export class PilaDeReservaElement extends SpellElement<PilaDeReserva> {
   canGiveUp(carta: Carta) {
     return this.currentThing?.canGiveUp(carta)
   }
+
+  drawItsPlaceholder() {
+    return this.currentThing?.drawItsPlaceholder()
+  }
 }
 core.useElement(PilaDeReserva, PilaDeReservaElement)
 
 /** los descartes:  adonde van las cartas de la reserva al voltearse */
-export class PilaDeDescartes extends PilaApilada {
+export class PilaDeDescartes extends Pila {
   static elementTag = core.defineElement(this, "test-project")
+
+  get disposición(): Disposición {
+    return "apilada"
+  }
 
   canTake(carta: Carta) {
     return false
@@ -702,8 +676,12 @@ export class PilaDeDescartesElement extends SpellElement<PilaDeDescartes> {
 core.useElement(PilaDeDescartes, PilaDeDescartesElement)
 
 /** una fundación:  donde se arma un palo, del as al rey */
-export class Fundación extends PilaApilada {
+export class Fundación extends Pila {
   static elementTag = core.defineElement(this, "test-project")
+
+  get disposición(): Disposición {
+    return "apilada"
+  }
 
   // su "palo" es un palo de carta
   @prop({ oneOf: () => Carta.Palos })
@@ -719,11 +697,15 @@ export class Fundación extends PilaApilada {
     return this.palo === carta.palo && this.valor + 1 === carta.valor
   }
 
-  @drawn draw() {
+  // vacía:  un as gris claro de su palo, boca arriba
+  drawItsPlaceholder() {
     return (
-      <div class="Foundation">
-        <div class="Placeholder">{(new Carta({ palo: this.palo })).símbolo}</div>
-        <slot />
+      <div part="marcador">
+        {(new Carta({
+          rango: "as",
+          palo: this.palo,
+          dirección: "arriba"
+        })).imagen}
       </div>
     )
   }
@@ -747,12 +729,20 @@ export class FundaciónElement extends SpellElement<Fundación> {
   canTake(carta: Carta) {
     return this.currentThing?.canTake(carta)
   }
+
+  drawItsPlaceholder() {
+    return this.currentThing?.drawItsPlaceholder()
+  }
 }
 core.useElement(Fundación, FundaciónElement)
 
 /** una columna:  se arma hacia abajo, del rey al as, rojo y negro alternados */
 export class Columna extends Pila {
   static elementTag = core.defineElement(this, "test-project")
+
+  get disposición(): Disposición {
+    return "vertical"
+  }
 
   canGiveUp(carta: Carta) {
     return carta.estáBocaDirección("arriba")
@@ -762,20 +752,6 @@ export class Columna extends Pila {
     if (this.isEmpty) return carta.esUnRango("rey")
     return this.color !== carta.color && this.valor === carta.valor + 1
   }
-
-  static css = css`
-    :host {
-    	display: block;
-    	min-height: 30rem;
-    }
-    /* cada carta debajo de la anterior, con una franja de su parte de arriba a la vista (--card-strip);  la última entera */
-    ::slotted(*) {
-    	display: block;
-    }
-    ::slotted(:not(:last-child)) {
-    	height: var(--card-strip);
-    }
-  `
 }
 
 /**
@@ -786,9 +762,6 @@ export class Columna extends Pila {
  */
 export class ColumnaElement extends SpellElement<Columna> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-columna", "columna", [])
-  @E.protoMerged static elementSetup = {
-    styleSheets: { "test-project-columna": Columna.css }
-  } satisfies Partial<E.ElementSetup>
 
   canGiveUp(carta: Carta) {
     return this.currentThing?.canGiveUp(carta)
@@ -989,6 +962,9 @@ export class Solitario extends App {
     if (huboCambios) await this.jugarSolo()
   }
 
+  // su menú, luego sus pilas:  siete por línea, cada una en su propia celda, la tercera vacía
+  // - sus botones son iconos, cada uno con su ayuda:  la ventana emergente justo después de su icono se muestra
+  //   al dejar el puntero sobre él
   @drawn draw() {
     return (
       <es-contenedor>
@@ -996,31 +972,35 @@ export class Solitario extends App {
           <es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
           <es-elemento>{`Puntos: ${this.puntuación}`}</es-elemento>
           <es-menu posicion="derecha">
-            <es-elemento onClick={() => this.jugarSolo()}>Jugar solo</es-elemento>
-            <es-elemento onClick={() => this.hacerTrampa()}>Trampa</es-elemento>
-            <es-elemento onClick={() => this.depurar()}>Depurar</es-elemento>
-            <es-elemento onClick={() => this.empezarElJuego()}>Reiniciar</es-elemento>
+            <es-elemento aria-label="Jugar solo" onClick={() => this.jugarSolo()} style="cursor:pointer;user-select:none">
+              <es-icono name="fast forward" />
+              <es-emergente contenido="Jugar solo" invertido={true} tamano="pequeño" />
+            </es-elemento>
+            <es-elemento aria-label="Trampa" onClick={() => this.hacerTrampa()} style="cursor:pointer;user-select:none">
+              <es-icono name="eye" />
+              <es-emergente contenido="Trampa" invertido={true} tamano="pequeño" />
+            </es-elemento>
+            <es-elemento aria-label="Reiniciar" onClick={() => this.empezarElJuego()} style="cursor:pointer;user-select:none">
+              <es-icono name="redo" />
+              <es-emergente contenido="Reiniciar" invertido={true} tamano="pequeño" />
+            </es-elemento>
           </es-menu>
         </es-menu>
-        <es-cuadricula columnas="7">
-          <es-fila>
-            <es-columna>{core.drawThing(this.reserva)}</es-columna>
-            <es-columna>{core.drawThing(this.descartes)}</es-columna>
-            <es-columna />
-            <es-columna>{core.drawThing(this.tréboles)}</es-columna>
-            <es-columna>{core.drawThing(this.diamantes)}</es-columna>
-            <es-columna>{core.drawThing(this.corazones)}</es-columna>
-            <es-columna>{core.drawThing(this.espadas)}</es-columna>
-          </es-fila>
-          <es-fila>
-            <es-columna>{core.drawThing(this.C1)}</es-columna>
-            <es-columna>{core.drawThing(this.C2)}</es-columna>
-            <es-columna>{core.drawThing(this.C3)}</es-columna>
-            <es-columna>{core.drawThing(this.C4)}</es-columna>
-            <es-columna>{core.drawThing(this.C5)}</es-columna>
-            <es-columna>{core.drawThing(this.C6)}</es-columna>
-            <es-columna>{core.drawThing(this.C7)}</es-columna>
-          </es-fila>
+        <es-cuadricula class="Board" columnas="7">
+          {core.drawThing(this.reserva)}
+          {core.drawThing(this.descartes)}
+          <div />
+          {core.drawThing(this.tréboles)}
+          {core.drawThing(this.diamantes)}
+          {core.drawThing(this.corazones)}
+          {core.drawThing(this.espadas)}
+          {core.drawThing(this.C1)}
+          {core.drawThing(this.C2)}
+          {core.drawThing(this.C3)}
+          {core.drawThing(this.C4)}
+          {core.drawThing(this.C5)}
+          {core.drawThing(this.C6)}
+          {core.drawThing(this.C7)}
         </es-cuadricula>
       </es-contenedor>
     )
@@ -1028,8 +1008,11 @@ export class Solitario extends App {
 }
 export const solitario = new Solitario()
 
-core.heading("Jugar una carta:  qué hace un clic")
+core.heading("Jugar una carta:  qué hace un clic o un arrastre")
+/** un clic juega la carta;  un arrastre la pone donde se suelta */
 on<{ carta: Carta }>("clic-carta", ({ carta }) => carta.jugar())
+
+on<{ carta: Carta; pila: Pila }>("soltar-carta", ({ carta, pila }) => carta.ponerEnPila(pila))
 
 core.heading("Inicio")
 //## Inicio
@@ -1037,12 +1020,13 @@ core.console.log(solitario)
 solitario.empezarElJuego()
 if (!core.isCarryingOver) solitario.start()
 
-core.heading("Las pilas:  cada tipo, qué puede tomar o soltar, y cómo se dibuja")
-///////////////////////////////////////////////////////////////////////
-// ## Las pilas:  cada tipo, qué puede tomar o soltar, y cómo se dibuja
-///////////////////////////////////////////////////////////////////////
+core.heading("Las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas")
+//////////////////////////////////////////////////////////////////////////////
+// ## Las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas
+//////////////////////////////////////////////////////////////////////////////
 // Cada pila es una lista dibujable:  un elemento propio, p. ej. `<solitario-columna>`, alrededor de los elementos de sus cartas.
-// Así cada tipo se da estilo a sí mismo, en su `<css>`, y dónde van sus cartas:  styles.css no llega dentro.
+// Cómo están sus cartas es su disposición:  styles.css dibuja cada una.
+// Mientras está vacía, muestra su marcador, si tiene uno.
 
 core.heading("Pruebas")
 /** Pruebas */
@@ -1114,7 +1098,7 @@ export function testLosMovimientos() {
   })
 }
 // -----------
-core.installStyles(undefined, `/* File styles.css:  the board's own styles.¬   Each kind of pile styles itself, and where its cards go:  its <css>, in Solitario.es.spell.¬   A pile is a drawable list, drawn in its own element's shadow root, which styles here can't reach. */¬¬/* The size of a card, which every card and pile reads:  custom properties reach inside their shadow roots.¬   - A card's picture, a character of unicode's Playing Cards, is 68 x 90px at the size the card draws it. */¬:root,¬:host {¬  --card-width: 4.25rem;¬  --card-height: 5.65rem;¬  /* how much of a card shows under the one on it, in a tableau */¬  --card-strip: 1.4rem;¬}¬¬/* Each column at least a card wide, and a little more:  a narrow board scrolls sideways, never squeezes them. */¬es-fila::part(fila) {¬  flex-wrap: nowrap;¬}¬es-columna::part(columna) {¬  min-width: calc(var(--card-width) + 1rem);¬}¬`)
+core.installStyles(undefined, `/* File styles.css:  how the board looks -- each card, and how each pile lays its cards out (its disposición).¬   - Every pile and card is an element of its own on the board, so these rules reach them all:¬     - a pile by its disposición, e.g. <solitario-columna disposición="vertical">¬     - each card in it by its place, --index from 0, and how many there are, --count:  the pile numbers them¬     - an empty pile's placeholder, its marcador, which it draws itself, by its part:  ::part(marcador)¬   - A card is one letter of unicode's Playing Cards, at its pile's width:¬     so a card is as wide as its column, whatever the window's width. */¬¬/* A card's picture, in ems of its own letter (measured in Chrome on a Mac):¬   0.604em wide, 0.805em tall, its left edge 0.049em into the letter. */¬:root,¬:host {¬  /* how wide a card is, for each em of its letter */¬  --card-width: 0.604;¬  /* how tall it is, for each of its widths:  0.805 / 0.604 */¬  --card-height: 1.333;¬  /* down a column, how much of each card shows under the next:  a fifth of it, its rank and suit */¬  --card-step-down: 0.2;¬  /* along a row, how much of each card the next one covers:  a tenth of it */¬  --card-overlap: 0.1;¬  /* fanned, how far each card turns from the one before */¬  --card-turn: 8deg;¬}¬¬/****************¬ * The board:  below the game's menu, its piles seven to a line¬ ****************/¬¬.Board {¬  /* gutters that shrink with a narrow window, so the cards keep most of its width */¬  --ui-grid-gutter: min(2rem, 2.5vw);¬  --ui-grid-row-spacing: min(2rem, 4vw);¬  /* 1.5rem below the menu:  the grid pulls itself up by half a row's spacing */¬  margin-top: calc(1.5rem + var(--ui-grid-row-spacing) / 2);¬}¬¬/* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */¬@media (width < 36rem) {¬  es-elemento[tipo="encabezado"] {¬    display: none;¬  }¬}¬¬/****************¬ * A pile:  as wide as its cell of the board, and as tall as its cards¬ ****************/¬¬[disposición] {¬  display: block;¬  position: relative;¬  /* its cards size themselves by its width */¬  container-type: inline-size;¬}¬/* its height:  a card's, by default -- a percentage of padding is one of its width */¬[disposición]::before {¬  content: "";¬  display: block;¬  padding-top: calc(100% * var(--card-height));¬}¬¬/* Each card, and the placeholder:  a card's letter as wide as the pile, cut to the card it draws */¬[disposición] > *,¬[disposición]::part(marcador) {¬  position: absolute;¬  top: 0;¬  left: 0;¬  font-size: calc(100cqi / var(--card-width));¬  width: calc(var(--card-width) * 1em);¬  height: calc(var(--card-width) * var(--card-height) * 1em);¬  overflow: hidden;¬  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.552 starts it at the top */¬  line-height: 0.552;¬  --ui-text-line-height: 0.552;¬  text-indent: -0.049em;¬  user-select: none;¬}¬/* a card's letter is only its ink:  a white face, its corners rounded as the letter's are, hides the cards below */¬[disposición] > * {¬  background: #fff;¬  border-radius: 0.035em;¬}¬¬/* An empty pile's placeholder:  a light grey card */¬[disposición]::part(marcador) {¬  color: #000;¬  opacity: 0.15;¬}¬[disposición]::part(marcador):hover {¬  opacity: 0.25;¬}¬¬/****************¬ * The layouts:  apilada (stacked) puts every card on top of the one before¬ ****************/¬¬/* vertical:  each card a step below the one before */¬[disposición="vertical"]::before {¬  padding-top: calc(100% * var(--card-height) * (1 + (max(var(--count, 1), 1) - 1) * var(--card-step-down)));¬}¬[disposición="vertical"] > * {¬  top: calc(var(--index) * var(--card-width) * var(--card-height) * 1em * var(--card-step-down));¬}¬¬/* horizontal:  side by side, each covering the edge of the one before;  smaller as there are more, to fit the pile */¬[disposición="horizontal"] {¬  --spread: calc(1 + (max(var(--count, 1), 1) - 1) * (1 - var(--card-overlap)));¬}¬[disposición="horizontal"]::before {¬  padding-top: calc(100% * var(--card-height) / var(--spread));¬}¬[disposición="horizontal"] > * {¬  font-size: calc(100cqi / var(--card-width) / var(--spread));¬  left: calc(var(--index) * var(--card-width) * 1em * (1 - var(--card-overlap)));¬}¬¬/* abanico (fanned):  as a hand of cards is held, each turned a little from the one before, around a point below them */¬[disposición="abanico"] > * {¬  font-size: calc(60cqi / var(--card-width));¬  left: calc(50% - var(--card-width) * 0.5em);¬  top: 10%;¬  transform-origin: 50% 200%;¬  rotate: calc((var(--index) - (var(--count) - 1) / 2) * var(--card-turn));¬}¬`)
 // -----------
 if (!core.isCarryingOver) testLaPreparaciónDeLaCarta()
 if (!core.isCarryingOver) testLosComodines()
@@ -1133,8 +1117,6 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-comodin": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `PilaElement` */
       "test-project-pila": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
-      /** `PilaApiladaElement` */
-      "test-project-pila-apilada": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `PilaDeReservaElement` */
       "test-project-pila-de-reserva": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `PilaDeDescartesElement` */

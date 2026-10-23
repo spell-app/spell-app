@@ -186,7 +186,8 @@ describe("a Python spell app, in a real browser", () => {
   test("AutoPlay's pauses reach the page:  a patch at each, so it animates", async () => {
     const page = await opened()
     const before = page.received.length
-    await page.page.getByText("AutoPlay").click()
+    // its button is an icon:  the item inside the menu item, labelled for screen readers
+    await page.page.locator('[part=item][aria-label="Auto play"]').click()
     await page.page.waitForTimeout(3000)
     const frames = page.received.slice(before).map((frame) => JSON.stringify(frame).length)
     process.stderr.write(`AutoPlay's frames:  ${frames.length}, of ${frames.join(", ")} characters\n`)

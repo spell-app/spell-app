@@ -118,6 +118,17 @@ describe("diskFetch", () => {
       expect(readFileSync(resolve(projectDir, "a.spell"), "utf8")).toBe("set foo to 2")
     })
 
+    test("loose spell files in a folder with no project file:  they parse, and no project file is written there", async () => {
+      const folder = resolve(mkdtempSync(resolve(tmpdir(), "spell-ws-")), "Drafts")
+      mkdirSync(folder)
+      writeFileSync(resolve(folder, "a.spell"), "set foo to 1\nprint the foo")
+
+      const file = new SP.SpellFile(locationForDiskPath(resolve(folder, "a.spell"))!.path)
+      await file.project.parse()
+      expect(file.match?.compile()).toBe("export const foo = 1\ncore.console.log(foo)")
+      expect(existsSync(resolve(folder, SP.PROJECT_FILE))).toBe(false)
+    })
+
     test("a name that can't be a path segment gives `undefined`", () => {
       expect(locationForDiskPath("/tmp/bad@name/x.spell")).toBeUndefined()
     })

@@ -23,6 +23,7 @@ export const words = {
       symbol: "symbol",
       state: "state",
       play: "play a card",
+      putOnPile: "put a card on a pile",
       pile: "pile"
     },
     Joker: {
@@ -40,16 +41,23 @@ export const words = {
     },
     Pile: {
       name: "name",
+      layout: "layout",
       color: "color",
       value: "value",
       state: "state"
     },
     StockPile: {
-      draw: "draw it"
+      layout: "layout"
+    },
+    DiscardPile: {
+      layout: "layout"
     },
     Foundation: {
-      suit: "suit",
-      draw: "draw it"
+      layout: "layout",
+      suit: "suit"
+    },
+    Tableau: {
+      layout: "layout"
     },
     Solitaire: {
       score: "score",
