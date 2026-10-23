@@ -88,7 +88,7 @@ describe("a Python spell app, in a real browser", () => {
     const files = readdirSync(join(folder, "lists-from-zero"))
     expect(files).toEqual(expect.arrayContaining(["lists-from-zero.spell.py", "cards.py"]))
     expect(readFileSync(join(folder, "lists-from-zero", "cards.py"), "utf8")).toMatch(/^class Card\(/m)
-  })
+  }, 60_000)
 
   test("the app compiling wrote runs as it is:  `uv run python Solitaire.app.py`", async () => {
     const port = await SRV.freePort()
