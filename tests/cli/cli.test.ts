@@ -246,7 +246,7 @@ describe("spell compile", () => {
     const { status, stdout, stderr } = spell(["compile", "@spell/test/fizzbuzz", "--stdout"])
     expect(stderr).toContain("✓ @spell/test/fizzbuzz")
     expect(status).toBe(0)
-    expect(stdout).toBe(readFileSync(fixturePath("fizzbuzz", `FizzBuzz${SP.SNAPSHOT_JS_SUFFIX}`), "utf8"))
+    expect(stdout).toBe(readFileSync(fixturePath("fizzbuzz", `fizzbuzz${SP.SNAPSHOT_JS_SUFFIX}`), "utf8"))
   })
 
   test("a spell file prints its javascript", () => {
