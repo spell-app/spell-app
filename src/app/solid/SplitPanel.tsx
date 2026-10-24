@@ -1,7 +1,7 @@
 import { For, Show, children, createEffect, omit, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { getPref, setPref } from "spell/util"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 
 import "./spell.css"
 import "./SplitPanel.css"
@@ -24,7 +24,7 @@ import "./SplitPanel.css"
  *   - NOTE: one pane per DOM node the children draw:  a child component drawing two top-level nodes makes two
  *     panes.  The editor's panes each draw one `<div>`.
  * - `spaced`:  room around the panes, and a spacer between them unless `resizable`.
- * - With an `id`, a resizable panel remembers its sizes as a preference under that id (`spell/util`'s `setPref()`):
+ * - With an `id`, a resizable panel remembers its sizes as a preference under that id (`editorPrefs`):
  *   make it unique in the app.
  * - Sizes are applied as each pane's inline `flex`, NOT drawn by Solid:  a drag rewrites them on every mouse move.
  * - SEE:  its App UI components page, `app/docs/SplitPanel.html` (`/components/app/SplitPanel.html`).
@@ -44,7 +44,7 @@ export function SplitPanel(props: SplitPanelProps) {
     () => ({ count: panes().length, columns: props.columns, rows: props.rows, id: props.id }),
     ({ count, columns, rows, id }) => {
       if (!columns === !rows) console.warn("<SplitPanel>s need exactly one of 'columns' or 'rows'.", id)
-      const stored = id ? (getPref(id, undefined) as string | undefined) : undefined
+      const stored = id ? editorPrefs.get<string>(id) : undefined
       apply(normalizeSizes(stored || (columns ?? rows), count), false)
     }
   )
@@ -114,7 +114,7 @@ export function SplitPanel(props: SplitPanelProps) {
    */
   function apply(next: PanelSize[], save = true) {
     sizes = next
-    if (save && props.id) setPref(props.id, sizeString(sizes))
+    if (save && props.id) editorPrefs.set(props.id, sizeString(sizes))
     paneElements().forEach((pane, index) => {
       const size = sizes[index]
       if (!size) return
