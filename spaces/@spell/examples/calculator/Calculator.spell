@@ -1,11 +1,13 @@
-// IDEAS FOR EXTENDING THIS
-// - check for NaN in total
-// - <delete> button
-// - blinking cursor in current field
-// - keyboard input
-// - `output` as getter
-// - tape to show past results
+## Calculator
+// A pocket calculator:  a number, an operator, another number, and the total as you type.
+// What's where, top to bottom:
+//   what it keeps:  the two numbers, the operator and the total
+//   what its keys do:  clear, a digit, an operator, equals
+//   how it draws:  the display, then the keypad
+//   start
 
+
+## What it keeps
 a calculator is an app
 a calculator has an input as text
 a calculator has an output as text
@@ -14,6 +16,8 @@ a calculator has a right as text
 a calculator has a total as a number
 a calculator has an operator as text
 
+
+## What its keys do
 to clear (a calculator):
 	set its input to ""
 	set its output to ""
@@ -23,7 +27,7 @@ to clear (a calculator):
 	set its total to 0
 
 to update the total of (a calculator):
-	if its right is empty: 
+	if its right is empty:
 		set its output to ""
 	otherwise
 		set lhs to its left as a number
@@ -32,80 +36,80 @@ to update the total of (a calculator):
 			set its total to lhs + rhs
 		else if its operator is "–"
 			set its total to lhs - rhs
-		else if its operator is "x"
+		else if its operator is "×"
 			set its total to lhs times rhs
 		else
 			set its total to lhs divided by rhs
-		set its output to " = " + its total
+		set its output to "= " + its total
 
+// a digit, or the decimal point:  onto the number being typed, the left one until there's an operator
 to append (digit as text) to (a calculator):
-	// TODO: handle digit = "DELETE"
 	if the digit is "."
 		if its input is empty
 			set its input to "0."
 		otherwise if its input does not contain "."
 			set its input to its input + "."
-	otherwise if the digit is not "DELETE":
+	otherwise
 		set its input to its input + the digit
-	// add to left or right field as appropriate
 	if its operator is empty
 		set its left to its input
 	else
 		set its right to its input
 	update the total of the calculator
 
-to set the operator of (a calculator) to (op as text):
+// an operator after a whole sum carries its total on, as the next sum's left number
+to apply (op as text) to (a calculator):
+	if its right is not empty
+		finish the calculator
 	set its operator to the op
 	set its input to ""
-	if its right is not empty
-		// move total to right
-		set its left to its total as text
-		set its right to ""
-		set its total to 0
-		set its output to ""
 
+// equals:  the total becomes the left number, ready for the next operator
+to finish (a calculator):
+	if its right is empty return
+	set its left to its total as text
+	set its operator to ""
+	set its right to ""
+	set its input to ""
+	set its output to ""
+
+
+## How it draws:  the display, then the keypad, four keys a row
 to draw (a calculator)
-  return <div className="ui container">
- 	<table className="ui table">
-		<tr>
-			<td colSpan="3">
-				<h2>
-					<span>{its left}</span>
-					<span id="operator">{" "}{its operator}{" "}</span>
-					<span id="right">{" "}{its right}{" "}</span>
-					<span id="output">{its output}</span>
-				</h2>
-			</td>
-			<td ><button className="ui button fluid red" onClick={clear it}>C</button></td>
-		</tr>
-		<tr>
-			<td><button className="ui button fluid" onClick={append "7" to it}>7</button></td>
-			<td><button className="ui button fluid" onClick={append "8" to it}>8</button></td>
-			<td><button className="ui button fluid" onClick={append "9" to it}>9</button></td>
-			<td><button className="ui button fluid orange" onClick={set its operator to "+"}>+</button></td>
-		</tr>
-		<tr>
-			<td><button className="ui button fluid" onClick={append "4" to it}>4</button></td>
-			<td><button className="ui button fluid" onClick={append "5" to it}>5</button></td>
-			<td><button className="ui button fluid" onClick={append "6" to it}>6</button></td>
-			<td><button className="ui button fluid orange" onClick={set its operator to "–"}>–</button></td>
-		</tr>
-		<tr>
-			<td><button className="ui button fluid" onClick={append "1" to it}>1</button></td>
-			<td><button  className="ui button fluid" onClick={append "2" to it}>2</button></td>
-			<td><button className="ui button fluid" onClick={append "3" to it}>3</button></td>
-			<td><button className="ui button fluid orange" onClick={set its operator to "x"}>x</button></td>
-		</tr>
-		<tr>
-			<td ><button className="ui button fluid" onClick={append "0" to it}>0</button></td>
-			<td><button className="ui button fluid" onClick={append "." to it}>.</button></td>
-			<td><button hidden className="ui button fluid" onClick={append "DELETE" to it}>DEL</button></td>
-			<td><button className="ui button fluid orange" onClick={set its operator to "÷"}>÷</button></td>
-		</tr>
-	</table>
-  </div>
+	return <div class="Calculator">
+		<ui-segment raised>
+			<div class="Display">
+				<div class="Sum">{"0" if its left is empty otherwise its left}{" "}{its operator}{" "}{its right}</div>
+				<div class="Total">{its output}</div>
+			</div>
+			<div class="Keypad">
+				<ui-button class="Wide" fluid negative onClick={clear it}>C</ui-button>
+				<ui-button fluid secondary onClick={finish it}>=</ui-button>
+				<ui-button fluid primary onClick={apply "÷" to it}>÷</ui-button>
 
+				<ui-button fluid onClick={append "7" to it}>7</ui-button>
+				<ui-button fluid onClick={append "8" to it}>8</ui-button>
+				<ui-button fluid onClick={append "9" to it}>9</ui-button>
+				<ui-button fluid primary onClick={apply "×" to it}>×</ui-button>
+
+				<ui-button fluid onClick={append "4" to it}>4</ui-button>
+				<ui-button fluid onClick={append "5" to it}>5</ui-button>
+				<ui-button fluid onClick={append "6" to it}>6</ui-button>
+				<ui-button fluid primary onClick={apply "–" to it}>–</ui-button>
+
+				<ui-button fluid onClick={append "1" to it}>1</ui-button>
+				<ui-button fluid onClick={append "2" to it}>2</ui-button>
+				<ui-button fluid onClick={append "3" to it}>3</ui-button>
+				<ui-button fluid primary onClick={apply "+" to it}>+</ui-button>
+
+				<ui-button class="Wide" fluid onClick={append "0" to it}>0</ui-button>
+				<ui-button fluid onClick={append "." to it}>.</ui-button>
+			</div>
+		</ui-segment>
+	</div>
+
+
+## Start
 set calculator to a new calculator
 clear the calculator
 start the calculator
-

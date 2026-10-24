@@ -1,8 +1,13 @@
 {
-  "description": "A working calculator:  an app with text properties, actions like `to clear (a calculator)`, and buttons whose clicks are Spell;  its first lines list ideas for extending it",
+  "title": "Calculator",
+  "description": "A pocket calculator on Spell UI:  an app with text properties, actions like `to clear (a calculator)`, and a keypad of buttons whose clicks are Spell",
   "imports": [
     {
       "path": "/Calculator.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
       "active": true
     }
   ]

@@ -12,7 +12,8 @@ export const words = {
       clear: "clear (a calculator)",
       updateTheTotalOfCalculator: "update the total of (a calculator)",
       appendDigitToCalculator: "append (digit as text) to (a calculator)",
-      setTheOperatorOfCalculatorToOp: "set the operator of (a calculator) to (op as text)",
+      applyOpToCalculator: "apply (op as text) to (a calculator)",
+      finish: "finish (a calculator)",
       draw: "draw (a calculator)"
     }
   }

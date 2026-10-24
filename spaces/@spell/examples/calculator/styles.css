@@ -1,0 +1,51 @@
+/* File styles.css:  how the calculator looks.
+   - A segment holding the display, then the keypad:  four keys a row, C and 0 two keys wide. */
+
+.Calculator {
+  max-width: 20em;
+  margin: 2em auto;
+}
+
+/****************
+ * The display:  the sum on one line, its total under it, both on the right as a calculator's are
+ ****************/
+
+.Display {
+  min-height: 4.5em;
+  margin-bottom: 1em;
+  padding: 0.5em 0.75em;
+  border-radius: 0.3em;
+  background: rgb(0 0 0 / 0.05);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.Sum {
+  min-height: 1.5em;
+  font-size: 1.6em;
+}
+
+.Total {
+  min-height: 1.25em;
+  opacity: 0.6;
+  font-size: 1.1em;
+}
+
+/****************
+ * The keypad
+ ****************/
+
+.Keypad {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5em;
+}
+
+.Keypad > ui-button {
+  --ui-button-margin-inline: 0;
+  font-size: 1.2em;
+}
+
+.Keypad > .Wide {
+  grid-column: span 2;
+}

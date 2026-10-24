@@ -34,7 +34,7 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 | Example | Address | What it shows | Running |
 | --- | --- | --- | --- |
 | FizzBuzz | [`@spell/examples/fizzbuzz`](spaces/@spell/examples/fizzbuzz/) | Counting to 100 with fizz and buzz:  a loop, `if` and `otherwise`, and `print`, in eight lines | <a href="docs/images/examples/fizzbuzz.png"><img src="docs/images/examples/fizzbuzz.png" width="360" alt="FizzBuzz open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
-| Calculator | [`@spell/examples/calculator`](spaces/@spell/examples/calculator/) | A working calculator:  an app with text properties, actions like `to clear (a calculator)`, and buttons whose clicks are Spell;  its first lines list ideas for extending it | <a href="docs/images/examples/calculator.png"><img src="docs/images/examples/calculator.png" width="360" alt="Calculator open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Calculator | [`@spell/examples/calculator`](spaces/@spell/examples/calculator/) | A pocket calculator on Spell UI:  an app with text properties, actions like `to clear (a calculator)`, and a keypad of buttons whose clicks are Spell | <a href="docs/images/examples/calculator.png"><img src="docs/images/examples/calculator.png" width="360" alt="Calculator open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Task List | [`@spell/examples/TaskList`](spaces/@spell/examples/TaskList/) | A to-do list in the outline style:  each task its own element, with Spell UI's controls;  `where` filters it, and a click selects tasks (shift and command for more) for a property editor that changes them all at once | <a href="docs/images/examples/TaskList.png"><img src="docs/images/examples/TaskList.png" width="360" alt="Task List open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Lista de tareas | [`@spell/examples/ListaDeTareas`](spaces/@spell/examples/ListaDeTareas/) | Task List's Spanish twin:  a to-do list in the outline style, in Spanish, each task its own element with Spell UI's controls, a click selecting tasks for a property editor that changes them all at once | <a href="docs/images/examples/ListaDeTareas.png"><img src="docs/images/examples/ListaDeTareas.png" width="360" alt="Lista de tareas open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Solitaire | [`@spell/examples/Solitaire`](spaces/@spell/examples/Solitaire/) | Klondike solitaire in the outline style:  its own cards, deck and piles (`Card`, `Deck`, `Pile`), then the game, its kinds of piles (`a "tableau" is a pile where:`), their moves, layout and CSS;  `pause for` animates the deal | <a href="docs/images/examples/Solitaire.png"><img src="docs/images/examples/Solitaire.png" width="360" alt="Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
@@ -108,13 +108,13 @@ The other five draw an app, and each is built the same way:
 what its things ARE, what they DO, how they DRAW, and one line that starts it.
 If you know React, you know all four already, under other names.
 
-The Calculator shows them plainest, in 111 lines, because it keeps each part in a block of its own:
+The Calculator shows them plainest, in 113 lines, because it keeps each part in a block of its own:
 
 | Part | In the Calculator | In React |
 | --- | --- | --- |
 | what its things are | `a calculator has a total as a number`, one of its six properties | the component's state |
-| what they do | `to clear (a calculator):`, and three more actions | its event handlers |
-| how they draw | `to draw (a calculator)`:  a table of buttons, each with a click like `onClick={append "7" to it}` | its JSX |
+| what they do | `to clear (a calculator):`, and four more actions | its event handlers |
+| how they draw | `to draw (a calculator)`:  a keypad of Spell UI buttons, each with a click like `onClick={append "7" to it}` | its JSX |
 | the start | `start the calculator`, which puts its drawing on the page | `createRoot(root).render(<App />)` |
 
 <details>
@@ -143,12 +143,12 @@ to clear (a calculator):
 ```spell
 to draw (a calculator)
 	...
-		<tr>
-			<td><button className="ui button fluid" onClick={append "7" to it}>7</button></td>
-			<td><button className="ui button fluid" onClick={append "8" to it}>8</button></td>
-			<td><button className="ui button fluid" onClick={append "9" to it}>9</button></td>
-			<td><button className="ui button fluid orange" onClick={set its operator to "+"}>+</button></td>
-		</tr>
+		<div class="Keypad">
+			...
+			<ui-button onClick={append "7" to it}>7</ui-button>
+			<ui-button onClick={append "8" to it}>8</ui-button>
+			<ui-button onClick={append "9" to it}>9</ui-button>
+			<ui-button primary onClick={apply "×" to it}>×</ui-button>
 	...
 ```
 
@@ -158,69 +158,30 @@ clear the calculator
 start the calculator
 ```
 
-- The whole program, its other three actions too:
+- The whole program, its other four actions too:
   [Calculator.spell](spaces/@spell/examples/calculator/Calculator.spell).
+- The keypad's grid, four keys a row, is its own CSS:
+  [styles.css](spaces/@spell/examples/calculator/styles.css).
 
 </details>
 
 The difference that matters:  a click handler is a sentence.
 `onClick={clear it}` on the C key clears the calculator, and `it` is the calculator being drawn.
 
-So the wording counts, and the Calculator shows how much.
-**Press 7, +, 5, and it says 82.**
-Its + key says `set its operator to "+"`, which only sets the property.
-`set the operator of it to "+"` would run the calculator's own action, which starts the second number afresh;
-without it, the 5 joins the 7, and the sum is 7 + 75.
-The –, x and ÷ keys say it the same way.
+So the wording counts.
+The operator keys say `apply "+" to it`, the calculator's own action:
+a sum already typed carries its total on as the next sum's left number, and the second number starts afresh.
 
-<details>
-<summary>The test that catches it, and the one-line fix</summary>
+- `set its operator to "+"` would read as well, and only set the property:
+  press 7, +, 5, and the 5 would join the 7, for 7 + 75.
+- Its action was once named `set the operator of (a calculator) to (op as text)`:
+  then `set the operator of it to "+"` ran it, and `set its operator to "+"`, one word apart, set only the property.
+  So the action has a name no property has.
 
-Added to the end of a copy of the Calculator, a test that presses the keys the way the buttons do:
-
-```spell
-// as the + key does it:  onClick={set its operator to "+"}
-to press plus on (a calculator):
-	set its operator to "+"
-
-to test seven plus five
-	set sum to a new calculator
-	clear sum
-	append "7" to sum
-	press plus on sum
-	append "5" to sum
-	expect the right of sum to be "5"
-	expect the output of sum to be " = 12"
-```
-
-```sh
-spell test
-```
-
-<details>
-<summary>What it printed</summary>
-
-```text
-✓ Compiling @local/scratchpad/calc
-✗ test seven plus five  (2 checks)
-    ❌ Unexpected: `the right of sum` should be `"5"` but is actually `75`
-    ❌ Unexpected: `the output of sum` should be `" = 12"` but is actually ` = 82`
-
-0 passed, 1 failed
-```
-
-</details>
-
-- Change `press plus` to say `set the operator of it to "+"`, and the same test passes:  1 passed.
-- In JavaScript, the two sentences are `this.operator = "+"` and `this.setTheOperatorOfCalculatorToOp("+")`.
-
-</details>
-
-Three more things the picture won't tell you:
-- There's no = key:  the total appears as you type the second number.
-- DEL is drawn, though its button is marked `hidden`, and does nothing yet:  `append` skips it, at a `// TODO`.
-- Its first seven lines are a to-do list of its own:  six ideas for extending it,
-  from a check for NaN to a tape of past results.
+Two more things the picture won't tell you:
+- The total appears as you type the second number;  the = key makes it the next sum's start.
+- The display and the keypad are plain `<div>`s, laid out by the project's own stylesheet;
+  the keys are Spell UI's `<ui-button>`, `primary` for an operator, `negative` for C.
 
 ## FizzBuzz:  a loop, and printing
 
