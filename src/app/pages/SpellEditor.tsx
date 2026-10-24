@@ -1,8 +1,6 @@
 import type { RouteSectionProps } from "@solidjs/router"
 import { Match, Show, Switch, createSignal } from "solid-js"
 
-import { getPref, setPref } from "spell/util"
-
 import { SP } from "spell-parser/spell"
 import {
   Actions,
@@ -29,6 +27,7 @@ import {
   type Mode
 } from "spell-app/app/solid"
 import { editor, runtimeCore } from "spell-app/app/editor"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import type { ThingExplorerState } from "spell-app/app/ui/ui.types"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
@@ -105,7 +104,7 @@ export function AppPane() {
  *   the Types tab keeps its own, and the Things tab's is kept here (`thingsState`).
  ****************/
 export function ProgramPanel(props: { onClose: () => void }) {
-  const [tab, setTab] = createSignal<ProgramTabId>(tabOrDefault(getPref(TAB_PREF, undefined)))
+  const [tab, setTab] = createSignal(editorPrefs.get(TAB_PREF) as ProgramTabId)
   // the Things tab's state, kept here so it outlives switching tabs:  the explorer reads it once, as it mounts
   let thingsState: ThingExplorerState = {}
   return (
@@ -175,7 +174,7 @@ export function ProgramPanel(props: { onClose: () => void }) {
   /** Show tab `id`, and remember it. */
   function showTab(id: ProgramTabId) {
     setTab(id)
-    setPref(TAB_PREF, id)
+    editorPrefs.set(TAB_PREF, id)
   }
 }
 
@@ -194,16 +193,13 @@ const TAB_LOOKS: Record<ProgramTabId, { icon: string; text: AppTextKey }> = {
   tree: { icon: "tree", text: "treeTab" }
 }
 /** The preference that remembers which tab `<ProgramPanel>` shows. */
-const TAB_PREF = "spellEditor.programTab"
+const TAB_PREF = "programTab"
+// TODO:  drop the rename once every browser has opened the editor since epic `prefs-and-undo` P1
+editorPrefs.declare(TAB_PREF, { oneOf: PROGRAM_TABS }).rename("spellEditor.programTab", TAB_PREF)
 
 /** Tab `id`, titled in the page's language. */
 function tabFor(id: ProgramTabId): RunnerTab<ProgramTabId> {
   return { id, icon: TAB_LOOKS[id].icon, title: appTexts.text(TAB_LOOKS[id].text) }
-}
-
-/** `saved` if it's one of our tabs, e.g. a remembered preference, else Program Output. */
-function tabOrDefault(saved: unknown): ProgramTabId {
-  return PROGRAM_TABS.find((id) => id === saved) ?? "output"
 }
 
 /****************

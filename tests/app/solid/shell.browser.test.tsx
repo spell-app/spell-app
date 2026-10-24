@@ -2,10 +2,11 @@ import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { getPref, reactiveObject, resetPref, setPref } from "spell/util"
+import { reactiveObject } from "spell/util"
 import { ElementFixture } from "spell/test-helpers/ElementFixture"
 import type { SPACES } from "spell-app/spaces"
 import { editor, type EditorStore } from "spell-app/app/editor"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 import {
   ProjectDropdown,
   ProjectMenu,
@@ -82,8 +83,8 @@ describe("<SplitPanel>", () => {
 
   test("dragging a sizer resizes the panes beside it, and remembers the sizes under `id`", async () => {
     const id = "SplitPanel.browser.test"
-    resetPref(id)
-    cleanups.push(() => resetPref(id))
+    editorPrefs.forget(id)
+    cleanups.push(() => editorPrefs.forget(id))
     const host = await mount(() => (
       <SplitPanel id={id} columns resizable style={{ width: "600px", height: "100px" }}>
         <div>left</div>
@@ -103,7 +104,7 @@ describe("<SplitPanel>", () => {
     expect(leftShare).toBeGreaterThan(20)
     expect(leftShare).toBeLessThan(30)
     expect(parseFloat(right.style.flex)).toBeCloseTo(100 - leftShare, 1)
-    expect(getPref(id, undefined)).toBe(`${leftShare}%,${100 - leftShare}%`)
+    expect(editorPrefs.get(id)).toBe(`${leftShare}%,${100 - leftShare}%`)
     // let go:  moving on does nothing
     document.dispatchEvent(mouse("mousemove", x + 100, y))
     expect(parseFloat(left.style.flex)).toBe(leftShare)
@@ -117,8 +118,8 @@ describe("<SplitPanel>", () => {
 
   test("a remembered size wins over `columns` / `rows`", async () => {
     const id = "SplitPanel.browser.test.remembered"
-    setPref(id, "70%,30%")
-    cleanups.push(() => resetPref(id))
+    editorPrefs.set(id, "70%,30%")
+    cleanups.push(() => editorPrefs.forget(id))
     const host = await mount(() => (
       <SplitPanel id={id} rows="20%" resizable>
         <div>top</div>
