@@ -4,10 +4,10 @@ import type { TimedProject } from "spell-parser/cli/translateTimes"
 import { CLI } from "spell-app/cli"
 
 /**
- * `spell parser translate-time [projects...] --to <lang>`:  time `spell parser translate`, run after run, on scratch copies
+ * `spell translate speedtest [projects...] --to <lang>`:  time `spell translate`, run after run, on scratch copies
  * (epic `spanish` P29).
  * - Here, only what needs the app:  finding the projects (addresses, folders), each one's twin a person translated,
- *   and each run's translation, found and parsed as `spell parser translate` does (`translateSourceFor()`).
+ *   and each run's translation, found and parsed as `spell translate` does (`translateSourceFor()`).
  * - spell-parser's `timeTranslations()` does the rest:  the copies, the runs, the table, the clean-up.
  * - No projects:  Solitaire and todos-form-based (`TIMED_BY_DEFAULT`), the two the translator's numbers were
  *   measured on by hand.
@@ -42,7 +42,7 @@ export async function translateTimeCommand(
   return report.exitCode
 }
 
-/** The projects `spell parser translate-time` times with none named. */
+/** The projects `spell translate speedtest` times with none named. */
 export const TIMED_BY_DEFAULT = ["@spell/examples/Solitaire", "@spell/test/todos-form-based"]
 
 /** Each example a person translated by hand, by its address, then language:  its twin, to compare names with. */

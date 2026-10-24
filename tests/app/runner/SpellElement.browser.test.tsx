@@ -326,8 +326,8 @@ describe("SpellElement", () => {
       await new Promise((resolve) => setTimeout(resolve))
     }
 
-    // a tray of tokens, each in one tray at a time, as `a token belongs to one tray` compiles:  made before any token
-    // is drawn, so the token's tag knows its `tray` (`core.elementApiOf()`)
+    // a tray of tokens, each in one tray at a time, as `a token belongs to one tray` compiles:
+    // made before any token is drawn, so the token's tag knows its `tray` (`core.elementApiOf()`)
     /** A list of a family:  dragging a token from one to another moves it. */
     class Tray extends DrawableList<Token> {
       static elementTag = core.defineElement(this, "Game")

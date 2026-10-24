@@ -18,7 +18,7 @@ import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 
 /**
- * `spell parser translate [project] --to <lang>`:  write a project in another language (epic `spanish` P24-P25).
+ * `spell translate [project] --to <lang>`:  write a project in another language (epic `spanish` P24-P25).
  * - Here, only what needs the app, handed to spell-parser's `translateProject()`, which does the rest:
  *   - finding the project (an address, a folder, `@here`) and parsing it, and its `--seed` project too
  *   - what it declares and its words, compiled now (`<Project>.declarations.json5`, `<Project>.<lang>.js`)
@@ -40,7 +40,7 @@ export async function translateCommand(
 /**
  * `project` as spell-parser's `translateProject()` takes it:  parsed, with all the app knows of it (see above).
  * - `options.seed`:  that project, parsed too
- * - `reference`:  a person's translation of it, by address, parsed, to compare names with (`spell parser translate-time`)
+ * - `reference`:  a person's translation of it, by address, parsed, to compare names with (`spell translate speedtest`)
  */
 export async function translateSourceFor(
   session: CLI.CliSession,

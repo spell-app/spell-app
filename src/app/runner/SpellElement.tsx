@@ -12,8 +12,9 @@ import { Dragging } from "./Dragging"
 // Above the class:  its `elementSetup` reads it while the class is defined
 /**
  * How a drawable thing's states look.
- * - A draggable thing:  the browser's grab cursor, grabbing while it's dragged -- over its drawing's own
- *   `cursor`, e.g. a clickable card's pointer;  and a finger drags it rather than scrolling the page.
+ * - A draggable thing:  the browser's grab cursor, grabbing while it's dragged,
+ *   over its drawing's own `cursor` (e.g. a clickable card's pointer).
+ *   And a finger drags it, rather than scrolling the page.
  * - A list that will take what's dragged over it glows, a soft purple halo outside and in, a little out from its edges:
  *   - drawn by its `::after`, over its items, so it never moves them
  *   - `--spell-drop-glow` (a `box-shadow`), `--spell-drop-glow-gap` (how far out) and `--spell-drop-glow-radius`
@@ -104,13 +105,20 @@ const STATES_CSS = `
  * - Dragging is opt-in, by the program's own words (epic `outline-spell` P28):
  *   - `a card can be dragged`:  a card its list will give up can be dragged, with a mouse or a finger;
  *     it, and its list's items after it, follow the pointer
- *   - `a pile can be dropped on`:  a pile that will take the card glows as it comes over (`:state(accepting-drop)`),
- *     and on the drop the program hears `<thing>-drop`, e.g. `on card drop with a card and a pile` -- see `dropOn()`
- *   - the pile hears it too, by its own handlers:  `- when a card is dragged over it:`, `dragged out of it`,
- *     `dropped on it` (`handlerFor()`);  `dropped on it` takes the place of the `<thing>-drop` event;
- *     `- while a card is dragged over it:` sets what goes back as it leaves (`core.startWhile()`)
+ *   - `a pile can be dropped on`:  a pile that will take the card glows as it comes over (`:state(accepting-drop)`)
+ *   - The pile hears the drag by its own handlers (`handlerFor()`):
+ *     `- when a card is dragged over it:`, `dragged out of it`, `dropped on it`.
+ *     - `- while a card is dragged over it:` sets what goes back as the card leaves (`core.startWhile()`).
+ *   - A pile with no `dropped on it`:  the program hears `<thing>-drop` instead,
+ *     e.g. `on card drop with a card and a pile` -- see `dropOn()`.
  *   - The web's own drag events say so as it goes:  `dragstart`, `dragenter`, `drop` ... (`Dragging`).
  *   - It shows the browser's grab cursor while it can be dragged, grabbing while it is (`STATES_CSS`).
+ * - Reordering (P30):  `- its items can be reordered` lets people drag a list's items to new places in it.
+ *   - The dragged items stay put, dimmed, while a line shows where they'd go;  a wait there moves them.
+ *   - `immediately`:  no line, no wait, the items move as the pointer does.
+ *   - See "Reordering", below.
+ * - Selecting (P29):  `a task can be selected` -- a click selects a task in its list, shift and command select more
+ *   (`onClickToSelect()`);  a selected task drags with the others.
  * - Part of `spell-runtime.js`:  NEVER value-imports `spell-parser/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
  * - SEE:  its App UI components page, `app/docs/spell-element.html` (`/components/app/spell-element.html`).
@@ -441,6 +449,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 
   /**
    * Our thing, dropped on `target`, a drawable list's element.
+   * - A drop among a reordered list's items (`placeDrop()`):
+   *   the list's `when a task is dropped on it:` runs for each item it put in place (`heardPlaced()`), and that's all.
    * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing of it.
    * - The list's `when a card is dropped on it:` runs, if it has one (`handlerFor()`).
    * - Else the program hears `<thing>-drop`, e.g. `card-drop`,
@@ -523,8 +533,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * How many seconds the pointer rests before dragged items move to the line:  our element's `move-delay`,
-   * else our type's `its items can be reordered after ... seconds` -- `undefined` if our items can't be reordered.
+   * How many seconds the pointer rests before dragged items move to the line.
+   * - Our element's `move-delay`, else our type's `its items can be reordered after ... seconds`.
+   * - `undefined` if our items can't be reordered.
    */
   private get secondsBeforeMoving(): number | undefined {
     const said = (this.currentThing?.constructor as { reorderItemsAfter?: number } | undefined)?.reorderItemsAfter
@@ -626,11 +637,13 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Where things dragged to `held`, where the dragged item would be, go among our items, and where the line shows:
-   * an item swaps sides with it once it covers half of the item, as a sortable list does.
-   * - before the first of our items (not one of `carried`) whose middle is past `held`'s leading edge:
-   *   its end, for an item after the carried ones;  its start, for one before them
-   * - after our last item, if none is
+   * Where the `carried` things go among our items, and where the line shows, when dragged to `held`:
+   * the box the dragged item would fill.
+   * - An item swaps sides with them once `held` covers half of it, as a sortable list does.
+   * - They go before the first of our other items whose middle is past `held`'s edge:
+   *   - its leading edge, for an item before the carried ones
+   *   - its trailing edge, for one after them
+   * - After our last item, if none is.
    * - Down a column, or along a row:  whichever our first two items' places say.
    */
   private placeAt(held: DOMRect, carried: object[]): { before: object | undefined; at: number; isRow: boolean } {
@@ -1270,7 +1283,8 @@ const SPELL_ELEMENTS: Map<string, SpellElementEntry> = ((globalThis as SpellElem
 /** `globalThis`, holding `SPELL_ELEMENTS`. */
 type SpellElementsGlobal = typeof globalThis & { [key: symbol]: Map<string, SpellElementEntry> | undefined }
 
-// a drop lands on the element of a drawable list its type says can be dropped on, or reordered:  `Dragging` knows only what we tell it
+// a drop lands on the element of a drawable list its type says can be dropped on, or reordered:
+// `Dragging` knows only what we tell it
 Dragging.isDropTarget = (element) => {
   const list = SpellElement.listOf(element)
   const Class = list?.constructor as { canBeDroppedOn?: boolean; reorderItemsAfter?: number } | undefined

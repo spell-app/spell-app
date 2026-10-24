@@ -108,7 +108,7 @@ export type NewOptions = GlobalOptions & {
  *   see `core.useMessages()`.
  *   Left out:  English.
  * - `reports`:  `test` also sends how each test went (`TestsReport`) over IPC, for the lines its failures are on
- *   (epic `spanish` P25:  `spell parser translate`'s fix-ups)
+ *   (epic `spanish` P25:  `spell translate`'s fix-ups)
  */
 export type RunSpec = {
   mode: "run" | "test"
