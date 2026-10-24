@@ -406,9 +406,12 @@ the table is [api.ts](src/spaces/server/node/routes/api.ts), and
 | `DELETE /api/projects/remove/file` | delete a file |
 | `GET`, `POST /api/compile/file` | compile a file that's in no project |
 | `GET /api/people/me`, `POST /api/people/me` | this machine's person, their orgs and roles;  their changes |
+| `GET /api/prefs/load`, `POST /api/prefs/save`, `GET /api/prefs/keys`, `POST /api/prefs/forget` | the person's preferences, one store at a time (below, "Preferences") |
 | `GET /api/test`, `/api/missing`, `/api/not-authorized`, `/api/error` | canned answers for testing the client:  200, 404, 403, and a 500 that says "No soup for you!" |
 
 - Anything else under `/api` is a 404, `API routine not defined on server`.
+- A caller's mistake that a handler throws as `SRV.HttpError` answers with its status (a bad store name, 400);
+  anything else thrown is a 500.
 - Every save goes through the page server's file operations:  under a file lock, written all at once.
 - A URL is split by its group and its project before any path on disk is made, each part decoded on its own,
   and a `.` or `..` part is refused:  it's the one place a URL becomes a path.
@@ -538,6 +541,27 @@ one file at a time, keeping every comment.
   Their orgs and roles are read only.
 - Spaces' own names, `__me.json5` among them, are known by a list, never by the `__` alone:
   so they never list as a project's files, and Python's `__init__.py` still does.
+
+## Preferences:  each person's, in their space
+
+A preference you set in one browser follows you to another:  the page server keeps it in your space.
+
+```text
+spell.spaces/@spell/owen@/__prefs/spellEditor.json5        the editor's:  { "mode": "debug" ... }
+spell.spaces/@spell/owen@/__prefs/@owen/solitaire.json5    a store named like a project:  a folder and a file
+```
+
+- One JSON5 file per store, each pref a key of it:  you can read it, and a comment you write in it stays.
+- The kit's pref store asks for them through its server place (`ServerPlace`, [README-util](https://github.com/spell-app/spell/blob/main/README-util.md)),
+  under `/api/prefs`:  load, save, list a prefix's keys, forget a prefix.
+- [SpacePrefs.ts](src/spaces/server/node/prefs/SpacePrefs.ts) keeps them, one change at a time to each file,
+  so two saves at once both land.
+- The edges:
+  - Whose:  this machine's person, `owen@spell`, until sign-in.
+    One function says whose (`prefsPersonFor()`, [prefsRoutes.ts](src/spaces/server/node/prefs/prefsRoutes.ts)), and sign-in replaces it.
+  - A store name with a part starting with a dot, an empty part, a colon or a backslash answers 400:
+    nothing reaches outside your `__prefs/`.
+  - Values travel as JSON, so plain data only;  a `Blob` or a file handle stays in the browser's database.
 
 ## 🌱 Coming:  spaces for organizations, sign-in and permissions
 

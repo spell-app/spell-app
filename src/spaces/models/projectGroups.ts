@@ -12,6 +12,13 @@ import { SpellSetup } from "spell-parser/spell/SpellSetup"
 export const LOCAL_PERSON = "owen"
 
 /**
+ * The org every person on this machine is in, for now:  `owen@spell` is `Person#owen@spell`, their space
+ * `@spell/owen@/`.
+ * - The people store files them there;  their preferences are kept there too (`SpacePrefs`).
+ */
+export const HOME_ORG = "spell"
+
+/**
  * Spell's project GROUPS:  where projects live, each a list the editor shows (`SpellProjectRoot`).
  * - Each one's `path` is its address;  its folder comes from that (`SP.SpellUrls.folderFor()`):
  *   - `@spell/examples`, `@spell/guides`, `@spell/library`:
@@ -29,8 +36,8 @@ export const LOCAL_PERSON = "owen"
  */
 export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
   {
-    path: `${LOCAL_PERSON}@spell`,
-    space: `${LOCAL_PERSON}@spell`,
+    path: `${LOCAL_PERSON}@${HOME_ORG}`,
+    space: `${LOCAL_PERSON}@${HOME_ORG}`,
     domain: "projects",
     title: "Projects",
     Type: "Project",

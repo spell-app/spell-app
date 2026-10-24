@@ -34,6 +34,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - [environment.ts](server/node/environment.ts):  where everything is on disk (see "Projects" below)
     - [projects/](server/node/projects/):  projects on disk, and the disk reader (see "Projects" below)
     - [storage/](server/node/storage/) and [people/](server/node/people/):  see "People" below
+    - [prefs/](server/node/prefs/):  see "Preferences" below
     - [routes/](server/node/routes/):  the editor's server (below)
   - [the Python side](server/py/pyproject.toml):  `spell_quart`, Python's web server, a uv project (below)
 - Tests live in the repo's `tests/spaces/`, at the same paths as the code they test:
@@ -153,6 +154,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `GET /api/people/me`:  this machine's person (`SPACES.LOCAL_PERSON`), their orgs and roles, their file's problems
   - `POST /api/people/me`:  their changes written, answered as `GET`
   - The answers' types:  [people.ts](models/people.ts), safe in a browser.
+
+## Preferences
+
+- Each person's preferences, kept in their space (epic `prefs-and-undo` P2):  [SpacePrefs.ts](server/node/prefs/SpacePrefs.ts).
+  - One JSON5 file per store, in the person's `__prefs/`:  `@spell/owen@/__prefs/spellEditor.json5`;
+    a store named like a project is a folder and a file (`__prefs/@owen/solitaire.json5`).
+  - Through `SpaceStorage` and spaces' JSON5 writer:  a person's comments stay.
+  - One change at a time to each file.
+  - A store name that would reach outside `__prefs/`, or a key that can't be one:  `SRV.HttpError(400)`.
+- Its routes ([prefsRoutes.ts](server/node/prefs/prefsRoutes.ts)), what the kit's `ServerPlace` asks:
+  - `GET /api/prefs/load`, `POST /api/prefs/save`, `GET /api/prefs/keys`, `POST /api/prefs/forget`
+  - the protocol's types are the kit's (`spell/util`'s `PrefLoadAnswer` ...):  the client is generic
+  - whose:  `prefsPersonFor()`, this machine's person until sign-in, the ONE function sign-in replaces
+- `respondWithJSON()` answers a thrown `SRV.HttpError` with its status, anything else with 500.
 
 ## The editor's server
 
