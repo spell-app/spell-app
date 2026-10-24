@@ -95,7 +95,43 @@ ui-icon.IconAction {
   }
 }
 
-/* `<ModeButtons>`:  Run | Edit | Debug */
+/* `<ModeButtons>`:  Run | Edit | Debug, room on either side, away from the project's name */
 ui-item.ModeButtons::part(item) {
-  padding-inline: 0.5em;
+  padding-inline: 1.5em 0.75em;
+}
+/* ... as the theme's segmented tabs:  a track, the chosen tab a raised pill on it */
+.ModeTabs {
+  display: flex;
+  gap: 2px;
+  padding: var(--ui-menu-segmented-padding, 2px);
+  border: var(--ui-menu-segmented-border, 0 solid transparent);
+  border-radius: var(--ui-menu-segmented-radius, 9px);
+  background: var(--ui-menu-segmented-background, var(--ui-surface-muted));
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 4px 14px;
+    border: none;
+    border-radius: var(--ui-menu-segmented-item-radius, 7px);
+    background: transparent;
+    color: var(--ui-menu-segmented-item-color, var(--ui-text-muted));
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--ui-text-color);
+    }
+    &.chosen {
+      font-weight: var(--ui-font-weight-semibold, 600);
+      color: var(--ui-menu-segmented-active-color, var(--ui-text-color));
+      background: var(--ui-menu-segmented-active-background, var(--ui-surface));
+      box-shadow: var(--ui-menu-segmented-active-shadow, 0 1px 2px rgb(0 0 0 / 0.15));
+    }
+    &:focus-visible {
+      outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color);
+      outline-offset: 1px;
+    }
+  }
 }
