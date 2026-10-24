@@ -552,7 +552,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     if (event.target !== this.domElement) return
     const things = this.placeOffer
     if (!things) return this.stopPlacing()
-    const place = this.placeAt(event.clientX, event.clientY, things)
+    // where the dragged item would be, held where it was pressed:  not the pointer itself
+    const held = Dragging.current?.heldBoxAt(event.clientX, event.clientY) ?? new DOMRect(event.clientX, event.clientY)
+    const place = this.placeAt(held, things)
     // the same place:  nothing changes, so the line stays put and the wait goes on
     if (this.isPlacing && place.before === this.placeBefore) return
     const delay = this.secondsBeforeMoving ?? 0
@@ -624,22 +626,28 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Where things dragged to (`x`, `y`) go among our items, and where the line shows:
-   * before the first of our items, not one of `carried`, whose middle is past the pointer;  after the last, if none is.
+   * Where things dragged to `held`, where the dragged item would be, go among our items, and where the line shows:
+   * an item swaps sides with it once it covers half of the item, as a sortable list does.
+   * - before the first of our items (not one of `carried`) whose middle is past `held`'s leading edge:
+   *   its end, for an item after the carried ones;  its start, for one before them
+   * - after our last item, if none is
    * - Down a column, or along a row:  whichever our first two items' places say.
    */
-  private placeAt(x: number, y: number, carried: object[]): { before: object | undefined; at: number; isRow: boolean } {
+  private placeAt(held: DOMRect, carried: object[]): { before: object | undefined; at: number; isRow: boolean } {
     const host = this.domElement.getBoundingClientRect()
     const items = [...this.domElement.children].filter((child) => SpellElement.thingOf(child) !== undefined)
     const boxes = items.map((item) => SpellElement.layoutBox(item))
     const isRow =
       boxes.length > 1 && Math.abs(boxes[1]!.left - boxes[0]!.left) > Math.abs(boxes[1]!.top - boxes[0]!.top)
-    const [start, end, pointer, origin] = isRow
-      ? (["left", "right", x, host.left] as const)
-      : (["top", "bottom", y, host.top] as const)
+    const [start, end, origin] = isRow
+      ? (["left", "right", host.left] as const)
+      : (["top", "bottom", host.top] as const)
+    const firstCarried = items.findIndex((item) => carried.includes(SpellElement.thingOf(item)!))
     const index = items.findIndex((item, at) => {
+      if (carried.includes(SpellElement.thingOf(item)!)) return false
       const box = boxes[at]!
-      return !carried.includes(SpellElement.thingOf(item)!) && (box[start] + box[end]) / 2 > pointer
+      const edge = firstCarried >= 0 && at > firstCarried ? held[end] : held[start]
+      return (box[start] + box[end]) / 2 > edge
     })
     if (index < 0) {
       const last = boxes.at(-1)

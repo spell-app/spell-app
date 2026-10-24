@@ -38,6 +38,7 @@ export class Dragging {
     this.startX = event.clientX
     this.startY = event.clientY
     this.pointerId = event.pointerId
+    this.pressedAt = element.getBoundingClientRect()
     const listening = { signal: this.listening.signal }
     window.addEventListener("pointermove", this.onMove, listening)
     window.addEventListener("pointerup", this.onUp, listening)
@@ -47,6 +48,8 @@ export class Dragging {
   /** Where the press started. */
   private readonly startX: number
   private readonly startY: number
+  /** Where the element was as it was pressed:  where in it the press was, and its size (`heldBoxAt()`). */
+  private readonly pressedAt: DOMRect
   /** The pointer pressing:  a second finger is ignored. */
   private readonly pointerId: number
   /** Ends the window listeners. */
@@ -57,6 +60,16 @@ export class Dragging {
   /** What's carried:  the element first. */
   get carried(): readonly HTMLElement[] {
     return this.moving
+  }
+
+  /**
+   * Where the dragged element would be with the pointer at (`x`, `y`), held where it was pressed:
+   * grabbed near its bottom, it's mostly above the pointer.
+   * - So a list placing it goes by the element, not the pointer:  it lands under the pointer as it was held.
+   */
+  heldBoxAt(x: number, y: number): DOMRect {
+    const { left, top, width, height } = this.pressedAt
+    return new DOMRect(left + x - this.startX, top + y - this.startY, width, height)
   }
 
   /** Does what's carried follow the pointer?  Else it stays where it is (`DragOptions.follows`). */
