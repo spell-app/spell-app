@@ -1,0 +1,33 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "play_fizzbuzz",
+    "test_the_rule"
+  ],
+  "statements": [
+    {
+      "syntax": "play fizzbuzz",
+      "output": "play_fizzbuzz",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/HowFizzBuzzWorks.spell:592-1143"
+    },
+    {
+      "syntax": "test the rule",
+      "output": "test_the_rule",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "the rule",
+      "defined": "/HowFizzBuzzWorks.spell:2013-2118"
+    }
+  ],
+  "codeLines": [
+    21,
+    61
+  ]
+}

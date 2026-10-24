@@ -1,0 +1,23 @@
+1
+2
+3 fizz
+4
+5 buzz
+6 fizz
+7
+8
+9 fizz
+10 buzz
+11
+12 fizz
+13
+14
+15 fizzbuzz
+16
+17
+18 fizz
+19
+20 buzz
+✅ test the rule
+  ✅ As expected `15 divided by 3 is an integer` is `yes`
+  ✅ As expected `16 divided by 3 is an integer` is `no`

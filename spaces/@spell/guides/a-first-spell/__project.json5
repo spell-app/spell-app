@@ -1,0 +1,14 @@
+{
+  "title": "Your first spell",
+  "description": "A walkthrough:  change one sentence, and watch the app beside it change",
+  "imports": [
+    {
+      "path": "/YourFirstSpell.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

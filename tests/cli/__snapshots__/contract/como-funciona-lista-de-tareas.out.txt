@@ -1,0 +1,7 @@
+✅ test la cuenta pendiente
+  ▶️ Ejecutando   `poner la lista a una nueva agenda`
+  ▶️ Ejecutando   `agregar (una nueva tarea con título = "a", hecha = sí) a la lista`
+  ▶️ Ejecutando   `agregar (una nueva tarea con título = "b") a la lista`
+  ✅ Como se esperaba, `el largo de (tareas en la lista donde está pendiente)` es `1`
+
+<div id="spell-app-root"><es-contenedor class="ListaDeTareas"><es-menu secundario=""><es-elemento tipo="encabezado">2 pendientes</es-elemento><es-elemento seleccionado="" style="cursor:pointer;user-select:none">Todas</es-elemento><es-elemento style="cursor:pointer;user-select:none">Pendientes</es-elemento><es-elemento style="cursor:pointer;user-select:none">Hechas</es-elemento></es-menu><test-project-agenda><test-project-tarea><es-formulario value="[object Object]"><div part="row"><es-casilla aria-label="Hecha" name="hecha"></es-casilla><span part="title">Leer esta guía</span></div></es-formulario></test-project-tarea><test-project-tarea><es-formulario value="[object Object]"><div part="row"><es-casilla aria-label="Hecha" name="hecha"></es-casilla><span part="title">Marcar una casilla a la derecha</span></div></es-formulario></test-project-tarea><test-project-tarea><es-formulario value="[object Object]"><div part="row"><es-casilla aria-label="Hecha" name="hecha"></es-casilla><span part="title">Probar el filtro Pendientes</span></div></es-formulario></test-project-tarea></test-project-agenda></es-contenedor></div>

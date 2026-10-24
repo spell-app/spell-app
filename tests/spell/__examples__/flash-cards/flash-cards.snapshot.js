@@ -153,26 +153,26 @@ export const quiz = new Quiz()
 
 core.heading("The deck:  twelve Spanish words -- add your own")
 /** The deck:  twelve Spanish words -- add your own */
-export function addFrontMeaningBack(front, back) {
+export function addWordMeaningTranslation(word, translation) {
   quiz.deck.append(new FlashCard({
-    front: front,
-    back: back,
-    side: front
+    front: word,
+    back: translation,
+    side: "front"
   }))
 }
 
-addFrontMeaningBack("el gato", "the cat")
-addFrontMeaningBack("el perro", "the dog")
-addFrontMeaningBack("la casa", "the house")
-addFrontMeaningBack("el libro", "the book")
-addFrontMeaningBack("la manzana", "the apple")
-addFrontMeaningBack("el agua", "the water")
-addFrontMeaningBack("la luna", "the moon")
-addFrontMeaningBack("el sol", "the sun")
-addFrontMeaningBack("la playa", "the beach")
-addFrontMeaningBack("el tren", "the train")
-addFrontMeaningBack("la llave", "the key")
-addFrontMeaningBack("la mariposa", "the butterfly")
+addWordMeaningTranslation("el gato", "the cat")
+addWordMeaningTranslation("el perro", "the dog")
+addWordMeaningTranslation("la casa", "the house")
+addWordMeaningTranslation("el libro", "the book")
+addWordMeaningTranslation("la manzana", "the apple")
+addWordMeaningTranslation("el agua", "the water")
+addWordMeaningTranslation("la luna", "the moon")
+addWordMeaningTranslation("el sol", "the sun")
+addWordMeaningTranslation("la playa", "the beach")
+addWordMeaningTranslation("el tren", "the train")
+addWordMeaningTranslation("la llave", "the key")
+addWordMeaningTranslation("la mariposa", "the butterfly")
 
 core.heading("Start")
 //## Start

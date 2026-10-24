@@ -1,0 +1,111 @@
+## How Tic-Tac-Toe works
+// The Tic-Tac-Toe example is the paper game:  X and O take turns, and three in a row wins.
+// Its rules fit in three ideas:
+// - each square knows its own mark, and draws itself as a button
+// - the game knows whose turn it is
+// - after each move, the game checks every line of three for a winner
+//
+// This guide is the same game with one thing missing:  it only checks the ROWS, across.
+// Three down, or corner to corner, doesn't win yet.  Adding those is your move, at the end.
+
+
+## A square:  empty, or holding an X or an O
+// "drawable" means each square shows itself on the page, here as a button
+a "square" is a drawable thing where:
+	- its "mark" is text
+	- it "is empty" if its mark is ""
+	// a click plays it
+	- to draw it:
+		return <button part="mark" onClick={play it}>{its mark}</button>
+
+// the board:  nine squares, three a row -- how they look is in styles.css, the other file in this guide
+a "board" is a drawable list of squares
+a square belongs to one board
+
+
+## The game
+tic tac toe is an app where:
+	- its "board" is a new board
+	// whose turn it is:  X or O
+	- its "turn" is text
+	// who won:  X or O, or "" while the game goes on
+	- its "winner" is text
+
+	- its "message" is:
+		its turn + " to play" if its winner is ""
+		its winner + " wins!" otherwise
+
+	// nine empty squares, made with the game
+	- to create it:
+		repeat 9 times
+			add a new square to the board of tic tac toe
+
+	// an empty board, X to play
+	- to start a new game:
+		for each square in its board
+			set the mark of the square to ""
+		set its turn to "X"
+		set its winner to ""
+
+	// the same mark in all three squares wins
+	// - squares are counted 1 to 9, left to right, then down:  1 2 3 is the top row
+	- to check the line from square (a as a number) through (b as a number) to (c as a number):
+		set mark to the mark of square a of its board
+		if mark is "" return
+		if the mark of square b of its board is mark and the mark of square c of its board is mark
+			set its winner to mark
+
+	// only the three rows, for now
+	- to check for a winner:
+		check the line from square 1 through 2 to 3
+		check the line from square 4 through 5 to 6
+		check the line from square 7 through 8 to 9
+
+	- to draw it:
+		return <div class="TicTacToe">
+			<h2>{its message}</h2>
+			{draw its board}
+		</div>
+
+
+## Playing a square
+// Nothing happens if someone has won, or the square is taken.
+// Otherwise:  the mark goes in, the game checks for a winner, and the turn passes to the other player.
+to play (a square):
+	if the winner of tic tac toe is not "" or the square is not empty return
+	set the mark of the square to the turn of tic tac toe
+	check for a winner
+	set the turn of tic tac toe to "O" if the turn of tic tac toe is "X" otherwise "X"
+
+
+## Start
+start a new game
+start tic tac toe
+
+
+## A check:  X wins across the top
+// It plays a whole game, X in squares 1, 2 and 3, then clears the board for you.
+to test a row
+	start a new game
+	play square 1 of the board of tic tac toe
+	play square 4 of the board of tic tac toe
+	play square 2 of the board of tic tac toe
+	play square 5 of the board of tic tac toe
+	play square 3 of the board of tic tac toe
+	the message of tic tac toe should be "X wins!"
+	start a new game
+
+
+## Try it
+// - Play a game on the right.  Win across the top, and the line above the board says so.
+// - Click ↻, above the game, for a fresh board.
+//   Now win DOWN the left side:  squares 1, 4 and 7.  Nothing happens.
+//
+// Your move:  teach it to win down.  Under "to check for a winner", add three lines like the others:
+//     check the line from square 1 through 4 to 7
+//     check the line from square 2 through 5 to 8
+//     check the line from square 3 through 6 to 9
+// Then the two corner-to-corner lines:  which squares are they?
+//
+// Where next:  Tic-Tac-Toe, in the Examples, which has every line, a draw when the board fills up,
+// and a New game button.

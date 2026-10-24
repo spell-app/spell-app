@@ -1,0 +1,85 @@
+## How the Calculator works
+// The Calculator example is a pocket calculator:  press 7, +, 5, and it shows 12.
+// Every key on it does the same two things:
+// - it runs an ACTION, a few lines that change what the calculator keeps
+// - and the display, drawn from what it keeps, changes with it
+//
+// This guide builds a smaller one, an adding machine, on the right:  three number keys, a + key and a C key.
+// Open Calculator, in the Examples, to see the whole thing with every key.
+
+
+## What it keeps
+// In Calculator these are written one sentence each, as here:
+// "an adding machine has a total as a number" means every adding machine keeps a number called its total.
+// (A tour of Spell writes them as a list under the thing's name instead.  Both mean the same.)
+an adding machine is an app
+an adding machine has a total as a number
+// the number being typed, as text, so each key can add a digit on the end
+an adding machine has an input as text
+
+
+## What its keys do
+// A digit key:  that digit, on the end of the number being typed
+// - "+" joins two pieces of text:  "1" + "2" is "12"
+to press (digit as text) on (an adding machine):
+	set its input to its input + the digit
+
+// The + key:  the number typed, added to the total, then a fresh start for the next one
+// - "as a number" turns the text "12" into the number 12, so it can be added up:
+//   it's kept for a moment as "typed", then added to the total
+to add the input to (an adding machine):
+	if its input is empty return
+	set typed to its input as a number
+	set its total to its total + typed
+	set its input to ""
+
+// The C key:  back to nothing
+to clear (an adding machine):
+	set its total to 0
+	set its input to ""
+
+
+## How it draws:  the display, then the keys
+// "onClick" says what a key does when it's clicked:  one of the actions above.
+// The display shows the number being typed, or the total when nothing is.
+to draw (an adding machine)
+	return <div class="Adder">
+		<ui-segment raised>
+			<div class="Display">{its total if its input is empty otherwise its input}</div>
+			<div class="Keys">
+				<ui-button fluid onClick={press "1" on it}>1</ui-button>
+				<ui-button fluid onClick={press "2" on it}>2</ui-button>
+				<ui-button fluid onClick={press "5" on it}>5</ui-button>
+				<ui-button fluid primary onClick={add the input to it}>+</ui-button>
+				<ui-button fluid negative onClick={clear it}>C</ui-button>
+			</div>
+		</ui-segment>
+	</div>
+
+
+## Start
+set adder to a new adding machine
+clear the adder
+start the adder
+
+
+## A check:  12 and 5 make 17
+to test adding up
+	set machine to a new adding machine
+	clear the machine
+	press "1" on the machine
+	press "2" on the machine
+	add the input to the machine
+	press "5" on the machine
+	add the input to the machine
+	the total of the machine should be 17
+
+
+## Try it
+// - Click 1, 2, +, 5, + on the right:  the display shows 12, then 17.
+// - Add a 9 key:  copy the line with "5" in it twice, and change both to "9".
+// - Make + into - :  in "to add the input", change the + in "its total + typed" to a -,
+//   then change the key's label.  The check above will turn red, because 12 take away 5 isn't 17.
+//
+// Where next:  the Calculator example, which keeps a left number, an operator and a right number,
+// so it can do all four sums.

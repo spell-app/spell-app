@@ -1,0 +1,8 @@
+✅ test thirst
+  ▶️ Executing   `set the pot to a new plant with name = "Mint", days between waterings = 2, days since watered = 2`
+  ✅ As expected `the pot is thirsty` is `yes`
+  ▶️ Executing   `water the pot`
+  ✅ As expected `the pot is thirsty` is `no`
+  ✅ As expected `the status of the pot` is `"fine for now"`
+
+<div id="spell-app-root"><div class="Garden"><ui-button primary="" style="cursor:pointer;user-select:none">A day goes by</ui-button><test-project-windowsill><test-project-plant><ui-segment color="orange"><h3>Basil</h3><p>needs water!</p><ui-button basic="" icon="tint" size="small" style="cursor:pointer;user-select:none">Water</ui-button></ui-segment></test-project-plant><test-project-plant><ui-segment color="green"><h3>Cactus</h3><p>fine for now</p><ui-button basic="" icon="tint" size="small" style="cursor:pointer;user-select:none">Water</ui-button></ui-segment></test-project-plant><test-project-plant><ui-segment color="green"><h3>Fern</h3><p>fine for now</p><ui-button basic="" icon="tint" size="small" style="cursor:pointer;user-select:none">Water</ui-button></ui-segment></test-project-plant></test-project-windowsill></div></div>

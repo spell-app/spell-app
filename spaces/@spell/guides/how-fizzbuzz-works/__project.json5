@@ -1,0 +1,10 @@
+{
+  "title": "How FizzBuzz works",
+  "description": "The FizzBuzz example, line by line:  a loop, a choice, and print",
+  "imports": [
+    {
+      "path": "/HowFizzBuzzWorks.spell",
+      "active": true
+    }
+  ]
+}

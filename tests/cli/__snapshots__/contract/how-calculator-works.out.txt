@@ -1,0 +1,11 @@
+✅ test adding up
+  ▶️ Executing   `set machine to a new adding machine`
+  ▶️ Executing   `clear the machine`
+  ▶️ Executing   `press "1" on the machine`
+  ▶️ Executing   `press "2" on the machine`
+  ▶️ Executing   `add the input to the machine`
+  ▶️ Executing   `press "5" on the machine`
+  ▶️ Executing   `add the input to the machine`
+  ✅ As expected `the total of the machine` is `17`
+
+<div id="spell-app-root"><div class="Adder"><ui-segment raised=""><div class="Display">0</div><div class="Keys"><ui-button fluid="" style="cursor:pointer;user-select:none">1</ui-button><ui-button fluid="" style="cursor:pointer;user-select:none">2</ui-button><ui-button fluid="" style="cursor:pointer;user-select:none">5</ui-button><ui-button fluid="" primary="" style="cursor:pointer;user-select:none">+</ui-button><ui-button fluid="" negative="" style="cursor:pointer;user-select:none">C</ui-button></div></ui-segment></div></div>

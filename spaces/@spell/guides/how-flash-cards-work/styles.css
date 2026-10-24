@@ -1,0 +1,21 @@
+/* File styles.css:  how the quiz looks -- a big card, with the button under it.
+   - The card, <how-flash-cards-work-flash-card>, is one big word:  its part, ::part(card). */
+
+.Quiz {
+  max-width: 22em;
+  margin-inline: auto;
+  padding-block: 2em;
+  text-align: center;
+}
+
+how-flash-cards-work-flash-card::part(card) {
+  display: grid;
+  place-items: center;
+  min-height: 8em;
+  margin-block-end: 1em;
+  border-radius: 0.75em;
+  background: rgb(127 127 127 / 0.12);
+  font-size: 2em;
+  cursor: pointer;
+  user-select: none;
+}

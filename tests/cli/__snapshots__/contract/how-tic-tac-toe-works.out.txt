@@ -1,0 +1,11 @@
+✅ test a row
+  ▶️ Executing   `start a new game`
+  ▶️ Executing   `play square 1 of the board of tic tac toe`
+  ▶️ Executing   `play square 4 of the board of tic tac toe`
+  ▶️ Executing   `play square 2 of the board of tic tac toe`
+  ▶️ Executing   `play square 5 of the board of tic tac toe`
+  ▶️ Executing   `play square 3 of the board of tic tac toe`
+  ✅ As expected `the message of tic tac toe` is `"X wins!"`
+  ▶️ Executing   `start a new game`
+
+<div id="spell-app-root"><div class="TicTacToe"><h2>X to play</h2><test-project-board><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square><test-project-square><button part="mark" style="cursor:pointer;user-select:none"></button></test-project-square></test-project-board></div></div>

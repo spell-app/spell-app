@@ -4,7 +4,7 @@
     "FlashCard",
     "Deck",
     "Quiz",
-    "add_$front_meaning_$back",
+    "add_$word_meaning_$translation",
     "test_turning_a_card_over"
   ],
   "statements": [
@@ -179,25 +179,25 @@
     },
     {
       "syntax": "add {callArgs:expression} meaning {callArgs:expression}",
-      "output": "add_$front_meaning_$back",
+      "output": "add_$word_meaning_$translation",
       "rule": "method_call",
       "alias": [
         "statement",
         "expression"
       ],
       "kind": "function",
-      "name": "add (front as text) meaning (back as text)",
+      "name": "add (word as text) meaning (translation as text)",
       "params": [
         {
-          "name": "front",
+          "name": "word",
           "datatype": "text"
         },
         {
-          "name": "back",
+          "name": "translation",
           "datatype": "text"
         }
       ],
-      "defined": "/FlashCards.spell:2848-2984"
+      "defined": "/FlashCards.spell:2848-2996"
     },
     {
       "syntax": "test turning a card over",
@@ -206,7 +206,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "turning a card over",
-      "defined": "/FlashCards.spell:3442-3713"
+      "defined": "/FlashCards.spell:3454-3725"
     }
   ],
   "codeLines": [

@@ -1,0 +1,14 @@
+{
+  "title": "How the Task List works",
+  "description": "The Task List example's task and its list:  a checkbox bound to each task, a count worked out with where, and a filter",
+  "imports": [
+    {
+      "path": "/HowTaskListWorks.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

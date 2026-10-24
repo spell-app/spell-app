@@ -1,0 +1,98 @@
+## How Solitaire works
+// The Solitaire example is Klondike, the card game that came with every computer:
+// seven columns of cards, built down from king to ace, red and black in turn.
+// It's the biggest example, but it's made of small pieces:
+// - a CARD, which knows its rank, its suit, and from those its color and its value
+// - PILES of cards, each kind with its own rules for what it will take
+//
+// This guide is one card type and one rule:  a column, with a king on it, and four cards to try.
+// Open Solitaire, in the Examples, to play the whole game.
+
+
+## A card
+// "one of" lists every value a property can have:  "2 ... 10" means every number in between
+a "card" is a drawable thing where:
+	- its "rank" is one of ace, 2 ... 10, jack, queen, king
+	- its "suit" is one of clubs, diamonds, hearts or spades
+
+	// ace is 1, 2 is 2 ... king is 13:  its place in the list of ranks
+	- its "value" is the position of its rank
+	- its "color" is:
+		red if its suit is diamonds or hearts
+		black otherwise
+
+	// e.g. "queen of hearts"
+	- its "name" is its rank + " of " + its suit
+
+	// a click tries it on the column
+	- to draw it:
+		return <ui-button basic color={its color} onClick={try it}>{its name}</ui-button>
+
+
+## A pile, and a column
+a "pile" is a drawable list of cards
+// a card is in one pile at a time:  putting it on another takes it off this one
+a card belongs to one pile
+
+// The rule that makes it Solitaire:  a column takes a card one lower than its last, in the other color.
+// - "can take a card if" is a yes-or-no question the pile answers for each card
+// - "return" gives the answer:  the first line that returns, wins
+a "column" is a pile where:
+	- it can take a card if:
+		if it is empty
+			return the rank of the card is king
+		return the color of its last card is not the color of the card and the value of its last card is the value of the card + 1
+
+
+## The table:  a column, and a hand of cards to try on it
+table is an app where:
+	- its "column" is a new column
+	- its "hand" is a new pile
+	- its "message" is text
+
+	- to draw it:
+		return <div class="Table">
+			<h3>The column</h3>
+			{draw its column}
+			<h3>Your hand: click a card to put it on the column</h3>
+			{draw its hand}
+			<p>{its message}</p>
+		</div>
+
+// onto the column, if it takes the card;  the message says what happened
+to try (a card):
+	if the column of table can take the card
+		add the card to the column of table
+		set the message of table to "The " + the name of the card + " goes on."
+	otherwise
+		set the message of table to "The column won't take the " + the name of the card + "."
+
+
+## Start:  a king of spades on the column
+add (a new card with rank = king, suit = spades) to the column of table
+add (a new card with rank = queen, suit = spades) to the hand of table
+add (a new card with rank = queen, suit = hearts) to the hand of table
+add (a new card with rank = jack, suit = clubs) to the hand of table
+add (a new card with rank = 10, suit = diamonds) to the hand of table
+start table
+
+
+## A check:  the rule, card by card
+to test the column
+	set the stack to a new column
+	set the red queen to a new card with rank = queen, suit = hearts
+	the stack can take the red queen should be no
+	add (a new card with rank = king, suit = spades) to the stack
+	the stack can take the red queen should be yes
+	the stack can take (a new card with rank = queen, suit = clubs) should be no
+
+
+## Try it
+// - Click the queen of spades on the right:  the column won't take it, because it's black, like the king.
+// - Click the queen of hearts, then the jack of clubs, then the 10 of diamonds:  each one goes on.
+// - Bend the rule:  in "a column is a pile where", take out
+//   "the color of its last card is not the color of the card and".
+//   Then the queen of spades goes on too.  (Click ↻, above the table, to deal the hand again.)
+//
+// Where next:  Solitaire, in the Examples, where the stock, the discards and the four foundations
+// each have rules of their own, written the same way.  Solitario is the same game, in Spanish.

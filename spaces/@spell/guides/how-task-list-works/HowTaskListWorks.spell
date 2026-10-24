@@ -1,0 +1,86 @@
+## How the Task List works
+// The Task List example is a to-do list:  type a task, tick it off when it's done,
+// and choose whether to see them all, only the ones to do, or only the ones done.
+// Three ideas do the work:
+// - each task is a THING of its own, which draws itself as a row with a checkbox
+// - the list picks tasks out with "where":  "tasks in its tasks where it is active"
+// - the list draws each task, or skips it, as its filter says
+//
+// This guide keeps those three, and leaves out dragging, selecting and the property editor.
+// Open Task List, in the Examples, for all of it.  Lista de tareas is the same list, written in Spanish.
+
+
+## A task
+a "task" is a drawable thing where:
+	- its "title" is text
+	- its "done" is yes or no
+	- it "is done" if its done is yes
+	- it "is active" if its done is no
+
+	// a form of its own, bound to the task:  ticking the box changes its "done"
+	- to draw it:
+		return <ui-form value={it}>
+			<div part="row">
+				<ui-checkbox name="done" aria-label="Done"/>
+				<span part="title">{its title}</span>
+			</div>
+		</ui-form>
+
+
+## The checklist:  the tasks, shown as its filter says
+a "checklist" is a drawable list of tasks where:
+	// what it shows:  every task, the ones still to do, or the ones done
+	- its "showing" is one of all, active or done
+	// each task in turn, unless the filter hides it:  "return nothing" draws nothing
+	- to draw each item:
+		if its showing is "active" and the task is done return nothing
+		if its showing is "done" and the task is active return nothing
+		return draw the task
+
+a task belongs to one checklist
+
+
+## The app
+task list is an app where:
+	- its "tasks" is a new checklist
+	// how many are left:  the tasks picked out with "where", counted
+	- its "active count" is the length of (tasks in its tasks where it is active)
+
+	- to draw it:
+		return <ui-container class="TaskList">
+			<ui-menu secondary>
+				<ui-item type="header">{its active count + " to do"}</ui-item>
+				<ui-item selected={the showing of its tasks is "all"} onClick={set the showing of its tasks to "all"}>All</ui-item>
+				<ui-item selected={the showing of its tasks is "active"} onClick={set the showing of its tasks to "active"}>To do</ui-item>
+				<ui-item selected={the showing of its tasks is "done"} onClick={set the showing of its tasks to "done"}>Done</ui-item>
+			</ui-menu>
+			{draw its tasks}
+		</ui-container>
+
+
+## Start:  three tasks, one of them done
+set the showing of the tasks of the task list to all
+add (a new task with title = "Read this guide", done = yes) to the tasks of the task list
+add (a new task with title = "Tick a box on the right") to the tasks of the task list
+add (a new task with title = "Try the To do filter") to the tasks of the task list
+start the task list
+
+
+## A check
+to test counting the tasks to do
+	set the list to a new checklist
+	add (a new task with title = "a", done = yes) to the list
+	add (a new task with title = "b") to the list
+	the length of (tasks in the list where it is active) should be 1
+
+
+## Try it
+// - Tick "Tick a box on the right":  the count in the menu drops to 1.
+// - Click "To do", then "Done":  the list shows only the tasks that fit.
+// - Add a task:  copy one of the "add" lines under Start, and change its title.
+// - Count the done ones too:  add a line under "its active count" that says
+//       - its "done count" is the length of (tasks in its tasks where it is done)
+//   and show it in the menu, the way the active count is.
+//
+// Where next:  Task List, in the Examples, where you type new tasks in, drag them into order,
+// and select a few to change them all at once.

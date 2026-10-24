@@ -89,8 +89,8 @@ quiz is an app where:
 
 
 ## The deck:  twelve Spanish words -- add your own
-to add (front as text) meaning (back as text):
-	add (a new flash card with front = front, back = back, side = front) to the deck of quiz
+to add (word as text) meaning (translation as text):
+	add (a new flash card with front = word, back = translation, side = front) to the deck of quiz
 
 add "el gato" meaning "the cat"
 add "el perro" meaning "the dog"

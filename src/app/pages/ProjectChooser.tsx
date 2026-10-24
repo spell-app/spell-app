@@ -26,6 +26,7 @@ import "./ProjectChooser.css"
  *   group's header.
  * - In dev, also the test fixtures (`@spell/test`) -- open one to look at it, edit it, then
  *   `yarn spell:test:fixtures:bless`.  No "create" for those:  copy a project into `spaces/@spell/test/`.
+ * - A guide opens in the editor, as an example does:  its prose is the comments in its spell file (epic `debut` Q18).
  * - Every route the others don't take (`routes.tsx`).
  * - Its look follows the editor's theme:  the hero and cards are tokens (`ProjectChooser.css`).
  ****************/
@@ -52,7 +53,6 @@ export function ProjectChooser() {
           projectRoot={guides}
           line={appTexts.text("homeGuidesLine")}
           empty={appTexts.text("homeNoGuides")}
-          useRunner
           create={<Actions.createGuide button basic="" size="small" />}
         />
         <ProjectCards
@@ -99,7 +99,7 @@ function Hero(props: { examples: ProjectRootState; guides: ProjectRootState }) {
             size="large"
             icon="book"
             onClick={() => {
-              if (firstGuide()) openProject(firstGuide()!, true)
+              if (firstGuide()) openProject(firstGuide()!)
               else document.getElementById("guides")?.scrollIntoView({ behavior: "smooth" })
             }}
           >

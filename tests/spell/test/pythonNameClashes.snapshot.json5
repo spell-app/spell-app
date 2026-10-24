@@ -6,9 +6,21 @@
     "where": "@spell/examples/Solitario"
   },
   {
+    "spell": "list",
+    "python": "list_",
+    "kind": "variable",
+    "where": "@spell/guides/how-task-list-works"
+  },
+  {
     "spell": "position",
     "python": "position_",
     "kind": "variable",
     "where": "@spell/test/lists-from-zero"
+  },
+  {
+    "spell": "try",
+    "python": "try_",
+    "kind": "method",
+    "where": "@spell/guides/how-solitaire-works"
   }
 ]

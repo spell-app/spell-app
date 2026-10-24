@@ -1,0 +1,19 @@
+/* File styles.css:  how the adding machine looks -- the display over a row of keys. */
+
+.Adder {
+  max-width: 20em;
+  margin: 2em auto;
+}
+
+.Display {
+  padding: 0.5em;
+  font-size: 2em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.Keys {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4em;
+}

@@ -1,0 +1,104 @@
+## A tour of Spell
+// What is a program, when it's written in sentences?
+//
+// Think of the labels on the pots in a garden centre.
+// Each one names a plant, says a few things about it, and says how to look after it:
+// "Basil.  Water every 2 days.  Needs sun."
+//
+// A spell is labels like that, which the computer can follow.
+// This file is a small one:  a windowsill of plants, on the right, that tell you when they need water.
+// It's made of four ideas, one per part below:  things, properties, rules and drawing.
+
+
+## 1. Things
+// A THING is anything your program is about:  a plant, a card, a task, a person.
+// You say what kind of thing it is once, and then you can make as many of them as you like.
+// "Drawable" means it can show itself on the page;  more on that in part 4.
+a "plant" is a drawable thing where:
+
+	## 2. Properties
+	// A PROPERTY is something a thing keeps:  a plant has a name, and so on.
+	// Each line says the property's name, in quotes, then what kind of value it holds:
+	// text, a number, or yes or no.
+	- its "name" is text
+	- its "days between waterings" is a number
+	- its "days since watered" is a number
+
+	## 3. Rules
+	// A RULE is a property the program works out for itself, from the others.
+	// You never set it:  it's always up to date, so when a plant is watered, it stops being thirsty.
+	- it "is thirsty" if its days since watered is greater than or equal to its days between waterings
+	- its "status" is:
+		"needs water!" if it is thirsty
+		"fine for now" otherwise
+
+	// A rule can also be something the thing DOES, when asked:  an ACTION.
+	- to water it:
+		set its days since watered to 0
+
+	## 4. Drawing
+	// DRAWING is how a thing shows itself on the page.
+	// The lines in <angle brackets> are the page's pieces;  {curly brackets} fill in a property.
+	// Because the page is drawn from the properties, it changes by itself whenever they do.
+	- to draw it:
+		return <ui-segment color={"orange" if it is thirsty otherwise "green"}>
+			<h3>{its name}</h3>
+			<p>{its status}</p>
+			<ui-button basic size="small" icon="tint" onClick={water it}>Water</ui-button>
+		</ui-segment>
+
+
+## Many things together:  a windowsill
+// A list of things can be drawable too:  it draws each one in turn.
+a "windowsill" is a drawable list of plants
+
+// a plant sits on one windowsill
+a plant belongs to one windowsill
+
+// the app:  the page on the right
+garden is an app where:
+	- its "sill" is a new windowsill
+	// a day goes by:  every plant is one day drier
+	- to wait a day:
+		for each plant in its sill
+			set the days since watered of the plant to the days since watered of the plant + 1
+	- to draw it:
+		return <div class="Garden">
+			<ui-button primary onClick={wait a day}>A day goes by</ui-button>
+			{draw its sill}
+		</div>
+
+
+## Start:  three plants, one of them thirsty
+add (a new plant with name = "Basil", days between waterings = 2, days since watered = 2) to the sill of garden
+add (a new plant with name = "Cactus", days between waterings = 14, days since watered = 3) to the sill of garden
+add (a new plant with name = "Fern", days between waterings = 3, days since watered = 1) to the sill of garden
+start garden
+
+
+## Tests:  the rule, checked
+// Each time the spell runs, these lines run too, and Program Output shows a tick if they came out right.
+to test thirst
+	set the pot to a new plant with name = "Mint", days between waterings = 2, days since watered = 2
+	the pot is thirsty should be yes
+	water the pot
+	the pot is thirsty should be no
+	the status of the pot should be "fine for now"
+
+
+## What it means for you
+// Every spell, from this windowsill to the Solitaire example, is these four ideas:
+// - things:  what it's about
+// - properties:  what each thing keeps
+// - rules:  what each thing works out, or does
+// - drawing:  how each thing looks
+//
+// Try it:
+// - Click "A day goes by" on the right a few times, and watch which plants get thirsty first.
+// - Add a fourth plant:  copy one of the lines under Start, and change its name and its numbers.
+// - Make the Cactus thirsty sooner:  change its 14 to a 4.
+//
+// Where it stops:  the words Spell knows are growing, and not every sentence you'd write is one it reads yet.
+// When it can't read a line, it puts a wavy red line under it and says so in Program Output.
+//
+// Where next:  the Examples.  Each has a "how it works" guide beside this one.

@@ -1,0 +1,14 @@
+{
+  "title": "How the Calculator works",
+  "description": "The heart of the Calculator example, rebuilt as an adding machine:  keys that run actions, and a display drawn from what it keeps",
+  "imports": [
+    {
+      "path": "/HowCalculatorWorks.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

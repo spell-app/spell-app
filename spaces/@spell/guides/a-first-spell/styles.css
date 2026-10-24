@@ -1,0 +1,12 @@
+/* File styles.css:  how the sign looks -- centred, the greeting big. */
+
+.Sign {
+  max-width: 28em;
+  margin-inline: auto;
+  padding-block: 2em;
+  text-align: center;
+}
+
+.Sign h1 {
+  font-size: 2.5em;
+}

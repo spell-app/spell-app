@@ -1,0 +1,14 @@
+{
+  "title": "How Tic-Tac-Toe works",
+  "description": "The Tic-Tac-Toe example's squares, turns and three-in-a-row check, with only the rows to win by:  adding the rest is your move",
+  "imports": [
+    {
+      "path": "/HowTicTacToeWorks.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

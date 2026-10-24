@@ -1,0 +1,8 @@
+✅ test la columna
+  ▶️ Ejecutando   `poner la pila nueva a una nueva columna`
+  ▶️ Ejecutando   `poner la dama a una nueva carta con rango = dama, palo = corazones`
+  ✅ Como se esperaba, `la pila nueva puede tomar la dama` es `no`
+  ▶️ Ejecutando   `agregar (una nueva carta con rango = rey, palo = espadas) a la pila nueva`
+  ✅ Como se esperaba, `la pila nueva puede tomar la dama` es `sí`
+
+<div id="spell-app-root"><div class="Mesa"><h3>La columna</h3><test-project-columna><test-project-carta><es-boton basico="" color="negro" style="cursor:pointer;user-select:none">rey de espadas</es-boton></test-project-carta></test-project-columna><h3>Tu mano: haz clic en una carta para ponerla en la columna</h3><test-project-pila><test-project-carta><es-boton basico="" color="negro" style="cursor:pointer;user-select:none">dama de espadas</es-boton></test-project-carta><test-project-carta><es-boton basico="" color="rojo" style="cursor:pointer;user-select:none">dama de corazones</es-boton></test-project-carta><test-project-carta><es-boton basico="" color="negro" style="cursor:pointer;user-select:none">jota de tréboles</es-boton></test-project-carta><test-project-carta><es-boton basico="" color="rojo" style="cursor:pointer;user-select:none">10 de diamantes</es-boton></test-project-carta></test-project-pila><p></p></div></div>

@@ -11,6 +11,7 @@ import {
   fixtureProjectNames,
   FIXTURES_DIR,
   EXAMPLE_FIXTURES,
+  GUIDE_FIXTURES,
   fixtureFolder
 } from "spell-app/spaces/test"
 
@@ -27,7 +28,7 @@ const SOLITAIRE = fixtureProjectId("Solitaire")
 const GAME = `${SOLITAIRE}/Solitaire.spell`
 // the frozen ones, `@spell/test`'s, in the order a group lists its projects:  by name
 const ALL_FIXTURES = fixtureProjectNames()
-  .filter((name) => !EXAMPLE_FIXTURES.has(name))
+  .filter((name) => !EXAMPLE_FIXTURES.has(name) && !GUIDE_FIXTURES.has(name))
   .map(fixtureProjectId)
   .sort((a, b) => a.localeCompare(b))
 

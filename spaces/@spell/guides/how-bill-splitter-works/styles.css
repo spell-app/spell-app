@@ -1,0 +1,22 @@
+/* File styles.css:  how the bill looks -- the three boxes, then the sums in two columns. */
+
+.Bill {
+  max-width: 22em;
+  margin: 2em auto;
+}
+
+.Bill ui-input {
+  margin-block-end: 0.5em;
+}
+
+.Sums {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25em;
+  margin-block-start: 1em;
+  font-variant-numeric: tabular-nums;
+}
+
+.Each {
+  font-weight: bold;
+}

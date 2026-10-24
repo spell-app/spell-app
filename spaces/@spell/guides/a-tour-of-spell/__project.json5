@@ -1,0 +1,14 @@
+{
+  "title": "A tour of Spell",
+  "description": "An explainer:  things, properties, rules and drawing, the four ideas every spell is made of",
+  "imports": [
+    {
+      "path": "/TourOfSpell.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+✅ test money
+  ✅ As expected `write 12.5 as money` is `"$12.50"`
+  ✅ As expected `write 3.07 as money` is `"$3.07"`
+✅ test splitting
+  ✅ As expected `the total of bill` is `70.8`
+  ✅ As expected `write the each of bill as money` is `"$23.60"`
+
+<div id="spell-app-root"><div class="Bill"><ui-segment><ui-form value="[object Object]"><ui-input fluid="" label="Bill $" min="0" name="amount" step="0.01" type="number"></ui-input><ui-input fluid="" label="Tip %" min="0" name="percent" type="number"></ui-input><ui-input fluid="" label="People" min="1" name="people" type="number"></ui-input></ui-form><div class="Sums"><div>Tip</div><div>$10.80</div><div>Total</div><div>$70.80</div><div class="Each">Each</div><div class="Each">$23.60</div></div></ui-segment></div></div>

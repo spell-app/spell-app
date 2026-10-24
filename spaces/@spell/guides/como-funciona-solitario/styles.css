@@ -1,0 +1,15 @@
+/* File styles.css:  how the table looks -- the column, then the hand, each a row of cards. */
+
+.Mesa {
+  max-width: 34em;
+  margin-inline: auto;
+  padding-block: 1.5em;
+}
+
+como-funciona-solitario-columna,
+como-funciona-solitario-pila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  min-height: 2.5em;
+}

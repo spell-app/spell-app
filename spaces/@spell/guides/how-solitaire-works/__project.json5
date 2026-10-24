@@ -1,0 +1,14 @@
+{
+  "title": "How Solitaire works",
+  "description": "The Solitaire example's cards and one of its rules:  a column takes a card one lower, in the other color",
+  "imports": [
+    {
+      "path": "/HowSolitaireWorks.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+## Cómo funciona Lista de tareas
+// El ejemplo Lista de tareas es una lista de cosas por hacer:  escribe una tarea, márcala cuando esté hecha,
+// y elige si ver todas, solo las pendientes, o solo las hechas.
+// Está escrito en español:  cada línea de código también.
+// Tres ideas hacen el trabajo:
+// - cada tarea es una COSA propia, que se dibuja como una fila con una casilla
+// - la lista elige tareas con "donde":  "tareas en sus tareas donde está pendiente"
+// - la lista dibuja cada tarea, o la salta, según dice su filtro
+//
+// Esta guía tiene esas tres, sin arrastrar, seleccionar ni el editor de propiedades.
+// Abre Lista de tareas, en los Ejemplos, para verlo todo.  Task List es la misma lista, en inglés.
+
+
+## Una tarea
+una "tarea" es una cosa dibujable donde:
+	- su "título" es texto
+	- su "hecha" es sí o no
+	- "está hecha" si su hecha es sí
+	- "está pendiente" si su hecha es no
+
+	// un formulario propio, unido a la tarea:  marcar la casilla cambia su "hecha"
+	- para dibujarla:
+		devolver <es-formulario value={eso}>
+			<div part="row">
+				<es-casilla name="hecha" aria-label="Hecha"/>
+				<span part="title">{su título}</span>
+			</div>
+		</es-formulario>
+
+
+## La agenda:  las tareas, mostradas según su filtro
+una "agenda" es una lista dibujable de tareas donde:
+	// lo que muestra:  todas las tareas, las pendientes, o las hechas
+	- su "mostrando" es una de todas, pendientes o hechas
+	// cada tarea, salvo que el filtro la oculte:  "devolver nada" no dibuja nada
+	- para dibujar cada elemento:
+		si su mostrando es "pendientes" y la tarea está hecha devolver nada
+		si su mostrando es "hechas" y la tarea está pendiente devolver nada
+		devolver dibujar la tarea
+
+una tarea pertenece a una agenda
+
+
+## La aplicación
+lista de tareas es una aplicación donde:
+	- sus "tareas" es una nueva agenda
+	// cuántas quedan:  las tareas elegidas con "donde", contadas
+	- su "cuenta pendiente" es el largo de (tareas en sus tareas donde está pendiente)
+
+	- para dibujarla:
+		devolver <es-contenedor class="ListaDeTareas">
+			<es-menu secundario>
+				<es-elemento tipo="encabezado">{su cuenta pendiente + " pendientes"}</es-elemento>
+				<es-elemento seleccionado={el mostrando de sus tareas es "todas"} onClick={poner el mostrando de sus tareas a "todas"}>Todas</es-elemento>
+				<es-elemento seleccionado={el mostrando de sus tareas es "pendientes"} onClick={poner el mostrando de sus tareas a "pendientes"}>Pendientes</es-elemento>
+				<es-elemento seleccionado={el mostrando de sus tareas es "hechas"} onClick={poner el mostrando de sus tareas a "hechas"}>Hechas</es-elemento>
+			</es-menu>
+			{dibujar sus tareas}
+		</es-contenedor>
+
+
+## Inicio:  tres tareas, una de ellas hecha
+poner el mostrando de las tareas de la lista de tareas a todas
+agregar (una nueva tarea con título = "Leer esta guía", hecha = sí) a las tareas de la lista de tareas
+agregar (una nueva tarea con título = "Marcar una casilla a la derecha") a las tareas de la lista de tareas
+agregar (una nueva tarea con título = "Probar el filtro Pendientes") a las tareas de la lista de tareas
+iniciar la lista de tareas
+
+
+## Una prueba
+para probar la cuenta pendiente
+	poner la lista a una nueva agenda
+	agregar (una nueva tarea con título = "a", hecha = sí) a la lista
+	agregar (una nueva tarea con título = "b") a la lista
+	el largo de (tareas en la lista donde está pendiente) debería ser 1
+
+
+## Pruébalo
+// - Marca "Marcar una casilla a la derecha":  la cuenta del menú baja a 1.
+// - Haz clic en "Pendientes", luego en "Hechas":  la lista muestra solo las tareas que encajan.
+// - Agrega una tarea:  copia una de las líneas "agregar" del Inicio, y cambia su título.
+//
+// Y después:  Lista de tareas, en los Ejemplos, donde escribes tareas nuevas, las arrastras para ordenarlas,
+// y seleccionas varias para cambiarlas todas a la vez.

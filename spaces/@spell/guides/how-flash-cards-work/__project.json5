@@ -1,0 +1,14 @@
+{
+  "title": "How Flash Cards work",
+  "description": "The Flash Cards example's card, which turns over when clicked, and a deck that deals one at random",
+  "imports": [
+    {
+      "path": "/HowFlashCardsWork.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

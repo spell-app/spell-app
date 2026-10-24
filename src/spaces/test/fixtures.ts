@@ -13,10 +13,11 @@ import environment from "spell-app/spaces/server/node/environment"
  * - Node only, for tests:  imported as `spell-app/spaces/test`, never from spaces' barrel.
  * - spell-parser's `spell-parser/spell/test` parses and compiles the projects a test writes inline (`parseSpellProject()`);
  *   these are the ones on disk, spell-app's own.
- * - Two kinds, each by its name, e.g. `fizzbuzz`, `Solitaire`:
+ * - Three kinds, each by its name, e.g. `fizzbuzz`, `Solitaire`, `a-first-spell`:
  *   - the FROZEN test projects, `@spell/test` (`FIXTURES_DIR`):  tests' own, never edited to follow anything
  *   - a few built-in EXAMPLES, `@spell/examples` (`EXAMPLE_FIXTURES`):  read where they are, so they're tested as
  *     they are;  their snapshots are tests' own, in `EXAMPLE_SNAPSHOTS_DIR`
+ *   - every built-in GUIDE, `@spell/guides` (`GUIDE_FIXTURES`):  the same, their snapshots in `GUIDE_SNAPSHOTS_DIR`
  */
 
 /**
@@ -66,6 +67,22 @@ export const EXAMPLES_GROUP = "@spell/examples"
  */
 export const EXAMPLE_SNAPSHOTS_DIR = resolve(environment.repoDir, "tests", "spell", "__examples__")
 
+/** The guides' group, `@spell/guides`:  where `GUIDE_FIXTURES` are read from. */
+export const GUIDES_GROUP = "@spell/guides"
+
+/**
+ * Every built-in guide, by its name in `@spell/guides`:  each folder there with a project file (epic `debut` P10).
+ * - A guide is a spell file that reads as prose, with a working program inside it:
+ *   so each one is compiled, run and type-checked as the examples are.
+ * - NOT frozen, and not listed by hand:  a new guide is tested as soon as it's there.
+ *   - Its snapshots are written by `yarn spell:test:fixtures:bless`;  read the diff.
+ * - Their snapshots are tests', never beside the guide:  `GUIDE_SNAPSHOTS_DIR`.
+ */
+export const GUIDE_FIXTURES = new Set(projectFoldersIn(resolve(environment.systemFilesRoot, "guides")))
+
+/** Folder of the snapshots of `GUIDE_FIXTURES`:  `tests/spell/__guides__/<name>/`, at spell-app's root. */
+export const GUIDE_SNAPSHOTS_DIR = resolve(environment.repoDir, "tests", "spell", "__guides__")
+
 /** Path of `parts` under `FIXTURES_DIR`, e.g. `fixturePath("fizzbuzz", "FizzBuzz.spell")`. */
 export function fixturePath(...parts: string[]): string {
   return resolve(FIXTURES_DIR, ...parts)
@@ -75,9 +92,11 @@ export function fixturePath(...parts: string[]): string {
  * Path of snapshot `file` of test project `projectName`:
  * - a frozen fixture's beside it, `spaces/@spell/test/fizzbuzz/fizzbuzz.snapshot.js`
  * - an example's in `EXAMPLE_SNAPSHOTS_DIR`, `tests/spell/__examples__/Solitaire/Solitaire.snapshot.js`
+ * - a guide's in `GUIDE_SNAPSHOTS_DIR`, `tests/spell/__guides__/a-first-spell/a-first-spell.snapshot.js`
  */
 export function snapshotPath(projectName: string, file: string): string {
   if (EXAMPLE_FIXTURES.has(projectName)) return resolve(EXAMPLE_SNAPSHOTS_DIR, projectName, file)
+  if (GUIDE_FIXTURES.has(projectName)) return resolve(GUIDE_SNAPSHOTS_DIR, projectName, file)
   return fixturePath(projectName, file)
 }
 
@@ -87,7 +106,14 @@ export function snapshotPath(projectName: string, file: string): string {
  * - Loads from disk in node, after `installDiskFetch()`.
  */
 export function fixtureProjectId(projectName: string): string {
-  return `${EXAMPLE_FIXTURES.has(projectName) ? EXAMPLES_GROUP : FIXTURES_GROUP}/${projectName}`
+  return `${groupOf(projectName)}/${projectName}`
+}
+
+/** The group test project `projectName` is in:  `@spell/examples`, `@spell/guides`, else `@spell/test`. */
+function groupOf(projectName: string): string {
+  if (EXAMPLE_FIXTURES.has(projectName)) return EXAMPLES_GROUP
+  if (GUIDE_FIXTURES.has(projectName)) return GUIDES_GROUP
+  return FIXTURES_GROUP
 }
 
 /**
@@ -116,14 +142,18 @@ export const LIBRARY_FIXTURES = new Set(["people"])
 
 /**
  * Name of each test project:  each folder of `FIXTURES_DIR` with a project file, alphabetically,
- * then `EXAMPLE_FIXTURES`.
+ * then `EXAMPLE_FIXTURES`, then `GUIDE_FIXTURES`.
  */
 export function fixtureProjectNames(): string[] {
-  const frozen = readdirSync(FIXTURES_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && hasProjectFile(resolve(FIXTURES_DIR, entry.name)))
+  return [...projectFoldersIn(FIXTURES_DIR), ...EXAMPLE_FIXTURES, ...GUIDE_FIXTURES]
+}
+
+/** Name of each folder of `dir` with a project file, alphabetically. */
+function projectFoldersIn(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && hasProjectFile(resolve(dir, entry.name)))
     .map((entry) => entry.name)
     .sort()
-  return [...frozen, ...EXAMPLE_FIXTURES]
 }
 
 /**
@@ -216,7 +246,7 @@ function compileFixture(
  * - Each by its name, as the fixture helpers take it.
  * - none:  `{}`
  * - throws if it imports a project that isn't a frozen fixture:
- *   tests read ONLY `FIXTURES_DIR`, and `EXAMPLE_FIXTURES`.
+ *   tests read ONLY `FIXTURES_DIR`, `EXAMPLE_FIXTURES` and `GUIDE_FIXTURES`.
  */
 export function fixtureImports(projectName: string): Record<string, string> {
   const fixtures = `${FIXTURES_GROUP}/`
@@ -232,13 +262,14 @@ export function fixtureImports(projectName: string): Record<string, string> {
 }
 
 /**
- * Path of `parts` in test project `projectName`'s folder:  a frozen fixture's (`FIXTURES_DIR`), or an example's
- * (`EXAMPLE_FIXTURES`), e.g. `fixtureFolder("Solitaire", "Card.spell")`.
+ * Path of `parts` in test project `projectName`'s folder:  a frozen fixture's (`FIXTURES_DIR`), an example's
+ * (`EXAMPLE_FIXTURES`) or a guide's (`GUIDE_FIXTURES`), e.g. `fixtureFolder("Solitaire", "Card.spell")`.
  * - NEVER write there:  copy it first (`copyFixtureProject()`).
  */
 export function fixtureFolder(projectName: string, ...parts: string[]): string {
-  if (!EXAMPLE_FIXTURES.has(projectName)) return fixturePath(projectName, ...parts)
-  return resolve(environment.systemFilesRoot, "examples", projectName, ...parts)
+  if (EXAMPLE_FIXTURES.has(projectName)) return resolve(environment.systemFilesRoot, "examples", projectName, ...parts)
+  if (GUIDE_FIXTURES.has(projectName)) return resolve(environment.systemFilesRoot, "guides", projectName, ...parts)
+  return fixturePath(projectName, ...parts)
 }
 
 /**

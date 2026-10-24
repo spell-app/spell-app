@@ -1,0 +1,9 @@
+✅ test waving back
+  ▶️ Executing   `set the waves of hello sign to 0`
+  ▶️ Executing   `wave back`
+  ▶️ Executing   `wave back`
+  ▶️ Executing   `wave back`
+  ✅ As expected `the waves of hello sign` is `3`
+  ▶️ Executing   `set the waves of hello sign to 0`
+
+<div id="spell-app-root"><div class="Sign"><h1>Hello, Maya!</h1><ui-button primary="" style="cursor:pointer;user-select:none">Wave back</ui-button><p>0 waves so far</p></div></div>

@@ -1,0 +1,8 @@
+✅ test streaks
+  ▶️ Executing   `set walking to a new habit with name = "Walk", monday = yes, tuesday = yes, thursday = yes`
+  ✅ As expected `the count of walking` is `3`
+  ✅ As expected `the streak of walking` is `2`
+  ▶️ Executing   `set the wednesday of walking to yes`
+  ✅ As expected `the streak of walking` is `4`
+
+<div id="spell-app-root"><div class="Habit"><ui-segment><h3>Read</h3><ui-form value="[object Object]"><div class="Days"><ui-checkbox label="M" name="monday"></ui-checkbox><ui-checkbox label="T" name="tuesday"></ui-checkbox><ui-checkbox label="W" name="wednesday"></ui-checkbox><ui-checkbox label="T" name="thursday"></ui-checkbox><ui-checkbox label="F" name="friday"></ui-checkbox><ui-checkbox label="S" name="saturday"></ui-checkbox><ui-checkbox label="S" name="sunday"></ui-checkbox></div></ui-form><p>Days:  3    Streak:  2</p></ui-segment></div></div>

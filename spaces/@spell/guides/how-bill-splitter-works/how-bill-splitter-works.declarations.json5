@@ -1,0 +1,115 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Bill",
+    "write_$amount_as_money",
+    "test_money",
+    "test_splitting"
+  ],
+  "statements": [
+    {
+      "syntax": "write {callArgs:expression} as money",
+      "output": "write_$amount_as_money",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "name": "write (amount as a number) as money",
+      "params": [
+        {
+          "name": "amount",
+          "datatype": "number"
+        }
+      ],
+      "returns": "text",
+      "defined": "/HowBillSplitterWorks.spell:853-1110"
+    },
+    {
+      "type": "Bill",
+      "superType": "App",
+      "defined": "/HowBillSplitterWorks.spell:1125-2189"
+    },
+    {
+      "property": "amount",
+      "of": "Bill",
+      "datatype": "number",
+      "defined": "/HowBillSplitterWorks.spell:1180-1204"
+    },
+    {
+      "property": "percent",
+      "of": "Bill",
+      "datatype": "number",
+      "defined": "/HowBillSplitterWorks.spell:1208-1233"
+    },
+    {
+      "property": "people",
+      "of": "Bill",
+      "datatype": "number",
+      "defined": "/HowBillSplitterWorks.spell:1237-1261"
+    },
+    {
+      "property": "tip",
+      "of": "Bill",
+      "datatype": "number",
+      "defined": "/HowBillSplitterWorks.spell:1350-1393"
+    },
+    {
+      "property": "total",
+      "of": "Bill",
+      "datatype": "number",
+      "defined": "/HowBillSplitterWorks.spell:1397-1432"
+    },
+    {
+      "property": "each",
+      "of": "Bill",
+      "datatype": "number",
+      "defined": "/HowBillSplitterWorks.spell:1436-1507"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Bill",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/HowBillSplitterWorks.spell:1603-2189"
+    },
+    {
+      "syntax": "test money",
+      "output": "test_money",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "money",
+      "defined": "/HowBillSplitterWorks.spell:2353-2445"
+    },
+    {
+      "syntax": "test splitting",
+      "output": "test_splitting",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "splitting",
+      "defined": "/HowBillSplitterWorks.spell:2447-2550"
+    }
+  ],
+  "codeLines": [
+    23,
+    33,
+    35,
+    40,
+    45,
+    51,
+    55,
+    59,
+    65,
+    96,
+    103
+  ]
+}

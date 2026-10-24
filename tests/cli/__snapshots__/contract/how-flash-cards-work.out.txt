@@ -1,0 +1,7 @@
+✅ test turning a card over
+  ▶️ Executing   `set the card to a new flash card with front = "el gato", back = "the cat", side = front`
+  ✅ As expected `the card is turned over` is `no`
+  ▶️ Executing   `turn the card over`
+  ✅ As expected `the card is turned over` is `yes`
+
+<div id="spell-app-root"><div class="Quiz"><test-project-flash-card><div part="card" style="cursor:pointer;user-select:none">el gato</div></test-project-flash-card><ui-button primary="" style="cursor:pointer;user-select:none">Next card</ui-button></div></div>

@@ -78,6 +78,7 @@ working with code in this repository, `spell-app`.
       their snapshots, `tsc` and pyright on them, whole-project parsing.
       - The examples Solitaire and Solitario are tested as they are, never a frozen copy:
         their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
+      - So is every guide (`@spell/guides`, epic `debut` P10):  its snapshots in `tests/spell/__guides__/<Project>/`.
       - The same paths they had in spell-parser:  `tests/spell/test/fixtures.test.ts`, `tests/spell/parserTests/...`.
       - Their helpers:  [spell-app/spaces/test](src/spaces/test/index.ts) (`loadFixtureProject()`, `compiledFixture()` ...).
       - `yarn spell:test:fixtures` runs the snapshot tests;  `yarn spell:test:fixtures:bless` rewrites the snapshots.

@@ -1,0 +1,172 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "FlashCard",
+    "Deck",
+    "Quiz",
+    "add_$word_meaning_$translation",
+    "test_turning_a_card_over"
+  ],
+  "statements": [
+    {
+      "type": "FlashCard",
+      "superType": "Drawable",
+      "defined": "/HowFlashCardsWork.spell:496-1014"
+    },
+    {
+      "property": "front",
+      "of": "FlashCard",
+      "datatype": "text",
+      "defined": "/HowFlashCardsWork.spell:541-560"
+    },
+    {
+      "property": "back",
+      "of": "FlashCard",
+      "datatype": "text",
+      "defined": "/HowFlashCardsWork.spell:564-582"
+    },
+    {
+      "property": "side",
+      "classVariable": "Sides",
+      "of": "FlashCard",
+      "enumeration": [
+        "front",
+        "back"
+      ],
+      "defined": "/HowFlashCardsWork.spell:679-713"
+    },
+    {
+      "syntax": "{operator:is_or_is_not} turned over",
+      "output": "is_turned_over",
+      "rule": "method_postfix",
+      "of": "Flashcard",
+      "kind": "method",
+      "name": "\"is turned over\"",
+      "returns": "choice",
+      "defined": "/HowFlashCardsWork.spell:717-756"
+    },
+    {
+      "syntax": "turn {thisArg:expression} over",
+      "output": "turn_over",
+      "rule": "method_call",
+      "of": "FlashCard",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn it over",
+      "defined": "/HowFlashCardsWork.spell:761-837"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "FlashCard",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/HowFlashCardsWork.spell:889-1014"
+    },
+    {
+      "type": "Deck",
+      "superType": "List",
+      "itemType": "FlashCard",
+      "defined": "/HowFlashCardsWork.spell:1038-1071"
+    },
+    {
+      "type": "Quiz",
+      "superType": "App",
+      "defined": "/HowFlashCardsWork.spell:1119-1560"
+    },
+    {
+      "property": "deck",
+      "of": "Quiz",
+      "datatype": "Deck",
+      "defined": "/HowFlashCardsWork.spell:1144-1168"
+    },
+    {
+      "property": "card",
+      "of": "Quiz",
+      "datatype": "FlashCard",
+      "defined": "/HowFlashCardsWork.spell:1172-1198"
+    },
+    {
+      "syntax": "deal a card (of {thisArg:expression})?",
+      "output": "deal_a_card",
+      "rule": "method_call",
+      "of": "Quiz",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "deal a card",
+      "defined": "/HowFlashCardsWork.spell:1262-1422"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Quiz",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/HowFlashCardsWork.spell:1427-1560"
+    },
+    {
+      "syntax": "add {callArgs:expression} meaning {callArgs:expression}",
+      "output": "add_$word_meaning_$translation",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "name": "add (word as text) meaning (translation as text)",
+      "params": [
+        {
+          "name": "word",
+          "datatype": "text"
+        },
+        {
+          "name": "translation",
+          "datatype": "text"
+        }
+      ],
+      "defined": "/HowFlashCardsWork.spell:1613-1761"
+    },
+    {
+      "syntax": "test turning a card over",
+      "output": "test_turning_a_card_over",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "turning a card over",
+      "defined": "/HowFlashCardsWork.spell:1943-2156"
+    }
+  ],
+  "codeLines": [
+    16,
+    19,
+    24,
+    30,
+    36,
+    40,
+    45,
+    53,
+    59,
+    60,
+    65,
+    71,
+    77,
+    90,
+    110
+  ]
+}

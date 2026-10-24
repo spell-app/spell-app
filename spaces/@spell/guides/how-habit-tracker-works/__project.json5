@@ -1,0 +1,14 @@
+{
+  "title": "How the Habit Tracker works",
+  "description": "The Habit Tracker example's habit:  seven days to tick, and two rules that count them, its days and its streak",
+  "imports": [
+    {
+      "path": "/HowHabitTrackerWorks.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

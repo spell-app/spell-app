@@ -1,0 +1,81 @@
+## How the Bill Splitter works
+// The Bill Splitter example works out who owes what after a meal:
+// each person pays for what they ordered, plus their share of the tip.
+// Change any amount, and every sum on the page follows at once.  Two ideas make that happen:
+// - the sums are RULES:  worked out from the amounts, never typed in, so they can't fall behind
+// - the boxes you type in are a FORM bound to the bill:  typing in one changes the bill itself
+//
+// This guide splits a bill evenly instead, so the whole thing fits on one screen.
+// Open Bill Splitter, in the Examples, for one line per person.
+
+
+## Money:  a number written as dollars and cents, e.g. 12.5 => "$12.50"
+// The same lines as the example's.  "round" drops anything smaller than a cent;
+// the last two lines add a 0 when the cents are under ten, so 3.07 doesn't show as $3.7.
+to write (amount as a number) as money:
+	set cents to round (amount * 100)
+	set dollars to (cents / 100) as an integer
+	set left over to cents - dollars * 100
+	if left over < 10 return "$" + dollars + ".0" + left over
+	return "$" + dollars + "." + left over
+
+
+## The bill
+bill is an app where:
+	// what the three boxes hold
+	- its "amount" is a number
+	- its "percent" is a number
+	- its "people" is a number
+
+	// the sums:  each worked out from the lines above, every time one of them changes
+	- its "tip" is its amount * its percent / 100
+	- its "total" is its amount + its tip
+	- its "each" is:
+		0 if its people < 1
+		its total / its people otherwise
+
+	// "value={it}" binds the form to the bill:  each box's "name" is the property it changes
+	- to draw it:
+		return <div class="Bill">
+			<ui-segment>
+				<ui-form value={it}>
+					<ui-input name="amount" type="number" min="0" step="0.01" label="Bill $" fluid/>
+					<ui-input name="percent" type="number" min="0" label="Tip %" fluid/>
+					<ui-input name="people" type="number" min="1" label="People" fluid/>
+				</ui-form>
+				<div class="Sums">
+					<div>Tip</div><div>{write its tip as money}</div>
+					<div>Total</div><div>{write its total as money}</div>
+					<div class="Each">Each</div><div class="Each">{write its each as money}</div>
+				</div>
+			</ui-segment>
+		</div>
+
+
+## Start:  a $60 dinner for three, with an 18% tip
+set the amount of bill to 60
+set the percent of bill to 18
+set the people of bill to 3
+start bill
+
+
+## Checks
+to test money
+	write 12.5 as money should be "$12.50"
+	write 3.07 as money should be "$3.07"
+
+to test splitting
+	the total of bill should be 70.8
+	write the each of bill as money should be "$23.60"
+
+
+## Try it
+// - On the right, change People to 4:  Each drops to $17.70 as you type.
+// - Change the tip to 20:  Tip, Total and Each all follow.
+//   Nothing in this file says "when the tip changes, redo the total":  the rules are always up to date.
+// - Add a line of your own:  under "its each", add
+//       - its "tip each" is its tip / its people
+//   and show it on the page, the way "Tip" is shown.
+//
+// Where next:  Bill Splitter, in the Examples, where each diner is a thing of their own,
+// with their own row, their own amount and their own share of the tip.

@@ -1,0 +1,100 @@
+## Cómo funciona Solitario
+// El ejemplo Solitario es el Klondike, el juego de cartas que venía en todas las computadoras:
+// siete columnas de cartas, armadas del rey al as, rojo y negro alternados.
+// Está escrito en español:  cada línea de código también.
+// Es el ejemplo más grande, pero está hecho de piezas pequeñas:
+// - una CARTA, que sabe su rango y su palo, y de ahí su color y su valor
+// - PILAS de cartas, cada tipo con sus propias reglas sobre qué carta toma
+//
+// Esta guía tiene un tipo de carta y una regla:  una columna con un rey, y cuatro cartas para probar.
+// Abre Solitario, en los Ejemplos, para jugar el juego entero.  Solitaire es el mismo juego, en inglés.
+
+
+## Una carta
+// "uno de" enumera cada valor que puede tener una propiedad:  "2 ... 10" son todos los números entre ellos
+una "carta" es una cosa dibujable donde:
+	- su "rango" es uno de as, 2 ... 10, jota, dama, rey
+	- su "palo" es uno de tréboles, diamantes, corazones o espadas
+
+	// el as es 1, el 2 es 2 ... el rey es 13:  su lugar en la lista de rangos
+	- su "valor" es la posición de su rango
+	- su "color" es:
+		rojo si su palo es diamantes o corazones
+		negro de lo contrario
+
+	// p. ej. "dama de corazones"
+	- su "nombre" es su rango + " de " + su palo
+
+	// un clic la juega en la columna
+	- para dibujarla:
+		devolver <es-boton basico color={su color} onClick={jugar eso}>{su nombre}</es-boton>
+
+
+## Una pila, y una columna
+una "pila" es una lista dibujable de cartas
+// una carta está en una sola pila a la vez:  ponerla en otra la quita de esta
+una carta pertenece a una pila
+
+// La regla que lo hace Solitario:  una columna toma una carta uno menos que su última, del otro color.
+// - "puede tomar una carta si" es una pregunta de sí o no que la pila contesta para cada carta
+// - "devolver" da la respuesta
+una "columna" es una pila donde:
+	- puede tomar una carta si:
+		si está vacía
+			devolver el rango de la carta es rey
+		devolver el color de su última carta no es el color de la carta y el valor de su última carta es el valor de la carta + 1
+
+
+## La mesa:  una columna, y una mano de cartas para probar en ella
+mesa es una aplicación donde:
+	- su "columna" es una nueva columna
+	- su "mano" es una nueva pila
+	- su "mensaje" es texto
+
+	- para dibujarla:
+		devolver <div class="Mesa">
+			<h3>La columna</h3>
+			{dibujar su columna}
+			<h3>Tu mano: haz clic en una carta para ponerla en la columna</h3>
+			{dibujar su mano}
+			<p>{su mensaje}</p>
+		</div>
+
+// a la columna, si la toma;  el mensaje dice qué pasó
+para jugar una carta
+	si la columna de mesa puede tomar la carta
+		agregar la carta a la columna de mesa
+		poner el mensaje de mesa a "La " + el nombre de la carta + " va encima."
+	de lo contrario
+		poner el mensaje de mesa a "La columna no toma la " + el nombre de la carta + "."
+
+
+## Inicio:  un rey de espadas en la columna
+agregar (una nueva carta con rango = rey, palo = espadas) a la columna de mesa
+agregar (una nueva carta con rango = dama, palo = espadas) a la mano de mesa
+agregar (una nueva carta con rango = dama, palo = corazones) a la mano de mesa
+agregar (una nueva carta con rango = jota, palo = tréboles) a la mano de mesa
+agregar (una nueva carta con rango = 10, palo = diamantes) a la mano de mesa
+iniciar mesa
+
+
+## Una prueba:  la regla, carta por carta
+para probar la columna
+	poner la pila nueva a una nueva columna
+	poner la dama a una nueva carta con rango = dama, palo = corazones
+	la pila nueva puede tomar la dama debería ser no
+	agregar (una nueva carta con rango = rey, palo = espadas) a la pila nueva
+	la pila nueva puede tomar la dama debería ser sí
+
+
+## Pruébalo
+// - Haz clic en la dama de espadas, a la derecha:  la columna no la toma, porque es negra, como el rey.
+// - Haz clic en la dama de corazones, luego la jota de tréboles, luego el 10 de diamantes:
+//   cada una va encima.
+// - Cambia la regla:  en "una columna es una pila donde", quita
+//   "el color de su última carta no es el color de la carta y".
+//   Ahora la dama de espadas también va encima.
+//   (Haz clic en ↻, sobre la mesa, para repartir la mano otra vez.)
+//
+// Y después:  Solitario, en los Ejemplos, donde la reserva, los descartes y las cuatro fundaciones
+// tienen sus propias reglas, escritas igual.
