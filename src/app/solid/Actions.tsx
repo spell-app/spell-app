@@ -119,13 +119,9 @@ export const Actions = {
   showProjectSettings: (props: ActionProps) => (
     <Action title={appTexts.text("settings")} icon="setting" onClick={() => editor.showProjectSettings()} {...props} />
   ),
+  /** Home:  the landing page, where every project is chosen or made. */
   showProjectChooser: (props: ActionProps) => (
-    <Action
-      title={appTexts.text("openOrCreate")}
-      icon="app store ios"
-      onClick={() => editor.showProjectChooser()}
-      {...props}
-    />
+    <Action title={appTexts.text("home")} icon="home" onClick={() => editor.showProjectChooser()} {...props} />
   ),
   showHelp: (props: ActionProps) => (
     <Action title={appTexts.text("help")} icon="help circle" onClick={() => editor.showHelp()} {...props} />

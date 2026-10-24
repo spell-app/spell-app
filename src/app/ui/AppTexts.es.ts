@@ -22,7 +22,7 @@ const APP_TEXTS_ES: AppTextPack = {
   editApp: "Editar {type}",
   preview: "Ejecutar",
   settings: "Ajustes",
-  openOrCreate: "Abrir o crear...",
+  home: "Inicio",
   help: "Ayuda",
   you: "Tú",
   createApp: "Crear {type}",

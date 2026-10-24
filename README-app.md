@@ -489,8 +489,8 @@ The rest of the top bar, left to right:
 - in a look, Spell's hat and name, a link to the landing page
 - the project dropdown, its trigger showing the project's group icon
 - Settings, an icon;  the project's "..." menu
-- "Open or Create...", in the middle
-- the theme menu, and you, as an avatar
+- at the right:  Home (the landing page, where every project is opened or made), an icon;
+  the theme menu, a palette;  and you, as an avatar
 
 Every project group has ONE icon, the same in the dropdown, the app's header and the landing page's cards:
 a folder for your projects, a lightbulb for examples, an open book for guides,
@@ -633,7 +633,7 @@ How a page with no server reads and saves files:
 
 **Not yet:**  it's built, not deployed anywhere.
 And it must be served at a domain's root:  the editor's routes and files are absolute paths.
-"Open or Create..." is still in the top bar, and Save and Reload on the code's toolbar:
+Home is still in the top bar, and Save and Reload on the code's toolbar:
 they read oddly when nothing goes to a server.
 
 ## The builds:  one Solid per page, however many bundles

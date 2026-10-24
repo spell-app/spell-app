@@ -205,7 +205,7 @@ function tabFor(id: ProgramTabId): RunnerTab<ProgramTabId> {
 /****************
  * ### `<EditorToolbar>`
  * Top menu of the editor's pages:  the project dropdown, Run | Edit | Debug, settings and the project's actions;
- * the chooser;  the theme menu and the person.
+ * at the right, Home (the landing page), the theme menu and the person.
  * - `mode`:  the page's, pressed in `<ModeButtons>`.
  * - The static build's "Reset Example" sits by the project actions (`Actions.resetApp`, drawn only there).
  ****************/
@@ -219,10 +219,8 @@ export function EditorToolbar(props: { mode: Mode }) {
         <Actions.resetApp />
         <ProjectActionsDropdown />
       </Submenu>
-      <Submenu center spring>
-        <Actions.showProjectChooser />
-      </Submenu>
       <Submenu right spring>
+        <Actions.showProjectChooser iconOnly />
         <ThemeMenu />
         <Actions.you />
       </Submenu>

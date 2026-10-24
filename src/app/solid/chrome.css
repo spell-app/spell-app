@@ -71,7 +71,7 @@ ui-icon.IconAction {
   /* the picture centred in the bar, level with the palette:  it sat at the top of the bar's height */
   align-self: center;
   align-items: center;
-  margin-inline: 0.5em 0.25em;
+  margin-inline: 0.25em 0;
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -99,39 +99,25 @@ ui-icon.IconAction {
 ui-item.ModeButtons::part(item) {
   padding-inline: 1.5em 0.75em;
 }
-/* ... as the theme's segmented tabs:  a track, the chosen tab a raised pill on it */
-.ModeTabs {
-  display: flex;
-  gap: 2px;
-  padding: var(--ui-menu-segmented-padding, 2px);
-  border: var(--ui-menu-segmented-border, 0 solid transparent);
-  border-radius: var(--ui-menu-segmented-radius, 9px);
-  background: var(--ui-menu-segmented-background, var(--ui-surface-muted));
+/* ... a segmented menu (the theme's segmented tabs), its thumb sliding to the mode chosen */
+ui-menu.ModeTabs {
+  --ui-menu-segmented-item-padding: 0.4em 0.9em;
+}
+ui-menu.ModeTabs ui-item::part(item) {
+  gap: 0.4em;
+}
 
-  button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    padding: 4px 14px;
-    border: none;
-    border-radius: var(--ui-menu-segmented-item-radius, 7px);
-    background: transparent;
-    color: var(--ui-menu-segmented-item-color, var(--ui-text-muted));
-    font: inherit;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--ui-text-color);
-    }
-    &.chosen {
-      font-weight: var(--ui-font-weight-semibold, 600);
-      color: var(--ui-menu-segmented-active-color, var(--ui-text-color));
-      background: var(--ui-menu-segmented-active-background, var(--ui-surface));
-      box-shadow: var(--ui-menu-segmented-active-shadow, 0 1px 2px rgb(0 0 0 / 0.15));
-    }
-    &:focus-visible {
-      outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color);
-      outline-offset: 1px;
-    }
-  }
+/* `<ThemeMenu>`:  the palette a bare icon, a little bigger, close to the person's avatar (Owen) */
+ui-item.ThemeMenu::part(item) {
+  padding-inline: 0.25em;
+}
+ui-item.ThemeMenu ui-docs-themes::part(palette) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.3em;
+}
+ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
+  background: transparent;
+  color: var(--ui-text-color);
 }

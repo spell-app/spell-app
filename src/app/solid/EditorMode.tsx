@@ -68,22 +68,16 @@ const [editingMode, setEditingMode] = createSignal(editorPrefs.get(MODE_PREF) as
 export function ModeButtons(props: { current: Mode }): JSX.Element {
   return (
     <ui-item class="ModeButtons">
-      <div class="ModeTabs" role="tablist" aria-label={appTexts.text("modes")}>
+      <ui-menu appearance="segmented" size="small" class="ModeTabs" aria-label={appTexts.text("modes")}>
         <For each={MODES}>
           {(mode) => (
-            <button
-              type="button"
-              role="tab"
-              class={{ chosen: props.current === mode }}
-              aria-selected={props.current === mode ? "true" : "false"}
-              onClick={() => EditorMode.show(mode)}
-            >
+            <ui-item link="" selected={props.current === mode} onClick={() => EditorMode.show(mode)}>
               <ui-icon name={MODE_LOOKS[mode].icon} />
               {appTexts.text(MODE_LOOKS[mode].text)}
-            </button>
+            </ui-item>
           )}
         </For>
-      </div>
+      </ui-menu>
     </ui-item>
   )
 }

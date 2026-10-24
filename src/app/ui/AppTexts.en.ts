@@ -17,7 +17,7 @@ export const APP_TEXTS = {
   editApp: "Edit {Type}",
   preview: "Run",
   settings: "Settings",
-  openOrCreate: "Open or Create...",
+  home: "Home",
   help: "Help",
   you: "You",
   createApp: "Create {Type}",
