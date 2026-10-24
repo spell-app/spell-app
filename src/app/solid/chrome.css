@@ -7,7 +7,7 @@
 /* `<PanelMenu>`:  over the panel below it */
 ui-menu.PanelMenu::part(menu) {
   z-index: 10;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--ui-shadow-raised);
 }
 ui-menu.PanelMenu > ui-item[type="header"]::part(item) {
   padding-left: 1em;

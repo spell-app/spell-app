@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 
 import { SPACES } from "spell-app/spaces"
 import { appTexts } from "spell-app/app/ui/AppTexts"
-import { Actions, AppMenu, MoreMenu, ProjectMenu, SpellPage, Submenu } from "spell-app/app/solid"
+import { Actions, AppMenu, MoreMenu, ProjectMenu, SpellPage, Submenu, ThemeMenu } from "spell-app/app/solid"
 
 /****************
  * ### `<ProjectChooser>`
@@ -106,6 +106,7 @@ export function ChooserToolbar() {
         <Actions.showProjectChooser active />
       </Submenu>
       <Submenu right spring>
+        <ThemeMenu />
         <Actions.aboutSpell />
         <Actions.you />
         <MoreMenu stub />

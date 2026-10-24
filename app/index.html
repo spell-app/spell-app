@@ -11,9 +11,31 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="apple-touch-icon" href="/static/favicon/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Light / dark before first paint, as Spell UI's docs pages do:  a copy of `ThemePreference.HEAD_SCRIPT`
+         (spell-ui's `src/docs-components/ThemePreference.ts`), which the editor's theme (`EditorTheme`) then keeps -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
     <style>
+      /* The page shows the theme's background (Fruity's wallpaper), not `semantic.min.css`'s white:
+         that sheet is for running programs.  Text in the theme's colour, on light and dark. */
+      html {
+        min-height: 100%;
+        background-color: var(--ui-background);
+        color: var(--ui-text-color);
+      }
       body {
-        font-family: Lato, Arial, sans-serif;
+        font-family: var(--ui-font-family, Lato, Arial, sans-serif);
+        background: transparent;
+        color: inherit;
       }
     </style>
   </head>

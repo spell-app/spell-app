@@ -13,14 +13,14 @@
 
   .TypeChain {
     margin-bottom: 6px;
-    color: grey;
+    color: var(--ui-text-muted);
   }
 
   .DetailsSectionTitle {
     margin-top: 8px;
     font-size: 11px;
     text-transform: uppercase;
-    color: grey;
+    color: var(--ui-text-muted);
   }
 
   /* Name, then value -- a property's, or a list's item's. */
@@ -37,14 +37,14 @@
     th {
       padding-right: 1em;
       font-weight: normal;
-      color: grey;
+      color: var(--ui-text-muted);
       white-space: nowrap;
     }
   }
 
   .ThingValue {
     &.text {
-      color: #a31515;
+      color: var(--ui-red-text);
     }
 
     &.number,
@@ -55,23 +55,23 @@
 
     &.empty,
     &.other {
-      color: grey;
+      color: var(--ui-text-muted);
       font-style: italic;
     }
 
     &.error {
-      color: #db2828;
+      color: var(--ui-error-text);
     }
 
     &.list > summary {
       cursor: pointer;
-      color: grey;
+      color: var(--ui-text-muted);
     }
   }
 
   a.ThingValue {
     cursor: pointer;
-    color: #4183c4;
+    color: var(--ui-link);
 
     &:hover {
       text-decoration: underline;

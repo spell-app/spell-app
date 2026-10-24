@@ -4,7 +4,7 @@ import { render } from "@solidjs/web"
 import "spell-parser/parser"
 import { editor } from "spell-app/app/editor"
 import { AppTexts } from "spell-app/app/ui/AppTexts"
-import { ErrorNotice, Notice, addAppIconsPageWide } from "spell-app/app/solid"
+import { EditorTheme, ErrorNotice, Notice, addAppIconsPageWide } from "spell-app/app/solid"
 import { Routes } from "spell-app/app/pages/routes"
 
 // Use the below to set up methods/etc in the browser for hacking
@@ -23,6 +23,9 @@ void editor.loadRuntime()
 
 // The editor's icon names are Fomantic's, page-wide too:  its dialogs open on `<body>`, outside `index.html`'s `<ui-root>`.
 void addAppIconsPageWide()
+
+// The editor's look:  the theme and light / dark picked last, Fruity at first (`EditorTheme`).
+void EditorTheme.restore()
 
 /**
  * Draw the app, in Solid, into `#app-root` (inside `index.html`'s `<ui-root icons="fomantic">`).

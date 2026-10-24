@@ -8,7 +8,7 @@
 
 .InputEditor {
   position: relative;
-  background: white;
+  background: var(--spell-pane-background);
   flex: 1 1 auto;
   overflow: hidden;
 }

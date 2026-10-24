@@ -8,7 +8,7 @@
 
 .TreeViewer {
   position: relative;
-  background: white;
+  background: var(--spell-pane-background);
   flex: 1 1 auto;
   overflow: auto;
   padding: 8px;
@@ -16,5 +16,5 @@
 
 .TreeViewer-hint {
   margin: 0;
-  color: var(--ui-text-muted, GrayText);
+  color: var(--ui-text-muted);
 }

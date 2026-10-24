@@ -1,6 +1,9 @@
 /*
- * Spacing the app's layout shares:  `<SpellPage>`, `<SplitPanel>` and their panes (`SpellPage.css`,
- * `SplitPanel.css`).  Imported by `SpellPage.tsx` and `SplitPanel.tsx`.
+ * Spacing and colours the app's layout shares:  `<SpellPage>`, `<SplitPanel>`, their panes and the panes' views
+ * (`SpellPage.css`, `SplitPanel.css`, `InputEditor.css` ...).
+ * - Imported by `SpellPage.tsx` and `SplitPanel.tsx`,
+ *   and by the panes the runners share without them (`AppContainer.tsx`, `ConsoleLines.tsx`).
+ * - Every colour is a Spell UI token (`--ui-*`), so the page's theme reaches it:  light and dark, Fruity's glass.
  */
 
 :root,
@@ -8,4 +11,11 @@
   --spell-tight-padding: 0.3em;
   --spell-normal-padding: 0.6em;
   --spell-loose-padding: 1em;
+
+  /* the page behind the panes:  see-through, so the theme's own page shows (its background, Fruity's wallpaper) */
+  --spell-page-background: transparent;
+  /* a pane, and the views in it (the code, the console, the tree ...) */
+  --spell-pane-background: var(--ui-surface);
+  --spell-pane-border-color: var(--ui-border-color);
+  --spell-pane-shadow: var(--ui-shadow-subtle);
 }

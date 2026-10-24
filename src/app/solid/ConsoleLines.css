@@ -3,7 +3,8 @@
 .ConsoleViewer {
   position: relative;
   font-family: monaco, monospace;
-  background: white;
+  background: var(--spell-pane-background);
+  color: var(--ui-text-color);
   font-size: 11px;
   white-space: pre;
 
@@ -30,27 +31,27 @@
       top: -5px;
       bottom: 0;
       width: 5px;
-      border: solid rgba(0, 0, 0, 0.4);
+      border: solid var(--ui-border-color-strong);
       border-width: 0 0 1px 1px;
     }
   }
 
   .ConsoleLine {
     z-index: 1;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--ui-border-color-internal);
     padding-right: 10px;
 
     &.debug {
     }
 
     &.info {
-      background-color: hsla(200, 100%, 50%, 0.15);
+      background-color: var(--ui-info-background);
     }
     &.warn {
-      background-color: hsla(50, 100%, 50%, 0.15);
+      background-color: var(--ui-warning-background);
     }
     &.error {
-      background-color: hsla(12, 100%, 50%, 0.15);
+      background-color: var(--ui-error-background);
     }
     &.group {
       font-weight: bold;
@@ -65,18 +66,18 @@
   .ConsoleValue {
     &.boolean,
     &.number {
-      color: darkblue;
+      color: var(--ui-blue-text);
     }
 
     &.observable {
-      color: green;
-      background: #eee;
-      box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+      color: var(--ui-green-text);
+      background: var(--ui-surface-strong);
+      box-shadow: var(--ui-shadow-subtle);
       border-radius: 5px;
       padding: 0 5px;
       cursor: pointer;
       &:hover {
-        box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+        box-shadow: var(--ui-shadow-raised);
       }
     }
   }

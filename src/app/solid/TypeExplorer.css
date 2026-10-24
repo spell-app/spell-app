@@ -7,11 +7,11 @@
   display: flex;
   height: 100%;
   font-size: 12px;
-  background: white;
+  background: var(--spell-pane-background);
 
   &.empty {
     padding: 12px;
-    color: grey;
+    color: var(--ui-text-muted);
   }
 
   .ScopesPane,
@@ -23,7 +23,7 @@
 
   .ScopesPane {
     flex: 0 0 35%;
-    border-right: 1px solid rgba(34, 36, 38, 0.15);
+    border-right: 1px solid var(--ui-border-color);
   }
 
   .DetailsPane {
@@ -35,8 +35,8 @@
     flex: 0 0 auto;
     padding: 2px 8px;
     font-weight: bold;
-    background: #f9fafb;
-    border-bottom: 1px solid rgba(34, 36, 38, 0.15);
+    background: var(--ui-surface-muted);
+    border-bottom: 1px solid var(--ui-border-color);
   }
 
   /* Order buttons, then Refresh, at the right. */
@@ -62,7 +62,7 @@
     padding: 1px 8px 1px 0;
     font-size: 11px;
     font-style: italic;
-    color: grey;
+    color: var(--ui-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -71,7 +71,7 @@
       height: 0;
       margin: 4px 8px 3px 0;
       padding: 0;
-      border-top: 1px solid rgba(34, 36, 38, 0.1);
+      border-top: 1px solid var(--ui-border-color-internal);
     }
   }
 
@@ -83,7 +83,7 @@
   .detail,
   .inherited {
     margin-left: 0.75em;
-    color: grey;
+    color: var(--ui-text-muted);
   }
 
   .inherited {
@@ -107,7 +107,7 @@
     }
 
     &:hover {
-      background: rgba(0, 0, 0, 0.04);
+      background: var(--ui-highlight);
     }
 
     &.selected {
@@ -129,7 +129,7 @@
   .ScopeTreeGroup {
     font-size: 11px;
     text-transform: uppercase;
-    color: grey;
+    color: var(--ui-text-muted);
 
     .body:hover .label {
       text-decoration: none;
@@ -147,12 +147,12 @@
   .Breadcrumbs {
     margin-bottom: 6px;
     padding-bottom: 4px;
-    border-bottom: 1px solid rgba(34, 36, 38, 0.1);
+    border-bottom: 1px solid var(--ui-border-color-internal);
 
     .crumb {
       white-space: nowrap;
       cursor: pointer;
-      color: #4183c4;
+      color: var(--ui-link);
 
       &:hover {
         text-decoration: underline;
@@ -166,7 +166,7 @@
 
     .divider {
       margin: 0 0.4em;
-      color: grey;
+      color: var(--ui-text-muted);
     }
   }
 
@@ -198,12 +198,12 @@
       border-radius: 3px;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.04);
+        background: var(--ui-highlight);
       }
     }
 
     &.empty {
-      color: grey;
+      color: var(--ui-text-muted);
       font-style: italic;
     }
 
@@ -219,13 +219,13 @@
   .MemberGroup > .DetailsSectionTitle {
     font-size: 11px;
     text-transform: uppercase;
-    color: grey;
+    color: var(--ui-text-muted);
   }
 
   .MemberDetails {
     margin: 2px 0 6px 7px;
     padding-left: 8px;
-    border-left: 2px solid rgba(34, 36, 38, 0.1);
+    border-left: 2px solid var(--ui-border-color-internal);
   }
 
   .DetailsSection {
@@ -262,7 +262,7 @@
   .RuleName {
     font-family: monaco, monospace;
     font-size: 11px;
-    color: grey;
+    color: var(--ui-text-muted);
   }
 
   pre.code {
@@ -272,7 +272,7 @@
     font-family: monaco, monospace;
     font-size: 11px;
     tab-size: 2;
-    background: #f6f8fa;
+    background: var(--ui-surface-muted);
     border-radius: 3px;
   }
 
@@ -317,20 +317,20 @@
       margin: 0 0 0.5em;
       padding: 4px;
       overflow: auto;
-      background: #f6f8fa;
+      background: var(--ui-surface-muted);
     }
 
     hr {
       border: none;
-      border-top: 1px solid rgba(34, 36, 38, 0.15);
+      border-top: 1px solid var(--ui-border-color);
     }
 
     &.hover {
       margin: 2px 0 6px 20px;
       padding: 6px 8px;
-      border: 1px solid rgba(34, 36, 38, 0.15);
+      border: 1px solid var(--ui-border-color);
       border-radius: 3px;
-      background: #fdfdfd;
+      background: var(--ui-surface);
     }
   }
 }

@@ -1,3 +1,4 @@
+import "./spell.css"
 import "./AppContainer.css"
 
 /****************

@@ -8,6 +8,7 @@ import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "spell-pa
 // Import directly, NOT through the `spell-app/app/solid` barrel, which pulls in the editor
 import { tracked } from "./tracked"
 
+import "./spell.css"
 import "./ConsoleLines.css"
 
 //

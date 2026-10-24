@@ -1,6 +1,7 @@
 import type { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import type * as UIT from "spell-app/app/ui/ui.types"
+import { CodeThemes } from "spell-app/app/ui/monaco/themes/CodeThemes"
 import { monaco } from "./monaco"
 import { AppAddresses } from "./AppAddresses"
 import { SpellHeadings } from "./SpellHeadings"
@@ -14,7 +15,7 @@ import { SpellLanguageFeatures } from "./SpellLanguageFeatures"
  * - Language features come from `LSP.SpellLanguageService`, in-process -- see `SpellLanguageFeatures`.
  * - What to do when a file is edited, or another should be shown, is up to whoever shows editors:
  *   the app, each `<spell-editor>`.  So SEVERAL can listen:  see `onEdit()`, `onOpen()`.
- * - Theme is Monaco's default `vs`.
+ * - The code's colours are Purple, light or dark as the page is:  `CodeThemes`, which `register()` starts.
  * - Heading comments -- `#`, `##` ... -- are bold by decoration:  see `SpellHeadings`.
  */
 export class SpellMonaco {
@@ -23,11 +24,11 @@ export class SpellMonaco {
 
   /**
    * Editor options every `<MonacoEditor>` starts with.
+   * - No `theme`:  Monaco has one per page, which `CodeThemes` sets;  an editor naming one would reset every editor.
    * - Always TABS in spell, shown 3 wide.
    * - Formats as you type:  a Spanish keyword typed without its accent gets it back (`SpellLanguageFeatures`).
    */
   static OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
-    theme: "vs",
     automaticLayout: true,
     tabSize: 3,
     insertSpaces: false,
@@ -116,6 +117,7 @@ export class SpellMonaco {
   static register(): SpellMonacoParts {
     if (SpellMonaco.#registered) return SpellMonaco.#registered
     const { LANGUAGE } = SpellMonaco
+    CodeThemes.register()
     SpellHeadings.watch(LANGUAGE)
     monaco.languages.register({ id: LANGUAGE, extensions: [".spell"], mimetypes: ["text/spell", "text/x-spell"] })
     monaco.languages.setLanguageConfiguration(LANGUAGE, SpellMonaco.CONFIGURATION)
