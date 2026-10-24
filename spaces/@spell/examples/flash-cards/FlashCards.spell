@@ -1,0 +1,121 @@
+## Flash Cards
+// A deck of cards to learn from:  a word on the front, what it means on the back.
+// Click the card to turn it over, then say whether you knew it:  the score keeps count,
+// and the next card comes up at random.
+// What's where, top to bottom:
+//   a card:  its two sides, and turning it over
+//   the quiz:  the deck, the card showing, the score, and its drawing
+//   the deck:  the words to learn
+//   start
+//   tests
+
+
+## A card:  a word on the front, what it means on the back
+a "flash card" is a drawable thing where:
+	- its "front" is text
+	- its "back" is text
+	// which side is up
+	- its "side" is one of front or back
+	- it "is turned over" if its side is back
+
+	- to turn it over:
+		set its side to back if its side is front otherwise front
+
+	// one side at a time:  a click turns it over
+	- to draw it:
+		return <div part="card" onClick={turn it over}>
+			<div part="hint">{"What it means" if its side is back otherwise "Spanish"}</div>
+			<div part="word">{its back if it is turned over otherwise its front}</div>
+		</div>
+
+// the cards to learn
+a "deck" is a list of flash cards
+
+
+## The quiz:  the deck, the card showing, and the score
+quiz is an app where:
+	- its "deck" is a new deck
+	// the card showing
+	- its "card" is a flash card
+	// how many you knew, and how many you've tried
+	- its "known" is a number
+	- its "tried" is a number
+
+	- its "score" is:
+		"Nothing tried yet" if its tried is 0
+		its known + " of " + its tried + " right" otherwise
+
+	// a card from the deck at random, front up:  never the one just shown
+	- to deal a card:
+		set others to cards in its deck where it is not the card of quiz
+		set its card to a random card in others
+		set the side of its card to front
+
+	// you knew it, or you didn't:  counted, then the next card
+	- to say i knew it:
+		set its known to its known + 1
+		set its tried to its tried + 1
+		deal a card
+	- to say i missed it:
+		set its tried to its tried + 1
+		deal a card
+
+	- to start over:
+		set its known to 0
+		set its tried to 0
+		deal a card
+
+	// the score, the card, then what you can do:  turn it over, or say how you did
+	- to draw it:
+		return <div class="Quiz">
+			<ui-menu secondary>
+				<ui-item type="header">Flash Cards</ui-item>
+				<ui-item>{its score}</ui-item>
+				<ui-menu position="right">
+					<ui-item onClick={start over}>
+						<ui-icon name="redo"/>
+						Start over
+					</ui-item>
+				</ui-menu>
+			</ui-menu>
+			{draw its card}
+			<div class="Answers">
+				{<ui-button primary onClick={turn its card over}>Show the answer</ui-button> if its card is not turned over otherwise <>
+					<ui-button positive icon="check" onClick={say i knew it}>I knew it</ui-button>
+					<ui-button negative basic icon="close" onClick={say i missed it}>I missed it</ui-button>
+				</>}
+			</div>
+		</div>
+
+
+## The deck:  twelve Spanish words -- add your own
+to add (front as text) meaning (back as text):
+	add (a new flash card with front = front, back = back, side = front) to the deck of quiz
+
+add "el gato" meaning "the cat"
+add "el perro" meaning "the dog"
+add "la casa" meaning "the house"
+add "el libro" meaning "the book"
+add "la manzana" meaning "the apple"
+add "el agua" meaning "the water"
+add "la luna" meaning "the moon"
+add "el sol" meaning "the sun"
+add "la playa" meaning "the beach"
+add "el tren" meaning "the train"
+add "la llave" meaning "the key"
+add "la mariposa" meaning "the butterfly"
+
+
+## Start
+start over
+start quiz
+
+
+## Tests
+to test turning a card over
+	set the card to a new flash card with front = "el gato", back = "the cat", side = front
+	the card is turned over should be no
+	turn the card over
+	the card is turned over should be yes
+	turn the card over
+	the side of the card should be front

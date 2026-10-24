@@ -1,0 +1,235 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "FlashCard",
+    "Deck",
+    "Quiz",
+    "add_$front_meaning_$back",
+    "test_turning_a_card_over"
+  ],
+  "statements": [
+    {
+      "type": "FlashCard",
+      "superType": "Drawable",
+      "defined": "/FlashCards.spell:498-1051"
+    },
+    {
+      "property": "front",
+      "of": "FlashCard",
+      "datatype": "text",
+      "defined": "/FlashCards.spell:543-562"
+    },
+    {
+      "property": "back",
+      "of": "FlashCard",
+      "datatype": "text",
+      "defined": "/FlashCards.spell:566-584"
+    },
+    {
+      "property": "side",
+      "classVariable": "Sides",
+      "of": "FlashCard",
+      "enumeration": [
+        "front",
+        "back"
+      ],
+      "defined": "/FlashCards.spell:609-643"
+    },
+    {
+      "syntax": "{operator:is_or_is_not} turned over",
+      "output": "is_turned_over",
+      "rule": "method_postfix",
+      "of": "Flashcard",
+      "kind": "method",
+      "name": "\"is turned over\"",
+      "returns": "choice",
+      "defined": "/FlashCards.spell:647-686"
+    },
+    {
+      "syntax": "turn {thisArg:expression} over",
+      "output": "turn_over",
+      "rule": "method_call",
+      "of": "FlashCard",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn it over",
+      "defined": "/FlashCards.spell:691-767"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "FlashCard",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/FlashCards.spell:819-1051"
+    },
+    {
+      "type": "Deck",
+      "superType": "List",
+      "itemType": "FlashCard",
+      "defined": "/FlashCards.spell:1075-1108"
+    },
+    {
+      "type": "Quiz",
+      "superType": "App",
+      "defined": "/FlashCards.spell:1167-2794"
+    },
+    {
+      "property": "deck",
+      "of": "Quiz",
+      "datatype": "Deck",
+      "defined": "/FlashCards.spell:1192-1216"
+    },
+    {
+      "property": "card",
+      "of": "Quiz",
+      "datatype": "FlashCard",
+      "defined": "/FlashCards.spell:1241-1267"
+    },
+    {
+      "property": "known",
+      "of": "Quiz",
+      "datatype": "number",
+      "defined": "/FlashCards.spell:1320-1343"
+    },
+    {
+      "property": "tried",
+      "of": "Quiz",
+      "datatype": "number",
+      "defined": "/FlashCards.spell:1347-1370"
+    },
+    {
+      "property": "score",
+      "of": "Quiz",
+      "datatype": "text",
+      "defined": "/FlashCards.spell:1375-1484"
+    },
+    {
+      "syntax": "deal a card (of {thisArg:expression})?",
+      "output": "deal_a_card",
+      "rule": "method_call",
+      "of": "Quiz",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "deal a card",
+      "defined": "/FlashCards.spell:1561-1721"
+    },
+    {
+      "syntax": "say i knew {thisArg:expression}",
+      "output": "say_i_knew",
+      "rule": "method_call",
+      "of": "Quiz",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "say i knew it",
+      "defined": "/FlashCards.spell:1787-1884"
+    },
+    {
+      "syntax": "say i missed {thisArg:expression}",
+      "output": "say_i_missed",
+      "rule": "method_call",
+      "of": "Quiz",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "say i missed it",
+      "defined": "/FlashCards.spell:1888-1954"
+    },
+    {
+      "syntax": "start over (of {thisArg:expression})?",
+      "output": "start_over",
+      "rule": "method_call",
+      "of": "Quiz",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "start over",
+      "defined": "/FlashCards.spell:1959-2029"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Quiz",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/FlashCards.spell:2115-2794"
+    },
+    {
+      "syntax": "add {callArgs:expression} meaning {callArgs:expression}",
+      "output": "add_$front_meaning_$back",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "name": "add (front as text) meaning (back as text)",
+      "params": [
+        {
+          "name": "front",
+          "datatype": "text"
+        },
+        {
+          "name": "back",
+          "datatype": "text"
+        }
+      ],
+      "defined": "/FlashCards.spell:2848-2984"
+    },
+    {
+      "syntax": "test turning a card over",
+      "output": "test_turning_a_card_over",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "turning a card over",
+      "defined": "/FlashCards.spell:3442-3713"
+    }
+  ],
+  "codeLines": [
+    18,
+    21,
+    26,
+    32,
+    38,
+    42,
+    47,
+    56,
+    62,
+    63,
+    69,
+    75,
+    80,
+    85,
+    91,
+    98,
+    104,
+    109,
+    116,
+    155,
+    183
+  ]
+}

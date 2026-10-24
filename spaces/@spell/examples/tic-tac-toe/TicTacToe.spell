@@ -1,0 +1,107 @@
+## Tic-Tac-Toe
+// Two players take turns, X then O, putting their mark in an empty square.
+// Three in a row, across, down or corner to corner, wins;  nine marks and no row is a draw.
+// What's where, top to bottom:
+//   a square, and the board:  nine squares in a grid
+//   the game:  whose turn it is, the rules for a win, and its drawing
+//   start
+//   tests
+
+
+## A square:  empty, or holding an X or an O
+a "square" is a drawable thing where:
+	- its "mark" is text
+	- it "is empty" if its mark is ""
+
+	// a click plays it:  the game says whether it can
+	- to draw it:
+		return <button part="mark" onClick={play it}>{its mark}</button>
+
+## The board:  nine squares, three a row -- styles.css lays them out
+a "board" is a drawable list of squares
+
+// a square is on one board
+a square belongs to one board
+
+
+## The game
+tic tac toe is an app where:
+	- its "board" is a new board
+	// whose turn it is:  X or O
+	- its "turn" is text
+	// who won:  X, O, "nobody" for a draw, or "" while the game goes on
+	- its "winner" is text
+	- it "is over" if its winner is not ""
+
+	// what the line above the board says
+	- its "message" is:
+		its turn + " to play" if its winner is ""
+		"A draw" if its winner is "nobody"
+		its winner + " wins!" otherwise
+
+	// nine squares, made with the game
+	// - inside the loop `it` is the count:  so the board is `the board of tic tac toe`
+	- to create it:
+		repeat 9 times
+			add a new square to the board of tic tac toe
+
+	// an empty board, X to play
+	- to start a new game:
+		for each square in its board
+			set the mark of the square to ""
+		set its turn to "X"
+		set its winner to ""
+
+	// the same mark in all three squares wins
+	- to check the line from square (a as a number) through (b as a number) to (c as a number):
+		set mark to the mark of square a of its board
+		if mark is "" return
+		if the mark of square b of its board is mark and the mark of square c of its board is mark
+			set its winner to mark
+
+	// three in a row:  each row, each column, and the two diagonals
+	- to check for a winner:
+		check the line from square 1 through 2 to 3
+		check the line from square 4 through 5 to 6
+		check the line from square 7 through 8 to 9
+		check the line from square 1 through 4 to 7
+		check the line from square 2 through 5 to 8
+		check the line from square 3 through 6 to 9
+		check the line from square 1 through 5 to 9
+		check the line from square 3 through 5 to 7
+		if its winner is "" and its board has no squares where it is empty
+			set its winner to "nobody"
+
+	// the message, the board, then a button for a new game
+	- to draw it:
+		return <div class="TicTacToe">
+			<h2 class="Message">{its message}</h2>
+			{draw its board}
+			<ui-button primary onClick={start a new game}>New game</ui-button>
+		</div>
+
+
+## Playing a square:  the turn's mark, if the square is empty and nobody has won
+to play (a square):
+	if tic tac toe is over or the square is not empty return
+	set the mark of the square to the turn of tic tac toe
+	check for a winner
+	set the turn of tic tac toe to "O" if the turn of tic tac toe is "X" otherwise "X"
+
+
+## Start
+start a new game
+start tic tac toe
+
+
+## Tests
+to test three in a row
+	start a new game
+	play square 1 of the board of tic tac toe
+	play square 4 of the board of tic tac toe
+	play square 2 of the board of tic tac toe
+	play square 5 of the board of tic tac toe
+	play square 3 of the board of tic tac toe
+	the winner of tic tac toe should be "X"
+	the message of tic tac toe should be "X wins!"
+	start a new game

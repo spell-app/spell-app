@@ -1,0 +1,11 @@
+{
+  "title": "Tic-Tac-Toe",
+  "description": "Noughts and crosses on a grid of squares that draw themselves:  whose turn it is, and three in a row, written as sentences",
+  "imports": [{
+    "path": "/TicTacToe.spell",
+    "active": true
+  }, {
+    "path": "/styles.css",
+    "active": true
+  }]
+}

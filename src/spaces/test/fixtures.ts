@@ -40,11 +40,22 @@ export const FIXTURES_GROUP = "@spell/test"
  * - Solitaire, and Solitario, its Spanish twin:  each a whole game, its own cards, deck and piles in it.
  * - Task List, and Lista de tareas, its Spanish twin:  a to-do list, its tasks selected and edited together.
  * - Calculator:  an app in the sentence style, its keypad Spell UI's buttons (epic `debut` P7).
+ * - Tic-Tac-Toe, Bill Splitter, Flash Cards and Habit Tracker:  a game, a form, a quiz and a checklist (epic `debut` P8).
  * - NOT frozen:  read from `spaces/@spell/examples/<name>/`, where people (and agents) edit them.
  *   - A change to one changes its snapshots:  `yarn spell:test:fixtures:bless`, then read the diff.
  * - Their snapshots are tests', never beside the example:  `EXAMPLE_SNAPSHOTS_DIR`.
  */
-export const EXAMPLE_FIXTURES = new Set(["Solitaire", "Solitario", "TaskList", "ListaDeTareas", "calculator"])
+export const EXAMPLE_FIXTURES = new Set([
+  "Solitaire",
+  "Solitario",
+  "TaskList",
+  "ListaDeTareas",
+  "calculator",
+  "tic-tac-toe",
+  "bill-splitter",
+  "flash-cards",
+  "habit-tracker"
+])
 
 /** The examples' group, `@spell/examples`:  where `EXAMPLE_FIXTURES` are read from. */
 export const EXAMPLES_GROUP = "@spell/examples"

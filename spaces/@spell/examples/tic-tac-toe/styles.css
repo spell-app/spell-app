@@ -1,0 +1,54 @@
+/* File styles.css:  how the game looks.
+   - The board, <tic-tac-toe-board>, lays its nine squares out three a row.
+   - Each square, <tic-tac-toe-square>, is a big button:  its part, ::part(mark). */
+
+.TicTacToe {
+  max-width: 22em;
+  margin-inline: auto;
+  padding-block: 1.5em;
+  text-align: center;
+}
+
+.Message {
+  min-height: 1.5em;
+}
+
+/****************
+ * The board:  three squares a row, lines between them
+ ****************/
+
+tic-tac-toe-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4em;
+  margin-block: 1em 1.5em;
+}
+
+/****************
+ * A square:  a square button, its mark big
+ ****************/
+
+tic-tac-toe-square::part(mark) {
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 0.5em;
+  background: rgb(127 127 127 / 0.12);
+  color: inherit;
+  font: inherit;
+  font-size: 3em;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+tic-tac-toe-square::part(mark):hover {
+  background: rgb(127 127 127 / 0.2);
+}
+
+tic-tac-toe-square[mark="X"]::part(mark) {
+  color: #2185d0;
+}
+
+tic-tac-toe-square[mark="O"]::part(mark) {
+  color: #db2828;
+}

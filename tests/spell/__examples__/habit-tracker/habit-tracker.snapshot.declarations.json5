@@ -1,0 +1,184 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Habit",
+    "Week",
+    "HabitTracker",
+    "test_streaks"
+  ],
+  "statements": [
+    {
+      "type": "Habit",
+      "superType": "Drawable",
+      "defined": "/HabitTracker.spell:425-1892"
+    },
+    {
+      "property": "name",
+      "of": "Habit",
+      "datatype": "text",
+      "defined": "/HabitTracker.spell:465-483"
+    },
+    {
+      "property": "monday",
+      "of": "Habit",
+      "datatype": "choice",
+      "defined": "/HabitTracker.spell:487-512"
+    },
+    {
+      "property": "tuesday",
+      "of": "Habit",
+      "datatype": "choice",
+      "defined": "/HabitTracker.spell:516-542"
+    },
+    {
+      "property": "wednesday",
+      "of": "Habit",
+      "datatype": "choice",
+      "defined": "/HabitTracker.spell:546-574"
+    },
+    {
+      "property": "thursday",
+      "of": "Habit",
+      "datatype": "choice",
+      "defined": "/HabitTracker.spell:578-605"
+    },
+    {
+      "property": "friday",
+      "of": "Habit",
+      "datatype": "choice",
+      "defined": "/HabitTracker.spell:609-634"
+    },
+    {
+      "property": "saturday",
+      "of": "Habit",
+      "datatype": "choice",
+      "defined": "/HabitTracker.spell:638-665"
+    },
+    {
+      "property": "sunday",
+      "of": "Habit",
+      "datatype": "choice",
+      "defined": "/HabitTracker.spell:669-694"
+    },
+    {
+      "property": "days",
+      "of": "Habit",
+      "datatype": "list of choices",
+      "defined": "/HabitTracker.spell:726-832"
+    },
+    {
+      "property": "count",
+      "of": "Habit",
+      "datatype": "number",
+      "defined": "/HabitTracker.spell:877-938"
+    },
+    {
+      "property": "streak",
+      "of": "Habit",
+      "datatype": "number",
+      "defined": "/HabitTracker.spell:982-1175"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Habit",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/HabitTracker.spell:1268-1892"
+    },
+    {
+      "type": "Week",
+      "superType": "DrawableList",
+      "itemType": "Habit",
+      "defined": "/HabitTracker.spell:1930-2113"
+    },
+    {
+      "property": "week",
+      "of": "Habit",
+      "datatype": "Week",
+      "exclusive": true,
+      "defined": "/HabitTracker.spell:2141-2168"
+    },
+    {
+      "type": "HabitTracker",
+      "superType": "App",
+      "defined": "/HabitTracker.spell:2186-3111"
+    },
+    {
+      "property": "habits",
+      "of": "HabitTracker",
+      "datatype": "Week",
+      "defined": "/HabitTracker.spell:2220-2246"
+    },
+    {
+      "property": "draft",
+      "of": "HabitTracker",
+      "datatype": "text",
+      "defined": "/HabitTracker.spell:2287-2306"
+    },
+    {
+      "syntax": "add the draft (of {thisArg:expression})?",
+      "output": "add_the_draft",
+      "rule": "method_call",
+      "of": "HabitTracker",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "add the draft",
+      "returns": "nothing",
+      "defined": "/HabitTracker.spell:2372-2491"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "HabitTracker",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/HabitTracker.spell:2561-3111"
+    },
+    {
+      "syntax": "test streaks",
+      "output": "test_streaks",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "streaks",
+      "defined": "/HabitTracker.spell:3513-3771"
+    }
+  ],
+  "codeLines": [
+    16,
+    19,
+    24,
+    29,
+    34,
+    39,
+    44,
+    49,
+    54,
+    60,
+    65,
+    70,
+    83,
+    107,
+    121,
+    124,
+    125,
+    131,
+    137,
+    144,
+    201
+  ]
+}

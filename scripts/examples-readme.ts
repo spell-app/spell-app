@@ -49,7 +49,18 @@ const GROUPS = [
  * The examples in the order a newcomer should open them;  one not listed comes after these, by name.
  * - Add a new example here where it fits.
  */
-const LEARNING_ORDER = ["fizzbuzz", "calculator", "TaskList", "ListaDeTareas", "Solitaire", "Solitario"]
+const LEARNING_ORDER = [
+  "fizzbuzz",
+  "calculator",
+  "tic-tac-toe",
+  "bill-splitter",
+  "flash-cards",
+  "habit-tracker",
+  "TaskList",
+  "ListaDeTareas",
+  "Solitaire",
+  "Solitario"
+]
 
 /** The comments the table sits between. */
 const START = "<!-- examples:start -->"

@@ -1,0 +1,190 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "BillSplitter",
+    "Diner",
+    "Table",
+    "write_$amount_as_money",
+    "test_money"
+  ],
+  "statements": [
+    {
+      "type": "Diner",
+      "superType": "Drawable",
+      "defined": "/BillSplitter.spell:2329-3144"
+    },
+    {
+      "property": "name",
+      "of": "Diner",
+      "datatype": "text",
+      "defined": "/BillSplitter.spell:2369-2387"
+    },
+    {
+      "property": "amount",
+      "of": "Diner",
+      "datatype": "number",
+      "defined": "/BillSplitter.spell:2429-2453"
+    },
+    {
+      "property": "tip",
+      "of": "Diner",
+      "datatype": "number",
+      "defined": "/BillSplitter.spell:2532-2592"
+    },
+    {
+      "property": "share",
+      "of": "Diner",
+      "datatype": "number",
+      "defined": "/BillSplitter.spell:2596-2631"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Diner",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/BillSplitter.spell:2718-3144"
+    },
+    {
+      "syntax": "remove {thisArg:expression}",
+      "output": "remove",
+      "rule": "method_call",
+      "of": "Diner",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "remove (a diner)",
+      "defined": "/BillSplitter.spell:3408-3479"
+    },
+    {
+      "type": "Table",
+      "superType": "DrawableList",
+      "itemType": "Diner",
+      "defined": "/BillSplitter.spell:3183-3320"
+    },
+    {
+      "syntax": "write {callArgs:expression} as money",
+      "output": "write_$amount_as_money",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "name": "write (amount as a number) as money",
+      "params": [
+        {
+          "name": "amount",
+          "datatype": "number"
+        }
+      ],
+      "returns": "text",
+      "defined": "/BillSplitter.spell:489-746"
+    },
+    {
+      "type": "BillSplitter",
+      "superType": "App",
+      "defined": "/BillSplitter.spell:770-2264"
+    },
+    {
+      "property": "diners",
+      "of": "BillSplitter",
+      "datatype": "Table",
+      "defined": "/BillSplitter.spell:804-831"
+    },
+    {
+      "property": "percent",
+      "of": "BillSplitter",
+      "datatype": "number",
+      "defined": "/BillSplitter.spell:890-915"
+    },
+    {
+      "property": "subtotal",
+      "of": "BillSplitter",
+      "datatype": "number",
+      "defined": "/BillSplitter.spell:956-1097"
+    },
+    {
+      "property": "tip",
+      "of": "BillSplitter",
+      "datatype": "number",
+      "defined": "/BillSplitter.spell:1101-1146"
+    },
+    {
+      "property": "total",
+      "of": "BillSplitter",
+      "datatype": "number",
+      "defined": "/BillSplitter.spell:1150-1187"
+    },
+    {
+      "syntax": "add someone (of {thisArg:expression})?",
+      "output": "add_someone",
+      "rule": "method_call",
+      "of": "BillSplitter",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "add someone",
+      "defined": "/BillSplitter.spell:1230-1306"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "BillSplitter",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/BillSplitter.spell:1350-2264"
+    },
+    {
+      "property": "table",
+      "of": "Diner",
+      "datatype": "Table",
+      "exclusive": true,
+      "defined": "/BillSplitter.spell:3351-3379"
+    },
+    {
+      "syntax": "test money",
+      "output": "test_money",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "money",
+      "defined": "/BillSplitter.spell:3807-3935"
+    }
+  ],
+  "codeLines": [
+    17,
+    20,
+    26,
+    32,
+    36,
+    41,
+    69,
+    79,
+    91,
+    101,
+    102,
+    108,
+    114,
+    120,
+    124,
+    129,
+    134,
+    186,
+    197
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Bill Splitter",
+  "description": "Who owes what after a meal:  a form of people and what each ordered, a tip shared out the same way, and sums that follow every keystroke",
+  "imports": [{
+    "path": "/BillSplitter.spell",
+    "active": true
+  }, {
+    "path": "/styles.css",
+    "active": true
+  }]
+}

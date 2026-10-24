@@ -1,0 +1,11 @@
+{
+  "title": "Flash Cards",
+  "description": "A deck of Spanish words to quiz yourself on:  a card turns over on a click, you say whether you knew it, and a score keeps count",
+  "imports": [{
+    "path": "/FlashCards.spell",
+    "active": true
+  }, {
+    "path": "/styles.css",
+    "active": true
+  }]
+}

@@ -18,11 +18,11 @@ a king on an empty one, and after that, one card lower, in the other color.
 That isn't a comment above the code that checks a move.
 It IS the check:  click a card, and the game moves it to the first pile that says it can take it.
 
-Six example apps ship with the Spell editor, from FizzBuzz up to that solitaire, and two libraries to build on.
+Ten example apps ship with the Spell editor, from FizzBuzz up to that solitaire, and two libraries to build on.
 Each one is a real project:  open it, and its app runs beside its text;  change a line, and the app follows.
 Here to make your own?  [Skip to the ideas](#ideas-for-your-own).
 
-## Six apps, simplest first
+## Ten apps, simplest first
 
 Open them in this order:  each one adds an idea or two to the one before.
 Each picture is the example open in the editor:
@@ -35,6 +35,10 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 | --- | --- | --- | --- |
 | FizzBuzz | [`@spell/examples/fizzbuzz`](spaces/@spell/examples/fizzbuzz/) | Counting to 100 with fizz and buzz:  a loop, `if` and `otherwise`, and `print`, in eight lines | <a href="docs/images/examples/fizzbuzz.png"><img src="docs/images/examples/fizzbuzz.png" width="360" alt="FizzBuzz open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Calculator | [`@spell/examples/calculator`](spaces/@spell/examples/calculator/) | A pocket calculator on Spell UI:  an app with text properties, actions like `to clear (a calculator)`, and a keypad of buttons whose clicks are Spell | <a href="docs/images/examples/calculator.png"><img src="docs/images/examples/calculator.png" width="360" alt="Calculator open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Tic-Tac-Toe | [`@spell/examples/tic-tac-toe`](spaces/@spell/examples/tic-tac-toe/) | Noughts and crosses on a grid of squares that draw themselves:  whose turn it is, and three in a row, written as sentences | <a href="docs/images/examples/tic-tac-toe.png"><img src="docs/images/examples/tic-tac-toe.png" width="360" alt="Tic-Tac-Toe open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Bill Splitter | [`@spell/examples/bill-splitter`](spaces/@spell/examples/bill-splitter/) | Who owes what after a meal:  a form of people and what each ordered, a tip shared out the same way, and sums that follow every keystroke | <a href="docs/images/examples/bill-splitter.png"><img src="docs/images/examples/bill-splitter.png" width="360" alt="Bill Splitter open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Flash Cards | [`@spell/examples/flash-cards`](spaces/@spell/examples/flash-cards/) | A deck of Spanish words to quiz yourself on:  a card turns over on a click, you say whether you knew it, and a score keeps count | <a href="docs/images/examples/flash-cards.png"><img src="docs/images/examples/flash-cards.png" width="360" alt="Flash Cards open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Habit Tracker | [`@spell/examples/habit-tracker`](spaces/@spell/examples/habit-tracker/) | A week of checkboxes per habit:  each habit its own element with a form of its own, its days done and its longest streak worked out as you tick | <a href="docs/images/examples/habit-tracker.png"><img src="docs/images/examples/habit-tracker.png" width="360" alt="Habit Tracker open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Task List | [`@spell/examples/TaskList`](spaces/@spell/examples/TaskList/) | A to-do list in the outline style:  each task its own element, with Spell UI's controls;  `where` filters it, and a click selects tasks (shift and command for more) for a property editor that changes them all at once | <a href="docs/images/examples/TaskList.png"><img src="docs/images/examples/TaskList.png" width="360" alt="Task List open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Lista de tareas | [`@spell/examples/ListaDeTareas`](spaces/@spell/examples/ListaDeTareas/) | Task List's Spanish twin:  a to-do list in the outline style, in Spanish, each task its own element with Spell UI's controls, a click selecting tasks for a property editor that changes them all at once | <a href="docs/images/examples/ListaDeTareas.png"><img src="docs/images/examples/ListaDeTareas.png" width="360" alt="Lista de tareas open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Solitaire | [`@spell/examples/Solitaire`](spaces/@spell/examples/Solitaire/) | Klondike solitaire in the outline style:  its own cards, deck and piles (`Card`, `Deck`, `Pile`), then the game, its kinds of piles (`a "tableau" is a pile where:`), their moves, layout and CSS;  `pause for` animates the deal | <a href="docs/images/examples/Solitaire.png"><img src="docs/images/examples/Solitaire.png" width="360" alt="Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
@@ -104,7 +108,7 @@ Everything else on this page is written by hand.
 ## Every app here has four parts
 
 FizzBuzz only prints.
-The other five draw an app, and each is built the same way:
+The other nine draw an app, and each is built the same way:
 what its things ARE, what they DO, how they DRAW, and one line that starts it.
 If you know React, you know all four already, under other names.
 
@@ -255,6 +259,32 @@ playFizzbuzz()
 <img src="docs/images/examples/fizzbuzz.png" width="640" alt="FizzBuzz open in the Spell editor:  its program on the left, an empty App pane on the right, its first line of output at the bottom">
 
 _FizzBuzz in the editor:  nothing to draw, so the App pane stays empty, and the output starts at the bottom left._
+
+## Four small apps:  a game, a form, a quiz and a checklist
+
+Each is one file of Spell and a stylesheet, and each shows one thing the language does well.
+
+| App | What to look at | Its edge |
+| --- | --- | --- |
+| [Tic-Tac-Toe](spaces/@spell/examples/tic-tac-toe/TicTacToe.spell) | the rule for a win, eight sentences:  `check the line from square 1 through 2 to 3` | inside `repeat 9 times`, `its` is the count, so the board is `the board of tic tac toe` there |
+| [Bill Splitter](spaces/@spell/examples/bill-splitter/BillSplitter.spell) | worked-out values a form changes:  `- its "share" is its amount + its tip`, each sum following every keystroke | no word adds up a list, nor writes money:  a loop adds the amounts, and `to write (amount as a number) as money` makes "$12.50" |
+| [Flash Cards](spaces/@spell/examples/flash-cards/FlashCards.spell) | a random card, never the one just shown:  `cards in its deck where it is not the card of quiz` | `a random card in ...` reads;  `a random flash card in ...`, two words, doesn't yet |
+| [Habit Tracker](spaces/@spell/examples/habit-tracker/HabitTracker.spell) | a streak, worked out from a week of yes and no:  `for each day in its days` | no dates:  the week is seven properties, Monday to Sunday, with no "today" |
+
+```spell
+// the same mark in all three squares wins
+- to check the line from square (a as a number) through (b as a number) to (c as a number):
+	set mark to the mark of square a of its board
+	if mark is "" return
+	if the mark of square b of its board is mark and the mark of square c of its board is mark
+		set its winner to mark
+```
+
+_From Tic-Tac-Toe:  a phrase with three blanks, which the game says eight times, once a line._
+
+- Each has a test of its own:  `spell test @spell/examples/tic-tac-toe` plays a game to a win.
+- Tic-Tac-Toe, Bill Splitter and Habit Tracker draw their rows as things of their own,
+  as Task List does (below):  `<tic-tac-toe-square>`, `<bill-splitter-diner>`, `<habit-tracker-habit>`.
 
 ## Task List:  things that draw themselves, a list, and a property editor
 
@@ -578,13 +608,11 @@ _Solitario open in the editor, dealt:  the same board, its menu in Spanish, draw
 
 ## Ideas for your own
 
-Eight programs worth writing next, each built from what an example already does.
+Six programs worth writing next, each built from what an example already does.
 The last column says where to borrow from;  where a part isn't in the language yet, the row says so.
 
 | Idea | What it is | Borrow from |
 | --- | --- | --- |
-| Flashcards | a deck of question cards, one at random, each turning over on a click, and a score | the solitaires:  `a random card in the deck`, `to turn it over`;  the card-and-deck idea, for learning |
-| A habit or chore tracker | tasks with yes/no done flags, drawn as a table | Task List's `where` filters;  **not yet** "today's chores":  a date has a year and a day, no month yet, and no word means today |
 | A recipe scaler | ingredients with amounts, scaled to a number of servings | numbers, derived properties, `to scale (a recipe) to (servings as a number)` |
 | Dice games (Yahtzee, Pig) | a drawable die, rolled with an animation, scored by phrases | Solitaire's card:  `a "die" is a drawable thing`, Solitaire's piles' `<css>`, `pause for`;  Task List's phrases:  `a roll "is a full house" if ...` |
 | Memory | cards face up and face down in a grid | Solitaire's `Card`, `Deck` and `Pile`, copied in or imported from it;  a drawable grid |

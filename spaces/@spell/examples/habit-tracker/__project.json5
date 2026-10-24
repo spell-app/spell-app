@@ -1,0 +1,11 @@
+{
+  "title": "Habit Tracker",
+  "description": "A week of checkboxes per habit:  each habit its own element with a form of its own, its days done and its longest streak worked out as you tick",
+  "imports": [{
+    "path": "/HabitTracker.spell",
+    "active": true
+  }, {
+    "path": "/styles.css",
+    "active": true
+  }]
+}
