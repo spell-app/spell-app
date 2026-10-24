@@ -211,5 +211,17 @@
   "spell": {
     "commands": "./src/cli/commands.ts",
     "hooks": "./src/cli/hooks.ts"
+  },
+  "spellPublish": {
+    "exclude": [
+      "spaces/test/**",
+      "app/tools/**"
+    ],
+    "reactJsx": [
+      "cli/**"
+    ],
+    "files": [
+      "spaces"
+    ]
   }
 }
