@@ -179,6 +179,12 @@ export const APP_TEXTS = {
   doIt: "Do it:  {action}()",
   thingsInOrderMade: "In the order they were made",
   thingsByType: "By type, sub-types included",
+  // the right column's tabs (`<EditorTabs>`)
+  appTab: "App",
+  thingsTab: "Things",
+  typesTab: "Types",
+  javascriptTab: "JavaScript",
+  treeTab: "Tree",
 
   ////////////////
   // ## The runners (`SpellAppRunner.tsx`, `VSCodeRunner.tsx`)

@@ -892,7 +892,7 @@
       ],
       "usedIn": [
         {
-          "name": "SpellEditor",
+          "name": "EditorTabs",
           "file": "src/app/pages/SpellEditor.tsx"
         },
         {
@@ -2051,7 +2051,7 @@
       ],
       "usedIn": [
         {
-          "name": "SpellEditor",
+          "name": "EditorTabs",
           "file": "src/app/pages/SpellEditor.tsx"
         }
       ],
@@ -2355,9 +2355,23 @@
           "name": "children",
           "type": "JSX.Element",
           "description": "What `pane` shows."
+        },
+        {
+          "name": "tools",
+          "type": "JSX.Element",
+          "description": "Plain `<ui-icon link>`s at the toolbar's right, whatever tab shows, e.g. Restart."
+        },
+        {
+          "name": "class",
+          "type": "string",
+          "description": "Class of the pane, beside `RunnerPane`."
         }
       ],
       "usedIn": [
+        {
+          "name": "EditorTabs",
+          "file": "src/app/pages/SpellEditor.tsx"
+        },
         {
           "name": "SpellAppRunner",
           "file": "src/app/runner/SpellAppRunner.tsx"
@@ -3186,6 +3200,10 @@
       ],
       "usedIn": [
         {
+          "name": "EditorTabs",
+          "file": "src/app/pages/SpellEditor.tsx"
+        },
+        {
           "name": "SpellAppRunner",
           "file": "src/app/runner/SpellAppRunner.tsx"
         },
@@ -3224,7 +3242,7 @@
       ],
       "usedIn": [
         {
-          "name": "SpellEditor",
+          "name": "EditorTabs",
           "file": "src/app/pages/SpellEditor.tsx"
         }
       ],
@@ -3442,6 +3460,10 @@
         }
       ],
       "usedIn": [
+        {
+          "name": "EditorTabs",
+          "file": "src/app/pages/SpellEditor.tsx"
+        },
         {
           "name": "SpellAppRunner",
           "file": "src/app/runner/SpellAppRunner.tsx"

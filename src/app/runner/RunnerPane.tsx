@@ -1,4 +1,4 @@
-import { For } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import "./RunnerPane.css"
@@ -6,8 +6,11 @@ import "./RunnerPane.css"
 /****************
  * ### `<RunnerPane>`
  * One of a runner's panes:  a toolbar of `tabs`, then `children`, what tab `pane` shows.
+ * - `tools`, if any, sit at the toolbar's right, outside its scrolling items, e.g. the editor's Restart:
+ *   plain `<ui-icon link>`s, each with a `title` (an item there wouldn't take the menu's look).
  * - A single tab just says what it is.
- * - Tabs are `<ui-item>`s in a `<ui-menu>`.
+ * - Tabs are `<ui-item>`s in a `<ui-toolbar>`:  in a narrow pane they scroll sideways, with `‹` / `›` buttons,
+ *   never wrapping, and `tools` stay at the right.
  *   Whoever mounts a runner defines the `<ui-*>` tags,
  *   with `spell-app/app/solid/loadUI`, or a root around it (`<spell-app>`),
  *   and gives it Fomantic's icon names (`<ui-root icons="fomantic">`, `<spell-app>`'s default `icons`).
@@ -17,8 +20,8 @@ import "./RunnerPane.css"
  ****************/
 export function RunnerPane<Id extends string>(props: RunnerPaneProps<Id>) {
   return (
-    <div class="RunnerPane">
-      <ui-menu attached="" size="mini" class="RunnerPaneToolbar">
+    <div class={["RunnerPane", props.class]}>
+      <ui-toolbar attached="" size="mini" class="RunnerPaneToolbar">
         <For each={props.tabs}>
           {(tab) => (
             <ui-item
@@ -32,7 +35,12 @@ export function RunnerPane<Id extends string>(props: RunnerPaneProps<Id>) {
             </ui-item>
           )}
         </For>
-      </ui-menu>
+        <Show when={props.tools}>
+          <span slot="right" class="RunnerPaneTools">
+            {props.tools}
+          </span>
+        </Show>
+      </ui-toolbar>
       {props.children}
     </div>
   )
@@ -48,6 +56,10 @@ export type RunnerPaneProps<Id extends string> = {
   onPane?: (pane: Id) => void
   /** What `pane` shows. */
   children?: JSX.Element
+  /** Plain `<ui-icon link>`s at the toolbar's right, whatever tab shows, e.g. Restart. */
+  tools?: JSX.Element
+  /** Class of the pane, beside `RunnerPane`. */
+  class?: string
 }
 
 /** One tab of a `<RunnerPane>`'s toolbar. */

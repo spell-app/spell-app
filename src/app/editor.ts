@@ -4,6 +4,7 @@ import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
 import { SPACES } from "spell-app/spaces"
 import type { SpellConsole } from "spell-parser/core/console"
+import type { LSP } from "spell-app/lsp"
 import type { SpellRuntime } from "spell-app/app/runner"
 import type * as UIT from "spell-app/app/ui/ui.types"
 import type { monaco } from "spell-app/app/ui/monaco"
@@ -11,6 +12,8 @@ import type { monaco } from "spell-app/app/ui/monaco"
 import type * as Modals from "spell-app/app/solid/modals"
 import { navigate } from "spell-app/app/pages/navigation"
 import { appTexts } from "spell-app/app/ui/AppTexts"
+// Import directly, NOT through the runner barrel, which brings the runners
+import { wordsOfLanguages } from "spell-app/app/runner/words"
 
 ////////////////
 // ## The editor
@@ -318,6 +321,8 @@ export class EditorStore extends Observable {
 
       editor.clearCompileAppSoon()
       await project.compile()
+      // the Types tab:  its tree follows the code, compiled or not
+      await editor.refreshScopes()
       const { compiled } = project
 
       if (compiled) {
@@ -377,6 +382,8 @@ export class EditorStore extends Observable {
     // a program in another language draws with that language's tags (`<es-texto>`) and says its tests' lines in it,
     // as `<SpellAppRunner>` runs it:  Spell UI defines the tags first (epic `spanish` P21)
     const lang = project.wordsLanguages[0]
+    // the Things tab's words:  a words file per language its files are in, the one it speaks first
+    editor.programWords = wordsOfLanguages(project.wordsFiles.map((file) => SP.SpellWords.read(file.contents ?? "")))
     if (lang && lang !== "en") {
       const { RootLoader } = await import("spell-ui/components/ui-root")
       // oxlint-disable-next-line react-hooks/rules-of-hooks -- Spell UI's `useLanguage()` is no React hook
@@ -454,6 +461,85 @@ export class EditorStore extends Observable {
    */
   releaseAppRoot(element: HTMLElement): void {
     if (appRoot === element) appRoot = undefined
+  }
+
+  ////////////////
+  // ## Explorers:  the Types and Things tabs
+  ////////////////
+
+  /**
+   * Scope tree of current `project`, for the Types tab -- see `LSP.ScopeExplorer`.
+   * - Worked out again after each compile, by `refreshScopes()`.
+   * - `undefined` until the editor's language service has loaded, with Monaco.
+   */
+  @prop()
+  accessor scopeTree: LSP.ScopeNode | undefined
+
+  /**
+   * Spell's words for the members of the running program's types, for the Things tab -- see `SP.SpellWords`.
+   * - From the project's own words files, read as each run starts.
+   */
+  @prop()
+  accessor programWords: SP.SpellWordsData | undefined
+
+  /**
+   * Hand over the scope explorer on the editor's in-page language service:  `LazyMonaco` does, once Monaco loads.
+   * - NOT spell state.
+   * - Handed over, not made here:  `spell-app/lsp` is in Monaco's lazy chunk, and `editor.ts` is in the main one.
+   * - SIDE EFFECT:  works out the current project's tree at once.
+   */
+  setScopeExplorer(explorer: LSP.ScopeExplorer): void {
+    scopeExplorer = explorer
+    void editor.refreshScopes()
+  }
+
+  /**
+   * Work out current `project`'s scope tree again, into `scopeTree`:  after each compile.
+   * - Parses the projects it imports compiled first, once each, to show their sources (see `LSP.ScopeExplorer`).
+   * - NEVER throws:  a tree that can't be worked out keeps the last one, and says why in devtools.
+   */
+  async refreshScopes(): Promise<void> {
+    const { project } = editor
+    const explorer = scopeExplorer
+    if (!project || !explorer) return
+    try {
+      // its class's static, through the instance:  `editor.ts` imports LSP's TYPES only, see `setScopeExplorer()`
+      const { importedProjects } = explorer.constructor as typeof LSP.ScopeExplorer
+      for (const imported of importedProjects(project)) {
+        if (parsedImports.has(imported)) continue
+        await imported.parse()
+        parsedImports.add(imported)
+      }
+      // another project shown meanwhile:  its own refresh is on the way
+      if (project !== editor.project) return
+      editor.scopeTree = explorer.tree(project)
+    } catch (error) {
+      console.error("editor.refreshScopes():  couldn't work out the scope tree", error)
+    }
+  }
+
+  /**
+   * Details of Types tab node or member `path` -- `null` if it isn't in the last tree.
+   * - An arrow:  handed to `<TypeExplorer loadDetails>` as is.
+   */
+  scopeDetails = async (path: string): Promise<LSP.ScopeDetails | null> => {
+    const { project } = editor
+    return project && scopeExplorer ? scopeExplorer.details(project, path) : null
+  }
+
+  /**
+   * Show the place a Types tab link points to, e.g. `spell:/@spell/examples/Solitaire/Card.spell#L12`.
+   * - The editor's own addresses (`AppAddresses`):  `spell:/<file.path>`, then the line, if any.
+   * - Anything else opens in a new browser tab, e.g. a link in a docstring.
+   */
+  openScopeLink = (href: string): void => {
+    const [, encodedPath, line] = href.match(/^spell:\/([^#]*)(?:#L(\d+))?/) ?? []
+    if (encodedPath === undefined) {
+      window.open(href, "_blank", "noopener")
+      return
+    }
+    const at = { line: Math.max(Number(line ?? 1) - 1, 0), ch: 0 }
+    void editor.showFileAt(decodeURIComponent(encodedPath), { anchor: at, head: at })
   }
 
   ////////////////
@@ -800,6 +886,10 @@ let appRuntime: SpellRuntime | undefined
 let loadingRuntime: Promise<SpellRuntime> | undefined
 /** Where the running app draws -- NOT spell state either.  See `editor.setAppRoot()`. */
 let appRoot: HTMLElement | undefined
+/** Scope explorer on the in-page language service, once Monaco's loaded -- NOT spell state.  See `editor.setScopeExplorer()`. */
+let scopeExplorer: LSP.ScopeExplorer | undefined
+/** Projects imported compiled that `refreshScopes()` has parsed:  once each. */
+const parsedImports = new WeakSet<SP.SpellProject>()
 
 /**
  * `core` of the runtime programs run on -- `undefined` until it's loaded, see `editor.loadRuntime()`.
