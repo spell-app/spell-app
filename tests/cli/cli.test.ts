@@ -777,7 +777,11 @@ describe("spell translate (epic spanish P24-P26)", () => {
     expect(readFileSync(resolve(TEMP, "Artilugio", "Gizmo.es.spell"), "utf8")).toBe(
       'un "gizmo" es una cosa  // TODO: translate (types "gizmo")\n'
     )
-    expect(readFileSync(resolve(folder, "Gizmo.es.names.json5"), "utf8")).toContain('"gizmo": {\n      "name": "TODO"')
+    // the dictionary goes with the translation, into --out (epic spanish J186):  the project is never written to
+    expect(readFileSync(resolve(TEMP, "Artilugio", "Gizmo.es.names.json5"), "utf8")).toContain(
+      '"gizmo": {\n      "name": "TODO"'
+    )
+    expect(existsSync(resolve(folder, "Gizmo.es.names.json5"))).toBe(false)
   })
 
   test("a name the shared glossary has, with --no-ai:  no call, no TODO, the same word as every project (P26)", () => {
