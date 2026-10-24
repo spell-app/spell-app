@@ -45,9 +45,9 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            How the editor moves between projects. ProjectDropdown is the "Example:" dropdown at the top of the editor
-            and the runner, naming the open project; ProjectMenu is the same list as a menu of links, on the page that
-            chooses a project.
+            How the editor moves between projects. ProjectDropdown is the dropdown at the left of the editor's top bar,
+            naming the open project after its group's icon; ProjectMenu is the same list as a menu of links, on the page
+            that chooses a project.
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the spell app's editor, or reading its code</ui-item>
@@ -81,9 +81,9 @@
                   ><script type="text/plain">
                     <AppMenu>
                       <Submenu left spring>
-                        <ProjectDropdown />
-                        <Actions.showRunner />
-                        <Actions.showProjectSettings />
+                        <ProjectDropdown useRunner={props.mode === "run"} />
+                        <ModeButtons current={props.mode} />
+                        <Actions.showProjectSettings iconOnly />
                         <ProjectActionsDropdown />
                       </Submenu>
                     </AppMenu>
@@ -124,7 +124,12 @@
                 it. It's built as
                 <a href="FileDropdown.html" target="src-packages-app-docs-filedropdown-html">FileDropdown</a> is.
               </li>
-              <li>The dropdown's label says what the root's projects are called: "Example:", "Project:".</li>
+              <li>
+                No label before it: its trigger is the group's icon and the open project's name. Each group has one
+                icon, the same everywhere: a folder for projects, a lightbulb for examples, an open book for guides, a
+                puzzle piece for libraries, a flask for tests.
+              </li>
+              <li>On the run page (Run mode), choosing a project opens it there (<code>useRunner</code>).</li>
               <li>The menu passes every other prop to its <code>&lt;ui-menu&gt;</code>, e.g. <code>vertical</code>.</li>
             </ul>
           </ui-section>

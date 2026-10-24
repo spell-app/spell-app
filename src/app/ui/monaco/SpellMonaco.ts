@@ -27,6 +27,7 @@ export class SpellMonaco {
    * - No `theme`:  Monaco has one per page, which `CodeThemes` sets;  an editor naming one would reset every editor.
    * - Always TABS in spell, shown 3 wide.
    * - Formats as you type:  a Spanish keyword typed without its accent gets it back (`SpellLanguageFeatures`).
+   * - Large text (`fontSize`), and no line numbers:  the app's code editor turns them on from its `...` menu.
    */
   static OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
     automaticLayout: true,
@@ -34,6 +35,8 @@ export class SpellMonaco {
     insertSpaces: false,
     detectIndentation: false,
     fontFamily: "Lato, Arial, sans-serif",
+    fontSize: 17,
+    lineNumbers: "off",
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
     "semanticHighlighting.enabled": true,

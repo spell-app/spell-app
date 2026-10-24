@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>ConsoleViewer</title>
-    <meta name="description" content="What running programs print, in the editor's console pane." />
+    <meta name="description" content="What running programs print, in the editor's Program Output tab." />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
       try {
@@ -37,7 +37,7 @@
           </ui-menu>
           <ui-header level="1" class="site-title">
             ConsoleViewer
-            <ui-header>What running programs print, in the editor's console pane.</ui-header>
+            <ui-header>What running programs print, in the editor's Program Output tab.</ui-header>
           </ui-header>
         </ui-container>
       </ui-segment>
@@ -45,8 +45,8 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            The editor's "Program Output" pane, under the code: what compiling and running the project logged, and what
-            the program prints. Its toolbar clears it, and tries out the dialogs a program can show.
+            The editor's "Program Output" tab, in Debug's Program panel under the code: what compiling and running the
+            project logged, and what the program prints. Clear Console empties it.
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the spell app's editor, or reading its code</ui-item>
@@ -76,17 +76,17 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              The editor's page draws it as <code>ConsoleRoot</code>, its toolbar on top, below the code on the left:
+              In Debug, the editor's page draws it as <code>ConsoleRoot</code>, without its toolbar, in the Program
+              panel's first tab: the panel's own bar has Clear Console, while this tab shows.
             </p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>SpellEditor.tsx · the editor's page · 4 lines</ui-title>
+              <ui-title>SpellEditor.tsx · the Program panel's first tab · 3 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
-                    <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
-                      <InputRoot />
-                      <ConsoleRoot />
-                    </SplitPanel>
+                    <Match when={tab() === "output"}>
+                      <ConsoleRoot showToolbar={false} />
+                    </Match>
                   </script></ui-code
                 >
               </ui-content>
@@ -94,7 +94,7 @@
             <ul>
               <li>
                 <a href="#ConsoleRoot">ConsoleRoot</a> is the pane: a <a href="#ConsoleToolbar">ConsoleToolbar</a> above
-                a <code>ConsoleViewer</code>. The app's run page draws one too, under the running program.
+                a <code>ConsoleViewer</code>.
               </li>
               <li>
                 <code>ConsoleViewer</code> shows the console of the spell runtime the editor runs programs on, once it's
@@ -107,10 +107,7 @@
                 its code in the editor.
               </li>
               <li>An error drawing the lines shows in their place, and goes to <code>showError</code>.</li>
-              <li>
-                The toolbar's "Program Output" header, then buttons that try out the dialogs a program can show (alert,
-                confirm, prompt, choose), and "Clear Console".
-              </li>
+              <li>The toolbar's "Program Output" header, then Clear Console, as an icon.</li>
             </ul>
           </ui-section>
 

@@ -90,7 +90,7 @@
   /* the top bar:  a floating box of its own */
   & ui-menu.AppMenu::part(menu) {
     min-height: 46px;
-    padding-inline: 6px;
+    padding-inline: 12px;
     background: var(--spell-bar-background);
     border: var(--spell-bar-border);
     border-radius: var(--spell-bar-radius);
@@ -128,6 +128,7 @@
   & ui-menu.PanelMenu::part(menu) {
     min-height: 40px;
     margin: 0;
+    padding-inline: 10px;
     background: var(--spell-header-background);
     border: none;
     border-bottom: 1px solid var(--ui-border-color);
@@ -163,49 +164,11 @@ ui-item.AppMark::part(item) {
   letter-spacing: -0.01em;
   text-decoration: none;
 
-  img {
+  /* the hat alone, in the theme's primary colour */
+  .hat {
     width: 24px;
     height: 24px;
-  }
-}
-
-/* `<ThemeMenu>`:  the looks, then the palette, side by side */
-ui-item.ThemeMenu::part(item) {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* `<ThemeMenu>`'s looks:  a segmented control, in the theme's segmented colours */
-.EditorLooks {
-  display: flex;
-  gap: 2px;
-  padding: var(--ui-menu-segmented-padding, 2px);
-  border-radius: var(--ui-menu-segmented-radius, 9px);
-  background: var(--ui-menu-segmented-background, var(--ui-surface-muted));
-
-  button {
-    padding: 5px 12px;
-    border: none;
-    border-radius: var(--ui-menu-segmented-item-radius, 7px);
-    background: transparent;
-    color: var(--ui-text-muted);
-    font: inherit;
-    font-size: 12px;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--ui-text-color);
-    }
-    &.checked {
-      font-weight: var(--ui-font-weight-semibold);
-      color: var(--ui-menu-segmented-active-color, var(--ui-text-color));
-      background: var(--ui-menu-segmented-active-background, var(--ui-surface));
-      box-shadow: var(--ui-menu-segmented-active-shadow, 0 1px 2px rgb(0 0 0 / 0.15));
-    }
-    &:focus-visible {
-      outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color);
-      outline-offset: 1px;
-    }
+    background: var(--ui-primary, currentColor);
+    mask: url("/static/favicon/hat.svg") center / contain no-repeat;
   }
 }

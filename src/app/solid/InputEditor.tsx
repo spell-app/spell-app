@@ -1,8 +1,12 @@
-import { Loading, Show, createEffect, createMemo } from "solid-js"
+import { Loading, Show, createEffect, createMemo, createSignal } from "solid-js"
+
+import { getPref, setPref } from "spell/util"
 
 import { editor } from "spell-app/app/editor"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import type { monaco } from "spell-app/app/solid/monaco"
-import { Actions, ErrorBoundary, FileActionsDropdown, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
+import { Actions, ErrorBoundary, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
+import { isStaticBuild } from "spell-app/app/static/staticBuild"
 import { FileDropdown } from "./FileDropdown"
 import { LazyMonaco } from "./LazyMonaco"
 
@@ -31,8 +35,10 @@ export type InputRootProps = {
 
 /****************
  * ### `<InputToolbar>`
- * Toolbar above `<InputEditor>`: file dropdown, `compileApp`/`saveFile`/`reloadFile`/`createFile`
- * actions and the file-actions dropdown.
+ * Toolbar above `<InputEditor>`:  the file dropdown;  Save, Reload and New File as icons with tooltips;
+ * then a "..." menu:  the file's actions (`Actions.FILE_DROPDOWN_ACTIONS`), and "Show line numbers".
+ * - The static build has no file actions, so its menu holds only the line numbers.
+ * - No Compile:  the editor compiles as you type, and on ⌘↵.
  ****************/
 export function InputToolbar() {
   return (
@@ -40,16 +46,57 @@ export function InputToolbar() {
       <Submenu left spring>
         <FileDropdown />
       </Submenu>
-      <Submenu right spring>
-        <Actions.compileApp />
-        <Actions.saveFile />
-        <Actions.reloadFile />
-        <Actions.createFile />
-        <FileActionsDropdown />
+      <Submenu right spring class="InputTools">
+        <Actions.saveFile iconOnly />
+        <Actions.reloadFile iconOnly />
+        <Actions.createFile iconOnly />
+        <MoreMenu direction="left" class="FileMoreMenu">
+          <Actions.FILE_DROPDOWN_ACTIONS />
+          <Show when={!isStaticBuild}>
+            <ui-item type="divider" />
+          </Show>
+          <ui-item
+            value="lineNumbers"
+            icon={LineNumbers.isShowing ? "check square outline" : "square outline"}
+            onClick={() => LineNumbers.toggle()}
+          >
+            {appTexts.text("showLineNumbers")}
+          </ui-item>
+        </MoreMenu>
       </Submenu>
     </PanelMenu>
   )
 }
+
+/****************
+ * ### `LineNumbers`
+ * Does the code editor show line numbers?  Off at first;  its toolbar's "..." menu turns them on,
+ * and the browser remembers (`LINE_NUMBERS_PREF`).
+ ****************/
+export class LineNumbers {
+  /** Are they showing (reactive)? */
+  static get isShowing(): boolean {
+    return areShowing()
+  }
+
+  /** Show them if hidden, else hide them;  remember which. */
+  static toggle(): void {
+    // the new value in a local:  a signal reads its old value until Solid flushes the write
+    const isShowing = !areShowing()
+    setShowing(isShowing)
+    setPref(LINE_NUMBERS_PREF, isShowing)
+    LineNumbers.applyTo(editor.getInputEditor(), isShowing)
+  }
+
+  /** Show or hide them in `inputEditor`:  as chosen, unless `isShowing` says. */
+  static applyTo(inputEditor: monaco.editor.IStandaloneCodeEditor | undefined, isShowing = areShowing()): void {
+    inputEditor?.updateOptions({ lineNumbers: isShowing ? "on" : "off" })
+  }
+}
+
+/** The preference that remembers whether the code editor shows line numbers. */
+const LINE_NUMBERS_PREF = "spellEditor.lineNumbers"
+const [areShowing, setShowing] = createSignal(getPref(LINE_NUMBERS_PREF, false) === true)
 
 /****************
  * ### `<InputEditor>`
@@ -120,11 +167,13 @@ function FallbackEditor() {
 }
 
 /**
- * The input editor is made:  hand it to `editor`, then select `file.initialSelection`, if any.
+ * The input editor is made:  show its line numbers or not, hand it to `editor`,
+ * then select `file.initialSelection`, if any.
  * - Why the second step:  the editor arrives after the file did (Monaco loads lazily, and makes its editor once
  *   settled), so the `followInitialSelection()` run for that file came too early.
  */
 function didMount(inputEditor: monaco.editor.IStandaloneCodeEditor, api: typeof monaco) {
+  LineNumbers.applyTo(inputEditor)
   editor.onInputDidMount(inputEditor, api)
   editor.onInputEffect()
 }

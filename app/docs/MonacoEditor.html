@@ -46,7 +46,8 @@
         <article class="site-article">
           <p class="lede">
             Monaco, the code editor VS Code is built on, as a Solid component that fills the box it's in. Every code
-            editor in the app is one: the code pane, the "Javascript Output" pane, and the editor in a
+            editor in the app is one: the code pane, the Program panel's JavaScript, TypeScript and Python tabs, and the
+            editor in a
             <a href="spell-editor.html" target="src-packages-app-docs-spell-editor-html"
               ><code>&lt;spell-editor&gt;</code></a
             >.
@@ -59,8 +60,8 @@
           <ui-section id="1-what-it-looks-like" label="1. What it looks like" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="image"></ui-icon>
             <p>
-              The one in the editor's "Javascript Output" pane, without the pane's toolbar: Solitaire's Card.spell,
-              compiled.
+              The one in the editor's "Javascript Output" pane, now the Program panel's JavaScript tab: Solitaire's
+              Card.spell, compiled.
             </p>
             <ui-image
               src="_images/MonacoEditor.png"
@@ -79,7 +80,8 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              The "Javascript Output" pane draws one on some text, read only. It loads it lazily, so it goes inside a
+              The Program panel's code tabs (<code>OutputEditor</code>) draw one on some text, read only. It loads it
+              lazily, so it goes inside a
               <code>&lt;Loading&gt;</code> that shows "Loading editor…" till it's in:
             </p>
             <ui-accordion class="spell-code" styled>

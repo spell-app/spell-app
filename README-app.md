@@ -375,7 +375,7 @@ each explorer reads something the program or its compile left behind.
 - The **Type Explorer** reads the project's scope pack, `<Project>.scopes.js`.
   - In a `<spell-app>` it's read-only, and a link in it sends `spell-open`.
   - In the editor, its Types tab has the parser at hand, so it asks the language service in the page instead
-    ([the right column](#the-right-column--the-app-and-four-ways-to-look-inside-it)).
+    ([Debug's Program panel](#run-edit-and-debug--the-app-and-the-program-panel)).
   - Who writes the packs, and what's in one:
     [scope packs](README-lsp.md#scope-packs--the-type-explorer-without-a-parser).
 
@@ -386,7 +386,7 @@ each explorer reads something the program or its compile left behind.
 _The editor on the Calculator:  the code and the compile log on the left;
 the running app, its compiled JavaScript and the Spell tree of the cursor's line on the right._
 
-Here is the whole of the Restart button over the App pane, and the whole of what it calls:
+Here is the whole of the Restart button in the app's header, and the whole of what it calls:
 
 ```tsx
 <Action title={appTexts.text("restart")} icon="redo" onClick={() => editor.restartApp()} {...props} />
@@ -426,20 +426,17 @@ after that, only what read a changed value updates.
 - It's a debug global:  type `editor` in the browser's console.
   There `core` is the running program's runtime, and `parse()`, `compile()` and `tokenize()` are Spell's parser's.
 
-A compile, in the order the console in the picture shows it:
+A compile, in the order Debug's Program Output tab logs it:
 1. `compileApp()` clears the console, and compiles the project in the page with spell-parser's parser and writers.
    It saves the result, `<Project>.spell.js`, through the page server's API.
 2. It logs that JavaScript, its lines numbered, under "Compiled to javascript".
 3. `executeCompiledApp()` runs it on the runtime, carrying things over when it's the project it ran last.
 4. The console ends "Example executed without errors.", or with the error.
 
-**Not yet:**  the About Spell, Docs, Help and Publish buttons are there, but each only logs a TODO
-to the browser's console.
+### Themes, and Purple code
 
-### Three looks, and Purple code
-
-The top bar's three-way switch of looks changes the whole editor, and the palette button beside it picks
-light, dark or auto, and any of Spell UI's 28 themes.
+The palette button at the top bar's right picks light, dark or auto, and any of Spell UI's 28 themes.
+Three of them are the editor's looks, and change its whole shape:
 
 | Look | Its Spell UI theme | What it looks like |
 | --- | --- | --- |
@@ -447,9 +444,10 @@ light, dark or auto, and any of Spell UI's 28 themes.
 | Studio | `studio` | flat panels on hairlines, in Shades of Purple's navy and yellow, or lavender and violet in light |
 | the third | Spell's own, with warm surfaces | the white cards of Spell's own pages |
 
-- In a look, the top bar floats as a rounded bar, and the code, the console and the app sit in rounded panels
-  with gaps between them.
+- In a look, the top bar floats as a rounded bar, and the code, the Program panel and the app sit in rounded panels
+  with gaps between them;  Spell's hat and name lead the bar, the hat in the theme's main colour.
   Any other theme brings back the editor's older violet bars.
+- The looks are picked from the palette like any other theme:  there's no switch of their own.
 - The editor remembers its own theme, apart from the docs site's;  light or dark is ONE choice for every Spell site.
 - The code itself is always Shades of Purple, the VS Code theme, ported to Monaco with a matching light version.
   It follows the page's light or dark, under any theme, and colours Spell's headings, keywords, types, properties,
@@ -460,19 +458,50 @@ light, dark or auto, and any of Spell UI's 28 themes.
 - **Not yet:**  a menu entry for that kept theme, and a design pass on the two looks besides Glass,
   which were built to their first drawings with no round of polish.
 
-### The right column:  the app, and four ways to look inside it
+### Run, Edit and Debug:  the app, and the Program panel
 
-The editor's right column is one pane of five tabs:  App, Things, Types, JavaScript and Tree.
+The top bar's Run | Edit | Debug buttons pick how much of the editor shows:
 
-- App is the running program.
-  It stays running, never redrawn, while another tab shows.
-- Things is what the program has made, live:  [the Thing Explorer](#the-explorers-read-files-not-the-parser).
-- Types is every type the code knows, worked out after each compile by the language service the code editor runs;
-  a link goes to its line.
-- JavaScript is what the project compiled to;  Tree is the Spell tree of the cursor's line.
-- Restart and Publish sit at the tab bar's right, whatever tab shows.
+| Mode | What shows |
+| --- | --- |
+| Run | the app alone, the whole window:  the run page, `/run/<address>` |
+| Edit | the code on the left, the app on the right |
+| Debug | Edit, plus the Program panel under the code |
+
+- The editor remembers Edit or Debug, so the editor page opens the way you left it.
+  Run is a page of its own, with its own address.
+- The app is alone in its column, under a header:  its group's icon, the project's title, and Restart at the right.
+  - It stays running, never redrawn, while you move between the modes or open the panel.
+- The Program panel has seven tabs:
+  - Program Output:  what the program logged, and how compiling and running it went
+  - Things:  what the program has made, live ([the Thing Explorer](#the-explorers-read-files-not-the-parser))
+  - Types:  every type the code knows, worked out after each compile by the language service the code editor runs;
+    a link goes to its line
+  - JavaScript:  what the open file compiled to
+  - TypeScript and Python:  the whole project as those targets write it, from the last compile
+    (`SpellProject.codeFor()`, in spell-parser)
+  - Sentence Tree:  the Spell tree of the cursor's line
+- At the panel's right:  Clear Console, on Program Output only, and Close, which goes back to Edit.
 - It's the same pane VS Code's Run Project panel and `<spell-app>` use, `RunnerPane`:
   in a narrow pane its tabs scroll sideways with ‹ › keys instead of wrapping.
+
+The rest of the top bar, left to right:
+- in a look, Spell's hat and name, a link to the landing page
+- the project dropdown, its trigger showing the project's group icon
+- Settings, an icon;  the project's "..." menu
+- "Open or Create...", in the middle
+- the theme menu, and you, as an avatar
+
+Every project group has ONE icon, the same in the dropdown, the app's header and the landing page's cards:
+a folder for your projects, a lightbulb for examples, an open book for guides,
+a puzzle piece for libraries, a flask for tests ([projectGroups.ts](src/spaces/models/projectGroups.ts)).
+
+The code's own toolbar:
+- the file dropdown, its trigger showing the file's icon and name
+- Save, Reload and New File, as icons:  each names itself in a tooltip after two seconds
+- a "..." menu:  new, duplicate, rename or delete a file, and "Show line numbers"
+- There's no Compile button:  the editor compiles two seconds after typing stops, and on `Mod+Enter`.
+- The code is 17px, with no line numbers until you turn them on;  the browser remembers that choice.
 
 <details>
 <summary>The routes, and the keys</summary>
@@ -480,7 +509,7 @@ The editor's right column is one pane of five tabs:  App, Things, Types, JavaScr
 | Address | Page |
 | --- | --- |
 | `/edit/<address>` | the editor, on a project or one file:  `/edit/@spell/examples/Solitaire/Solitaire.spell` |
-| `/run/<address>` | the app alone, full size, with its console:  `/run/@spell/examples/calculator` |
+| `/run/<address>` | Run:  the app alone, full size, under its header:  `/run/@spell/examples/calculator` |
 | anything else | the chooser:  your projects, the examples and the guides side by side, each with a Create button;  in dev, the frozen test projects too |
 
 - One route per page:  moving between files of a project changes the address and keeps the page.
@@ -596,15 +625,16 @@ How a page with no server reads and saves files:
   - creating, renaming or deleting anything:  refused, with an error that says why
 - ONE flag hides what needs a server:  `isStaticBuild` in code, `:root.spell-static` in CSS
   ([staticBuild.ts](src/app/static/staticBuild.ts)).
-  Gone in the preview:  the Projects column, the You panel, About, Help, Publish, Settings, the "..." menus,
-  the console's test buttons and the debug globals.
+  Gone in the preview:  the Projects column, the You avatar, Settings, the project's "..." menu,
+  New File and the file's actions (its "..." menu keeps only "Show line numbers"), and the debug globals.
 - The build is Vite's, in its `static` mode, so no other build carries any of this.
 - Every unknown page goes to the editor, for the hosts that read these:
   `404.html` (GitHub Pages) and `_redirects` (Netlify, Cloudflare Pages).
 
 **Not yet:**  it's built, not deployed anywhere.
 And it must be served at a domain's root:  the editor's routes and files are absolute paths.
-"Open or Create...", Save and Reload are still in the top bar, and read oddly when nothing goes to a server.
+"Open or Create..." is still in the top bar, and Save and Reload on the code's toolbar:
+they read oddly when nothing goes to a server.
 
 ## The builds:  one Solid per page, however many bundles
 

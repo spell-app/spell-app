@@ -3,14 +3,18 @@ import { Match, Show, Switch, createSignal } from "solid-js"
 
 import { getPref, setPref } from "spell/util"
 
+import { SP } from "spell-parser/spell"
 import {
   Actions,
   AppMenu,
   AppRoot,
   ConsoleRoot,
+  EditorMode,
   InputRoot,
-  MoreMenu,
+  ModeButtons,
+  OutputEditor,
   OutputRoot,
+  PROJECT_ICON,
   ProjectActionsDropdown,
   ProjectDropdown,
   SpellPage,
@@ -19,7 +23,10 @@ import {
   ThemeMenu,
   ThingExplorer,
   TreeRoot,
-  TypeExplorer
+  TypeExplorer,
+  tracked,
+  trackProjectRoot,
+  type Mode
 } from "spell-app/app/solid"
 import { editor, runtimeCore } from "spell-app/app/editor"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
@@ -33,22 +40,27 @@ import "./SpellEditor.css"
 
 /****************
  * ### `<SpellEditor>`
- * The editing page:  `<InputRoot>` (the code) above `<ConsoleRoot>` (compile and run log) on the left;
- * `<EditorTabs>` on the right:  the running program, its things and types, its javascript, the spell tree.
+ * The editing page:  the code (`<InputRoot>`) on the left, the running program (`<AppPane>`) on the right.
+ * - In Debug (`EditorMode`), the Program panel (`<ProgramPanel>`) sits under the code:
+ *   its output, things, types and compiled code.  Closing it goes back to Edit.
+ * - Showing or hiding the panel never redraws the code or the program:  the panel keeps each pane by its node.
  * - SIDE EFFECT:  the page's keyboard shortcuts while it's up, outside Monaco (`editorHotkeys()`).
  ****************/
 export function SpellEditor() {
   editorHotkeys()
+  const isDebugging = () => EditorMode.editing === "debug"
   return (
     <SpellPage id="SpellEditor" fillWindow dark rows>
-      <EditorToolbar />
+      <EditorToolbar mode={EditorMode.editing} />
       <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
-        <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
+        <SplitPanel id="spellEditor-left" rows={isDebugging() ? "65%" : "100%"} resizable rounded>
           <InputRoot />
-          <ConsoleRoot />
+          <Show when={isDebugging()}>
+            <ProgramPanel onClose={() => EditorMode.show("edit")} />
+          </Show>
         </SplitPanel>
         <SplitPanel rows rounded>
-          <EditorTabs />
+          <AppPane />
         </SplitPanel>
       </SplitPanel>
     </SpellPage>
@@ -56,55 +68,74 @@ export function SpellEditor() {
 }
 
 /****************
- * ### `<EditorTabs>`
- * The editor's right column:  one pane of tabs, as VS Code's runner panel and `<spell-app>` have (`<RunnerPane>`).
- * - App:  the running program (`<AppRoot>`).
- *   - ALWAYS drawn, just hidden behind another tab:  the program's mount point is never redrawn.
+ * ### `<AppPane>`
+ * The running program, under a header:  the project's group icon and its title, then Restart at the right.
+ * - The program's mount point (`<AppRoot>`) is drawn once, and never redrawn.
+ * - Also the run page's (`<SpellRunner>`).
+ ****************/
+export function AppPane() {
+  const root = trackProjectRoot(() => undefined)
+  const title = tracked(() => (editor.project ? new SP.SpellProject(editor.project.path).title : ""))
+  return (
+    <div class="AppPane">
+      <header class="AppPaneHeader">
+        <h2>
+          <ui-icon name={root().icon ?? PROJECT_ICON} />
+          {title()}
+        </h2>
+        <Actions.restartApp iconOnly />
+      </header>
+      <AppRoot showToolbar={false} />
+    </div>
+  )
+}
+
+/****************
+ * ### `<ProgramPanel>`
+ * Debug's panel under the code:  one pane of tabs (`<RunnerPane>`), as VS Code's runner panel has.
+ * - Program Output:  what the program logged, and how compiling and running it went (`<ConsoleViewer>`).
  * - Things:  what the running program has made, live (`<ThingExplorer>` on `runtimeCore()`'s `things`).
  * - Types:  every type the code knows (`<TypeExplorer>` on `editor.scopeTree`, from the in-page language service).
- * - JavaScript:  the compiled code (`<OutputRoot>`).
- * - Tree:  the spell tree of the cursor's line (`<TreeRoot>`).
- * - Restart and Publish sit at the tab bar's right, whatever tab shows:  plain icons, each with a tooltip.
+ * - JavaScript:  the compiled code (`<OutputRoot>`);  TypeScript and Python:  the project as those targets write it.
+ * - Sentence Tree:  the spell tree of the cursor's line (`<TreeRoot>`).
+ * - At the right, whatever tab shows:  Clear Console, on Program Output only, and Close (`onClose`).
  * - Types and Things follow each compile:  `editor.compileApp()` works out a new tree, and runs the program.
  * - Remembers which tab shows, as a preference (`TAB_PREF`).
  * - Switching tabs loses neither explorer's state, while the page is up:
  *   the Types tab keeps its own, and the Things tab's is kept here (`thingsState`).
  ****************/
-export function EditorTabs() {
-  const [tab, setTab] = createSignal<EditorTabId>(tabOrDefault(getPref(TAB_PREF, undefined)))
+export function ProgramPanel(props: { onClose: () => void }) {
+  const [tab, setTab] = createSignal<ProgramTabId>(tabOrDefault(getPref(TAB_PREF, undefined)))
   // the Things tab's state, kept here so it outlives switching tabs:  the explorer reads it once, as it mounts
   let thingsState: ThingExplorerState = {}
   return (
     <RunnerPane
-      class="EditorTabs"
-      tabs={EDITOR_TABS.map(tabFor)}
+      class="ProgramPanel"
+      tabs={PROGRAM_TABS.map(tabFor)}
       pane={tab()}
       onPane={showTab}
       tools={
         <>
+          <Show when={tab() === "output"}>
+            <Actions.clearConsole iconOnly />
+          </Show>
           <ui-icon
-            name="redo"
+            name="close"
             link=""
-            class="restart"
-            label={appTexts.text("restart")}
-            title={appTexts.text("restart")}
-            onClick={() => void editor.restartApp()}
-          />
-          <ui-icon
-            name="world"
-            link=""
-            class="publish"
-            label={appTexts.text("publish")}
-            title={appTexts.text("publish")}
-            onClick={() => editor.publishApp()}
+            class="close"
+            label={appTexts.text("closeProgram")}
+            data-tooltip={appTexts.text("closeProgram")}
+            data-position="bottom right"
+            data-inverted=""
+            onClick={() => props.onClose()}
           />
         </>
       }
     >
-      <div class="EditorTab" hidden={tab() !== "app"}>
-        <AppRoot showToolbar={false} />
-      </div>
       <Switch>
+        <Match when={tab() === "output"}>
+          <ConsoleRoot showToolbar={false} />
+        </Match>
         <Match when={tab() === "things"}>
           <Show when={runtimeCore()?.things} keyed>
             {(things) => (
@@ -128,6 +159,12 @@ export function EditorTabs() {
         <Match when={tab() === "javascript"}>
           <OutputRoot showToolbar={false} />
         </Match>
+        <Match when={tab() === "typescript"}>
+          <OutputEditor showError={editor.showError} target="ts/solid" />
+        </Match>
+        <Match when={tab() === "python"}>
+          <OutputEditor showError={editor.showError} target="py" />
+        </Match>
         <Match when={tab() === "tree"}>
           <TreeRoot showToolbar={false} />
         </Match>
@@ -136,49 +173,53 @@ export function EditorTabs() {
   )
 
   /** Show tab `id`, and remember it. */
-  function showTab(id: EditorTabId) {
+  function showTab(id: ProgramTabId) {
     setTab(id)
     setPref(TAB_PREF, id)
   }
 }
 
-/** Tabs of `<EditorTabs>`, in order. */
-const EDITOR_TABS = ["app", "things", "types", "javascript", "tree"] as const
-/** One of `<EditorTabs>`'s tabs. */
-type EditorTabId = (typeof EDITOR_TABS)[number]
-/** Icon of each tab, by Fomantic's name, and its title's key. */
-const TAB_LOOKS: Record<EditorTabId, { icon: string; text: AppTextKey }> = {
-  app: { icon: "play", text: "appTab" },
+/** Tabs of `<ProgramPanel>`, in order. */
+const PROGRAM_TABS = ["output", "things", "types", "javascript", "typescript", "python", "tree"] as const
+/** One of `<ProgramPanel>`'s tabs. */
+type ProgramTabId = (typeof PROGRAM_TABS)[number]
+/** Icon of each tab (Fomantic's names, else Font Awesome's), and its title's key. */
+const TAB_LOOKS: Record<ProgramTabId, { icon: string; text: AppTextKey }> = {
+  output: { icon: "list", text: "outputTab" },
   things: { icon: "cubes", text: "thingsTab" },
   types: { icon: "sitemap", text: "typesTab" },
-  javascript: { icon: "code", text: "javascriptTab" },
+  javascript: { icon: "js", text: "javascriptTab" },
+  typescript: { icon: "code", text: "typescriptTab" },
+  python: { icon: "python", text: "pythonTab" },
   tree: { icon: "tree", text: "treeTab" }
 }
-/** The preference that remembers which tab `<EditorTabs>` shows. */
-const TAB_PREF = "spellEditor.tab"
+/** The preference that remembers which tab `<ProgramPanel>` shows. */
+const TAB_PREF = "spellEditor.programTab"
 
 /** Tab `id`, titled in the page's language. */
-function tabFor(id: EditorTabId): RunnerTab<EditorTabId> {
+function tabFor(id: ProgramTabId): RunnerTab<ProgramTabId> {
   return { id, icon: TAB_LOOKS[id].icon, title: appTexts.text(TAB_LOOKS[id].text) }
 }
 
-/** `saved` if it's one of our tabs, e.g. a remembered preference, else the App tab. */
-function tabOrDefault(saved: unknown): EditorTabId {
-  return EDITOR_TABS.find((id) => id === saved) ?? "app"
+/** `saved` if it's one of our tabs, e.g. a remembered preference, else Program Output. */
+function tabOrDefault(saved: unknown): ProgramTabId {
+  return PROGRAM_TABS.find((id) => id === saved) ?? "output"
 }
 
 /****************
  * ### `<EditorToolbar>`
- * Top menu of `<SpellEditor>`:  the project dropdown, preview / settings / project actions;  the chooser;  about.
+ * Top menu of the editor's pages:  the project dropdown, Run | Edit | Debug, settings and the project's actions;
+ * the chooser;  the theme menu and the person.
+ * - `mode`:  the page's, pressed in `<ModeButtons>`.
  * - The static build's "Reset Example" sits by the project actions (`Actions.resetApp`, drawn only there).
  ****************/
-export function EditorToolbar() {
+export function EditorToolbar(props: { mode: Mode }) {
   return (
     <AppMenu>
       <Submenu left spring>
-        <ProjectDropdown />
-        <Actions.showRunner />
-        <Actions.showProjectSettings />
+        <ProjectDropdown useRunner={props.mode === "run"} />
+        <ModeButtons current={props.mode} />
+        <Actions.showProjectSettings iconOnly />
         <Actions.resetApp />
         <ProjectActionsDropdown />
       </Submenu>
@@ -187,9 +228,7 @@ export function EditorToolbar() {
       </Submenu>
       <Submenu right spring>
         <ThemeMenu />
-        <Actions.aboutSpell />
         <Actions.you />
-        <MoreMenu stub />
       </Submenu>
     </AppMenu>
   )

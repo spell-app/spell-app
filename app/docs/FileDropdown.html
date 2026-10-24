@@ -45,8 +45,8 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            How the editor switches between a project's files: "File:", then a dropdown naming the open file. Choosing
-            another opens it in the editor.
+            How the editor switches between a project's files: a dropdown showing the open file's icon and name.
+            Choosing another opens it in the editor.
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the spell app's editor, or reading its code</ui-item>
@@ -78,7 +78,7 @@
               it:
             </p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>InputEditor.tsx · the input toolbar · 12 lines</ui-title>
+              <ui-title>InputEditor.tsx · the input toolbar · 14 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
@@ -86,12 +86,14 @@
                       <Submenu left spring>
                         <FileDropdown />
                       </Submenu>
-                      <Submenu right spring>
-                        <Actions.compileApp />
-                        <Actions.saveFile />
-                        <Actions.reloadFile />
-                        <Actions.createFile />
-                        <FileActionsDropdown />
+                      <Submenu right spring class="InputTools">
+                        <Actions.saveFile iconOnly />
+                        <Actions.reloadFile iconOnly />
+                        <Actions.createFile iconOnly />
+                        <MoreMenu direction="left" class="FileMoreMenu">
+                          <Actions.FILE_DROPDOWN_ACTIONS />
+                          ...
+                        </MoreMenu>
                       </Submenu>
                     </PanelMenu>
                   </script></ui-code
@@ -110,8 +112,8 @@
                 <a href="chrome.html#MoreMenu" target="src-packages-app-docs-chrome-html">MoreMenu</a> does.
               </li>
               <li>
-                It sits in a menu: "File:" is a label before it (<code>showLabel</code>, on by default), and the
-                dropdown is wrapped in a menu item.
+                It sits in a menu, wrapped in a menu item. No label before it: the file icon and the open file's name
+                are its trigger.
               </li>
             </ul>
           </ui-section>

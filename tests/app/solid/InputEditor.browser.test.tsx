@@ -132,12 +132,13 @@ describe("<FileDropdown>", () => {
       "test-project/two.js",
       "divider",
       "New File",
-      "New Property Editor...",
       "Duplicate File",
       "Rename File",
       "Delete File"
     ])
-    expect(text(host.querySelector("ui-item.dropdown-label")!)).toBe("File:")
+    // no "File:" label:  the file icon and name are its trigger
+    expect(host.querySelector(".dropdown-label")).toBeNull()
+    expect(text(host.querySelector(".FileDropdownTrigger")!)).toBe("one.js")
 
     dropdown.dispatchEvent(new CustomEvent("ui-change", { detail: { value: "test-project/two.js" } }))
     expect(showEditor).toHaveBeenCalledWith("test-project/two.js")
@@ -150,7 +151,7 @@ describe("<FileDropdown>", () => {
     file.project.isLoaded = false
     setEditor("project", file.project as unknown as EditorStore["project"])
     setEditor("file", file)
-    const host = await mount(() => <FileDropdown showLabel={false} />)
+    const host = await mount(() => <FileDropdown />)
     const dropdown = host.querySelector("ui-dropdown")!
     expect(dropdown.hasAttribute("loading")).toBe(true)
     expect(dropdown.querySelectorAll("ui-item")).toHaveLength(0)

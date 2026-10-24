@@ -85,7 +85,7 @@
     {
       "path": "ConsoleViewer.html",
       "title": "ConsoleViewer",
-      "summary": "What running programs print, in the editor's console pane.",
+      "summary": "What running programs print, in the editor's Program Output tab.",
       "sections": [
         {"id":"1-what-it-looks-like","title":"1. What it looks like"},
         {"id":"2-using-it","title":"2. Using it"},

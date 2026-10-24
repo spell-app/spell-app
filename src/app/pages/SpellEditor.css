@@ -1,19 +1,47 @@
 /*
- * `<EditorTabs>` (`SpellEditor.tsx`):  the editor's right column, one tabbed pane (`<RunnerPane>`).
+ * The editor page's panes (`SpellEditor.tsx`):  the program under its header (`<AppPane>`),
+ * and Debug's panel of tabs (`<ProgramPanel>`, a `<RunnerPane>`).
  * - Layout only:  each tab's look is its pane's own.
  */
 
-/* the App tab is always drawn, hidden behind another tab:  its program is never redrawn */
-.EditorTabs > .EditorTab {
+/* `<AppPane>`:  its header, then the program, filling the rest */
+.AppPane {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 
-  &[hidden] {
-    display: none;
-  }
-
-  & > * {
+  & > .AppRoot {
     flex: 1 1 auto;
     min-height: 0;
+  }
+}
+
+/* its header:  the project's icon and title, Restart at the right */
+.AppPaneHeader {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  min-height: 40px;
+  padding-inline: 14px 12px;
+  border-bottom: 1px solid var(--ui-border-color);
+
+  & > h2 {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0;
+    font-size: 1.05em;
+    font-weight: var(--ui-font-weight-semibold, 600);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    & > ui-icon {
+      color: var(--ui-primary, currentColor);
+    }
   }
 }

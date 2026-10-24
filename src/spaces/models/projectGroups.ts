@@ -20,6 +20,9 @@ export const LOCAL_PERSON = "owen"
  *   - `owen@spell`:  this machine's person's own, `<spell-spaces>/@spell/<person>@/`, outside git
  * - A project in one is its address, a slash and the project's folder name:  `@spell/examples/Solitaire`.
  *   Built-in projects' names are lower-kebab (decision Q39).
+ * - Each group's `icon` is its projects' icon everywhere the editor shows one:
+ *   the project dropdown and its trigger, the program's header, the landing page's cards.
+ *   - folder:  your projects;  lightbulb:  examples;  open book:  guides;  puzzle piece:  libraries;  flask:  tests
  * - SIDE EFFECT:  loading this file registers them with spell (`SpellSetup.addProjectRoot()`).
  *   - Every program that reads a spell address loads it first:  through `spell-app/spaces`, spaces' disk reader,
  *     or this file alone.
@@ -33,7 +36,7 @@ export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
     Type: "Project",
     type: "project",
     description: "Your own projects",
-    icon: "app store ios"
+    icon: "folder"
   },
   {
     path: "@spell/examples",
@@ -43,7 +46,7 @@ export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
     Type: "Example",
     type: "example",
     description: "Example projects",
-    icon: "app store ios"
+    icon: "lightbulb"
   },
   {
     path: "@spell/guides",
@@ -53,7 +56,7 @@ export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
     Type: "Guide",
     type: "guide",
     description: "Usage guides",
-    icon: "newspaper outline"
+    icon: "book open"
   },
   {
     path: "@spell/library",
@@ -63,7 +66,7 @@ export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
     Type: "Library",
     type: "library",
     description: "Libraries other projects import, e.g. `@spell/library/people` in a project file",
-    icon: "book"
+    icon: "puzzle piece"
   },
   {
     path: "@spell/test",
@@ -73,7 +76,7 @@ export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
     Type: "Fixture",
     type: "fixture",
     description: "Frozen projects tests run against -- edit one, then `yarn spell:test:fixtures:bless`",
-    icon: "lab",
+    icon: "flask",
     devOnly: true
   }
 ]

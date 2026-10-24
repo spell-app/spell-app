@@ -1,7 +1,7 @@
-import { For, Show, createSignal } from "solid-js"
+import { Show, createSignal } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
+import { appTexts } from "spell-app/app/ui/AppTexts"
 import { uiReady } from "./loadUI"
 
 import "./EditorTheme.css"
@@ -16,7 +16,7 @@ import "./EditorTheme.css"
  *   a theme picked on the docs site never changes the editor's, nor the other way round.
  *   - Light / dark is ONE choice for every Spell site:  the docs' key.
  * - Three of the themes are the editor's LOOKS (`LOOKS`, the facelift boards of epic `debut` P1):
- *   Glass (Fruity), Brand (Spell Brand) and Studio.
+ *   Glass (Fruity), Brand (Spell Brand) and Studio, picked from the theme menu as any other theme is.
  *   - One of them chosen:  `<html data-spell-look="glass">`, and the editor's chrome takes that look's shape
  *     (`EditorTheme.css`):  a floating top bar, panels with gaps and rounded corners.
  *   - Any other theme (GitHub, Classic ...):  no `data-spell-look`, and the chrome as it always was.
@@ -34,11 +34,11 @@ export class EditorTheme {
   /** The `localStorage` key of the editor's chosen theme. */
   static THEME_KEY = "spell-app:theme"
 
-  /** The editor's looks, in the menu's order:  each a Spell UI theme, and its name's text key. */
+  /** The editor's looks:  each a Spell UI theme. */
   static LOOKS: readonly EditorLook[] = [
-    { id: "brand", theme: "spell-brand", text: "lookBrand" },
-    { id: "studio", theme: "studio", text: "lookStudio" },
-    { id: "glass", theme: "fruity", text: "lookGlass" }
+    { id: "brand", theme: "spell-brand" },
+    { id: "studio", theme: "studio" },
+    { id: "glass", theme: "fruity" }
   ]
 
   /** The look chosen now, or `undefined` while another theme is (reactive). */
@@ -69,21 +69,6 @@ export class EditorTheme {
     }
   }
 
-  /**
-   * Choose look `id`:  apply its theme, and remember it.
-   * - NEVER throws:  a theme that won't load says so on the console.
-   */
-  static async choose(id: string): Promise<void> {
-    const look = EditorTheme.LOOKS.find((each) => each.id === id)
-    if (!look) return
-    try {
-      const { ThemePreference } = await import("spell-ui/docs-components")
-      await ThemePreference.setTheme(look.theme)
-    } catch (error) {
-      console.error(`EditorTheme.choose():  couldn't apply the ${id} look`, error)
-    }
-  }
-
   /** Theme `theme` is chosen:  note it, mark `<html>` with its look, and wear the kept theme on it, if any. */
   private static follow(theme: string | undefined): void {
     setChosenTheme(theme)
@@ -109,8 +94,6 @@ export type EditorLook = {
   id: string
   /** its Spell UI theme:  `fruity` */
   theme: string
-  /** its name's key in the editor's texts */
-  text: AppTextKey
 }
 
 /** The look of theme `theme`, if it's one of the editor's. */
@@ -129,56 +112,36 @@ const [isMenuDefined, setMenuDefined] = createSignal(false)
 
 /****************
  * ### `<ThemeMenu>`
- * The editor's look menu, in a menu bar:  the looks (Brand | Studio | Glass) as a segmented control, then a palette
- * button opening Light | Dark | Auto and every theme.
- * - The looks:  a segmented control, a radio group of buttons;  none checked while another theme is chosen.
- *   - Plain buttons, not `<ui-menu appearance="segmented">`:  inside the bar's menu, a menu is its sub-menu, and
- *     loses its segmented look.  They take the theme's segmented tokens (`--ui-menu-segmented-*`) all the same.
+ * The editor's theme menu, in a menu bar:  a palette button opening Light | Dark | Auto and every theme.
  * - The palette:  `<ui-docs-themes>`, inverted while the bar is the old violet one (no look).
  * - Picking applies at once, and the editor remembers it (`EditorTheme`).
  ****************/
 export function ThemeMenu(): JSX.Element {
   return (
-    <ui-item class="ThemeMenu">
-      <div class="EditorLooks" role="radiogroup" aria-label={appTexts.text("looksName")}>
-        <For each={EditorTheme.LOOKS}>
-          {(look) => (
-            <button
-              type="button"
-              role="radio"
-              class={{ checked: EditorTheme.look?.id === look.id }}
-              aria-checked={EditorTheme.look?.id === look.id ? "true" : "false"}
-              onClick={() => void EditorTheme.choose(look.id)}
-            >
-              {appTexts.text(look.text)}
-            </button>
-          )}
-        </For>
-      </div>
-      <Show when={isMenuDefined()}>
+    <Show when={isMenuDefined()}>
+      <ui-item class="ThemeMenu">
         <ui-docs-themes inverted={EditorTheme.look ? undefined : ""} size="small" />
-      </Show>
-    </ui-item>
+      </ui-item>
+    </Show>
   )
 }
 
 /****************
  * ### `<AppMark>`
  * Spell's hat and name, first in the editor's top bar:  a link to the landing page.
+ * - The hat alone, in the theme's primary colour:  the favicon's hat without its dark square
+ *   (`/static/favicon/hat.svg`, drawn as a mask, `EditorTheme.css`).
  ****************/
 export function AppMark(): JSX.Element {
   return (
     <ui-item class="AppMark">
       <a link="" href="/">
-        <img src={HAT_URL} alt="" />
+        <span class="hat" />
         <span>{appTexts.text("appName")}</span>
       </a>
     </ui-item>
   )
 }
-
-/** Spell's hat:  the favicon's picture (`index.html`). */
-const HAT_URL = "/static/favicon/favicon.svg"
 
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {

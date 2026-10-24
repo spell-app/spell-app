@@ -4,14 +4,10 @@
  * - Actions are left out in code (`Actions.tsx`, `HIDDEN_IN_STATIC_BUILD`);  these have no action of their own.
  */
 
-/* The "..." menus:  the project's and the file's actions (all hidden), and the disabled placeholders */
-:root.spell-static ui-item.more-menu,
+/* The "..." menus:  the project's actions (all hidden), and the disabled placeholders.
+   NOT the file's:  its "Show line numbers" works anywhere, though its file actions are left out. */
+:root.spell-static ui-item.more-menu:not(:has(> .FileMoreMenu)),
 :root.spell-static ui-item[disabled]:has(> ui-icon[name="ellipsis horizontal"]) {
-  display: none;
-}
-
-/* Publish, by the editor's tabs:  nothing to publish to yet */
-:root.spell-static .EditorTabs .publish {
   display: none;
 }
 

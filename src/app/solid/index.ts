@@ -8,9 +8,10 @@
  *   - `on()`:  a `ref` listening for a `ui-*` event.
  *   - `solid.types.ts`:  `<ui-*>` tags in Solid JSX, Spell UI's exact types (`spell-ui/jsx`).
  * - Shared UI:
- *   - `chrome.tsx`:  `AppMenu`, `PanelMenu`, `Submenu`, `MenuHeader`, `Spring`, `MoreMenu`, `DropdownLabel`,
- *     `ProjectActionsDropdown`, `FileActionsDropdown`, the icon names
+ *   - `chrome.tsx`:  `AppMenu`, `PanelMenu`, `Submenu`, `MenuHeader`, `Spring`, `MoreMenu`,
+ *     `ProjectActionsDropdown`, the icon names
  *   - `Actions.tsx`:  `Action`, `Actions`
+ *   - `EditorTheme.tsx`, `EditorMode.tsx`:  the editor's look, and its Run / Edit / Debug modes
  *   - `ErrorBoundary.tsx`:  `ErrorBoundary`
  *   - `ErrorNotice.tsx`:  `ErrorDisplay`, `ErrorNotice`;  `Notice.tsx`;  `Markdown.tsx`
  * - The pages' shell (P8):
@@ -39,6 +40,7 @@ export * from "./on"
 export * from "./Actions"
 export * from "./chrome"
 export * from "./EditorTheme"
+export * from "./EditorMode"
 export * from "./ErrorNotice"
 export * from "./ErrorBoundary"
 export * from "./Notice"

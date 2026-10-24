@@ -45,8 +45,8 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            The editor's "Spell Tree" pane, bottom right: how spell parsed the line the cursor is on, drawn as a tree.
-            Move the cursor and it follows, so you can see what spell made of each line you write.
+            The Sentence Tree tab of the editor's Program panel, in Debug: how spell parsed the line the cursor is on,
+            drawn as a tree. Move the cursor and it follows, so you can see what spell made of each line you write.
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the spell app's editor, or reading its code</ui-item>
@@ -76,18 +76,17 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              The editor's page draws it as <code>TreeRoot</code>, its toolbar on top, last in the right-hand column:
+              In Debug, the editor's page draws it as <code>TreeRoot</code>, without its toolbar, in the Program panel's
+              last tab:
             </p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>SpellEditor.tsx · the editor's page · 5 lines</ui-title>
+              <ui-title>SpellEditor.tsx · the Program panel's last tab · 3 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
-                    <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
-                      <AppRoot />
-                      <OutputRoot />
-                      <TreeRoot />
-                    </SplitPanel>
+                    <Match when={tab() === "tree"}>
+                      <TreeRoot showToolbar={false} />
+                    </Match>
                   </script></ui-code
                 >
               </ui-content>

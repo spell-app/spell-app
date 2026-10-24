@@ -20,6 +20,13 @@
     border-radius: 0;
     margin: 0;
   }
+  /* the bar's colour runs under the tools too:  the whole toolbar wears the menu's, and the menu none of its own */
+  & > .RunnerPaneToolbar::part(toolbar) {
+    background: var(--ui-menu-background, var(--ui-surface));
+  }
+  & > .RunnerPaneToolbar::part(menu) {
+    background: transparent;
+  }
 
   & > :not(.RunnerPaneToolbar) {
     flex: 1 1 auto;

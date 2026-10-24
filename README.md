@@ -170,10 +170,10 @@ flowchart LR
 7. **Draw.**  The app draws itself on the page;
    a thing declared `drawable` draws as an element of its own, a piece of the page with its own name:
    `<solitaire-card>`.
-8. **Inspect.**  The console shows what the program printed;
+8. **Inspect.**  Switch to Debug, and a panel under the code shows what the program printed;
    the Thing Explorer shows every thing it made, in Spell's words, and the Type Explorer what each type is.
 
-Step 6 has two exceptions, and the console says which one it met.
+Step 6 has two exceptions, and that panel's Program Output says which one it met.
 An edit to the lines that start the program starts it afresh,
 and so does one that changes what a property holds, a title `as text` made `as a number`, say,
 because the old things no longer fit.
@@ -192,11 +192,12 @@ All of this runs now, on your own machine.
   becomes a piece of the page of its own, with its look written inside its definition
   ([Solitaire](spaces/@spell/examples/Solitaire/), below).
 - **Watch it while it runs:**  the things it made, and the kinds of thing it declares,
-  in tabs beside the app ([the right column](README-app.md#the-right-column--the-app-and-four-ways-to-look-inside-it)).
+  and the program written as TypeScript or Python, in Debug's panel under the code
+  ([Run, Edit and Debug](README-app.md#run-edit-and-debug--the-app-and-the-program-panel)).
 - **Learn by changing a guide.**  Twelve guides are Spell programs that read as prose:
   a first walkthrough, A tour of Spell, and how each example works ([the guides](README-examples.md#guides--programs-that-read-as-prose)).
-- **Pick a look.**  Glass, frosted panels over a wallpaper, is the default;  Studio and Spell's own are the others,
-  each light or dark, and the code is always Shades of Purple ([three looks](README-app.md#three-looks-and-purple-code)).
+- **Pick a theme.**  Glass, frosted panels over a wallpaper, is the default;  Studio and Spell's own are the other looks,
+  among 28 themes, each light or dark, and the code is always Shades of Purple ([themes](README-app.md#themes-and-purple-code)).
 - **Turn it into other programming languages:**  JavaScript always, and TypeScript or Python when the project asks
   ([spell-parser's targets](https://github.com/spell-app/spell-parser/blob/main/README-targets.md)).
 - **Put a running program on any web page**, with two lines of HTML, the code web pages are written in:

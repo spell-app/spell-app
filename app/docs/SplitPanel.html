@@ -59,8 +59,8 @@
           <ui-section id="1-what-it-looks-like" label="1. What it looks like" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="image"></ui-icon>
             <p>
-              The editor page: one SplitPanel of two columns, each a SplitPanel of rows. On the left, the code above the
-              program's output; on the right, the app above its javascript and its spell tree.
+              The editor page: one SplitPanel of two columns, each a SplitPanel of rows. On the left, the code, and in
+              Debug the Program panel under it; on the right, the app alone, under its header.
             </p>
             <ui-image
               src="_images/SplitPanel.png"
@@ -77,21 +77,21 @@
 
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
-            <p>The editor page nests three: two columns, then rows in each:</p>
+            <p>The editor page nests three: two columns, then rows in each. The left one sizes its rows by the mode:</p>
             <ui-accordion class="spell-code" styled>
               <ui-title>SpellEditor.tsx · the editor page's panes · 11 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
                     <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
-                      <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
+                      <SplitPanel id="spellEditor-left" rows={isDebugging() ? "65%" : "100%"} resizable rounded>
                         <InputRoot />
-                        <ConsoleRoot />
+                        <Show when={isDebugging()}>
+                          <ProgramPanel onClose={() => EditorMode.show("edit")} />
+                        </Show>
                       </SplitPanel>
-                      <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
-                        <AppRoot />
-                        <OutputRoot />
-                        <TreeRoot />
+                      <SplitPanel rows rounded>
+                        <AppPane />
                       </SplitPanel>
                     </SplitPanel>
                   </script></ui-code

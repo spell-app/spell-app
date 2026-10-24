@@ -45,9 +45,9 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            Everything a person can tell the editor to do from a toolbar or a menu: Compile, Save, New File, About
-            Spell. Each one is ready to drop into a bar, a "..." menu, or a page as a button, with its own text, icon
-            and click.
+            Everything a person can tell the editor to do from a toolbar or a menu: Save, New File, Restart, Settings.
+            Each one is ready to drop into a bar, a "..." menu, or a page as a button, with its own text, icon and
+            click.
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone adding a button or menu item to the spell app</ui-item>
@@ -57,8 +57,8 @@
           <ui-section id="1-what-it-looks-like" label="1. What it looks like" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="image"></ui-icon>
             <p>
-              The input editor's toolbar: Compile, Save, Reload and New File are actions, as menu items. Save is lit
-              green, as the file has unsaved changes.
+              The input editor's toolbar: Save, Reload and New File are actions, drawn as icons, each naming itself in a
+              tooltip. Save lights up while the file has unsaved changes.
             </p>
             <ui-image
               src="_images/Actions.png"
@@ -77,7 +77,7 @@
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>The toolbar in the picture: each entry of <code>Actions</code> is a component, drawn by name:</p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>InputEditor.tsx · the input editor's toolbar · 13 lines</ui-title>
+              <ui-title>InputEditor.tsx · the input editor's toolbar · 14 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
@@ -85,12 +85,14 @@
                       <Submenu left spring>
                         <FileDropdown />
                       </Submenu>
-                      <Submenu right spring>
-                        <Actions.compileApp />
-                        <Actions.saveFile />
-                        <Actions.reloadFile />
-                        <Actions.createFile />
-                        <FileActionsDropdown />
+                      <Submenu right spring class="InputTools">
+                        <Actions.saveFile iconOnly />
+                        <Actions.reloadFile iconOnly />
+                        <Actions.createFile iconOnly />
+                        <MoreMenu direction="left" class="FileMoreMenu">
+                          <Actions.FILE_DROPDOWN_ACTIONS />
+                          ...
+                        </MoreMenu>
                       </Submenu>
                     </PanelMenu>
                   </script></ui-code
@@ -114,6 +116,9 @@
                 <ul>
                   <li><code>title</code>: its text</li>
                   <li><code>icon</code>: its icon</li>
+                  <li>
+                    <code>iconOnly</code>: just its icon, its <code>title</code> a tooltip below it after two seconds
+                  </li>
                   <li><code>active</code>: lights it up</li>
                 </ul>
               </li>
@@ -121,8 +126,10 @@
                 <code>Actions</code> holds the app's own, each an Action with its text, icon and click filled in, in
                 groups:
                 <ul>
-                  <li>going places: About Spell, Preview, Settings, Open or Create..., Docs, Help, Log In</li>
-                  <li>the project: create, duplicate, rename, delete it; compile, publish, restart it</li>
+                  <li>going places: Edit, Run, Settings, Open or Create..., Help, and You, the person's avatar</li>
+                  <li>
+                    the project: create, duplicate, rename, delete it; its settings; restart it, or reset an example
+                  </li>
                   <li>files: create, duplicate, rename, delete, save, reload</li>
                   <li>the console: Clear Console</li>
                   <li>
@@ -135,10 +142,7 @@
                 Props given where it's drawn win over the entry's own: its text, its icon, its click handler
                 (<code>onClick</code>) ...
               </li>
-              <li>
-                Some light up as the editor changes: Compile when the file needs compiling, Save and Reload when it has
-                unsaved changes.
-              </li>
+              <li>Some light up as the editor changes: Save and Reload when the file has unsaved changes.</li>
               <li>
                 <code>PROJECT_DROPDOWN_ACTIONS</code> and <code>FILE_DROPDOWN_ACTIONS</code> are the four create /
                 duplicate / rename / delete actions, for the "..." menus in

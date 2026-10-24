@@ -721,6 +721,11 @@
           "description": "A `<ui-button>` instead of a menu `<ui-item>`."
         },
         {
+          "name": "iconOnly",
+          "type": "boolean",
+          "description": "Just its icon, `title` its tooltip:  a `<ui-icon link>` instead of a menu `<ui-item>`."
+        },
+        {
           "name": "active",
           "type": "boolean",
           "description": "Highlighted:  the item's `selected`, the button's `active`."
@@ -728,7 +733,7 @@
         {
           "name": "color",
           "type": "UIButtonAttributes[\"color\"]",
-          "description": "Hue:  of the item while `active`;  of the button always."
+          "description": "Hue:  of the item or icon while `active`;  of the button always."
         },
         {
           "name": "disabled",
@@ -846,10 +851,6 @@
         {
           "name": "EditorToolbar",
           "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
-          "name": "RunnerToolbar",
-          "file": "src/app/pages/SpellRunner.tsx"
         }
       ],
       "href": "chrome.html"
@@ -892,12 +893,8 @@
       ],
       "usedIn": [
         {
-          "name": "EditorTabs",
+          "name": "AppPane",
           "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
-          "name": "SpellRunner",
-          "file": "src/app/pages/SpellRunner.tsx"
         }
       ],
       "href": "AppRoot.html"
@@ -913,7 +910,7 @@
         "shell"
       ],
       "aka": [],
-      "description": "Toolbar above the running program:  restart and publish, and a stub \"...\" menu.",
+      "description": "Toolbar above the running program:  its header, and Restart.",
       "noun": "AppToolbar",
       "attributes": [],
       "slots": [],
@@ -1186,12 +1183,8 @@
       ],
       "usedIn": [
         {
-          "name": "SpellEditor",
+          "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
-          "name": "SpellRunner",
-          "file": "src/app/pages/SpellRunner.tsx"
         }
       ],
       "href": "ConsoleViewer.html#ConsoleRoot"
@@ -1207,7 +1200,7 @@
         "panes"
       ],
       "aka": [],
-      "description": "Toolbar above `<ConsoleViewer>`:  header plus alert/confirm/prompt/choose demo actions and `clearConsole`.",
+      "description": "Toolbar above `<ConsoleViewer>`:  its header, and Clear Console.",
       "noun": "ConsoleToolbar",
       "attributes": [],
       "slots": [],
@@ -1307,44 +1300,6 @@
         }
       ],
       "href": "ConsoleViewer.html"
-    },
-    {
-      "tag": "DropdownLabel",
-      "name": "DropdownLabel",
-      "folder": "chrome",
-      "mainTag": "AppMenu",
-      "main": false,
-      "page": false,
-      "topics": [
-        "shell"
-      ],
-      "aka": [],
-      "description": "Label that goes next to a dropdown in a menu, e.g. a project dropdown's \"Project:\".",
-      "noun": "DropdownLabel",
-      "attributes": [],
-      "slots": [],
-      "events": [],
-      "parts": [],
-      "states": [],
-      "texts": [],
-      "props": [
-        {
-          "name": "...UIItemJSXAttributes",
-          "type": "UIItemJSXAttributes",
-          "description": "Every prop of this type too."
-        }
-      ],
-      "usedIn": [
-        {
-          "name": "FileDropdown",
-          "file": "src/app/solid/FileDropdown.tsx"
-        },
-        {
-          "name": "ProjectDropdown",
-          "file": "src/app/solid/ProjectDropdown.tsx"
-        }
-      ],
-      "href": "chrome.html#DropdownLabel"
     },
     {
       "tag": "ErrorBoundary",
@@ -1498,55 +1453,6 @@
       "href": "ErrorNotice.html"
     },
     {
-      "tag": "FileActionsDropdown",
-      "name": "FileActionsDropdown",
-      "folder": "chrome",
-      "mainTag": "AppMenu",
-      "main": false,
-      "page": false,
-      "topics": [
-        "shell"
-      ],
-      "aka": [],
-      "description": "`<MoreMenu>` of `Actions.FILE_DROPDOWN_ACTIONS`.",
-      "noun": "FileActionsDropdown",
-      "attributes": [],
-      "slots": [],
-      "events": [],
-      "parts": [],
-      "states": [],
-      "texts": [],
-      "props": [
-        {
-          "name": "...UIDropdownJSXAttributes",
-          "type": "UIDropdownJSXAttributes",
-          "description": "Every prop of this type too."
-        },
-        {
-          "name": "stub",
-          "type": "boolean",
-          "description": "A disabled placeholder item instead of the real dropdown."
-        },
-        {
-          "name": "item",
-          "type": "boolean",
-          "description": "Wrapped in a `<ui-item>`, to sit in a menu.  Default:  `true`."
-        },
-        {
-          "name": "icon",
-          "type": "string",
-          "description": "Icon name.  Default:  `\"ellipsis horizontal\"`."
-        }
-      ],
-      "usedIn": [
-        {
-          "name": "InputToolbar",
-          "file": "src/app/solid/InputEditor.tsx"
-        }
-      ],
-      "href": "chrome.html#FileActionsDropdown"
-    },
-    {
       "tag": "FileDropdown",
       "name": "FileDropdown",
       "folder": "FileDropdown",
@@ -1570,11 +1476,6 @@
           "name": "useRunner",
           "type": "boolean",
           "description": "Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked."
-        },
-        {
-          "name": "showLabel",
-          "type": "boolean",
-          "description": "Put a `<DropdownLabel>` before the dropdown.  Default:  `true`."
         },
         {
           "name": "showActions",
@@ -1714,7 +1615,7 @@
         "editors"
       ],
       "aka": [],
-      "description": "Toolbar above `<InputEditor>`: file dropdown, `compileApp`/`saveFile`/`reloadFile`/`createFile` actions and the file-actions dropdown.",
+      "description": "Toolbar above `<InputEditor>`:  the file dropdown;  Save, Reload and New File as icons with tooltips; then a \"...\" menu:  the file's actions (`Actions.FILE_DROPDOWN_ACTIONS`), and \"Show line numbers\".",
       "noun": "InputToolbar",
       "attributes": [],
       "slots": [],
@@ -1729,6 +1630,27 @@
         }
       ],
       "href": "InputEditor.html#InputToolbar"
+    },
+    {
+      "tag": "LineNumbers",
+      "name": "LineNumbers",
+      "folder": "InputEditor",
+      "mainTag": "InputEditor",
+      "main": false,
+      "page": false,
+      "topics": [
+        "editors"
+      ],
+      "aka": [],
+      "description": "Does the code editor show line numbers?  Off at first;  its toolbar's \"...\" menu turns them on, and the browser remembers (`LINE_NUMBERS_PREF`).",
+      "noun": "LineNumbers",
+      "attributes": [],
+      "slots": [],
+      "events": [],
+      "parts": [],
+      "states": [],
+      "texts": [],
+      "href": "InputEditor.html#LineNumbers"
     },
     {
       "tag": "Markdown",
@@ -1937,16 +1859,8 @@
       ],
       "usedIn": [
         {
-          "name": "ChooserToolbar",
-          "file": "src/app/pages/ProjectChooser.tsx"
-        },
-        {
-          "name": "EditorToolbar",
-          "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
-          "name": "FileActionsDropdown",
-          "file": "src/app/solid/chrome.tsx"
+          "name": "InputToolbar",
+          "file": "src/app/solid/InputEditor.tsx"
         },
         {
           "name": "ProjectActionsDropdown",
@@ -2000,7 +1914,7 @@
         "editors"
       ],
       "aka": [],
-      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`.",
+      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`).",
       "noun": "OutputEditor",
       "attributes": [],
       "slots": [],
@@ -2013,12 +1927,21 @@
           "name": "showError",
           "type": "(error: unknown) => void",
           "description": "Called with each error caught."
+        },
+        {
+          "name": "target",
+          "type": "OtherTarget",
+          "description": "The project's code for this target instead of the file's javascript, e.g. `py`."
         }
       ],
       "usedIn": [
         {
           "name": "OutputRoot",
           "file": "src/app/solid/OutputEditor.tsx"
+        },
+        {
+          "name": "ProgramPanel",
+          "file": "src/app/pages/SpellEditor.tsx"
         }
       ],
       "href": "OutputEditor.html"
@@ -2051,7 +1974,7 @@
       ],
       "usedIn": [
         {
-          "name": "EditorTabs",
+          "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"
         }
       ],
@@ -2212,21 +2135,12 @@
           "name": "useRunner",
           "type": "boolean",
           "description": "Open `<SpellRunner>` instead of `<SpellEditor>`."
-        },
-        {
-          "name": "showLabel",
-          "type": "boolean",
-          "description": "Put a `<DropdownLabel>` before the dropdown.  Default:  `true`."
         }
       ],
       "usedIn": [
         {
           "name": "EditorToolbar",
           "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
-          "name": "RunnerToolbar",
-          "file": "src/app/pages/SpellRunner.tsx"
         }
       ],
       "href": "ProjectDropdown.html"
@@ -2363,7 +2277,7 @@
       ],
       "usedIn": [
         {
-          "name": "EditorTabs",
+          "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"
         },
         {
@@ -3140,10 +3054,6 @@
           "file": "src/app/solid/OutputEditor.tsx"
         },
         {
-          "name": "RunnerToolbar",
-          "file": "src/app/pages/SpellRunner.tsx"
-        },
-        {
           "name": "TreeToolbar",
           "file": "src/app/solid/TreeViewer.tsx"
         }
@@ -3194,7 +3104,7 @@
       ],
       "usedIn": [
         {
-          "name": "EditorTabs",
+          "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"
         },
         {
@@ -3236,7 +3146,7 @@
       ],
       "usedIn": [
         {
-          "name": "EditorTabs",
+          "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"
         }
       ],
@@ -3455,7 +3365,7 @@
       ],
       "usedIn": [
         {
-          "name": "EditorTabs",
+          "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"
         },
         {
@@ -3586,9 +3496,7 @@
         "MenuHeader",
         "Spring",
         "MoreMenu",
-        "DropdownLabel",
-        "ProjectActionsDropdown",
-        "FileActionsDropdown"
+        "ProjectActionsDropdown"
       ],
       "tokens": []
     },
@@ -3696,7 +3604,8 @@
       "tags": [
         "InputEditor",
         "InputRoot",
-        "InputToolbar"
+        "InputToolbar",
+        "LineNumbers"
       ],
       "tokens": []
     },

@@ -49,14 +49,47 @@ ui-item.spring::part(item) {
   flex: 1 1 auto;
 }
 
-/* `<DropdownLabel>`:  a quiet label before a dropdown */
-ui-item.dropdown-label::part(item) {
-  padding: 0 0 0 1em;
-  opacity: 0.8;
+/* An icon-only action (`<Action iconOnly>`):  a bare icon, a little bigger, its title a tooltip below it.
+   - A box of its own:  a `<ui-icon>` is `display: contents`, which draws no tooltip;  centred in its bar. */
+ui-icon.IconAction {
+  display: inline-flex;
+  align-self: center;
+  font-size: 1.15em;
+  margin-inline: 0.35em;
 }
-ui-item.dropdown-label::part(item)::before {
-  width: 0;
+
+/* The editor's tooltips (`[data-tooltip]`, Spell UI's CSS-only one) wait two seconds before they show,
+   so moving across the bars doesn't flash them;  they still hide at once */
+#app-root [data-tooltip]:is(:hover, :focus-visible)::before,
+#app-root [data-tooltip]:is(:hover, :focus-visible)::after {
+  transition-delay: 2s;
 }
-ui-item.dropdown-label + ui-item::part(item) {
-  padding-left: 0.6em;
+
+/* `Actions.you`:  the person's avatar, a round button */
+.YouAvatar {
+  display: inline-flex;
+  margin-inline: 0.5em 0.25em;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+
+  & > ui-avatar::part(avatar) {
+    margin: 0;
+  }
+  & > ui-avatar::part(image) {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+  }
+  &:focus-visible {
+    outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color);
+    outline-offset: 2px;
+  }
+}
+
+/* `<ModeButtons>`:  Run | Edit | Debug */
+ui-item.ModeButtons::part(item) {
+  padding-inline: 0.5em;
 }

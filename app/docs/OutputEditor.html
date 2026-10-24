@@ -45,8 +45,9 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            The editor's "Javascript Output" pane, right of the code: the javascript the open spell file compiled to, to
-            read but not to edit. It changes each time the file compiles.
+            The JavaScript tab of the editor's Program panel, in Debug: the javascript the open spell file compiled to,
+            to read but not to edit. It changes each time the file compiles. Given a <code>target</code>, it shows the
+            whole project as that target writes it instead: the panel's TypeScript and Python tabs.
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the spell app's editor, or reading its code</ui-item>
@@ -55,7 +56,9 @@
 
           <ui-section id="1-what-it-looks-like" label="1. What it looks like" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="image"></ui-icon>
-            <p>The editor's "Javascript Output" pane on Solitaire's Card.spell: its toolbar, then the javascript.</p>
+            <p>
+              <code>OutputRoot</code> on Solitaire's Card.spell: its "Javascript Output" toolbar, then the javascript.
+            </p>
             <ui-image
               src="_images/OutputEditor.png"
               alt="The Javascript Output pane:  the compiled javascript of Card.spell, starting export class Card extends Thing"
@@ -73,19 +76,24 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              The editor's page draws it as <code>OutputRoot</code>, its toolbar on top, under the running program on
-              the right:
+              In Debug, the editor's page draws it in three of the Program panel's tabs: as <code>OutputRoot</code>,
+              without its toolbar, for the open file's javascript; on its own, with a <code>target</code>, for the
+              project's TypeScript and Python:
             </p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>SpellEditor.tsx · the editor's page · 5 lines</ui-title>
+              <ui-title>SpellEditor.tsx · the Program panel's code tabs · 9 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
-                    <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
-                      <AppRoot />
-                      <OutputRoot />
-                      <TreeRoot />
-                    </SplitPanel>
+                    <Match when={tab() === "javascript"}>
+                      <OutputRoot showToolbar={false} />
+                    </Match>
+                    <Match when={tab() === "typescript"}>
+                      <OutputEditor showError={editor.showError} target="ts/solid" />
+                    </Match>
+                    <Match when={tab() === "python"}>
+                      <OutputEditor showError={editor.showError} target="py" />
+                    </Match>
                   </script></ui-code
                 >
               </ui-content>
@@ -99,6 +107,11 @@
                 <code>OutputEditor</code> is a read-only
                 <a href="MonacoEditor.html" target="src-packages-app-docs-monacoeditor-html">MonacoEditor</a>, coloured
                 as javascript, showing the open file's compiled code. Monaco loads the first time it's needed.
+              </li>
+              <li>
+                With <code>target</code> (<code>ts/solid</code> or <code>py</code>), it's coloured as that language, and
+                shows what <code>project.codeFor()</code> writes from the last compile. A project that target can't
+                write shows why, as a comment.
               </li>
               <li>It doesn't follow the cursor in the code pane.</li>
               <li>An error drawing it shows in its place, and goes to <code>showError</code>.</li>

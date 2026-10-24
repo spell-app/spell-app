@@ -48,11 +48,11 @@ describe("chrome + Actions", () => {
     const host = await mount(() => (
       <PanelMenu>
         <Submenu left>
-          <Actions.aboutSpell />
+          <Actions.showHelp />
           <Actions.saveFile />
         </Submenu>
         <Submenu right spring>
-          <Actions.showHelp button />
+          <Actions.restartApp button />
         </Submenu>
       </PanelMenu>
     ))
@@ -63,34 +63,48 @@ describe("chrome + Actions", () => {
     expect(left.getAttribute("position")).toBe("left")
     expect(left.classList.contains("third")).toBe(true)
     expect(right.getAttribute("position")).toBe("right")
-    expect([...left.querySelectorAll("ui-item")].map(text)).toEqual(["About Spell", "Save"])
+    expect([...left.querySelectorAll("ui-item")].map(text)).toEqual(["Help", "Save"])
     // the item's `icon` attribute, and it draws (menu item icons drew 0 x 0 before the seo plan's fix)
     const item = left.querySelector("ui-item")!
-    expect(item.getAttribute("icon")).toBe("wizard")
+    expect(item.getAttribute("icon")).toBe("help circle")
     await expect
       .poll(() => item.shadowRoot?.querySelector(".icon svg")?.getBoundingClientRect().width ?? 0)
       .toBeGreaterThan(0)
     // `spring` on a right section:  a `<Spring>` before its items
     expect(right.firstElementChild!.matches("ui-item.spring")).toBe(true)
-    expect(text(right.querySelector("ui-button")!)).toBe("Help")
+    expect(text(right.querySelector("ui-button")!)).toBe("Restart")
   })
 
   test("clicking an item's box runs its action", async () => {
-    const aboutSpell = spyOnEditor("aboutSpell")
+    const showHelp = spyOnEditor("showHelp")
     const host = await mount(() => (
       <PanelMenu>
-        <Actions.aboutSpell />
+        <Actions.showHelp />
       </PanelMenu>
     ))
     const box = host.querySelector("ui-item")!.shadowRoot!.querySelector<HTMLElement>("[part=item]")!
     expect(box.localName).toBe("button")
     box.click()
-    expect(aboutSpell).toHaveBeenCalledTimes(1)
+    expect(showHelp).toHaveBeenCalledTimes(1)
+  })
+
+  test("`iconOnly`:  a bare `<ui-icon link>`, its title the tooltip", async () => {
+    const saveFile = spyOnEditor("saveFile")
+    const host = await mount(() => <Actions.saveFile iconOnly />)
+    const icon = host.querySelector<HTMLElement>("ui-icon.IconAction")!
+    expect(host.querySelector("ui-item")).toBeNull()
+    expect([icon.getAttribute("name"), icon.getAttribute("label"), icon.dataset.tooltip]).toEqual([
+      "cloud upload",
+      "Save",
+      "Save"
+    ])
+    icon.click()
+    expect(saveFile).toHaveBeenCalledTimes(1)
   })
 
   test("call-site props win over the entry's", async () => {
     const onClick = vi.fn()
-    const host = await mount(() => <Actions.aboutSpell title="About" onClick={onClick} />)
+    const host = await mount(() => <Actions.showHelp title="About" onClick={onClick} />)
     const item = host.querySelector<HTMLElement>("ui-item")!
     expect(text(item)).toBe("About")
     item.click()
@@ -141,7 +155,6 @@ describe("chrome + Actions", () => {
     const dropdown = host.querySelector("ui-dropdown") as HTMLElement & { open: boolean; value: unknown }
     expect([...dropdown.querySelectorAll(":scope > ui-item")].map(text)).toEqual([
       "New File",
-      "New Property Editor...",
       "Duplicate File",
       "Rename File",
       "Delete File"
@@ -149,7 +162,7 @@ describe("chrome + Actions", () => {
     expect(dropdown.querySelector(":scope > ui-icon")!.getAttribute("name")).toBe("ellipsis horizontal")
     // in a dropdown, items are data:  the icon is the item's attribute, no element children
     const first = dropdown.querySelector(":scope > ui-item")!
-    expect(first.getAttribute("icon")).toBe("pencil")
+    expect(first.getAttribute("icon")).toBe("file circle plus")
     expect(first.children.length).toBe(0)
 
     dropdown.open = true

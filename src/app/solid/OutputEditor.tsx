@@ -44,20 +44,38 @@ export function OutputToolbar() {
 
 /****************
  * ### `<OutputEditor>`
- * Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`.
- * - Coloured by Monaco's own javascript highlighting;  it doesn't follow the cursor in `<InputEditor>`.
+ * Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`;
+ * or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`).
+ * - Coloured by Monaco's own highlighting for the language;  it doesn't follow the cursor in `<InputEditor>`.
+ * - A target whose writer can't write the project shows why, as a comment, instead of its code.
  * - SEE:  its App UI components page, `app/docs/OutputEditor.html` (`/components/app/OutputEditor.html`).
  ****************/
 export function OutputEditor(props: OutputEditorProps) {
-  const compiled = tracked(() => {
-    const { file } = editor
-    return (file && "compiled" in file ? file.compiled : undefined) ?? ""
+  // read once:  `tracked()` follows spell cells, not Solid's props;  a tab shows one target for its life
+  const { target } = props
+  const code = tracked(() => {
+    if (!target) {
+      const { file } = editor
+      return (file && "compiled" in file ? file.compiled : undefined) ?? ""
+    }
+    const { project } = editor
+    // read so a compile writes it afresh:  `codeFor()` writes from the files as last compiled
+    if (!project?.compiled) return ""
+    try {
+      return project.codeFor(target)
+    } catch (error) {
+      return `${TARGET_LOOKS[target].comment} ${error instanceof Error ? error.message : String(error)}\n`
+    }
   })
   return (
     <div class="OutputEditor">
       <ErrorBoundary onError={(error) => props.showError?.(error)}>
         <Loading fallback={<LazyMonaco.Loading />}>
-          <LazyMonaco.MonacoEditor value={compiled()} language="javascript" options={{ readOnly: true }} />
+          <LazyMonaco.MonacoEditor
+            value={code()}
+            language={target ? TARGET_LOOKS[target].language : "javascript"}
+            options={{ readOnly: true }}
+          />
         </Loading>
       </ErrorBoundary>
     </div>
@@ -68,4 +86,15 @@ export function OutputEditor(props: OutputEditorProps) {
 export type OutputEditorProps = {
   /** Called with each error caught. */
   showError?: (error: unknown) => void
+  /** The project's code for this target instead of the file's javascript, e.g. `py`. */
+  target?: OtherTarget
 }
+
+/** A target `<OutputEditor>` can show besides javascript (`SP.TARGETS`). */
+export type OtherTarget = keyof typeof TARGET_LOOKS
+
+/** Each other target's Monaco language, and how its comments start. */
+const TARGET_LOOKS = {
+  "ts/solid": { language: "typescript", comment: "//" },
+  py: { language: "python", comment: "#" }
+} as const

@@ -6,7 +6,6 @@ import { appTexts } from "spell-app/app/ui/AppTexts"
 import {
   Actions,
   AppMenu,
-  MoreMenu,
   SpellPage,
   Submenu,
   ThemeMenu,
@@ -88,7 +87,7 @@ function Hero(props: { examples: ProjectRootState; guides: ProjectRootState }) {
           <ui-button
             primary=""
             size="large"
-            icon="magic"
+            icon={props.examples.icon ?? "lightbulb"}
             disabled={!firstExample()}
             onClick={() => firstExample() && openProject(firstExample()!)}
           >
@@ -97,7 +96,7 @@ function Hero(props: { examples: ProjectRootState; guides: ProjectRootState }) {
           <ui-button
             basic=""
             size="large"
-            icon="book"
+            icon={props.guides.icon ?? "book open"}
             onClick={() => {
               if (firstGuide()) openProject(firstGuide()!)
               else document.getElementById("guides")?.scrollIntoView({ behavior: "smooth" })
@@ -211,7 +210,7 @@ function hueFor(path: string): string {
 
 /****************
  * ### `<ChooserToolbar>`
- * Top menu of `<ProjectChooser>`:  the chooser (active), the looks, and about.
+ * Top menu of `<ProjectChooser>`:  the chooser (active), the theme menu and the person.
  ****************/
 export function ChooserToolbar() {
   return (
@@ -222,9 +221,7 @@ export function ChooserToolbar() {
       </Submenu>
       <Submenu right spring>
         <ThemeMenu />
-        <Actions.aboutSpell />
         <Actions.you />
-        <MoreMenu stub />
       </Submenu>
     </AppMenu>
   )

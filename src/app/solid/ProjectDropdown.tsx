@@ -5,7 +5,7 @@ import type { UIMenuJSXAttributes } from "spell-ui/jsx"
 import { SPACES } from "spell-app/spaces"
 import { editor } from "spell-app/app/editor"
 import { appTexts, type GroupWords } from "spell-app/app/ui/AppTexts"
-import { DropdownLabel, PROJECT_ICON, on, tracked } from "spell-app/app/solid"
+import { PROJECT_ICON, on, tracked } from "spell-app/app/solid"
 
 import "./ProjectDropdown.css"
 
@@ -59,7 +59,8 @@ export type ProjectMenuProps = UIMenuJSXAttributes & {
  *   loading (spinning caret, no items) until it is and a project is selected.
  * - The dropdown's value is ALWAYS `editor.project`'s path (see `choose()`):
  *   choosing sets it back during the event, and shows the project chosen, which then becomes `editor.project`.
- * - `showLabel` (default `true`):  a `<DropdownLabel>` first, e.g. "Example:".
+ * - Its trigger shows the project's group icon before its name (a book for a guide ...):  the `trigger` slot.
+ *   So does each item.
  * - Sits in a menu:  wrapped in a `<ui-item class="ProjectDropdown">`.  Look:  `ProjectDropdown.css`.
  * - SEE:  its App UI components page, `app/docs/ProjectDropdown.html` (`/components/app/ProjectDropdown.html`).
  ****************/
@@ -67,39 +68,35 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
   const root = trackProjectRoot(() => props.projectRoot)
   const selected = tracked(() => editor.project?.path ?? "")
   const ready = () => root().loaded && !!selected()
+  const selectedName = () => root().projects.find((project) => project.path === selected())?.name
 
   return (
-    <>
-      <Show when={props.showLabel ?? true}>
-        {/* HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>` */}
-        <DropdownLabel>
-          <ui-icon name={PROJECT_ICON} />
-          {appTexts.text("groupLabel", root().words)}
-        </DropdownLabel>
-      </Show>
-      <ui-item class="ProjectDropdown">
-        <ui-dropdown
-          class="ProjectDropdown"
-          loading={!ready()}
-          value={selected()}
-          ref={on<{ value: string }>("ui-change", choose)}
-        >
-          <Show when={ready()}>
-            <For each={root().projects}>
-              {(project) => (
-                <ui-item
-                  value={project.path}
-                  icon={root().icon}
-                  onClick={() => openProject(project.path, props.useRunner)}
-                >
-                  {project.name}
-                </ui-item>
-              )}
-            </For>
-          </Show>
-        </ui-dropdown>
-      </ui-item>
-    </>
+    <ui-item class="ProjectDropdown">
+      <ui-dropdown
+        class="ProjectDropdown"
+        loading={!ready()}
+        value={selected()}
+        ref={on<{ value: string }>("ui-change", choose)}
+      >
+        <span slot="trigger" class="ProjectDropdownTrigger">
+          <ui-icon name={root().icon ?? PROJECT_ICON} />
+          {selectedName()}
+        </span>
+        <Show when={ready()}>
+          <For each={root().projects}>
+            {(project) => (
+              <ui-item
+                value={project.path}
+                icon={root().icon}
+                onClick={() => openProject(project.path, props.useRunner)}
+              >
+                {project.name}
+              </ui-item>
+            )}
+          </For>
+        </Show>
+      </ui-dropdown>
+    </ui-item>
   )
 }
 
@@ -109,8 +106,6 @@ export type ProjectDropdownProps = {
   projectRoot?: SPACES.SpellProjectRoot
   /** Open `<SpellRunner>` instead of `<SpellEditor>`. */
   useRunner?: boolean
-  /** Put a `<DropdownLabel>` before the dropdown.  Default:  `true`. */
-  showLabel?: boolean
 }
 
 /** What `<ProjectMenu>` / `<ProjectDropdown>` / the landing page's cards show of a project root. */

@@ -148,7 +148,7 @@ describe("<ConsoleRoot>", () => {
   test("the toolbar's Clear Console clears it", async () => {
     quietly(() => output.log("clear me"))
     const host = await mount(() => <ConsoleRoot />)
-    const clear = [...host.querySelectorAll<HTMLElement>("ui-item")].find((item) => text(item) === "Clear Console")!
+    const clear = host.querySelector<HTMLElement>("ui-icon.IconAction[data-tooltip='Clear Console']")!
     expect(clear.hasAttribute("disabled")).toBe(false)
     clear.click()
     flush()

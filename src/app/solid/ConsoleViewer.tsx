@@ -34,7 +34,7 @@ export type ConsoleRootProps = {
 
 /****************
  * ### `<ConsoleToolbar>`
- * Toolbar above `<ConsoleViewer>`:  header plus alert/confirm/prompt/choose demo actions and `clearConsole`.
+ * Toolbar above `<ConsoleViewer>`:  its header, and Clear Console.
  ****************/
 export function ConsoleToolbar() {
   return (
@@ -43,26 +43,7 @@ export function ConsoleToolbar() {
         <MenuHeader>{appTexts.text("programOutput")}</MenuHeader>
       </Submenu>
       <Submenu right spring>
-        <Actions.alert title="" header="Header" message="Yo!" />
-        <Actions.confirm title="" message="Yah?" ok="Yep" cancel="Nope" />
-        <Actions.prompt title="" message="What is your name?" defaultValue="Bob" />
-        <Actions.promptForNumber
-          title=""
-          header="Quantity needed:"
-          message="How many did you want?"
-          inputProps={{ min: 10, max: 100, step: 1, placeholder: "Between 10 and 100" }}
-          callback={(value: unknown) => console.log(value, typeof value)}
-        />
-        <Actions.choose title="" header="Pick one" message="Message" options={["A", "B", "C"]} />
-        <Actions.choose
-          title=""
-          header="Pick many"
-          message="Message"
-          options={{ a: "Option A", b: "Option B", c: "Option C" }}
-          multiple
-          defaultValue={["a", "b"]}
-        />
-        <Actions.clearConsole />
+        <Actions.clearConsole iconOnly />
       </Submenu>
     </PanelMenu>
   )

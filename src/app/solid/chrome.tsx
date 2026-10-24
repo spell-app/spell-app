@@ -179,18 +179,6 @@ function choose(event: CustomEvent<{ value: string }>) {
   ;(item as HTMLElement | undefined)?.click()
 }
 
-/****************
- * ### `<DropdownLabel>`
- * Label that goes next to a dropdown in a menu, e.g. a project dropdown's "Project:".
- ****************/
-export function DropdownLabel(props: UIItemJSXAttributes) {
-  return (
-    <ui-item {...omit(props, "class", "children")} class={["dropdown-label", props.class]}>
-      {props.children}
-    </ui-item>
-  )
-}
-
 ////////////////
 // ## Icons
 ////////////////
@@ -227,15 +215,3 @@ export function ProjectActionsDropdown(props: MoreMenuProps): JSX.Element {
 
 /** Icon name used for files, e.g. by a file dropdown. */
 export const FILE_ICON = "file code"
-
-/****************
- * ### `<FileActionsDropdown>`
- * `<MoreMenu>` of `Actions.FILE_DROPDOWN_ACTIONS`.
- ****************/
-export function FileActionsDropdown(props: MoreMenuProps): JSX.Element {
-  return (
-    <MoreMenu {...props}>
-      <Actions.FILE_DROPDOWN_ACTIONS />
-    </MoreMenu>
-  )
-}

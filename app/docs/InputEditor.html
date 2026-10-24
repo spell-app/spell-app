@@ -46,7 +46,7 @@
         <article class="site-article">
           <p class="lede">
             Where you write spell in the editor: the open file, coloured as spell, top left, with a toolbar to pick
-            another file, compile, save, reload or make a new one. It's a
+            another file, save, reload or make a new one. It's a
             <a href="MonacoEditor.html" target="src-packages-app-docs-monacoeditor-html">Monaco editor</a> on the file,
             so it has hovers, references and "go to definition" too.
           </p>
@@ -99,7 +99,13 @@
               <li>
                 The toolbar: the
                 <a href="FileDropdown.html" target="src-packages-app-docs-filedropdown-html">file dropdown</a> on the
-                left; Compile, Save, Reload, New File and the file's "..." menu on the right.
+                left; Save, Reload and New File as icons on the right, each naming itself in a tooltip after two
+                seconds; then the file's "..." menu.
+              </li>
+              <li>No Compile button: the editor compiles two seconds after typing stops, and on Cmd+Enter.</li>
+              <li>
+                The code is 17px, with no line numbers until the "..." menu's "Show line numbers" turns them on; the
+                browser remembers that choice (<code>LineNumbers</code>).
               </li>
               <li>
                 <code>InputEditor</code> edits the editor's open file. Monaco loads the first time it's needed, so it

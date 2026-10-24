@@ -1,8 +1,7 @@
 import { For, Show } from "solid-js"
 
 import { editor } from "spell-app/app/editor"
-import { appTexts } from "spell-app/app/ui/AppTexts"
-import { Actions, DropdownLabel, FILE_ICON, on, tracked } from "spell-app/app/solid"
+import { Actions, FILE_ICON, on, tracked } from "spell-app/app/solid"
 import { isStaticBuild } from "spell-app/app/static/staticBuild"
 
 import "./FileDropdown.css"
@@ -13,6 +12,7 @@ import "./FileDropdown.css"
  * a `<ui-dropdown>` of `<ui-item>`s, showing `editor.file`.
  * Same props as React's `UI.FileDropdown` had.
  * - Choosing a file shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
+ * - Its trigger shows the file icon before the file's name (the `trigger` slot), as each item does.
  * - Loading (spinning caret, no items) until the project's loaded and has a file.
  * - The dropdown's value is ALWAYS `editor.file`'s path (see `choose()`):
  *   choosing sets it back during the event, and shows the file chosen, which then becomes `editor.file`.
@@ -33,37 +33,34 @@ export function FileDropdown(props: FileDropdownProps) {
     }
   })
 
+  const selectedName = () => state().files.find((file) => file.path === state().path)?.name
+
   return (
-    <>
-      <Show when={props.showLabel ?? true}>
-        {/* HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>` */}
-        <DropdownLabel>
+    <ui-item class="FileDropdown">
+      <ui-dropdown
+        id="FileDropdown"
+        class="FileDropdown"
+        loading={!state().ready}
+        value={state().path}
+        ref={on<{ value: string }>("ui-change", choose)}
+      >
+        <span slot="trigger" class="FileDropdownTrigger">
           <ui-icon name={FILE_ICON} />
-          {appTexts.text("fileLabel")}
-        </DropdownLabel>
-      </Show>
-      <ui-item class="FileDropdown">
-        <ui-dropdown
-          id="FileDropdown"
-          class="FileDropdown"
-          loading={!state().ready}
-          value={state().path}
-          ref={on<{ value: string }>("ui-change", choose)}
-        >
-          <For each={state().files} keyed={(file) => file.path}>
-            {(file) => (
-              <ui-item value={file().path} icon={FILE_ICON} onClick={() => open(file().path)}>
-                {file().name}
-              </ui-item>
-            )}
-          </For>
-          <Show when={props.showActions && state().ready && !isStaticBuild}>
-            <ui-item type="divider" />
-            <Actions.FILE_DROPDOWN_ACTIONS />
-          </Show>
-        </ui-dropdown>
-      </ui-item>
-    </>
+          {selectedName()}
+        </span>
+        <For each={state().files} keyed={(file) => file.path}>
+          {(file) => (
+            <ui-item value={file().path} icon={FILE_ICON} onClick={() => open(file().path)}>
+              {file().name}
+            </ui-item>
+          )}
+        </For>
+        <Show when={props.showActions && state().ready && !isStaticBuild}>
+          <ui-item type="divider" />
+          <Actions.FILE_DROPDOWN_ACTIONS />
+        </Show>
+      </ui-dropdown>
+    </ui-item>
   )
 
   /** Show the file at `path`, in the editor or the runner. */
@@ -77,8 +74,6 @@ export function FileDropdown(props: FileDropdownProps) {
 export type FileDropdownProps = {
   /** Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked. */
   useRunner?: boolean
-  /** Put a `<DropdownLabel>` before the dropdown.  Default:  `true`. */
-  showLabel?: boolean
   /** Append `Actions.FILE_DROPDOWN_ACTIONS` after a divider -- never in the static build, which has none. */
   showActions?: boolean
 }

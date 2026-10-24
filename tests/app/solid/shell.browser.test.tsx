@@ -203,7 +203,9 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
     setEditor("project", undefined)
     const host = await mount(() => <ProjectDropdown useRunner />)
     const dropdown = host.querySelector<HTMLElement & { value: string }>("ui-dropdown.ProjectDropdown")!
-    expect(text(host.querySelector("ui-item.dropdown-label")!)).toBe("Example:")
+    // no label before it:  its trigger shows the group's icon
+    expect(host.querySelector(".dropdown-label")).toBeNull()
+    expect(host.querySelector(".ProjectDropdownTrigger > ui-icon")!.getAttribute("name")).toBe("app store ios")
     // no project yet:  loading
     expect(dropdown.hasAttribute("loading")).toBe(true)
     expect(dropdown.querySelectorAll("ui-item")).toHaveLength(0)
@@ -213,6 +215,7 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
     await ElementFixture.settle(host)
     expect(dropdown.hasAttribute("loading")).toBe(false)
     expect(dropdown.value).toBe("@spell/examples/TaskList")
+    expect(text(host.querySelector(".ProjectDropdownTrigger")!)).toBe("TaskList")
     const items = [...dropdown.querySelectorAll(":scope > ui-item")]
     expect(items.map((item) => [item.getAttribute("value"), text(item), item.getAttribute("icon")])).toEqual([
       ["@spell/examples/TaskList", "TaskList", "app store ios"],
@@ -223,13 +226,6 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
     expect(showRunner).toHaveBeenCalledWith("@spell/examples/Solitaire")
     // still showing `editor.project` until it changes
     expect(dropdown.value).toBe("@spell/examples/TaskList")
-  })
-
-  test("`<ProjectDropdown showLabel={false}>`:  no label", async () => {
-    setEditor("projectRoot", fakeRoot(true))
-    const host = await mount(() => <ProjectDropdown showLabel={false} />)
-    expect(host.querySelector(".dropdown-label")).toBeNull()
-    expect(host.querySelector("ui-item.ProjectDropdown > ui-dropdown")).not.toBeNull()
   })
 })
 

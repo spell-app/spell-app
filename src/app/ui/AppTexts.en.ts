@@ -14,7 +14,6 @@ export const APP_TEXTS = {
   // ## Actions:  menu items and buttons (`Actions.tsx`)
   ////////////////
 
-  aboutSpell: "About Spell",
   editApp: "Edit {Type}",
   preview: "Run",
   settings: "Settings",
@@ -25,16 +24,17 @@ export const APP_TEXTS = {
   duplicateApp: "Duplicate {Type}",
   renameApp: "Rename {Type}",
   deleteApp: "Delete {Type}",
-  compile: "Compile",
-  publish: "Publish",
   restart: "Restart",
+  runMode: "Run",
+  editMode: "Edit",
+  debugMode: "Debug",
+  showLineNumbers: "Show line numbers",
   resetApp: "Reset {Type}",
   runTests: "Run Tests",
   newProject: "New Project",
   newExample: "New Example",
   newGuide: "New Guide",
   newFile: "New File",
-  newPropertyEditor: "New Property Editor...",
   duplicateFile: "Duplicate File",
   renameFile: "Rename File",
   deleteFile: "Delete File",
@@ -62,7 +62,6 @@ export const APP_TEXTS = {
   errorParams: "Params:",
   error: "Error",
 
-  fileLabel: "File:",
   consoleCompiling: "Compiling",
   consoleCompiledTo: "Compiled to javascript:",
   consoleExecuting: "Executing {type}",
@@ -80,7 +79,6 @@ export const APP_TEXTS = {
   createNewProject: "Create a New Project",
   createNewExample: "Create a New Example",
   createNewGuide: "Create a New Guide",
-  groupLabel: "{Type}:",
   loadingGroup: "Loading...",
   couldNotLoadGroup: "Couldn't load {title}",
   nothingInGroup: "No {title} yet!",
@@ -106,10 +104,6 @@ export const APP_TEXTS = {
   homeProjectsLine: "What you've made, and where to start the next one.",
   homeFixturesLine: "The frozen projects the tests run against.",
   homeNoGuides: "Guides are on their way.",
-  looksName: "Look",
-  lookBrand: "Brand",
-  lookStudio: "Studio",
-  lookGlass: "Glass",
 
   ////////////////
   // ## Project groups:  each group's words, by its `type` (spaces' `PROJECT_GROUPS`)
@@ -207,12 +201,15 @@ export const APP_TEXTS = {
   doIt: "Do it:  {action}()",
   thingsInOrderMade: "In the order they were made",
   thingsByType: "By type, sub-types included",
-  // the right column's tabs (`<EditorTabs>`)
-  appTab: "App",
+  // the Program panel's tabs (`<ProgramPanel>`)
+  outputTab: "Program Output",
+  typescriptTab: "TypeScript",
+  pythonTab: "Python",
+  closeProgram: "Close the Program panel",
   thingsTab: "Things",
   typesTab: "Types",
   javascriptTab: "JavaScript",
-  treeTab: "Tree",
+  treeTab: "Sentence Tree",
 
   ////////////////
   // ## The runners (`SpellAppRunner.tsx`, `VSCodeRunner.tsx`)

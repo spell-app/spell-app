@@ -113,10 +113,6 @@ export class EditorStore extends Observable {
   }
 
   // TODO: these are referenced by `spell-app/app/solid`'s `Actions` but not yet implemented.
-  /** Show the "About Spell" dialog. TODO: not yet implemented. */
-  aboutSpell(): void {
-    console.warn("TODO: editor.aboutSpell() not yet implemented")
-  }
   /** Show help. TODO: not yet implemented. */
   showHelp(): void {
     console.warn("TODO: editor.showHelp() not yet implemented")
@@ -133,10 +129,6 @@ export class EditorStore extends Observable {
     } catch (error) {
       editor.showError(error)
     }
-  }
-  /** Publish the current `project`. TODO: not yet implemented. */
-  publishApp(): void {
-    console.warn("TODO: editor.publishApp() not yet implemented")
   }
 
   /**
@@ -476,9 +468,18 @@ export class EditorStore extends Observable {
   /**
    * Set where the running app draws:  `<AppRoot>` hands it over, as a ref.
    * - NOT spell state.
+   * - A new place while a program's compiled, e.g. moving from Edit to Run:  the program starts again there,
+   *   afresh (`executeCompiledApp()`), as moving to the same project doesn't recompile it.
+   *   - Afresh:  a run that carries its things over skips starting its app, so the new place would stay empty.
    */
   setAppRoot(element: HTMLElement | null): void {
+    // the old page's `<AppRoot>` may have let go first (`releaseAppRoot()`):  any element but the current is new
+    const isNewPlace = !!element && element !== appRoot
     appRoot = element ?? undefined
+    if (isNewPlace && editor.project?.compiled) {
+      editor.startAfresh = true
+      void editor.executeCompiledApp().catch(editor.showError)
+    }
   }
   /**
    * Forget `element` as where the running app draws -- if it still is:  `<AppRoot>`'s cleanup.

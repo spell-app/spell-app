@@ -48,7 +48,7 @@ export type AppRootProps = {
 
 /****************
  * ### `<AppToolbar>`
- * Toolbar above the running program:  restart and publish, and a stub "..." menu.
+ * Toolbar above the running program:  its header, and Restart.
  ****************/
 export function AppToolbar() {
   return (
@@ -57,8 +57,7 @@ export function AppToolbar() {
         <MenuHeader>{appTexts.text("appMenu")}</MenuHeader>
       </Submenu>
       <Submenu right spring>
-        <Actions.restartApp />
-        <Actions.publishApp />
+        <Actions.restartApp iconOnly />
       </Submenu>
     </PanelMenu>
   )
