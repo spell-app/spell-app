@@ -5,15 +5,18 @@ import { E } from "spell-ui/core"
  * A drawable thing that MOVES glides from where it was on screen to where it lands,
  * e.g. a card played from a tableau onto a foundation.
  *
- * - How (FLIP):
+ * - How:  note where it was, let it move, then slide it back from there (the "FLIP" technique).
  *   1. just before the move, core asks the page (`core.beforeMove`, set by `installSpellElements()`):
  *      we note where each moving thing's element is (`noteWhereThingsAre()`)
- *   2. the move draws the thing again, in its new list's element:  a NEW element, which tells us it's drawn (`drawn()`)
+ *   2. the move draws the thing again, in its new list's element:
+ *      a NEW element, which tells us it's drawn (`drawn()`)
  *   3. before the next paint, the new element starts where the old one was, and slides home (`glide()`)
- * - The slide is the element's `translate`, not its `transform`:  a pile's layout may rotate its cards (`fanned`),
- *   and `translate` adds to that, where a `transform` would replace it.
- * - A list being reordered (epic `outline-spell` P30) notes where its items are, and glides them when its children are
- *   drawn again (`noteForLater()`, then `glideNoted()`):  maybe only when a program running elsewhere says, in Python.
+ * - The slide is the element's `translate`, not its `transform`:
+ *   a pile's layout may rotate its cards (`fanned`), and `translate` adds to that, where a `transform` would replace it.
+ * - A list being reordered (epic `outline-spell` P30):
+ *   - it notes where its items are (`noteForLater()`)
+ *   - it glides them once its children are drawn again (`glideNoted()`)
+ *   - which may be later:  a program running elsewhere, e.g. in Python, moves them when its patch comes
  * - None with reduced motion:  the thing just lands.
  * - STATIC and page-wide on purpose:  every runtime copy on a page shares the page's elements.
  * - Knows nothing of core:  core hands it things, and its elements say what they draw.
