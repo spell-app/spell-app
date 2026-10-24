@@ -191,7 +191,12 @@ All of this runs now, on your own machine.
 - **Make an app that draws itself.**  A thing you declare `drawable`, like a playing card,
   becomes a piece of the page of its own, with its look written inside its definition
   ([Solitaire](spaces/@spell/examples/Solitaire/), below).
-- **Watch it while it runs:**  the things it made, and the kinds of thing it declares.
+- **Watch it while it runs:**  the things it made, and the kinds of thing it declares,
+  in tabs beside the app ([the right column](README-app.md#the-right-column--the-app-and-four-ways-to-look-inside-it)).
+- **Learn by changing a guide.**  Twelve guides are Spell programs that read as prose:
+  a first walkthrough, A tour of Spell, and how each example works ([the guides](README-examples.md#guides--programs-that-read-as-prose)).
+- **Pick a look.**  Glass, frosted panels over a wallpaper, is the default;  Studio and Spell's own are the others,
+  each light or dark, and the code is always Shades of Purple ([three looks](README-app.md#three-looks-and-purple-code)).
 - **Turn it into other programming languages:**  JavaScript always, and TypeScript or Python when the project asks
   ([spell-parser's targets](https://github.com/spell-app/spell-parser/blob/main/README-targets.md)).
 - **Put a running program on any web page**, with two lines of HTML, the code web pages are written in:
@@ -204,6 +209,10 @@ All of this runs now, on your own machine.
   What else it takes, and what it costs:  [four elements, for any page](README-app.md#four-elements-for-any-page).
 - **Run it from a terminal**, the window where you type commands:  `spell run @spell/examples/fizzbuzz`,
   or `spell app serve` to open the editor ([the command line](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app)).
+- **Build it as plain files**, a public preview anyone can try with nothing installed:
+  `spell app preview build`, then `spell app preview serve` to see it as a web host would
+  ([the public preview](README-app.md#the-public-preview--the-editor-as-plain-files)).
+  **Not yet deployed anywhere:**  today it builds on your machine.
 
 ## The ambition
 
@@ -306,12 +315,12 @@ It's the same name inside spell-app as from any other repo.
 
 | Page | The folder it covers | What's on it |
 | --- | --- | --- |
-| [README-app.md](README-app.md) | [src/app/](src/app/), `spell-app/app`;  its build folder, [app/](app/) | <ul><li>four elements for any page:  `<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`</li><li>one runner in three places;  a runtime per program;  a recompile that keeps what the program made</li><li>the editor:  one object behind every pane</li><li>the builds, one Solid per page;  App UI, a page per component</li></ul> |
+| [README-app.md](README-app.md) | [src/app/](src/app/), `spell-app/app`;  its build folder, [app/](app/) | <ul><li>four elements for any page:  `<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`</li><li>one runner in three places;  a runtime per program;  a recompile that keeps what the program made</li><li>the editor:  one object behind every pane;  three looks;  the explorers' tabs</li><li>the public preview:  the editor as plain files</li><li>the builds, one Solid per page;  App UI, a page per component</li></ul> |
 | [README-spaces.md](README-spaces.md) | [src/spaces/](src/spaces/), `spell-app/spaces` | <ul><li>addresses:  the folder is in the name</li><li>setting up spaces for your own project, in seven steps</li><li>the models, the editor's API, and the Python server</li><li>people and orgs, declared in Spell;  🌱 sign-in</li></ul> |
-| [README-examples.md](README-examples.md) | [spaces/@spell/](spaces/@spell/):  data, not code | <ul><li>ten apps, simplest first, each running</li><li>the four parts of every app, and why the Calculator's wording counts</li><li>FizzBuzz, Task List and the two solitaires, line by line</li><li>ideas for your own;  the frozen test projects</li></ul> |
+| [README-examples.md](README-examples.md) | [spaces/@spell/](spaces/@spell/):  data, not code | <ul><li>ten apps, simplest first, each running</li><li>twelve guides, programs that read as prose</li><li>the four parts of every app, and why the Calculator's wording counts</li><li>FizzBuzz, Task List and the two solitaires, line by line</li><li>ideas for your own;  the frozen test projects</li></ul> |
 | [README-lsp.md](README-lsp.md) | [src/lsp/](src/lsp/), `spell-app/lsp` | <ul><li>one service in three places:  the browser, VS Code, the command line</li><li>it reads the parse the compiler already made;  one queue</li><li>what it answers, request by request</li><li>scope packs;  where it stops</li></ul> |
 | [README-page-server.md](README-page-server.md) | its part of the kit's page server, in [package.json](package.json);  its route module is in spaces | <ul><li>the three settings spell-app adds to the kit's page server</li><li>what its route module serves:  the editor, its API, `/element/`</li><li>the editor's record;  running it</li></ul> |
-| [the kit's README-cli.md](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app) | [src/cli/](src/cli/), `spell-app/cli` | <ul><li>spell-app's commands:  `spell app create \| serve \| vscode`, `spell projects`</li><li>the work behind spell-parser's commands, which find projects the app's way</li></ul> |
+| [the kit's README-cli.md](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app) | [src/cli/](src/cli/), `spell-app/cli` | <ul><li>spell-app's commands:  `spell app create \| serve \| preview \| vscode`, `spell projects`</li><li>the work behind spell-parser's commands, which find projects the app's way</li></ul> |
 | [the kit's README-vscode.md](https://github.com/spell-app/spell/blob/main/README-vscode.md) | [vscode/](vscode/):  the extension `spell-language`, a yarn project of its own | <ul><li>the Spell language for VS Code:  colours, the language server, Run Project</li><li>custom elements in JSX, HTML and CSS files:  slot, part and attribute help, and Spell UI's HTML and CSS data</li></ul> |
 
 Beside them:  [app/](app/), the editor's build folder (its Vite configs, `index.html`, App UI's docs pages and its

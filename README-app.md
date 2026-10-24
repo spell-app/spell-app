@@ -374,6 +374,8 @@ each explorer reads something the program or its compile left behind.
   - With no words file, each goes by its name:  `move to pile`.
 - The **Type Explorer** reads the project's scope pack, `<Project>.scopes.js`.
   - In a `<spell-app>` it's read-only, and a link in it sends `spell-open`.
+  - In the editor, its Types tab has the parser at hand, so it asks the language service in the page instead
+    ([the right column](#the-right-column--the-app-and-four-ways-to-look-inside-it)).
   - Who writes the packs, and what's in one:
     [scope packs](README-lsp.md#scope-packs--the-type-explorer-without-a-parser).
 
@@ -433,6 +435,44 @@ A compile, in the order the console in the picture shows it:
 
 **Not yet:**  the About Spell, Docs, Help and Publish buttons are there, but each only logs a TODO
 to the browser's console.
+
+### Three looks, and Purple code
+
+The top bar's three-way switch of looks changes the whole editor, and the palette button beside it picks
+light, dark or auto, and any of Spell UI's 28 themes.
+
+| Look | Its Spell UI theme | What it looks like |
+| --- | --- | --- |
+| Glass, the default | `fruity` | frosted panels over a soft wallpaper, as macOS draws them |
+| Studio | `studio` | flat panels on hairlines, in Shades of Purple's navy and yellow, or lavender and violet in light |
+| the third | Spell's own, with warm surfaces | the white cards of Spell's own pages |
+
+- In a look, the top bar floats as a rounded bar, and the code, the console and the app sit in rounded panels
+  with gaps between them.
+  Any other theme brings back the editor's older violet bars.
+- The editor remembers its own theme, apart from the docs site's;  light or dark is ONE choice for every Spell site.
+- The code itself is always Shades of Purple, the VS Code theme, ported to Monaco with a matching light version.
+  It follows the page's light or dark, under any theme, and colours Spell's headings, keywords, types, properties,
+  actions and constants from the parse.
+- A theme made with Spell UI's theme editor and kept in the browser is worn over its base,
+  while that base is the look chosen.
+- All of it is [EditorTheme.tsx](src/app/solid/EditorTheme.tsx) and [the code themes](src/app/ui/monaco/themes/).
+- **Not yet:**  a menu entry for that kept theme, and a design pass on the two looks besides Glass,
+  which were built to their first drawings with no round of polish.
+
+### The right column:  the app, and four ways to look inside it
+
+The editor's right column is one pane of five tabs:  App, Things, Types, JavaScript and Tree.
+
+- App is the running program.
+  It stays running, never redrawn, while another tab shows.
+- Things is what the program has made, live:  [the Thing Explorer](#the-explorers-read-files-not-the-parser).
+- Types is every type the code knows, worked out after each compile by the language service the code editor runs;
+  a link goes to its line.
+- JavaScript is what the project compiled to;  Tree is the Spell tree of the cursor's line.
+- Restart and Publish sit at the tab bar's right, whatever tab shows.
+- It's the same pane VS Code's Run Project panel and `<spell-app>` use, `RunnerPane`:
+  in a narrow pane its tabs scroll sideways with ‹ › keys instead of wrapping.
 
 <details>
 <summary>The routes, and the keys</summary>
@@ -500,15 +540,82 @@ A Spanish browser gets "Guardar" where an English one gets "Save":
 
 </details>
 
+## The public preview:  the editor as plain files
+
+```sh
+spell app preview build
+```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+✓ @spell/examples/bill-splitter  up to date
+✓ @spell/examples/calculator  up to date
+...
+✓ @spell/guides/how-tic-tac-toe-works  up to date
+✓ Building the static editor  .../spell-app/app/dist-static
+@spell/examples:  @spell/examples/bill-splitter, @spell/examples/calculator, @spell/examples/fizzbuzz, ...
+@spell/guides:  @spell/guides/a-first-spell, @spell/guides/a-tour-of-spell, ...
+`spell app preview serve` shows it as a host would
+```
+
+</details>
+
+That folder, `app/dist-static/`, is the whole editor with the ten examples and twelve guides in it:
+2,737 files, 27 MB, and nothing that needs a server.
+Put it on any static host and anyone can open an example, change it and run it, with nothing to install.
+
+<img src="docs/images/preview.png" width="720" alt="The preview on Tic-Tac-Toe, in the Glass look:  Run and Reset Example in the top bar, the code on the left, the game on the right under its App, Things, Types, JavaScript and Tree tabs">
+
+_The preview on Tic-Tac-Toe, served by `spell app preview serve`:  Reset Example beside Run, and no Projects._
+
+```sh
+spell app preview serve
+```
+
+<details>
+<summary>What it printed</summary>
+
+```text
+http://127.0.0.1:4848/
+The static editor (.../spell-app/app/dist-static) is at http://127.0.0.1:4848/ -- Ctrl-C to stop
+```
+
+</details>
+
+It serves the folder as a host would, with no page server behind it, and opens your browser (`--headless` doesn't;
+`--port` picks another port).
+
+How a page with no server reads and saves files:
+- Every file the editor reads or saves goes through one hook, `LoadableFile.fetch`.
+  In the preview, [StaticFiles](src/app/static/StaticFiles.ts) answers it in place of the page server:
+  - a group's list and a project's index:  JSON files the build wrote, at the URLs the server would answer
+  - a file:  the visitor's edit if there is one, else the build's copy
+  - a save:  kept in the browser's `localStorage` as the visitor types, until "Reset Example" asks and forgets it
+  - creating, renaming or deleting anything:  refused, with an error that says why
+- ONE flag hides what needs a server:  `isStaticBuild` in code, `:root.spell-static` in CSS
+  ([staticBuild.ts](src/app/static/staticBuild.ts)).
+  Gone in the preview:  the Projects column, the You panel, About, Help, Publish, Settings, the "..." menus,
+  the console's test buttons and the debug globals.
+- The build is Vite's, in its `static` mode, so no other build carries any of this.
+- Every unknown page goes to the editor, for the hosts that read these:  `404.html` (GitHub Pages) and
+  `_redirects` (Netlify, Cloudflare Pages).
+
+**Not yet:**  it's built, not deployed anywhere.
+And it must be served at a domain's root:  the editor's routes and files are absolute paths.
+"Open or Create...", Save and Reload are still in the top bar, and read oddly when nothing goes to a server.
+
 ## The builds:  one Solid per page, however many bundles
 
-Four builds, each run from spell-app's folder, each into a folder of [app/](app/), and none committed:
+Five builds, each run from spell-app's folder, each into a folder of [app/](app/), and none committed:
 
 | Script | Into | What it builds |
 | --- | --- | --- |
 | `yarn build` | `app/dist/` | the editor app, after a type check |
 | `yarn build:runner` | `app/dist-runner/` | VS Code's Run Project panel |
 | `yarn build:element` | `app/dist-element/` | `spell-app.js`, `spell-editor.js`, `spell-code.js`, `spell-markdown.js`, `spell-language.js`, and the pack, `spell.pack.js` |
+| `spell app preview build` | `app/dist-static/` | the public preview:  the editor in Vite's `static` mode, with the examples and guides compiled in ([above](#the-public-preview--the-editor-as-plain-files)) |
 | `yarn build:page` | `app/dist-page/` | `spell-page.js`, the page side of a Python Spell app, which [spaces' Python server](README-spaces.md#the-python-server) serves |
 
 Two copies of Solid on one page break silently, so however many of these bundles a page loads,

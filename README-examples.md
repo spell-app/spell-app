@@ -49,6 +49,7 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 
 They're two groups in Spell's own space:
 `@spell/examples`, and `@spell/library`, whose library is for other projects to import.
+Every example has a guide that takes it apart:  [guides](#guides--programs-that-read-as-prose), below.
 
 ### Opening one
 
@@ -605,6 +606,53 @@ _The tableau's rule, in Spanish:  a column, `columna`._
 <img src="docs/images/examples/Solitario.png" width="640" alt="Solitario open in the Spell editor:  Carta.es.spell on the left;  on the right, the game running, its menu in Spanish, Puntos, Jugar solo, Trampa, Depurar, and the same Klondike board">
 
 _Solitario open in the editor, dealt:  the same board, its menu in Spanish, drawn with Spell UI's Spanish tags (`<es-menu>`, `<es-cuadricula>`)._
+
+## Guides:  programs that read as prose
+
+```spell
+## How Tic-Tac-Toe works
+// The Tic-Tac-Toe example is the paper game:  X and O take turns, and three in a row wins.
+// Its rules fit in three ideas:
+// - each square knows its own mark, and draws itself as a button
+// - the game knows whose turn it is
+// - after each move, the game checks every line of three for a winner
+//
+// This guide is the same game with one thing missing:  it only checks the ROWS, across.
+// Three down, or corner to corner, doesn't win yet.  Adding those is your move, at the end.
+
+
+## A square:  empty, or holding an X or an O
+// "drawable" means each square shows itself on the page, here as a button
+a "square" is a drawable thing where:
+	- its "mark" is text
+	- it "is empty" if its mark is ""
+```
+
+_The top of [How Tic-Tac-Toe works](spaces/@spell/guides/how-tic-tac-toe-works/HowTicTacToeWorks.spell):
+the story in comments, the program between them._
+
+A guide is a Spell project like any example, so it runs:
+the editor shows its `##` headings in bold and its comments in italics, and the app it makes on the right.
+Unlike a tutorial page, there's nothing to copy across:  you change a line where you read it, and the app follows.
+
+Twelve of them, in `@spell/guides`, the editor's Guides column:
+
+| Guide | What it teaches |
+| --- | --- |
+| [`Your first spell`](spaces/@spell/guides/a-first-spell/) | five steps on a hello sign, each a "Your move" and a "What you'll see":  change a name, change what a click does, break a line on purpose, a check that runs by itself |
+| [A tour of Spell](spaces/@spell/guides/a-tour-of-spell/) | things, properties, rules and drawing, on a windowsill of plants that say when they need water |
+| How FizzBuzz, the Calculator, Tic-Tac-Toe, the Bill Splitter, Flash Cards, the Habit Tracker, the Task List and Solitaire work | one each, in [the guides' folder](spaces/@spell/guides/):  a short program of its own with the example's key lines |
+| [Cómo funciona Solitario](spaces/@spell/guides/como-funciona-solitario/), [Cómo funciona Lista de tareas](spaces/@spell/guides/como-funciona-lista-de-tareas/) | the two Spanish twins, written in Spanish |
+
+- A guide opens in the editor, not the runner:  from its card, and from `Read your first spell` on the editor's home.
+- Each is 52 to 111 lines, and tested as the examples are:
+  compiled against snapshots (in `tests/spell/__guides__/`), type-checked as TypeScript, and run.
+  A new folder in `spaces/@spell/guides/` is picked up by those tests by itself.
+- A "how it works" guide is NOT the example:  it copies the key lines into a program of its own,
+  so the example can change without breaking the guide;  Tic-Tac-Toe's leaves a piece out for you to add.
+- **The edges:**  the guides step around a few phrases Spell doesn't read yet,
+  such as `is at least`, and `a + b as a number`;
+  in the guides' JSX, the spaces next to a `{...}` are dropped.
 
 ## Ideas for your own
 
