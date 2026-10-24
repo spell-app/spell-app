@@ -168,8 +168,8 @@ export class ListaDeTareas extends App {
 
   // su menú, el campo de la nueva tarea, luego la lista junto al editor de propiedades
   // - los botones del menú son iconos, cada uno con su ayuda
-  // - el editor de propiedades edita todas las tareas seleccionadas a la vez:  una propiedad en la que no
-  //   coinciden muestra "Varios"
+  // - el editor de propiedades edita todas las tareas seleccionadas a la vez:
+  //   una propiedad en la que no coinciden muestra "Varios"
   draw() {
     return h("es-contenedor", { class: "TaskList" },
       h("es-menu",

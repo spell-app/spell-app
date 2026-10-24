@@ -121,7 +121,7 @@
     {
       "type": "ListaDeTareas",
       "superType": "App",
-      "defined": "/ListaDeTareas.es.spell:1416-4322"
+      "defined": "/ListaDeTareas.es.spell:1416-4321"
     },
     {
       "property": "tareas",
@@ -176,7 +176,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "el filtro",
-      "defined": "/ListaDeTareas.es.spell:4965-5212"
+      "defined": "/ListaDeTareas.es.spell:4964-5211"
     }
   ],
   "codeLines": [

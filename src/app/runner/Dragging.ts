@@ -5,22 +5,23 @@ import { E } from "spell-ui/core"
  * One drag of a drawable thing's element, from pointer down to pointer up:  a mouse and a finger alike.
  *
  * - What it carries:  the element, and its list's items after it, e.g. a tableau's face-up card and the cards on it.
- *   They follow the pointer by their `translate`, raised above the board, and ignore the pointer meanwhile,
- *   so what's under it can be found.
+ *   - They follow the pointer by their `translate`, raised above the board.
+ *   - They ignore the pointer meanwhile, so what's under it can be found.
  * - Or what its owner says (`DragOptions.carried`), staying where it is (`follows: false`):
- *   e.g. a task list's selected tasks, dimmed, while a line shows where they'd go (`SpellElement`, epic `outline-spell`
- *   P30).
+ *   e.g. a task list's selected tasks, dimmed, while a line shows where they'd go
+ *   (`SpellElement`, epic `outline-spell` P30).
  * - Where it lands:  the drawable list's element under the pointer, as `dropTargetAt()` finds it.
- * - It sends the web's own drag events, as `DragEvent`s with no `dataTransfer`, so a page can follow it as it would
- *   the browser's drag and drop:
+ * - It sends the web's own drag events, as `DragEvent`s with no `dataTransfer`,
+ *   so a page can follow it as it would the browser's drag and drop:
  *   - on the dragged element:  `dragstart`, `drag` as it moves, `dragend`
  *   - on the list under the pointer:  `dragenter`, `dragover` as it moves over it, `dragleave`, and `drop`
  *   - What's being dragged meanwhile:  `Dragging.current`.
- *   - Why not the browser's own drag and drop (`draggable="true"`):  it's patchy on phones, only a faded picture of one
- *     element follows the pointer, and it can't glide or slide back.
+ *   - Why not the browser's own drag and drop (`draggable="true"`):
+ *     it's patchy on phones, only a faded picture of one element follows the pointer, and it can't glide or slide back.
  * - A press that doesn't move past `DRAG_START_PX` is no drag:  its click goes through as ever.
  *   A real drag swallows the click that follows it.
- * - What happens on the drop is its owner's to say (`onDrop`), e.g. `SpellElement`'s:  the program's `card-drop`.
+ * - What happens on the drop is its owner's to say (`onDrop`), e.g. `SpellElement`'s:
+ *   the pile's `when a card is dropped on it`, else the program's `card-drop`.
  *   - What still sits where it was dragged from afterwards, a drop nobody took, slides back.
  *   - What moved is drawn again in its new list, and glides there from where it was dropped (`Glides`).
  * - Plain DOM:  no Solid, no core.  Its owner hands it the element and what to do.
@@ -76,6 +77,7 @@ export class Dragging {
   get follows(): boolean {
     return this.options.follows !== false
   }
+
   /** The drop target under the pointer now, if any:  it's had `dragenter`, and gets `dragleave` as the pointer leaves. */
   private over: HTMLElement | undefined
 
