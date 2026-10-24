@@ -16,10 +16,10 @@ import "./static.css"
  *   - saving a file, `/api/projects/file/<project>/<file>`:  kept in the browser (below)
  *   - anything else (create, rename, delete, settings):  a `UIError`, as the build hides those
  * - What's kept, and where:
- *   - a file of the project's own, one its index lists (`Solitaire.spell`):  the browser's `localStorage`,
- *     so an edit stays after a reload, until "Reset Example" (`reset()`)
- *   - what spell builds from them (`Solitaire.spell.js`, its words and declarations):  this page's memory only,
- *     as each visit compiles afresh
+ *   - a file of the project's own, one its index lists (`Solitaire.spell`):
+ *     the browser's `localStorage`, so an edit stays after a reload, until "Reset Example" (`reset()`)
+ *   - what spell builds from them (`Solitaire.spell.js`, its words and declarations):
+ *     this page's memory only, as each visit compiles afresh
  * - The page's own `fetch()`es of compiled files (`fetchCompiled()`, the runners' `fetchText()`) read the build's
  *   copies:  they load OTHER projects, which a visitor can't edit.
  * - Browser code;  imports only `spell/util` and spell's barrel.

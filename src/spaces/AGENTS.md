@@ -47,8 +47,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - The built-in examples are tested as they are, not as frozen copies (`EXAMPLE_FIXTURES`):
       their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
     - So is every guide, `@spell/guides` (epic `debut` P10):  its snapshots in `tests/spell/__guides__/<Project>/`.
-- [test/](test/index.ts), node only:  the test helpers for the frozen test projects and the tested examples and guides,
-  `spell-app/spaces/test`
+- [test/](test/index.ts), node only:
+  the test helpers for the frozen test projects and the tested examples and guides, `spell-app/spaces/test`
   - `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`, `compiledFixture()` ...
   - Imported by tests only, by name, never from the barrel.
   - Inline projects are spell-parser's helpers', `spell-parser/spell/test` (`parseSpellProject()`).

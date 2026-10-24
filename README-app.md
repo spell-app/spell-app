@@ -599,8 +599,8 @@ How a page with no server reads and saves files:
   Gone in the preview:  the Projects column, the You panel, About, Help, Publish, Settings, the "..." menus,
   the console's test buttons and the debug globals.
 - The build is Vite's, in its `static` mode, so no other build carries any of this.
-- Every unknown page goes to the editor, for the hosts that read these:  `404.html` (GitHub Pages) and
-  `_redirects` (Netlify, Cloudflare Pages).
+- Every unknown page goes to the editor, for the hosts that read these:
+  `404.html` (GitHub Pages) and `_redirects` (Netlify, Cloudflare Pages).
 
 **Not yet:**  it's built, not deployed anywhere.
 And it must be served at a domain's root:  the editor's routes and files are absolute paths.

@@ -12,10 +12,10 @@ import { CLI } from "spell-app/cli"
  * The editor's STATIC build, the public preview (epic `debut` P9):  the editor as plain files, which any web host
  * serves, with no server behind it.
  * - `build()` writes it into `folder` (`app/dist-static/`):
- *   1. the editor, built by Vite in its static mode (`vp build --mode static`):  the page reads `isStaticBuild`,
- *      hides what needs a server, and answers its files from the build (`StaticFiles`, in the app)
- *   2. the projects it shows (`PREVIEW_GROUPS`:  the examples, the guides), whatever's there as it builds,
- *      compiled first (`spell compile --stale`)
+ *   1. the editor, built by Vite in its static mode (`vp build --mode static`):
+ *      the page reads `isStaticBuild`, hides what needs a server, and answers its files from the build (`StaticFiles`, in the app)
+ *   2. the projects it shows, the examples and the guides (`PREVIEW_GROUPS`):
+ *      whatever's there as it builds, compiled first (`spell compile --stale`)
  *   3. what the page server would have answered for them, as files:
  *      - each group's list:  `api/projects/list/<group>.json`;  every other group's, empty
  *      - each project's index:  `api/projects/index/<project>.json`

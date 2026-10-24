@@ -207,8 +207,8 @@ All of this runs now, on your own machine.
   ```
 
   What else it takes, and what it costs:  [four elements, for any page](README-app.md#four-elements-for-any-page).
-- **Run it from a terminal**, the window where you type commands:  `spell run @spell/examples/fizzbuzz`,
-  or `spell app serve` to open the editor ([the command line](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app)).
+- **Run it from a terminal**, the window where you type commands:
+  `spell run @spell/examples/fizzbuzz`, or `spell app serve` to open the editor ([the command line](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app)).
 - **Build it as plain files**, a public preview anyone can try with nothing installed:
   `spell app preview build`, then `spell app preview serve` to see it as a web host would
   ([the public preview](README-app.md#the-public-preview--the-editor-as-plain-files)).
