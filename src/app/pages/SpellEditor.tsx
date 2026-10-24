@@ -169,6 +169,7 @@ function tabOrDefault(saved: unknown): EditorTabId {
 /****************
  * ### `<EditorToolbar>`
  * Top menu of `<SpellEditor>`:  the project dropdown, preview / settings / project actions;  the chooser;  about.
+ * - The static build's "Reset Example" sits by the project actions (`Actions.resetApp`, drawn only there).
  ****************/
 export function EditorToolbar() {
   return (
@@ -177,6 +178,7 @@ export function EditorToolbar() {
         <ProjectDropdown />
         <Actions.showRunner />
         <Actions.showProjectSettings />
+        <Actions.resetApp />
         <ProjectActionsDropdown />
       </Submenu>
       <Submenu center spring>

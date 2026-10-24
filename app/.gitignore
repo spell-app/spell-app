@@ -5,6 +5,8 @@ dist
 dist-runner
 dist-element
 dist-page
+# the static build, the public preview:  `spell app preview build`
+dist-static
 settings.json5
 
 # vitest browser mode:  screenshots of failures, attachments

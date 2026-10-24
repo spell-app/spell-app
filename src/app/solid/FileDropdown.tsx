@@ -3,6 +3,7 @@ import { For, Show } from "solid-js"
 import { editor } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { Actions, DropdownLabel, FILE_ICON, on, tracked } from "spell-app/app/solid"
+import { isStaticBuild } from "spell-app/app/static/staticBuild"
 
 import "./FileDropdown.css"
 
@@ -56,7 +57,7 @@ export function FileDropdown(props: FileDropdownProps) {
               </ui-item>
             )}
           </For>
-          <Show when={props.showActions && state().ready}>
+          <Show when={props.showActions && state().ready && !isStaticBuild}>
             <ui-item type="divider" />
             <Actions.FILE_DROPDOWN_ACTIONS />
           </Show>
@@ -78,7 +79,7 @@ export type FileDropdownProps = {
   useRunner?: boolean
   /** Put a `<DropdownLabel>` before the dropdown.  Default:  `true`. */
   showLabel?: boolean
-  /** Append `Actions.FILE_DROPDOWN_ACTIONS` after a divider. */
+  /** Append `Actions.FILE_DROPDOWN_ACTIONS` after a divider -- never in the static build, which has none. */
   showActions?: boolean
 }
 

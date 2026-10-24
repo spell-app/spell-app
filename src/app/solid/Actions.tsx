@@ -6,6 +6,7 @@ import { editor, runtimeConsole } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import type * as Modals from "spell-app/app/solid/modals"
 import { tracked } from "spell-app/app/solid"
+import { isStaticBuild } from "spell-app/app/static/staticBuild"
 
 /****************
  * ### `<Action>`
@@ -187,6 +188,21 @@ export const Actions = {
   restartApp: (props: ActionProps) => (
     <Action title={appTexts.text("restart")} icon="redo" onClick={() => editor.restartApp()} {...props} />
   ),
+  /** The static build's "Reset Example":  forget the visitor's edits (`editor.resetApp()`);  only there. */
+  resetApp: (props: ActionProps) => {
+    const groupWords = trackGroupWords()
+    return (
+      <Show when={isStaticBuild}>
+        <Action
+          title={appTexts.text("resetApp", groupWords())}
+          icon="undo"
+          class="resetApp"
+          onClick={() => void editor.resetApp()}
+          {...props}
+        />
+      </Show>
+    )
+  },
 
   ////////////////
   // ## Project actions
@@ -352,6 +368,44 @@ export const Actions = {
     </>
   )
 }
+
+/**
+ * The actions the static build (the public preview, `isStaticBuild`) leaves out:  each draws nothing there.
+ * - what needs a server:  making, copying, renaming and deleting projects and files, their settings, the You panel
+ * - what does nothing yet:  About, Help, Publish
+ * - the console's test buttons (the dialogs)
+ * - The groups too, so a dropdown of them is empty:  `<FileDropdown>` leaves out its divider, and the "..." menus
+ *   are hidden by the static build's CSS (`static.css`).
+ */
+const HIDDEN_IN_STATIC_BUILD = [
+  "aboutSpell",
+  "showHelp",
+  "you",
+  "publishApp",
+  "showProjectSettings",
+  "appSettings",
+  "createApp",
+  "duplicateApp",
+  "renameApp",
+  "deleteApp",
+  "createProject",
+  "createExample",
+  "createGuide",
+  "createFile",
+  "createPropertyEditor",
+  "duplicateFile",
+  "renameFile",
+  "deleteFile",
+  "alert",
+  "confirm",
+  "prompt",
+  "promptForNumber",
+  "choose",
+  "PROJECT_DROPDOWN_ACTIONS",
+  "FILE_DROPDOWN_ACTIONS"
+] as const satisfies ReadonlyArray<keyof typeof Actions>
+
+if (isStaticBuild) for (const name of HIDDEN_IN_STATIC_BUILD) Object.assign(Actions, { [name]: () => null })
 
 /** Props shared by the dialog actions (`alert`, `confirm`, `prompt`, `promptForNumber`, `choose`). */
 export type DialogActionProps<P> = P & {

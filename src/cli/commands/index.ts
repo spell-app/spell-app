@@ -1,7 +1,7 @@
 /**
  * Barrel for spell-app's `spell` commands' work, one per file -- flattened into `spell-app/cli`.
  * - Each is `(session, args, options) => Promise<exitCode>`:
- *   - the app's own:  `spell app create | serve` (`newCommand`, `serveCommand`), `spell projects`
+ *   - the app's own:  `spell app create | serve | preview` (`newCommand`, `serveCommand`, `previewCommand`), `spell projects`
  *   - the language's:  spell-parser's commands (`spell compile` ...), through the `"language"` hook
  *     (`languageCommands.ts`)
  * - Except `vscodeCommand`, `(args) => Promise<exitCode>`:  it loads no spell.
@@ -22,4 +22,5 @@ export * from "./translateCommand"
 export * from "./translateTimeCommand"
 export * from "./newCommand"
 export * from "./serveCommand"
+export * from "./previewCommand"
 export * from "./vscodeCommand"

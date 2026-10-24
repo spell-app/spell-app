@@ -1,4 +1,4 @@
-import { JSON5File, CONFIRM, $fetch, getDier, KnownFormat } from "spell/util"
+import { JSON5File, CONFIRM, LoadableFile, getDier, KnownFormat } from "spell/util"
 import { SP } from "spell-parser/spell"
 
 import { LOCAL_PERSON } from "./projectGroups"
@@ -6,6 +6,8 @@ import { LOCAL_PERSON } from "./projectGroups"
 /**
  * A project GROUP's list of projects, e.g. `@spell/examples`.
  * - Loadable, and it creates, copies, renames and deletes the group's projects.
+ *   - Each asks spaces' server through `LoadableFile.fetch`, as the list itself is read:
+ *     whoever answers files answers these, e.g. the editor's static build, which refuses them (`StaticFiles`).
  * - One per group:  `new SpellProjectRoot("@spell/examples")` answers the one already made.
  * - Its groups are spaces' (`PROJECT_GROUPS`):  loading this file registers them with spell.
  * - It was spell's, until epic `people-and-orgs` P15 (decision Q20):  spell never lists projects.
@@ -224,7 +226,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
 
     // Tell the server to create the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectList>({
+      const newContents = await LoadableFile.fetch<SP.ProjectList>({
         url: `/api/projects/create/project`,
         contents: {
           projectId,
@@ -265,7 +267,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
 
     // Tell the server to duplicate the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectList>({
+      const newContents = await LoadableFile.fetch<SP.ProjectList>({
         url: `/api/projects/duplicate/project`,
         contents: { projectId, newProjectId, title: this.titlesTyped.get(newProjectId) },
         requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
@@ -302,7 +304,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
 
     // Tell the server to rename the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectList>({
+      const newContents = await LoadableFile.fetch<SP.ProjectList>({
         url: `/api/projects/rename/project`,
         contents: { projectId, newProjectId, title: this.titlesTyped.get(newProjectId) },
         requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
@@ -336,7 +338,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
 
     // Tell the server to remove the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectList>({
+      const newContents = await LoadableFile.fetch<SP.ProjectList>({
         url: `/api/projects/remove/project`,
         method: "DELETE",
         contents: { projectId },
@@ -366,7 +368,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
     const die = getDier(this, `saving the settings of ${project.projectId}`, { settings })
     let saved: ProjectSettings = {}
     try {
-      saved = await $fetch<ProjectSettings>({
+      saved = await LoadableFile.fetch<ProjectSettings>({
         url: `/api/projects/settings/project`,
         contents: { projectId: project.projectId, settings },
         requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,

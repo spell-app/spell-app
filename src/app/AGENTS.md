@@ -76,6 +76,13 @@ and in the app's build folder, `app/` at the repo's root.
           [spellPage.test.ts](../../tests/app/runner/spellPage.test.ts) fails on one it leaves out.
       - It sets the page up itself.
       - spaces' `spell_quart`, Python's web server, serves it ([spaces' AGENTS.md](../spaces/AGENTS.md)).
+  - `spell app preview build`:  `app/dist-static/`, the STATIC build, the public preview (epic `debut` P9)
+    - the editor in Vite's `static` mode, plus the examples and guides compiled, their lists and indexes as files
+      ([PreviewSite.ts](../cli/PreviewSite.ts));  `spell app preview serve` shows it as a host would
+    - ONE flag hides what needs a server:  `isStaticBuild` in code, `:root.spell-static` in CSS
+      ([static/](static/));  the actions it leaves out are `HIDDEN_IN_STATIC_BUILD` (`Actions.tsx`)
+    - Files load through `LoadableFile.fetch`, answered by `StaticFiles`:  the build's copies,
+      a visitor's edits kept in their browser's `localStorage`, "Reset Example" forgets them
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
       - `spell-solid.js`:  Solid itself, plus

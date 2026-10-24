@@ -1,6 +1,8 @@
 import { createSignal, For, Show } from "solid-js"
 import { render } from "@solidjs/web"
 
+import { KnownFormat, LoadableFile, parseJSON } from "spell/util"
+
 import type { SPACES } from "spell-app/spaces"
 import { UI as SpellUI } from "spell-ui"
 import { appTexts } from "spell-app/app/ui/AppTexts"
@@ -177,13 +179,28 @@ export async function openYouPanel(): Promise<SPACES.MeAnswer> {
   return changes ? meRequest("POST", changes) : me
 }
 
-/** `GET` or `POST /api/people/me`, its answer read;  throws with the server's message if it fails. */
+/**
+ * `GET` or `POST /api/people/me`, its answer read;  throws with the server's message if it fails.
+ * - Through `LoadableFile.fetch`, as every file is read:  the editor's static build refuses it (`StaticFiles`),
+ *   and hides the panel.
+ */
 async function meRequest(method: "GET" | "POST", changes?: SPACES.PersonChanges): Promise<SPACES.MeAnswer> {
-  const response = await fetch(ME_URL, {
-    method,
-    ...(changes && { headers: { "content-type": "application/json" }, body: JSON.stringify(changes) })
-  })
-  const answer = (await response.json()) as SPACES.MeAnswer & { errors?: { message: string }[] }
-  if (!response.ok) throw new Error(answer.errors?.[0]?.message ?? `${method} ${ME_URL}:  ${response.status}`)
-  return answer
+  try {
+    return await LoadableFile.fetch<SPACES.MeAnswer>({
+      url: ME_URL,
+      method,
+      format: KnownFormat.json,
+      ...(changes && { contents: changes, requestFormat: KnownFormat.json })
+    })
+  } catch (error) {
+    throw new Error(serverMessage(error) ?? `${method} ${ME_URL}:  ${String(error)}`, { cause: error })
+  }
+}
+
+/** First message of the server's `{ errors: [{ message }] }` answer in `error`, if that's what it holds. */
+function serverMessage(error: unknown): string | undefined {
+  const text = (error as { props?: { message?: unknown } })?.props?.message
+  if (typeof text !== "string") return undefined
+  const answer = parseJSON(text, ME_URL, true) as { errors?: { message: string }[] } | undefined
+  return answer?.errors?.[0]?.message
 }

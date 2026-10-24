@@ -14,6 +14,8 @@ import { navigate } from "spell-app/app/pages/navigation"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the runner barrel, which brings the runners
 import { wordsOfLanguages } from "spell-app/app/runner/words"
+import { isStaticBuild } from "spell-app/app/static/staticBuild"
+import { staticFiles } from "spell-app/app/static/StaticFiles"
 
 ////////////////
 // ## The editor
@@ -349,6 +351,31 @@ export class EditorStore extends Observable {
   async restartApp(): Promise<void> {
     editor.startAfresh = true
     await editor.compileApp()
+  }
+
+  /**
+   * The static build's "Reset Example":  forget the visitor's edits to current `project`, after asking,
+   * and show it as the build has it (`StaticFiles.reset()`).
+   * - SIDE EFFECT:  reloads the page, so every file, model and run starts from the build's copy.
+   */
+  async resetApp(): Promise<void> {
+    const { project, projectRoot } = editor
+    if (!project) return
+    const message = appTexts.text("resetAppConfirm", appTexts.groupWords(projectRoot))
+    if (!(await editor.confirm({ message }))) return
+    staticFiles.reset(project.projectId)
+    location.reload()
+  }
+
+  /**
+   * Keep `file`'s edit at once, in the static build:  its visitors never press Save, and a reload keeps their edit.
+   * - Saved through `LoadableFile.fetch`, which keeps it in the browser (`StaticFiles`).
+   * - Elsewhere it waits for Save, as ever.
+   * - NEVER throws:  a failure is logged.
+   */
+  keepEdit(file: SP.AnySpellFile): void {
+    if (!isStaticBuild) return
+    void file.save(undefined)?.catch((error) => console.error(`couldn't keep the edit to ${file.path}:`, error))
   }
 
   /** Does the next run start afresh?  Set by `restartApp()`, and cleared as the run starts. */
@@ -816,8 +843,10 @@ export class EditorStore extends Observable {
   /**
    * `file` was edited in its Monaco model, and has taken the text -- see `SpellModels`.
    * - Compiles 2 seconds after input settles, if it's in the project we're showing.
+   * - The static build keeps the edit at once (`keepEdit()`).
    */
   onFileEdited(file: SP.AnySpellFile): void {
+    editor.keepEdit(file)
     // by path:  cheap, and the same however the project was reached
     if (file.project.path === editor.project?.path) editor.compileAppSoon(2)
   }
@@ -845,6 +874,7 @@ export class EditorStore extends Observable {
       file.contents = value
       project.updatedContentsFor(file)
     }
+    editor.keepEdit(file)
     // auto-compile 2 seconds after input settles
     editor.compileAppSoon(2)
   }

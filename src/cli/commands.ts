@@ -2,6 +2,7 @@
  * spell-app's `spell` commands (its `package.json`'s `"spell": { "commands" }`, epic `repo-split` Q33):
  * - `spell app create <name>`:  a new spell project, in your space
  * - `spell app serve [project]`:  the editor and its page server, opened in a browser
+ * - `spell app preview build | serve`:  the editor's static build, the public preview -- written, then shown as a host would
  * - `spell app vscode [build|install]`:  the VS Code extension
  * - `spell projects [group]`:  the project groups, or one group's projects
  * - Under `app` on purpose (Owen's names, 2026-10-21), not only on a clash as Q33 has it.
@@ -16,7 +17,9 @@ import { CLI } from "spell/cli"
 import { loadApp } from "./hooks"
 
 export default function appCommands(spell: Command): void {
-  const app = spell.command("app").description("the spell app:  a new project, the editor, the VS Code extension")
+  const app = spell
+    .command("app")
+    .description("the spell app:  a new project, the editor, its static build, the VS Code extension")
 
   app
     .command("create")
@@ -44,6 +47,26 @@ export default function appCommands(spell: Command): void {
       CLI.runCommand(async () =>
         (await loadApp()).appCommands.serve(project ? [project] : [], command.optsWithGlobals())
       )
+    )
+
+  const preview = app
+    .command("preview")
+    .description("the editor's static build, the public preview:  plain files, edits kept in the visitor's browser")
+
+  preview
+    .command("build")
+    .description("build it into app/dist-static/:  the editor, the examples and guides compiled, their lists")
+    .action((_options, command: Command) =>
+      CLI.runCommand(async () => (await loadApp()).appCommands.preview(["build"], command.optsWithGlobals()))
+    )
+
+  preview
+    .command("serve")
+    .description("show the build as a host would, with no page server, and open it, until Ctrl-C")
+    .option("--port <port>", "its port -- default 4848, else any free one", (value) => Number(value))
+    .option("--headless", "don't open a browser:  just print the URL")
+    .action((_options, command: Command) =>
+      CLI.runCommand(async () => (await loadApp()).appCommands.preview(["serve"], command.optsWithGlobals()))
     )
 
   const vscode = app

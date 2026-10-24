@@ -70,6 +70,16 @@ export type ProjectsOptions = GlobalOptions & {
 }
 
 /**
+ * `spell app preview serve` flags.
+ * - `port`:  where to serve the static build -- default 4848 (`PREVIEW_PORT`), else any free one
+ * - `headless`:  don't open a browser
+ */
+export type PreviewOptions = GlobalOptions & {
+  port?: number
+  headless?: boolean
+}
+
+/**
  * `spell app serve` flags.
  * - `port`:  the editor's port -- default 3000;  its server's is the next one up
  * - `headless`:  don't open a browser

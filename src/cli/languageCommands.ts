@@ -26,12 +26,13 @@ export const languageCommands: LanguageCommands = {
 }
 
 /**
- * The app's commands (`spell app create | serve`, `spell projects`), by name, each on a new `CliSession`:  what
+ * The app's commands (`spell app create | serve | preview`, `spell projects`), by name, each on a new `CliSession`:  what
  * `cli/commands.ts` runs.
  */
 export const appCommands = {
   create: (args: string[], options: CLI.NewOptions) => CLI.newCommand(session(options), args, options),
   serve: (args: string[], options: CLI.ServeOptions) => CLI.serveCommand(session(options), args, options),
+  preview: (args: string[], options: CLI.PreviewOptions) => CLI.previewCommand(session(options), args, options),
   projects: (args: string[], options: CLI.ProjectsOptions) => CLI.projectsCommand(session(options), args, options)
 }
 

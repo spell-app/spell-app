@@ -1,4 +1,4 @@
-import { $fetch, CONFIRM, getDier, KnownFormat } from "spell/util"
+import { CONFIRM, LoadableFile, getDier, KnownFormat } from "spell/util"
 import { SP } from "spell-parser/spell"
 
 /**
@@ -6,6 +6,8 @@ import { SP } from "spell-parser/spell"
  * - The editor calls these, never spell:  `SpellProject` only reads, compiles and saves (decision Q20).
  * - Each asks spaces' server (`/api/projects/create/file` ...), which answers the project's new index,
  *   and sets it as the project's `contents`, so its `files` follow at once.
+ * - Asked through `LoadableFile.fetch`, as every file is read:  whoever answers files answers these,
+ *   e.g. the editor's static build, which refuses them (`StaticFiles`).
  * - Each throws (through `getDier()`) with what it was doing, e.g. "renaming file", for the editor to show.
  * - A prompt you cancel returns `undefined`.
  * - It was `SpellProject`'s, until epic `people-and-orgs` P15.
@@ -51,7 +53,7 @@ export class ProjectFiles {
 
     // Tell the server to create the file, which returns updated index
     try {
-      project.contents = await $fetch<SP.ProjectManifestJSON5>({
+      project.contents = await LoadableFile.fetch<SP.ProjectManifestJSON5>({
         url: `/api/projects/create/file`,
         contents: {
           projectId: project.projectId,
@@ -115,7 +117,7 @@ export class ProjectFiles {
 
     // Tell the server to rename the file, which returns the updated index.
     try {
-      project.contents = await $fetch<SP.ProjectManifestJSON5>({
+      project.contents = await LoadableFile.fetch<SP.ProjectManifestJSON5>({
         url: `/api/projects/rename/file`,
         contents: { projectId: project.projectId, filePath, newFilePath },
         requestFormat: ProjectFiles.REQUEST_FORMAT_JSON,
@@ -150,7 +152,7 @@ export class ProjectFiles {
 
     // Tell the server to delete the file, which returns the updated index.
     try {
-      project.contents = await $fetch<SP.ProjectManifestJSON5>({
+      project.contents = await LoadableFile.fetch<SP.ProjectManifestJSON5>({
         url: `/api/projects/remove/file`,
         method: "DELETE",
         contents: { projectId: project.projectId, filePath },
