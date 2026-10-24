@@ -71,7 +71,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Each command's work is a file in [commands/](commands/), `<name>Command.ts`:
   `(session, args, options) => Promise<exitCode>`.
   - `lintCommand` was `checkCommand`, `speedtestCommand` `speedCommand`, until P13.
-  - `translateCommand` and `translateTimeCommand` (`spell parser translate` / `translate-time`, epic `spanish`
+  - `translateCommand` and `translateTimeCommand` (`spell translate` / `spell translate speedtest`, epic `spanish`
     P24-P29) do only what needs the app:  find and parse the projects, and hand over their declarations, imports,
     Spell UI's names and a checker that lints and tests the translation.
     - The translating is spell-parser's:  [its cli's AGENTS.md](../../../spell-parser/src/cli/AGENTS.md).
