@@ -700,7 +700,7 @@ describe("SpellElement", () => {
             new PointerEvent(type, { bubbles: true, composed: true, pointerId: 5, clientX: box.x + 10, clientY: y })
           )
         send(a!, "pointerdown", box.y + 5)
-        // slowly down past `b` and `c`, a few pixels a step:  each new place moves it once
+        // slowly down past `b`, `c` and `d`, a few pixels a step:  each new place moves it once
         const end = d!.getBoundingClientRect().top + 2
         for (let y = box.y + 5; y <= end; y += 3) {
           send(window, "pointermove", y)
@@ -708,16 +708,46 @@ describe("SpellElement", () => {
           core.flush()
           expect(element.shadowRoot!.querySelector("[part~=drop-line]")).toBeNull()
         }
-        expect(labelsNow()).toEqual(["b", "c", "a", "d"])
-        expect(moves).toHaveBeenCalledTimes(2)
+        // held as pressed, `a` now covers most of `d`:  so `d` has swapped above it too
+        expect(labelsNow()).toEqual(["b", "c", "d", "a"])
+        expect(moves).toHaveBeenCalledTimes(3)
         send(window, "pointerup", end)
         core.flush()
         await ElementFixture.settle(document.body)
         await new Promise((resolve) => requestAnimationFrame(resolve))
         await new Promise((resolve) => setTimeout(resolve))
-        expect(labelsNow()).toEqual(["b", "c", "a", "d"])
+        expect(labelsNow()).toEqual(["b", "c", "d", "a"])
       } finally {
         moves.mockRestore()
+        done()
+      }
+    })
+
+    test("a dragged item lands under the pointer as it was held:  its middle decides, not the pointer (outline-spell P30)", async () => {
+      const { element, chits, labelsNow, done } = await drawColumn("a", "b", "c")
+      try {
+        element.setAttribute("move-delay", "0")
+        const [a] = chits()
+        const box = a!.getBoundingClientRect()
+        const send = (target: EventTarget, type: string, y: number) =>
+          target.dispatchEvent(
+            new PointerEvent(type, { bubbles: true, composed: true, pointerId: 6, clientX: box.x + 10, clientY: y })
+          )
+        // held by its top edge, then a little more than one item down:  the pointer is above `b`'s middle,
+        // but the held item's middle is past it
+        send(a!, "pointerdown", box.top + 2)
+        for (const step of [8, 16, 24, box.height + 1]) {
+          send(window, "pointermove", box.top + 2 + step)
+          await new Promise((resolve) => setTimeout(resolve, 5))
+          core.flush()
+        }
+        expect(labelsNow()).toEqual(["b", "a", "c"])
+        send(window, "pointerup", box.top + 2 + box.height + 1)
+        core.flush()
+        await ElementFixture.settle(document.body)
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+        await new Promise((resolve) => setTimeout(resolve))
+      } finally {
         done()
       }
     })
