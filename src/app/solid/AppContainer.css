@@ -5,7 +5,7 @@
 
 .AppContainer {
   position: relative;
-  background: var(--spell-pane-background);
+  background: var(--spell-view-background);
 
   &.scrolling {
     flex: 1 1 auto;

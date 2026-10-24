@@ -8,7 +8,7 @@
 
 .OutputEditor {
   position: relative;
-  background: var(--spell-pane-background);
+  background: var(--spell-view-background);
   flex: 1 1 auto;
   overflow: hidden;
 }

@@ -2,7 +2,7 @@ import { Show, omit } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import type { UIDropdownJSXAttributes, UIItemJSXAttributes, UIMenuJSXAttributes } from "spell-ui/jsx"
-import { Actions, on } from "spell-app/app/solid"
+import { Actions, AppMark, EditorTheme, on } from "spell-app/app/solid"
 
 import "./chrome.css"
 
@@ -17,17 +17,22 @@ import "./chrome.css"
 /****************
  * ### `<AppMenu>`
  * Top-level app menu, attached to the top of the page.
+ * - In one of the editor's looks (`EditorTheme.look`):  a plain menu, which the look shapes (`EditorTheme.css`),
+ *   with Spell's hat first (`<AppMark>`).  Else the violet bar it always was.
  * - SEE:  its App UI components page, `app/docs/chrome.html` (`/components/app/chrome.html`).
  ****************/
 export function AppMenu(props: MenuProps) {
   return (
     <ui-menu
-      inverted=""
-      color="violet"
+      inverted={EditorTheme.look ? undefined : ""}
+      color={EditorTheme.look ? undefined : "violet"}
       attached=""
       {...omit(props, "class", "children")}
       class={["AppMenu", "medium-short", "tight", props.class]}
     >
+      <Show when={EditorTheme.look}>
+        <AppMark />
+      </Show>
       {props.children}
     </ui-menu>
   )
@@ -36,12 +41,13 @@ export function AppMenu(props: MenuProps) {
 /****************
  * ### `<PanelMenu>`
  * Menu attached to the top of a panel, e.g. a viewer's toolbar.
+ * - In one of the editor's looks (`EditorTheme.look`):  a plain menu, the panel's header.  Else purple.
  ****************/
 export function PanelMenu(props: MenuProps) {
   return (
     <ui-menu
-      inverted=""
-      color="purple"
+      inverted={EditorTheme.look ? undefined : ""}
+      color={EditorTheme.look ? undefined : "purple"}
       attached="top"
       {...omit(props, "class", "children")}
       class={["PanelMenu", "short", "tight", props.class]}

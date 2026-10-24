@@ -31,7 +31,7 @@ export function ProjectMenu(props: ProjectMenuProps) {
         <For each={root().projects} fallback={<ui-item>{appTexts.text("nothingInGroup", root().words)}</ui-item>}>
           {(project) => (
             // HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>`
-            <ui-item link="" value={project.path} onClick={() => open(project.path, props.useRunner)}>
+            <ui-item link="" value={project.path} onClick={() => openProject(project.path, props.useRunner)}>
               <ui-icon name={root().icon} />
               {project.name}
             </ui-item>
@@ -87,7 +87,11 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
           <Show when={ready()}>
             <For each={root().projects}>
               {(project) => (
-                <ui-item value={project.path} icon={root().icon} onClick={() => open(project.path, props.useRunner)}>
+                <ui-item
+                  value={project.path}
+                  icon={root().icon}
+                  onClick={() => openProject(project.path, props.useRunner)}
+                >
                   {project.name}
                 </ui-item>
               )}
@@ -109,14 +113,14 @@ export type ProjectDropdownProps = {
   showLabel?: boolean
 }
 
-/** What `<ProjectMenu>` / `<ProjectDropdown>` show of a project root. */
-type ProjectRootState = {
+/** What `<ProjectMenu>` / `<ProjectDropdown>` / the landing page's cards show of a project root. */
+export type ProjectRootState = {
   /** Has it loaded its list of projects? */
   loaded: boolean
   /** Did loading it fail?  Then it never loads:  see `trackProjectRoot()`. */
   failed: boolean
-  /** Its projects, in order:  `path` and the name to show. */
-  projects: { path: string; name: string }[]
+  /** Its projects, in order:  `path`, the name to show, and its description, if its project file has one. */
+  projects: { path: string; name: string; description?: string }[]
   /** Its icon name. */
   icon?: string
   /** Its words, in the page's language:  its title (`Examples`), what its projects are called (`Example`) ... */
@@ -130,7 +134,7 @@ type ProjectRootState = {
  * - A memo makes a new `tracked()` per root (disposing the last):  `tracked()`'s read can't follow Solid props.
  * - Call in a component body:  it's owned by the component.
  */
-function trackProjectRoot(root: () => SPACES.SpellProjectRoot | undefined): () => ProjectRootState {
+export function trackProjectRoot(root: () => SPACES.SpellProjectRoot | undefined): () => ProjectRootState {
   const editorRoot = tracked(() => editor.projectRoot)
   const current = createMemo(() => root() ?? editorRoot())
   const [failed, setFailed] = createSignal<SPACES.SpellProjectRoot>()
@@ -155,7 +159,11 @@ function readProjectRoot(projectRoot: SPACES.SpellProjectRoot | undefined): Omit
     loaded,
     projects: loaded
       ? // each project's title:  its file's `"title"`, which the list gave, else made from its name (Q45)
-        projectRoot!.projectPaths.map((path) => ({ path, name: new SP.SpellProject(path).title }))
+        projectRoot!.projectPaths.map((path) => ({
+          path,
+          name: new SP.SpellProject(path).title,
+          description: projectRoot!.contents?.find((entry) => entry.path === path)?.description
+        }))
       : [],
     icon: projectRoot?.icon,
     words: appTexts.groupWords(projectRoot)
@@ -163,7 +171,7 @@ function readProjectRoot(projectRoot: SPACES.SpellProjectRoot | undefined): Omit
 }
 
 /** Show the project at `path`, in the editor or the runner. */
-function open(path: string, useRunner?: boolean) {
+export function openProject(path: string, useRunner?: boolean) {
   if (useRunner) void editor.showRunner(path)
   else editor.showEditor(path)
 }

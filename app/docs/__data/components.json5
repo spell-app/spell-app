@@ -2267,12 +2267,6 @@
           "description": "Open `<SpellRunner>` instead of `<SpellEditor>`."
         }
       ],
-      "usedIn": [
-        {
-          "name": "ProjectChooser",
-          "file": "src/app/pages/ProjectChooser.tsx"
-        }
-      ],
       "href": "ProjectDropdown.html#ProjectMenu"
     },
     {
@@ -6488,6 +6482,12 @@
       "title": "Striped",
       "families": [],
       "global": false
+    },
+    {
+      "name": "studio",
+      "title": "Studio",
+      "families": [],
+      "global": true
     },
     {
       "name": "systemfont",

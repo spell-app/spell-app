@@ -226,16 +226,19 @@ export const getProjectList = async (domainId: string): Promise<SP.ProjectList> 
   return Promise.all(
     projectNames.map(async (projectName) => {
       const path = `${domain.projectRoot}/${projectName}`
-      const { title } = await loadProjectFile(path).catch(() => ({ title: undefined }))
-      return title ? { path, title } : { path }
+      const { title, description } = await loadProjectFile(path).catch(() => ({
+        title: undefined,
+        description: undefined
+      }))
+      return { path, ...(title && { title }), ...(description && { description }) }
     })
   )
 }
 
 /**
  * `GET /api/projects/list/<group>` -- list projects in a group, e.g. `/api/projects/list/@spell/examples`.
- * - Returns: `SP.ProjectList`, each project's address and its title if its file has one:
- *   `[{ path: "@spell/examples/TaskList", title: "Task List" }, { path: "@spell/examples/calculator" }]`.
+ * - Returns: `SP.ProjectList`, each project's address, and its title and description if its file has them:
+ *   `[{ path: "@spell/examples/TaskList", title: "Task List", description: "..." }, { path: "@spell/examples/calculator" }]`.
  * - Failure: 500 (via `respondWithJSON`) if the place isn't a known group's (`SP.SpellUrls.projectIdFor()`).
  */
 export const request_getProjectList = respondWithJSON(async (request) => {

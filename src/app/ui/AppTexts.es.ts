@@ -95,6 +95,32 @@ const APP_TEXTS_ES: AppTextPack = {
   nothingInGroup: "¡Aún no hay {titleLower}!",
 
   ////////////////
+  // ## La página de inicio, y la barra superior del editor
+  ////////////////
+
+  appName: "Spell",
+  homeEyebrow: "Spell, en vista previa",
+  homeTitle: "Escribe una app en una frase.",
+  homeTagline: "Palabras sencillas.  Una app que funciona.",
+  homeIntro:
+    "Spell es un lenguaje de programación que se puede leer en voz alta.  Abre un ejemplo, cambia una frase y mira cómo cambia la app a su lado.",
+  tryAnExample: "Prueba un ejemplo",
+  readFirstSpell: "Lee tu primer spell",
+  homeQuoteTitle: "De la Lista de tareas",
+  homeQuote:
+    'Una "tarea" es una cosa donde:\nsu "título" es texto,\nsu "hecha" es sí o no,\ny "está hecha" si su hecha es sí.',
+  homeQuoteNote: "Cuatro líneas, una lista que funciona.",
+  homeExamplesLine: "Abre uno, cámbialo, hazlo tuyo.",
+  homeGuidesLine: "Tu idea, a tu ritmo.",
+  homeProjectsLine: "Lo que has hecho, y por dónde empezar lo siguiente.",
+  homeFixturesLine: "Los proyectos congelados con los que corren las pruebas.",
+  homeNoGuides: "Las guías están en camino.",
+  looksName: "Aspecto",
+  lookBrand: "Marca",
+  lookStudio: "Estudio",
+  lookGlass: "Cristal",
+
+  ////////////////
   // ## Project groups
   ////////////////
 

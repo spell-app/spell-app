@@ -58,9 +58,11 @@ describe("diskFetch", () => {
     expect(url).toBe("/spaces/@spell/examples/Solitaire/Solitaire.spell")
     expect(await diskFetch({ url })).toBe(readFileSync(fixtureFolder("Solitaire", "Solitaire.spell"), "utf8"))
     expect(await diskFetch({ url: SP.SpellUrls.indexUrl(solitaire) })).toHaveProperty("imports")
+    // each project with its title and description, from its project file
     expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/examples") })).toContainEqual({
       path: solitaire,
-      title: "Solitaire"
+      title: "Solitaire",
+      description: expect.stringMatching(/^Klondike solitaire/)
     })
   })
 

@@ -1,0 +1,209 @@
+/*
+ * Look of the editor's chrome in its three looks (`EditorTheme.tsx`):  Glass, Brand and Studio, the facelift boards
+ * of epic `debut` (P1), each on its Spell UI theme (Fruity, Spell Brand, Studio).
+ * - Keyed on `<html data-spell-look>`, which `EditorTheme` sets while one of them is chosen.
+ *   Any other theme:  no attribute, and none of this applies.
+ * - The shape every look shares (below, "Every look"):  a floating top bar, panels with gaps and rounded corners,
+ *   each panel's menu a plain header over a hairline.
+ * - Each look sets only its values (`--spell-*`), from its boards' light and dark colours;  the colours themselves
+ *   come from the theme's tokens, so light / dark follow by themselves.
+ * - Hosts are `display: contents`:  rules reach the boxes through `::part()`.
+ */
+
+/*******************************
+          Each look's values
+*******************************/
+
+:root[data-spell-look] {
+  /* room round the page, and between the bar and the panels, and between panels */
+  --spell-page-padding: 14px;
+  --spell-gap: 14px;
+  /* the top bar */
+  --spell-bar-background: var(--ui-surface);
+  --spell-bar-border: 1px solid var(--ui-border-color);
+  --spell-bar-radius: var(--ui-radius-l);
+  --spell-bar-shadow: var(--ui-shadow-raised);
+  --spell-bar-filter: none;
+  /* a panel, and its header (a panel's menu) */
+  --spell-pane-radius: var(--ui-radius-l);
+  --spell-pane-shadow: var(--ui-shadow-raised);
+  --spell-pane-filter: none;
+  --spell-header-background: transparent;
+  /* the views show the panel through them */
+  --spell-view-background: transparent;
+}
+
+/* Glass (Fruity):  frosted panels over the wallpaper */
+:root[data-spell-look="glass"] {
+  --spell-bar-background: var(--fruity-glass);
+  --spell-bar-border: 1px solid var(--fruity-edge);
+  --spell-bar-radius: 14px;
+  --spell-bar-filter: var(--fruity-blur);
+  --spell-pane-background: var(--fruity-glass-strong);
+  --spell-pane-border-color: var(--fruity-edge);
+  --spell-pane-radius: 14px;
+  --spell-pane-filter: var(--fruity-blur);
+}
+
+/* Brand (Spell Brand):  white cards with soft shadows on the brand's pale page;  the bar has no box */
+:root[data-spell-look="brand"] {
+  --spell-page-padding: 16px 20px 20px;
+  --spell-gap: 16px;
+  --spell-bar-background: transparent;
+  --spell-bar-border: 1px solid transparent;
+  --spell-bar-shadow: none;
+  --spell-pane-radius: 16px;
+  --spell-pane-shadow:
+    0 1px 2px light-dark(rgb(60 40 140 / 0.06), rgb(0 0 0 / 0.3)),
+    0 2px 8px light-dark(rgb(60 40 140 / 0.06), rgb(0 0 0 / 0.3));
+}
+
+/* Studio:  flat panels joined by hairlines, edge to edge */
+:root[data-spell-look="studio"] {
+  --spell-page-padding: 0;
+  --spell-gap: 0;
+  --spell-bar-radius: 0;
+  --spell-bar-shadow: none;
+  --spell-bar-border: 0 solid transparent;
+  --spell-pane-radius: 0;
+  --spell-pane-shadow: none;
+}
+
+/*******************************
+             Every look
+*******************************/
+
+:root[data-spell-look] {
+  /* the page:  room round it, a gap under the bar */
+  & .SpellPage.fill-window {
+    box-sizing: border-box;
+    padding: var(--spell-page-padding);
+    gap: var(--spell-gap);
+    /* the gap between panels is the panel's own spacing, so its sizers and spacers are the gap too */
+    --spell-tight-padding: var(--spell-gap);
+  }
+  & .SpellPage > .SplitPanel.spaced {
+    padding: 0;
+  }
+
+  /* the top bar:  a floating box of its own */
+  & ui-menu.AppMenu::part(menu) {
+    min-height: 46px;
+    padding-inline: 6px;
+    background: var(--spell-bar-background);
+    border: var(--spell-bar-border);
+    border-radius: var(--spell-bar-radius);
+    box-shadow: var(--spell-bar-shadow);
+    -webkit-backdrop-filter: var(--spell-bar-filter);
+    backdrop-filter: var(--spell-bar-filter);
+  }
+  /* its sections take the room their items need, never less:  the hat goes first */
+  & ui-menu.AppMenu > ui-menu.third::part(menu) {
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  /* too narrow for every item:  the bar scrolls sideways, never overlaps or wraps (Owen's T33 asks for arrows too) */
+  & ui-menu.AppMenu::part(menu) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  & ui-menu.AppMenu ui-item::part(item)::before {
+    width: 0;
+  }
+
+  /* a panel:  a rounded box with its own edge and shadow */
+  & .SplitPanel > .SplitPanelPane {
+    background: var(--spell-pane-background);
+    border: 1px solid var(--spell-pane-border-color);
+    border-radius: var(--spell-pane-radius);
+    box-shadow: var(--spell-pane-shadow);
+    -webkit-backdrop-filter: var(--spell-pane-filter);
+    backdrop-filter: var(--spell-pane-filter);
+  }
+
+  /* a panel's menu:  its plain header, over a hairline */
+  & ui-menu.PanelMenu::part(menu) {
+    min-height: 40px;
+    margin: 0;
+    background: var(--spell-header-background);
+    border: none;
+    border-bottom: 1px solid var(--ui-border-color);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  & ui-menu.PanelMenu ui-item::part(item)::before {
+    width: 0;
+  }
+}
+
+/* Studio's bar:  a panel-coloured strip over a hairline, as its board draws it */
+:root[data-spell-look="studio"] ui-menu.AppMenu::part(menu) {
+  border-bottom: 1px solid var(--ui-border-color);
+}
+
+/*******************************
+          The top bar's items
+*******************************/
+
+/* `<AppMark>`:  the hat and Spell's name, a link home */
+ui-item.AppMark::part(item) {
+  padding-inline: 6px 12px;
+}
+.AppMark a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ui-text-color);
+  font-family: var(--ui-font-family-heading);
+  font-size: 1.15em;
+  font-weight: var(--ui-font-weight-bold);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* `<ThemeMenu>`:  the looks, then the palette, side by side */
+ui-item.ThemeMenu::part(item) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* `<ThemeMenu>`'s looks:  a segmented control, in the theme's segmented colours */
+.EditorLooks {
+  display: flex;
+  gap: 2px;
+  padding: var(--ui-menu-segmented-padding, 2px);
+  border-radius: var(--ui-menu-segmented-radius, 9px);
+  background: var(--ui-menu-segmented-background, var(--ui-surface-muted));
+
+  button {
+    padding: 5px 12px;
+    border: none;
+    border-radius: var(--ui-menu-segmented-item-radius, 7px);
+    background: transparent;
+    color: var(--ui-text-muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--ui-text-color);
+    }
+    &.checked {
+      font-weight: var(--ui-font-weight-semibold);
+      color: var(--ui-menu-segmented-active-color, var(--ui-text-color));
+      background: var(--ui-menu-segmented-active-background, var(--ui-surface));
+      box-shadow: var(--ui-menu-segmented-active-shadow, 0 1px 2px rgb(0 0 0 / 0.15));
+    }
+    &:focus-visible {
+      outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color);
+      outline-offset: 1px;
+    }
+  }
+}

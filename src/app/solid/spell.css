@@ -18,4 +18,6 @@
   --spell-pane-background: var(--ui-surface);
   --spell-pane-border-color: var(--ui-border-color);
   --spell-pane-shadow: var(--ui-shadow-subtle);
+  /* what a pane shows (the code, the console, the tree, the program):  the pane's own, unless a look sees through */
+  --spell-view-background: var(--spell-pane-background);
 }

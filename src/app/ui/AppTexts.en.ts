@@ -85,6 +85,32 @@ export const APP_TEXTS = {
   nothingInGroup: "No {title} yet!",
 
   ////////////////
+  // ## The landing page (`ProjectChooser.tsx`), and the editor's top bar (`EditorTheme.tsx`)
+  ////////////////
+
+  appName: "Spell",
+  homeEyebrow: "Spell, in preview",
+  homeTitle: "Write an app in a sentence.",
+  homeTagline: "Plain words in.  A working app out.",
+  homeIntro:
+    "Spell is a programming language you can read aloud.  Open an example, change a sentence, and watch the app change beside it.",
+  tryAnExample: "Try an example",
+  readFirstSpell: "Read your first spell",
+  homeQuoteTitle: "From the Task List",
+  homeQuote:
+    'A "task" is a thing where:\nits "title" is text,\nits "done" is yes or no,\nand it "is done" if its done is yes.',
+  homeQuoteNote: "Four lines, one working list.",
+  homeExamplesLine: "Open one, change it, make it yours.",
+  homeGuidesLine: "Your idea, your pace.",
+  homeProjectsLine: "What you've made, and where to start the next one.",
+  homeFixturesLine: "The frozen projects the tests run against.",
+  homeNoGuides: "Guides are on their way.",
+  looksName: "Look",
+  lookBrand: "Brand",
+  lookStudio: "Studio",
+  lookGlass: "Glass",
+
+  ////////////////
   // ## Project groups:  each group's words, by its `type` (spaces' `PROJECT_GROUPS`)
   ////////////////
 

@@ -3,7 +3,7 @@
 .ConsoleViewer {
   position: relative;
   font-family: monaco, monospace;
-  background: var(--spell-pane-background);
+  background: var(--spell-view-background);
   color: var(--ui-text-color);
   font-size: 11px;
   white-space: pre;
