@@ -2,7 +2,7 @@
  * Is this the editor's STATIC build, the public preview (epic `debut` P9)?
  * - Plain files on any web host, no server:  `spell app preview build` writes it, `spell app preview serve` shows it.
  *   - The examples and guides it holds are listed, indexed and compiled at build time.
- *   - What a visitor edits is kept in their browser (`StaticFiles`), with a "Reset example" to forget it.
+ *   - What a visitor edits is kept in their browser (`StaticFiles`), with a "Reset Example" to forget it.
  * - ONE flag every part of the app reads to hide what needs a server, or isn't ready to show:
  *   - in code:  `isStaticBuild`
  *   - in CSS:  `:root.spell-static` (`STATIC_BUILD_CLASS`, set by `StaticFiles.install()`)

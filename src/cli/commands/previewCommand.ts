@@ -7,7 +7,7 @@ import { CLI } from "spell-app/cli"
  * - `serve [--port <port>] [--headless]`:  shows the build as a host would, on loopback,
  *   and opens it in a browser, until `Ctrl-C`.
  *   - No page server:  the page reads only the build's files, so it shows what a host would.
- * - Builds only:  no deploy yet (decision Q6).
+ * - Builds only:  no deploy yet (epic `debut` Q6).
  * - Returns the exit code.
  */
 export async function previewCommand(

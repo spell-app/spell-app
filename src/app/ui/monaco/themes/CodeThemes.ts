@@ -23,7 +23,7 @@ export class CodeThemes {
   /**
    * Define Purple's two themes with Monaco, apply the one for the page now, and follow the page from then on.
    * - SIDE EFFECTS:  watches `<html>`'s classes and the OS's scheme, for the page's life.
-   * - Again:  nothing.
+   * - Called again:  does nothing.
    */
   static register(): void {
     if (CodeThemes.isRegistered) return

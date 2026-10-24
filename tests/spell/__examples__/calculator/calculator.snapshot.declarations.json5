@@ -107,7 +107,7 @@
           "datatype": "text"
         }
       ],
-      "defined": "/Calculator.spell:1740-1880"
+      "defined": "/Calculator.spell:1742-1882"
     },
     {
       "syntax": "finish {thisArg:expression}",
@@ -121,7 +121,7 @@
       "kind": "method",
       "name": "finish (a calculator)",
       "returns": "nothing",
-      "defined": "/Calculator.spell:1957-2135"
+      "defined": "/Calculator.spell:1959-2137"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -134,7 +134,7 @@
       ],
       "kind": "method",
       "name": "draw (a calculator)",
-      "defined": "/Calculator.spell:2202-3638"
+      "defined": "/Calculator.spell:2204-3640"
     }
   ],
   "codeLines": [

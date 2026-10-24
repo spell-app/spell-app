@@ -25,7 +25,7 @@ import { CLI } from "spell-app/cli"
  *      - `404.html`, a copy of `index.html` (GitHub Pages)
  *      - `_redirects`, the editor's routes to `index.html` (Netlify, Cloudflare Pages)
  * - `serve()` shows it as a host would:  the files as they are, the editor's page for every other page.
- * - Builds only:  no deploy yet (decision Q6).
+ * - Builds only:  no deploy yet (epic `debut` Q6).
  * - Node only;  a part of `spell app preview` (`previewCommand.ts`).
  */
 export class PreviewSite {

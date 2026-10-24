@@ -1,12 +1,13 @@
 /*
- * Look of the editor's chrome in its three looks (`EditorTheme.tsx`):  Glass, Brand and Studio, the facelift boards
- * of epic `debut` (P1), each on its Spell UI theme (Fruity, Spell Brand, Studio).
+ * Look of the editor's chrome in its three looks (`EditorTheme.tsx`):  Glass, Brand and Studio.
+ * - Each is drawn on its Spell UI theme (Fruity, Spell Brand, Studio),
+ *   as the boards of the "Spell editor facelift" Design canvas show it (epic `debut` P1).
  * - Keyed on `<html data-spell-look>`, which `EditorTheme` sets while one of them is chosen.
  *   Any other theme:  no attribute, and none of this applies.
  * - The shape every look shares (below, "Every look"):  a floating top bar, panels with gaps and rounded corners,
  *   each panel's menu a plain header over a hairline.
- * - Each look sets only its values (`--spell-*`), from its boards' light and dark colours;  the colours themselves
- *   come from the theme's tokens, so light / dark follow by themselves.
+ * - Each look sets only its values (`--spell-*`), from its boards' light and dark colours;
+ *   the colours themselves come from the theme's tokens, so light / dark follow by themselves.
  * - Hosts are `display: contents`:  rules reach the boxes through `::part()`.
  */
 
@@ -102,7 +103,8 @@
     min-width: 0;
     flex-shrink: 0;
   }
-  /* too narrow for every item:  the bar scrolls sideways, never overlaps or wraps (Owen's T33 asks for arrows too) */
+  /* too narrow for every item:  the bar scrolls sideways, never overlaps or wraps */
+  /* TODO: `‹` / `›` arrows to scroll it, as the editor's tabs have (epic `debut` T33) */
   & ui-menu.AppMenu::part(menu) {
     overflow-x: auto;
     overflow-y: hidden;

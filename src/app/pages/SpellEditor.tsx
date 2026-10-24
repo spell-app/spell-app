@@ -59,15 +59,16 @@ export function SpellEditor() {
  * ### `<EditorTabs>`
  * The editor's right column:  one pane of tabs, as VS Code's runner panel and `<spell-app>` have (`<RunnerPane>`).
  * - App:  the running program (`<AppRoot>`).
- * - Restart and Publish sit at the tab bar's right, whatever tab shows:  plain icons, each with a tooltip.
  *   - ALWAYS drawn, just hidden behind another tab:  the program's mount point is never redrawn.
  * - Things:  what the running program has made, live (`<ThingExplorer>` on `runtimeCore()`'s `things`).
  * - Types:  every type the code knows (`<TypeExplorer>` on `editor.scopeTree`, from the in-page language service).
  * - JavaScript:  the compiled code (`<OutputRoot>`).
  * - Tree:  the spell tree of the cursor's line (`<TreeRoot>`).
+ * - Restart and Publish sit at the tab bar's right, whatever tab shows:  plain icons, each with a tooltip.
  * - Types and Things follow each compile:  `editor.compileApp()` works out a new tree, and runs the program.
- * - Remembers the tab shown as a preference (`TAB_PREF`);  the Types tab its own state, the Things tab its own while
- *   the page is up.
+ * - Remembers which tab shows, as a preference (`TAB_PREF`).
+ * - Switching tabs loses neither explorer's state, while the page is up:
+ *   the Types tab keeps its own, and the Things tab's is kept here (`thingsState`).
  ****************/
 export function EditorTabs() {
   const [tab, setTab] = createSignal<EditorTabId>(tabOrDefault(getPref(TAB_PREF, undefined)))

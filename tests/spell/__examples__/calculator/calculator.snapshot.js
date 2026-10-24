@@ -78,7 +78,7 @@ export class Calculator extends App {
     this.updateTheTotalOfCalculator()
   }
 
-  /** an operator after a whole sum carries its total on, as the next sum's left number */
+  /** an operator:  after a whole sum, its total carries on as the next sum's left number */
   applyOpToCalculator(op) {
     if (this.right) this.finish()
     this.operator = op

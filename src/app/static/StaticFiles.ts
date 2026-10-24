@@ -17,7 +17,7 @@ import "./static.css"
  *   - anything else (create, rename, delete, settings):  a `UIError`, as the build hides those
  * - What's kept, and where:
  *   - a file of the project's own, one its index lists (`Solitaire.spell`):  the browser's `localStorage`,
- *     so an edit stays after a reload, until "Reset example" (`reset()`)
+ *     so an edit stays after a reload, until "Reset Example" (`reset()`)
  *   - what spell builds from them (`Solitaire.spell.js`, its words and declarations):  this page's memory only,
  *     as each visit compiles afresh
  * - The page's own `fetch()`es of compiled files (`fetchCompiled()`, the runners' `fetchText()`) read the build's

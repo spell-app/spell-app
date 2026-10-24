@@ -76,7 +76,7 @@ working with code in this repository, `spell-app`.
       so a test project may import another `@spell` project:  `counter-app` imports `counter`, a frozen counter library.
     - The tests that compile them whole are here too, in [tests/spell/](tests/spell/), the `spell` project:
       their snapshots, `tsc` and pyright on them, whole-project parsing.
-      - The examples Solitaire and Solitario are tested as they are, never a frozen copy:
+      - The built-in examples are tested as they are, never a frozen copy (`EXAMPLE_FIXTURES`):
         their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
       - So is every guide (`@spell/guides`, epic `debut` P10):  its snapshots in `tests/spell/__guides__/<Project>/`.
       - The same paths they had in spell-parser:  `tests/spell/test/fixtures.test.ts`, `tests/spell/parserTests/...`.

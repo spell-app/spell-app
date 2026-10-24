@@ -57,7 +57,7 @@ to append (digit as text) to (a calculator):
 		set its right to its input
 	update the total of the calculator
 
-// an operator after a whole sum carries its total on, as the next sum's left number
+// an operator:  after a whole sum, its total carries on as the next sum's left number
 to apply (op as text) to (a calculator):
 	if its right is not empty
 		finish the calculator
