@@ -68,6 +68,9 @@ ui-icon.IconAction {
 /* `Actions.you`:  the person's avatar, a round button */
 .YouAvatar {
   display: inline-flex;
+  /* the picture centred in the bar, level with the palette:  it sat at the top of the bar's height */
+  align-self: center;
+  align-items: center;
   margin-inline: 0.5em 0.25em;
   padding: 0;
   border: none;
@@ -76,11 +79,14 @@ ui-icon.IconAction {
   cursor: pointer;
 
   & > ui-avatar::part(avatar) {
+    display: block;
     margin: 0;
   }
   & > ui-avatar::part(image) {
+    display: block;
     width: 28px;
     height: 28px;
+    margin: 0;
     border-radius: 50%;
   }
   &:focus-visible {
