@@ -16,7 +16,7 @@ export const APP_TEXTS = {
 
   aboutSpell: "About Spell",
   editApp: "Edit {Type}",
-  preview: "Preview",
+  preview: "Run",
   settings: "Settings",
   openOrCreate: "Open or Create...",
   help: "Help",

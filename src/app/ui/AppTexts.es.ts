@@ -21,7 +21,7 @@ const APP_TEXTS_ES: AppTextPack = {
 
   aboutSpell: "Acerca de Spell",
   editApp: "Editar {type}",
-  preview: "Vista previa",
+  preview: "Ejecutar",
   settings: "Ajustes",
   openOrCreate: "Abrir o crear...",
   help: "Ayuda",
