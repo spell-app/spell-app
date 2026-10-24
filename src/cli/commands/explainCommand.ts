@@ -1,7 +1,7 @@
 import chalk from "chalk"
 
-import { SP } from "spell-lang/spell"
-import { P } from "spell-lang/parser"
+import { SP } from "spell-parser/spell"
+import { P } from "spell-parser/parser"
 import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 

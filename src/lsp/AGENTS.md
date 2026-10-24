@@ -21,7 +21,7 @@ when working with code in this folder, `src/lsp/` of the `spell-app` package (`s
   - `ScopeExplorer`
   - `ScopesSource` / `ScopePack`:  the scope packs, `<Project>.scopes.js`
   - `SpellDiskWorkspace`:  loads from disk, through spaces' disk reader (`installDiskFetch()`)
-  - See "Language server" in [PARSING.md](../../../spell-lang/src/spell/PARSING.md).
+  - See "Language server" in [PARSING.md](../../../spell-parser/src/spell/PARSING.md).
 - The VS Code extension that runs it is the repo's [vscode/](../../vscode/), its own yarn project.
   - It runs THIS folder's source.
 - The commands:  the repo root's scripts, which run this folder's files with `tsx`.
@@ -40,7 +40,7 @@ when working with code in this folder, `src/lsp/` of the `spell-app` package (`s
     - `SpellDiskWorkspace.ts`
     - `server.ts`
     - `stdioGuard.ts`
-- It depends on `spell-lang/spell` (and below).
+- It depends on `spell-parser/spell` (and below).
   - Its node-only files also import spaces' (`spell-app/spaces/server/node/...`):
     where projects are on disk, and spaces' disk reader, which registers spell's project groups.
   - NEVER import `spell-app/app` or `spell-app/cli`.
@@ -55,7 +55,7 @@ when working with code in this folder, `src/lsp/` of the `spell-app` package (`s
 
 As WWOD §12, plus:
 
-- The root's `vitest.config.ts` uses the toolchain's decorator pre-pass (`spell-kit/toolchain/decorators`).
+- The root's `vitest.config.ts` uses the toolchain's decorator pre-pass (`spell/toolchain/decorators`).
 - The server runs under `tsx`, which is esbuild already.
 
 ## Types / Exports

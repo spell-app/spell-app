@@ -5,7 +5,7 @@
  * - It IS the page's `@spell/core`:  the program's drawing half, `<Project>.elements.spell.js`, imports from it,
  *   through the page's import map.
  * - It exports what `spell-runtime.js` exports for compiled javascript (`spellPage.test.ts` pins it),
- *   plus the page's side (`page.ts` in `spell-lang/core`):
+ *   plus the page's side (`page.ts` in `spell-parser/core`):
  *   `connectPage()`, `startPage()`, `sendCall()`, `sendTrigger()`.
  * - Its `connectPage()` turns on the program's language first, so a Spanish program's tags draw (`<es-texto>`):
  *   the drawing half says it, `export const lang = "es"`, when it isn't English.
@@ -45,7 +45,7 @@ import {
   startPage,
   sendCall,
   sendTrigger
-} from "spell-lang/core"
+} from "spell-parser/core"
 import { installSpellElements } from "./SpellElement"
 
 // a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself

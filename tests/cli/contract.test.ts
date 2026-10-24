@@ -5,10 +5,10 @@ import { join, resolve } from "path"
 import { pathToFileURL } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "spell-lang/parser"
-import { PY } from "spell-lang/py"
-import { buildTsx } from "spell-lang/spell/node/buildTsx"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { PY } from "spell-parser/py"
+import { buildTsx } from "spell-parser/spell/node/buildTsx"
+import { SP } from "spell-parser/spell"
 import {
   PYTHON_FIXTURES,
   compiledFixture,
@@ -24,9 +24,9 @@ import { CLI } from "spell-app/cli"
  * - What it prints is pinned in `__snapshots__/contract/<project>.out.txt`.
  * - So a target's core is right when it prints what the snapshot says.
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
- *   - Python's core, `spell_core` (spell-lang's `src/py/core`), prints the same
+ *   - Python's core, `spell_core` (spell-parser's `src/py/core`), prints the same
  *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
- *   - What a core must HAVE is `SC.Core` (`spell-lang/core/core.types`).
+ *   - What a core must HAVE is `SC.Core` (`spell-parser/core/core.types`).
  * - The snapshot catches a broken core method, which both targets would share.
  * - A fixture that imports another project (`counter-app` imports the frozen counter library, `@spell/test/counter`)
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
@@ -133,7 +133,7 @@ describe("the core contract:  every target prints the same", () => {
 
 /**
  * `core`'s names before epic `output-targets` P16, by their new ones:
- * a program compiled before then calls the old ones, and nothing recompiles it.  See `deprecated.ts` in `spell-lang/core`.
+ * a program compiled before then calls the old ones, and nothing recompiles it.  See `deprecated.ts` in `spell-parser/core`.
  */
 const OLD_NAMES: Record<string, string> = {
   positionOf: "itemOf",
@@ -222,9 +222,9 @@ function boardAt(lines: string[]): number {
 }
 
 /** `spell_core`'s uv project, which runs the player. */
-const SPELL_CORE = resolve(import.meta.dirname, "../../../spell-lang/src/py/core")
+const SPELL_CORE = resolve(import.meta.dirname, "../../../spell-parser/src/py/core")
 /** The player:  `spell_core`'s test script, in the repo's `tests/py/core/tests/`. */
-const PLAYER = resolve(import.meta.dirname, "../../../spell-lang/tests/py/core/tests/patches_in_a_game.py")
+const PLAYER = resolve(import.meta.dirname, "../../../spell-parser/tests/py/core/tests/patches_in_a_game.py")
 
 /**
  * Only what changed, sent click by click, gives the same state as sending it whole (epic `python-target` P18):

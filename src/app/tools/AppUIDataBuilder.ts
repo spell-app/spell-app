@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 
-import { readJSON5File } from "spell-kit/util/node/json5"
+import { readJSON5File } from "spell/util/node/json5"
 import { SiteDataBuilder } from "spell-ui/tools/SiteDataBuilder"
 import {
   APP_COMPONENTS,

@@ -1,7 +1,7 @@
 import { For, Match, Show, Switch, createEffect, createMemo, createSignal, untrack } from "solid-js"
 
-import type { ThingAction, ThingLike, ThingRegistry } from "spell-lang/core/things"
-import type { SP } from "spell-lang/spell"
+import type { ThingAction, ThingLike, ThingRegistry } from "spell-parser/core/things"
+import type { SP } from "spell-parser/spell"
 import type { ThingExplorerState, ThingOrder } from "spell-app/app/ui/ui.types"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import { tracked } from "./tracked"

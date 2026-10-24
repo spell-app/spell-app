@@ -15,8 +15,8 @@
 import chalk from "chalk"
 import { format } from "util"
 
-import { bridgeSolid } from "spell-kit/util"
-import { App, core, type TestResult } from "spell-lang/core"
+import { bridgeSolid } from "spell/util"
+import { App, core, type TestResult } from "spell-parser/core"
 import { testReportsOf } from "spell-app/app/runner/testResults"
 import type { CLI } from "spell-app/cli"
 

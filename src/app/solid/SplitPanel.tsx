@@ -1,7 +1,7 @@
 import { For, Show, children, createEffect, omit, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { getPref, setPref } from "spell-kit/util"
+import { getPref, setPref } from "spell/util"
 
 import "./spell.css"
 import "./SplitPanel.css"
@@ -24,7 +24,7 @@ import "./SplitPanel.css"
  *   - NOTE: one pane per DOM node the children draw:  a child component drawing two top-level nodes makes two
  *     panes.  The editor's panes each draw one `<div>`.
  * - `spaced`:  room around the panes, and a spacer between them unless `resizable`.
- * - With an `id`, a resizable panel remembers its sizes as a preference under that id (`spell-kit/util`'s `setPref()`):
+ * - With an `id`, a resizable panel remembers its sizes as a preference under that id (`spell/util`'s `setPref()`):
  *   make it unique in the app.
  * - Sizes are applied as each pane's inline `flex`, NOT drawn by Solid:  a drag rewrites them on every mouse move.
  * - SEE:  its App UI components page, `app/docs/SplitPanel.html` (`/components/app/SplitPanel.html`).
@@ -384,7 +384,7 @@ function measure(
 
 /**
  * `element`'s padding along a direction, px:  top + bottom when `vertical`, else left + right.
- * - Read from `getComputedStyle()` directly:  `spell-kit/util`'s old `getPadding()` read `NaN` in the browser test project.
+ * - Read from `getComputedStyle()` directly:  `spell/util`'s old `getPadding()` read `NaN` in the browser test project.
  */
 function padding(element: HTMLElement, vertical: boolean): number {
   const style = getComputedStyle(element)

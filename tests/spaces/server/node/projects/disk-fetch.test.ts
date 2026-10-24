@@ -4,9 +4,9 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 
 import environment from "spell-app/spaces/server/node/environment"
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
-import { parseSpellProject, describeParseErrors } from "spell-lang/spell/test"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
+import { parseSpellProject, describeParseErrors } from "spell-parser/spell/test"
 import { SPACES } from "spell-app/spaces"
 import {
   loadFixtureProject,
@@ -87,7 +87,7 @@ describe("diskFetch", () => {
       expect(serverPathForRoot("owen@spell")).toBe(environment.userFilesRoot)
       expect(serverPathForRoot("@spell/test")).toBe(environment.testFilesRoot)
       expect(environment.systemFilesRoot).toBe(resolve(environment.packagesDir, "spaces", "@spell"))
-      // spell's frozen test projects:  beside the built-in groups (spell-lang's until epic `spanish` P18)
+      // spell's frozen test projects:  beside the built-in groups (spell-parser's until epic `spanish` P18)
       expect(environment.testFilesRoot).toBe(resolve(environment.systemFilesRoot, "test"))
       expect(existsSync(resolve(environment.testFilesRoot, "fizzbuzz", "__project.json5"))).toBe(true)
     })

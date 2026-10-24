@@ -1,10 +1,10 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "spell-kit/element"
+import { E } from "spell/element"
 import { UIRoot, type RootVocabulary } from "spell-ui/components/ui-root"
-// Import directly, NOT through the `spell-lang/spell` barrel, which would pull in the whole parser.
-import { SpellUrls } from "spell-lang/spell/SpellUrls"
+// Import directly, NOT through the `spell-parser/spell` barrel, which would pull in the whole parser.
+import { SpellUrls } from "spell-parser/spell/SpellUrls"
 // Import directly:  spell's project groups alone (for `@spell/examples/...`), without spaces' or spell's barrels
 import "spell-app/spaces/models/projectGroups"
 // Import directly, NOT through the `spell-app/app/runner` barrel, which would pull in `runCompiled()`, and so `core`.
@@ -385,7 +385,7 @@ function srcSource(src: string): SpellAppSource {
 
 /**
  * End of a compiled project's file name:  `SP.COMPILED_JS_SUFFIX`.
- * - NOTE: copies, NOT imported:  `spell-lang/spell` would pull the whole parser into the bundle.
+ * - NOTE: copies, NOT imported:  `spell-parser/spell` would pull the whole parser into the bundle.
  */
 const COMPILED_JS = ".spell.js"
 

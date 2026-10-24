@@ -12,9 +12,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - This folder is spell-app's part of `spell`, the kit's command line (the kit's `src/cli/`).
   Two things:
   - spell-app's OWN commands:  `spell app create | serve | vscode [build|install]`, and `spell projects`
-  - the WORK behind spell-lang's commands (`spell compile`, `lint`, `run`, `test` ...),
+  - the WORK behind spell-parser's commands (`spell compile`, `lint`, `run`, `test` ...),
     through spell-app's `"language"` hook:
-    they find projects the app's way, so their work is here until spell-lang can (epic `repo-split` P13)
+    they find projects the app's way, so their work is here until spell-parser can (epic `repo-split` P13)
   - [The kit's README-cli.md](../../../README-cli.md) has every command, its options and caveats, and what's coming.
 - The program itself is NOT here any more:  arguments, help, finding commands, `spell dev` and its pass-throughs
   are the kit's, or gone (epic `repo-split` P13).
@@ -37,13 +37,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     So they import nothing of spell up front:  `loadApp()` imports it when a command runs.
 - `loadApp()` loads [consoleGuard.ts](consoleGuard.ts) FIRST, then the parser's version
   (`__PACKAGE_VERSION__`), then [languageCommands.ts](languageCommands.ts):  spell logs as its modules load.
-  - `languageCommands`:  spell-lang's `LanguageCommands` (its `spell-lang/cli` types), each on a new `CliSession`.
+  - `languageCommands`:  spell-parser's `LanguageCommands` (its `spell-parser/cli` types), each on a new `CliSession`.
   - `appCommands`:  `create`, `serve`, `projects`, the same way.
   - `spell app vscode` loads no spell:  [vscodeCommand.ts](commands/vscodeCommand.ts), imported directly.
 - Spell itself is NOT here.
-  - It's the folders beside this one (lsp, spaces) and the packages below (`spell-lang`'s spell, parser and core;
+  - It's the folders beside this one (lsp, spaces) and the packages below (`spell-parser`'s spell, parser and core;
     the kit's util).
-  - spell-app's root `package.json` depends on `spell-lang`, `spell-ui` and `spell-kit` as workspaces
+  - spell-app's root `package.json` depends on `spell-parser`, `spell-ui` and `spell` as workspaces
     (`workspace:*`).
   - Their SOURCE runs, with no build:
     `spell` runs every repo's source through `tsx`, each import by its package name.
@@ -76,7 +76,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - A new or renamed command:
   FIRST [the commands guide](../../../spell.epics/guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
   - Suggest where it belongs:
-    - a language command is in spell-lang's list ([its commands.ts](../../../spell-lang/src/cli/commands.ts)),
+    - a language command is in spell-parser's list ([its commands.ts](../../../spell-parser/src/cli/commands.ts)),
       with its work here behind the hook while it needs the app
     - an app command is in [commands.ts](commands.ts)
   - Then add it to the commands page's `commands.json5`, and run `spell commands check`.
@@ -89,8 +89,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   import { CLI } from "spell-app/cli"
   ```
 
-- The kit's base by its npm name, `spell-kit/cli` (its namespace is `CLI` too).
-- The language commands' types:  `spell-lang/cli`.
+- The kit's base by its npm name, `spell/cli` (its namespace is `CLI` too).
+- The language commands' types:  `spell-parser/cli`.
 - Our [cli.types.ts](cli.types.ts) re-exports what we use of both,
   so the rest of the folder says `CLI.CliError`, `CLI.CompileOptions`.
 - NOT in the barrel (WWOD §8 › "Barrels"):
@@ -110,9 +110,9 @@ As WWOD §20, plus:
   - NEVER write into one, nor into its build folder (`build/spaces/@spell/test/...`).
     Compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
 - [cli.test.ts](../../tests/cli/cli.test.ts) runs the real `spell`:
-  the KIT's [spell.mjs](../../../bin/spell.mjs), found by package (`spell-kit`),
+  the KIT's [spell.mjs](../../../bin/spell.mjs), found by package (`spell`),
   as separate processes, with no terminal.
-  - Every installed repo's command list loads, so it runs spell-lang's commands through our hook, end to end.
+  - Every installed repo's command list loads, so it runs spell-parser's commands through our hook, end to end.
   - It checks the old spellings are gone:  `spell dev`, `spell epic`, `check`, `new`, `serve`, `explore` ...
 - The kit's own commands' tests are the kit's (its `tests/cli/`);  Spell UI's are spell-ui's.
 - The epic command's own tests are spell-epic's:

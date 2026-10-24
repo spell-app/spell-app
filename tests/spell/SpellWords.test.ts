@@ -1,12 +1,12 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { fixtureWords } from "spell-app/spaces/test"
 
 /**
  * A test project's words (`SP.SpellWords`):  spell's wording of each member,
  * by the name its compiled javascript uses.
- * - The rest of `SpellWords`, over declarations written inline:  spell-lang's own `SpellWords.test.ts`.
+ * - The rest of `SpellWords`, over declarations written inline:  spell-parser's own `SpellWords.test.ts`.
  * - Each test project's whole words file is pinned with its snapshots:  `fixtures.test.ts`.
  */
 describe("SpellWords", () => {

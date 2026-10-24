@@ -1,13 +1,13 @@
 import { describe, test, expect, vi } from "vite-plus/test"
 
-import { core } from "spell-lang/core"
-import { runSpellFiles } from "spell-lang/spell/test"
+import { core } from "spell-parser/core"
+import { runSpellFiles } from "spell-parser/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
  * The OUTLINE style (epic page `outline-spell`) on whole files:  the Solitaire example's cards, deck and piles
  * (not its game, `Solitaire.spell`, which starts an app).
- * - The style itself, line by line:  spell-lang's own `outline.test.ts`.
+ * - The style itself, line by line:  spell-parser's own `outline.test.ts`.
  */
 describe("outline style", () => {
   test("Solitaire's cards, deck and piles pass their own tests (P5)", () => {

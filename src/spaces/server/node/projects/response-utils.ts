@@ -1,13 +1,13 @@
 //----------------------------
 //
-//  API utility functions to `send` various responses conveniently/consistently, on `spell-kit/server`'s
+//  API utility functions to `send` various responses conveniently/consistently, on `spell/server`'s
 //  Express-shaped `SRV.Request` / `SRV.Reply` (the app's server was Express until the unified-server plan).
 //
 //  This is mostly generic express/node stuff -- see `project-utils.ts` for the app-specific handlers
 //  that use these.
 //
 //----------------------------
-import type { SRV } from "spell-kit/server"
+import type { SRV } from "spell/server"
 
 /** Express's names, kept so every handler reads as before. */
 type Request = SRV.Request

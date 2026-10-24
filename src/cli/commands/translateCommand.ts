@@ -2,8 +2,9 @@ import { existsSync, readdirSync, readFileSync } from "fs"
 import { basename, dirname, join, resolve } from "path"
 import { fileURLToPath } from "url"
 
-import { readJSON5File } from "spell-kit/util/node/json5"
-import { SP } from "spell-lang/spell"
+import { readJSON5File } from "spell/util/node/json5"
+import { SP } from "spell-parser/spell"
+import type { TranslateSource } from "spell-parser/cli/translateProject"
 import type {
   DeclarationStatement,
   ImportedProject,
@@ -12,13 +13,13 @@ import type {
   SourceFile,
   TranslationChecker,
   UIVocabulary
-} from "spell-lang/spell/translate/translate.types"
+} from "spell-parser/spell/translate/translate.types"
 import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 
 /**
- * `spell lang translate [project] --to <lang>`:  write a project in another language (epic `spanish` P24-P25).
- * - Here, only what needs the app, handed to spell-lang's `translateProject()`, which does the rest:
+ * `spell parser translate [project] --to <lang>`:  write a project in another language (epic `spanish` P24-P25).
+ * - Here, only what needs the app, handed to spell-parser's `translateProject()`, which does the rest:
  *   - finding the project (an address, a folder, `@here`) and parsing it, and its `--seed` project too
  *   - what it declares and its words, compiled now (`<Project>.declarations.json5`, `<Project>.<lang>.js`)
  *   - the projects it imports:  what each declares, and its own translation, if it has one
@@ -32,23 +33,36 @@ export async function translateCommand(
   options: CLI.TranslateOptions
 ): Promise<number> {
   const project = await CLI.projectFor(session, args[0] ?? (await session.defaultProject()))
+  const { translateProject } = await import("spell-parser/cli/translateProject")
+  return translateProject(await translateSourceFor(session, project, options), options)
+}
+
+/**
+ * `project` as spell-parser's `translateProject()` takes it:  parsed, with all the app knows of it (see above).
+ * - `options.seed`:  that project, parsed too
+ * - `reference`:  a person's translation of it, by address, parsed, to compare names with (`spell parser translate-time`)
+ */
+export async function translateSourceFor(
+  session: CLI.CliSession,
+  project: SP.SpellProject,
+  options: CLI.TranslateOptions,
+  reference?: string
+): Promise<TranslateSource> {
   const seed = options.seed ? await CLI.projectFor(session, options.seed) : undefined
-  const { translateProject } = await import("spell-lang/cli/translateProject")
+  const theirs = reference ? await CLI.projectFor(session, reference) : undefined
   const declarations = await declarationsOf(project)
-  return translateProject(
-    {
-      projectName: project.projectName ?? "Project",
-      folder: project.location.serverPath,
-      files: await sourceFiles(project),
-      seed: seed && (await sourceFiles(seed)),
-      declarations: declarations?.statements as DeclarationStatement[] | undefined,
-      words: declarations && SP.SpellWords.of(declarations),
-      imports: await importsOf(project, options.to),
-      ui: await uiVocabulary(options.to),
-      checker: translationChecker
-    },
-    options
-  )
+  return {
+    projectName: project.projectName ?? "Project",
+    folder: project.location.serverPath,
+    files: await sourceFiles(project),
+    seed: seed && (await sourceFiles(seed)),
+    reference: theirs && (await sourceFiles(theirs)),
+    declarations: declarations?.statements as DeclarationStatement[] | undefined,
+    words: declarations && SP.SpellWords.of(declarations),
+    imports: await importsOf(project, options.to),
+    ui: await uiVocabulary(options.to),
+    checker: translationChecker
+  }
 }
 
 /** `project`'s spell files, parsed, in its project file's order:  their paths in the project, e.g. `/Card.spell`. */

@@ -4,7 +4,7 @@ import { tmpdir } from "os"
 import { resolve } from "path"
 import { pathToFileURL } from "url"
 
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { fixtureFolder } from "spell-app/spaces/test"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"

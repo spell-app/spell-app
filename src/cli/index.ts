@@ -1,10 +1,10 @@
 /**
  * Barrel for spell-app's `spell` commands (`spell app ...`, `spell projects`), and the language commands' work it
- * does for spell-lang's commands, through its `"language"` hook (`cli/hooks.ts`):  compile, lint, run ... spell
+ * does for spell-parser's commands, through its `"language"` hook (`cli/hooks.ts`):  compile, lint, run ... spell
  * projects from a terminal.
  * - Node-only:  loads projects from disk, and draws Ink screens.
  * - `CliSession` is one command's run;  `resolveProject()` turns an argument into what it names.
- * - The program itself is the kit's (`spell-kit/cli`, epic `repo-split` P13).
+ * - The program itself is the kit's (`spell/cli`, epic `repo-split` P13).
  * - NOTE: deliberately left out, as side effects the moment they're imported:
  *   - `consoleGuard.ts`:  silences `console.*`
  *   - `languageCommands.ts`:  the hook's work, loaded after `consoleGuard`

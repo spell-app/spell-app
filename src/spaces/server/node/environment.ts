@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "path"
 // The server's checkout finder, node built-ins only:  the main checkout from any worktree.
 // By the server package's npm name, as every import is (WWOD §4).
 // - NOTE: imports nothing of spell-app's:  app's `vite.config.ts` loads this file.
-import { checkoutOf } from "spell-kit/server/checkout"
+import { checkoutOf } from "spell/server/checkout"
 
 /** spaces' folder, `src/spaces/`:  this file is in `src/spaces/server/node/`. */
 const spacesSrcDir = resolve(fileURLToPath(import.meta.url), "..", "..", "..")
@@ -30,18 +30,18 @@ const packagesDir = repoDir
  */
 const buildDir = process.env.SPELL_BUILD_DIR ? resolve(process.env.SPELL_BUILD_DIR) : resolve(repoDir, "build")
 /**
- * The folder of an installed package's main entry, through `node_modules`:  `spell-lang/spell` => spell-lang's
+ * The folder of an installed package's main entry, through `node_modules`:  `spell-parser/spell` => spell-parser's
  * `src/spell/`.
- * - By package, never by a path into another repo:  spell-lang sits beside this repo only in the top repo `spell`.
+ * - By package, never by a path into another repo:  spell-parser sits beside this repo only in the top repo `spell`.
  */
 function entryFolder(name: string): string {
   return dirname(fileURLToPath(import.meta.resolve(name)))
 }
 /**
  * The folder of installed package `name`:  its `package.json`'s (every package of ours exports it);  for a sub-path of
- * a package (`spell-lang/py`), that folder in its `src/`:  a sub-path names a path under `src/`, as every import name
+ * a package (`spell-parser/py`), that folder in its `src/`:  a sub-path names a path under `src/`, as every import name
  * does (epic `repo-split` P14, Q47).
- * - e.g. `spell-lang/py` => spell-lang's `src/py/`, whose `core/` is the Python core;  `spell-lang` => its root
+ * - e.g. `spell-parser/py` => spell-parser's `src/py/`, whose `core/` is the Python core;  `spell-parser` => its root
  * - Unscoped names only, as all of ours are.
  */
 function packageFolder(name: string): string {
@@ -49,10 +49,10 @@ function packageFolder(name: string): string {
   const root = dirname(fileURLToPath(import.meta.resolve(`${own}/package.json`)))
   return path.length ? join(root, "src", ...path) : root
 }
-/** `spell`'s `src/` (spell-lang's). */
-const srcDir = entryFolder("spell-lang/spell")
-/** `core`'s `src/` (spell-lang's):  the runtime, and its built-in types' scope pack (`core.scopes.js`). */
-const coreDir = entryFolder("spell-lang/core")
+/** `spell`'s `src/` (spell-parser's). */
+const srcDir = entryFolder("spell-parser/spell")
+/** `core`'s `src/` (spell-parser's):  the runtime, and its built-in types' scope pack (`core.scopes.js`). */
+const coreDir = entryFolder("spell-parser/core")
 /** `app`'s `static/`:  fonts and css the app serves. */
 const staticDir = resolve(packagesDir, "app", "static")
 
@@ -79,7 +79,7 @@ const spellSpacesDir = process.env.SPELL_SPACES_DIR
 /**
  * The folder holding each `SP.SpaceFolderBase` (`SP.SpellUrls.folderFor()`):
  * - `builtins`:  `spaces/`, holding the `@spell` space's projects:  the built-in groups (`@spell/examples/` ...) and the
- *   frozen test projects, `@spell/test/` (spell-lang's `tests/spaces/` until epic `spanish` P18)
+ *   frozen test projects, `@spell/test/` (spell-parser's `tests/spaces/` until epic `spanish` P18)
  * - `spaces`:  spell.spaces
  * - `SPELL_BUILTINS_DIR` sets the first:
  *   so the server's contract test (`api.test.ts`) can point the server at a temporary copy, and never write into the repo.

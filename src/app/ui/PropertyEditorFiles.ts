@@ -1,4 +1,4 @@
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { SPACES } from "spell-app/spaces"
 import type { V } from "spell-ui/api"
 // a leaf of Spell UI without its elements:  the `spell-ui` barrel would define every tag

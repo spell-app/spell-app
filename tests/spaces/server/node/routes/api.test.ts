@@ -3,7 +3,7 @@
  * - Talk HTTP only:  spawn the server as a child process, never import the server framework,
  *   so the same file passes unchanged when the framework is swapped.
  * - Pins the behaviour, quirks and all (marked `QUIRK`);  a deliberate change fails here on purpose.
- * - Written against Express, kept for `spell-kit/server`'s `SRV.Router` (unified-server P6).
+ * - Written against Express, kept for `spell/server`'s `SRV.Router` (unified-server P6).
  * - What changed ON PURPOSE is marked `CHANGED`:
  *   - nested `:filePath*` paths work
  *   - an unknown DELETE gets the API's 404
@@ -593,7 +593,7 @@ describe("every URL spell builds is answered by the server and by spaces' disk r
   it("a file, a file in a folder, a spaced name, the index and the group's list", async () => {
     // the disk reader, in this process, pointed at the same folders as the server
     Object.assign(process.env, folders)
-    const { SP } = await import("spell-lang/spell")
+    const { SP } = await import("spell-parser/spell")
     const { diskFetch } = await import("spell-app/spaces/server/node/projects/disk-fetch")
     const urls = [
       SP.SpellUrls.fileUrl(`${PROJECT}/top.spell`),

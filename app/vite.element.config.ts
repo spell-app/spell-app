@@ -89,16 +89,14 @@ function builtInsPack(): Plugin {
 const COMPONENTS = fileURLToPath(new URL("../src/app/components", import.meta.url))
 
 /**
- * The kit's `RootCatalog` (`spell-kit/element-tools/RootCatalog`, Spell UI's until epic `repo-split` P10), which reads
+ * The kit's `RootCatalog` (`spell/element-tools/RootCatalog`, Spell UI's until epic `repo-split` P10), which reads
  * a catalog from vocabularies.
  * - Imported as the build runs, by URL, found through the kit's `exports` (never a path into another repo):
  *   a static import would have `tsc -p tsconfig.node.json` check the kit's source.
  * - Node runs its `.ts` files as they are (type stripping).
  * - By its name WITH `.ts`:  node's resolver adds no extension (the kit's `"./*.ts"` entry).
  */
-const ROOT_CATALOG = pathToFileURL(
-  createRequire(import.meta.url).resolve("spell-kit/element-tools/RootCatalog.ts")
-).href
+const ROOT_CATALOG = pathToFileURL(createRequire(import.meta.url).resolve("spell/element-tools/RootCatalog.ts")).href
 
 /** What `RootCatalog` knows of a tag:  `RootCatalogEntry` (its folder, its skeleton). */
 type CatalogEntry = { readonly folder: string; readonly skeleton?: unknown }

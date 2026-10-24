@@ -3,8 +3,8 @@
  */
 import type { Diagnostic, DocumentSymbol } from "vscode-languageserver"
 
-import type { P } from "spell-lang/parser"
-import type { SP } from "spell-lang/spell"
+import type { P } from "spell-parser/parser"
+import type { SP } from "spell-parser/spell"
 
 // ## Workspace
 
@@ -304,7 +304,7 @@ export type TestDiagnosticsParams = {
 }
 
 /**
- * How one test went, as a runner sends it:  a slim `TestResult` (`spell-lang/core`), with only what can't pass left.
+ * How one test went, as a runner sends it:  a slim `TestResult` (`spell-parser/core`), with only what can't pass left.
  * - `method` finds the test:  the function a `to test ...` compiles to, `testCardSetup`.
  *   A test with none, a `start test`, finds no line.
  */

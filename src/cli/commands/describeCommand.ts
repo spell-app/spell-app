@@ -1,4 +1,4 @@
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 

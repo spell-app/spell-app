@@ -1,10 +1,10 @@
 import { readFileSync } from "fs"
 import { join } from "path"
 
-import { SRV } from "spell-kit/server"
-import { PageServer, pageServerRoot } from "spell-kit/server/page"
+import { SRV } from "spell/server"
+import { PageServer, pageServerRoot } from "spell/server/page"
 import environment from "spell-app/spaces/server/node/environment"
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { CLI } from "spell-app/cli"
 
 /** The page server's root:  the kit this checkout is in (`pageServerRoot()`, epic `repo-split` P16), else this checkout. */
@@ -20,7 +20,7 @@ const START_TIMEOUT_MS = 90_000
  * `spell app serve [project]` (`spell serve` until epic `repo-split` P13):  run EVERYTHING --
  * the kit's page server, with the app's API, the editor UI,
  * docs, epics, goals and Spell UI -- and open the editor in a browser.
- * - The PAGE SERVER (`yarn server`, `spell-kit/server/page`), started if it isn't running.
+ * - The PAGE SERVER (`yarn server`, `spell/server/page`), started if it isn't running.
  *   - The editor is ITS child:  `app`'s route module starts vite once the page server listens,
  *     and stops it with the page server (`EditorServer.ts`).  So `yarn server` alone runs it too.
  *   - This waits for the editor's record (`.spell-server.editor.json`) to answer.

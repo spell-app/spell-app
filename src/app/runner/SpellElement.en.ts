@@ -5,7 +5,7 @@
  * - Pure data:  `import type` only.
  */
 
-import type { E } from "spell-kit/element"
+import type { E } from "spell/element"
 
 /****************
  * ### `<spell-element>`

@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "fs"
 import { basename, dirname } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { LSP } from "spell-app/lsp"
 

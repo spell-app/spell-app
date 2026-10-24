@@ -19,7 +19,7 @@ import {
   type ScopePack
 } from "spell-app/lsp/lsp.types"
 // Import directly:  spell's light URL helper, and spaces' groups, which it splits an address by -- no parser, no barrel
-import { SpellUrls } from "spell-lang/spell/SpellUrls"
+import { SpellUrls } from "spell-parser/spell/SpellUrls"
 import "spell-app/spaces/models/projectGroups"
 
 /** What a Type Explorer shows:  a tree, and the details of what's in it, by `path`. */
@@ -45,7 +45,7 @@ export type ScopesSourceHooks = {
 
 /**
  * What `ScopesSource` reads of a project's declarations file -- see `SP.SpellDeclarationsData`.
- * - NOT imported from there:  `spell-lang/spell` would pull the whole parser into the bundle.
+ * - NOT imported from there:  `spell-parser/spell` would pull the whole parser into the bundle.
  */
 export type CompiledDeclarations = {
   /** What each declaring statement declared. */
@@ -281,7 +281,7 @@ function declaredPath(path: string): string | undefined {
 
 /**
  * What a `SPELL: DECLARES` marker says, as far as finding its entries goes -- see `SP.SpellDeclaration`.
- * - NOT imported from there:  `spell-lang/spell` would pull the whole parser into the bundle.
+ * - NOT imported from there:  `spell-parser/spell` would pull the whole parser into the bundle.
  */
 export type MarkerDeclaration = {
   type?: string
@@ -344,7 +344,7 @@ const DECLARES = /\/\*! SPELL: DECLARES \{[\s\S]*?\} \*\//g
 
 /**
  * Between each file's code in a project's compiled javascript -- `P.JSWriter.FILE_SEPARATOR`.
- * - NOTE: a copy, NOT imported:  `spell-lang/spell` would pull the whole parser into the bundle.
+ * - NOTE: a copy, NOT imported:  `spell-parser/spell` would pull the whole parser into the bundle.
  */
 const FILE_SEPARATOR = "\n// -----------\n"
 

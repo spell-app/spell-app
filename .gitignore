@@ -20,7 +20,7 @@ __pycache__/
 
 
 # what spell compiles for each project in this repo (`spaces/@spell/...`), at its path there (epic people-and-orgs P11):
-# never committed, rebuilt by `spell compile`.  Which files:  "Projects" in spell-lang's spell/PARSING.md
+# never committed, rebuilt by `spell compile`.  Which files:  "Projects" in spell-parser's spell/PARSING.md
 /build/
 # how VS Code's runner shows each project (its console, its tab), beside the project's file:  each machine's own,
 # "Safe to delete" (the extension's `RunnerPanel`);  ignored in the old `packages/spell/` and `packages/app/` too

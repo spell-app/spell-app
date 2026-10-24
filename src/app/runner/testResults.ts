@@ -2,11 +2,11 @@
  * What a runner does with how a project's tests went (`TestResult`s, from `testApp()`):
  * shows them on its console, and reports them to the editor, which shows each failed check on its line.
  * - The VS Code runner's Run Tests uses them (epic `spanish`, Card Checks and Test Results).
- * - Reads only `spell-lang/core`'s types:  the results come from a runtime copy, `spell-runtime.js`.
+ * - Reads only `spell-parser/core`'s types:  the results come from a runtime copy, `spell-runtime.js`.
  */
 import type { LSP } from "spell-app/lsp"
-import type { Core, TestResult } from "spell-lang/core/core.types"
-import type { SpellConsole } from "spell-lang/core/console"
+import type { Core, TestResult } from "spell-parser/core/core.types"
+import type { SpellConsole } from "spell-parser/core/console"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 
 /**

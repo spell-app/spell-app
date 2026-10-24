@@ -3,7 +3,7 @@ import { render } from "@solidjs/web"
 
 import { UI as SpellUI } from "spell-ui"
 import type { V } from "spell-ui/api"
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { SPACES } from "spell-app/spaces"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { uiReady } from "spell-app/app/solid/loadUI"

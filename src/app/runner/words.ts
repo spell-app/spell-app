@@ -4,7 +4,7 @@
  * - Loaded beside the scope pack:  the compiled code doesn't import it.
  * - Optional, like the scope pack:  a project compiled before words had a file just shows today's names.
  */
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import type { CompiledDeclarations } from "spell-app/lsp/ScopesSource"
 import { fetchText } from "./fetchFresh"
 

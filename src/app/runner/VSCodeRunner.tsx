@@ -1,7 +1,7 @@
 import { Match, Show, Switch, createSignal, onCleanup, onSettled } from "solid-js"
 
 import type { LSP } from "spell-app/lsp"
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "spell-app/app/runner"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the `spell-app/app/solid` barrel, which pulls in the editor
@@ -40,7 +40,7 @@ import "./VSCodeRunner.css"
  *   - How they went shows in "Program Output" (`showTestResults()`), and goes to the extension (`testResults`),
  *     which shows each failed check in the editor, on its line.
  * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
- * - NEVER imports `spell-lang/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
+ * - NEVER imports `spell-parser/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
  * - How it's shown comes from the extension, which remembers it in the project's `settings.json5`:
  *   console, tab, split, the explorers' state.  See `ProjectSettings`.

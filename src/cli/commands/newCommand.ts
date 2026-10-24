@@ -2,8 +2,8 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from "fs"
 import { resolve } from "path"
 
 import environment from "spell-app/spaces/server/node/environment"
-import { SP } from "spell-lang/spell"
-import { hasProjectFile } from "spell-lang/spell/node/projectFile"
+import { SP } from "spell-parser/spell"
+import { hasProjectFile } from "spell-parser/spell/node/projectFile"
 import { CLI } from "spell-app/cli"
 
 /**

@@ -1,7 +1,7 @@
 import { writeFileSync } from "fs"
 import { describe, test, expect } from "vite-plus/test"
 
-import { PY } from "spell-lang/py"
+import { PY } from "spell-parser/py"
 import { compiledFixture } from "spell-app/spaces/test"
 
 /**

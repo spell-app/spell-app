@@ -4,7 +4,7 @@ import { createRequire } from "module"
 import { dirname, resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
-import { checkEntry, Loader, Saver } from "spell-lang/core/model"
+import { checkEntry, Loader, Saver } from "spell-parser/core/model"
 
 /**
  * The people library, `@spell/library/people` (epic `people-and-orgs` P7):  people, orgs and what they keep.
@@ -13,8 +13,8 @@ import { checkEntry, Loader, Saver } from "spell-lang/core/model"
  */
 const REPO = resolve(import.meta.dirname, "../../..")
 const LIBRARY = resolve(REPO, "spaces/@spell/library/people/people.lib.ts")
-/** The kit's `spell`, by package:  `spell-kit`'s `bin/spell.mjs`. */
-const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "bin/spell.mjs")
+/** The kit's `spell`, by package:  `spell`'s `bin/spell.mjs`. */
+const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell/package.json")), "bin/spell.mjs")
 
 describe("the people library", () => {
   test("its committed people.lib.ts is what its spell compiles to now:  else `spell compile @spell/library/people`", () => {

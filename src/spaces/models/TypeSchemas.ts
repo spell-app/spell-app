@@ -1,5 +1,5 @@
 // the types-only leaf:  `spell-ui` would bring its elements (and Solid's JSX) into spaces' type check
-import type * as VT from "spell-kit/element/vocabulary.types"
+import type * as VT from "spell/element/vocabulary.types"
 
 /****************
  * ### `TypeSchemas`

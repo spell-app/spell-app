@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "spell-kit/element"
-import { SP } from "spell-lang/spell"
+import { E } from "spell/element"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import type * as UIT from "spell-app/app/ui/ui.types"
 import type { monaco } from "spell-app/app/ui/monaco"

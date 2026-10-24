@@ -5,8 +5,8 @@ import { delimiter, dirname, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import environment from "spell-app/spaces/server/node/environment"
-import { buildTsx } from "spell-lang/spell/node/buildTsx"
-import { SP } from "spell-lang/spell"
+import { buildTsx } from "spell-parser/spell/node/buildTsx"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 
@@ -19,8 +19,8 @@ const TSX = ".tsx"
 /** Extension of Python (`py`), which `runCode()` runs under Python -- see `runPython()`. */
 const PY = ".py"
 
-/** `spell_core`'s folder, the Python core:  a uv project, spell-lang's `py/core`. */
-const SPELL_CORE_PY_DIR = resolve(environment.packageFolder("spell-lang/py"), "core")
+/** `spell_core`'s folder, the Python core:  a uv project, spell-parser's `py/core`. */
+const SPELL_CORE_PY_DIR = resolve(environment.packageFolder("spell-parser/py"), "core")
 
 /**
  * Run `code`, project `name` compiled to Python, as `python -m spell_core.run` (epic `python-target` P9).

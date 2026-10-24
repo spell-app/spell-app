@@ -1,8 +1,8 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "spell-lang/parser"
-import { PY } from "spell-lang/py"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { PY } from "spell-parser/py"
+import { SP } from "spell-parser/spell"
 import {
   LIBRARY_FIXTURES,
   PYTHON_FIXTURES,

@@ -6,7 +6,7 @@ import { defineConfig } from "vite-plus"
  * - `vscode` is a stand-in (`tests/fakeVscode.ts`):  the real one exists only inside VS Code.
  * - Run by spell-app's `yarn test` (a project of its Vitest config, which names this file),
  *   or alone:  `yarn test` here.
- * - The kit's packages (`spell-kit/element-tools/...`) are read as source, through the kit's install.
+ * - The kit's packages (`spell/element-tools/...`) are read as source, through the kit's install.
  */
 export default defineConfig({
   resolve: { alias: { vscode: resolve(import.meta.dirname, "tests/fakeVscode.ts") } },

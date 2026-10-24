@@ -2,12 +2,12 @@ import { build } from "esbuild"
 import { fileURLToPath } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
-import { sourceNames } from "spell-kit/toolchain/sourceNames"
+import { sourceNames } from "spell/toolchain/sourceNames"
 
 /**
  * A compiled LIBRARY imported as other code imports it (the `ts/lib` target, epic `people-and-orgs` P3).
  * - The library:  People's, `People.lib.snapshot.ts`, which `fixtures.test.ts` keeps up to date.
- * - Its module graph has no Solid, and no drawing:  it loads the core through `spell-lang/core/model`.
+ * - Its module graph has no Solid, and no drawing:  it loads the core through `spell-parser/core/model`.
  * - Importing it runs nothing but its classes:  no heading, no test, no thing made.
  * - What it makes is a plain thing, in no running program's list.
  */
@@ -43,7 +43,7 @@ describe("a compiled library", () => {
 
   test("its things are saved and loaded by id, with no running program", async () => {
     const People = await import(library)
-    const { Saver, Loader, core } = await import("spell-lang/core/model")
+    const { Saver, Loader, core } = await import("spell-parser/core/model")
     // no program's list of things:  the model leaves it out
     expect("things" in core).toBe(false)
     const matt = new People.Person({ id: "matt", name: "Matt" })

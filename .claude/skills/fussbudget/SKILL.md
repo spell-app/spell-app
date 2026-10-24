@@ -116,13 +116,13 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - A page:  the path is the name's tooltip, the browser's own (`title`), never a second code span:
 
     ```html
-    BEFORE  Built:  <code>buildTsx()</code>, <code>spell-lang/src/spell/node/buildTsx.ts:40</code>
-    AFTER   Built:  <code title="spell-lang/src/spell/node/buildTsx.ts">buildTsx()</code>
+    BEFORE  Built:  <code>buildTsx()</code>, <code>spell-parser/src/spell/node/buildTsx.ts:40</code>
+    AFTER   Built:  <code title="spell-parser/src/spell/node/buildTsx.ts">buildTsx()</code>
     ```
 
     `doc-links.js` links the name to its `title`'s file, so a click still opens it.
   - A path with no name to hang it on ("see `guides/x/x.html`"):  the page's title as the link text.
-  - Markdown, which has no tooltips:  a link, `` [`buildTsx()`](../spell-lang/src/spell/node/buildTsx.ts) ``.
+  - Markdown, which has no tooltips:  a link, `` [`buildTsx()`](../spell-parser/src/spell/node/buildTsx.ts) ``.
     In agent-facing Markdown (`AGENTS.md`, WWOD, `SKILL.md`), a path an agent must open stays reachable that way.
 - `code-dense`:  say what it MEANS, then one fact per bullet.
   - The exact settings and values go in a tooltip, or a folded code block:

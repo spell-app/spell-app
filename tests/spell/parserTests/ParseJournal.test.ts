@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "spell-lang/parser"
-import { SP } from "spell-lang/spell"
+import { P } from "spell-parser/parser"
+import { SP } from "spell-parser/spell"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**

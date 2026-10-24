@@ -50,7 +50,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   `spell-app/spaces/test`
   - `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`, `compiledFixture()` ...
   - Imported by tests only, by name, never from the barrel.
-  - Inline projects are spell-lang's helpers', `spell-lang/spell/test` (`parseSpellProject()`).
+  - Inline projects are spell-parser's helpers', `spell-parser/spell/test` (`parseSpellProject()`).
 - The repo's checks (its root `package.json`'s scripts) cover both:
   - the TypeScript:  tsc, oxlint / oxfmt and vitest
   - then `spell_quart`:  ruff and pytest, through uv
@@ -69,10 +69,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | Group | Folder |
   | --- | --- |
   | `@spell/examples`, `@spell/library`, `@spell/guides` | `spaces/@spell/<group>/`, committed |
-  | `@spell/test` | `spaces/@spell/test/`, committed and frozen (spell-lang's `tests/spaces/` until epic `spanish` P18) |
+  | `@spell/test` | `spaces/@spell/test/`, committed and frozen (spell-parser's `tests/spaces/` until epic `spanish` P18) |
   | `owen@spell` | spell.spaces' `@spell/owen@/`, outside git |
 
-  - spell.spaces:  `<main checkout>/../spell.spaces`, in the kit `spell-kit`:  ONE folder for main and every worktree.
+  - spell.spaces:  `<main checkout>/../spell.spaces`, in the kit `spell`:  ONE folder for main and every worktree.
     - It was `../spell-spaces` before epic `repo-split` P8.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
@@ -90,7 +90,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | `spaceFolders.spaces`, `spellSpacesDir` | spell.spaces, `../spell.spaces` beside the main checkout | `SPELL_SPACES_DIR` |
   | `buildDir` | `build/` at the repo root | `SPELL_BUILD_DIR` |
   | `repoDir`, `packagesDir` | this checkout's root (its folders are there) | |
-  | `srcDir`, `coreDir`, `packageFolder()` | spell-lang's folders, found by package through `node_modules` | |
+  | `srcDir`, `coreDir`, `packageFolder()` | spell-parser's folders, found by package through `node_modules` | |
 
 - Projects on disk:  [projects/](server/node/projects/).
   - [project-utils.ts](server/node/projects/project-utils.ts):  where each project is, a group's list,
@@ -116,7 +116,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   | another spell-app checkout's `spaces/X` or `tests/X` | THAT checkout's `build/...` | a worktree's example, opened by the main checkout's language server (epic `spanish` P21) |
   | anywhere else | beside the source | |
 
-  - `buildFolderFor()`, in project-utils;  "Projects" in [spell's PARSING.md](../../../spell-lang/src/spell/PARSING.md) has the rest.
+  - `buildFolderFor()`, in project-utils;  "Projects" in [spell's PARSING.md](../../../spell-parser/src/spell/PARSING.md) has the rest.
 - The editor edits projects through our models:
   - a group's projects:  `SPACES.SpellProjectRoot`
   - a project's files:  `new SPACES.ProjectFiles(project)`, to create, duplicate, rename and delete them
@@ -162,7 +162,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - On the kit's server's Express-shaped router and web server (it was Express):  `SRV.Router`, `SRV.WebServer`.
   - Its handlers are our [project-utils.ts](server/node/projects/project-utils.ts)'s.
   - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
-    [SpellUrls.ts](../../../spell-lang/src/spell/SpellUrls.ts)):
+    [SpellUrls.ts](../../../spell-parser/src/spell/SpellUrls.ts)):
     - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/Solitaire/Solitaire.spell`
     - and SAVED by `POST /api/projects/file/<project>/<file>`
     - a project's index:  `/api/projects/index/<project>`
@@ -202,7 +202,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 - `spell_quart`:  a Python spell program served as a web app on Quart (epic `python-target` P20).
   - A uv project, [pyproject.toml](server/py/pyproject.toml) with its `uv.lock`:  Python 3.12 or later.
-  - It depends on Quart, and on py's `spell_core`, by a path to it (`../../../../../spell-lang/src/py/core`).
+  - It depends on Quart, and on py's `spell_core`, by a path to it (`../../../../../spell-parser/src/py/core`).
   - It moved here from py's `quart/` in P14 (decision Q21).
 - `SpellSessions`:  a game per visitor (a cookie), the program run once for each, on a core of its own.
   - A page per WebSocket:  the state down when it opens,
@@ -229,10 +229,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 - As WWOD §4, with our own source folder as `spell-app/spaces` and `spell-app/spaces/*`.
 - What it imports:
-  - `spell-lang/spell`, and spell's node-only files too (`spell-lang/spell/node/...`)
-  - `spell-kit/server`
-  - it may import `spell-lang/core` and `spell-kit/util`
-  - [projectGroups.ts](models/projectGroups.ts) imports spell's light `spell-lang/spell/SpellSetup` alone.
+  - `spell-parser/spell`, and spell's node-only files too (`spell-parser/spell/node/...`)
+  - `spell/server`
+  - it may import `spell-parser/core` and `spell/util`
+  - [projectGroups.ts](models/projectGroups.ts) imports spell's light `spell-parser/spell/SpellSetup` alone.
     So `<spell-app>` can load it by path, `spell-app/spaces/models/projectGroups`, without the parser.
 - NEVER the app, lsp or cli folders:  they import it.
 - `spell` NEVER imports it.
@@ -244,7 +244,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 As WWOD §12, plus:
 
-- The root's `vitest.config.ts` uses the toolchain's `spell-kit/toolchain/decorators`:
+- The root's `vitest.config.ts` uses the toolchain's `spell/toolchain/decorators`:
   the routes load spell, whose rules use decorators.
 
 ## Types / Exports

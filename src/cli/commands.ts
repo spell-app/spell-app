@@ -5,14 +5,14 @@
  * - `spell app vscode [build|install]`:  the VS Code extension
  * - `spell projects [group]`:  the project groups, or one group's projects
  * - Under `app` on purpose (Owen's names, 2026-10-21), not only on a clash as Q33 has it.
- * - The language commands are spell-lang's list;  their work comes from here, through `hooks.ts`.
+ * - The language commands are spell-parser's list;  their work comes from here, through `hooks.ts`.
  * - Loads fast:  nothing of spell until a command runs.
  * - NOTE: `spell commands` reads this file's TEXT, for each `spell.command(...)` and `<group>.command(...)` call:
  *   keep each command's name a literal at its call.
  */
 import type { Command } from "commander"
 
-import { CLI } from "spell-kit/cli"
+import { CLI } from "spell/cli"
 import { loadApp } from "./hooks"
 
 export default function appCommands(spell: Command): void {

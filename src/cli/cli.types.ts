@@ -1,14 +1,14 @@
 /**
  * Shared types for spell-app's `spell` commands (`cli/commands.ts`) and the language commands' work (`cli/hooks.ts`).
  * - Runtime-light:  types, plus `normalizedName()`.
- * - The kit's (`spell-kit/cli`) and the language's (`spell-lang/cli`) are re-exported here, so every file of this
+ * - The kit's (`spell/cli`) and the language's (`spell-parser/cli`) are re-exported here, so every file of this
  *   folder says `CLI.CliError`, `CLI.CompileOptions` ...:  ONE `CliError` class for every repo's commands.
  */
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import type { LSP } from "spell-app/lsp"
-import type { GlobalOptions } from "spell-kit/cli"
+import type { GlobalOptions } from "spell/cli"
 
-export { CliError, EXIT, type GlobalOptions } from "spell-kit/cli"
+export { CliError, EXIT, type GlobalOptions } from "spell/cli"
 export type {
   CompileOptions,
   DescribeOptions,
@@ -21,8 +21,9 @@ export type {
   SpeedtestOptions,
   TestOptions,
   TranslateOptions,
+  TranslateTimeOptions,
   WatchOptions
-} from "spell-lang/cli"
+} from "spell-parser/cli"
 
 ////////////////
 // ## Projects
@@ -107,7 +108,7 @@ export type NewOptions = GlobalOptions & {
  *   see `core.useMessages()`.
  *   Left out:  English.
  * - `reports`:  `test` also sends how each test went (`TestsReport`) over IPC, for the lines its failures are on
- *   (epic `spanish` P25:  `spell lang translate`'s fix-ups)
+ *   (epic `spanish` P25:  `spell parser translate`'s fix-ups)
  */
 export type RunSpec = {
   mode: "run" | "test"

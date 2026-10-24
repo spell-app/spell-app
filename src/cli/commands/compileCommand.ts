@@ -2,9 +2,9 @@ import { readFileSync } from "fs"
 import { basename, dirname, join, resolve } from "path"
 import { fileURLToPath } from "url"
 
-import { describeTypecheckError, typecheck } from "spell-lang/spell/node/typecheck"
-import { describePyrightError, pyright } from "spell-lang/spell/node/pyright"
-import { SP } from "spell-lang/spell"
+import { describeTypecheckError, typecheck } from "spell-parser/spell/node/typecheck"
+import { describePyrightError, pyright } from "spell-parser/spell/node/pyright"
+import { SP } from "spell-parser/spell"
 import { buildFolderFor } from "spell-app/spaces/server/node/projects/project-utils"
 import { CLI } from "spell-app/cli"
 

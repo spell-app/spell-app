@@ -5,7 +5,7 @@
  */
 import "./stdioGuard"
 // Defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "spell-lang/spell/node/packageVersion.node"
+import "spell-parser/spell/node/packageVersion.node"
 
 const { createConnection, ProposedFeatures } = await import("vscode-languageserver/node")
 const { LSP } = await import("spell-app/lsp")

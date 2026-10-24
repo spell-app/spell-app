@@ -4,7 +4,7 @@ import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
 import { stripVTControlCharacters } from "node:util"
 
-import { SRV } from "spell-kit/server"
+import { SRV } from "spell/server"
 import environment from "spell-app/spaces/server/node/environment"
 
 /**

@@ -9,7 +9,7 @@
  *   it runs on the `core` of the runtime copy it's in -- see `spellRuntime.ts`'s `runApp()`.
  */
 
-import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "spell-lang/core"
+import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "spell-parser/core"
 
 /**
  * Run `compiled` spell javascript.
@@ -243,7 +243,7 @@ function startLinesOf(files: string[][]): string[] {
 /**
  * How a line of the program's start begins, as compiled -- `P.ASTProgramStart`:
  * `if (!core.isCarryingOver) game.start()`.
- * - NOTE: a copy, NOT imported:  `spell-lang/parser` would pull the whole parser into the runner bundle.
+ * - NOTE: a copy, NOT imported:  `spell-parser/parser` would pull the whole parser into the runner bundle.
  */
 const START_LINE = "if (!core.isCarryingOver) "
 
@@ -258,7 +258,7 @@ const RUNTIME_IMPORT_LINE = /^import .* from "@spell\/(core|elements)"$/
 
 /**
  * Between each file's code in compiled javascript -- `SP.SpellProject.FILE_SEPARATOR`.
- * - NOTE: a copy, NOT imported:  `spell-lang/spell` would pull the whole parser into the runner bundle.
+ * - NOTE: a copy, NOT imported:  `spell-parser/spell` would pull the whole parser into the runner bundle.
  */
 const FILE_SEPARATOR = "\n// -----------\n"
 
@@ -304,7 +304,7 @@ const SPELL_IMPORT = /(\bfrom\s*)"(@spell\/[^"]+)"/g
 
 /**
  * Start of the specifier compiled spell imports another project by -- `SP.SPELL_PROJECT_MODULE`.
- * - NOTE: a copy, NOT imported:  `spell-lang/spell` would pull the whole parser into the runner bundle.
+ * - NOTE: a copy, NOT imported:  `spell-parser/spell` would pull the whole parser into the runner bundle.
  */
 const PROJECT_MODULE = "@spell/project/"
 

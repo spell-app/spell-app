@@ -5,7 +5,7 @@ import { render } from "@solidjs/web"
 import { Markdown } from "spell-app/app/solid/Markdown"
 
 /**
- * `<Markdown>` in the browser:  `spell-lang/markdown` loads lazily, then the text draws as HTML;  links go to `onOpen`.
+ * `<Markdown>` in the browser:  `spell-parser/markdown` loads lazily, then the text draws as HTML;  links go to `onOpen`.
  */
 
 /** Undo for each test:  unmount. */
@@ -16,10 +16,10 @@ afterEach(() => {
 })
 
 describe("<Markdown>", () => {
-  test("draws markdown as HTML once spell-lang/markdown has loaded;  the plain text until then", async () => {
+  test("draws markdown as HTML once spell-parser/markdown has loaded;  the plain text until then", async () => {
     const host = mount(() => <Markdown text={"**bold** and [a link](file:///x.spell#L2)"} onOpen={() => {}} />)
     expect(host.textContent).toContain("**bold**")
-    // the first test loads `spell-lang/markdown`, and the parser under it:  over the default 1s in a full run
+    // the first test loads `spell-parser/markdown`, and the parser under it:  over the default 1s in a full run
     await vi.waitFor(
       () => {
         flush()

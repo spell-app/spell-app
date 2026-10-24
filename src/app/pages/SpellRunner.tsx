@@ -1,7 +1,7 @@
 import type { RouteSectionProps } from "@solidjs/router"
 import { Show, createSignal } from "solid-js"
 
-import { getPref, setPref } from "spell-kit/util"
+import { getPref, setPref } from "spell/util"
 
 import {
   Actions,

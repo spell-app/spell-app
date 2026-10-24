@@ -2,8 +2,8 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vite-plus/test
 import { flush } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
 
-import { ElementFixture } from "spell-kit/test-helpers/ElementFixture"
-import { P } from "spell-lang/parser"
+import { ElementFixture } from "spell/test-helpers/ElementFixture"
+import { P } from "spell-parser/parser"
 import { editor, type EditorStore } from "spell-app/app/editor"
 import { uiReady } from "spell-app/app/solid"
 import type { SpellRuntime } from "spell-app/app/runner"

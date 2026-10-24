@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach } from "vite-plus/test"
 import { renderToString } from "@solidjs/web"
 
-import { core, Thing, List } from "spell-lang/core"
+import { core, Thing, List } from "spell-parser/core"
 import type { ThingOrder } from "spell-app/app/ui/ui.types"
-import type { SP } from "spell-lang/spell"
+import type { SP } from "spell-parser/spell"
 import { ThingExplorer, memberWords } from "spell-app/app/solid/ThingExplorer"
 
 /**

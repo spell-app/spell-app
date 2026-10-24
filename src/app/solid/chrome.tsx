@@ -161,7 +161,7 @@ export type MoreMenuProps = UIDropdownJSXAttributes & {
 /**
  * A `<MoreMenu>`'s `ui-change`:  click the item chosen, and clear the value.
  * - SIDE EFFECT:  sets the dropdown's `value` DURING the event, so the dropdown keeps ours (`""`):
- *   the element decides (`requestChange()` on a `@controlled` member, in `spell-kit/element/Reactive`).
+ *   the element decides (`requestChange()` on a `@controlled` member, in `spell/element/Reactive`).
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }

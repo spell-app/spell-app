@@ -5,7 +5,7 @@
 #   - its tests:  `uv run --directory src/spaces/server/py pytest`
 #   - tidy it:  `uv run --directory src/spaces/server/py ruff check --fix` and `... ruff format`
 # - spell-app's `yarn test` runs the tests too (its package.json), so `yarn review` does.
-# - spell_core, spell-lang's (its `src/py/core/`), stays standard library only:  the web is this package's.
+# - spell_core, spell-parser's (its `src/py/core/`), stays standard library only:  the web is this package's.
 
 [project]
 name = "spell-quart"
@@ -15,8 +15,8 @@ requires-python = ">=3.12"
 dependencies = ["spell-core", "quart==0.22.0"]
 
 [tool.uv.sources]
-# spell-lang's Python core (`src/py/core/`), from here
-spell-core = { path = "../../../../../spell-lang/src/py/core", editable = true }
+# spell-parser's Python core (`src/py/core/`), from here
+spell-core = { path = "../../../../../spell-parser/src/py/core", editable = true }
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff==0.17.0"]

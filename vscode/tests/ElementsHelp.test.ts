@@ -10,8 +10,8 @@ import {
   PAGE,
   writeFiles,
   writeJsxFixture
-} from "spell-kit/element-tools/jsx-help/test/jsxFixture"
-import { ELEMENT_HELP_CODES, ELEMENT_HELP_SOURCE } from "spell-kit/element-tools/tools.types"
+} from "spell/element-tools/jsx-help/test/jsxFixture"
+import { ELEMENT_HELP_CODES, ELEMENT_HELP_SOURCE } from "spell/element-tools/tools.types"
 import { ElementsHelp } from "../src/ElementsHelp"
 import { completionProviders, documentEvents, fakeDocument, resetFakeVscode } from "./fakeVscode"
 

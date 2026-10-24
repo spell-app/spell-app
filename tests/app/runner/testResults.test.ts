@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import type { TestCheck, TestResult } from "spell-lang/core/core.types"
+import type { TestCheck, TestResult } from "spell-parser/core/core.types"
 import { testReportsOf } from "spell-app/app/runner/testResults"
 
 /** What a core says, as the runner's test copy does:  the key and its values. */

@@ -12,7 +12,7 @@ import nodejs_path from "path"
 import fse, { Stats } from "fs-extra"
 import filterAsync from "node-filter-async"
 
-import { SRV } from "spell-kit/server"
+import { SRV } from "spell/server"
 
 import { isFileOrFolderNotFoundError } from "./response-utils"
 import type { GetFolderContentsOptions } from "./server.types"

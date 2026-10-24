@@ -12,7 +12,7 @@
 import { readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 
 /** The grammar this keeps current. */

@@ -17,22 +17,22 @@ import { tmpdir } from "os"
 import { basename, dirname, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, onTestFinished, vi } from "vite-plus/test"
 
-import { SRV } from "spell-kit/server"
-import { pageServerRoot } from "spell-kit/server/page/settings"
+import { SRV } from "spell/server"
+import { pageServerRoot } from "spell/server/page/settings"
 import { buildFolderFor } from "spell-app/spaces/server/node/projects/project-utils"
-import { SP } from "spell-lang/spell"
+import { SP } from "spell-parser/spell"
 import { fixturePath, fixtureFolder } from "spell-app/spaces/test"
 
 /**
  * The real `spell` command, end to end:  the kit's `bin/spell.mjs` run as a separate process, as a user would,
- * with every installed repo's commands:  spell-lang's (their work this repo's, through its `"language"` hook), and
+ * with every installed repo's commands:  spell-parser's (their work this repo's, through its `"language"` hook), and
  * this repo's own (`spell app ...`, `spell projects`).
  * - No terminal:  stdin / stdout are pipes, so nothing asks questions or draws screens.
  * - NEVER writes into a fixture:  compiles use `--stdout`.
  *   Projects to break live in a temp folder -- see `tempProject()`.
  * - The kit's own commands' tests are the kit's (`tests/cli/`), Spell UI's are Spell UI's.
  */
-const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell-kit/package.json")), "bin/spell.mjs")
+const SPELL = resolve(dirname(createRequire(import.meta.url).resolve("spell/package.json")), "bin/spell.mjs")
 
 /**
  * How long a test may take, and so each `spell` run in one (`spell()`).
@@ -131,7 +131,7 @@ describe("spell help", () => {
 describe("every repo's commands, under one name (epic repo-split P13)", () => {
   test("help lists each installed repo's commands under its name:  the language's, and the app's under app", () => {
     const { stdout } = spell(["help"])
-    for (const repo of ["spell-kit", "spell-lang", "spell-app"]) expect(stdout).toMatch(new RegExp(`^${repo}:$`, "m"))
+    for (const repo of ["spell", "spell-parser", "spell-app"]) expect(stdout).toMatch(new RegExp(`^${repo}:$`, "m"))
     for (const command of ["lint", "speedtest", "app", "projects"])
       expect(stdout).toMatch(new RegExp(`^ {2}${command} `, "m"))
     expect(spell(["help", "app"]).stdout).toMatch(/^ {2}create \[options\] <name>/m)
@@ -695,7 +695,7 @@ describe("spell test --name", () => {
   })
 })
 
-describe("spell lang translate (epic spanish P24-P26)", () => {
+describe("spell parser translate (epic spanish P24-P26)", () => {
   /** A small game, in English. */
   const GAME = [
     'a "card" is a thing where:',
@@ -720,7 +720,7 @@ describe("spell lang translate (epic spanish P24-P26)", () => {
     const folder = tempProject("Game", GAME)
     writeFileSync(resolve(folder, "Game.es.names.json5"), JSON.stringify(NAMES))
     const out = resolve(TEMP, "Juego")
-    const first = spell(["lang", "translate", folder, "--to", "es", "--no-ai", "--out", out])
+    const first = spell(["parser", "translate", folder, "--to", "es", "--no-ai", "--out", out])
     expect(first.status).toBe(0)
     expect(first.stdout).toContain("9 of 9 lines translated")
     expect(readFileSync(resolve(out, "Juego.es.spell"), "utf8")).toBe(
@@ -751,7 +751,7 @@ describe("spell lang translate (epic spanish P24-P26)", () => {
       resolve(folder, "Game.spell"),
       GAME.replace("it is a king should be no", "it is not a king should be yes")
     )
-    const update = spell(["lang", "translate", folder, "--to", "es", "--no-ai", "--update", "--out", out])
+    const update = spell(["parser", "translate", folder, "--to", "es", "--no-ai", "--update", "--out", out])
     expect(update.status).toBe(0)
     expect(update.stdout).toContain("1 of 9 lines translated")
     const lines = readFileSync(spanish, "utf8").split("\n")
@@ -763,7 +763,7 @@ describe("spell lang translate (epic spanish P24-P26)", () => {
     // a word the shared glossary doesn't have either
     const folder = tempProject("Gizmo", 'a "gizmo" is a thing\n')
     const { status, stdout } = spell([
-      "lang",
+      "parser",
       "translate",
       folder,
       "--to",
@@ -784,7 +784,7 @@ describe("spell lang translate (epic spanish P24-P26)", () => {
   test("a name the shared glossary has, with --no-ai:  no call, no TODO, the same word as every project (P26)", () => {
     const folder = tempProject("Deck", 'a "deck" is a thing\n')
     const { status, stdout } = spell([
-      "lang",
+      "parser",
       "translate",
       folder,
       "--to",
@@ -799,7 +799,7 @@ describe("spell lang translate (epic spanish P24-P26)", () => {
   })
 
   test("a language with no pack:  says which there are, exit 2", () => {
-    const { status, stderr } = spell(["lang", "translate", tempProject("Klingon", "print 1\n"), "--to", "tlh"])
+    const { status, stderr } = spell(["parser", "translate", tempProject("Klingon", "print 1\n"), "--to", "tlh"])
     expect(status).toBe(2)
     expect(stderr).toContain("No language pack 'tlh':  try en, es")
   })

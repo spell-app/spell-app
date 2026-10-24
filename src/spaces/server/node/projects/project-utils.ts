@@ -3,18 +3,18 @@
  * - The `request_XXX` version can be passed directly to a `SRV.Router` route (Express-shaped):  `routes/api.ts`.
  * - Each change to a file goes through the page server's file operations (`SRV.FileOperations`), in-process:
  *   under the file lock, written all at once.
- * - It was spell's (`spell-lang/spell/node/project-utils`), until epic `people-and-orgs` P15.
+ * - It was spell's (`spell-parser/spell/node/project-utils`), until epic `people-and-orgs` P15.
  * - NOTE: loads spaces' barrel, so spell's project groups are registered (`SPACES.PROJECT_GROUPS`).
  */
 import { existsSync, readFileSync } from "fs"
 import { basename, dirname, isAbsolute, relative, resolve, sep } from "path"
 
-import type { SRV } from "spell-kit/server"
+import type { SRV } from "spell/server"
 import { json5Edited } from "spell-app/spaces/server/node/storage/json5"
 import environment from "spell-app/spaces/server/node/environment"
 
-import { SP } from "spell-lang/spell"
-import { hasProjectFile, projectFileFor } from "spell-lang/spell/node/projectFile"
+import { SP } from "spell-parser/spell"
+import { hasProjectFile, projectFileFor } from "spell-parser/spell/node/projectFile"
 import { SPACES } from "spell-app/spaces"
 
 import * as fileUtils from "./file-utils"

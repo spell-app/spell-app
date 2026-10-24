@@ -1,5 +1,5 @@
 /**
- * A small local web server, for what `spell` shows in a browser -- a UI project's `spell run` -- on `spell-kit/server`'s
+ * A small local web server, for what `spell` shows in a browser -- a UI project's `spell run` -- on `spell/server`'s
  * `WebServer`.
  * - Spell UI has its own copy, for `spell icon --open` (epic `repo-split` P13).
  * - `routes(path)` answers each GET:  text, a file on disk, or `undefined` for 404.  Nothing else is served.
@@ -9,7 +9,7 @@
  */
 import type { Server } from "http"
 
-import { SRV } from "spell-kit/server"
+import { SRV } from "spell/server"
 
 /** What a route answers:  text (with its type), or a file on disk. */
 export type Served = { text: string; type: string } | { file: string }
