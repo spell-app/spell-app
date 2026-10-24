@@ -117,15 +117,10 @@
         </div>
 
         <!--
-          Right column (1200px and wider):  its header holds the repo-wide site header, docked (its tabs, branch, VS Code,
-          edit), and the look controls;  then "On this page", which the router points at each page
+          Right column (1200px and wider):  a card of "On this page", which the router points at each page
           (`for` its tabs, `header` its main's data-toc-header).  Shown on every tab, the API tab too:  no width jump.
         -->
         <aside class="site-aside">
-          <header class="site-aside-head">
-            <spell-site-header docked root="../../.."></spell-site-header>
-            <ui-docs-themes size="small" class="site-aside-themes"></ui-docs-themes>
-          </header>
           <ui-docs-toc class="site-toc"></ui-docs-toc>
         </aside>
       </div>
