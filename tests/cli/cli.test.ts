@@ -695,7 +695,7 @@ describe("spell test --name", () => {
   })
 })
 
-describe("spell parser translate (epic spanish P24-P26)", () => {
+describe("spell translate (epic spanish P24-P26)", () => {
   /** A small game, in English. */
   const GAME = [
     'a "card" is a thing where:',
@@ -720,7 +720,7 @@ describe("spell parser translate (epic spanish P24-P26)", () => {
     const folder = tempProject("Game", GAME)
     writeFileSync(resolve(folder, "Game.es.names.json5"), JSON.stringify(NAMES))
     const out = resolve(TEMP, "Juego")
-    const first = spell(["parser", "translate", folder, "--to", "es", "--no-ai", "--out", out])
+    const first = spell(["translate", folder, "--to", "es", "--no-ai", "--out", out])
     expect(first.status).toBe(0)
     expect(first.stdout).toContain("9 of 9 lines translated")
     expect(readFileSync(resolve(out, "Juego.es.spell"), "utf8")).toBe(
@@ -751,7 +751,7 @@ describe("spell parser translate (epic spanish P24-P26)", () => {
       resolve(folder, "Game.spell"),
       GAME.replace("it is a king should be no", "it is not a king should be yes")
     )
-    const update = spell(["parser", "translate", folder, "--to", "es", "--no-ai", "--update", "--out", out])
+    const update = spell(["translate", folder, "--to", "es", "--no-ai", "--update", "--out", out])
     expect(update.status).toBe(0)
     expect(update.stdout).toContain("1 of 9 lines translated")
     const lines = readFileSync(spanish, "utf8").split("\n")
@@ -763,7 +763,6 @@ describe("spell parser translate (epic spanish P24-P26)", () => {
     // a word the shared glossary doesn't have either
     const folder = tempProject("Gizmo", 'a "gizmo" is a thing\n')
     const { status, stdout } = spell([
-      "parser",
       "translate",
       folder,
       "--to",
@@ -784,7 +783,6 @@ describe("spell parser translate (epic spanish P24-P26)", () => {
   test("a name the shared glossary has, with --no-ai:  no call, no TODO, the same word as every project (P26)", () => {
     const folder = tempProject("Deck", 'a "deck" is a thing\n')
     const { status, stdout } = spell([
-      "parser",
       "translate",
       folder,
       "--to",
@@ -799,7 +797,7 @@ describe("spell parser translate (epic spanish P24-P26)", () => {
   })
 
   test("a language with no pack:  says which there are, exit 2", () => {
-    const { status, stderr } = spell(["parser", "translate", tempProject("Klingon", "print 1\n"), "--to", "tlh"])
+    const { status, stderr } = spell(["translate", tempProject("Klingon", "print 1\n"), "--to", "tlh"])
     expect(status).toBe(2)
     expect(stderr).toContain("No language pack 'tlh':  try en, es")
   })
