@@ -1579,7 +1579,7 @@
         {
           "name": "showActions",
           "type": "boolean",
-          "description": "Append `Actions.FILE_DROPDOWN_ACTIONS` after a divider."
+          "description": "Append `Actions.FILE_DROPDOWN_ACTIONS` after a divider -- never in the static build, which has none."
         }
       ],
       "usedIn": [

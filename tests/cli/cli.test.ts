@@ -782,15 +782,7 @@ describe("spell translate (epic spanish P24-P26)", () => {
 
   test("a name the shared glossary has, with --no-ai:  no call, no TODO, the same word as every project (P26)", () => {
     const folder = tempProject("Deck", 'a "deck" is a thing\n')
-    const { status, stdout } = spell([
-      "translate",
-      folder,
-      "--to",
-      "es",
-      "--no-ai",
-      "--out",
-      resolve(TEMP, "Mazo")
-    ])
+    const { status, stdout } = spell(["translate", folder, "--to", "es", "--no-ai", "--out", resolve(TEMP, "Mazo")])
     expect(status).toBe(0)
     expect(stdout).toContain("1 from the glossary")
     expect(readFileSync(resolve(TEMP, "Mazo", "Mazo.es.spell"), "utf8")).toBe('un "mazo" es una cosa\n')
