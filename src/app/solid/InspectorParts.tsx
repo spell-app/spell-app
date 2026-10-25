@@ -140,6 +140,7 @@ export function InspectorViews(props: {
           <For each={VIEWS}>
             {(id) => (
               <ui-item link="" selected={view() === id} onClick={() => show(id)}>
+                <ui-icon name={VIEW_ICONS[id]} />
                 {appTexts.text(VIEW_TEXTS[id])}
               </ui-item>
             )}
@@ -204,6 +205,8 @@ const VIEW_TEXTS: Record<ViewId, AppTextKey> = {
   things: "inspectorThings",
   templates: "inspectorTemplates"
 }
+/** Each one's icon:  Things' and Templates' are the Program panel's tabs' (Templates is its Types). */
+const VIEW_ICONS: Record<ViewId, string> = { views: "layer group", things: "cubes", templates: "sitemap" }
 /** The pref remembering which shows. */
 const VIEW_PREF = "inspector:view"
 

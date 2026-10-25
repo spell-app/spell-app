@@ -224,7 +224,7 @@ export const APP_TEXTS = {
   inspectorHide: "Hide this panel",
   inspectorExpandAll: "Expand all",
   inspectorCollapseAll: "Collapse all",
-  inspectorToggleTip: "Inspector:  hold for its panels",
+  inspectorPanels: "Show or hide panels",
   inspectorAddEvent: "Add event",
   inspectorParts: "Views",
   inspectorNoParts: "Run the app to see its parts.",

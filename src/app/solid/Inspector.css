@@ -116,6 +116,11 @@
   flex-direction: column;
 }
 .InspectorCardHead {
+  /* its icons the text's size:  the top bar's 1.15em read too big on a card (Owen:  "x and upward chevron are too
+     big") */
+  & ui-icon.IconAction {
+    font-size: 1em;
+  }
   /* the caret, icon and title fold the card */
   & > h2 {
     cursor: pointer;
@@ -149,8 +154,15 @@
   }
   /* Views' switch:  Views | Things | Templates, small, in the title's place */
   & ui-menu.InspectorViewTabs {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 12px;
     font-weight: normal;
+  }
+  & ui-menu.InspectorViewTabs::part(menu) {
+    width: 100%;
+    /* centred in the header:  a menu keeps a top margin for the text above it, and here there's none */
+    margin: 0;
   }
 }
 
@@ -303,22 +315,18 @@
   }
 }
 
-/* the Inspector's button (`<InspectorToggle>`), and the menu of cards it opens when held */
+/* the Inspector's button (`<InspectorToggle>`):  its icon, then its arrow, close by, the header's grey */
 .InspectorToggle {
-  position: relative;
   display: inline-flex;
   align-items: center;
-}
-ui-menu.InspectorPanelsMenu {
-  position: absolute;
-  inset-block-start: calc(100% + 6px);
-  inset-inline-end: 0;
-  z-index: 20;
-  white-space: nowrap;
 
-  /* a card that's hidden:  no check, its room kept so the names line up */
-  & ui-icon.unchecked {
-    visibility: hidden;
+  & > ui-icon.IconAction {
+    margin-inline-end: 2px;
+  }
+  & > ui-dropdown.InspectorPanelsDropdown {
+    margin-inline-end: calc(var(--spell-bar-icon-gap) / 2);
+    color: var(--spell-bar-icon-color);
+    --ui-dropdown-icon-spacing: 0px;
   }
 }
 

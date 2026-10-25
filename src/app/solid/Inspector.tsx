@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
+import { For, Show, createMemo, createSignal, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { editor } from "spell-app/app/editor"
@@ -9,6 +9,7 @@ import { ClassSchemas } from "spell-app/app/ui/ClassSchemas"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
 import { SpellElement } from "spell-app/app/runner/SpellElement"
 import { InspectorCard, InspectorEvents, InspectorViews, appParts } from "./InspectorParts"
+import { on } from "./on"
 import { SplitPanel } from "./SplitPanel"
 
 import "./Inspector.css"
@@ -749,74 +750,48 @@ function chipFor(hue: string): string {
 
 /****************
  * ### `<InspectorToggle>`
- * The Inspector's button, in the App pane's header.
- * - A click opens the column with the cards it last showed, or closes it (`Inspector.toggle()`).
- * - Held (`LONG_PRESS_MS`):  a menu of the cards, each with a check when it shows;  a click shows or hides one.
- *   - It closes on a click outside it, or Esc.
+ * The Inspector's button, in the App pane's header, right of the crosshairs:  its icon, then a dropdown arrow,
+ * as Events' "+" (Owen).
+ * - The icon opens the column with the cards it last showed, or closes it (`Inspector.toggle()`).
+ * - The arrow:  a menu of the cards, each checked when it shows;  choosing one shows or hides it.
  ****************/
 export function InspectorToggle(): JSX.Element {
-  const [isMenuOpen, setMenuOpen] = createSignal(false)
-  let toggle: HTMLElement | undefined
-  let pressTimer = 0
-  // held long enough to open the menu:  the click that ends the press doesn't toggle
-  let wasHeld = false
-  createEffect(isMenuOpen, (isOpen) => {
-    if (!isOpen) return
-    const closeOutside = (event: PointerEvent) => {
-      if (!toggle || !event.composedPath().includes(toggle)) setMenuOpen(false)
-    }
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false)
-    }
-    document.addEventListener("pointerdown", closeOutside, true)
-    document.addEventListener("keydown", closeOnEscape)
-    return () => {
-      document.removeEventListener("pointerdown", closeOutside, true)
-      document.removeEventListener("keydown", closeOnEscape)
-    }
-  })
-  const press = () => {
-    wasHeld = false
-    pressTimer = window.setTimeout(() => {
-      wasHeld = true
-      setMenuOpen(true)
-    }, LONG_PRESS_MS)
-  }
-  const release = () => window.clearTimeout(pressTimer)
   return (
-    <span
-      class="InspectorToggle"
-      ref={(element) => {
-        toggle = element
-      }}
-    >
+    <span class="InspectorToggle">
       <ui-icon
         name={INSPECTOR_ICON}
         link=""
         class={["IconAction", { active: Inspector.isOpen }]}
         label={appTexts.text("inspector")}
-        data-tooltip={appTexts.text("inspectorToggleTip")}
+        data-tooltip={appTexts.text("inspector")}
         data-position="bottom right"
         data-inverted=""
-        onPointerDown={press}
-        onPointerUp={release}
-        onPointerLeave={release}
-        onClick={() => {
-          if (!wasHeld) Inspector.toggle()
-        }}
+        onClick={() => Inspector.toggle()}
       />
-      <Show when={isMenuOpen()}>
-        <ui-menu vertical="" class="InspectorPanelsMenu">
-          <For each={INSPECTOR_PANELS}>
-            {(panel) => (
-              <ui-item link="" onClick={() => Inspector.setShown(panel, !Inspector.isShown(panel))}>
-                <ui-icon name="check" class={{ unchecked: !Inspector.isShown(panel) }} />
-                {appTexts.text(PANEL_TEXTS[panel])}
-              </ui-item>
-            )}
-          </For>
-        </ui-menu>
-      </Show>
+      <ui-dropdown
+        class="InspectorPanelsDropdown"
+        aria-label={appTexts.text("inspectorPanels")}
+        data-tooltip={appTexts.text("inspectorPanels")}
+        data-position="bottom right"
+        data-inverted=""
+        ref={on<{ value: string }>("ui-change", (event) => {
+          const panel = event.detail.value as InspectorPanel
+          if (!panel) return
+          Inspector.setShown(panel, !Inspector.isShown(panel))
+          // chosen again next time:  a dropdown tells only of a new value
+          const dropdown = event.currentTarget as HTMLElement & { value: string }
+          queueMicrotask(() => (dropdown.value = ""))
+        })}
+      >
+        <span slot="trigger" />
+        <For each={INSPECTOR_PANELS}>
+          {(panel) => (
+            <ui-item value={panel} icon={Inspector.isShown(panel) ? "check" : "blank"}>
+              {appTexts.text(PANEL_TEXTS[panel])}
+            </ui-item>
+          )}
+        </For>
+      </ui-dropdown>
     </span>
   )
 }
@@ -847,8 +822,6 @@ export function InspectorPick(): JSX.Element {
   )
 }
 
-/** How long a press on the Inspector's button opens its menu of cards, ms. */
-const LONG_PRESS_MS = 450
 /** Each card's name, in the menu of cards. */
 const PANEL_TEXTS: Record<InspectorPanel, AppTextKey> = {
   properties: "inspectorProperties",

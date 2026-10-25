@@ -89,7 +89,7 @@ export function SpellEditor(props: { mode: Mode }) {
 /****************
  * ### `<AppPane>`
  * The running program, under a header:  the project's group icon and its title;  at the right, Restart, the
- * Inspector's button, its crosshairs and Settings.
+ * Inspector's crosshairs, its button (and its menu of cards) and Settings.
  * - The program's mount point (`<AppRoot>`) is drawn once, and never redrawn.
  * - Its body is the area the Inspector picks parts in (`Inspector.watch()`).
  * - Shown in every mode, Run's too:  the page keeps it as the code column comes and goes.
@@ -105,8 +105,8 @@ export function AppPane() {
           {title()}
         </h2>
         <Actions.restartApp iconOnly />
-        <InspectorToggle />
         <InspectorPick />
+        <InspectorToggle />
         <Actions.showProjectSettings iconOnly />
       </header>
       <div class="AppPaneBody" ref={(area) => onCleanup(Inspector.watch(area))}>

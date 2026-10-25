@@ -195,3 +195,18 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
   background: transparent;
   color: var(--spell-bar-icon-color);
 }
+
+/*
+ * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  a track the bar's full width, the
+ * tabs sharing it evenly, the chosen one a raised white tab, as the docs site's tabs;  less round than a pill
+ * (Owen:  "more like this, but with less rounding and no gap")
+ */
+:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) {
+  --ui-menu-segmented-radius: 8px;
+  --ui-menu-segmented-padding: 2px;
+}
+:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) > ui-item::part(item) {
+  flex: 1 1 0;
+  min-width: max-content;
+  justify-content: center;
+}

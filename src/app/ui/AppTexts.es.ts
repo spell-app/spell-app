@@ -84,7 +84,7 @@ const APP_TEXTS_ES: AppTextPack = {
   inspectorHide: "Ocultar este panel",
   inspectorExpandAll: "Desplegar todo",
   inspectorCollapseAll: "Plegar todo",
-  inspectorToggleTip: "Inspector:  mantén pulsado para sus paneles",
+  inspectorPanels: "Mostrar u ocultar paneles",
   inspectorAddEvent: "Añadir evento",
   inspectorParts: "Vistas",
   inspectorNoParts: "Ejecuta la app para ver sus partes.",
