@@ -194,18 +194,14 @@ describe("project-utils", () => {
     expect(index.imports.map((it) => it.path)).toEqual(["/Paged.spell", `/Card${SP.EDITOR_PAGE_SUFFIX}`])
   })
 
-  // epic `elemental-spell` P13:  the examples keep `Card.spellx` beside `Card.spell`
-  test("a .spellx beside its .spell is a file of the project, never a second import;  a lone .spellx is one", async () => {
-    const projectId = project("Twins")
-    const folder = resolve(workspace, "Twins")
-    writeFileSync(resolve(folder, "Twins.spellx"), '<spell-thing "twin">\n</spell-thing>\n')
-    writeFileSync(resolve(folder, "Alone.spellx"), '<spell-thing "alone">\n</spell-thing>\n')
+  // epic `elemental-spell` J95, Owen 2026-10-25:  "one file" -- a template is a `.spell` file OR a `.spellx` file
+  test("a .spellx file is an import of its own, as a .spell file is", async () => {
+    const projectId = project("Tags")
+    const folder = resolve(workspace, "Tags")
+    writeFileSync(resolve(folder, "Card.spellx"), '<spell-thing "card">\n</spell-thing>\n')
 
     const index = await projectUtils.getIndex(projectId)
-    expect(index.imports.map((it) => it.path)).toEqual(["/Twins.spell", "/Alone.spellx"])
-    expect(Object.keys(index.manifest).map((path) => path.split("/").pop())).toEqual(
-      expect.arrayContaining(["Twins.spell", "Twins.spellx", "Alone.spellx"])
-    )
+    expect(index.imports.map((it) => it.path)).toEqual(["/Tags.spell", "/Card.spellx"])
   })
 
   // the bug of 2026-10-22:  a project copied to a folder of another name read its old words file as spell

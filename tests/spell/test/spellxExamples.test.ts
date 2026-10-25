@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "fs"
+import { existsSync, readdirSync, readFileSync } from "fs"
 import JSON5 from "json5"
 import { resolve } from "path"
 import { describe, expect, test } from "vite-plus/test"
@@ -14,15 +14,23 @@ import "spell-app/spaces"
 
 /**
  * Every built-in example, written as spellx by `SX.SpellxWriter` (epic `elemental-spell` P12),
- * compiles to the same javascript, file by file.
+ * compiles to the same javascript, file by file:  the round trip `.spell` => spellx => javascript, in memory.
  * - Each project is parsed whole, then each `.spell` file converted, then the project parsed again with the
  *   `.spellx` files in their places:  each file's code must match, with no errors.
  * - Read where the examples are, never a frozen copy;  NOTHING is written:  the `.spellx` text lives in the test.
+ * - So the editor's "Show as Spellx" view of any example means what its `.spell` file does.
  * - Compared without comments and the `DECLARES` header, which carry line numbers.
  * - A drawing with the web's own elements (`<div>`, `<button>`) is written as code spell, in a `<spell>` chunk
  *   (epic `elemental-spell` J83):  so it means the same.
  */
 const EXAMPLES_DIR = resolve(environment.systemFilesRoot, "examples")
+
+/**
+ * The examples' spellx, kept as test fixtures:  `__spellx__/<Example>/<File>.spellx`, one per `.spell` file.
+ * - NOT in the examples:  a template lives in ONE file, `.spell` or `.spellx`, never both
+ *   (Owen, 2026-10-25, epic `elemental-spell` J95:  "one file").
+ */
+const SPELLX_FIXTURES_DIR = resolve(environment.repoDir, "tests", "spell", "__spellx__")
 
 /**
  * The examples that don't convert to the same program yet, and why:  each an item on the epic page.
@@ -69,47 +77,45 @@ function sourcesOf(folder: string): SpellSourceFile[] {
 }
 
 /**
- * The examples kept in BOTH forms (epic `elemental-spell` P13, J54, J55):  a `.spellx` beside each `.spell`.
- * - The project file lists only the `.spell` files, which the app opens;  the `.spellx` twins are read here, by name
- *   (`Card.spell` => `Card.spellx` beside it), and parsed as a project of their own.
- * - Each `.spellx` must compile to the same javascript as its `.spell`, with no errors.
+ * The examples' spellx fixtures (`SPELLX_FIXTURES_DIR`), hand-kept since P13 (J54, J55), compile to the same
+ * javascript as the example's `.spell` files, file by file, with no errors.
+ * - `Card.spell` in the example => `__spellx__/Solitaire/Card.spellx`, parsed as a project of their own.
  * - A drawing with the web's own elements (`<div>`) is a `<spell>` chunk there, as written (J83).
  */
-const PAIRED_EXAMPLES = [
-  "Solitaire",
-  "TaskList",
-  "tic-tac-toe",
-  "bill-splitter",
-  "calculator",
-  "flash-cards",
-  "habit-tracker",
-  "Solitario",
-  "ListaDeTareas"
-]
+const FIXTURE_EXAMPLES = readdirSync(SPELLX_FIXTURES_DIR, { withFileTypes: true })
+  .filter((it) => it.isDirectory())
+  .map((it) => it.name)
 
-/** The paired examples whose `.spellx` can't compile the same today, and why:  each an item on the epic page. */
-const PAIR_GAPS: Record<string, string> = {
+/** The fixtures that can't compile the same today, and why:  each an item on the epic page. */
+const FIXTURE_GAPS: Record<string, string> = {
   Solitario: KNOWN_GAPS.Solitario!
 }
 
-describe("the examples kept as .spellx beside their .spell compile to the same javascript", () => {
-  for (const name of PAIRED_EXAMPLES) {
-    const known = PAIR_GAPS[name]
-    ;(known ? test.fails : test)(known ? `${name} -- known gap, ${known}` : name, () => pairCompilesTheSame(name))
+describe("the examples' spellx fixtures compile to the same javascript as the examples", () => {
+  for (const name of FIXTURE_EXAMPLES) {
+    const known = FIXTURE_GAPS[name]
+    ;(known ? test.fails : test)(known ? `${name} -- known gap, ${known}` : name, () => fixtureCompilesTheSame(name))
   }
 })
 
-/** Example `name`'s `.spellx` files, beside its `.spell` files, compile to the same javascript, file by file. */
-function pairCompilesTheSame(name: string) {
-  const folder = resolve(EXAMPLES_DIR, name)
-  const sources = sourcesOf(folder)
+// J95:  a template lives in ONE file, so its other form is a view the editor writes, never a second file to drift
+test("no example keeps a template in both forms:  no `Card.spellx` beside `Card.spell`", () => {
+  const both = readdirSync(EXAMPLES_DIR, { recursive: true, encoding: "utf8" })
+    .filter((path) => path.endsWith(".spellx"))
+    .filter((path) => existsSync(resolve(EXAMPLES_DIR, path.slice(0, -1))))
+  expect(both).toEqual([])
+})
+
+/** Example `name`'s spellx fixtures compile to the same javascript as its `.spell` files, file by file. */
+function fixtureCompilesTheSame(name: string) {
+  const sources = sourcesOf(resolve(EXAMPLES_DIR, name))
   const parentScope = SP.Language.rootScopeFor([...new Set(sources.map(({ path }) => SP.Language.forFile(path)))])
   const before = parseSpellProject(sources, { parentScope }).files
-  const twins = sources.map(({ path }) => ({
+  const fixtures = sources.map(({ path }) => ({
     path: `${path}x`,
-    contents: readFileSync(resolve(folder, `.${path}x`), "utf8")
+    contents: readFileSync(resolve(SPELLX_FIXTURES_DIR, name, `.${path}x`), "utf8")
   }))
-  const after = parseSpellProject(twins, { parentScope }).files
+  const after = parseSpellProject(fixtures, { parentScope }).files
   for (const [index, file] of after.entries()) {
     expect(file.errors, file.path).toEqual([])
     expect(codeOf(file.compiled), file.path).toBe(codeOf(before[index]!.compiled))
