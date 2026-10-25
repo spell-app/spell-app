@@ -101,21 +101,34 @@ ui-item.ModeButtons::part(item) {
 }
 /* ... a segmented menu (the theme's segmented tabs), its thumb sliding to the mode chosen */
 ui-menu.ModeTabs {
-  --ui-menu-segmented-item-padding: 0.4em 0.9em;
+  /* taller, in a white edge (Owen:  "needs to be taller, with white border") */
+  --ui-menu-segmented-item-padding: 0.55em 1em;
+  --ui-menu-segmented-padding: 2px;
+  --ui-menu-segmented-border: 2px solid light-dark(#fff, rgb(255 255 255 / 0.18));
 }
 ui-menu.ModeTabs ui-item::part(item) {
   gap: 0.4em;
+  /* the bar's short-menu rule takes every item's block padding, a nested menu's too:  the tabs' own back */
+  padding-block: 0.5em;
 }
 
 /* `<ThemeMenu>`:  the palette a bare icon, a little bigger, close to the person's avatar (Owen) */
 ui-item.ThemeMenu::part(item) {
-  padding-inline: 0.25em;
+  padding-inline: 0.4em;
 }
 ui-item.ThemeMenu ui-docs-themes::part(palette) {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding: 0;
   border: 0;
   background: transparent;
   box-shadow: none;
   font-size: 1.3em;
+}
+/* Home, beside it:  as close (Owen:  "still too much space") */
+.AppMenu ui-icon.IconAction[name="home"] {
+  margin-inline: 0 0.2em;
 }
 ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
   background: transparent;
