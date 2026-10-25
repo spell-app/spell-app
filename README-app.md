@@ -433,6 +433,20 @@ A compile, in the order Debug's Program Output tab logs it:
 3. `executeCompiledApp()` runs it on the runtime, carrying things over when it's the project it ran last.
 4. The console ends "Example executed without errors.", or with the error.
 
+### The Inspector:  look inside the running app
+
+The sliders button in the app's header opens the Inspector, a column at the window's far right.
+Point at the app and a part of it is outlined;  click, and its properties are there to change.
+- A drawn Spell thing, a card in Solitaire:  its type's properties, rank, suit, direction.
+- A Spell UI control, a button or an input:  its attributes, as its tag names them.
+- Alt-click picks any Spell UI element, the text inside a card too.
+- A change shows in the app at once:  set a card's direction to `up` and it turns over.
+- The click goes to the Inspector, never the app;  picking stops once something's picked,
+  and the crosshairs start it again.  Esc stops it.
+- It wears a theme of its own, whatever the editor wears:  that theme's tokens, laid on the column alone.
+
+**Not yet:**  a change isn't written back into the code.  Restart, and the app is as the code says.
+
 ### Themes, and Purple code
 
 The palette button at the top bar's right picks light, dark or auto, and any of Spell UI's 28 themes.
