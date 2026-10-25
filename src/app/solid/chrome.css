@@ -225,6 +225,12 @@ ui-menu.ModeTabs ui-item::part(item) {
   padding-block: 0.45em;
 }
 
+/* the palette menu's "Edit theme..." row:  its icon the width of a theme row's check, so their words line up */
+.EditThemeEntry > ui-icon {
+  --ui-icon-width: 1.125em;
+  --ui-icon-distance: 0;
+}
+
 /* `<ThemeMenu>`:  the palette a bare icon, a little bigger (its spacing:  the bar's rule, above) */
 /* its glyph centred on the bar, as the other icons:  its inline controls left a line's descent under it, 1px high */
 ui-item.ThemeMenu ui-docs-themes {

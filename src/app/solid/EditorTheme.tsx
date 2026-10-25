@@ -1,6 +1,7 @@
 import { Show, createSignal } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
+import { editor } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { uiReady } from "./loadUI"
 
@@ -135,12 +136,18 @@ const [isMenuDefined, setMenuDefined] = createSignal(false)
  * The editor's theme menu, in a menu bar:  a palette button opening Light | Dark | Auto and every theme.
  * - The palette:  `<ui-docs-themes>`, inverted while the bar is the old violet one (no look).
  * - Picking applies at once, and the editor remembers it (`EditorTheme`).
+ * - At its foot, "Edit theme...":  the theme editor's page (`<ThemeEditorPage>`, epic `debut` P6).
  ****************/
 export function ThemeMenu(): JSX.Element {
   return (
     <Show when={isMenuDefined()}>
       <ui-item class="ThemeMenu">
-        <ui-docs-themes inverted={EditorTheme.look ? undefined : ""} size="small" />
+        <ui-docs-themes inverted={EditorTheme.look ? undefined : ""} size="small">
+          <button type="button" slot="end" class="EditThemeEntry" onClick={() => editor.showThemeEditor()}>
+            <ui-icon name="paint brush" />
+            {appTexts.text("editTheme")}
+          </button>
+        </ui-docs-themes>
       </ui-item>
     </Show>
   )
