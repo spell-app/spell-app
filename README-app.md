@@ -370,7 +370,7 @@ each explorer reads something the program or its compile left behind.
 - The **Thing Explorer** reads the runtime copy's `core.things`:
   every thing, and every list, registers itself as it's made, and the program's exports are its top-level things.
   - It labels their members in Spell's words, `move (a card) to (a pile)`,
-    from the project's words file, `<Project>.en.js`, committed beside its source.
+    from the project's words file, `<Project>.en.js`, built with its compiled code.
   - With no words file, each goes by its name:  `move to pile`.
 - The **Type Explorer** reads the project's scope pack, `<Project>.scopes.js`.
   - In a `<spell-viewer>` it's read-only, and a link in it sends `spell-open`.

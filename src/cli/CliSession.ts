@@ -117,8 +117,9 @@ export class CliSession {
   }
 
   /**
-   * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.spell.js` yet.
-   * - Why:  a compiled import is read from that file, so parsing `project` fails without it.
+   * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.spell.js` or
+   * `<Project>.declarations.json5` yet:  both are in its build folder, never committed.
+   * - Why:  a compiled import is read from those files, so parsing `project` fails without them.
    * - NOTE: an existing one is used as is, even if its sources have changed since -- unless:
    *   - `stale` (`spell compile --stale`):  recompiles those that are out of date, see `CLI.staleBecause()`
    *   - `force` (`spell compile --force`):  recompiles them all
@@ -141,7 +142,7 @@ export class CliSession {
         ? "forced"
         : stale
           ? await CLI.staleBecause(imported)
-          : existsSync(imported.outputFile.location.serverPath)
+          : [imported.outputFile, imported.declarationsFile].every((file) => existsSync(file.location.serverPath))
             ? undefined
             : "never compiled"
       if (!why) continue

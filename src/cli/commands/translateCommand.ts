@@ -99,7 +99,8 @@ async function importsOf(project: SP.SpellProject, lang: string): Promise<Import
   for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
     const folder = imported.location.serverPath
     const name = imported.projectName ?? basename(folder)
-    const declarationsPath = join(folder, `${name}.declarations.json5`)
+    // in its build folder, as any built file:  `serverPath` says where
+    const declarationsPath = imported.declarationsFile.location.serverPath
     const text = existsSync(declarationsPath)
       ? readFileSync(declarationsPath, "utf8")
       : (imported.declarationsFile.contents ?? "")
