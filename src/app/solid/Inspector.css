@@ -88,6 +88,24 @@
     flex: 0 0 auto;
     width: auto;
   }
+  /* the sections, a group each:  a full row, their fields on the same two-column grid, their titles small bands */
+  & ui-property-editor > ui-property-group {
+    grid-column: 1 / -1;
+  }
+  & ui-property-group::part(section) {
+    margin: 0;
+  }
+  & ui-property-group::part(content) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: var(--ui-form-row-distance);
+  }
+  & ui-property-group {
+    --ui-section-h2: 0.9;
+    --ui-section-h3: 0.9;
+    --ui-section-title-padding: 6px 0 4px;
+  }
   /* segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */
   & ui-menu[appearance="segmented"] {
     --ui-menu-segmented-background: var(--ui-accent-background);

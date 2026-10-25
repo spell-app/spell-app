@@ -1,6 +1,7 @@
 import { For, Show, createMemo, createSignal, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
+import { E } from "spell/element"
 import { editor } from "spell-app/app/editor"
 import { editorPrefs } from "spell-app/app/editorPrefs"
 import { ValueSets } from "spell-ui/vocabulary"
@@ -72,6 +73,18 @@ export class Inspector {
     setPanels(next)
     if (!next.length) Inspector.close()
     else if (!isOpen()) Inspector.toggle()
+  }
+
+  /** Is the properties card's section for `group` folded (reactive)?  Advanced starts folded. */
+  static isGroupFolded(group: E.AttributeGroup): boolean {
+    return foldedGroups().includes(group)
+  }
+
+  /** Fold the properties card's section for `group`, or unfold it;  remember which. */
+  static setGroupFolded(group: E.AttributeGroup, isFolded: boolean): void {
+    const next = [...foldedGroups().filter((each) => each !== group), ...(isFolded ? [group] : [])]
+    setFoldedGroups(next)
+    editorPrefs.set(FOLDED_GROUPS_PREF, next)
   }
 
   /** Is card `panel` folded to its header (reactive)? */
@@ -352,12 +365,14 @@ export function addressKey(address: PartAddress): string {
 }
 
 /** What the Inspector reads of a Spell UI attribute:  its name and kind (`size`, `color` ...). */
-export type FieldSpec = { name: string; kind?: string }
+export type FieldSpec = { name: string; kind?: string; group?: E.AttributeGroup }
 
 /** The preference that remembers whether the Inspector is open. */
 const OPEN_PREF = "inspector"
 /** The pref remembering which cards show. */
 const PANELS_PREF = "inspector:panels"
+/** The pref remembering which of the properties card's sections are folded. */
+const FOLDED_GROUPS_PREF = "inspector:foldedGroups"
 /** The pref remembering which cards are folded. */
 const FOLDED_PANELS_PREF = "inspector:foldedPanels"
 /** The Inspector's icon:  its toggle's, and its header's. */
@@ -399,6 +414,11 @@ const [shownPanels, setShownPanels] = createSignal<readonly InspectorPanel[]>(
 /** The cards folded to their headers (remembered:  `FOLDED_PANELS_PREF`). */
 const [foldedPanels, setFoldedPanels] = createSignal<readonly InspectorPanel[]>(
   (editorPrefs.get(FOLDED_PANELS_PREF) as InspectorPanel[] | undefined) ?? []
+)
+
+/** The properties card's folded sections (remembered:  `FOLDED_GROUPS_PREF`). */
+const [foldedGroups, setFoldedGroups] = createSignal<readonly E.AttributeGroup[]>(
+  (editorPrefs.get(FOLDED_GROUPS_PREF) as E.AttributeGroup[] | undefined) ?? ["advanced"]
 )
 
 /** Show `panels`, and remember them. */
@@ -668,17 +688,26 @@ function PropertiesCard(): JSX.Element {
             ref={(propertyEditor) => onCleanup(Compact.keep(propertyEditor))}
           >
             <Show when={part.layout}>
-              {(layout) => {
-                const fields = () => [...layout().set, ...layout().more]
-                return (
-                  <>
-                    <Show when={layout().hasText}>
-                      <ui-property name="textContent" label={appTexts.text("inspectorText")} />
-                    </Show>
-                    <For each={fields()}>{(field) => <Field field={field} fields={fields()} />}</For>
-                  </>
-                )
-              }}
+              {(layout) => (
+                <For each={sectionsFor([...layout().set, ...layout().more], layout().hasText)}>
+                  {(section) => (
+                    <ui-property-group
+                      label={appTexts.text(`inspectorGroup.${section.group}` as AppTextKey)}
+                      collapsible=""
+                      collapsed={Inspector.isGroupFolded(section.group) ? "" : undefined}
+                      ref={(group) => {
+                        on("ui-closing", () => Inspector.setGroupFolded(section.group, true))(group)
+                        on("ui-opening", () => Inspector.setGroupFolded(section.group, false))(group)
+                      }}
+                    >
+                      <Show when={section.hasText}>
+                        <ui-property name="textContent" label={appTexts.text("inspectorText")} />
+                      </Show>
+                      <For each={section.fields}>{(field) => <Field field={field} fields={section.fields} />}</For>
+                    </ui-property-group>
+                  )}
+                </For>
+              )}
             </Show>
           </ui-property-editor>
         )}
@@ -686,6 +715,24 @@ function PropertiesCard(): JSX.Element {
     </InspectorCard>
   )
 }
+
+/**
+ * A Spell UI element's fields in the Inspector's sections, one per group, in the groups' order
+ * (`E.ATTRIBUTE_GROUPS`:  Name, Content, Appearance, Layout ...).
+ * - A field keeps its place in `fields` within its section:  those it sets first.
+ * - A field with no group goes in Appearance;  the element's own text (`hasText`) heads Content.
+ * - A section with nothing in it isn't drawn.
+ */
+function sectionsFor(fields: FieldSpec[], hasText: boolean): InspectorSection[] {
+  return E.ATTRIBUTE_GROUPS.map((group) => ({
+    group,
+    hasText: hasText && group === "content",
+    fields: fields.filter((field) => (field.group ?? "appearance") === group)
+  })).filter((section) => section.fields.length || section.hasText)
+}
+
+/** One of the Inspector's sections:  a group, its fields, and whether the element's text heads it. */
+type InspectorSection = { group: E.AttributeGroup; hasText: boolean; fields: FieldSpec[] }
 
 /****************
  * ### `<Field>`
