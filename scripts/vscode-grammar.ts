@@ -6,12 +6,13 @@
  * - Rewrites only its `keyword` entry -- see `LSP.SpellKeywords.grammarKeywords()`;  the rest is written by hand.
  * - `--check`:  writes nothing;  exits 1 if the grammar is out of date.
  *   The lsp tests check it too (`SpellKeywords.test.ts`).
- * - Writes the entry where it is, the rest of the file as it was laid out.
+ * - Writes the entry where it is, the rest of the file as it was laid out (the kit's `writeOrCheck()`).
  * - A new language pack, or a keyword changed in one:  run it, then rebuild the extension (`spell app vscode`).
  */
-import { readFileSync, writeFileSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import path from "node:path"
 
+import { writeOrCheck } from "spell/element-tools/generatedFiles"
 import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 
@@ -21,19 +22,15 @@ const GRAMMAR = path.resolve(import.meta.dirname, "../vscode/syntaxes/spell.tmLa
 /** Where its keyword entry starts. */
 const KEYWORD_ENTRY = '"keyword": {'
 
-const grammar = JSON.parse(readFileSync(GRAMMAR, "utf8")) as { repository: Record<string, unknown> }
 const keyword = LSP.SpellKeywords.grammarKeywords([...SP.Language.all.values()])
-const isCurrent = JSON.stringify(grammar.repository.keyword) === JSON.stringify(keyword)
-
-if (process.argv.includes("--check")) {
-  console.info(isCurrent ? "The grammar's keywords are up to date." : `Out of date:  ${GRAMMAR}`)
-  process.exitCode = isCurrent ? 0 : 1
-} else if (isCurrent) {
-  console.info("The grammar's keywords are up to date.")
-} else {
-  writeFileSync(GRAMMAR, withKeyword(readFileSync(GRAMMAR, "utf8"), keyword))
-  console.info(`Wrote ${GRAMMAR}`)
-}
+const isCheck = process.argv.includes("--check")
+const [stale] = writeOrCheck([[GRAMMAR, withKeyword(readFileSync(GRAMMAR, "utf8"), keyword)]], {
+  command: "tsx scripts/vscode-grammar.ts",
+  isCheck
+})
+console.info(
+  stale === undefined ? "The grammar's keywords are up to date." : `${isCheck ? "Out of date" : "Wrote"}:  ${stale}`
+)
 
 /**
  * The grammar's `text` with its `keyword` entry, the last in its `repository`, replaced by `keyword`.

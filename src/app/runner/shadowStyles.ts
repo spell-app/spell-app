@@ -7,6 +7,7 @@
  *   They only name fonts:  nothing else of ours leaks into the page.
  * - Relative `url(...)`s are made absolute:  an adopted sheet resolves them against the PAGE, not its file.
  */
+import { $fetch } from "spell/util"
 
 /**
  * Stylesheets for a shadow root:  CSS `files` of `assets` -- where they are, and Lato.
@@ -57,9 +58,7 @@ async function buildSheets(assets: string, names: string[]): Promise<CSSStyleShe
 /** CSS file `file` of `assets`, its `url()`s absolute -- its `@font-face` rules apart from the rest. */
 async function cssAt(assets: string, file: string): Promise<{ rules: string; fonts: string[] }> {
   const url = new URL(file, assets).href
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`Couldn't load ${url}:  ${response.status}`)
-  const css = absoluteUrls(await response.text(), url)
+  const css = absoluteUrls(await $fetch<string>({ url }), url)
   return { rules: css.replace(FONT_FACE, ""), fonts: css.match(FONT_FACE) ?? [] }
 }
 
