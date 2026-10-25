@@ -1,4 +1,4 @@
-import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "spell/util"
+import { UIError, Observable, prop, CONFIRM } from "spell/util"
 
 import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
@@ -12,6 +12,7 @@ import type { monaco } from "spell-app/app/ui/monaco"
 import type * as Modals from "spell-app/app/solid/modals"
 import { navigate } from "spell-app/app/pages/navigation"
 import { appTexts } from "spell-app/app/ui/AppTexts"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 // Import directly, NOT through the runner barrel, which brings the runners
 import { wordsOfLanguages } from "spell-app/app/runner/words"
 import { isStaticBuild } from "spell-app/app/static/staticBuild"
@@ -20,8 +21,6 @@ import { staticFiles } from "spell-app/app/static/StaticFiles"
 ////////////////
 // ## The editor
 ////////////////
-
-setPrefKey("spellEditor:")
 
 /**
  * The editor:  what the app shows -- project root, project, file, selection, notices -- and everything it does.
@@ -963,26 +962,24 @@ export type EditorFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelect
 function lastProjectForRoot(projectRootPath: string): string | undefined
 function lastProjectForRoot(projectRootPath: string, projectPath: string): string
 function lastProjectForRoot(projectRootPath: string, projectPath?: string): string | undefined {
-  if (arguments.length === 1) return getPref(projectRootPath, projectPath)
-  // BUG FIX: was `setPref(projectRootPath, projectRootPath)`, which saved the key as the value.
-  return setPref(projectRootPath, projectPath)
+  if (arguments.length === 1) return editorPrefs.get<string>(projectRootPath)
+  return editorPrefs.set(projectRootPath, projectPath)
 }
 
 /** Get/save last viewed full `filePath` for `projectPath`. */
 function lastFileForProject(projectPath: string): string | undefined
 function lastFileForProject(projectPath: string, filePath: string): string
 function lastFileForProject(projectPath: string, filePath?: string): string | undefined {
-  if (arguments.length === 1) return getPref(projectPath, filePath)
-  // BUG FIX: was `setPref(projectPath, projectPath)`, which saved the key as the value.
-  return setPref(projectPath, filePath)
+  if (arguments.length === 1) return editorPrefs.get<string>(projectPath)
+  return editorPrefs.set(projectPath, filePath)
 }
 
 /** Get/save last `selection` for `filePath`. */
 function lastSelectionForFile(filePath: string): UIT.EditorSelection | undefined
 function lastSelectionForFile(filePath: string, selection: UIT.EditorSelection): UIT.EditorSelection
 function lastSelectionForFile(filePath: string, selection?: UIT.EditorSelection): UIT.EditorSelection | undefined {
-  if (arguments.length === 1) return getPref(filePath, selection)
-  return setPref(filePath, selection)
+  if (arguments.length === 1) return editorPrefs.get<UIT.EditorSelection>(filePath)
+  return editorPrefs.set(filePath, selection)
 }
 
 /**

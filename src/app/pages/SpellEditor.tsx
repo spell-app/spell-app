@@ -1,7 +1,5 @@
 import type { RouteSectionProps } from "@solidjs/router"
-import { Match, Show, Switch, createSignal } from "solid-js"
-
-import { getPref, setPref } from "spell/util"
+import { Match, Show, Switch, createSignal, onCleanup } from "solid-js"
 
 import { SP } from "spell-parser/spell"
 import {
@@ -11,6 +9,9 @@ import {
   ConsoleRoot,
   EditorMode,
   InputRoot,
+  Inspector,
+  InspectorColumn,
+  InspectorToggle,
   ModeButtons,
   OutputEditor,
   OutputRoot,
@@ -29,6 +30,7 @@ import {
   type Mode
 } from "spell-app/app/solid"
 import { editor, runtimeCore } from "spell-app/app/editor"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import type { ThingExplorerState } from "spell-app/app/ui/ui.types"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
@@ -44,6 +46,7 @@ import "./SpellEditor.css"
  * - In Debug (`EditorMode`), the Program panel (`<ProgramPanel>`) sits under the code:
  *   its output, things, types and compiled code.  Closing it goes back to Edit.
  * - Showing or hiding the panel never redraws the code or the program:  the panel keeps each pane by its node.
+ * - The Inspector, while it's open, is a column at the far right (`<InspectorColumn>`, epic `debut` P13).
  * - SIDE EFFECT:  the page's keyboard shortcuts while it's up, outside Monaco (`editorHotkeys()`).
  ****************/
 export function SpellEditor() {
@@ -52,25 +55,30 @@ export function SpellEditor() {
   return (
     <SpellPage id="SpellEditor" fillWindow dark rows>
       <EditorToolbar mode={EditorMode.editing} />
-      <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
-        <SplitPanel id="spellEditor-left" rows={isDebugging() ? "65%" : "100%"} resizable rounded>
-          <InputRoot />
-          <Show when={isDebugging()}>
-            <ProgramPanel onClose={() => EditorMode.show("edit")} />
-          </Show>
+      <div class="EditorBody">
+        <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
+          <SplitPanel id="spellEditor-left" rows={isDebugging() ? "65%" : "100%"} resizable rounded>
+            <InputRoot />
+            <Show when={isDebugging()}>
+              <ProgramPanel onClose={() => EditorMode.show("edit")} />
+            </Show>
+          </SplitPanel>
+          <SplitPanel rows rounded>
+            <AppPane />
+          </SplitPanel>
         </SplitPanel>
-        <SplitPanel rows rounded>
-          <AppPane />
-        </SplitPanel>
-      </SplitPanel>
+        <InspectorColumn />
+      </div>
     </SpellPage>
   )
 }
 
 /****************
  * ### `<AppPane>`
- * The running program, under a header:  the project's group icon and its title, then Restart at the right.
+ * The running program, under a header:  the project's group icon and its title;  at the right, the Inspector's
+ * button and Restart.
  * - The program's mount point (`<AppRoot>`) is drawn once, and never redrawn.
+ * - Its body is the area the Inspector picks parts in (`Inspector.watch()`).
  * - Also the run page's (`<SpellRunner>`).
  ****************/
 export function AppPane() {
@@ -83,9 +91,12 @@ export function AppPane() {
           <ui-icon name={root().icon ?? PROJECT_ICON} />
           {title()}
         </h2>
+        <InspectorToggle />
         <Actions.restartApp iconOnly />
       </header>
-      <AppRoot showToolbar={false} />
+      <div class="AppPaneBody" ref={(area) => onCleanup(Inspector.watch(area))}>
+        <AppRoot showToolbar={false} />
+      </div>
     </div>
   )
 }
@@ -105,7 +116,7 @@ export function AppPane() {
  *   the Types tab keeps its own, and the Things tab's is kept here (`thingsState`).
  ****************/
 export function ProgramPanel(props: { onClose: () => void }) {
-  const [tab, setTab] = createSignal<ProgramTabId>(tabOrDefault(getPref(TAB_PREF, undefined)))
+  const [tab, setTab] = createSignal(editorPrefs.get(TAB_PREF) as ProgramTabId)
   // the Things tab's state, kept here so it outlives switching tabs:  the explorer reads it once, as it mounts
   let thingsState: ThingExplorerState = {}
   return (
@@ -175,7 +186,7 @@ export function ProgramPanel(props: { onClose: () => void }) {
   /** Show tab `id`, and remember it. */
   function showTab(id: ProgramTabId) {
     setTab(id)
-    setPref(TAB_PREF, id)
+    editorPrefs.set(TAB_PREF, id)
   }
 }
 
@@ -194,22 +205,19 @@ const TAB_LOOKS: Record<ProgramTabId, { icon: string; text: AppTextKey }> = {
   tree: { icon: "tree", text: "treeTab" }
 }
 /** The preference that remembers which tab `<ProgramPanel>` shows. */
-const TAB_PREF = "spellEditor.programTab"
+const TAB_PREF = "programTab"
+// TODO:  drop the rename once every browser has opened the editor since epic `prefs-and-undo` P1
+editorPrefs.declare(TAB_PREF, { oneOf: PROGRAM_TABS }).rename("spellEditor.programTab", TAB_PREF)
 
 /** Tab `id`, titled in the page's language. */
 function tabFor(id: ProgramTabId): RunnerTab<ProgramTabId> {
   return { id, icon: TAB_LOOKS[id].icon, title: appTexts.text(TAB_LOOKS[id].text) }
 }
 
-/** `saved` if it's one of our tabs, e.g. a remembered preference, else Program Output. */
-function tabOrDefault(saved: unknown): ProgramTabId {
-  return PROGRAM_TABS.find((id) => id === saved) ?? "output"
-}
-
 /****************
  * ### `<EditorToolbar>`
  * Top menu of the editor's pages:  the project dropdown, Run | Edit | Debug, settings and the project's actions;
- * the chooser;  the theme menu and the person.
+ * at the right, Home (the landing page), the theme menu and the person.
  * - `mode`:  the page's, pressed in `<ModeButtons>`.
  * - The static build's "Reset Example" sits by the project actions (`Actions.resetApp`, drawn only there).
  ****************/
@@ -223,10 +231,8 @@ export function EditorToolbar(props: { mode: Mode }) {
         <Actions.resetApp />
         <ProjectActionsDropdown />
       </Submenu>
-      <Submenu center spring>
-        <Actions.showProjectChooser />
-      </Submenu>
       <Submenu right spring>
+        <Actions.showProjectChooser iconOnly />
         <ThemeMenu />
         <Actions.you />
       </Submenu>

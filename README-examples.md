@@ -61,7 +61,7 @@ spell app serve @spell/examples/calculator
 ```
 
 - It opens your browser on the example, until Ctrl-C ([its options](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app)).
-- In the editor, **Open or Create...** in the top bar lists every project, these among them.
+- In the editor, **Home** (the house icon in the top bar) lists every project, these among them.
 - `/run/` in place of `/edit/` shows the app alone, full size, with its console
   ([the editor's routes](README-app.md#the-editor--one-object-behind-every-pane)).
 - `spell run @spell/examples/fizzbuzz` compiles one and runs it:  in your terminal,

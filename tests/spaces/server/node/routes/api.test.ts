@@ -644,3 +644,53 @@ describe("GET and POST /api/people/me", () => {
     expect(text).toContain('"nickname": "O"')
   })
 })
+
+////////////////
+// ## Preferences (epic `prefs-and-undo` P2)
+////////////////
+
+describe("/api/prefs:  each person's preferences, in their space", () => {
+  it("POST save, then GET load:  the value, kept in `__prefs/<store>.json5` in the person's space", async () => {
+    expect((await request("GET", "/api/prefs/load?store=api-test&key=mode")).json()).toEqual({})
+    const body = JSON.stringify({ store: "api-test", key: "mode", value: "debug" })
+    const saved = await request("POST", "/api/prefs/save", body, "application/json")
+    expect(saved.status).toBe(200)
+    expect(saved.json()).toEqual({ value: "debug" })
+    expect((await request("GET", "/api/prefs/load?store=api-test&key=mode")).json()).toEqual({ value: "debug" })
+    expect(readFixture("user/__prefs/api-test.json5")).toContain('"mode": "debug"')
+  })
+
+  it("GET keys and POST forget:  a prefix's keys listed, then forgotten", async () => {
+    for (const key of ["layout/left", "layout/right", "theme"]) {
+      await request("POST", "/api/prefs/save", JSON.stringify({ store: "api-keys", key, value: 1 }), "application/json")
+    }
+    expect((await request("GET", "/api/prefs/keys?store=api-keys&under=layout/")).json()).toEqual({
+      keys: ["layout/left", "layout/right"]
+    })
+    const forgot = await request(
+      "POST",
+      "/api/prefs/forget",
+      JSON.stringify({ store: "api-keys", under: "layout/" }),
+      "application/json"
+    )
+    expect(forgot.json()).toEqual({ keys: ["theme"] })
+  })
+
+  it("CHANGED:  a store name that reaches outside the person's `__prefs/` answers 400, not 500", async () => {
+    const reply = await request("GET", "/api/prefs/load?store=../__me&key=names")
+    expect(reply.status).toBe(400)
+    expect(reply.json().errors[0].message).toContain("can't name a store")
+  })
+
+  it("the kit's `ServerPlace` talks to it:  a `PrefStore` on the server, its declared default too", async () => {
+    const { PrefStore, ServerPlace } = await import("spell/util/persist")
+    const place = new ServerPlace({ url: `${baseUrl}/api/prefs` })
+    const prefs = new PrefStore("@owen/solitaire", { place }).declare("theme", { oneOf: ["light", "dark"] })
+    expect(await prefs.load("theme")).toBe("light")
+    await prefs.save("theme", "dark")
+    expect(await prefs.update<number>("games", (games) => (games ?? 0) + 1)).toBe(1)
+    expect(await prefs.load("theme")).toBe("dark")
+    expect((await prefs.loadKeysUnder()).sort()).toEqual(["games", "theme"])
+    expect(readFixture("user/__prefs/@owen/solitaire.json5")).toContain('"theme": "dark"')
+  })
+})

@@ -378,7 +378,7 @@ http://localhost:3000/
 The spell app is at http://localhost:3000/;  docs, epics, goals and Spell UI at http://127.0.0.1:4747/ -- Ctrl-C to stop
 ```
 
-Open the editor's address, `http://localhost:3000/`, and pick an example under "Open or Create...".
+Open the editor's address, `http://localhost:3000/`, and pick an example on its landing page (Home, the house icon in the top bar).
 Start with FizzBuzz, the simplest:  `http://localhost:3000/edit/@spell/examples/fizzbuzz`.
 
 - `yarn start` runs the install first, and stops the kit's page server, so you always get a fresh pair.

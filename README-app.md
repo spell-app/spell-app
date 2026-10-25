@@ -433,6 +433,20 @@ A compile, in the order Debug's Program Output tab logs it:
 3. `executeCompiledApp()` runs it on the runtime, carrying things over when it's the project it ran last.
 4. The console ends "Example executed without errors.", or with the error.
 
+### The Inspector:  look inside the running app
+
+The sliders button in the app's header opens the Inspector, a column at the window's far right.
+Point at the app and a part of it is outlined;  click, and its properties are there to change.
+- A drawn Spell thing, a card in Solitaire:  its type's properties, rank, suit, direction.
+- A Spell UI control, a button or an input:  its attributes, as its tag names them.
+- Alt-click picks any Spell UI element, the text inside a card too.
+- A change shows in the app at once:  set a card's direction to `up` and it turns over.
+- The click goes to the Inspector, never the app;  picking stops once something's picked,
+  and the crosshairs start it again.  Esc stops it.
+- It wears a theme of its own, whatever the editor wears:  that theme's tokens, laid on the column alone.
+
+**Not yet:**  a change isn't written back into the code.  Restart, and the app is as the code says.
+
 ### Themes, and Purple code
 
 The palette button at the top bar's right picks light, dark or auto, and any of Spell UI's 28 themes.
@@ -489,8 +503,8 @@ The rest of the top bar, left to right:
 - in a look, Spell's hat and name, a link to the landing page
 - the project dropdown, its trigger showing the project's group icon
 - Settings, an icon;  the project's "..." menu
-- "Open or Create...", in the middle
-- the theme menu, and you, as an avatar
+- at the right:  Home (the landing page, where every project is opened or made), an icon;
+  the theme menu, a palette;  and you, as an avatar
 
 Every project group has ONE icon, the same in the dropdown, the app's header and the landing page's cards:
 a folder for your projects, a lightbulb for examples, an open book for guides,
@@ -633,7 +647,7 @@ How a page with no server reads and saves files:
 
 **Not yet:**  it's built, not deployed anywhere.
 And it must be served at a domain's root:  the editor's routes and files are absolute paths.
-"Open or Create..." is still in the top bar, and Save and Reload on the code's toolbar:
+Home is still in the top bar, and Save and Reload on the code's toolbar:
 they read oddly when nothing goes to a server.
 
 ## The builds:  one Solid per page, however many bundles

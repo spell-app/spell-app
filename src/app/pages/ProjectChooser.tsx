@@ -210,16 +210,14 @@ function hueFor(path: string): string {
 
 /****************
  * ### `<ChooserToolbar>`
- * Top menu of `<ProjectChooser>`:  the chooser (active), the theme menu and the person.
+ * Top menu of `<ProjectChooser>`:  Home (lit:  this is it), the theme menu and the person.
  ****************/
 export function ChooserToolbar() {
   return (
     <AppMenu>
       <Submenu left spring />
-      <Submenu center spring>
-        <Actions.showProjectChooser active />
-      </Submenu>
       <Submenu right spring>
+        <Actions.showProjectChooser iconOnly active />
         <ThemeMenu />
         <Actions.you />
       </Submenu>

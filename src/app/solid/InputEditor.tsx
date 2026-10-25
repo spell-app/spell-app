@@ -1,8 +1,7 @@
 import { Loading, Show, createEffect, createMemo, createSignal } from "solid-js"
 
-import { getPref, setPref } from "spell/util"
-
 import { editor } from "spell-app/app/editor"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import type { monaco } from "spell-app/app/solid/monaco"
 import { Actions, ErrorBoundary, MoreMenu, PanelMenu, Submenu, tracked } from "spell-app/app/solid"
@@ -84,7 +83,7 @@ export class LineNumbers {
     // the new value in a local:  a signal reads its old value until Solid flushes the write
     const isShowing = !areShowing()
     setShowing(isShowing)
-    setPref(LINE_NUMBERS_PREF, isShowing)
+    editorPrefs.set(LINE_NUMBERS_PREF, isShowing)
     LineNumbers.applyTo(editor.getInputEditor(), isShowing)
   }
 
@@ -95,8 +94,10 @@ export class LineNumbers {
 }
 
 /** The preference that remembers whether the code editor shows line numbers. */
-const LINE_NUMBERS_PREF = "spellEditor.lineNumbers"
-const [areShowing, setShowing] = createSignal(getPref(LINE_NUMBERS_PREF, false) === true)
+const LINE_NUMBERS_PREF = "lineNumbers"
+// TODO:  drop the rename once every browser has opened the editor since epic `prefs-and-undo` P1
+editorPrefs.declare(LINE_NUMBERS_PREF, { type: "choice" }).rename("spellEditor.lineNumbers", LINE_NUMBERS_PREF)
+const [areShowing, setShowing] = createSignal(editorPrefs.get(LINE_NUMBERS_PREF) as boolean)
 
 /****************
  * ### `<InputEditor>`

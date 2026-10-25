@@ -5,27 +5,29 @@
   display: flex;
   flex-direction: column;
 
-  /* `<ui-toolbar>` is a box of its own;  its items' box, which scrolls, is `::part(menu)` */
+  /*
+   * the bar:  the toolbar's own box, the panel's header, the tabs' track and the tools in it together
+   * (Owen:  "(/) and x buttons closer together, and included in the toolbar bg")
+   */
   & > .RunnerPaneToolbar {
     flex: 0 0 auto;
+    /* tabs close together (Owen:  "move these closer together"):  the segmented look's own room is for a page's tabs */
+    --ui-menu-segmented-item-padding: 0.45em 0.8em;
   }
-  /* the tools at the right:  items of the toolbar, laid out by it */
+  & > .RunnerPaneToolbar::part(toolbar) {
+    gap: 0.5em;
+    padding: 6px 8px 6px 10px;
+    border-bottom: 1px solid var(--ui-border-color);
+  }
+  /* the tools at the right:  close together */
   & .RunnerPaneTools {
     display: flex;
     align-items: center;
-    gap: 0.75em;
-    padding-inline: 0.5em 0.75em;
-  }
-  & > .RunnerPaneToolbar::part(menu) {
-    border-radius: 0;
-    margin: 0;
-  }
-  /* the bar's colour runs under the tools too:  the whole toolbar wears the menu's, and the menu none of its own */
-  & > .RunnerPaneToolbar::part(toolbar) {
-    background: var(--ui-menu-background, var(--ui-surface));
-  }
-  & > .RunnerPaneToolbar::part(menu) {
-    background: transparent;
+    gap: 0.6em;
+
+    & > ui-icon {
+      margin-inline: 0;
+    }
   }
 
   & > :not(.RunnerPaneToolbar) {

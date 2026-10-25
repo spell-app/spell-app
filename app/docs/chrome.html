@@ -60,7 +60,7 @@
             <ui-icon slot="icon" name="image"></ui-icon>
             <p>
               The editor page's AppMenu, in three sections: the project, Run | Edit | Debug, Settings and the project's
-              "..." menu on the left; "Open or Create..." in the middle; the theme menu and your avatar on the right.
+              "..." menu on the left; Home, the theme menu and your avatar on the right.
             </p>
             <ui-image
               src="_images/chrome.png"
@@ -96,10 +96,8 @@
                         <Actions.resetApp />
                         <ProjectActionsDropdown />
                       </Submenu>
-                      <Submenu center spring>
-                        <Actions.showProjectChooser />
-                      </Submenu>
                       <Submenu right spring>
+                        <Actions.showProjectChooser iconOnly />
                         <ThemeMenu />
                         <Actions.you />
                       </Submenu>

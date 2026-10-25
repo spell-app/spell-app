@@ -7,7 +7,7 @@
 //  that use these.
 //
 //----------------------------
-import type { SRV } from "spell/server"
+import { SRV } from "spell/server"
 
 /** Express's names, kept so every handler reads as before. */
 type Request = SRV.Request
@@ -43,6 +43,12 @@ export function getIdParams(request: Request, ...idProperties: string[]) {
   return idProperties.map((property) => convertNumericId(request.params[property]))
 }
 
+/** Query parameter `name` of `request`, as one string:  the first of a repeated one, `""` for none. */
+export function queryText(request: Request, name: string): string {
+  const value = request.query[name]
+  return (Array.isArray(value) ? value[0] : value) ?? ""
+}
+
 ////////////////
 // ## Generic response wrappers
 ////////////////
@@ -50,7 +56,8 @@ export function getIdParams(request: Request, ...idProperties: string[]) {
 /**
  * Wrap `await callback(request, response)` in standard API semantics:
  * - if `callback` returns result, return that to the browser as JSON.
- * - if `callback` throws, return a 500 server error with the result.
+ * - if `callback` throws an `SRV.HttpError` (a caller's mistake), answer with its status:  400 for a bad request ...
+ * - if `callback` throws anything else, return a 500 server error with the result.
  */
 export function respondWithJSON(callback: (request: Request, response: Response) => Promise<any>) {
   return async function (request: Request, response: Response) {
@@ -58,7 +65,8 @@ export function respondWithJSON(callback: (request: Request, response: Response)
       const result = await callback(request, response)
       sendJSON(response, result || "OK")
     } catch (error) {
-      sendError(response, 500, error as Error)
+      // a caller's mistake answers with its own status (`SRV.HttpError`), anything else 500
+      sendError(response, error instanceof SRV.HttpError ? error.status : 500, error as Error)
     }
   }
 }

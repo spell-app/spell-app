@@ -1,9 +1,8 @@
 import { For, createSignal } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { getPref, setPref } from "spell/util"
-
 import { editor } from "spell-app/app/editor"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 
 /****************
@@ -32,7 +31,7 @@ export class EditorMode {
       return
     }
     setEditingMode(mode)
-    setPref(MODE_PREF, mode)
+    editorPrefs.set(MODE_PREF, mode)
     editor.showEditor()
   }
 }
@@ -44,8 +43,10 @@ export type EditingMode = Exclude<Mode, "run">
 
 /** The modes, in the top bar's order. */
 const MODES = ["run", "edit", "debug"] as const
+/** The editor page's modes:  Edit first, its default. */
+const EDITING_MODES = ["edit", "debug"] as const satisfies readonly EditingMode[]
 /** The preference that remembers Edit or Debug. */
-const MODE_PREF = "spellEditor.mode"
+const MODE_PREF = "mode"
 /** Each mode's icon (Fomantic's names) and its name's text key. */
 const MODE_LOOKS: Record<Mode, { icon: string; text: AppTextKey }> = {
   run: { icon: "play", text: "runMode" },
@@ -53,32 +54,30 @@ const MODE_LOOKS: Record<Mode, { icon: string; text: AppTextKey }> = {
   debug: { icon: "tree", text: "debugMode" }
 }
 
-const [editingMode, setEditingMode] = createSignal<EditingMode>(
-  getPref(MODE_PREF, undefined) === "debug" ? "debug" : "edit"
-)
+// TODO:  drop the rename once every browser has opened the editor since epic `prefs-and-undo` P1
+editorPrefs.declare(MODE_PREF, { oneOf: EDITING_MODES }).rename("spellEditor.mode", MODE_PREF)
+const [editingMode, setEditingMode] = createSignal(editorPrefs.get(MODE_PREF) as EditingMode)
 
 /****************
  * ### `<ModeButtons>`
- * Run | Edit | Debug, a group of buttons in the top bar:  the one showing is pressed.
+ * Run | Edit | Debug in the top bar, as the theme's segmented tabs:  the one showing is chosen.
  * - `current`:  the mode the page is in, e.g. `"run"` on the run page.
+ * - Plain buttons in the theme's segmented colours (`--ui-menu-segmented-*`, `chrome.css`), not a
+ *   `<ui-menu appearance="segmented">`:  inside the bar's menu, a menu is its sub-menu, and loses that look.
  ****************/
 export function ModeButtons(props: { current: Mode }): JSX.Element {
   return (
     <ui-item class="ModeButtons">
-      <ui-buttons size="small">
+      <ui-menu appearance="segmented" size="small" class="ModeTabs" aria-label={appTexts.text("modes")}>
         <For each={MODES}>
           {(mode) => (
-            <ui-button
-              icon={MODE_LOOKS[mode].icon}
-              active={props.current === mode}
-              aria-pressed={props.current === mode ? "true" : "false"}
-              onClick={() => EditorMode.show(mode)}
-            >
+            <ui-item link="" selected={props.current === mode} onClick={() => EditorMode.show(mode)}>
+              <ui-icon name={MODE_LOOKS[mode].icon} />
               {appTexts.text(MODE_LOOKS[mode].text)}
-            </ui-button>
+            </ui-item>
           )}
         </For>
-      </ui-buttons>
+      </ui-menu>
     </ui-item>
   )
 }

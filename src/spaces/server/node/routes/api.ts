@@ -14,6 +14,7 @@ import JSON5 from "json5"
 
 import { SRV } from "spell/server"
 import * as peopleRoutes from "spell-app/spaces/server/node/people/peopleRoutes"
+import * as prefsRoutes from "spell-app/spaces/server/node/prefs/prefsRoutes"
 import * as projectUtils from "spell-app/spaces/server/node/projects/project-utils"
 import * as responseUtils from "spell-app/spaces/server/node/projects/response-utils"
 import { ProjectBuild } from "./ProjectBuild"
@@ -83,6 +84,16 @@ api.get("/compile/file", projectUtils.request_compileFile)
 // this machine's person, and their orgs -- see `peopleRoutes.ts`.
 api.get("/people/me", peopleRoutes.request_getMe)
 api.post("/people/me", peopleRoutes.request_saveMe)
+
+////////////////
+// ## Preferences
+////////////////
+
+// each person's, kept in their space -- see `prefsRoutes.ts`:  what the kit's `ServerPlace` asks
+api.get("/prefs/load", prefsRoutes.request_loadPref)
+api.post("/prefs/save", prefsRoutes.request_savePref)
+api.get("/prefs/keys", prefsRoutes.request_prefKeys)
+api.post("/prefs/forget", prefsRoutes.request_forgetPrefs)
 
 ////////////////
 // ## Tests to make sure api is working

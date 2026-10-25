@@ -9,8 +9,9 @@ import "./RunnerPane.css"
  * - `tools`, if any, sit at the toolbar's right, outside its scrolling items, e.g. the editor's Restart:
  *   plain `<ui-icon link>`s, each with a `title` (an item there wouldn't take the menu's look).
  * - A single tab just says what it is.
- * - Tabs are `<ui-item>`s in a `<ui-toolbar>`:  in a narrow pane they scroll sideways, with `‹` / `›` buttons,
- *   never wrapping, and `tools` stay at the right.
+ * - Tabs are `<ui-item>`s in a `<ui-toolbar appearance="segmented">`:  the theme's segmented tabs, a track as wide
+ *   as its tabs, the chosen one raised.  In a narrow pane they scroll sideways, with `‹` / `›` buttons,
+ *   never wrapping, and `tools` stay at the right, on the same bar.
  *   Whoever mounts a runner defines the `<ui-*>` tags,
  *   with `spell-app/app/solid/loadUI`, or a root around it (`<spell-app>`),
  *   and gives it Fomantic's icon names (`<ui-root icons="fomantic">`, `<spell-app>`'s default `icons`).
@@ -21,7 +22,7 @@ import "./RunnerPane.css"
 export function RunnerPane<Id extends string>(props: RunnerPaneProps<Id>) {
   return (
     <div class={["RunnerPane", props.class]}>
-      <ui-toolbar attached="" size="mini" class="RunnerPaneToolbar">
+      <ui-toolbar appearance="segmented" size="mini" class="RunnerPaneToolbar">
         <For each={props.tabs}>
           {(tab) => (
             <ui-item
