@@ -239,18 +239,6 @@
   padding: 12px 14px;
   overflow-y: auto;
   overscroll-behavior: contain;
-
-  /* more below:  the card's colour fading up over its last 8px, not a hard edge (Owen) */
-  &::after {
-    content: "";
-    position: sticky;
-    inset-block-end: -12px;
-    flex: none;
-    height: 8px;
-    margin-block-start: -8px;
-    pointer-events: none;
-    background: linear-gradient(to top, var(--spell-pane-background, var(--ui-background)), transparent);
-  }
 }
 /* its events:  each a heading, then its code, in a box that grows with it */
 .InspectorEvent {

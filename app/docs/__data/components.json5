@@ -6191,6 +6191,18 @@
           "type": "length"
         }
       ]
+    },
+    {
+      "id": "other",
+      "title": "Other",
+      "description": "Foundation tokens of no other group.",
+      "tokens": [
+        {
+          "name": "--ui-hover-delay",
+          "default": "800ms",
+          "type": "time"
+        }
+      ]
     }
   ],
   "themes": [

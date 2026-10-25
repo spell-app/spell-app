@@ -60,7 +60,7 @@ const APP_TEXTS_ES: AppTextPack = {
 
   appMenu: "Aplicación",
   javascriptOutput: "Salida en JavaScript",
-  programOutput: "Salida del programa",
+  programOutput: "Salida",
   spellTree: "Árbol de spell",
   spellTreeHint: "Pon el cursor en una línea para ver su árbol de spell.",
   outputTab: "Salida",
