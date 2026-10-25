@@ -74,6 +74,10 @@
     width: auto;
     margin: 0;
   }
+  /* a yes or no's box keeps no room for text of its own:  its label is the field's, beside it */
+  & ui-property[inline] > ui-checkbox {
+    --ui-checkbox-label-distance: var(--ui-checkbox-size, 1.21428em);
+  }
   /* the box, then its label:  "[x] Basic" */
   & ui-property[inline]::part(control) {
     order: -1;
@@ -120,27 +124,24 @@
     text-transform: uppercase;
     color: var(--spell-text-accent, var(--ui-text-muted));
   }
-  /* its icons in round wells, so one that's on can sit pressed in without moving */
   & > ui-icon.IconAction {
+    margin: 0;
+  }
+  /* the crosshairs:  the theme's own round button (Owen:  "doesn't match the theme"), pressed while picking */
+  & > ui-button.InspectorPick {
+    --ui-button-margin-inline: 0;
+  }
+  /* a true circle, the glyph in its middle:  `circular` alone drew a pill the icon's width */
+  & > ui-button.InspectorPick::part(button) {
     box-sizing: border-box;
     width: 30px;
+    min-width: 30px;
+    max-width: 30px;
     height: 30px;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
     padding: 0;
-    border-radius: 50%;
-    transition:
-      background-color var(--ui-duration-fast, 150ms) var(--ui-ease, ease),
-      box-shadow var(--ui-duration-fast, 150ms) var(--ui-ease, ease);
-  }
-  /* on (picking):  pressed in, a round dip tinted with the primary colour (Owen:  "circular depressed") */
-  & > ui-icon.IconAction.active {
-    color: var(--ui-primary);
-    background: color-mix(in oklab, var(--ui-primary) 16%, transparent);
-    box-shadow:
-      inset 0 2px 5px rgb(0 0 0 / 0.35),
-      inset 0 0 0 1px color-mix(in oklab, var(--ui-primary) 30%, transparent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

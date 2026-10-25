@@ -316,7 +316,8 @@ const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-t
  * The Inspector, a tall column at the page's far right, while it's open (`Inspector.isOpen`).
  * - Its look is the brand's Theme Creator inspector, in the Spell Brand theme whatever the editor wears:
  *   that theme's tokens, re-declared on the column (`UI.themes.scopedTokens()`, J63).
- * - Its header:  its title, then crosshairs (pick again) and Close.
+ * - Its header:  its title, then crosshairs (pick again;  a round button of the theme's, pressed while picking)
+ *   and Close.
  * - Below:  what's picked, a `<ui-property-editor>` in a panel titled with what it is;
  *   a Spell UI element's fields in its `layout`:  its text, what it sets, then "More" folded;
  *   nothing picked:  a tip.
@@ -329,11 +330,15 @@ export function InspectorColumn(): JSX.Element {
         <style>{brandTokens()}</style>
         <header class="InspectorHead">
           <span class="InspectorTitle">{appTexts.text("inspector")}</span>
-          <ui-icon
-            name="crosshairs"
-            link=""
-            class={["IconAction", { active: Inspector.isPicking }]}
-            label={appTexts.text("inspectorPick")}
+          <ui-button
+            icon="crosshairs"
+            circular=""
+            basic={Inspector.isPicking ? undefined : ""}
+            active={Inspector.isPicking}
+            size="small"
+            class="InspectorPick"
+            aria-label={appTexts.text("inspectorPick")}
+            aria-pressed={Inspector.isPicking ? "true" : "false"}
             data-tooltip={appTexts.text("inspectorPick")}
             data-position="bottom right"
             data-inverted=""
