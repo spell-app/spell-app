@@ -131,13 +131,14 @@ export function ThemeMenu(): JSX.Element {
  * Spell's hat and name, first in the editor's top bar:  a link to the landing page.
  * - The hat alone, in the theme's primary colour:  the favicon's hat without its dark square
  *   (`/static/favicon/hat.svg`, drawn as a mask, `EditorTheme.css`).
+ * - On a phone, the hat alone (`.AppName` read, not shown:  `chrome.css`).
  ****************/
 export function AppMark(): JSX.Element {
   return (
     <ui-item class="AppMark">
       <a link="" href="/">
         <span class="hat" />
-        <span>{appTexts.text("appName")}</span>
+        <span class="AppName">{appTexts.text("appName")}</span>
       </a>
     </ui-item>
   )

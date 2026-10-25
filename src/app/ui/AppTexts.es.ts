@@ -100,6 +100,7 @@ const APP_TEXTS_ES: AppTextPack = {
   inspectorEvents: "Eventos",
   inspectorNoEvents: "Ninguno aún.",
   inspectorEventsTip: "Elige una parte para ver sus eventos.",
+  inspectorEventHeading: "con {event}",
   inspectorEventCode: "Qué pasa con {event}",
   inspectorProperties: "Propiedades",
   inspectorThings: "Cosas",

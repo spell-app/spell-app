@@ -288,14 +288,19 @@ export class Inspector {
 
   /**
    * A part's title:  `Card · the queen of spades`, `<ui-button "20%" />`.
-   * - A Spell UI element reads as its tag, then which it is:  its `name`, else its `label`, else its own words,
+   * - A Spell UI element reads as its tag, then which it is:  its `name`, else its `label` (or `aria-label`:  an
+   *   icon-only menu item's, `<ui-item "Cheat" />`), else its own words,
    *   shortened (Owen:  "show name or label to make it clearer which is which";  `<ui-button "20%" />`);
    *   none:  its tag alone, `<ui-form />`.
    */
   static labelFor(element: Element): string {
     const thing = SpellElement.thingOf(element)
     if (!thing) {
-      const which = element.getAttribute("name") || element.getAttribute("label") || ownWords(element)
+      const which =
+        element.getAttribute("name") ||
+        element.getAttribute("label") ||
+        element.getAttribute("aria-label") ||
+        ownWords(element)
       return which ? `<${element.localName} "${which}" />` : `<${element.localName} />`
     }
     const type = thing.constructor.name
@@ -605,6 +610,29 @@ const [eventsAdded, setEventsAdded] = createSignal(0)
 /** Where Solid keeps an element's handler for a delegated event:  `_$$click` (NOT its data, `_$$clickData`). */
 const SOLID_HANDLER = /^_\$\$([a-z]+)$/
 
+/**
+ * Where `element` is drawn, on screen.
+ * - A Spell UI element's own box is often none (`display: contents`):  then the boxes its shadow root draws, together.
+ */
+function drawnBox(element: Element): DOMRect {
+  const own = element.getBoundingClientRect()
+  if (own.width || own.height || !element.shadowRoot) return own
+  const boxes = [...element.shadowRoot.children]
+    .map((child) => child.getBoundingClientRect())
+    .filter((box) => box.width || box.height)
+  if (!boxes.length) return own
+  const left = Math.min(...boxes.map((box) => box.left))
+  const top = Math.min(...boxes.map((box) => box.top))
+  const right = Math.max(...boxes.map((box) => box.right))
+  const bottom = Math.max(...boxes.map((box) => box.bottom))
+  return new DOMRect(left, top, right - left, bottom - top)
+}
+
+/** Does `element` itself listen for an event through Solid (`onClick` ...)? */
+function hasOwnHandler(element: Element): boolean {
+  return Object.keys(element).some((key) => SOLID_HANDLER.test(key))
+}
+
 /** The parts tree's stub icons:  a drawn thing's, a Spell UI element's. */
 const THING_ICON = "cube"
 const CONTROL_ICON = "square outline"
@@ -673,6 +701,8 @@ class Picker {
   /**
    * The part under the event's pointer:  the innermost on its path, inside `area`, that's
    * - a drawn thing (its type's element, a card), or a Spell UI CONTROL (`CONTROL_TAGS`:  an input, a button ...)
+   * - or a Spell UI element with a handler of its own:  a menu item that acts as a button
+   *   (Owen:  "I can't e.g. inspect buttons in the solitaire app header (e.g. cheat button)")
    * - with Alt held, any Spell UI element:  the text or label inside a card too
    * - Not one inside a Spell UI element's own shadow root:  a button's icon is the button's.
    */
@@ -683,7 +713,8 @@ class Picker {
       if (!(target instanceof Element)) continue
       const host = (target.getRootNode() as ShadowRoot).host
       if (host?.localName.startsWith(UI_PREFIX)) continue
-      const isPart = SpellElement.thingOf(target) || anyElement || CONTROL_TAGS.has(target.localName)
+      const isPart =
+        SpellElement.thingOf(target) || anyElement || CONTROL_TAGS.has(target.localName) || hasOwnHandler(target)
       if (isPart && Inspector.partFor(target)) return target
     }
     return undefined
@@ -705,7 +736,7 @@ class Picker {
       box.hidden = true
       return
     }
-    const { left, top, width, height } = element.getBoundingClientRect()
+    const { left, top, width, height } = drawnBox(element)
     Object.assign(box.style, { left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px` })
     box.hidden = false
   }
@@ -767,7 +798,13 @@ export function InspectorColumn(): JSX.Element {
     <Show when={Inspector.isOpen}>
       <aside class="InspectorColumn" aria-label={appTexts.text("inspector")}>
         <style>{brandTokens()}</style>
-        <SplitPanel id={layout().id} rows={layout().rows} resizable class="InspectorSplit">
+        <SplitPanel
+          id={layout().id}
+          rows={layout().rows}
+          resizable
+          class="InspectorSplit"
+          onDragged={(panes) => foldSmallCards(panes, layout().id)}
+        >
           <Show when={Inspector.isShown("properties")}>
             <PropertiesCard />
           </Show>
@@ -784,26 +821,47 @@ export function InspectorColumn(): JSX.Element {
 }
 
 /**
- * The column's sizes for the cards `shown`:  a folded card its header's height, the others their usual shares.
- * - `id`:  the sizes remembered for this set of cards, as dragged (`<SplitPanel id>`).
+ * The column's sizes for the cards `shown`:  a folded card its header's height, Events as tall as its events,
+ * the others their usual shares of the rest (Owen:  Events "fit to content").
+ * - `id`:  the sizes remembered for this set of cards, as dragged (`<SplitPanel id>`):  a drag fixes Events' height.
  */
 function cardsLayout(shown: readonly InspectorPanel[]): { id: string; rows: string } {
-  const open = shown.filter((panel) => !Inspector.isFolded(panel))
-  const total = open.reduce((sum, panel) => sum + CARD_SHARES[panel], 0)
+  const open = shown.filter((panel) => !Inspector.isFolded(panel) && CARD_SHARES[panel] !== FIT)
+  const total = open.reduce((sum, panel) => sum + (CARD_SHARES[panel] as number), 0)
   return {
-    id: `spellEditor-inspector-${shown.map((panel) => (Inspector.isFolded(panel) ? `${panel}-folded` : panel)).join(",")}`,
+    id: `spellEditor-inspectorCards-${shown.map((panel) => (Inspector.isFolded(panel) ? `${panel}-folded` : panel)).join(",")}`,
     rows: shown
-      .map((panel) =>
-        Inspector.isFolded(panel) ? `${FOLDED_CARD_HEIGHT}px` : `${Math.round((CARD_SHARES[panel] / total) * 100)}%`
-      )
+      .map((panel) => {
+        const share = CARD_SHARES[panel]
+        if (Inspector.isFolded(panel)) return `${FOLDED_CARD_HEIGHT}px`
+        return share === FIT ? FIT : `${Math.round((share / total) * 100)}%`
+      })
       .join(",")
   }
 }
 
-/** Each card's usual share of the column, among those open. */
-const CARD_SHARES: Record<InspectorPanel, number> = { properties: 50, events: 20, views: 30 }
+/** A card as tall as its content (`<SplitPanel>`'s `auto`). */
+const FIT = "auto"
+/**
+ * Fold each card dragged too small to show anything (Owen:  "events panel should auto-collapse when it gets small"),
+ * and forget the drag (`id`'s sizes), so unfolding it brings back its usual size.
+ */
+function foldSmallCards(panes: HTMLElement[], id: string): void {
+  for (const pane of panes) {
+    const panel = pane.querySelector<HTMLElement>(".InspectorCard")?.dataset.panel as InspectorPanel | undefined
+    if (!panel || Inspector.isFolded(panel)) continue
+    if (pane.getBoundingClientRect().height >= FOLDED_CARD_HEIGHT + SMALLEST_CARD_BODY) continue
+    editorPrefs.forget(id)
+    Inspector.toggleFolded(panel)
+  }
+}
+
+/** Each card's usual share of the column, among those open;  `FIT`:  as tall as its content. */
+const CARD_SHARES: Record<InspectorPanel, number | typeof FIT> = { properties: 60, events: FIT, views: 40 }
 /** A folded card's height:  its header's (`.AppPaneHeader`). */
 const FOLDED_CARD_HEIGHT = 40
+/** The least a card's body may show, px:  dragged smaller, it folds. */
+const SMALLEST_CARD_BODY = 32
 
 /****************
  * ### `<PropertiesCard>`

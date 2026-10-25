@@ -125,7 +125,11 @@ export class SpellMonaco {
     const { LANGUAGE } = SpellMonaco
     CodeThemes.register()
     SpellHeadings.watch(LANGUAGE)
-    monaco.languages.register({ id: LANGUAGE, extensions: [".spell", ".spellx"], mimetypes: ["text/spell", "text/x-spell"] })
+    monaco.languages.register({
+      id: LANGUAGE,
+      extensions: [".spell", ".spellx"],
+      mimetypes: ["text/spell", "text/x-spell"]
+    })
     monaco.languages.setLanguageConfiguration(LANGUAGE, SpellMonaco.CONFIGURATION)
     monaco.languages.setTokensProvider(LANGUAGE, new SpellTokensProvider())
     // `<css>` and `<markdown>` blocks colour with Monaco's own colouring, which loads lazily:
