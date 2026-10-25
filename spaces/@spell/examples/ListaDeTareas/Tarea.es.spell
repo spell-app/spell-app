@@ -26,7 +26,7 @@ una "tarea" es una vista donde:
 			<div part="row">
 				<es-icono part="grip" name="grip vertical" aria-label="Arrastrar"/>
 				<es-casilla name="hecha" aria-label="Hecha"/>
-				<es-entrada part="title" name="título" aria-label="Tarea" transparente/>
+				<es-entrada part="title" name="título" aria-label="Tarea" apariencia="transparent"/>
 				<es-etiqueta part="priority" tamano="diminuto" color={su color de prioridad}>{su prioridad}</es-etiqueta>
 			</div>
 		</es-formulario>

@@ -50,8 +50,8 @@ export class TodosApp extends App {
   draw() {
     return h("ui-container",
       h("ui-segment",
-        h("ui-menu", { inverted: true, color: "violet", borderless: true },
-          h("ui-item", { type: "header" }, "To Do:"),
+        h("ui-menu", { inverted: true, color: "violet", appearance: "borderless" },
+          h("ui-item", { kind: "header" }, "To Do:"),
           h("ui-menu", { position: "right" },
             h("ui-item", "Show:"),
             h("ui-item", {
@@ -94,7 +94,7 @@ export class TodosApp extends App {
         h("br"),
         h("br"),
         h("ui-menu", { inverted: true, color: "grey" },
-          h("ui-item", { type: "header" }, "Test:"),
+          h("ui-item", { kind: "header" }, "Test:"),
           h("ui-item", { onClick: () => createANewTask({ title: "Moar" }), style: "cursor:pointer;user-select:none" },
             "Add Item"
           ),

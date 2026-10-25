@@ -45,7 +45,7 @@ export class Diner extends View {
           <ui-input part="name" name="name" placeholder="Name" aria-label="Name" fluid={true} />
           <ui-input part="amount" name="amount" type="number" min="0" step="0.01" aria-label="Amount" label="$" fluid={true} />
           <div part="share">{writeAmountAsMoney(this.share)}</div>
-          <ui-button part="remove" icon="close" basic={true} aria-label="Remove" onClick={() => this.remove()} style="cursor:pointer;user-select:none" />
+          <ui-button part="remove" icon="close" appearance="basic" aria-label="Remove" onClick={() => this.remove()} style="cursor:pointer;user-select:none" />
         </div>
       </ui-form>
     )
@@ -158,7 +158,7 @@ export class BillSplitter extends App {
           <div class="Tip">
             <label>Tip</label>
             <ui-input name="percent" type="number" min="0" step="1" aria-label="Tip percent" label="%" labeled="right" />
-            <ui-buttons size="small" basic={true}>
+            <ui-buttons size="small" appearance="basic">
               <ui-button onClick={() => (this.percent = 15)} style="cursor:pointer;user-select:none">15%</ui-button>
               <ui-button onClick={() => (this.percent = 18)} style="cursor:pointer;user-select:none">18%</ui-button>
               <ui-button onClick={() => (this.percent = 20)} style="cursor:pointer;user-select:none">20%</ui-button>
@@ -166,7 +166,7 @@ export class BillSplitter extends App {
           </div>
         </ui-form>
         {core.drawThing(this.diners)}
-        <ui-button basic={true} icon="plus" onClick={() => this.addSomeone()} style="cursor:pointer;user-select:none">
+        <ui-button appearance="basic" icon="plus" onClick={() => this.addSomeone()} style="cursor:pointer;user-select:none">
           Add someone
         </ui-button>
         <ui-segment>

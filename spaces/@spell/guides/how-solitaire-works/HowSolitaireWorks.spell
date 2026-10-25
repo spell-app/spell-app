@@ -26,7 +26,7 @@ a "card" is a view where:
 
 	// a click tries it on the column
 	- to draw it:
-		return <ui-button basic color={its color} onClick={try it}>{its name}</ui-button>
+		return <ui-button appearance="basic" color={its color} onClick={try it}>{its name}</ui-button>
 
 
 ## A pile, and a column

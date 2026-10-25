@@ -57,7 +57,7 @@ export class Task extends View {
         <div part="row">
           <ui-icon part="grip" name="grip vertical" aria-label="Drag" />
           <ui-checkbox name="done" aria-label="Done" />
-          <ui-input part="title" name="title" aria-label="Task" transparent={true} />
+          <ui-input part="title" name="title" aria-label="Task" appearance="transparent" />
           <ui-label part="priority" size="tiny" color={this.priorityColor}>{this.priority}</ui-label>
         </div>
       </ui-form>
@@ -213,31 +213,31 @@ export class TaskList extends App {
     return (
       <ui-container class="TaskList">
         <ui-menu>
-          <ui-item type="header">Task List</ui-item>
+          <ui-item kind="header">Task List</ui-item>
           <ui-item>{`${this.activeCount} to do`}</ui-item>
           <ui-menu position="right">
             <ui-item aria-label="All" selected={this.tasks.showing === "all"} onClick={() => (this.tasks.showing = "all")} style="cursor:pointer;user-select:none">
               <ui-icon name="list" />
-              <ui-popup content="All" inverted={true} size="small" />
+              <ui-popup label="All" inverted={true} size="small" />
             </ui-item>
             <ui-item aria-label="To do" selected={this.tasks.showing === "active"} onClick={() => (this.tasks.showing = "active")} style="cursor:pointer;user-select:none">
               <ui-icon name="square outline" />
-              <ui-popup content="To do" inverted={true} size="small" />
+              <ui-popup label="To do" inverted={true} size="small" />
             </ui-item>
             <ui-item aria-label="Done" selected={this.tasks.showing === "done"} onClick={() => (this.tasks.showing = "done")} style="cursor:pointer;user-select:none">
               <ui-icon name="check square outline" />
-              <ui-popup content="Done" inverted={true} size="small" />
+              <ui-popup label="Done" inverted={true} size="small" />
             </ui-item>
             <ui-item aria-label="Remove done" onClick={() => this.removeTheDoneTasks()} style="cursor:pointer;user-select:none">
               <ui-icon name="trash alternate outline" />
-              <ui-popup content="Remove the done tasks" inverted={true} size="small" />
+              <ui-popup label="Remove the done tasks" inverted={true} size="small" />
             </ui-item>
           </ui-menu>
         </ui-menu>
         <ui-form value={this}>
           <div class="NewTask">
             <ui-input name="draft" placeholder="Something to do" aria-label="New task" fluid={true} />
-            <ui-button primary={true} disabled={this.draft === ""} onClick={() => this.addTheDraft()} style="cursor:pointer;user-select:none">
+            <ui-button color="primary" disabled={this.draft === ""} onClick={() => this.addTheDraft()} style="cursor:pointer;user-select:none">
               Add
             </ui-button>
           </div>

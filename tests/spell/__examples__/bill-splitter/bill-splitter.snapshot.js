@@ -57,7 +57,7 @@ export class Diner extends View {
         h("ui-button", {
           part: "remove",
           icon: "close",
-          basic: true,
+          appearance: "basic",
           "aria-label": "Remove",
           onClick: () => this.remove(),
           style: "cursor:pointer;user-select:none"
@@ -149,7 +149,7 @@ export class BillSplitter extends App {
             label: "%",
             labeled: "right"
           }),
-          h("ui-buttons", { size: "small", basic: true },
+          h("ui-buttons", { size: "small", appearance: "basic" },
             h("ui-button", { onClick: () => (this.percent = 15), style: "cursor:pointer;user-select:none" },
               "15%"
             ),
@@ -164,7 +164,7 @@ export class BillSplitter extends App {
       ),
       () => core.drawThing(this.diners),
       h("ui-button", {
-        basic: true,
+        appearance: "basic",
         icon: "plus",
         onClick: () => this.addSomeone(),
         style: "cursor:pointer;user-select:none"

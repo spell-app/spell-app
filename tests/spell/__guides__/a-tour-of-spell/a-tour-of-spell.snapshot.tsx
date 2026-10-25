@@ -81,7 +81,7 @@ export class Plant extends View {
       <ui-segment color={this.isThirsty ? "orange" : "green"}>
         <h3>{this.name}</h3>
         <p>{this.status}</p>
-        <ui-button basic={true} size="small" icon="tint" onClick={() => this.water()} style="cursor:pointer;user-select:none">
+        <ui-button appearance="basic" size="small" icon="tint" onClick={() => this.water()} style="cursor:pointer;user-select:none">
           Water
         </ui-button>
       </ui-segment>
@@ -153,7 +153,7 @@ export class Garden extends App {
   @drawn draw() {
     return (
       <div class="Garden">
-        <ui-button primary={true} onClick={() => this.waitADay()} style="cursor:pointer;user-select:none">
+        <ui-button color="primary" onClick={() => this.waitADay()} style="cursor:pointer;user-select:none">
           A day goes by
         </ui-button>
         {core.drawThing(this.sill)}

@@ -56,7 +56,7 @@ export class Task extends View {
       h("div", { part: "row" },
         h("ui-icon", { part: "grip", name: "grip vertical", "aria-label": "Drag" }),
         h("ui-checkbox", { name: "done", "aria-label": "Done" }),
-        h("ui-input", { part: "title", name: "title", "aria-label": "Task", transparent: true }),
+        h("ui-input", { part: "title", name: "title", "aria-label": "Task", appearance: "transparent" }),
         h("ui-label", { part: "priority", size: "tiny", color: () => this.priorityColor },
           () => this.priority
         )
@@ -166,7 +166,7 @@ export class TaskList extends App {
   draw() {
     return h("ui-container", { class: "TaskList" },
       h("ui-menu",
-        h("ui-item", { type: "header" }, "Task List"),
+        h("ui-item", { kind: "header" }, "Task List"),
         h("ui-item", () => `${this.activeCount} to do`),
         h("ui-menu", { position: "right" },
           h("ui-item", {
@@ -176,7 +176,7 @@ export class TaskList extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("ui-icon", { name: "list" }),
-            h("ui-popup", { content: "All", inverted: true, size: "small" })
+            h("ui-popup", { label: "All", inverted: true, size: "small" })
           ),
           h("ui-item", {
             "aria-label": "To do",
@@ -185,7 +185,7 @@ export class TaskList extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("ui-icon", { name: "square outline" }),
-            h("ui-popup", { content: "To do", inverted: true, size: "small" })
+            h("ui-popup", { label: "To do", inverted: true, size: "small" })
           ),
           h("ui-item", {
             "aria-label": "Done",
@@ -194,7 +194,7 @@ export class TaskList extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("ui-icon", { name: "check square outline" }),
-            h("ui-popup", { content: "Done", inverted: true, size: "small" })
+            h("ui-popup", { label: "Done", inverted: true, size: "small" })
           ),
           h("ui-item", {
             "aria-label": "Remove done",
@@ -202,7 +202,7 @@ export class TaskList extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("ui-icon", { name: "trash alternate outline" }),
-            h("ui-popup", { content: "Remove the done tasks", inverted: true, size: "small" })
+            h("ui-popup", { label: "Remove the done tasks", inverted: true, size: "small" })
           )
         )
       ),
@@ -210,7 +210,7 @@ export class TaskList extends App {
         h("div", { class: "NewTask" },
           h("ui-input", { name: "draft", placeholder: "Something to do", "aria-label": "New task", fluid: true }),
           h("ui-button", {
-            primary: true,
+            color: "primary",
             disabled: () => this.draft === "",
             onClick: () => sendCall("add_the_draft", [], this),
             style: "cursor:pointer;user-select:none"

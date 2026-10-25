@@ -55,31 +55,31 @@
 		- to draw it:
 			return <ui-container class="TaskList">
 				<ui-menu>
-					<ui-item type="header">Task List</ui-item>
+					<ui-item kind="header">Task List</ui-item>
 					<ui-item>{its active count + " to do"}</ui-item>
 					<ui-menu position="right">
 						<ui-item aria-label="All" selected={the showing of its tasks is "all"} onClick={set the showing of its tasks to "all"}>
 							<ui-icon name="list"/>
-							<ui-popup content="All" inverted size="small"/>
+							<ui-popup label="All" inverted size="small"/>
 						</ui-item>
 						<ui-item aria-label="To do" selected={the showing of its tasks is "active"} onClick={set the showing of its tasks to "active"}>
 							<ui-icon name="square outline"/>
-							<ui-popup content="To do" inverted size="small"/>
+							<ui-popup label="To do" inverted size="small"/>
 						</ui-item>
 						<ui-item aria-label="Done" selected={the showing of its tasks is "done"} onClick={set the showing of its tasks to "done"}>
 							<ui-icon name="check square outline"/>
-							<ui-popup content="Done" inverted size="small"/>
+							<ui-popup label="Done" inverted size="small"/>
 						</ui-item>
 						<ui-item aria-label="Remove done" onClick={remove the done tasks}>
 							<ui-icon name="trash alternate outline"/>
-							<ui-popup content="Remove the done tasks" inverted size="small"/>
+							<ui-popup label="Remove the done tasks" inverted size="small"/>
 						</ui-item>
 					</ui-menu>
 				</ui-menu>
 				<ui-form value={it}>
 					<div class="NewTask">
 						<ui-input name="draft" placeholder="Something to do" aria-label="New task" fluid/>
-						<ui-button primary disabled={its draft is ""} onClick={add the draft}>Add</ui-button>
+						<ui-button color="primary" disabled={its draft is ""} onClick={add the draft}>Add</ui-button>
 					</div>
 				</ui-form>
 				<ui-grid columns="2" stackable>

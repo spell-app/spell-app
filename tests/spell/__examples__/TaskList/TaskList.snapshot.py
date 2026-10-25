@@ -64,7 +64,7 @@ class Task(View):
                 h("ui-checkbox", {"name": "done", "aria-label": "Done"}),
                 h(
                     "ui-input",
-                    {"part": "title", "name": "title", "aria-label": "Task", "transparent": True},
+                    {"part": "title", "name": "title", "aria-label": "Task", "appearance": "transparent"},
                 ),
                 h(
                     "ui-label",
@@ -199,7 +199,7 @@ class TaskList(App):
             {"class": "TaskList"},
             h(
                 "ui-menu",
-                h("ui-item", {"type": "header"}, "Task List"),
+                h("ui-item", {"kind": "header"}, "Task List"),
                 h("ui-item", f"{self.active_count} to do"),
                 h(
                     "ui-menu",
@@ -213,7 +213,7 @@ class TaskList(App):
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "list"}),
-                        h("ui-popup", {"content": "All", "inverted": True, "size": "small"}),
+                        h("ui-popup", {"label": "All", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
@@ -224,7 +224,7 @@ class TaskList(App):
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "square outline"}),
-                        h("ui-popup", {"content": "To do", "inverted": True, "size": "small"}),
+                        h("ui-popup", {"label": "To do", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
@@ -235,7 +235,7 @@ class TaskList(App):
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "check square outline"}),
-                        h("ui-popup", {"content": "Done", "inverted": True, "size": "small"}),
+                        h("ui-popup", {"label": "Done", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
@@ -245,7 +245,7 @@ class TaskList(App):
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "trash alternate outline"}),
-                        h("ui-popup", {"content": "Remove the done tasks", "inverted": True, "size": "small"}),
+                        h("ui-popup", {"label": "Remove the done tasks", "inverted": True, "size": "small"}),
                     ),
                 ),
             ),
@@ -267,7 +267,7 @@ class TaskList(App):
                     h(
                         "ui-button",
                         {
-                            "primary": True,
+                            "color": "primary",
                             "disabled": self.draft == "",
                             "onClick": lambda event: self.add_the_draft(),
                             "style": "cursor:pointer;user-select:none",

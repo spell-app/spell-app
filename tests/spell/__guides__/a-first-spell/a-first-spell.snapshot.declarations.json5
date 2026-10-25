@@ -8,7 +8,7 @@
     {
       "type": "HelloSign",
       "superType": "App",
-      "defined": "/YourFirstSpell.spell:941-1734"
+      "defined": "/YourFirstSpell.spell:941-1742"
     },
     {
       "property": "greeting",
@@ -64,7 +64,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/YourFirstSpell.spell:1574-1734"
+      "defined": "/YourFirstSpell.spell:1574-1742"
     },
     {
       "syntax": "test waving back",
@@ -73,7 +73,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "waving back",
-      "defined": "/YourFirstSpell.spell:3691-3848"
+      "defined": "/YourFirstSpell.spell:3699-3856"
     }
   ],
   "codeLines": [

@@ -12,8 +12,8 @@ to draw it:
 	return <div>
 		<ui-button onClick={set its percent to 15}>15%</ui-button>
 		<ui-button onClick={set its percent to 18}>18%</ui-button>
-		<ui-button basic icon="plus" onClick={add someone}>Add someone</ui-button>
-		<ui-button part="remove" icon="close" basic aria-label="Remove" onClick={remove it}/>
+		<ui-button appearance="basic" icon="plus" onClick={add someone}>Add someone</ui-button>
+		<ui-button part="remove" icon="close" appearance="basic" aria-label="Remove" onClick={remove it}/>
 	</div>
 `
 
@@ -28,13 +28,15 @@ function drawn(tag: string, attributes: Record<string, string>, words = ""): Ele
 describe("handlersInSource()", () => {
   test("finds the tag with the same words:  its handlers, by event", () => {
     expect(handlersInSource(drawn("ui-button", {}, "18%"), [SOURCE])).toEqual({ click: "set its percent to 18" })
-    expect(handlersInSource(drawn("ui-button", { basic: "", icon: "plus" }, "Add someone"), [SOURCE])).toEqual({
+    expect(
+      handlersInSource(drawn("ui-button", { appearance: "basic", icon: "plus" }, "Add someone"), [SOURCE])
+    ).toEqual({
       click: "add someone"
     })
   })
 
   test("a tag with no words:  by the attributes it has in common", () => {
-    const remove = drawn("ui-button", { part: "remove", icon: "close", basic: "", "aria-label": "Remove" })
+    const remove = drawn("ui-button", { part: "remove", icon: "close", appearance: "basic", "aria-label": "Remove" })
     expect(handlersInSource(remove, [SOURCE])).toEqual({ click: "remove it" })
   })
 

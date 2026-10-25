@@ -49,8 +49,8 @@ export class TodosApp extends App {
     return (
       <ui-container>
         <ui-segment>
-          <ui-menu inverted={true} color="violet" borderless={true}>
-            <ui-item type="header">To Do:</ui-item>
+          <ui-menu inverted={true} color="violet" appearance="borderless">
+            <ui-item kind="header">To Do:</ui-item>
             <ui-menu position="right">
               <ui-item>Show:</ui-item>
               <ui-item onClick={() => (app.filter = "all")} selected={app.filter === "all"} style="cursor:pointer;user-select:none">
@@ -89,7 +89,7 @@ export class TodosApp extends App {
           <br />
           <br />
           <ui-menu inverted={true} color="grey">
-            <ui-item type="header">Test:</ui-item>
+            <ui-item kind="header">Test:</ui-item>
             <ui-item onClick={() => createANewTask({ title: "Moar" })} style="cursor:pointer;user-select:none">
               Add Item
             </ui-item>

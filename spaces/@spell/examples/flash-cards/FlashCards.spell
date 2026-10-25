@@ -68,8 +68,8 @@ quiz is an app where:
 	// the score, the card, then what you can do:  turn it over, or say how you did
 	- to draw it:
 		return <div class="Quiz">
-			<ui-menu secondary>
-				<ui-item type="header">Flash Cards</ui-item>
+			<ui-menu appearance="secondary">
+				<ui-item kind="header">Flash Cards</ui-item>
 				<ui-item>{its score}</ui-item>
 				<ui-menu position="right">
 					<ui-item onClick={start over}>
@@ -80,9 +80,9 @@ quiz is an app where:
 			</ui-menu>
 			{draw its card}
 			<div class="Answers">
-				{<ui-button primary onClick={turn its card over}>Show the answer</ui-button> if its card is not turned over otherwise <>
-					<ui-button positive icon="check" onClick={say i knew it}>I knew it</ui-button>
-					<ui-button negative basic icon="close" onClick={say i missed it}>I missed it</ui-button>
+				{<ui-button color="primary" onClick={turn its card over}>Show the answer</ui-button> if its card is not turned over otherwise <>
+					<ui-button color="positive" icon="check" onClick={say i knew it}>I knew it</ui-button>
+					<ui-button color="negative" appearance="basic" icon="close" onClick={say i missed it}>I missed it</ui-button>
 				</>}
 			</div>
 		</div>

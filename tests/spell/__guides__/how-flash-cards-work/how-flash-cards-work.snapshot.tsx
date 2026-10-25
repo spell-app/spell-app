@@ -100,7 +100,7 @@ export class Quiz extends App {
     return (
       <div class="Quiz">
         {core.drawThing(this.card)}
-        <ui-button primary={true} onClick={() => this.dealACard()} style="cursor:pointer;user-select:none">
+        <ui-button color="primary" onClick={() => this.dealACard()} style="cursor:pointer;user-select:none">
           Next card
         </ui-button>
       </div>

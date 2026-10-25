@@ -85,7 +85,7 @@ const PICTURES: Picture[] = [
     page: PROJECT,
     prepare: async (page) => {
       // the item host is `display: contents`:  click it directly
-      await page.locator(".ConsoleRoot .PanelMenu ui-item[link]").nth(4).dispatchEvent("click")
+      await page.locator('.ConsoleRoot .PanelMenu ui-item[appearance~="link"]').nth(4).dispatchEvent("click")
       await page.waitForTimeout(1200)
     },
     clip: { x: 240, y: 150, width: 800, height: 500 }

@@ -27,7 +27,7 @@ una "carta" es una vista donde:
 
 	// un clic la juega en la columna
 	- para dibujarla:
-		devolver <es-boton basico color={su color} onClick={jugar eso}>{su nombre}</es-boton>
+		devolver <es-boton apariencia="básico" color={su color} onClick={jugar eso}>{su nombre}</es-boton>
 
 
 ## Una pila, y una columna

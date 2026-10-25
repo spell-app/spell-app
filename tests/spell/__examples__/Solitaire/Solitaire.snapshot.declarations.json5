@@ -289,7 +289,7 @@
       ],
       "kind": "method",
       "name": "play a card",
-      "defined": "/Solitaire.spell:6295-6541"
+      "defined": "/Solitaire.spell:6289-6535"
     },
     {
       "syntax": "put {thisArg:expression} on {callArgs:expression}",
@@ -310,7 +310,7 @@
       ],
       "returns": "choice",
       "waits": true,
-      "defined": "/Solitaire.spell:6732-7512"
+      "defined": "/Solitaire.spell:6726-7506"
     },
     {
       "syntax": "count the points for {thisArg:expression} on {callArgs:expression}",
@@ -330,7 +330,7 @@
         }
       ],
       "returns": "number",
-      "defined": "/Solitaire.spell:7614-7770"
+      "defined": "/Solitaire.spell:7608-7764"
     },
     {
       "type": "Joker",
@@ -514,53 +514,53 @@
     {
       "type": "StockPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:8690-9072"
+      "defined": "/Solitaire.spell:8684-9066"
     },
     {
       "property": "layout",
       "of": "StockPile",
-      "defined": "/Solitaire.spell:8725-8746"
+      "defined": "/Solitaire.spell:8719-8740"
     },
     {
       "type": "DiscardPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:9142-9283"
+      "defined": "/Solitaire.spell:9136-9277"
     },
     {
       "property": "layout",
       "of": "DiscardPile",
-      "defined": "/Solitaire.spell:9179-9200"
+      "defined": "/Solitaire.spell:9173-9194"
     },
     {
       "type": "Foundation",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:9341-9886"
+      "defined": "/Solitaire.spell:9335-9880"
     },
     {
       "property": "layout",
       "of": "Foundation",
-      "defined": "/Solitaire.spell:9376-9397"
+      "defined": "/Solitaire.spell:9370-9391"
     },
     {
       "property": "suit",
       "of": "Foundation",
       "datatype": "CardSuit",
-      "defined": "/Solitaire.spell:9401-9426"
+      "defined": "/Solitaire.spell:9395-9420"
     },
     {
       "type": "Tableau",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:9964-10230"
+      "defined": "/Solitaire.spell:9958-10224"
     },
     {
       "property": "layout",
       "of": "Tableau",
-      "defined": "/Solitaire.spell:9996-10018"
+      "defined": "/Solitaire.spell:9990-10012"
     },
     {
       "type": "Solitaire",
       "superType": "App",
-      "defined": "/Solitaire.spell:633-6082"
+      "defined": "/Solitaire.spell:633-6076"
     },
     {
       "property": "score",
@@ -778,7 +778,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Solitaire.spell:5031-6082"
+      "defined": "/Solitaire.spell:5031-6076"
     },
     {
       "syntax": "test the moves",
@@ -787,7 +787,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "the moves",
-      "defined": "/Solitaire.spell:10242-11719"
+      "defined": "/Solitaire.spell:10236-11713"
     }
   ],
   "codeLines": [

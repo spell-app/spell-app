@@ -925,7 +925,7 @@ class Solitaire(App):
             "ui-container",
             h(
                 "ui-menu",
-                h("ui-item", {"type": "header"}, "Klondike Solitaire"),
+                h("ui-item", {"kind": "header"}, "Klondike Solitaire"),
                 h("ui-item", f"Score: {self.score}{self.hint}"),
                 h(
                     "ui-menu",
@@ -938,13 +938,13 @@ class Solitaire(App):
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "fast forward"}),
-                        h("ui-popup", {"content": "Auto play", "inverted": True, "size": "small"}),
+                        h("ui-popup", {"label": "Auto play", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
                         {"aria-label": "Cheat", "onClick": _each_2, "style": "cursor:pointer;user-select:none"},
                         h("ui-icon", {"name": "eye"}),
-                        h("ui-popup", {"content": "Cheat", "inverted": True, "size": "small"}),
+                        h("ui-popup", {"label": "Cheat", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
@@ -954,7 +954,7 @@ class Solitaire(App):
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "redo"}),
-                        h("ui-popup", {"content": "Restart", "inverted": True, "size": "small"}),
+                        h("ui-popup", {"label": "Restart", "inverted": True, "size": "small"}),
                     ),
                 ),
             ),

@@ -80,7 +80,7 @@
     {
       "type": "Quiz",
       "superType": "App",
-      "defined": "/HowFlashCardsWork.spell:1109-1550"
+      "defined": "/HowFlashCardsWork.spell:1109-1558"
     },
     {
       "property": "deck",
@@ -118,7 +118,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/HowFlashCardsWork.spell:1417-1550"
+      "defined": "/HowFlashCardsWork.spell:1417-1558"
     },
     {
       "syntax": "add {callArgs:expression} meaning {callArgs:expression}",
@@ -140,7 +140,7 @@
           "datatype": "text"
         }
       ],
-      "defined": "/HowFlashCardsWork.spell:1603-1751"
+      "defined": "/HowFlashCardsWork.spell:1611-1759"
     },
     {
       "syntax": "test turning a card over",
@@ -149,7 +149,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "turning a card over",
-      "defined": "/HowFlashCardsWork.spell:1933-2146"
+      "defined": "/HowFlashCardsWork.spell:1941-2154"
     }
   ],
   "codeLines": [

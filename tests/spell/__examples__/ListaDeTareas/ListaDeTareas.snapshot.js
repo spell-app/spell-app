@@ -55,7 +55,7 @@ export class Tarea extends View {
       h("div", { part: "row" },
         h("es-icono", { part: "grip", name: "grip vertical", "aria-label": "Arrastrar" }),
         h("es-casilla", { name: "hecha", "aria-label": "Hecha" }),
-        h("es-entrada", { part: "title", name: "título", "aria-label": "Tarea", transparente: true }),
+        h("es-entrada", { part: "title", name: "título", "aria-label": "Tarea", apariencia: "transparent" }),
         h("es-etiqueta", { part: "priority", tamano: "diminuto", color: () => this.colorDePrioridad },
           () => this.prioridad
         )
@@ -175,7 +175,7 @@ export class ListaDeTareas extends App {
   draw() {
     return h("es-contenedor", { class: "TaskList" },
       h("es-menu",
-        h("es-elemento", { tipo: "encabezado" }, "Lista de tareas"),
+        h("es-elemento", { clase: "encabezado" }, "Lista de tareas"),
         h("es-elemento", () => `${this.cuentaPendiente} pendientes`),
         h("es-menu", { posicion: "derecha" },
           h("es-elemento", {
@@ -185,7 +185,7 @@ export class ListaDeTareas extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("es-icono", { name: "list" }),
-            h("es-emergente", { contenido: "Todas", invertido: true, tamano: "pequeño" })
+            h("es-emergente", { etiqueta: "Todas", invertido: true, tamano: "pequeño" })
           ),
           h("es-elemento", {
             "aria-label": "Pendientes",
@@ -194,7 +194,7 @@ export class ListaDeTareas extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("es-icono", { name: "square outline" }),
-            h("es-emergente", { contenido: "Pendientes", invertido: true, tamano: "pequeño" })
+            h("es-emergente", { etiqueta: "Pendientes", invertido: true, tamano: "pequeño" })
           ),
           h("es-elemento", {
             "aria-label": "Hechas",
@@ -203,7 +203,7 @@ export class ListaDeTareas extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("es-icono", { name: "check square outline" }),
-            h("es-emergente", { contenido: "Hechas", invertido: true, tamano: "pequeño" })
+            h("es-emergente", { etiqueta: "Hechas", invertido: true, tamano: "pequeño" })
           ),
           h("es-elemento", {
             "aria-label": "Quitar las hechas",
@@ -211,7 +211,7 @@ export class ListaDeTareas extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("es-icono", { name: "trash alternate outline" }),
-            h("es-emergente", { contenido: "Quitar las tareas hechas", invertido: true, tamano: "pequeño" })
+            h("es-emergente", { etiqueta: "Quitar las tareas hechas", invertido: true, tamano: "pequeño" })
           )
         )
       ),
@@ -219,7 +219,7 @@ export class ListaDeTareas extends App {
         h("div", { class: "NewTask" },
           h("es-entrada", { name: "borrador", marcador: "Algo por hacer", "aria-label": "Nueva tarea", fluido: true }),
           h("es-boton", {
-            primario: true,
+            color: "primario",
             disabled: () => this.borrador === "",
             onClick: () => this.agregarElBorrador(),
             style: "cursor:pointer;user-select:none"

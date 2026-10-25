@@ -27,7 +27,7 @@
 				<div part="row">
 					<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
 					<ui-checkbox name="done" aria-label="Done"/>
-					<ui-input part="title" name="title" aria-label="Task" transparent/>
+					<ui-input part="title" name="title" aria-label="Task" appearance="transparent"/>
 					<ui-label part="priority" size="tiny" color={its priority color}>{its priority}</ui-label>
 				</div>
 			</ui-form>

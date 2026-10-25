@@ -65,7 +65,7 @@ export class ActionMenus {
     event.preventDefault()
     ActionMenus.closeContextMenu()
     const menu = document.createElement(MENU_TAG)
-    menu.setAttribute("vertical", "")
+    menu.setAttribute("direction", "vertical")
     menu.setAttribute("aria-label", name!)
     menu.setAttribute(MADE, "")
     Object.assign(menu.style, {

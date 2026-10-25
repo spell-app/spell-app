@@ -53,7 +53,7 @@ export class Card extends View {
   /** a click tries it on the column */
   @drawn draw() {
     return (
-      <ui-button basic={true} color={this.color} onClick={() => this.try()} style="cursor:pointer;user-select:none">
+      <ui-button appearance="basic" color={this.color} onClick={() => this.try()} style="cursor:pointer;user-select:none">
         {this.name}
       </ui-button>
     )

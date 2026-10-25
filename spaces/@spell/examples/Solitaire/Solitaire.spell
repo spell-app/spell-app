@@ -131,20 +131,20 @@ solitaire is an app where:
 	- to draw it:
 		return <ui-container>
 			<ui-menu>
-				<ui-item type="header">Klondike Solitaire</ui-item>
+				<ui-item kind="header">Klondike Solitaire</ui-item>
 				<ui-item>{"Score: " + its score + its hint}</ui-item>
 				<ui-menu position="right">
 					<ui-item aria-label="Auto play" onClick={auto play}>
 						<ui-icon name="fast forward"/>
-						<ui-popup content="Auto play" inverted size="small"/>
+						<ui-popup label="Auto play" inverted size="small"/>
 					</ui-item>
 					<ui-item aria-label="Cheat" onClick={cheat}>
 						<ui-icon name="eye"/>
-						<ui-popup content="Cheat" inverted size="small"/>
+						<ui-popup label="Cheat" inverted size="small"/>
 					</ui-item>
 					<ui-item aria-label="Restart" onClick={start a new game}>
 						<ui-icon name="redo"/>
-						<ui-popup content="Restart" inverted size="small"/>
+						<ui-popup label="Restart" inverted size="small"/>
 					</ui-item>
 				</ui-menu>
 			</ui-menu>

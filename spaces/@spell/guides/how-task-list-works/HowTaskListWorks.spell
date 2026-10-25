@@ -48,8 +48,8 @@ task list is an app where:
 
 	- to draw it:
 		return <ui-container class="TaskList">
-			<ui-menu secondary>
-				<ui-item type="header">{its active count + " to do"}</ui-item>
+			<ui-menu appearance="secondary">
+				<ui-item kind="header">{its active count + " to do"}</ui-item>
 				<ui-item selected={the showing of its tasks is "all"} onClick={set the showing of its tasks to "all"}>All</ui-item>
 				<ui-item selected={the showing of its tasks is "active"} onClick={set the showing of its tasks to "active"}>To do</ui-item>
 				<ui-item selected={the showing of its tasks is "done"} onClick={set the showing of its tasks to "done"}>Done</ui-item>

@@ -49,8 +49,8 @@ lista de tareas es una aplicación donde:
 
 	- para dibujarla:
 		devolver <es-contenedor class="ListaDeTareas">
-			<es-menu secundario>
-				<es-elemento tipo="encabezado">{su cuenta pendiente + " pendientes"}</es-elemento>
+			<es-menu apariencia="secundario">
+				<es-elemento clase="encabezado">{su cuenta pendiente + " pendientes"}</es-elemento>
 				<es-elemento seleccionado={el mostrando de sus tareas es "todas"} onClick={poner el mostrando de sus tareas a "todas"}>Todas</es-elemento>
 				<es-elemento seleccionado={el mostrando de sus tareas es "pendientes"} onClick={poner el mostrando de sus tareas a "pendientes"}>Pendientes</es-elemento>
 				<es-elemento seleccionado={el mostrando de sus tareas es "hechas"} onClick={poner el mostrando de sus tareas a "hechas"}>Hechas</es-elemento>

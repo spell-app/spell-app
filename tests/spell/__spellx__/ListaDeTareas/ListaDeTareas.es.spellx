@@ -58,31 +58,31 @@
 		- para dibujarla:
 			devolver <es-contenedor class="TaskList">
 				<es-menu>
-					<es-elemento tipo="encabezado">Lista de tareas</es-elemento>
+					<es-elemento clase="encabezado">Lista de tareas</es-elemento>
 					<es-elemento>{su cuenta pendiente + " pendientes"}</es-elemento>
 					<es-menu posicion="derecha">
 						<es-elemento aria-label="Todas" seleccionado={el mostrando de sus tareas es "todas"} onClick={poner el mostrando de sus tareas a "todas"}>
 							<es-icono name="list"/>
-							<es-emergente contenido="Todas" invertido tamano="pequeño"/>
+							<es-emergente etiqueta="Todas" invertido tamano="pequeño"/>
 						</es-elemento>
 						<es-elemento aria-label="Pendientes" seleccionado={el mostrando de sus tareas es "pendientes"} onClick={poner el mostrando de sus tareas a "pendientes"}>
 							<es-icono name="square outline"/>
-							<es-emergente contenido="Pendientes" invertido tamano="pequeño"/>
+							<es-emergente etiqueta="Pendientes" invertido tamano="pequeño"/>
 						</es-elemento>
 						<es-elemento aria-label="Hechas" seleccionado={el mostrando de sus tareas es "hechas"} onClick={poner el mostrando de sus tareas a "hechas"}>
 							<es-icono name="check square outline"/>
-							<es-emergente contenido="Hechas" invertido tamano="pequeño"/>
+							<es-emergente etiqueta="Hechas" invertido tamano="pequeño"/>
 						</es-elemento>
 						<es-elemento aria-label="Quitar las hechas" onClick={quitar las tareas hechas}>
 							<es-icono name="trash alternate outline"/>
-							<es-emergente contenido="Quitar las tareas hechas" invertido tamano="pequeño"/>
+							<es-emergente etiqueta="Quitar las tareas hechas" invertido tamano="pequeño"/>
 						</es-elemento>
 					</es-menu>
 				</es-menu>
 				<es-formulario value={eso}>
 					<div class="NewTask">
 						<es-entrada name="borrador" marcador="Algo por hacer" aria-label="Nueva tarea" fluido/>
-						<es-boton primario disabled={su borrador es ""} onClick={agregar el borrador}>Agregar</es-boton>
+						<es-boton color="primario" disabled={su borrador es ""} onClick={agregar el borrador}>Agregar</es-boton>
 					</div>
 				</es-formulario>
 				<es-cuadricula columnas="2" apilable>

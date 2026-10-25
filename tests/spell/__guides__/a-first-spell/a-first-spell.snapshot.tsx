@@ -64,7 +64,7 @@ export class HelloSign extends App {
     return (
       <div class="Sign">
         <h1>{this.message}</h1>
-        <ui-button primary={true} onClick={() => this.waveBack()} style="cursor:pointer;user-select:none">
+        <ui-button color="primary" onClick={() => this.waveBack()} style="cursor:pointer;user-select:none">
           Wave back
         </ui-button>
         <p>{this.count}</p>

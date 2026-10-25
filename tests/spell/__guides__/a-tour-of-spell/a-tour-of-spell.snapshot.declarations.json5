@@ -10,7 +10,7 @@
     {
       "type": "Plant",
       "superType": "View",
-      "defined": "/TourOfSpell.spell:776-2102"
+      "defined": "/TourOfSpell.spell:776-2115"
     },
     {
       "property": "name",
@@ -72,31 +72,31 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TourOfSpell.spell:1873-2102"
+      "defined": "/TourOfSpell.spell:1873-2115"
     },
     {
       "type": "Windowsill",
       "superType": "ViewableList",
       "itemType": "Plant",
-      "defined": "/TourOfSpell.spell:2224-2267"
+      "defined": "/TourOfSpell.spell:2237-2280"
     },
     {
       "property": "windowsill",
       "of": "Plant",
       "datatype": "Windowsill",
       "exclusive": true,
-      "defined": "/TourOfSpell.spell:2303-2336"
+      "defined": "/TourOfSpell.spell:2316-2349"
     },
     {
       "type": "Garden",
       "superType": "App",
-      "defined": "/TourOfSpell.spell:2373-2754"
+      "defined": "/TourOfSpell.spell:2386-2775"
     },
     {
       "property": "sill",
       "of": "Garden",
       "datatype": "Windowsill",
-      "defined": "/TourOfSpell.spell:2400-2430"
+      "defined": "/TourOfSpell.spell:2413-2443"
     },
     {
       "syntax": "wait a day (of {thisArg:expression})?",
@@ -109,7 +109,7 @@
       ],
       "kind": "method",
       "name": "wait a day",
-      "defined": "/TourOfSpell.spell:2483-2612"
+      "defined": "/TourOfSpell.spell:2496-2625"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -122,7 +122,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TourOfSpell.spell:2616-2754"
+      "defined": "/TourOfSpell.spell:2629-2775"
     },
     {
       "syntax": "test thirst",
@@ -131,7 +131,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "thirst",
-      "defined": "/TourOfSpell.spell:3289-3532"
+      "defined": "/TourOfSpell.spell:3310-3553"
     }
   ],
   "codeLines": [

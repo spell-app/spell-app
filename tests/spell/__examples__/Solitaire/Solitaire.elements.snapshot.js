@@ -682,7 +682,7 @@ export class Solitaire extends App {
   draw() {
     return h("ui-container",
       h("ui-menu",
-        h("ui-item", { type: "header" }, "Klondike Solitaire"),
+        h("ui-item", { kind: "header" }, "Klondike Solitaire"),
         h("ui-item", () => `Score: ${this.score}${this.hint}`),
         h("ui-menu", { position: "right" },
           h("ui-item", {
@@ -691,7 +691,7 @@ export class Solitaire extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("ui-icon", { name: "fast forward" }),
-            h("ui-popup", { content: "Auto play", inverted: true, size: "small" })
+            h("ui-popup", { label: "Auto play", inverted: true, size: "small" })
           ),
           h("ui-item", {
             "aria-label": "Cheat",
@@ -699,7 +699,7 @@ export class Solitaire extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("ui-icon", { name: "eye" }),
-            h("ui-popup", { content: "Cheat", inverted: true, size: "small" })
+            h("ui-popup", { label: "Cheat", inverted: true, size: "small" })
           ),
           h("ui-item", {
             "aria-label": "Restart",
@@ -707,7 +707,7 @@ export class Solitaire extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("ui-icon", { name: "redo" }),
-            h("ui-popup", { content: "Restart", inverted: true, size: "small" })
+            h("ui-popup", { label: "Restart", inverted: true, size: "small" })
           )
         )
       ),

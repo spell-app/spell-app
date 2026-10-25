@@ -55,7 +55,7 @@ export class Tarea extends View {
         <div part="row">
           <es-icono part="grip" name="grip vertical" aria-label="Arrastrar" />
           <es-casilla name="hecha" aria-label="Hecha" />
-          <es-entrada part="title" name="título" aria-label="Tarea" transparente={true} />
+          <es-entrada part="title" name="título" aria-label="Tarea" apariencia="transparent" />
           <es-etiqueta part="priority" tamano="diminuto" color={this.colorDePrioridad}>{this.prioridad}</es-etiqueta>
         </div>
       </es-formulario>
@@ -211,31 +211,31 @@ export class ListaDeTareas extends App {
     return (
       <es-contenedor class="TaskList">
         <es-menu>
-          <es-elemento tipo="encabezado">Lista de tareas</es-elemento>
+          <es-elemento clase="encabezado">Lista de tareas</es-elemento>
           <es-elemento>{`${this.cuentaPendiente} pendientes`}</es-elemento>
           <es-menu posicion="derecha">
             <es-elemento aria-label="Todas" seleccionado={this.tareas.mostrando === "todas"} onClick={() => (this.tareas.mostrando = "todas")} style="cursor:pointer;user-select:none">
               <es-icono name="list" />
-              <es-emergente contenido="Todas" invertido={true} tamano="pequeño" />
+              <es-emergente etiqueta="Todas" invertido={true} tamano="pequeño" />
             </es-elemento>
             <es-elemento aria-label="Pendientes" seleccionado={this.tareas.mostrando === "pendientes"} onClick={() => (this.tareas.mostrando = "pendientes")} style="cursor:pointer;user-select:none">
               <es-icono name="square outline" />
-              <es-emergente contenido="Pendientes" invertido={true} tamano="pequeño" />
+              <es-emergente etiqueta="Pendientes" invertido={true} tamano="pequeño" />
             </es-elemento>
             <es-elemento aria-label="Hechas" seleccionado={this.tareas.mostrando === "hechas"} onClick={() => (this.tareas.mostrando = "hechas")} style="cursor:pointer;user-select:none">
               <es-icono name="check square outline" />
-              <es-emergente contenido="Hechas" invertido={true} tamano="pequeño" />
+              <es-emergente etiqueta="Hechas" invertido={true} tamano="pequeño" />
             </es-elemento>
             <es-elemento aria-label="Quitar las hechas" onClick={() => this.quitarLasTareasHechas()} style="cursor:pointer;user-select:none">
               <es-icono name="trash alternate outline" />
-              <es-emergente contenido="Quitar las tareas hechas" invertido={true} tamano="pequeño" />
+              <es-emergente etiqueta="Quitar las tareas hechas" invertido={true} tamano="pequeño" />
             </es-elemento>
           </es-menu>
         </es-menu>
         <es-formulario value={this}>
           <div class="NewTask">
             <es-entrada name="borrador" marcador="Algo por hacer" aria-label="Nueva tarea" fluido={true} />
-            <es-boton primario={true} disabled={this.borrador === ""} onClick={() => this.agregarElBorrador()} style="cursor:pointer;user-select:none">
+            <es-boton color="primario" disabled={this.borrador === ""} onClick={() => this.agregarElBorrador()} style="cursor:pointer;user-select:none">
               Agregar
             </es-boton>
           </div>

@@ -15,7 +15,7 @@
       "type": "Tarea",
       "superType": "View",
       "gender": "feminine",
-      "defined": "/Tarea.es.spell:190-1607"
+      "defined": "/Tarea.es.spell:190-1619"
     },
     {
       "property": "título",
@@ -91,7 +91,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "las tareas",
-      "defined": "/Tarea.es.spell:1621-1822"
+      "defined": "/Tarea.es.spell:1633-1834"
     },
     {
       "type": "Agenda",
@@ -121,7 +121,7 @@
     {
       "type": "ListaDeTareas",
       "superType": "App",
-      "defined": "/ListaDeTareas.es.spell:1412-4317"
+      "defined": "/ListaDeTareas.es.spell:1412-4322"
     },
     {
       "property": "tareas",
@@ -176,7 +176,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "el filtro",
-      "defined": "/ListaDeTareas.es.spell:4960-5207"
+      "defined": "/ListaDeTareas.es.spell:4965-5212"
     }
   ],
   "codeLines": [

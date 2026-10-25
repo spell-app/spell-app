@@ -136,8 +136,8 @@ export class Quiz extends App {
   @drawn draw() {
     return (
       <div class="Quiz">
-        <ui-menu secondary={true}>
-          <ui-item type="header">Flash Cards</ui-item>
+        <ui-menu appearance="secondary">
+          <ui-item kind="header">Flash Cards</ui-item>
           <ui-item>{this.score}</ui-item>
           <ui-menu position="right">
             <ui-item onClick={() => this.startOver()} style="cursor:pointer;user-select:none">
@@ -148,13 +148,13 @@ export class Quiz extends App {
         </ui-menu>
         {core.drawThing(this.card)}
         <div class="Answers">
-          {!this.card.isTurnedOver ? <ui-button primary={true} onClick={() => this.card.turnOver()} style="cursor:pointer;user-select:none">
+          {!this.card.isTurnedOver ? <ui-button color="primary" onClick={() => this.card.turnOver()} style="cursor:pointer;user-select:none">
             Show the answer
           </ui-button> : <>
-            <ui-button positive={true} icon="check" onClick={() => this.sayIKnew()} style="cursor:pointer;user-select:none">
+            <ui-button color="positive" icon="check" onClick={() => this.sayIKnew()} style="cursor:pointer;user-select:none">
               I knew it
             </ui-button>
-            <ui-button negative={true} basic={true} icon="close" onClick={() => this.sayIMissed()} style="cursor:pointer;user-select:none">
+            <ui-button color="negative" appearance="basic" icon="close" onClick={() => this.sayIMissed()} style="cursor:pointer;user-select:none">
               I missed it
             </ui-button>
           </>}

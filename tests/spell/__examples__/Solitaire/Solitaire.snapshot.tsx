@@ -1012,20 +1012,20 @@ export class Solitaire extends App {
     return (
       <ui-container>
         <ui-menu>
-          <ui-item type="header">Klondike Solitaire</ui-item>
+          <ui-item kind="header">Klondike Solitaire</ui-item>
           <ui-item>{`Score: ${this.score}${this.hint}`}</ui-item>
           <ui-menu position="right">
             <ui-item aria-label="Auto play" onClick={() => this.autoPlay()} style="cursor:pointer;user-select:none">
               <ui-icon name="fast forward" />
-              <ui-popup content="Auto play" inverted={true} size="small" />
+              <ui-popup label="Auto play" inverted={true} size="small" />
             </ui-item>
             <ui-item aria-label="Cheat" onClick={() => this.cheat()} style="cursor:pointer;user-select:none">
               <ui-icon name="eye" />
-              <ui-popup content="Cheat" inverted={true} size="small" />
+              <ui-popup label="Cheat" inverted={true} size="small" />
             </ui-item>
             <ui-item aria-label="Restart" onClick={() => this.startANewGame()} style="cursor:pointer;user-select:none">
               <ui-icon name="redo" />
-              <ui-popup content="Restart" inverted={true} size="small" />
+              <ui-popup label="Restart" inverted={true} size="small" />
             </ui-item>
           </ui-menu>
         </ui-menu>

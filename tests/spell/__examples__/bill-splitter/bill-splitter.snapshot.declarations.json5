@@ -11,31 +11,31 @@
     {
       "type": "Diner",
       "superType": "View",
-      "defined": "/BillSplitter.spell:2329-3134"
+      "defined": "/BillSplitter.spell:2355-3173"
     },
     {
       "property": "name",
       "of": "Diner",
       "datatype": "text",
-      "defined": "/BillSplitter.spell:2359-2377"
+      "defined": "/BillSplitter.spell:2385-2403"
     },
     {
       "property": "amount",
       "of": "Diner",
       "datatype": "number",
-      "defined": "/BillSplitter.spell:2419-2443"
+      "defined": "/BillSplitter.spell:2445-2469"
     },
     {
       "property": "tip",
       "of": "Diner",
       "datatype": "number",
-      "defined": "/BillSplitter.spell:2522-2582"
+      "defined": "/BillSplitter.spell:2548-2608"
     },
     {
       "property": "share",
       "of": "Diner",
       "datatype": "number",
-      "defined": "/BillSplitter.spell:2586-2621"
+      "defined": "/BillSplitter.spell:2612-2647"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -48,7 +48,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/BillSplitter.spell:2708-3134"
+      "defined": "/BillSplitter.spell:2734-3173"
     },
     {
       "syntax": "remove {thisArg:expression}",
@@ -61,13 +61,13 @@
       ],
       "kind": "method",
       "name": "remove (a diner)",
-      "defined": "/BillSplitter.spell:3398-3469"
+      "defined": "/BillSplitter.spell:3437-3508"
     },
     {
       "type": "Table",
       "superType": "ViewableList",
       "itemType": "Diner",
-      "defined": "/BillSplitter.spell:3173-3310"
+      "defined": "/BillSplitter.spell:3212-3349"
     },
     {
       "syntax": "write {callArgs:expression} as money",
@@ -91,7 +91,7 @@
     {
       "type": "BillSplitter",
       "superType": "App",
-      "defined": "/BillSplitter.spell:770-2264"
+      "defined": "/BillSplitter.spell:770-2290"
     },
     {
       "property": "diners",
@@ -147,14 +147,14 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/BillSplitter.spell:1350-2264"
+      "defined": "/BillSplitter.spell:1350-2290"
     },
     {
       "property": "table",
       "of": "Diner",
       "datatype": "Table",
       "exclusive": true,
-      "defined": "/BillSplitter.spell:3341-3369"
+      "defined": "/BillSplitter.spell:3380-3408"
     },
     {
       "syntax": "test money",
@@ -163,7 +163,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "money",
-      "defined": "/BillSplitter.spell:3797-3925"
+      "defined": "/BillSplitter.spell:3836-3964"
     }
   ],
   "codeLines": [

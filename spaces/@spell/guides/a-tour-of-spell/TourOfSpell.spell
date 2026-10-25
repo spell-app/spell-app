@@ -44,7 +44,7 @@ a "plant" is a view where:
 		return <ui-segment color={"orange" if it is thirsty otherwise "green"}>
 			<h3>{its name}</h3>
 			<p>{its status}</p>
-			<ui-button basic size="small" icon="tint" onClick={water it}>Water</ui-button>
+			<ui-button appearance="basic" size="small" icon="tint" onClick={water it}>Water</ui-button>
 		</ui-segment>
 
 
@@ -64,7 +64,7 @@ garden is an app where:
 			set the days since watered of the plant to the days since watered of the plant + 1
 	- to draw it:
 		return <div class="Garden">
-			<ui-button primary onClick={wait a day}>A day goes by</ui-button>
+			<ui-button color="primary" onClick={wait a day}>A day goes by</ui-button>
 			{draw its sill}
 		</div>
 

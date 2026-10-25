@@ -77,7 +77,7 @@ tic tac toe is an app where:
 		return <div class="TicTacToe">
 			<h2 class="Message">{its message}</h2>
 			{draw its board}
-			<ui-button primary onClick={start a new game}>New game</ui-button>
+			<ui-button color="primary" onClick={start a new game}>New game</ui-button>
 		</div>
 
 

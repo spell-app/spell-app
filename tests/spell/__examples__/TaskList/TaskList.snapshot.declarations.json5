@@ -11,7 +11,7 @@
     {
       "type": "Task",
       "superType": "View",
-      "defined": "/Task.spell:161-1469"
+      "defined": "/Task.spell:161-1482"
     },
     {
       "property": "title",
@@ -91,7 +91,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Task.spell:1103-1469"
+      "defined": "/Task.spell:1103-1482"
     },
     {
       "syntax": "test tasks",
@@ -100,7 +100,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "tasks",
-      "defined": "/Task.spell:1481-1652"
+      "defined": "/Task.spell:1494-1665"
     },
     {
       "type": "Checklist",
