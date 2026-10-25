@@ -34,9 +34,8 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  /* its icons stand the bar's icon gap apart, as the top bar's (`chrome.css`):  no gap of its own */
+  /* its icons as the top bar's:  their gap and colour (`chrome.css`), no gap of its own */
   gap: 0;
-  --spell-bar-icon-gap: 12px;
   min-height: 40px;
   padding-inline: 14px 12px;
   border-bottom: 1px solid var(--ui-border-color);

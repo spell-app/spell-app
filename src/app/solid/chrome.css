@@ -104,16 +104,37 @@ ui-icon.IconAction {
  * consistent"):
  * - GROUPS stand `--spell-bar-group-gap` apart, at least:  the project on the left, Run | Edit | Debug in the middle,
  *   the icons on the right
- * - ICONS within a group (Settings, the palette, Home and the avatar) stand `--spell-bar-icon-gap` apart:
- *   each takes half of it on either side, and no margin of its own
+ * - ICONS within a group (the palette, Home and the avatar;  a pane header's) stand
+ *   `--spell-bar-icon-gap` apart, glyph to glyph:  each takes half of it on either side, and no margin of its own;
+ *   an icon's box is its glyph's width (`--ui-icon-width: 1em`), not the usual 1.18em, with no room after it for a
+ *   label (`--ui-icon-distance`):  both stood them further apart
+ * - every icon dark grey, the theme's muted text (`--spell-bar-icon-color`), at full strength
+ *   (Owen:  "inconsistent colors in icons";  "header icons should all be dark gray rather than black"):
+ *   a link icon is drawn at 80% by default
  */
-ui-menu.AppMenu {
+ui-menu.AppMenu,
+ui-menu.PanelMenu,
+.AppPaneHeader {
   --spell-bar-group-gap: 60px;
   --spell-bar-icon-gap: 12px;
+  --spell-bar-icon-color: var(--ui-text-muted);
+}
+/* a pane toolbar's icons (the code pane's:  upload, reload, new file, "..."):  the same grey, their spacing their own */
+ui-menu.PanelMenu ui-icon.IconAction,
+ui-menu.PanelMenu ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
+  --ui-icon-link-opacity: 1;
+  color: var(--spell-bar-icon-color);
+}
+ui-menu.AppMenu ui-icon.IconAction,
+.AppPaneHeader ui-icon.IconAction {
+  --ui-icon-width: auto;
+  --ui-icon-distance: 0;
+  --ui-icon-link-opacity: 1;
+  color: var(--spell-bar-icon-color);
 }
 ui-menu.AppMenu ui-icon.IconAction,
 ui-menu.AppMenu .YouAvatar,
-.AppPaneHeader > ui-icon.IconAction {
+.AppPaneHeader ui-icon.IconAction {
   margin-inline: calc(var(--spell-bar-icon-gap) / 2);
 }
 /* the "..." menu's icon the size of the bar's other icons:  it drew half as wide again, and stood apart */
@@ -167,10 +188,33 @@ ui-item.ThemeMenu ui-docs-themes::part(palette) {
   background: transparent;
   box-shadow: none;
   font-size: 1.3em;
-  /* the bar's text colour, as Home's:  not the theme menu's muted one (Owen:  "white is better") */
-  color: var(--ui-text-color);
+  /* the bar's icon colour, as Home's (above) */
+  color: var(--spell-bar-icon-color);
 }
 ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
   background: transparent;
-  color: var(--ui-text-color);
+  color: var(--spell-bar-icon-color);
+}
+
+/*
+ * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  the bar IS the track, as the docs
+ * site's tabs (Owen:  "more like this, but with less rounding and no gap"):
+ * - one grey band across the card's top, edge to edge, its tools on it too;  no bar around it, no line under it
+ * - the tabs share it evenly;  the chosen one a raised white tab, 6px round on every corner
+ */
+:root {
+  --spell-tabs-track: light-dark(rgb(40 20 90 / 0.06), rgb(255 255 255 / 0.06));
+}
+:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) {
+  /* the menu draws no track of its own:  the bar behind it is the track */
+  --ui-menu-segmented-background: transparent;
+  --ui-menu-segmented-border: 0 solid transparent;
+  --ui-menu-segmented-radius: 6px;
+  --ui-menu-segmented-padding: 0px;
+  --ui-menu-segmented-item-radius: 6px;
+}
+:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) > ui-item::part(item) {
+  flex: 1 1 0;
+  min-width: max-content;
+  justify-content: center;
 }

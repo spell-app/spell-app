@@ -21,7 +21,7 @@
   --spell-gap: 14px;
   /* the top bar */
   --spell-bar-background: var(--ui-surface);
-  --spell-bar-border: 1px solid var(--ui-border-color);
+  --spell-bar-border: 0 solid transparent;
   --spell-bar-radius: var(--ui-radius-l);
   --spell-bar-shadow: var(--ui-shadow-raised);
   --spell-bar-filter: none;
@@ -37,7 +37,7 @@
 /* Glass (Fruity):  frosted panels over the wallpaper */
 :root[data-spell-look="glass"] {
   --spell-bar-background: var(--fruity-glass);
-  --spell-bar-border: 1px solid var(--fruity-edge);
+  --spell-bar-border: 0 solid transparent;
   --spell-bar-radius: 14px;
   --spell-bar-filter: var(--fruity-blur);
   --spell-pane-background: var(--fruity-glass-strong);
@@ -90,7 +90,9 @@
   /* the top bar:  a floating box of its own */
   & ui-menu.AppMenu::part(menu) {
     min-height: 46px;
-    padding-inline: 12px;
+    /* its ends as close as its top and bottom:  the hat and the avatar each 11px from its edge (Owen:  "less
+       padding start/end of bar");  the end items' own room makes up the rest */
+    padding-inline: 4px;
     background: var(--spell-bar-background);
     border: var(--spell-bar-border);
     border-radius: var(--spell-bar-radius);
@@ -114,10 +116,10 @@
     width: 0;
   }
 
-  /* a panel:  a rounded box with its own edge and shadow */
+  /* a panel:  a rounded box with its own shadow;  no white edge (Owen:  "remove white border in splitpanel") */
   & .SplitPanel > .SplitPanelPane {
     background: var(--spell-pane-background);
-    border: 1px solid var(--spell-pane-border-color);
+    border: 0;
     border-radius: var(--spell-pane-radius);
     box-shadow: var(--spell-pane-shadow);
     -webkit-backdrop-filter: var(--spell-pane-filter);
@@ -150,7 +152,7 @@
 *******************************/
 
 /* `<AppMark>`:  the hat and Spell's name, a link home */
-ui-item.AppMark::part(item) {
+ui-menu.AppMenu ui-item.AppMark::part(item) {
   padding-inline: 6px 12px;
 }
 .AppMark a {

@@ -11,6 +11,7 @@ import {
   InputRoot,
   Inspector,
   InspectorColumn,
+  InspectorPick,
   InspectorToggle,
   ModeButtons,
   OutputEditor,
@@ -88,7 +89,7 @@ export function SpellEditor(props: { mode: Mode }) {
 /****************
  * ### `<AppPane>`
  * The running program, under a header:  the project's group icon and its title;
- * at the right, the Inspector's button and Restart.
+ * at the right, Restart, the Inspector's crosshairs, its button (and its menu of cards) and Settings.
  * - The program's mount point (`<AppRoot>`) is drawn once, and never redrawn.
  * - Its body is the area the Inspector picks parts in (`Inspector.watch()`).
  * - Shown in every mode, Run's too:  the page keeps it as the code column comes and goes.
@@ -103,8 +104,10 @@ export function AppPane() {
           <ui-icon name={root().icon ?? PROJECT_ICON} />
           {title()}
         </h2>
-        <InspectorToggle />
         <Actions.restartApp iconOnly />
+        <InspectorPick />
+        <InspectorToggle />
+        <Actions.showProjectSettings iconOnly />
       </header>
       <div class="AppPaneBody" ref={(area) => onCleanup(Inspector.watch(area))}>
         <AppRoot showToolbar={false} />
@@ -240,7 +243,8 @@ function tabFor(id: ProgramTabId): RunnerTab<ProgramTabId> {
 /****************
  * ### `<EditorToolbar>`
  * Top menu of the editor's page:  the project dropdown (the project's actions at its foot);
- * Run | Edit | Debug in the middle;  at the right, Settings, the theme menu, Home (the landing page) and the person.
+ * Run | Edit | Debug in the middle;  at the right, the theme menu, Home (the landing page) and the person.
+ * - Restart, the Inspector's button and Settings are the App pane's (`<AppPane>`).
  * - `mode`:  the page's, pressed in `<ModeButtons>`.
  * - The static build's "Reset Example" sits by the project actions (`Actions.resetApp`, drawn only there).
  ****************/
@@ -255,7 +259,6 @@ export function EditorToolbar(props: { mode: Mode }) {
         <ModeButtons current={props.mode} />
       </Submenu>
       <Submenu right spring>
-        <Actions.showProjectSettings iconOnly />
         <ThemeMenu />
         <Actions.showProjectChooser iconOnly />
         <Actions.you />

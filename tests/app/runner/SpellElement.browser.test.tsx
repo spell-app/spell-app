@@ -185,6 +185,66 @@ describe("SpellElement", () => {
     })
   })
 
+  describe("a view's outline handlers run for its element's own mouse events (epic elemental-spell P5)", () => {
+    /** A chit, its handlers what `- on mouse down:` and `- on right click:` in its outline compile to. */
+    class Chit extends View {
+      static elementTag = core.defineElement(this, "Tray")
+      heard: unknown[] = []
+      onMouseDown(event: unknown) {
+        this.heard.push(event)
+      }
+      onRightClick(event: unknown) {
+        this.heard.push(event)
+      }
+      draw(): ReturnType<View["draw"]> {
+        return (h("span", {}, "chit") as unknown as () => ReturnType<View["draw"]>)()
+      }
+    }
+    /** A board drawing its chit, with a `- on mouse down:` of its own. */
+    class Board extends View {
+      static elementTag = core.defineElement(this, "Tray")
+      chit = new Chit()
+      heard: unknown[] = []
+      onMouseDown(event: unknown) {
+        this.heard.push(event)
+      }
+      draw(): ReturnType<View["draw"]> {
+        return (h("div", {}, () => core.drawThing(this.chit)) as unknown as () => ReturnType<View["draw"]>)()
+      }
+    }
+
+    test("the innermost thing with a handler takes the event, handed spell's name for it", async () => {
+      const board = new Board()
+      const root = document.createElement("div")
+      document.body.append(root)
+      root.append(core.drawThing(board) as unknown as Node)
+      flush()
+      const boardElement = root.querySelector("tray-board") as HTMLElement & { ready: Promise<void> }
+      await boardElement.ready
+      flush()
+      const chitElement = boardElement.shadowRoot!.querySelector("tray-chit") as HTMLElement & { ready: Promise<void> }
+      await chitElement.ready
+      const press = (element: HTMLElement, type: string) =>
+        element.dispatchEvent(new MouseEvent(type, { bubbles: true, composed: true }))
+
+      // the chit's handler runs, and the board's doesn't:  spell swallows an event its handler caught
+      press(chitElement, "mousedown")
+      await Promise.resolve()
+      expect(board.chit.heard).toEqual([{ type: "mouse-down" }])
+      expect(board.heard).toEqual([])
+      // the board's, for a press on the board itself
+      press(boardElement, "mousedown")
+      await Promise.resolve()
+      expect(board.heard).toEqual([{ type: "mouse-down" }])
+      // a right click is `contextmenu`;  an event with no handler does nothing
+      press(chitElement, "contextmenu")
+      press(chitElement, "mouseup")
+      await Promise.resolve()
+      expect(board.chit.heard).toEqual([{ type: "mouse-down" }, { type: "right-click" }])
+      root.remove()
+    })
+  })
+
   describe("a viewable list's items are its element's children (P6)", () => {
     /** A card, drawn as its name. */
     class Chip extends View {

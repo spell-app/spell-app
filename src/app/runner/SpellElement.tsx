@@ -701,6 +701,70 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
       : [this.domElement]
   }
 
+  ////////////////
+  // ## A template's handlers (epic `elemental-spell` P5)
+  ////////////////
+
+  /**
+   * Our thing's handler for a mouse event of ours, if it has one, run through its program's core:
+   * `- on mouse down:` in its outline is `onMouseDown()`, run as we hear `mousedown` -- see `THING_EVENTS`.
+   * - The INNERMOST thing with one takes the event:  a card's runs, its pile's doesn't too.
+   *   Spell swallows an event its handler catches (Owen's event model, T1);  `pass event` comes with the event phase.
+   * - Not a press in a control inside us:  that's the control's.
+   * - It's handed `{ type }`, spell's name for the event (`mouse-down`):  never the browser's event, which spell
+   *   doesn't depend on (the mouse and keys are read from the input state instead, the event phase).
+   * - Wherever the program runs, Python's too (`core.runHandler()`).
+   */
+  private runThingHandler(event: Event) {
+    const spellEvent = THING_EVENTS[event.type]
+    const thing = this.currentThing as Record<string, unknown> | undefined
+    if (!spellEvent || !thing || HANDLED_EVENTS.has(event) || this.isInAControl(event)) return
+    const handler = `on${spellEvent.replace(/(^|-)(\w)/g, (_dash, _start, letter: string) => letter.toUpperCase())}`
+    if (typeof thing[handler] !== "function") return
+    HANDLED_EVENTS.add(event)
+    this.runHandler(() => this.entry!.core.runHandler(thing, handler, { type: spellEvent }))
+  }
+
+  @E.on("click")
+  protected onThingClick(event: MouseEvent) {
+    this.runThingHandler(event)
+  }
+
+  @E.on("dblclick")
+  protected onThingDoubleClick(event: MouseEvent) {
+    this.runThingHandler(event)
+  }
+
+  @E.on("contextmenu")
+  protected onThingRightClick(event: MouseEvent) {
+    this.runThingHandler(event)
+  }
+
+  @E.on("auxclick")
+  protected onThingCenterClick(event: MouseEvent) {
+    if (event.button === 1) this.runThingHandler(event)
+  }
+
+  @E.on("mousedown")
+  protected onThingMouseDown(event: MouseEvent) {
+    this.runThingHandler(event)
+  }
+
+  @E.on("mouseup")
+  protected onThingMouseUp(event: MouseEvent) {
+    this.runThingHandler(event)
+  }
+
+  @E.on("mouseenter")
+  protected onThingMouseEnter(event: MouseEvent) {
+    this.runThingHandler(event)
+  }
+
+  @E.on("mouseleave")
+  protected onThingMouseLeave(event: MouseEvent) {
+    this.runThingHandler(event)
+  }
+
   /** Did `event`'s press start in a control inside us, e.g. a field or a checkbox:  its press, not a drag of ours? */
   private isInAControl(event: Event): boolean {
     for (const target of event.composedPath()) {
@@ -1314,6 +1378,26 @@ type SelectableList = { selection: Iterable<object>; select?: (items: Iterable<o
 
 /** Each list's last item clicked to select:  where a shift-click's range starts. */
 const SELECTION_ANCHORS = new WeakMap<object, object>()
+
+/**
+ * The browser's mouse events a view's thing may handle, by spell's name for each (Q30, Q32):
+ * `mousedown` is `mouse down`, so `- on mouse down:` is its handler, `onMouseDown()`.
+ * - English's words only, so far:  a Spanish outline's `- al presionar el ratón:` waits for the event phase's table,
+ *   which names each event once, whatever the language.
+ */
+const THING_EVENTS: Record<string, string> = {
+  click: "click",
+  dblclick: "double-click",
+  contextmenu: "right-click",
+  auxclick: "center-click",
+  mousedown: "mouse-down",
+  mouseup: "mouse-up",
+  mouseenter: "mouse-enter",
+  mouseleave: "mouse-leave"
+}
+
+/** The browser's events a thing's handler has taken already:  a thing around it doesn't run its own too. */
+const HANDLED_EVENTS = new WeakSet<Event>()
 
 /** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
 const BASE_LIST_NAMES = new Set(["ViewableList", "List", "Observable", "Object"])
