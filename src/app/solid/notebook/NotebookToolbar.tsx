@@ -24,8 +24,8 @@ export function NotebookToolbar(props: { controller: NotebookController; ref?: (
         <ui-button
           size="small"
           icon="pencil"
-          active={controller.editing()}
-          primary={controller.editing() ? "" : undefined}
+          selected={controller.editing()}
+          color={controller.editing() ? "primary" : undefined}
           onClick={() => controller.toggleEditing()}
         >
           {appTexts.text(controller.editing() ? "notebookPageDone" : "notebookPageEdit")}
@@ -66,9 +66,9 @@ export function NotebookToolbar(props: { controller: NotebookController; ref?: (
         <Show when={controller.isAdmin() || controller.visitor()}>
           <ui-button
             size="small"
-            basic=""
+            appearance="basic"
             icon="user secret"
-            active={controller.visitor()}
+            selected={controller.visitor()}
             onClick={() => controller.toggleVisitor()}
           >
             {appTexts.text("notebookPageVisitor")}
@@ -91,7 +91,7 @@ export function NotebookToolbar(props: { controller: NotebookController; ref?: (
     return (
       <ui-button
         size="small"
-        basic=""
+        appearance="basic"
         icon={icon}
         disabled={disabled ? "" : undefined}
         title={appTexts.text(text)}

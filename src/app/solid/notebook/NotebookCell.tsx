@@ -36,10 +36,10 @@ export function NotebookCell(props: {
       <Show when={controller.held()[props.key] !== undefined}>
         <div class="NotebookHeld" role="status">
           <span>{appTexts.text("notebookPageChangedElsewhere")}</span>
-          <ui-button size="mini" basic="" onClick={() => controller.takeTheirs(props.key)}>
+          <ui-button size="mini" appearance="basic" onClick={() => controller.takeTheirs(props.key)}>
             {appTexts.text("notebookPageTakeTheirs")}
           </ui-button>
-          <ui-button size="mini" basic="" onClick={() => controller.keepMine(props.key)}>
+          <ui-button size="mini" appearance="basic" onClick={() => controller.keepMine(props.key)}>
             {appTexts.text("notebookPageKeepMine")}
           </ui-button>
         </div>
@@ -162,13 +162,13 @@ export function ExampleCode(props: { controller: NotebookController; key: string
 /** The switch between the code views, spellx / spell / html:  one for the whole page. */
 export function CodeViewSwitch(props: { controller: NotebookController }) {
   return (
-    <ui-buttons size="small" basic="" class="NotebookViewSwitch" aria-label={appTexts.text("notebookPageCodeAs")}>
+    <ui-buttons size="small" appearance="basic" class="NotebookViewSwitch" aria-label={appTexts.text("notebookPageCodeAs")}>
       <For each={VIEWS}>
         {(view) => (
           <ui-button
-            compact=""
-            active={props.controller.codeView() === view}
-            primary={props.controller.codeView() === view ? "" : undefined}
+            padding="compact"
+            selected={props.controller.codeView() === view}
+            color={props.controller.codeView() === view ? "primary" : undefined}
             title={`${appTexts.text("notebookPageCodeAs")} ${view}`}
             onClick={(event: MouseEvent) => {
               event.stopPropagation()
