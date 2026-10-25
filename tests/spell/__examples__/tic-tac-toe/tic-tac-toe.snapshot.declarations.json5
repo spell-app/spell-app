@@ -95,7 +95,7 @@
       "syntax": "{operator:is_or_is_not} over",
       "output": "is_over",
       "rule": "method_postfix",
-      "of": "Tictactoe",
+      "of": "TicTacToe",
       "kind": "method",
       "name": "\"is over\"",
       "returns": "choice",

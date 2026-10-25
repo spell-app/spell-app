@@ -97,6 +97,8 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
   type View (is a Thing)
   type Page (is a View)
   type TwoSidedView (is a View)
+    property direction
+    enumeration Directions
   type ViewableList (is a List)
     property selection (list)
   type Text
@@ -170,6 +172,8 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
   type View (is a Thing)
   type Page (is a View)
   type TwoSidedView (is a View)
+    property direction
+    enumeration Directions
   type ViewableList (is a List)
     property selection (list)
   type Text

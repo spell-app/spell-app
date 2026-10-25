@@ -6,11 +6,9 @@ export const words = {
       front: "front",
       back: "back",
       side: "side",
+      isTurnedOver: "is turned over",
       turnOver: "turn it over",
       draw: "draw it"
-    },
-    Flashcard: {
-      isTurnedOver: "is turned over"
     },
     Quiz: {
       deck: "deck",
