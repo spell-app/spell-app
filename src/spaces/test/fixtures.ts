@@ -42,6 +42,8 @@ export const FIXTURES_GROUP = "@spell/test"
  * - Task List, and Lista de tareas, its Spanish twin:  a to-do list, its tasks selected and edited together.
  * - Calculator:  an app in the sentence style, its keypad Spell UI's buttons (epic `debut` P7).
  * - Tic-Tac-Toe, Bill Splitter, Flash Cards and Habit Tracker:  a game, a form, a quiz and a checklist (epic `debut` P8).
+ * - Counter:  a button that counts its clicks, a view and an app;  the Counter notebook imports its counter
+ *   (epic `elemental-spell`).
  * - NOT frozen:  read from `spaces/@spell/examples/<name>/`, where people (and agents) edit them.
  *   - A change to one changes its snapshots:  `yarn spell:test:fixtures:bless`, then read the diff.
  * - Their snapshots are tests', never beside the example:  `EXAMPLE_SNAPSHOTS_DIR`.
@@ -55,7 +57,8 @@ export const EXAMPLE_FIXTURES = new Set([
   "tic-tac-toe",
   "bill-splitter",
   "flash-cards",
-  "habit-tracker"
+  "habit-tracker",
+  "Counter"
 ])
 
 /** The examples' group, `@spell/examples`:  where `EXAMPLE_FIXTURES` are read from. */
@@ -258,18 +261,29 @@ function compileFixture(
  * - e.g. `{ "@spell/project/@spell/test/counter": "counter" }`
  * - Each by its name, as the fixture helpers take it.
  * - none:  `{}`
- * - throws if it imports a project that isn't a frozen fixture:
- *   tests read ONLY `FIXTURES_DIR`, `EXAMPLE_FIXTURES` and `GUIDE_FIXTURES`.
+ * - throws if it imports a project that isn't a test project:  see `projectImportsIn()`
  */
 export function fixtureImports(projectName: string): Record<string, string> {
-  const fixtures = `${FIXTURES_GROUP}/`
+  return projectImportsIn(fixtureFolder(projectName))
+}
+
+/**
+ * The projects the project in `folder` imports, by the module its compiled code imports each from:
+ * `fixtureImports()`, for any project's folder, e.g. the Counter notebook's (`@spell/notebooks/Counter`).
+ * - Each by its name, as the fixture helpers take it:  a frozen fixture, or a tested example (`EXAMPLE_FIXTURES`),
+ *   e.g. the notebook's `@spell/examples/Counter` => `Counter`.
+ * - throws if it imports any other project:
+ *   tests read ONLY `FIXTURES_DIR`, `EXAMPLE_FIXTURES` and `GUIDE_FIXTURES`.
+ */
+function projectImportsIn(folder: string): Record<string, string> {
   const imported: Record<string, string> = {}
-  for (const { path, active } of readProjectFile(fixtureFolder(projectName)).imports) {
-    if (active === false || /\.(spell|css)$/.test(path)) continue
+  for (const { path, active } of readProjectFile(folder).imports) {
+    if (active === false || /\.(spell|spellx|css)$/.test(path)) continue
     const projectId = SP.SpellProject.projectIdForImport(path)
-    if (!projectId.startsWith(fixtures))
-      throw new TypeError(`fixtureImports():  ${projectName} imports ${path}, which isn't a frozen fixture`)
-    imported[moduleFor(projectId)] = projectId.slice(fixtures.length)
+    const projectName = projectId.split("/").at(-1)!
+    if (fixtureProjectId(projectName) !== projectId)
+      throw new TypeError(`projectImportsIn():  ${folder} imports ${path}, which isn't a test project`)
+    imported[moduleFor(projectId)] = projectName
   }
   return imported
 }
@@ -293,8 +307,18 @@ export function fixtureFolder(projectName: string, ...parts: string[]): string {
  *   `parseSpellProject(loadFixtureProject("counter-app"), { parentScope: fixtureImportScope("counter-app") })`.
  */
 export function fixtureImportScope(projectName: string): P.Scope {
-  const { imports } = readProjectFile(fixtureFolder(projectName))
-  const loaded: SP.DeclarationsImport[] = Object.entries(fixtureImports(projectName)).map(([module, fixture]) => {
+  const paths = loadFixtureProject(projectName).map(({ path }) => path)
+  return importScopeIn(fixtureFolder(projectName), paths)
+}
+
+/**
+ * The import layer the project in `folder` parses under:  `fixtureImportScope()`, for any project's folder,
+ * e.g. the Counter notebook's, under the Counter example's declarations.
+ * - `paths`:  its files', e.g. `/Counter.spellx`:  their languages, by their names, pick its root scope.
+ */
+export function importScopeIn(folder: string, paths: string[]): P.Scope {
+  const { imports } = readProjectFile(folder)
+  const loaded: SP.DeclarationsImport[] = Object.entries(projectImportsIn(folder)).map(([module, fixture]) => {
     const { path, import: picks } = imports.find(
       (it) => moduleFor(SP.SpellProject.projectIdForImport(it.path)) === module
     )!
@@ -302,7 +326,7 @@ export function fixtureImportScope(projectName: string): P.Scope {
     return { from: path, projectId, declarations: compileFixture(fixture).declarations, import: picks, module }
   })
   // the root of its files' languages, by their names:  Spanish's for `Carta.es.spell` (epic `spanish` P19)
-  const languages = loadFixtureProject(projectName).map(({ path }) => SP.Language.forFile(path))
+  const languages = paths.map((path) => SP.Language.forFile(path))
   const root = SP.Language.rootScopeFor([...new Set(languages)])
   return loaded.length ? SP.SpellDeclarations.importScope(root, loaded) : root
 }

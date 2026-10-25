@@ -22,6 +22,7 @@ export {
   fixtureLanguages,
   fixtureImports,
   fixtureImportScope,
+  importScopeIn,
   FIXTURES_DIR,
   EXAMPLE_FIXTURES,
   EXAMPLES_GROUP,

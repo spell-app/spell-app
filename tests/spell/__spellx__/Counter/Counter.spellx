@@ -1,0 +1,49 @@
+## Counter
+// A button that counts its clicks:  the smallest app there is.
+// What's where, top to bottom:
+//   a counter:  its count, counting up, and its drawing
+//   the app:  one counter, drawn
+//   start
+//   tests
+
+
+## A counter -- in the outline style:  its name, then what's true of it
+// A view:  each counter is its own element on the page.
+// The Counter notebook, `@spell/notebooks/Counter`, imports it, and tries it out.
+<spell-view "counter">
+	<property "count">a number</>
+	// a new counter starts at 0
+	<action "create it">set its count to 0</>
+	<action "count up">set its count to its count + 1</>
+
+	// a button saying how many times it's been clicked:  a click counts up
+	<draw><button onClick={count up}>Clicked {its count} times</button></draw>
+</spell-view>
+
+
+## The app:  one counter, drawn
+<spell-app "counter app">
+	<property "counter">a new counter</>
+
+	<spell>
+		- to draw it:
+			return <div class="Counter">{draw its counter}</div>
+	</spell>
+</spell-app>
+
+
+## Start
+<spell>
+	start counter app
+</spell>
+
+
+## Tests
+<spell>
+	to test counting
+		set the counter to a new counter
+		the count of the counter should be 0
+		count up of the counter
+		count up of the counter
+		the count of the counter should be 2
+</spell>

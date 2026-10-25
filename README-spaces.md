@@ -91,7 +91,7 @@ The groups, and where each one's folder is:
 | Group | In the editor | Its folder | What's in it |
 | --- | --- | --- | --- |
 | `owen@spell` | Projects | `spell.spaces/@spell/owen@/`, beside the repos, in no repo | your own projects:  where `spell app create` makes one |
-| `@spell/examples` | Examples | [spaces/@spell/examples/](spaces/@spell/examples/), committed | the ten example apps ([README-examples.md](README-examples.md)) |
+| `@spell/examples` | Examples | [spaces/@spell/examples/](spaces/@spell/examples/), committed | the eleven example apps ([README-examples.md](README-examples.md)) |
 | `@spell/library` | Libraries | [spaces/@spell/library/](spaces/@spell/library/), committed | projects other projects import:  people |
 | `@spell/guides` | Guides | [spaces/@spell/guides/](spaces/@spell/guides/), committed | twelve guides, each a Spell program that reads as prose:  a first walkthrough, A tour of Spell, and how each example works ([README-examples.md](README-examples.md#guides--programs-that-read-as-prose)) |
 | `@spell/test` | Test fixtures, listed only in dev | [spaces/@spell/test/](spaces/@spell/test/), committed and frozen | the 7 projects the tests in [tests/spell/](tests/spell/) compile and compare against snapshots;  the examples and the guides are tested as they are |

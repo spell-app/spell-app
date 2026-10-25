@@ -1,0 +1,10 @@
+{
+  "title": "Counter",
+  "description": "A button that counts its clicks:  a view with one property, one action and a drawing, in a few lines;  the Counter notebook imports it",
+  "imports": [
+    {
+      "path": "/Counter.spell",
+      "active": true
+    }
+  ]
+}

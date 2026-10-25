@@ -18,11 +18,11 @@ a king on an empty one, and after that, one card lower, in the other color.
 That isn't a comment above the code that checks a move.
 It IS the check:  click a card, and the game moves it to the first pile that says it can take it.
 
-Ten example apps ship with the Spell editor, from FizzBuzz up to that solitaire, and two libraries to build on.
+Eleven example apps ship with the Spell editor, from FizzBuzz up to that solitaire, and two libraries to build on.
 Each one is a real project:  open it, and its app runs beside its text;  change a line, and the app follows.
 Here to make your own?  [Skip to the ideas](#ideas-for-your-own).
 
-## Ten apps, simplest first
+## Eleven apps, simplest first
 
 Open them in this order:  each one adds an idea or two to the one before.
 Each picture is the example open in the editor:
@@ -34,6 +34,7 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 | Example | Address | What it shows | Running |
 | --- | --- | --- | --- |
 | FizzBuzz | [`@spell/examples/fizzbuzz`](spaces/@spell/examples/fizzbuzz/) | Counting to 100 with fizz and buzz:  a loop, `if` and `otherwise`, and `print`, in eight lines | <a href="docs/images/examples/fizzbuzz.png"><img src="docs/images/examples/fizzbuzz.png" width="360" alt="FizzBuzz open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Counter | [`@spell/examples/Counter`](spaces/@spell/examples/Counter/) | A button that counts its clicks:  a view with one property, one action and a drawing, in a few lines;  the Counter notebook imports it | <a href="docs/images/examples/Counter.png"><img src="docs/images/examples/Counter.png" width="360" alt="Counter open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Calculator | [`@spell/examples/calculator`](spaces/@spell/examples/calculator/) | A pocket calculator on Spell UI:  an app with text properties, actions like `to clear (a calculator)`, and a keypad of buttons whose clicks are Spell | <a href="docs/images/examples/calculator.png"><img src="docs/images/examples/calculator.png" width="360" alt="Calculator open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Tic-Tac-Toe | [`@spell/examples/tic-tac-toe`](spaces/@spell/examples/tic-tac-toe/) | Noughts and crosses on a grid of squares that draw themselves:  whose turn it is, and three in a row, written as sentences | <a href="docs/images/examples/tic-tac-toe.png"><img src="docs/images/examples/tic-tac-toe.png" width="360" alt="Tic-Tac-Toe open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Bill Splitter | [`@spell/examples/bill-splitter`](spaces/@spell/examples/bill-splitter/) | Who owes what after a meal:  a form of people and what each ordered, a tip shared out the same way, and sums that follow every keystroke | <a href="docs/images/examples/bill-splitter.png"><img src="docs/images/examples/bill-splitter.png" width="360" alt="Bill Splitter open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
@@ -49,7 +50,8 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 
 They're two groups in Spell's own space:
 `@spell/examples`, and `@spell/library`, whose library is for other projects to import.
-Every example has a guide that takes it apart:  [guides](#guides--programs-that-read-as-prose), below.
+Every example but Counter has a guide that takes it apart:  [guides](#guides--programs-that-read-as-prose), below.
+Counter has a notebook instead, `@spell/notebooks/Counter`, which imports its counter and tries it out.
 
 ### Opening one
 

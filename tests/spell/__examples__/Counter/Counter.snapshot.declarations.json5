@@ -1,0 +1,104 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Counter",
+    "CounterApp",
+    "test_counting"
+  ],
+  "statements": [
+    {
+      "type": "Counter",
+      "superType": "View",
+      "defined": "/Counter.spell:434-773"
+    },
+    {
+      "property": "count",
+      "of": "Counter",
+      "datatype": "number",
+      "defined": "/Counter.spell:466-489"
+    },
+    {
+      "syntax": "create {thisArg:expression}",
+      "output": "create",
+      "rule": "method_call",
+      "of": "Counter",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "create it",
+      "defined": "/Counter.spell:523-557"
+    },
+    {
+      "syntax": "count up (of {thisArg:expression})?",
+      "output": "count_up",
+      "rule": "method_call",
+      "of": "Counter",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "count up",
+      "defined": "/Counter.spell:562-607"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Counter",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/Counter.spell:685-773"
+    },
+    {
+      "type": "CounterApp",
+      "superType": "App",
+      "defined": "/Counter.spell:808-941"
+    },
+    {
+      "property": "counter",
+      "of": "CounterApp",
+      "datatype": "Counter",
+      "defined": "/Counter.spell:840-870"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "CounterApp",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw it",
+      "defined": "/Counter.spell:875-941"
+    },
+    {
+      "syntax": "test counting",
+      "output": "test_counting",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "counting",
+      "defined": "/Counter.spell:982-1158"
+    }
+  ],
+  "codeLines": [
+    21,
+    24,
+    30,
+    34,
+    39,
+    50,
+    53,
+    58,
+    70
+  ]
+}

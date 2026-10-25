@@ -3,11 +3,26 @@ import { describe, expect, test } from "vite-plus/test"
 
 import { NotebookPageCells } from "spell-app/app/solid/notebook/NotebookPageCells"
 
-/** The Counter notebook, `@spell/notebooks/Counter`, as committed. */
+/**
+ * The Counter notebook, `@spell/notebooks/Counter`, as committed.
+ * - Its counter is the Counter example's, which its project imports:  so it has no template cell of its own.
+ */
 const COUNTER = readFileSync(
   new URL("../../../../spaces/@spell/notebooks/Counter/Counter.spellx", import.meta.url),
   "utf8"
 )
+
+/** A notebook with a template of its own, a card:  for the template cell's edits and groups. */
+const CARDS = [
+  '<spell-notebook "cards">',
+  '\t<spell-view "card">',
+  '\t\t<group "direction" description="Face up or face down"/>',
+  '\t\t<property "direction" one-of="up, down"/>',
+  '\t\t<action "turn it over">set its direction to up</>',
+  "\t</spell-view>",
+  "</spell-notebook>",
+  ""
+].join("\n")
 
 /**
  * A notebook's page's cells, and the edits it makes (epic `elemental-spell` P16):  every edit changes only what it's
@@ -16,28 +31,27 @@ const COUNTER = readFileSync(
 describe("NotebookPageCells", () => {
   const model = NotebookPageCells.of(COUNTER, "/Counter.spellx")!
 
-  test("its cells, in order:  prose split at each ## heading, its template, what it draws", () => {
+  test("its cells, in order:  prose split at each ## heading, what it draws", () => {
     expect(model.name).toBe("counter notebook")
     expect(model.locked).toBe(false)
     expect(model.cells.map(({ kind, heading, title, name }) => ({ kind, heading, title, name }))).toEqual([
       { kind: "prose", heading: undefined, title: "A counter", name: undefined },
-      { kind: "template", heading: undefined, title: undefined, name: "counter" },
       { kind: "prose", heading: "Try it", title: undefined, name: undefined },
       { kind: "drawing", heading: undefined, title: undefined, name: "one counter" },
       { kind: "prose", heading: "Two of them", title: undefined, name: undefined },
       { kind: "drawing", heading: undefined, title: undefined, name: "" }
     ])
     // a drawing's examples, however deep:  the section's
-    expect(model.cells[5]!.examples!.map((example) => [example.name, example.body.code])).toEqual([
+    expect(model.cells[4]!.examples!.map((example) => [example.name, example.body.code])).toEqual([
       ["two counters", "<counter/>\n<counter/>"]
     ])
   })
 
   test("an edit changes only its cell's span, its indent put back on every line", () => {
-    const template = model.cells[1]!
-    const edited = NotebookPageCells.withCode(COUNTER, template, template.code.replace("Clicked", "Pressed"))
-    expect(edited).toBe(COUNTER.replace("Clicked", "Pressed"))
-    const example = model.cells[3]!.examples![0]!
+    const [template] = NotebookPageCells.of(CARDS, "/Cards.spellx")!.cells
+    const edited = NotebookPageCells.withCode(CARDS, template!, template!.code.replace("to up", "to down"))
+    expect(edited).toBe(CARDS.replace("to up", "to down"))
+    const example = model.cells[2]!.examples![0]!
     expect(NotebookPageCells.withCode(COUNTER, example.body, "<counter/>\n<counter/>")).toBe(
       COUNTER.replace(
         '\t<example "one counter">\n\t\t<counter/>\n',
@@ -47,16 +61,16 @@ describe("NotebookPageCells", () => {
   })
 
   test("move up, then down:  back as it was;  delete, add and lock", () => {
-    const moved = NotebookPageCells.moved(COUNTER, model.cells, 3, "up")
+    const moved = NotebookPageCells.moved(COUNTER, model.cells, 2, "up")
     expect(moved.indexOf('<example "one counter">')).toBeLessThan(moved.indexOf("## Try it"))
     const back = NotebookPageCells.of(moved, "/Counter.spellx")!
-    expect(NotebookPageCells.moved(moved, back.cells, 2, "down")).toBe(COUNTER)
+    expect(NotebookPageCells.moved(moved, back.cells, 1, "down")).toBe(COUNTER)
 
-    const deleted = NotebookPageCells.deleted(COUNTER, model.cells[3]!)
+    const deleted = NotebookPageCells.deleted(COUNTER, model.cells[2]!)
     expect(deleted).not.toContain("one counter")
     expect(deleted).toContain("\t## Try it\n\n\t## Two of them")
 
-    const { text, start } = NotebookPageCells.inserted(COUNTER, model, model.cells[2], "Some text.")
+    const { text, start } = NotebookPageCells.inserted(COUNTER, model, model.cells[1], "Some text.")
     expect(text).toContain("\t## Try it\n\n\tSome text.\n")
     expect(text.slice(start, start + 10)).toBe("Some text.")
 
@@ -68,17 +82,7 @@ describe("NotebookPageCells", () => {
   })
 
   test("a template's groups:  each one's members together, under its name and description", () => {
-    const text = [
-      '<spell-notebook "cards">',
-      '\t<spell-view "card">',
-      '\t\t<group "direction" description="Face up or face down"/>',
-      '\t\t<property "direction" one-of="up, down"/>',
-      '\t\t<action "turn it over">set its direction to up</>',
-      "\t</spell-view>",
-      "</spell-notebook>",
-      ""
-    ].join("\n")
-    const [template] = NotebookPageCells.of(text, "/Cards.spellx")!.cells
+    const [template] = NotebookPageCells.of(CARDS, "/Cards.spellx")!.cells
     expect(template!.groups).toEqual([
       { name: "direction", description: "Face up or face down", members: ["direction", "turn it over"] }
     ])

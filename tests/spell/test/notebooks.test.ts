@@ -7,6 +7,7 @@ import { SP } from "spell-parser/spell"
 import { parseSpellProject } from "spell-parser/spell/test"
 import { SX } from "spell-parser/spellx"
 import environment from "spell-app/spaces/server/node/environment"
+import { importScopeIn } from "spell-app/spaces/test"
 
 // Spell UI's pack:  a spellx drawing names its components bare (`<button>`)
 import "spell-app/spaces"
@@ -18,6 +19,8 @@ import "spell-app/spaces"
  *   its code spell is made here, never written beside it.
  * - Its bare names are written as the tags its own compile chose, as the editor's "Show as Code Spell" writes them:
  *   `<counter/>` is `<counter-counter/>`.
+ * - Parsed under the projects it imports, as the editor parses it:  the Counter notebook draws the Counter example's
+ *   counter (`@spell/examples/Counter`), so it keeps no template of its own.
  * - Compared without comments and the `DECLARES` header, which carry line numbers.
  */
 const NOTEBOOKS_DIR = resolve(environment.systemFilesRoot, "notebooks")
@@ -31,8 +34,10 @@ describe("every notebook means the same in code spell", () => {
 /** Notebook `name`'s `.spellx` file compiles cleanly, and its code spell to the same javascript. */
 function meansTheSame(name: string) {
   const path = `/${name}.spellx`
-  const contents = readFileSync(resolve(NOTEBOOKS_DIR, name, `${name}.spellx`), "utf8")
-  const [spellx] = parseSpellProject([{ path, contents }]).files
+  const folder = resolve(NOTEBOOKS_DIR, name)
+  const contents = readFileSync(resolve(folder, `${name}.spellx`), "utf8")
+  const parentScope = importScopeIn(folder, [path])
+  const [spellx] = parseSpellProject([{ path, contents }], { parentScope }).files
   expect(spellx!.errors).toEqual([])
 
   // each element's tag, as the parse chose it, by where it starts
@@ -48,7 +53,7 @@ function meansTheSame(name: string) {
     path,
     componentTag: (word, start) => tags.get(start) ?? SP.ComponentPacks.tagFor(word, "en")
   })
-  const [spell] = parseSpellProject([{ path: `/${name}.spell`, contents: written }]).files
+  const [spell] = parseSpellProject([{ path: `/${name}.spell`, contents: written }], { parentScope }).files
   expect(spell!.errors).toEqual([])
   expect(codeOf(spell!.compiled)).toBe(codeOf(spellx!.compiled))
 }

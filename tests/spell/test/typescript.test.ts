@@ -3,7 +3,13 @@ import { beforeAll, describe, test, expect } from "vite-plus/test"
 import { describeTypecheckError, typecheck, type TypecheckResult } from "spell-parser/spell/node/typecheck"
 import { SP } from "spell-parser/spell"
 import { solidSample } from "spell-parser/spell/test"
-import { compiledFixture, fixtureImports, fixtureProjectNames, snapshotPath } from "spell-app/spaces/test"
+import {
+  compiledFixture,
+  fixtureImports,
+  fixtureProjectId,
+  fixtureProjectNames,
+  snapshotPath
+} from "spell-app/spaces/test"
 
 /**
  * Every fixture project compiled as TypeScript (the `ts/solid` target, `P.TSWriter`), checked by `tsc` against
@@ -27,13 +33,20 @@ export const count: number = <div class="count" />
 export const shown = <Show when={true} fallbak={<i />}>{"yes"}</Show>
 `
 
+/**
+ * The file test project `name` is checked as, named by its group too:  `spell.test.counter.tsx`, `spell.examples.Counter.tsx`.
+ * - So the frozen `counter` and the `Counter` example are two files, on a disk that ignores case too.
+ */
+function fileOf(name: string): string {
+  return `${fixtureProjectId(name).replace(/^@/, "").replaceAll("/", ".")}.tsx`
+}
+
 beforeAll(() => {
   const files = Object.fromEntries(
-    fixtureProjectNames().map((name) => [`${name}.tsx`, compiledFixture(name, "ts/solid")])
+    fixtureProjectNames().map((name) => [fileOf(name), compiledFixture(name, "ts/solid")])
   )
-  // a fixture's imports are files checked beside it, another fixture's:  `@spell/test/counter` => `counter.tsx`
+  // a fixture's imports are files checked beside it, another fixture's:  `@spell/test/counter` => `spell.test.counter.tsx`
   const imports = fixtureProjectNames().flatMap((name) => Object.entries(fixtureImports(name)))
-  const fileOf = (imported: string) => `${imported.split("/").at(-1)}.tsx`
   for (const [, imported] of imports) files[fileOf(imported)] ??= compiledFixture(imported, "ts/solid")
   const projects = Object.fromEntries(
     imports.map(([module, imported]) => [
@@ -58,12 +71,12 @@ describe("fixture projects as TypeScript, checked by tsc", () => {
   })
 
   test("FizzBuzz checks clean", () => {
-    expect(result.errors["fizzbuzz.tsx"]).toEqual([])
+    expect(result.errors[fileOf("fizzbuzz")]).toEqual([])
   })
 
   for (const name of fixtureProjectNames()) {
     test(name, async () => {
-      const errors = result.errors[`${name}.tsx`]!
+      const errors = result.errors[fileOf(name)]!
       process.stderr.write(`${name}:  ${errors.length} tsc error${errors.length === 1 ? "" : "s"}\n`)
       const text = errors.map((error) => `${describeTypecheckError(error)}\n`).join("")
       await expect(text).toMatchFileSnapshot(snapshotPath(name, `${name}.snapshot.tsc.txt`))

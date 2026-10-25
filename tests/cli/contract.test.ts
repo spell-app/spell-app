@@ -10,10 +10,12 @@ import { PY } from "spell-parser/py"
 import { buildTsx } from "spell-parser/spell/node/buildTsx"
 import { SP } from "spell-parser/spell"
 import {
+  FIXTURES_GROUP,
   PYTHON_FIXTURES,
   compiledFixture,
   fixtureImports,
   fixtureLanguages,
+  fixtureProjectId,
   fixtureProjectNames
 } from "spell-app/spaces/test"
 import { CLI } from "spell-app/cli"
@@ -21,7 +23,7 @@ import { CLI } from "spell-app/cli"
 /**
  * The CORE CONTRACT:  every fixture project, compiled for each target, run headless as `spell run` runs it,
  * prints the SAME thing, line for line.
- * - What it prints is pinned in `__snapshots__/contract/<project>.out.txt`.
+ * - What it prints is pinned in `__snapshots__/contract/<project>.out.txt` (`snapshotOf()`).
  * - So a target's core is right when it prints what the snapshot says.
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
  *   - Python's core, `spell_core` (spell-parser's `src/py/core`), prints the same
@@ -104,6 +106,18 @@ function moduleNameOf(imported: string): string {
   return imported.split("/").at(-1)!.replace(/\W/g, "_")
 }
 
+/**
+ * Where fixture `name`'s output is pinned:  `__snapshots__/contract/<name>.out.txt`.
+ * - An example or guide named as a frozen fixture is but for case gets its group too, `examples.Counter.out.txt`:
+ *   the frozen `counter`'s `counter.out.txt` is the same file on a disk that ignores case.
+ */
+function snapshotOf(name: string): string {
+  const projectId = fixtureProjectId(name)
+  const clashes = fixtureProjectNames().some((other) => other !== name && other.toLowerCase() === name.toLowerCase())
+  const file = clashes && !projectId.startsWith(`${FIXTURES_GROUP}/`) ? `${projectId.split("/").at(-2)}.${name}` : name
+  return resolve(import.meta.dirname, `__snapshots__/contract/${file}.out.txt`)
+}
+
 /** Every target that runs a program:  all but a library (`ts/lib`), which keeps only the classes. */
 const RUNNING_TARGETS = Object.values(SP.TARGETS)
   .filter((target) => target.can.run !== false)
@@ -124,7 +138,7 @@ describe("the core contract:  every target prints the same", () => {
         for (const [index, other] of others.entries()) {
           expect(other!.split("\n"), `${name} on ${targets[index + 1]}`).toEqual(js!.split("\n"))
         }
-        await expect(js).toMatchFileSnapshot(resolve(import.meta.dirname, `__snapshots__/contract/${name}.out.txt`))
+        await expect(js).toMatchFileSnapshot(snapshotOf(name))
       },
       60_000
     )

@@ -1,0 +1,8 @@
+✅ test counting
+  ▶️ Executing   `set the counter to a new counter`
+  ✅ As expected `the count of the counter` is `0`
+  ▶️ Executing   `count up of the counter`
+  ▶️ Executing   `count up of the counter`
+  ✅ As expected `the count of the counter` is `2`
+
+<div id="spell-app-root"><test-project-app><div class="Counter"><test-project-counter><ui-button style="cursor:pointer;user-select:none">Clicked 0 times</ui-button></test-project-counter></div></test-project-app></div>

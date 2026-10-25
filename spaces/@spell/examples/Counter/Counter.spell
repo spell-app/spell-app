@@ -1,0 +1,45 @@
+## Counter
+// A button that counts its clicks:  the smallest app there is.
+// What's where, top to bottom:
+//   a counter:  its count, counting up, and its drawing
+//   the app:  one counter, drawn
+//   start
+//   tests
+
+
+## A counter -- in the outline style:  its name, then what's true of it
+// A view:  each counter is its own element on the page.
+// The Counter notebook, `@spell/notebooks/Counter`, imports it, and tries it out.
+a "counter" is a view where:
+	- its "count" is a number
+	// a new counter starts at 0
+	- to create it:
+		set its count to 0
+
+	- to count up:
+		set its count to its count + 1
+
+	// a button saying how many times it's been clicked:  a click counts up
+	- to draw it:
+		return <ui-button onClick={count up}>Clicked {its count} times</ui-button>
+
+
+## The app:  one counter, drawn
+counter app is an app where:
+	- its "counter" is a new counter
+
+	- to draw it:
+		return <div class="Counter">{draw its counter}</div>
+
+
+## Start
+start counter app
+
+
+## Tests
+to test counting
+	set the counter to a new counter
+	the count of the counter should be 0
+	count up of the counter
+	count up of the counter
+	the count of the counter should be 2

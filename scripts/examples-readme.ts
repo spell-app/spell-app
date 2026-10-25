@@ -52,6 +52,7 @@ const GROUPS = [
  */
 const LEARNING_ORDER = [
   "fizzbuzz",
+  "Counter",
   "calculator",
   "tic-tac-toe",
   "bill-splitter",
