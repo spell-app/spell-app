@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="ErrorNotice">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/ErrorNotice.tsx"
+              link="../../src/app/solid/ErrorNotice.tsx"
               icon="code"
               aria-label="Its code, ErrorNotice.tsx"
               title="Its code, ErrorNotice.tsx"
@@ -62,8 +62,7 @@
             <ui-image
               src="_images/ErrorNotice.png"
               alt="A red error message saying Couldn't load Card.spell: the server didn't answer, over the editor"
-              bordered
-              rounded
+              appearance="bordered rounded"
             ></ui-image>
             <p class="meta">
               A picture, taken by <code>yarn site:pictures</code> in
@@ -78,7 +77,7 @@
               The app draws ONE, over every page, beside
               <a href="Notice.html" target="src-packages-app-docs-notice-html">Notice</a>:
             </p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>index.tsx · the app's page entry · 10 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

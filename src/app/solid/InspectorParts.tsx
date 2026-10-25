@@ -138,7 +138,7 @@ export function InspectorViews(props: {
         >
           <For each={VIEWS}>
             {(id) => (
-              <ui-item link="" selected={view() === id} onClick={() => show(id)}>
+              <ui-item appearance="link" selected={view() === id} onClick={() => show(id)}>
                 <ui-icon name={VIEW_ICONS[id]} />
                 {appTexts.text(VIEW_TEXTS[id])}
               </ui-item>

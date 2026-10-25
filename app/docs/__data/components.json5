@@ -876,7 +876,7 @@
         "menus and dialogs"
       ],
       "aka": [],
-      "description": "One action as a menu item (`<ui-item link>`, the default) or a button (`<ui-button>`, with `button`).",
+      "description": "One action as a menu item (`<ui-item appearance=\"link\">`, the default) or a button (`<ui-button>`, with `button`).",
       "noun": "Action",
       "attributes": [],
       "slots": [],
@@ -908,7 +908,7 @@
         {
           "name": "active",
           "type": "boolean",
-          "description": "Highlighted:  the item's `selected`, the button's `active`."
+          "description": "Highlighted:  the item's `selected`, the button's `selected`."
         },
         {
           "name": "color",

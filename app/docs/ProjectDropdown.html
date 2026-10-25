@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="ProjectDropdown">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/ProjectDropdown.tsx"
+              link="../../src/app/solid/ProjectDropdown.tsx"
               icon="code"
               aria-label="Its code, ProjectDropdown.tsx"
               title="Its code, ProjectDropdown.tsx"
@@ -60,8 +60,7 @@
             <ui-image
               src="_images/ProjectDropdown.png"
               alt="The Example dropdown open over the editor, listing Calculator, Drawable Solitaire, FizzBuzz, Solitaire, Todos and more"
-              bordered
-              rounded
+              appearance="bordered rounded"
             >
             </ui-image>
             <p class="meta">
@@ -74,7 +73,7 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>The editor's top toolbar starts with the dropdown:</p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>SpellEditor.tsx · the editor's toolbar · 8 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
@@ -90,7 +89,7 @@
               </ui-content>
             </ui-accordion>
             <p id="ProjectMenu">The page that chooses a project draws a menu for each place projects come from:</p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>ProjectChooser.tsx · projects and examples · 8 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

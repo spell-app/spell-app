@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="Actions">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/Actions.tsx"
+              link="../../src/app/solid/Actions.tsx"
               icon="code"
               aria-label="Its code, Actions.tsx"
               title="Its code, Actions.tsx"
@@ -63,8 +63,7 @@
             <ui-image
               src="_images/Actions.png"
               alt="A purple toolbar: the file dropdown, then Compile, Save, Reload and New File"
-              bordered
-              rounded
+              appearance="bordered rounded"
             ></ui-image>
             <p class="meta">
               A picture, taken by <code>yarn site:pictures</code> in
@@ -76,7 +75,7 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>The toolbar in the picture: each entry of <code>Actions</code> is a component, drawn by name:</p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>InputEditor.tsx · the input editor's toolbar · 14 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
@@ -100,7 +99,7 @@
               </ui-content>
             </ui-accordion>
             <p>The same action as a big button, on the project chooser, with its own text:</p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>ProjectChooser.tsx · a "create" button · 1 line</ui-title>
               <ui-content>
                 <ui-code language="typescript"

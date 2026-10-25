@@ -58,7 +58,7 @@ export function InputToolbar() {
         <MoreMenu direction="left" class="FileMoreMenu">
           <Actions.FILE_DROPDOWN_ACTIONS />
           <Show when={!isStaticBuild}>
-            <ui-item type="divider" />
+            <ui-item kind="divider" />
           </Show>
           <ui-item
             value="lineNumbers"
@@ -85,7 +85,7 @@ function InputViewSwitch() {
       <For each={INPUT_VIEWS}>
         {(name) => (
           <ui-item
-            link=""
+            appearance="link"
             selected={InputView.isNotebook === (name === "notebook")}
             title={appTexts.text(INPUT_VIEW_LOOKS[name].text)}
             aria-label={appTexts.text(INPUT_VIEW_LOOKS[name].text)}

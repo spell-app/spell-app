@@ -30,7 +30,7 @@ export function ErrorDisplay(props: ErrorDisplayProps) {
       {(info) => (
         <ui-message
           state="error"
-          header={info().header}
+          heading={info().header}
           dismissible={!!props.onDismiss}
           id={props.id}
           class={props.class}

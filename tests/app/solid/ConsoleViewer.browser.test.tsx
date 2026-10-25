@@ -137,7 +137,7 @@ describe("<ConsoleRoot>", () => {
   test("a toolbar over the viewer, unless `showToolbar={false}`", async () => {
     const host = await mount(() => <ConsoleRoot />)
     const root = host.querySelector(".ConsoleRoot")!
-    expect(text(root.querySelector("ui-menu.PanelMenu ui-item[type=header]")!)).toBe("Output")
+    expect(text(root.querySelector("ui-menu.PanelMenu ui-item[kind=header]")!)).toBe("Output")
     expect(root.querySelector(".ConsoleViewer")!.classList.contains("scrolling")).toBe(true)
 
     const bare = await mount(() => <ConsoleRoot showToolbar={false} scrolling={false} />)

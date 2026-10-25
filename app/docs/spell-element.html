@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="SpellElement">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/runner/SpellElement.tsx"
+              link="../../src/app/runner/SpellElement.tsx"
               icon="code"
               aria-label="Its code, SpellElement.tsx"
               title="Its code, SpellElement.tsx"
@@ -97,7 +97,7 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>Nobody draws it by name: a program does, when it draws a thing whose template is a view.</p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>Card.spell · a view, with its own styles · 6 lines</ui-title>
               <ui-content>
                 <spell-code
@@ -112,7 +112,7 @@
                 >
               </ui-content>
             </ui-accordion>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>Solitaire.spell · drawing the piles, each its own element · 4 lines</ui-title>
               <ui-content>
                 <spell-code
@@ -125,7 +125,7 @@
                 >
               </ui-content>
             </ui-accordion>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>Solitaire.spell.js · the class names its tag · 3 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

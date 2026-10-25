@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="AppRoot">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/AppRoot.tsx"
+              link="../../src/app/solid/AppRoot.tsx"
               icon="code"
               aria-label="Its code, AppRoot.tsx"
               title="Its code, AppRoot.tsx"
@@ -62,8 +62,7 @@
             <ui-image
               src="_images/AppRoot.png"
               alt="The App pane: a purple toolbar with Restart and Publish, over a game of Klondike Solitaire"
-              bordered
-              rounded
+              appearance="bordered rounded"
             ></ui-image>
             <p class="meta">
               A picture, taken by <code>yarn site:pictures</code> in
@@ -78,7 +77,7 @@
               The editor page puts it in its right-hand column, with no toolbar, under the program's own header
               (<code>&lt;AppPane&gt;</code>); in Run, the page keeps that same pane, and only the code column goes:
             </p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>SpellEditor.tsx · the editor's right-hand column, AppPane · 12 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

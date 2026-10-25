@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="SpellPage">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/SpellPage.tsx"
+              link="../../src/app/solid/SpellPage.tsx"
               icon="code"
               aria-label="Its code, SpellPage.tsx"
               title="Its code, SpellPage.tsx"
@@ -62,8 +62,7 @@
             <ui-image
               src="_images/SpellPage.png"
               alt="The project chooser: a violet menu over a dark page holding a white card of projects, examples, guides and test fixtures"
-              bordered
-              rounded
+              appearance="bordered rounded"
             ></ui-image>
             <p class="meta">
               A picture, taken by <code>yarn site:pictures</code> in
@@ -75,7 +74,7 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>Each page is one, holding its toolbar, then its content, down the window:</p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>ProjectChooser.tsx · the project chooser · 9 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
