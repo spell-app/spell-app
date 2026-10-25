@@ -61,7 +61,7 @@ describe("the You panel", () => {
     standIn()
     const answer = openYouPanel()
     const modal = await current()
-    expect(modal.getAttribute("header")).toBe("You:  owen@spell")
+    expect(modal.getAttribute("heading")).toBe("You:  owen@spell")
     expect(value(modal, "#YouPanel-names")).toBe("Owen Williams")
     expect(value(modal, "#YouPanel-emails")).toBe("owen@example.com")
     expect(value(modal, ".date .label")).toBe("birthday")
