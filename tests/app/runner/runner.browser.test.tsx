@@ -89,15 +89,15 @@ setTimeout(() => late.start(), 50)
 `
 
 /**
- * A card table, as spell compiles it:  a drawable list whose frame has a named place, filled by a child that says
+ * A card table, as spell compiles it:  a viewable list whose frame has a named place, filled by a child that says
  * it goes there.
  * - From its spell:  `to draw a pile:` returns `<div className="pile"><div className="header"><children
  *   name="header"/></div><children/></div>`;  the table draws a pile, and one written by hand,
  *   `<test-project-pile><h3 in="header">Discards</h3></test-project-pile>`.
  */
 const CARD_TABLE = `
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
-export class Card extends Drawable {
+import { core, Thing, List, App, View, ViewableList, h } from "@spell/core"
+export class Card extends View {
   static elementTag = core.defineElement(this, "test-project")
   static { this.declareProp("rank", { type: "text" }) }
   get rank() { return this.getProp("rank") }
@@ -106,7 +106,7 @@ export class Card extends Drawable {
     return h("div", { class: "card" }, () => this.rank)
   }
 }
-export class Pile extends DrawableList {
+export class Pile extends ViewableList {
   static instanceType = Card
   static elementTag = core.defineElement(this, "test-project")
   static { this.declareProp("name", { type: "text" }) }
@@ -177,15 +177,15 @@ globalThis.cardGame = { ace, king, game, Card }
 `
 
 /**
- * A drawable tile, with an element class of its own handed to the page,
+ * A tile that's a view, with an element class of its own handed to the page,
  * as compiled TypeScript does (epic `drawable-thing` P10).
  * - `TileElement`, from `@spell/elements`, with a method of its own
  * - Plain javascript, so no decorators:  its vocabulary and sheet are the page's, as for a bare element.
  */
 const HANDED = `
-import { core, App, Drawable, h } from "@spell/core"
+import { core, App, View, h } from "@spell/core"
 import { SpellElement } from "@spell/elements"
-export class Tile extends Drawable {
+export class Tile extends View {
   static elementTag = core.defineElement(this, "Handed")
   get label() { return this.getProp('label') }
   set label(value) { this.setProp('label', value) }
@@ -502,7 +502,7 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => played.getAttribute("pile") === "DiscardPile#discards")
   })
 
-  test('a drawable list\'s frame:  its cards in its <children/>, a child written in="header" in its <children name="header"/>', async () => {
+  test('a viewable list\'s frame:  its cards in its <children/>, a child written in="header" in its <children name="header"/>', async () => {
     const host = await mount(source(CARD_TABLE, "Table"))
     type Element = HTMLElement & { ready: Promise<void> }
     const piles = () => [...host.querySelectorAll<Element>("test-project-pile")]

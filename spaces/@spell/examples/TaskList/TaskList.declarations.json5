@@ -10,20 +10,20 @@
   "statements": [
     {
       "type": "Task",
-      "superType": "Drawable",
-      "defined": "/Task.spell:171-1489"
+      "superType": "View",
+      "defined": "/Task.spell:161-1469"
     },
     {
       "property": "title",
       "of": "Task",
       "datatype": "text",
-      "defined": "/Task.spell:210-229"
+      "defined": "/Task.spell:190-209"
     },
     {
       "property": "notes",
       "of": "Task",
       "datatype": "text",
-      "defined": "/Task.spell:233-252"
+      "defined": "/Task.spell:213-232"
     },
     {
       "property": "priority",
@@ -34,13 +34,13 @@
         "normal",
         "high"
       ],
-      "defined": "/Task.spell:256-300"
+      "defined": "/Task.spell:236-280"
     },
     {
       "property": "done",
       "of": "Task",
       "datatype": "choice",
-      "defined": "/Task.spell:304-327"
+      "defined": "/Task.spell:284-307"
     },
     {
       "syntax": "{operator:is_or_is_not} done",
@@ -50,7 +50,7 @@
       "kind": "method",
       "name": "\"is done\"",
       "returns": "choice",
-      "defined": "/Task.spell:331-362"
+      "defined": "/Task.spell:311-342"
     },
     {
       "syntax": "{operator:is_or_is_not} active",
@@ -60,25 +60,25 @@
       "kind": "method",
       "name": "\"is active\"",
       "returns": "choice",
-      "defined": "/Task.spell:388-420"
+      "defined": "/Task.spell:368-400"
     },
     {
       "property": "priority_color",
       "asWritten": "priority color",
       "of": "Task",
-      "defined": "/Task.spell:500-571"
+      "defined": "/Task.spell:480-551"
     },
     {
       "constants": [
         "red"
       ],
-      "defined": "/Task.spell:527-554"
+      "defined": "/Task.spell:507-534"
     },
     {
       "constants": [
         "grey"
       ],
-      "defined": "/Task.spell:557-571"
+      "defined": "/Task.spell:537-551"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -91,7 +91,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Task.spell:1123-1489"
+      "defined": "/Task.spell:1103-1469"
     },
     {
       "syntax": "test tasks",
@@ -100,11 +100,11 @@
       "alias": "statement",
       "kind": "function",
       "name": "tasks",
-      "defined": "/Task.spell:1501-1672"
+      "defined": "/Task.spell:1481-1652"
     },
     {
       "type": "Checklist",
-      "superType": "DrawableList",
+      "superType": "ViewableList",
       "itemType": "Task",
       "defined": "/TaskList.spell:503-1135"
     },

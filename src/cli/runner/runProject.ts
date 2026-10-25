@@ -140,8 +140,8 @@ function headless() {
 /**
  * SIDE EFFECT:  a fake page for `spec.dom`, so what needs a browser runs:
  * linkedom's `document`, and `App.start()` draws into it.
- * - A drawable thing draws as its own element, as on a page:  `<solitaire-card>`, its drawing in its shadow root,
- *   a drawable list's items its children -- see `fakeElements()`.
+ * - A view draws as its own element, as on a page:  `<solitaire-card>`, its drawing in its shadow root,
+ *   a viewable list's items its children -- see `fakeElements()`.
  * - When the program is done, prints the page's `<body>`:  what it drew, to compare.
  *   - As it shows:  each element's shadow root in its place, its `<slot>`s holding its children
  *     (`withShadowsInPlace()`).
@@ -198,10 +198,10 @@ function readsEmptyComments(proto: object) {
 }
 
 /**
- * SIDE EFFECT:  the fake page defines each drawable thing's element, e.g. `<solitaire-card>`, as app's runners do
+ * SIDE EFFECT:  the fake page defines each view's element, e.g. `<solitaire-card>`, as app's runners do
  * (`installSpellElements()`), so the contract compares what a page draws:  cards in their piles.
  * - Just enough of app's `SpellElement`, which needs Spell UI, which can't load here:
- *   its `thing` drawn in its shadow root (`core.drawOwn()`);  a drawable list's items are its children,
+ *   its `thing` drawn in its shadow root (`core.drawOwn()`);  a viewable list's items are its children,
  *   shown in its drawing's `<slot>` (`core.drawThing()` puts them there).
  * - No attributes, no layout:  just the drawing.
  * - Its events are handled in its shadow root, as Solid delegates them per render root.

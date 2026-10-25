@@ -4,7 +4,7 @@ import { LSP } from "spell-app/lsp"
 
 /** A type with a `<css>` block in its outline, as P4 of epic `drawable-thing` writes it. */
 const CARD = [
-  "a card is a drawable thing",
+  "a card is a view",
   "\t- it has a rank as a number",
   "\t<css>",
   "\t\t:host { display: inline-block }",
@@ -45,7 +45,7 @@ describe("SpellCSS", () => {
     const document = LSP.SpellCSS.documentFor(CARD, region!)
     expect(document.getText().length).toBe(CARD.length)
     expect(document.getText().split("\n")).toEqual([
-      " ".repeat(26),
+      " ".repeat(16),
       " ".repeat(28),
       " ".repeat(6),
       "\t\t:host { display: inline-block }",

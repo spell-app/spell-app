@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from spell_core import core, Drawable, prop, h
+from spell_core import core, View, prop, h
 
 
 #########################################################################
@@ -10,10 +10,10 @@ from spell_core import core, Drawable, prop, h
 #########################################################################
 
 
-class Counter(Drawable):
+class Counter(View):
     """
     A library other projects import:  `counter-app` makes one and draws it.
-    A drawable thing:  each counter is its own element on the page, e.g. `<counter-counter>`.
+    A view:  each counter is its own element on the page, e.g. `<counter-counter>`.
     """
 
     element_tag = "test-project-counter"

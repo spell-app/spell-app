@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, position } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, position } from "@spell/core"
 
 core.heading("Tic-Tac-Toe")
 /////////////////
@@ -14,7 +14,7 @@ core.heading("Tic-Tac-Toe")
 
 core.heading("A square:  empty, or holding an X or an O")
 /** A square:  empty, or holding an X or an O */
-export class Square extends Drawable {
+export class Square extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "mark" is text
@@ -48,7 +48,7 @@ export class Square extends Drawable {
 
 core.heading("The board:  nine squares, three a row -- styles.css lays them out")
 /** The board:  nine squares, three a row -- styles.css lays them out */
-export class Board extends DrawableList {
+export class Board extends ViewableList {
   static instanceType = Square
   static elementTag = core.defineElement(this, "test-project")
 

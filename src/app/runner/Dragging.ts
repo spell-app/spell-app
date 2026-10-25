@@ -2,7 +2,7 @@ import { E } from "spell-ui/core"
 
 /****************
  * ### `Dragging`
- * One drag of a drawable thing's element, from pointer down to pointer up:  a mouse and a finger alike.
+ * One drag of a view's element, from pointer down to pointer up:  a mouse and a finger alike.
  *
  * - What it carries:  the element, and its list's items after it, e.g. a tableau's face-up card and the cards on it.
  *   - They follow the pointer by their `translate`, raised above the board.
@@ -10,7 +10,7 @@ import { E } from "spell-ui/core"
  * - Or what its owner says (`DragOptions.carried`), staying where it is (`follows: false`):
  *   e.g. a task list's selected tasks, dimmed, while a line shows where they'd go
  *   (`SpellElement`, epic `outline-spell` P30).
- * - Where it lands:  the drawable list's element under the pointer, as `dropTargetAt()` finds it.
+ * - Where it lands:  the viewable list's element under the pointer, as `dropTargetAt()` finds it.
  * - It sends the web's own drag events, as `DragEvent`s with no `dataTransfer`,
  *   so a page can follow it as it would the browser's drag and drop:
  *   - on the dragged element:  `dragstart`, `drag` as it moves, `dragend`
@@ -200,7 +200,7 @@ export class Dragging {
     return undefined
   }
 
-  /** May `element` take a drop?  Set by its owner:  `SpellElement` says a drawable list's element may. */
+  /** May `element` take a drop?  Set by its owner:  `SpellElement` says a viewable list's element may. */
   static isDropTarget: (element: Element) => boolean = () => false
 
   /** The click a drag's pointer up makes is no click:  swallowed, once, before anything hears it. */

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, sendCall } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, sendCall } from "@spell/core"
 import { Counter } from "@spell/project/@spell/test/counter"
 
 ////////////////////////////////////////////////////////////////////

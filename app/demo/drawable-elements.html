@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  A spell project's drawable types, used on a plain page by their tags.
+  A spell app's views, used on a plain page by their tags.
   - Served by the dev server at `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
   - The hidden `<spell-app>` runs `@spell/examples/Solitaire`, which defines its tags:
     its cards' `<solitaire-card>`, its piles' `<solitaire-pile>`, its `<solitaire-tableau>` ...
@@ -17,7 +17,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Drawable elements demo</title>
+    <title>View elements demo</title>
     <script type="module" src="/element/spell-app.js"></script>
     <style>
       body {
@@ -41,7 +41,7 @@
     </style>
   </head>
   <body>
-    <h1>Drawable elements</h1>
+    <h1>View elements</h1>
     <!-- runs the project, so its tags are defined;  its own game stays hidden -->
     <spell-app project="@spell/examples/Solitaire" hidden></spell-app>
 

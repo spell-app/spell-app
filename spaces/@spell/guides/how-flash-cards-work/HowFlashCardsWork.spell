@@ -9,7 +9,7 @@
 
 
 ## A card:  a word on the front, what it means on the back
-a "flash card" is a drawable thing where:
+a "flash card" is a view where:
 	- its "front" is text
 	- its "back" is text
 	// which side is up:  "one of" lists every value it can have, and it can't be anything else

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, drawn, positionOf, spellPosition } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn, positionOf, spellPosition } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("How Solitaire works")
@@ -22,7 +22,7 @@ export type Rank = (typeof Card.Ranks)[number]
 export type Suit = (typeof Card.Suits)[number]
 
 /** "one of" lists every value a property can have:  "2 ... 10" means every number in between */
-export class Card extends Drawable {
+export class Card extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "rank" is one of ace, 2 ... 10, jack, queen, king
@@ -76,7 +76,7 @@ export class Card extends Drawable {
  * `<test-project-card>`:  a card, drawn in its own element, e.g. by `draw the card`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its card's properties;  its methods call its card's.
- * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its card, is `SpellElement`'s.
  */
 export class CardElement extends SpellElement<Card> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-card", "card", [
@@ -92,7 +92,7 @@ core.useElement(Card, CardElement)
 
 core.heading("A pile, and a column")
 /** A pile, and a column */
-export class Pile extends DrawableList<Card> {
+export class Pile extends ViewableList<Card> {
   static instanceType = Card
   static elementTag = core.defineElement(this, "test-project")
 
@@ -103,7 +103,7 @@ export class Pile extends DrawableList<Card> {
  * `<test-project-pile>`:  a pile, drawn in its own element, e.g. by `draw the pile`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its pile's properties;  its methods call its pile's.
- * - What every drawable thing's element does, e.g. drawing its pile, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its pile, is `SpellElement`'s.
  */
 export class PileElement extends SpellElement<Pile> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-pile", "pile", [])
@@ -129,7 +129,7 @@ export class Column extends Pile {
  * `<test-project-column>`:  a column, drawn in its own element, e.g. by `draw the column`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its column's properties;  its methods call its column's.
- * - What every drawable thing's element does, e.g. drawing its column, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its column, is `SpellElement`'s.
  */
 export class ColumnElement extends SpellElement<Column> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-column", "column", [])
@@ -211,7 +211,7 @@ core.installStyles(undefined, `/* File styles.css:  how the table looks -- the c
 // -----------
 if (!core.isCarryingOver) testTheColumn()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

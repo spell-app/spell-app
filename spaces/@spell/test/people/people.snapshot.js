@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList } from "@spell/core"
 
 core.heading("People, and what they keep about each other (epic `people-and-orgs`, P1)")
 //////////////////////////////////////////////////////////////////////////////

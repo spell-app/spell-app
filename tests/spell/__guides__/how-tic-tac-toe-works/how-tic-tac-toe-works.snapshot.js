@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, position } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, position } from "@spell/core"
 
 core.heading("How Tic-Tac-Toe works")
 ///////////////////////////
@@ -17,8 +17,8 @@ core.heading("A square:  empty, or holding an X or an O")
 ///////////////////////////////////////////////
 // ## A square:  empty, or holding an X or an O
 ///////////////////////////////////////////////
-/** "drawable" means each square shows itself on the page, here as a button */
-export class Square extends Drawable {
+/** "view" means each square shows itself on the page, here as a button */
+export class Square extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "mark" is text
@@ -57,7 +57,7 @@ export class Square extends Drawable {
 }
 
 /** the board:  nine squares, three a row -- how they look is in styles.css, the other file in this guide */
-export class Board extends DrawableList {
+export class Board extends ViewableList {
   static instanceType = Square
   static elementTag = core.defineElement(this, "test-project")
 

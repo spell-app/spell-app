@@ -13,8 +13,8 @@
 ## 1. Things
 // A THING is anything your program is about:  a plant, a card, a task, a person.
 // You say what kind of thing it is once, and then you can make as many of them as you like.
-// "Drawable" means it can show itself on the page;  more on that in part 4.
-a "plant" is a drawable thing where:
+// A "view" can show itself on the page;  more on that in part 4.
+a "plant" is a view where:
 
 	## 2. Properties
 	// A PROPERTY is something a thing keeps:  a plant has a name, and so on.
@@ -49,8 +49,8 @@ a "plant" is a drawable thing where:
 
 
 ## Many things together:  a windowsill
-// A list of things can be drawable too:  it draws each one in turn.
-a "windowsill" is a drawable list of plants
+// A list of things can be a view too:  a viewable list draws each one in turn.
+a "windowsill" is a viewable list of plants
 
 // a plant sits on one windowsill
 a plant belongs to one windowsill

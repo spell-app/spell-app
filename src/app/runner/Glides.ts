@@ -2,7 +2,7 @@ import { E } from "spell-ui/core"
 
 /****************
  * ### `Glides`
- * A drawable thing that MOVES glides from where it was on screen to where it lands,
+ * A view that MOVES glides from where it was on screen to where it lands,
  * e.g. a card played from a tableau onto a foundation.
  *
  * - How:  note where it was, let it move, then slide it back from there (the "FLIP" technique).

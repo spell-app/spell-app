@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("How the Calculator works")
 //////////////////////////////

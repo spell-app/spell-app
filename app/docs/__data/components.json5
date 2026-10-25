@@ -51,7 +51,7 @@
         {
           "name": "project",
           "kind": "string",
-          "description": "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/Solitaire`.  The Type Explorer shows each declaration's spell and compiled code."
+          "description": "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/Solitaire`.  The Template Explorer shows each declaration's spell and compiled code."
         },
         {
           "name": "src",
@@ -193,7 +193,7 @@
         {
           "name": "spell-open",
           "detail": "{ href: string }",
-          "description": "A Type Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`."
+          "description": "A Template Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`."
         }
       ],
       "parts": [],
@@ -2508,10 +2508,10 @@
       "aka": [
         "web component",
         "custom element",
-        "drawable thing"
+        "view"
       ],
-      "description": "A spell thing drawn in its own element, with its own shadow root, styles and error boundary:  `a card is a drawable thing` in a solitaire app is drawn as `<solitaire-card>`.",
-      "noun": "drawable thing",
+      "description": "A spell thing drawn in its own element, with its own shadow root, styles and error boundary:  `a card is a view` in a solitaire app is drawn as `<solitaire-card>`.",
+      "noun": "view",
       "attributes": [
         {
           "name": "thing",
@@ -3773,7 +3773,7 @@
       "folder": "spell-element",
       "mainTag": "spell-element",
       "title": "SpellElement",
-      "summary": "A drawable thing, drawn as an element of its own, one tag per type.",
+      "summary": "A view, drawn as an element of its own, one tag per template.",
       "status": "done",
       "docs": false,
       "tags": [

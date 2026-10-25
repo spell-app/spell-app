@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("Habit Tracker")
 ///////////////////
@@ -14,7 +14,7 @@ core.heading("Habit Tracker")
 
 core.heading("A habit:  its name, a yes or no for each day of the week")
 /** A habit:  its name, a yes or no for each day of the week */
-export class Habit extends Drawable {
+export class Habit extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "name" is text
@@ -105,7 +105,7 @@ export class Habit extends Drawable {
 
 core.heading("The week:  the habits, one a row")
 /** The week:  the habits, one a row */
-export class Week extends DrawableList {
+export class Week extends ViewableList {
   static instanceType = Habit
   static elementTag = core.defineElement(this, "test-project")
 

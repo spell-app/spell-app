@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import h from "@solidjs/h"
 
-import { core, App, Drawable, DrawableList, Thing } from "spell-parser/core"
+import { core, App, View, ViewableList, Thing } from "spell-parser/core"
 import { P } from "spell-parser/parser"
 import { E } from "spell-ui/core"
 import { RootLoader } from "spell-ui/components/ui-root"
@@ -12,27 +12,27 @@ import { installSpellElements, SpellElement } from "spell-app/app/runner/SpellEl
 import "spell-app/app/solid/cellsBridge"
 
 /**
- * A drawable thing's own element (epic `drawable-thing`, P3).
- * - A project's last line defines its drawable classes' elements,
+ * A view's own element (epic `drawable-thing`, P3).
+ * - A project's last line defines its view classes' elements,
  *   and each draws its `thing` in its own shadow root, as a Spell UI element does.
  */
 describe("SpellElement", () => {
   installSpellElements(core)
 
   /** A card that draws its rank. */
-  class Card extends Drawable {
+  class Card extends View {
     get rank() {
       return this.getProp("rank")
     }
     set rank(value) {
       this.setProp("rank", value)
     }
-    draw(): ReturnType<Drawable["draw"]> {
-      return (h("span", { class: "rank" }, () => `${this.rank}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+    draw(): ReturnType<View["draw"]> {
+      return (h("span", { class: "rank" }, () => `${this.rank}`) as unknown as () => ReturnType<View["draw"]>)()
     }
   }
 
-  test("a project's drawable class gets its tag, defined on the page once the class is whole", async () => {
+  test("a project's view class gets its tag, defined on the page once the class is whole", async () => {
     core.defineElement(Card, "Solitaire")
     await Promise.resolve()
     expect(customElements.get("solitaire-card")).toBeDefined()
@@ -55,10 +55,10 @@ describe("SpellElement", () => {
   })
 
   test("its type's own <css> is adopted after the page's, its super-types' first", async () => {
-    class Note extends Drawable {
+    class Note extends View {
       static css = ".note { color: rgb(1, 2, 3) }"
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("p", { class: "note" }, "hi") as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("p", { class: "note" }, "hi") as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     class Memo extends Note {
@@ -79,11 +79,11 @@ describe("SpellElement", () => {
     // what the runner does for a Spanish program, before it runs it
     await RootLoader.useLanguage("es")
     /** A Spanish card:  its own colour words, as Spell UI's Spanish tag takes them. */
-    class Carta extends Drawable {
+    class Carta extends View {
       color = "rojo"
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         const text = h("es-texto", { tamano: "gigante", "prop:color": () => this.color }, "🂱")
-        return (text as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (text as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     core.defineElement(Carta, "Solitario")
@@ -105,9 +105,9 @@ describe("SpellElement", () => {
     expect(customElements.get("solitaire-card")).toBe(defined)
   })
 
-  describe("a program draws a drawable thing as its element (P5)", () => {
+  describe("a program draws a view as its element (P5)", () => {
     /** A card that draws its rank as a button, counting its clicks;  a rank of `bad` throws. */
-    class Ace extends Drawable {
+    class Ace extends View {
       static elementTag = core.defineElement(this, "Game")
       clicks = 0
       get rank() {
@@ -116,18 +116,18 @@ describe("SpellElement", () => {
       set rank(value) {
         this.setProp("rank", value)
       }
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         if (this.rank === "bad") throw new Error("no such rank")
         const button = h("button", { onClick: (_event: Event) => this.clicks++ }, () => `${this.rank}`)
-        return (button as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (button as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     /** The game:  draws its two cards. */
     class Table extends App {
       cards = [new Ace(), new Ace()]
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         const children = this.cards.map((card) => () => core.drawThing(card))
-        return (h("div", { class: "table" }, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (h("div", { class: "table" }, ...children) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
 
@@ -161,32 +161,32 @@ describe("SpellElement", () => {
     })
   })
 
-  describe("a drawable list's items are its element's children (P6)", () => {
+  describe("a viewable list's items are its element's children (P6)", () => {
     /** A card, drawn as its name. */
-    class Chip extends Drawable {
+    class Chip extends View {
       static elementTag = core.defineElement(this, "Game")
       constructor(public label = "") {
         super()
       }
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("b", {}, this.label) as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("b", {}, this.label) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     /** A pile:  its outside a box around its slot. */
-    class Heap extends DrawableList<Chip> {
+    class Heap extends ViewableList<Chip> {
       static elementTag = core.defineElement(this, "Game")
       static instanceType = Chip
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("div", { class: "heap" }, h("slot", {})) as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("div", { class: "heap" }, h("slot", {})) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     /** Two heaps, side by side. */
     class Board extends App {
       left = new Heap()
       right = new Heap()
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         const heaps = [() => core.drawThing(this.left), () => core.drawThing(this.right)]
-        return (h("div", {}, ...heaps) as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (h("div", {}, ...heaps) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
 
@@ -217,17 +217,17 @@ describe("SpellElement", () => {
     })
 
     /** A heap with no drawing of its own:  its wrapper just the slot, each chip as itself. */
-    class Bare extends DrawableList<Chip> {
+    class Bare extends ViewableList<Chip> {
       static elementTag = core.defineElement(this, "Game")
       static instanceType = Chip
     }
     /** A heap that draws each chip in a spot of its own (`to draw each item`). */
-    class Spots extends DrawableList<Chip> {
+    class Spots extends ViewableList<Chip> {
       static elementTag = core.defineElement(this, "Game")
       static instanceType = Chip
-      drawEachItem(chip: Chip): ReturnType<Drawable["draw"]> {
+      drawEachItem(chip: Chip): ReturnType<View["draw"]> {
         const spot = h("div", { class: "spot" }, () => core.drawThing(chip))
-        return (spot as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (spot as unknown as () => ReturnType<View["draw"]>)()
       }
     }
 
@@ -251,7 +251,7 @@ describe("SpellElement", () => {
     })
 
     /** A heap of a family:  a chip is in one pot at a time, so putting it in another MOVES it. */
-    class Pot extends DrawableList<Chip> {
+    class Pot extends ViewableList<Chip> {
       static elementTag = core.defineElement(this, "Game")
       static instanceType = Chip
       static exclusive = true
@@ -329,7 +329,7 @@ describe("SpellElement", () => {
     // a tray of tokens, each in one tray at a time, as `a token belongs to one tray` compiles:
     // made before any token is drawn, so the token's tag knows its `tray` (`core.elementApiOf()`)
     /** A list of a family:  dragging a token from one to another moves it. */
-    class Tray extends DrawableList<Token> {
+    class Tray extends ViewableList<Token> {
       static elementTag = core.defineElement(this, "Game")
       static exclusive = true
       // `a tray can be dropped on`
@@ -337,15 +337,15 @@ describe("SpellElement", () => {
     }
     const trays = [new Tray(), new Tray()]
     /** A token, drawn as its label;  its tray is the one holding it. */
-    class Token extends Drawable {
+    class Token extends View {
       static elementTag = core.defineElement(this, "Game")
       // `a token can be dragged`
       static canBeDragged = true
       constructor(public label = "") {
         super()
       }
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("b", {}, this.label) as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("b", {}, this.label) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     Object.defineProperty(Token.prototype, "tray", {
@@ -580,22 +580,22 @@ describe("SpellElement", () => {
     })
 
     /** A column whose chits people may reorder:  `- its items can be reordered`, waiting a tenth of a second. */
-    class Column extends DrawableList<Chit> {
+    class Column extends ViewableList<Chit> {
       static elementTag = core.defineElement(this, "Game")
       static exclusive = true
       static reorderItemsAfter = 0.1
     }
     /** A chit, drawn as its label and a field:  `a chit can be dragged`, `can be selected`. */
-    class Chit extends Drawable {
+    class Chit extends View {
       static elementTag = core.defineElement(this, "Game")
       static canBeDragged = true
       static canBeSelected = true
       constructor(public label = "") {
         super()
       }
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         return (
-          h("b", {}, this.label, h("input", { "aria-label": "field" })) as unknown as () => ReturnType<Drawable["draw"]>
+          h("b", {}, this.label, h("input", { "aria-label": "field" })) as unknown as () => ReturnType<View["draw"]>
         )()
       }
     }
@@ -800,12 +800,12 @@ describe("SpellElement", () => {
   })
 
   describe("a program run again swaps what's behind its tags (P7)", () => {
-    /** A version of a drawable `Badge` class:  its CSS colours its text `color`, and it draws `text`. */
+    /** A version of a view class, `Badge`:  its CSS colours its text `color`, and it draws `text`. */
     function badgeVersion(color: string, text: string) {
-      return class Badge extends Drawable {
+      return class Badge extends View {
         static css = `.badge { color: ${color} }`
-        draw(): ReturnType<Drawable["draw"]> {
-          return (h("i", { class: "badge" }, text) as unknown as () => ReturnType<Drawable["draw"]>)()
+        draw(): ReturnType<View["draw"]> {
+          return (h("i", { class: "badge" }, text) as unknown as () => ReturnType<View["draw"]>)()
         }
       }
     }
@@ -838,7 +838,7 @@ describe("SpellElement", () => {
 
   describe("its outside is its type's:  attributes, properties, methods (P8)", () => {
     /** A playing card:  its rank (one of ace, 2 ... 12), suit and side, drawn as e.g. `ace of spades`. */
-    class Ace2 extends Drawable {
+    class Ace2 extends View {
       static elementTag = core.defineElement(this, "Plain")
       get rank() {
         return this.getProp("rank")
@@ -861,16 +861,16 @@ describe("SpellElement", () => {
       turn_over() {
         this.face_up = !this.face_up
       }
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         const text = () => (this.face_up ? `${this.rank} of ${this.suit}` : "back")
-        return (h("span", { class: "face" }, text) as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (h("span", { class: "face" }, text) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     Ace2.declareProp("rank", { oneOf: ["ace", 2, 3, 12] })
     Ace2.declareProp("suit", { type: "text" })
     Ace2.declareProp("face_up", { type: "choice" })
     /** A pile of them. */
-    class Stack2 extends DrawableList<Ace2> {
+    class Stack2 extends ViewableList<Ace2> {
       static elementTag = core.defineElement(this, "Plain")
       static instanceType = Ace2
     }
@@ -909,7 +909,7 @@ describe("SpellElement", () => {
 
   describe("the element and its thing agree, both ways (P13)", () => {
     /** A card:  its rank (one of ace, 2, 3, 12), suit, direction (up or down) and whether it's marked. */
-    class Deuce extends Drawable {
+    class Deuce extends View {
       static elementTag = core.defineElement(this, "Agree")
       get rank() {
         return this.getProp("rank")
@@ -938,9 +938,9 @@ describe("SpellElement", () => {
       turn_over() {
         this.direction = this.direction === "up" ? "down" : "up"
       }
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         const text = () => (this.direction === "up" ? `${this.rank} of ${this.suit}` : "back")
-        return (h("span", { class: "face" }, text) as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (h("span", { class: "face" }, text) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     Deuce.declareProp("rank", { oneOf: ["ace", 2, 3, 12] })
@@ -1064,9 +1064,9 @@ describe("SpellElement", () => {
       /** Two cards on a table. */
       class Felt extends App {
         cards = [new Deuce({ rank: 2, suit: "clubs", direction: "down", marked: false }), new Deuce({ rank: "ace" })]
-        draw(): ReturnType<Drawable["draw"]> {
+        draw(): ReturnType<View["draw"]> {
           const children = this.cards.map((card) => () => core.drawThing(card))
-          return (h("div", {}, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
+          return (h("div", {}, ...children) as unknown as () => ReturnType<View["draw"]>)()
         }
       }
       const felt = new Felt()
@@ -1093,7 +1093,7 @@ describe("SpellElement", () => {
 
   describe("thing references:  Type#name, Type#1, an attribute holding a thing (P18)", () => {
     /** A chip:  drawn as its label;  its home a stack, declared;  the stack holding it, worked out. */
-    class Chip extends Drawable {
+    class Chip extends View {
       static elementTag = core.defineElement(this, "Drawable Board")
       get label() {
         return this.getProp("label")
@@ -1107,18 +1107,18 @@ describe("SpellElement", () => {
       set home(value) {
         this.setProp("home", value)
       }
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("i", {}, () => `${this.label}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("i", {}, () => `${this.label}`) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     Chip.declareProp("label", { type: "text" })
     Chip.declareProp("home", { type: "Stack" })
     /** A stack of chips, each in one stack at a time:  drawn as its name, every list's, built in. */
-    class Stack extends DrawableList<Chip> {
+    class Stack extends ViewableList<Chip> {
       static elementTag = core.defineElement(this, "Drawable Board")
       static instanceType = Chip
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("b", {}, () => `${this.name}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("b", {}, () => `${this.name}`) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     Stack.declareProp("name", { type: "text" })
@@ -1245,7 +1245,7 @@ describe("SpellElement", () => {
 
   describe("an element the program draws is named after its thing, by its id (J43)", () => {
     /** A playing card, named for its rank and suit as Drawable Solitaire's is;  drawn as its name. */
-    class Playing extends Drawable {
+    class Playing extends View {
       static elementTag = core.defineElement(this, "Drawable Parlor")
       get rank(): string | undefined {
         return this.getProp("rank") as string | undefined
@@ -1262,8 +1262,8 @@ describe("SpellElement", () => {
       get name() {
         return this.rank === undefined ? undefined : `${this.rank}-of-${this.suit}`
       }
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("i", {}, () => `${this.name ?? "blank"}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("i", {}, () => `${this.name ?? "blank"}`) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     Playing.declareProp("rank", { type: "text" })
@@ -1271,9 +1271,9 @@ describe("SpellElement", () => {
     /** A table with two decks' queens of one suit, and a blank card with no name -- see `parlorOf()`. */
     class Parlor extends App {
       cards: Playing[] = []
-      draw(): ReturnType<Drawable["draw"]> {
+      draw(): ReturnType<View["draw"]> {
         const children = this.cards.map((card) => () => core.drawThing(card))
-        return (h("div", {}, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
+        return (h("div", {}, ...children) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
 
@@ -1294,7 +1294,7 @@ describe("SpellElement", () => {
     }
 
     /** `app` drawn in a new root on the page, settled:  the root, and its card elements. */
-    async function drawn(app: Drawable) {
+    async function drawn(app: View) {
       const root = document.createElement("div")
       document.body.append(root)
       core.mountApp(app, root)
@@ -1355,7 +1355,7 @@ describe("SpellElement", () => {
 
   describe("an element class compiled TypeScript hands over:  the page builds the tag on it (P10)", () => {
     /** A tile, labelled, drawn as its label. */
-    class Tile extends Drawable {
+    class Tile extends View {
       static elementTag = core.defineElement(this, "Board")
       static css = ".tile { color: rgb(7, 8, 9) }"
       get label() {
@@ -1376,8 +1376,8 @@ describe("SpellElement", () => {
       poke() {
         return "poked"
       }
-      draw(): ReturnType<Drawable["draw"]> {
-        return (h("span", { class: "tile" }, () => `${this.label}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      draw(): ReturnType<View["draw"]> {
+        return (h("span", { class: "tile" }, () => `${this.label}`) as unknown as () => ReturnType<View["draw"]>)()
       }
     }
     Tile.declareProp("label", { type: "text" })

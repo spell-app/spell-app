@@ -132,7 +132,7 @@ describe("SpellLanguageService, in Spanish", () => {
   test("hover over a type names it, in the file's language (P13, P19)", () => {
     const line = mazoText.split("\n").findIndex((it) => it.startsWith('un "mazo" es una lista de cartas'))
     const hover = service.hover(mazo, { line, character: 5 })
-    expect(JSON.stringify(hover?.contents)).toMatch(/tipo \*\*Mazo\*\*/)
+    expect(JSON.stringify(hover?.contents)).toMatch(/plantilla \*\*Mazo\*\*/)
   })
 
   describe("accent fixes", () => {

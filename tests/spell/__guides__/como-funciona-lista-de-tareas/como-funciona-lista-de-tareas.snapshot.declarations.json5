@@ -12,21 +12,21 @@
   "statements": [
     {
       "type": "Tarea",
-      "superType": "Drawable",
+      "superType": "View",
       "gender": "feminine",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:734-1176"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:734-1167"
     },
     {
       "property": "título",
       "of": "Tarea",
       "datatype": "text",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:778-798"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:769-789"
     },
     {
       "property": "hecha",
       "of": "Tarea",
       "datatype": "choice",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:802-823"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:793-814"
     },
     {
       "syntax": "{operator:is_or_is_not} hecha",
@@ -36,7 +36,7 @@
       "kind": "method",
       "name": "\"está hecha\"",
       "returns": "choice",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:827-857"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:818-848"
     },
     {
       "syntax": "{operator:is_or_is_not} pendiente",
@@ -46,14 +46,14 @@
       "kind": "method",
       "name": "\"está pendiente\"",
       "returns": "choice",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:861-895"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:852-886"
     },
     {
       "type": "Agenda",
-      "superType": "DrawableList",
+      "superType": "ViewableList",
       "gender": "feminine",
       "itemType": "Tarea",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:1232-1685"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:1223-1674"
     },
     {
       "property": "mostrando",
@@ -64,32 +64,32 @@
         "pendientes",
         "hechas"
       ],
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:1356-1407"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:1345-1396"
     },
     {
       "property": "agenda",
       "of": "Tarea",
       "datatype": "Agenda",
       "exclusive": true,
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:1687-1719"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:1676-1708"
     },
     {
       "type": "ListaDeTareas",
       "superType": "App",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:1739-2646"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:1728-2635"
     },
     {
       "property": "tareas",
       "of": "ListaDeTareas",
       "datatype": "Agenda",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:1783-1815"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:1772-1804"
     },
     {
       "property": "cuenta_pendiente",
       "asWritten": "cuenta pendiente",
       "of": "ListaDeTareas",
       "datatype": "number",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:1882-1962"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:1871-1951"
     },
     {
       "syntax": "probar la cuenta pendiente",
@@ -98,7 +98,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "la cuenta pendiente",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:3114-3371"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:3103-3360"
     }
   ],
   "codeLines": [

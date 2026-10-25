@@ -20,8 +20,8 @@
   "statements": [
     {
       "type": "Card",
-      "superType": "Drawable",
-      "defined": "/Card.spell:260-3120"
+      "superType": "View",
+      "defined": "/Card.spell:250-3100"
     },
     {
       "property": "rank",
@@ -42,13 +42,13 @@
         "queen",
         "king"
       ],
-      "defined": "/Card.spell:312-365"
+      "defined": "/Card.spell:292-345"
     },
     {
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "defined": "/Card.spell:370-409"
+      "defined": "/Card.spell:350-389"
     },
     {
       "syntax": "{operator:is_or_is_not_a} (expression:ace|aces|2|3|4|5|6|7|8|9|10|jack|jacks|queen|queens|king|kings)",
@@ -74,7 +74,7 @@
           "king"
         ]
       },
-      "defined": "/Card.spell:447-463"
+      "defined": "/Card.spell:427-443"
     },
     {
       "syntax": "{operator:is_or_is_not_a} face card",
@@ -84,7 +84,7 @@
       "kind": "method",
       "name": "\"is a face card\"",
       "returns": "choice",
-      "defined": "/Card.spell:497-551"
+      "defined": "/Card.spell:477-531"
     },
     {
       "syntax": "{operator:is_or_is_not_a} number card",
@@ -94,7 +94,7 @@
       "kind": "method",
       "name": "\"is a number card\"",
       "returns": "choice",
-      "defined": "/Card.spell:580-626"
+      "defined": "/Card.spell:560-606"
     },
     {
       "property": "suit",
@@ -106,7 +106,7 @@
         "hearts",
         "spades"
       ],
-      "defined": "/Card.spell:674-728"
+      "defined": "/Card.spell:654-708"
     },
     {
       "syntax": "{operator:is_or_is_not_a} (expression:clubs|club|diamonds|diamond|hearts|heart|spades|spade)",
@@ -123,30 +123,30 @@
           "spades"
         ]
       },
-      "defined": "/Card.spell:732-748"
+      "defined": "/Card.spell:712-728"
     },
     {
       "property": "color",
       "of": "Card",
-      "defined": "/Card.spell:786-870"
+      "defined": "/Card.spell:766-850"
     },
     {
       "constants": [
         "red"
       ],
-      "defined": "/Card.spell:815-852"
+      "defined": "/Card.spell:795-832"
     },
     {
       "constants": [
         "black"
       ],
-      "defined": "/Card.spell:855-870"
+      "defined": "/Card.spell:835-850"
     },
     {
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:894-936"
+      "defined": "/Card.spell:874-916"
     },
     {
       "syntax": "{operator:is_or_is_not} {definite_article} (expression:ace|aces|2|3|4|5|6|7|8|9|10|jack|jacks|queen|queens|king|kings) of (expression:clubs|club|diamonds|diamond|hearts|heart|spades|spade)",
@@ -178,7 +178,7 @@
           "spades"
         ]
       },
-      "defined": "/Card.spell:964-992"
+      "defined": "/Card.spell:944-972"
     },
     {
       "property": "direction",
@@ -188,7 +188,7 @@
         "up",
         "down"
       ],
-      "defined": "/Card.spell:1078-1107"
+      "defined": "/Card.spell:1058-1087"
     },
     {
       "syntax": "{operator:is_or_is_not} face (expression:up|ups|down|downs)",
@@ -203,7 +203,7 @@
           "down"
         ]
       },
-      "defined": "/Card.spell:1111-1135"
+      "defined": "/Card.spell:1091-1115"
     },
     {
       "syntax": "turn {thisArg:expression} face up",
@@ -217,7 +217,7 @@
       "kind": "method",
       "name": "turn it face up",
       "waits": true,
-      "defined": "/Card.spell:1265-1330"
+      "defined": "/Card.spell:1245-1310"
     },
     {
       "syntax": "turn {thisArg:expression} face down",
@@ -231,7 +231,7 @@
       "kind": "method",
       "name": "turn it face down",
       "waits": true,
-      "defined": "/Card.spell:1334-1403"
+      "defined": "/Card.spell:1314-1383"
     },
     {
       "syntax": "turn {thisArg:expression} over",
@@ -245,13 +245,13 @@
       "kind": "method",
       "name": "turn it over",
       "waits": true,
-      "defined": "/Card.spell:1407-1510"
+      "defined": "/Card.spell:1387-1490"
     },
     {
       "property": "picture",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1652-2257"
+      "defined": "/Card.spell:1632-2237"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -264,19 +264,19 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Card.spell:2549-2741"
+      "defined": "/Card.spell:2529-2721"
     },
     {
       "property": "symbol",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2746-2871"
+      "defined": "/Card.spell:2726-2851"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2916-3120"
+      "defined": "/Card.spell:2896-3100"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -335,7 +335,7 @@
     {
       "type": "Joker",
       "superType": "Card",
-      "defined": "/Card.spell:4489-4908"
+      "defined": "/Card.spell:4469-4888"
     },
     {
       "property": "color",
@@ -345,7 +345,7 @@
         "red",
         "black"
       ],
-      "defined": "/Card.spell:4519-4553"
+      "defined": "/Card.spell:4499-4533"
     },
     {
       "syntax": "{operator:is_or_is_not} {definite_article} (expression:red|reds|black|blacks) joker",
@@ -361,31 +361,31 @@
         ]
       },
       "staticOf": "Joker",
-      "defined": "/Card.spell:4557-4582"
+      "defined": "/Card.spell:4537-4562"
     },
     {
       "property": "value",
       "of": "Joker",
       "datatype": "number",
-      "defined": "/Card.spell:4619-4675"
+      "defined": "/Card.spell:4599-4655"
     },
     {
       "property": "picture",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:4680-4710"
+      "defined": "/Card.spell:4660-4690"
     },
     {
       "property": "name",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:4716-4748"
+      "defined": "/Card.spell:4696-4728"
     },
     {
       "property": "state",
       "of": "Joker",
       "datatype": "text",
-      "defined": "/Card.spell:4752-4908"
+      "defined": "/Card.spell:4732-4888"
     },
     {
       "syntax": "test card setup",
@@ -394,7 +394,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spell:3132-4403"
+      "defined": "/Card.spell:3112-4383"
     },
     {
       "syntax": "test jokers",
@@ -403,7 +403,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "jokers",
-      "defined": "/Card.spell:4910-5623"
+      "defined": "/Card.spell:4890-5603"
     },
     {
       "type": "Deck",
@@ -456,7 +456,7 @@
     },
     {
       "type": "Pile",
-      "superType": "DrawableList",
+      "superType": "ViewableList",
       "itemType": "Card",
       "defined": "/Pile.spell:258-1087"
     },

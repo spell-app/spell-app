@@ -1,7 +1,7 @@
 ## A pile of cards, e.g. a game's stock or its discards
 // The game that uses these cards names its piles, and says what each kind of pile takes.
-// A drawable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
-a "pile" is a drawable list of cards where:
+// A viewable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
+a "pile" is a viewable list of cards where:
 	// what the game calls it, e.g. "stock"
 	- its "name" is text
 	// how its cards lie:  on top of each other, down a column, along a row, or fanned as a hand is held -- styles.css

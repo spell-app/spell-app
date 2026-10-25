@@ -230,7 +230,7 @@ iniciar solitario
 
 
 ## Las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas
-// Cada pila es una lista dibujable:  un elemento propio, p. ej. `<solitario-columna>`, alrededor de los elementos de sus cartas.
+// Cada pila es una lista visible:  un elemento propio, p. ej. `<solitario-columna>`, alrededor de los elementos de sus cartas.
 // Cómo están sus cartas es su disposición:  styles.css dibuja cada una.
 // Mientras está vacía, muestra su marcador, si tiene uno.
 

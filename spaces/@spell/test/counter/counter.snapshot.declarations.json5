@@ -8,14 +8,14 @@
   "statements": [
     {
       "type": "Counter",
-      "superType": "Drawable",
-      "defined": "/Counter.spell:240-591"
+      "superType": "View",
+      "defined": "/Counter.spell:230-571"
     },
     {
       "property": "count",
       "of": "Counter",
       "datatype": "number",
-      "defined": "/Counter.spell:282-305"
+      "defined": "/Counter.spell:262-285"
     },
     {
       "syntax": "create {thisArg:expression}",
@@ -28,7 +28,7 @@
       ],
       "kind": "method",
       "name": "create it",
-      "defined": "/Counter.spell:339-373"
+      "defined": "/Counter.spell:319-353"
     },
     {
       "syntax": "increment {thisArg:expression}",
@@ -41,7 +41,7 @@
       ],
       "kind": "method",
       "name": "increment it",
-      "defined": "/Counter.spell:378-427"
+      "defined": "/Counter.spell:358-407"
     },
     {
       "syntax": "test counting",
@@ -50,7 +50,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "counting",
-      "defined": "/Counter.spell:603-712"
+      "defined": "/Counter.spell:583-692"
     }
   ],
   "codeLines": [

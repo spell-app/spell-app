@@ -121,7 +121,7 @@ describe("chrome + Actions", () => {
       </PanelMenu>
     ))
     const [showEditor, saveFile] = host.querySelectorAll("ui-item")
-    expect(text(showEditor)).toBe("Edit Project")
+    expect(text(showEditor)).toBe("Edit App")
     expect(saveFile.hasAttribute("selected")).toBe(false)
 
     editor.projectRoot = { type: "example", Type: "Example" } as EditorStore["projectRoot"]

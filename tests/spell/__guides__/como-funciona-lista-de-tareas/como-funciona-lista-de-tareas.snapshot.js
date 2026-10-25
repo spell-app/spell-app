@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("Cómo funciona Lista de tareas")
 ///////////////////////////////////
@@ -17,7 +17,7 @@ core.heading("Cómo funciona Lista de tareas")
 
 core.heading("Una tarea")
 /** Una tarea */
-export class Tarea extends Drawable {
+export class Tarea extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // su "título" es texto
@@ -55,7 +55,7 @@ export class Tarea extends Drawable {
 
 core.heading("La agenda:  las tareas, mostradas según su filtro")
 /** La agenda:  las tareas, mostradas según su filtro */
-export class Agenda extends DrawableList {
+export class Agenda extends ViewableList {
   static instanceType = Tarea
   static elementTag = core.defineElement(this, "test-project")
 

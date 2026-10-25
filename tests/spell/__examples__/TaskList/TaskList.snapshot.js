@@ -1,11 +1,11 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("A task:  something to do -- in the outline style:  its name, then what's true of it")
 /////////////////////////////////////////////////////////////////////////////////////////
 // ## A task:  something to do -- in the outline style:  its name, then what's true of it
 /////////////////////////////////////////////////////////////////////////////////////////
-/** A drawable thing:  each task is its own element on the page, `<task-list-task>`. */
-export class Task extends Drawable {
+/** A view:  each task is its own element on the page, `<task-list-task>`. */
+export class Task extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "title" is text
@@ -107,8 +107,8 @@ core.heading("The checklist:  the tasks, each its own element inside it")
 ///////////////////////////////////////////////////////////////
 // ## The checklist:  the tasks, each its own element inside it
 ///////////////////////////////////////////////////////////////
-/** a drawable list:  `<task-list-checklist>`, around its tasks' `<task-list-task>`s */
-export class Checklist extends DrawableList {
+/** a viewable list:  `<task-list-checklist>`, around its tasks' `<task-list-task>`s */
+export class Checklist extends ViewableList {
   static instanceType = Task
   static elementTag = core.defineElement(this, "test-project")
 

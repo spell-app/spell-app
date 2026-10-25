@@ -1,11 +1,11 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("Una tarea:  algo por hacer -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // ## Una tarea:  algo por hacer -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-/** Una cosa dibujable:  cada tarea es un elemento propio en la página, `<lista-de-tareas-tarea>`. */
-export class Tarea extends Drawable {
+/** Una vista:  cada tarea es un elemento propio en la página, `<lista-de-tareas-tarea>`. */
+export class Tarea extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // su "título" es texto
@@ -105,8 +105,8 @@ core.heading("La agenda:  las tareas, cada una un elemento propio dentro de ella
 ////////////////////////////////////////////////////////////////////////
 // ## La agenda:  las tareas, cada una un elemento propio dentro de ella
 ////////////////////////////////////////////////////////////////////////
-/** una lista dibujable:  `<lista-de-tareas-agenda>`, alrededor de las `<lista-de-tareas-tarea>` de sus tareas */
-export class Agenda extends DrawableList {
+/** una lista visible:  `<lista-de-tareas-agenda>`, alrededor de las `<lista-de-tareas-tarea>` de sus tareas */
+export class Agenda extends ViewableList {
   static instanceType = Tarea
   static elementTag = core.defineElement(this, "test-project")
 

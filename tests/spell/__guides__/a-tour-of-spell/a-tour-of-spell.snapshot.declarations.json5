@@ -9,28 +9,28 @@
   "statements": [
     {
       "type": "Plant",
-      "superType": "Drawable",
-      "defined": "/TourOfSpell.spell:787-2123"
+      "superType": "View",
+      "defined": "/TourOfSpell.spell:776-2102"
     },
     {
       "property": "name",
       "of": "Plant",
       "datatype": "text",
-      "defined": "/TourOfSpell.spell:1040-1058"
+      "defined": "/TourOfSpell.spell:1019-1037"
     },
     {
       "property": "days_between_waterings",
       "asWritten": "days between waterings",
       "of": "Plant",
       "datatype": "number",
-      "defined": "/TourOfSpell.spell:1062-1102"
+      "defined": "/TourOfSpell.spell:1041-1081"
     },
     {
       "property": "days_since_watered",
       "asWritten": "days since watered",
       "of": "Plant",
       "datatype": "number",
-      "defined": "/TourOfSpell.spell:1106-1142"
+      "defined": "/TourOfSpell.spell:1085-1121"
     },
     {
       "syntax": "{operator:is_or_is_not} thirsty",
@@ -40,13 +40,13 @@
       "kind": "method",
       "name": "\"is thirsty\"",
       "returns": "choice",
-      "defined": "/TourOfSpell.spell:1335-1431"
+      "defined": "/TourOfSpell.spell:1314-1410"
     },
     {
       "property": "status",
       "of": "Plant",
       "datatype": "text",
-      "defined": "/TourOfSpell.spell:1435-1512"
+      "defined": "/TourOfSpell.spell:1414-1491"
     },
     {
       "syntax": "water {thisArg:expression}",
@@ -59,7 +59,7 @@
       ],
       "kind": "method",
       "name": "water it",
-      "defined": "/TourOfSpell.spell:1590-1636"
+      "defined": "/TourOfSpell.spell:1569-1615"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -72,31 +72,31 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TourOfSpell.spell:1894-2123"
+      "defined": "/TourOfSpell.spell:1873-2102"
     },
     {
       "type": "Windowsill",
-      "superType": "DrawableList",
+      "superType": "ViewableList",
       "itemType": "Plant",
-      "defined": "/TourOfSpell.spell:2234-2277"
+      "defined": "/TourOfSpell.spell:2224-2267"
     },
     {
       "property": "windowsill",
       "of": "Plant",
       "datatype": "Windowsill",
       "exclusive": true,
-      "defined": "/TourOfSpell.spell:2313-2346"
+      "defined": "/TourOfSpell.spell:2303-2336"
     },
     {
       "type": "Garden",
       "superType": "App",
-      "defined": "/TourOfSpell.spell:2383-2764"
+      "defined": "/TourOfSpell.spell:2373-2754"
     },
     {
       "property": "sill",
       "of": "Garden",
       "datatype": "Windowsill",
-      "defined": "/TourOfSpell.spell:2410-2440"
+      "defined": "/TourOfSpell.spell:2400-2430"
     },
     {
       "syntax": "wait a day (of {thisArg:expression})?",
@@ -109,7 +109,7 @@
       ],
       "kind": "method",
       "name": "wait a day",
-      "defined": "/TourOfSpell.spell:2493-2622"
+      "defined": "/TourOfSpell.spell:2483-2612"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -122,7 +122,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TourOfSpell.spell:2626-2764"
+      "defined": "/TourOfSpell.spell:2616-2754"
     },
     {
       "syntax": "test thirst",
@@ -131,7 +131,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "thirst",
-      "defined": "/TourOfSpell.spell:3299-3542"
+      "defined": "/TourOfSpell.spell:3289-3532"
     }
   ],
   "codeLines": [

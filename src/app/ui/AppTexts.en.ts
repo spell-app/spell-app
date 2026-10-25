@@ -32,7 +32,7 @@ export const APP_TEXTS = {
   showLineNumbers: "Show line numbers",
   resetApp: "Reset {Type}",
   runTests: "Run Tests",
-  newProject: "New Project",
+  newProject: "New App",
   newExample: "New Example",
   newGuide: "New Guide",
   newFile: "New File",
@@ -77,7 +77,7 @@ export const APP_TEXTS = {
 
   welcome: "Welcome to Spell!",
   openGroup: "Open {Type}",
-  createNewProject: "Create a New Project",
+  createNewProject: "Create a New App",
   createNewExample: "Create a New Example",
   createNewGuide: "Create a New Guide",
   loadingGroup: "Loading...",
@@ -103,23 +103,23 @@ export const APP_TEXTS = {
   homeExamplesLine: "Open one, change it, make it yours.",
   homeGuidesLine: "Your idea, your pace.",
   homeProjectsLine: "What you've made, and where to start the next one.",
-  homeFixturesLine: "The frozen projects the tests run against.",
+  homeFixturesLine: "The frozen apps the tests run against.",
   homeNoGuides: "Guides are on their way.",
 
   ////////////////
   // ## Project groups:  each group's words, by its `type` (spaces' `PROJECT_GROUPS`)
   ////////////////
 
-  "type.project": "project",
-  "Type.project": "Project",
-  "theType.project": "the project",
-  "title.project": "Projects",
-  "description.project": "Your own projects",
+  "type.project": "app",
+  "Type.project": "App",
+  "theType.project": "the app",
+  "title.project": "Apps",
+  "description.project": "Your own apps",
   "type.example": "example",
   "Type.example": "Example",
   "theType.example": "the example",
   "title.example": "Examples",
-  "description.example": "Example projects",
+  "description.example": "Example apps",
   "type.guide": "guide",
   "Type.guide": "Guide",
   "theType.guide": "the guide",
@@ -129,12 +129,12 @@ export const APP_TEXTS = {
   "Type.library": "Library",
   "theType.library": "the library",
   "title.library": "Libraries",
-  "description.library": "Libraries other projects import, e.g. `@spell/library/people` in a project file",
+  "description.library": "Libraries other apps import, e.g. `@spell/library/people` in an app's `__project.json5`",
   "type.fixture": "fixture",
   "Type.fixture": "Fixture",
   "theType.fixture": "the fixture",
   "title.fixture": "Test fixtures",
-  "description.fixture": "Frozen projects tests run against -- edit one, then `yarn spell:test:fixtures:bless`",
+  "description.fixture": "Frozen apps tests run against -- edit one, then `yarn spell:test:fixtures:bless`",
 
   ////////////////
   // ## Notices and errors (`editor.ts`)
@@ -150,10 +150,10 @@ export const APP_TEXTS = {
   fileDuplicated: "File duplicated.",
   fileRenamed: "File renamed.",
   fileRemoved: "File removed.",
-  noTypesYet: "{Type} {name} has no types yet:  compile it first.",
-  noSuchType: "{Type} {name} has no type `{typeName}`.",
+  noTypesYet: "{Type} {name} has no templates yet:  compile it first.",
+  noSuchType: "{Type} {name} has no template `{typeName}`.",
   propertyEditorHeader: "New Property Editor",
-  propertyEditorMessage: "Make a property editor for which type?",
+  propertyEditorMessage: "Make a property editor for which template?",
   create: "Create",
 
   ////////////////
@@ -162,7 +162,7 @@ export const APP_TEXTS = {
 
   scopes: "Scopes",
   refreshScopes: "Refresh the scopes",
-  runToSeeScopes: "Run the project to see its scopes.",
+  runToSeeScopes: "Run the app to see its scopes.",
   details: "Details",
   orderDocument: "Document order, under their headings",
   orderAlphabetical: "Alphabetical",
@@ -175,7 +175,7 @@ export const APP_TEXTS = {
   clickToEdit: "Click to edit",
   addDescription: "Add a description…",
   // each group of a type's members, by its label (`LSP.SCOPE_MEMBER_GROUPS`)
-  "members.Types": "Types",
+  "members.Types": "Templates",
   "members.Properties": "Properties",
   "members.Actions": "Actions",
   "members.Constants": "Constants",
@@ -187,7 +187,7 @@ export const APP_TEXTS = {
   ////////////////
 
   things: "Things",
-  runToSeeThings: "Run the project to see its things.",
+  runToSeeThings: "Run the app to see its things.",
   topLevel: "Top level",
   allThings: "All things",
   selectThing: "Select a thing to see its properties.",
@@ -201,7 +201,7 @@ export const APP_TEXTS = {
   listOf: "{type} of {count}",
   doIt: "Do it:  {action}()",
   thingsInOrderMade: "In the order they were made",
-  thingsByType: "By type, sub-types included",
+  thingsByType: "By template, sub-templates included",
   // the Program panel's tabs (`<ProgramPanel>`)
   outputTab: "Program Output",
   typescriptTab: "TypeScript",
@@ -213,7 +213,7 @@ export const APP_TEXTS = {
   inspectorPicking: "Click a part of the app;  Alt-click for any part inside it.  Esc stops picking.",
   closeProgram: "Close the Program panel",
   thingsTab: "Things",
-  typesTab: "Types",
+  typesTab: "Templates",
   javascriptTab: "JavaScript",
   treeTab: "Sentence Tree",
 
@@ -221,7 +221,7 @@ export const APP_TEXTS = {
   // ## The runners (`SpellAppRunner.tsx`, `VSCodeRunner.tsx`)
   ////////////////
 
-  typeExplorer: "Type Explorer",
+  typeExplorer: "Template Explorer",
   thingExplorer: "Thing Explorer",
   console: "Console",
   debug: "Debug",
@@ -265,8 +265,8 @@ export const APP_TEXTS = {
 
   projectSettings: "{title} settings",
   titleHint: "Its folder's name, as words, when left empty.",
-  titleTip: "The project's name for people, in the project list and the editor's title bar.",
-  versionTip: "Its version, as `1.2.0`:  stamped on what it declares, for projects that import it.",
+  titleTip: "The app's name for people, in the app list and the editor's title bar.",
+  versionTip: "Its version, as `1.2.0`:  stamped on what it declares, for apps that import it.",
   targetsLabel: "Also compiles to",
   targetsTip: "Languages it compiles to as well as JavaScript, which it always does.",
   listsStartAtLabel: "Lists start at",

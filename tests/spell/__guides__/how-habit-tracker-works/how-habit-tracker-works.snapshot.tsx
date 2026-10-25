@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
 
 core.heading("How the Habit Tracker works")
 /////////////////////////////////

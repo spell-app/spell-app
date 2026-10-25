@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Bill Splitter")
@@ -16,7 +16,7 @@ core.heading("Bill Splitter")
 
 core.heading("Money:  an amount as dollars and cents, e.g. 12.5 => \"$12.50\"")
 /** A diner:  their name, what they ordered, and what they owe */
-export class Diner extends Drawable {
+export class Diner extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "name" is text
@@ -65,7 +65,7 @@ export class Diner extends Drawable {
  * `<test-project-diner>`:  a diner, drawn in its own element, e.g. by `draw the diner`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its diner's properties;  its methods call its diner's.
- * - What every drawable thing's element does, e.g. drawing its diner, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its diner, is `SpellElement`'s.
  */
 export class DinerElement extends SpellElement<Diner> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-diner", "diner", [
@@ -80,7 +80,7 @@ export class DinerElement extends SpellElement<Diner> {
 core.useElement(Diner, DinerElement)
 
 /** The table:  the diners, one a row */
-export class Table extends DrawableList<Diner> {
+export class Table extends ViewableList<Diner> {
   static instanceType = Diner
   static elementTag = core.defineElement(this, "test-project")
 
@@ -95,7 +95,7 @@ export class Table extends DrawableList<Diner> {
  * `<test-project-table>`:  a table, drawn in its own element, e.g. by `draw the table`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its table's properties;  its methods call its table's.
- * - What every drawable thing's element does, e.g. drawing its table, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its table, is `SpellElement`'s.
  */
 export class TableElement extends SpellElement<Table> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-table", "table", [])
@@ -208,7 +208,7 @@ core.installStyles(undefined, `/* File styles.css:  how the bill splitter looks.
 // -----------
 if (!core.isCarryingOver) testMoney()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

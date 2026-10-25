@@ -32,10 +32,10 @@ export let shown = new Shown()
 shown.start()
 `
 
-/** A program with two named tiles, drawable, and an app whose own drawing a layout replaces. */
+/** A program with two named tiles, both views, and an app whose own drawing a layout replaces. */
 const TILES = `
-import { core, App, Drawable, h } from "@spell/core"
-export class Tile extends Drawable {
+import { core, App, View, h } from "@spell/core"
+export class Tile extends View {
   static elementTag = core.defineElement(this, "Layout")
   get name() { return this.getProp('name') }
   set name(value) { this.setProp('name', value) }
@@ -96,8 +96,8 @@ describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
 describe("<spell-app>'s layout:  a tag's id is its thing's reference (P18, J43)", () => {
   /** Two piles, a sub-type's:  a tableau is a pile.  The project's word "drawable" stays out of its tags. */
   const PILES = `
-import { core, App, Drawable, h } from "@spell/core"
-export class Pile extends Drawable {
+import { core, App, View, h } from "@spell/core"
+export class Pile extends View {
   static elementTag = core.defineElement(this, "Drawable Floor")
   get name() { return this.getProp('name') }
   set name(value) { this.setProp('name', value) }
@@ -135,9 +135,9 @@ board.start()
 })
 
 describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", () => {
-  /** A game with a score, a function that bumps it, and one drawable tile, as a project compiles them. */
+  /** A game with a score, a function that bumps it, and one tile that's a view, as a project compiles them. */
   const GAME = [
-    "a tile is a drawable thing",
+    "a tile is a view",
     "a tile has a name as text",
     "a tile has a count as a number",
     "a game is an app",
@@ -244,8 +244,8 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
 
   test("a tag written by hand says which named place it goes in with `in=`, as in a drawing (Q21 B, J35)", async () => {
     const PILES = [
-      "a tile is a drawable thing",
-      "a pile is a drawable list of tiles",
+      "a tile is a view",
+      "a pile is a viewable list of tiles",
       "to draw a pile",
       '\treturn <div className="frame"><children name="header"/><children/></div>',
       "set the first-pile to a new pile",

@@ -10,20 +10,20 @@
   "statements": [
     {
       "type": "FlashCard",
-      "superType": "Drawable",
-      "defined": "/FlashCards.spell:498-1051"
+      "superType": "View",
+      "defined": "/FlashCards.spell:498-1041"
     },
     {
       "property": "front",
       "of": "FlashCard",
       "datatype": "text",
-      "defined": "/FlashCards.spell:543-562"
+      "defined": "/FlashCards.spell:533-552"
     },
     {
       "property": "back",
       "of": "FlashCard",
       "datatype": "text",
-      "defined": "/FlashCards.spell:566-584"
+      "defined": "/FlashCards.spell:556-574"
     },
     {
       "property": "side",
@@ -33,7 +33,7 @@
         "front",
         "back"
       ],
-      "defined": "/FlashCards.spell:609-643"
+      "defined": "/FlashCards.spell:599-633"
     },
     {
       "syntax": "{operator:is_or_is_not} turned over",
@@ -43,7 +43,7 @@
       "kind": "method",
       "name": "\"is turned over\"",
       "returns": "choice",
-      "defined": "/FlashCards.spell:647-686"
+      "defined": "/FlashCards.spell:637-676"
     },
     {
       "syntax": "turn {thisArg:expression} over",
@@ -56,7 +56,7 @@
       ],
       "kind": "method",
       "name": "turn it over",
-      "defined": "/FlashCards.spell:691-767"
+      "defined": "/FlashCards.spell:681-757"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -69,48 +69,48 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/FlashCards.spell:819-1051"
+      "defined": "/FlashCards.spell:809-1041"
     },
     {
       "type": "Deck",
       "superType": "List",
       "itemType": "FlashCard",
-      "defined": "/FlashCards.spell:1075-1108"
+      "defined": "/FlashCards.spell:1065-1098"
     },
     {
       "type": "Quiz",
       "superType": "App",
-      "defined": "/FlashCards.spell:1167-2794"
+      "defined": "/FlashCards.spell:1157-2784"
     },
     {
       "property": "deck",
       "of": "Quiz",
       "datatype": "Deck",
-      "defined": "/FlashCards.spell:1192-1216"
+      "defined": "/FlashCards.spell:1182-1206"
     },
     {
       "property": "card",
       "of": "Quiz",
       "datatype": "FlashCard",
-      "defined": "/FlashCards.spell:1241-1267"
+      "defined": "/FlashCards.spell:1231-1257"
     },
     {
       "property": "known",
       "of": "Quiz",
       "datatype": "number",
-      "defined": "/FlashCards.spell:1320-1343"
+      "defined": "/FlashCards.spell:1310-1333"
     },
     {
       "property": "tried",
       "of": "Quiz",
       "datatype": "number",
-      "defined": "/FlashCards.spell:1347-1370"
+      "defined": "/FlashCards.spell:1337-1360"
     },
     {
       "property": "score",
       "of": "Quiz",
       "datatype": "text",
-      "defined": "/FlashCards.spell:1375-1484"
+      "defined": "/FlashCards.spell:1365-1474"
     },
     {
       "syntax": "deal a card (of {thisArg:expression})?",
@@ -123,7 +123,7 @@
       ],
       "kind": "method",
       "name": "deal a card",
-      "defined": "/FlashCards.spell:1561-1721"
+      "defined": "/FlashCards.spell:1551-1711"
     },
     {
       "syntax": "say i knew {thisArg:expression}",
@@ -136,7 +136,7 @@
       ],
       "kind": "method",
       "name": "say i knew it",
-      "defined": "/FlashCards.spell:1787-1884"
+      "defined": "/FlashCards.spell:1777-1874"
     },
     {
       "syntax": "say i missed {thisArg:expression}",
@@ -149,7 +149,7 @@
       ],
       "kind": "method",
       "name": "say i missed it",
-      "defined": "/FlashCards.spell:1888-1954"
+      "defined": "/FlashCards.spell:1878-1944"
     },
     {
       "syntax": "start over (of {thisArg:expression})?",
@@ -162,7 +162,7 @@
       ],
       "kind": "method",
       "name": "start over",
-      "defined": "/FlashCards.spell:1959-2029"
+      "defined": "/FlashCards.spell:1949-2019"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -175,7 +175,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/FlashCards.spell:2115-2794"
+      "defined": "/FlashCards.spell:2105-2784"
     },
     {
       "syntax": "add {callArgs:expression} meaning {callArgs:expression}",
@@ -197,7 +197,7 @@
           "datatype": "text"
         }
       ],
-      "defined": "/FlashCards.spell:2848-2996"
+      "defined": "/FlashCards.spell:2838-2986"
     },
     {
       "syntax": "test turning a card over",
@@ -206,7 +206,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "turning a card over",
-      "defined": "/FlashCards.spell:3454-3725"
+      "defined": "/FlashCards.spell:3444-3715"
     }
   ],
   "codeLines": [
