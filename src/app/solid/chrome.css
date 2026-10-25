@@ -197,14 +197,20 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
 }
 
 /*
- * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  a track the bar's full width, the
- * tabs sharing it evenly, the chosen one a raised white tab, as the docs site's tabs;  less round than a pill
- * (Owen:  "more like this, but with less rounding and no gap")
+ * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  the bar IS the track, as the docs
+ * site's tabs (Owen:  "more like this, but with less rounding and no gap"):
+ * - one grey band across the card's top, edge to edge, its tools on it too;  no bar around it, no line under it
+ * - the tabs share it evenly;  the chosen one a raised white tab, 6px round on every corner
  */
+:root {
+  --spell-tabs-track: light-dark(rgb(40 20 90 / 0.06), rgb(255 255 255 / 0.06));
+}
 :is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) {
-  --ui-menu-segmented-radius: 8px;
-  --ui-menu-segmented-padding: 2px;
-  /* a tab's inner corners as its outer ones (the track's, less its inset):  the theme makes them pill-round */
+  /* the menu draws no track of its own:  the bar behind it is the track */
+  --ui-menu-segmented-background: transparent;
+  --ui-menu-segmented-border: 0 solid transparent;
+  --ui-menu-segmented-radius: 6px;
+  --ui-menu-segmented-padding: 0px;
   --ui-menu-segmented-item-radius: 6px;
 }
 :is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) > ui-item::part(item) {

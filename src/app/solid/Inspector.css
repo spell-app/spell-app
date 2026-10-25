@@ -152,6 +152,13 @@
     color: var(--spell-bar-icon-color);
     --ui-dropdown-icon-spacing: 2px;
   }
+  /* a header holding tabs (Views') is their track (`--spell-tabs-track`), edge to edge, its caret and buttons on it */
+  &:has(ui-menu.InspectorViewTabs) {
+    padding-block: 4px;
+    padding-inline-start: 8px;
+    background: var(--spell-tabs-track);
+    border-bottom: 0;
+  }
   /* Views' switch:  Views | Things | Templates, small, in the title's place */
   & ui-menu.InspectorViewTabs {
     flex: 1 1 auto;
