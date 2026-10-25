@@ -457,6 +457,10 @@ A `.spellx` file, Spell's tag-shaped form, gets a Text | Notebook switch in the 
   the running program and the other view follow it, as if you'd typed it.
 - Which cards are open, and where the notebook was scrolled, is kept per file in this browser,
   so a switch to Text and back, or a reload, finds it as it was.
+- A template lives in ONE file, `.spell` or `.spellx`, never both:  its other form is a read-only view.
+  - Debug's Program panel has it as a tab:  Code Spell on a `.spellx` file, Spellx on a `.spell` file.
+  - VS Code's title bar has the same pair:  Show as Code Spell, Show as Spellx.
+  - A project may list a `.spellx` file in its `__project.json5` with no `.spell` copy:  it opens, compiles and runs.
 - The notebook is [SpellxNotebook.tsx](src/app/solid/SpellxNotebook.tsx);
   what the tags mean is [the spellx page](https://github.com/spell-app/spell-parser/blob/main/README-spellx.md).
 
