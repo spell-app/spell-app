@@ -354,7 +354,7 @@ export class EditorStore extends Observable {
     if (!project) return
     const message = appTexts.text("resetAppConfirm", appTexts.groupWords(projectRoot))
     if (!(await editor.confirm({ message }))) return
-    staticFiles.reset(project.projectId)
+    await staticFiles.reset(project.projectId)
     location.reload()
   }
 

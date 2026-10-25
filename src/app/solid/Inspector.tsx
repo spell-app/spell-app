@@ -1,4 +1,4 @@
-import { Show, createSignal } from "solid-js"
+import { Show, createSignal, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { editorPrefs } from "spell-app/app/editorPrefs"
@@ -259,6 +259,32 @@ class Picker {
 }
 
 /****************
+ * ### `Compact`
+ * The Inspector's property editor, laid out as the Theme Creator's inspector is:  compact (Owen).
+ * - Its controls the column's full width:  `fluid` on each it makes.
+ * - A yes or no (a checkbox) beside its label, one row:  `inline` on its property.
+ * - The rest is the column's CSS:  small type, 12px between fields, the label 4px above its control.
+ * - The editor makes its properties' controls as it draws, and again for a new schema:  watched, not set once.
+ ****************/
+class Compact {
+  /** Keep `propertyEditor`'s fields compact as it makes them;  returns the cleanup. */
+  static keep(propertyEditor: HTMLElement): () => void {
+    const tidy = () => {
+      for (const control of propertyEditor.querySelectorAll(FLUID_CONTROLS)) control.toggleAttribute("fluid", true)
+      for (const checkbox of propertyEditor.querySelectorAll("ui-property > ui-checkbox"))
+        checkbox.parentElement!.toggleAttribute("inline", true)
+    }
+    const watching = new MutationObserver(tidy)
+    watching.observe(propertyEditor, { childList: true, subtree: true })
+    tidy()
+    return () => watching.disconnect()
+  }
+}
+
+/** The controls a property makes that take the column's width. */
+const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-textarea, ui-calendar)"
+
+/****************
  * ### `<InspectorColumn>`
  * The Inspector, a tall column at the page's far right, while it's open (`Inspector.isOpen`).
  * - Its look is the brand's Theme Creator inspector, in the Spell Brand theme whatever the editor wears:
@@ -305,7 +331,12 @@ export function InspectorColumn(): JSX.Element {
         >
           {(part) => (
             <ui-panel label={part.label} class="InspectorPanel">
-              <ui-property-editor schema={part.schema} value={part.value} />
+              <ui-property-editor
+                size="small"
+                schema={part.schema}
+                value={part.value}
+                ref={(propertyEditor) => onCleanup(Compact.keep(propertyEditor))}
+              />
             </ui-panel>
           )}
         </Show>

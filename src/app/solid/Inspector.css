@@ -24,8 +24,12 @@
   border-radius: var(--spell-pane-radius, var(--ui-radius-l));
   box-shadow: var(--ui-shadow-raised);
 
-  /* the Theme Creator's field:  the control 4px under its label row */
-  & ui-field {
+  /* compact, as the Theme Creator's inspector:  15px type, fields 12px apart, the control 4px under its label */
+  & ui-property-editor {
+    font-size: 15px;
+    --ui-form-row-distance: 12px;
+  }
+  & :is(ui-field, ui-property) {
     --ui-form-label-distance: 4px;
   }
   & ui-panel {
