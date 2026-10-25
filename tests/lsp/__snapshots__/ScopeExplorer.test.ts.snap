@@ -111,6 +111,9 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
   type Date
     property year (number)
     property day (number)
+  type Notebook (is a Page)
+    property lock
+    enumeration Locks
   project Solitaire
     file Card.spell
       type Card (is a View)
@@ -186,6 +189,9 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
   type Date
     property year (number)
     property day (number)
+  type Notebook (is a Page)
+    property lock
+    enumeration Locks
   project lib (imported)
     file Card.spell
       type Card (is a View)

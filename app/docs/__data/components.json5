@@ -2011,6 +2011,10 @@
           "file": "src/app/solid/SpellxNotebook.tsx"
         },
         {
+          "name": "CellEditor",
+          "file": "src/app/solid/notebook/NotebookCell.tsx"
+        },
+        {
           "name": "FallbackEditor",
           "file": "src/app/solid/InputEditor.tsx"
         },

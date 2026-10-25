@@ -99,7 +99,13 @@ describe("rootsNamed()", () => {
     expect(paths("@spell/guides")).toEqual(["@spell/guides"])
     expect(paths("@spell/library")).toEqual(["@spell/library"])
     expect(paths("owen@spell")).toEqual(["owen@spell"])
-    expect(paths("@spell")).toEqual(["@spell/examples", "@spell/guides", "@spell/library", "@spell/test"])
+    expect(paths("@spell")).toEqual([
+      "@spell/examples",
+      "@spell/guides",
+      "@spell/notebooks",
+      "@spell/library",
+      "@spell/test"
+    ])
   })
 
   test("none for anything else", () => {
