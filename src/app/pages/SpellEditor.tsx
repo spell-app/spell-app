@@ -141,7 +141,7 @@ export function ProgramPanel(props: { onClose: () => void }) {
           <ui-icon
             name="close"
             link=""
-            class="close"
+            class="IconAction close"
             label={appTexts.text("closeProgram")}
             data-tooltip={appTexts.text("closeProgram")}
             data-position="bottom right"

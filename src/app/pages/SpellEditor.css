@@ -48,6 +48,8 @@
     align-items: center;
     gap: 0.5em;
     margin: 0;
+    /* the theme's type:  the old Semantic UI sheet the editor still loads sets every heading in Lato */
+    font-family: var(--ui-font-family);
     font-size: 1.05em;
     font-weight: var(--ui-font-weight-semibold, 600);
     white-space: nowrap;

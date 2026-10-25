@@ -28,6 +28,7 @@ export class SpellMonaco {
    * - Always TABS in spell, shown 3 wide.
    * - Formats as you type:  a Spanish keyword typed without its accent gets it back (`SpellLanguageFeatures`).
    * - Large text (`fontSize`), and no line numbers:  the app's code editor turns them on from its `...` menu.
+   * - No border or cursor mark down the scrollbar:  a hard line beside the pane's soft edge.
    */
   static OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
     automaticLayout: true,
@@ -39,6 +40,8 @@ export class SpellMonaco {
     lineNumbers: "off",
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
+    overviewRulerBorder: false,
+    hideCursorInOverviewRuler: true,
     "semanticHighlighting.enabled": true,
     formatOnType: true
   }
