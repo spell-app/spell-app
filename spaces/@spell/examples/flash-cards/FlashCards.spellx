@@ -1,0 +1,130 @@
+## Flash Cards
+// A deck of cards to learn from:  a word on the front, what it means on the back.
+// Click the card to turn it over, then say whether you knew it:  the score keeps count,
+// and the next card comes up at random.
+// What's where, top to bottom:
+//   a card:  its two sides, and turning it over
+//   the quiz:  the deck, the card showing, the score, and its drawing
+//   the deck:  the words to learn
+//   start
+//   tests
+
+
+## A card:  a word on the front, what it means on the back
+<spell-view "flash card">
+	<property "front">text</>
+	<property "back">text</>
+	<property "side" one-of="front or back" description="which side is up" />
+	<alias "is turned over">if its side is back</>
+
+	<action "turn it over">
+		set its side to back if its side is front otherwise front
+	</action>
+
+	// one side at a time:  a click turns it over
+	<spell>
+		- to draw it:
+			return <div part="card" onClick={turn it over}>
+				<div part="hint">{"What it means" if its side is back otherwise "Spanish"}</div>
+				<div part="word">{its back if it is turned over otherwise its front}</div>
+			</div>
+	</spell>
+</spell-view>
+
+// the cards to learn
+<spell-thing "deck" template="list of flash cards" />
+
+
+## The quiz:  the deck, the card showing, and the score
+<spell-app "quiz">
+	<property "deck">a new deck</>
+	<property "card" description="the card showing">a flash card</>
+	<property "known" description="how many you knew, and how many you've tried">a number</>
+	<property "tried">a number</>
+
+	<property "score">
+		"Nothing tried yet" if its tried is 0
+		its known + " of " + its tried + " right" otherwise
+	</property>
+
+	<action "deal a card" description="a card from the deck at random, front up:  never the one just shown">
+		set others to cards in its deck where it is not the card of quiz
+		set its card to a random card in others
+		set the side of its card to front
+	</action>
+
+	<action "say i knew it" description="you knew it, or you didn't:  counted, then the next card">
+		set its known to its known + 1
+		set its tried to its tried + 1
+		deal a card
+	</action>
+	<action "say i missed it">
+		set its tried to its tried + 1
+		deal a card
+	</action>
+
+	<action "start over">
+		set its known to 0
+		set its tried to 0
+		deal a card
+	</action>
+
+	// the score, the card, then what you can do:  turn it over, or say how you did
+	<spell>
+		- to draw it:
+			return <div class="Quiz">
+				<ui-menu secondary>
+					<ui-item type="header">Flash Cards</ui-item>
+					<ui-item>{its score}</ui-item>
+					<ui-menu position="right">
+						<ui-item onClick={start over}>
+							<ui-icon name="redo"/>
+							Start over
+						</ui-item>
+					</ui-menu>
+				</ui-menu>
+				{draw its card}
+				<div class="Answers">
+					{<ui-button primary onClick={turn its card over}>Show the answer</ui-button> if its card is not turned over otherwise <>
+						<ui-button positive icon="check" onClick={say i knew it}>I knew it</ui-button>
+						<ui-button negative basic icon="close" onClick={say i missed it}>I missed it</ui-button>
+					</>}
+				</div>
+			</div>
+	</spell>
+</spell-app>
+
+
+## The deck:  twelve Spanish words -- add your own
+<spell>
+	to add (word as text) meaning (translation as text):
+		add (a new flash card with front = word, back = translation, side = front) to the deck of quiz
+
+	add "el gato" meaning "the cat"
+	add "el perro" meaning "the dog"
+	add "la casa" meaning "the house"
+	add "el libro" meaning "the book"
+	add "la manzana" meaning "the apple"
+	add "el agua" meaning "the water"
+	add "la luna" meaning "the moon"
+	add "el sol" meaning "the sun"
+	add "la playa" meaning "the beach"
+	add "el tren" meaning "the train"
+	add "la llave" meaning "the key"
+	add "la mariposa" meaning "the butterfly"
+
+
+	## Start
+	start over
+	start quiz
+
+
+	## Tests
+	to test turning a card over
+		set the card to a new flash card with front = "el gato", back = "the cat", side = front
+		the card is turned over should be no
+		turn the card over
+		the card is turned over should be yes
+		turn the card over
+		the side of the card should be front
+</spell>

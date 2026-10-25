@@ -132,44 +132,45 @@
 
 	// its menu, then its piles:  seven to a line, each a cell of its own, the third left empty
 	// - its buttons are icons, each with a tooltip:  the popup right after its icon shows as the pointer rests on it
-	<draw>
-		<container>
-			<menu>
-				<item type="header">Klondike Solitaire</item>
-				<item>{"Score: " + its score + its hint}</item>
-				<menu position="right">
-					<item aria-label="Auto play" onClick={auto play}>
-						<icon name="fast forward"/>
-						<popup content="Auto play" inverted size="small"/>
-					</item>
-					<item aria-label="Cheat" onClick={cheat}>
-						<icon name="eye"/>
-						<popup content="Cheat" inverted size="small"/>
-					</item>
-					<item aria-label="Restart" onClick={start a new game}>
-						<icon name="redo"/>
-						<popup content="Restart" inverted size="small"/>
-					</item>
-				</menu>
-			</menu>
-			<grid class="Board" columns="7">
-				{draw its stock}
-				{draw its discards}
-				<div/>
-				{draw its clubs}
-				{draw its diamonds}
-				{draw its hearts}
-				{draw its spades}
-				{draw its T1}
-				{draw its T2}
-				{draw its T3}
-				{draw its T4}
-				{draw its T5}
-				{draw its T6}
-				{draw its T7}
-			</grid>
-		</container>
-	</draw>
+	<spell>
+		- to draw it:
+			return <ui-container>
+				<ui-menu>
+					<ui-item type="header">Klondike Solitaire</ui-item>
+					<ui-item>{"Score: " + its score + its hint}</ui-item>
+					<ui-menu position="right">
+						<ui-item aria-label="Auto play" onClick={auto play}>
+							<ui-icon name="fast forward"/>
+							<ui-popup content="Auto play" inverted size="small"/>
+						</ui-item>
+						<ui-item aria-label="Cheat" onClick={cheat}>
+							<ui-icon name="eye"/>
+							<ui-popup content="Cheat" inverted size="small"/>
+						</ui-item>
+						<ui-item aria-label="Restart" onClick={start a new game}>
+							<ui-icon name="redo"/>
+							<ui-popup content="Restart" inverted size="small"/>
+						</ui-item>
+					</ui-menu>
+				</ui-menu>
+				<ui-grid class="Board" columns="7">
+					{draw its stock}
+					{draw its discards}
+					<div/>
+					{draw its clubs}
+					{draw its diamonds}
+					{draw its hearts}
+					{draw its spades}
+					{draw its T1}
+					{draw its T2}
+					{draw its T3}
+					{draw its T4}
+					{draw its T5}
+					{draw its T6}
+					{draw its T7}
+				</ui-grid>
+			</ui-container>
+	</spell>
 </spell-app>
 
 

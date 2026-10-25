@@ -19,8 +19,8 @@ import "spell-app/spaces"
  *   `.spellx` files in their places:  each file's code must match, with no errors.
  * - Read where the examples are, never a frozen copy;  NOTHING is written:  the `.spellx` text lives in the test.
  * - Compared without comments and the `DECLARES` header, which carry line numbers.
- * - Plain HTML is the one error allowed (epic `elemental-spell` J83):
- *   spellx has none, so a converted `<div>` is an error, written as it was.
+ * - A drawing with the web's own elements (`<div>`, `<button>`) is written as code spell, in a `<spell>` chunk
+ *   (epic `elemental-spell` J83):  so it means the same.
  */
 const EXAMPLES_DIR = resolve(environment.systemFilesRoot, "examples")
 
@@ -29,13 +29,8 @@ const EXAMPLES_DIR = resolve(environment.systemFilesRoot, "examples")
  * - `test.fails`:  once one converts, its test fails, to say so;  take it off this list.
  */
 const KNOWN_GAPS: Record<string, string> = {
-  Solitario: "C44:  a Spanish spellx action with a built-in template's words is called as the template's",
-  "bill-splitter": "J83:  spellx has no plain HTML, so its <label> is Spell UI's",
-  "tic-tac-toe": "J83:  spellx has no plain HTML, so its <button> is Spell UI's"
+  Solitario: "C44:  a Spanish spellx action with a built-in template's words is called as the template's"
 }
-
-/** The error for plain HTML in a spellx drawing, `spellx-unknown-component`:  allowed, until J83 is decided. */
-const PLAIN_HTML = / <div> /
 
 describe("every example converts to spellx, and compiles to the same javascript", () => {
   const examples = readdirSync(EXAMPLES_DIR, { withFileTypes: true }).filter((it) => it.isDirectory())
@@ -45,7 +40,7 @@ describe("every example converts to spellx, and compiles to the same javascript"
   }
 })
 
-/** Example `name`, converted, compiles to the same javascript, file by file, with no errors but plain HTML. */
+/** Example `name`, converted, compiles to the same javascript, file by file, with no errors. */
 function convertsTheSame(name: string) {
   const sources = sourcesOf(resolve(EXAMPLES_DIR, name))
   const parentScope = SP.Language.rootScopeFor([...new Set(sources.map(({ path }) => SP.Language.forFile(path)))])
@@ -58,10 +53,7 @@ function convertsTheSame(name: string) {
   }))
   const after = parseSpellProject(converted, { parentScope }).files
   for (const [index, file] of after.entries()) {
-    expect(
-      file.errors.filter((it) => !PLAIN_HTML.test(it)),
-      file.path
-    ).toEqual([])
+    expect(file.errors, file.path).toEqual([])
     expect(codeOf(file.compiled), file.path).toBe(codeOf(before[index]!.compiled))
   }
 }
@@ -80,15 +72,24 @@ function sourcesOf(folder: string): SpellSourceFile[] {
  * The examples kept in BOTH forms (epic `elemental-spell` P13, J54, J55):  a `.spellx` beside each `.spell`.
  * - The project file lists only the `.spell` files, which the app opens;  the `.spellx` twins are read here, by name
  *   (`Card.spell` => `Card.spellx` beside it), and parsed as a project of their own.
- * - Each `.spellx` must compile to the same javascript as its `.spell`, with no errors but plain HTML
- *   (`<div>`:  epic `elemental-spell` J83, and Spell UI has no plain layout box yet, Q50).
+ * - Each `.spellx` must compile to the same javascript as its `.spell`, with no errors.
+ * - A drawing with the web's own elements (`<div>`) is a `<spell>` chunk there, as written (J83).
  */
-const PAIRED_EXAMPLES = ["Solitaire", "TaskList", "tic-tac-toe", "Solitario", "ListaDeTareas"]
+const PAIRED_EXAMPLES = [
+  "Solitaire",
+  "TaskList",
+  "tic-tac-toe",
+  "bill-splitter",
+  "calculator",
+  "flash-cards",
+  "habit-tracker",
+  "Solitario",
+  "ListaDeTareas"
+]
 
 /** The paired examples whose `.spellx` can't compile the same today, and why:  each an item on the epic page. */
 const PAIR_GAPS: Record<string, string> = {
-  Solitario: KNOWN_GAPS.Solitario!,
-  "tic-tac-toe": KNOWN_GAPS["tic-tac-toe"]!
+  Solitario: KNOWN_GAPS.Solitario!
 }
 
 describe("the examples kept as .spellx beside their .spell compile to the same javascript", () => {
@@ -110,10 +111,7 @@ function pairCompilesTheSame(name: string) {
   }))
   const after = parseSpellProject(twins, { parentScope }).files
   for (const [index, file] of after.entries()) {
-    expect(
-      file.errors.filter((it) => !PLAIN_HTML.test(it)),
-      file.path
-    ).toEqual([])
+    expect(file.errors, file.path).toEqual([])
     expect(codeOf(file.compiled), file.path).toBe(codeOf(before[index]!.compiled))
   }
 }

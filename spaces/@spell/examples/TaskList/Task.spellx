@@ -18,21 +18,20 @@
 		- it can be selected
 		// and dragged, by its grip, to another place in its list:  the selected ones go with it
 		- it can be dragged
-	</spell>
 
-	## drawing:  its grip, a checkbox, its title, and its priority -- styles.css shows it only when it isn't normal
-	// a form of its own, bound to it:  checking the box, or typing a title, changes the task
-	// - its row and its title are parts:  styles.css lays them out
-	<draw>
-		<form value={it}>
-			<div part="row">
-				<icon part="grip" name="grip vertical" aria-label="Drag"/>
-				<checkbox name="done" aria-label="Done"/>
-				<input part="title" name="title" aria-label="Task" transparent/>
-				<label part="priority" size="tiny" color={its priority color}>{its priority}</label>
-			</div>
-		</form>
-	</draw>
+		## drawing:  its grip, a checkbox, its title, and its priority -- styles.css shows it only when it isn't normal
+		// a form of its own, bound to it:  checking the box, or typing a title, changes the task
+		// - its row and its title are parts:  styles.css lays them out
+		- to draw it:
+			return <ui-form value={it}>
+				<div part="row">
+					<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
+					<ui-checkbox name="done" aria-label="Done"/>
+					<ui-input part="title" name="title" aria-label="Task" transparent/>
+					<ui-label part="priority" size="tiny" color={its priority color}>{its priority}</ui-label>
+				</div>
+			</ui-form>
+	</spell>
 </spell-view>
 
 

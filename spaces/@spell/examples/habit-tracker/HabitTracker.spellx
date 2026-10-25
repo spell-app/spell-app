@@ -1,0 +1,122 @@
+## Habit Tracker
+// A week of checkboxes for each habit:  tick a day when you did it.
+// Each habit counts its days, and its streak:  the most days in a row you kept it up.
+// What's where, top to bottom:
+//   a habit:  its name, its seven days, its count and its streak
+//   the tracker:  its habits, the new habit's field, and its drawing
+//   start
+//   tests
+
+
+## A habit:  its name, a yes or no for each day of the week
+<spell-view "habit">
+	<property "name">text</>
+	<property "monday">yes or no</>
+	<property "tuesday">yes or no</>
+	<property "wednesday">yes or no</>
+	<property "thursday">yes or no</>
+	<property "friday">yes or no</>
+	<property "saturday">yes or no</>
+	<property "sunday">yes or no</>
+
+	<property "days" description="its week, Monday first">[its monday, its tuesday, its wednesday, its thursday, its friday, its saturday, its sunday]</>
+
+	<property "count" description="how many days this week it was done">the number of days in its days where it is yes</>
+
+	<property "streak" description="the most days in a row it was done">
+		set run to 0
+		set best to 0
+		for each day in its days
+			if day is yes
+				set run to run + 1
+				if run > best: set best to run
+			otherwise
+				set run to 0
+		return best
+	</property>
+
+	// a form of its own, bound to it:  ticking a day, or typing a name, changes the habit
+	<spell>
+		- to draw it:
+			return <ui-form value={it}>
+				<div part="row">
+					<ui-input part="name" name="name" aria-label="Habit" transparent/>
+					<ui-checkbox name="monday" aria-label="Monday"/>
+					<ui-checkbox name="tuesday" aria-label="Tuesday"/>
+					<ui-checkbox name="wednesday" aria-label="Wednesday"/>
+					<ui-checkbox name="thursday" aria-label="Thursday"/>
+					<ui-checkbox name="friday" aria-label="Friday"/>
+					<ui-checkbox name="saturday" aria-label="Saturday"/>
+					<ui-checkbox name="sunday" aria-label="Sunday"/>
+					<div part="count">{its count}</div>
+					<div part="streak">{its streak}</div>
+				</div>
+			</ui-form>
+	</spell>
+</spell-view>
+
+## The week:  the habits, one a row
+<spell-thing "week" template="viewable list of habits">
+	<spell>
+		- its items can be reordered immediately
+		- to draw its placeholder:
+			return <div part="placeholder">No habits yet:  add one above</div>
+	</spell>
+</spell-thing>
+
+// a habit is in one week
+<spell>
+	a habit belongs to one week
+</spell>
+
+
+## The tracker
+<spell-app "habit tracker">
+	<property "habits">a new week</>
+	<property "draft" description="what the new habit's field holds">text</>
+
+	<action "add the draft" description="the draft, as a new habit at the end;  the field empties">
+		if its draft is "" return
+		add (a new habit with name = its draft) to its habits
+		clear its draft
+	</action>
+
+	// the new habit's field, the days' names, then a row per habit
+	<spell>
+		- to draw it:
+			return <div class="HabitTracker">
+				<h2>This week</h2>
+				<ui-form value={it}>
+					<div class="NewHabit">
+						<ui-input name="draft" placeholder="A habit to keep, e.g. Read" aria-label="New habit" fluid/>
+						<ui-button primary disabled={its draft is ""} onClick={add the draft}>Add</ui-button>
+					</div>
+				</ui-form>
+				<div class="Days">
+					<div>Habit</div>
+					<div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+					<div>Days</div>
+					<div>Streak</div>
+				</div>
+				{draw its habits}
+			</div>
+	</spell>
+</spell-app>
+
+
+## Start
+<spell>
+	add (a new habit with name = "Read", monday = yes, tuesday = yes, wednesday = yes, friday = yes) to the habits of habit tracker
+	add (a new habit with name = "Walk", tuesday = yes, wednesday = yes, thursday = yes, friday = yes) to the habits of habit tracker
+	add (a new habit with name = "Stretch", monday = yes, saturday = yes) to the habits of habit tracker
+	start habit tracker
+
+
+	## Tests
+	to test streaks
+		set the habit to a new habit with name = "Read", monday = yes, tuesday = yes, thursday = yes
+		the count of the habit should be 3
+		the streak of the habit should be 2
+		set the wednesday of the habit to yes
+		the streak of the habit should be 4
+</spell>
