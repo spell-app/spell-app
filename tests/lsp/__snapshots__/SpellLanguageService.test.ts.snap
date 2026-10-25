@@ -58,22 +58,18 @@ exports[`SpellLanguageService > highlighting > semantic tokens 1`] = `
   "35:20 "symbol" property",
   "35:27 "+" operator",
   "35:29 "direction" variable",
-  "41:3 "on" keyword",
-  "41:11 ":" operator",
-  "41:13 "play" keyword",
-  "41:18 "it" variable",
-  "55:3 "to" keyword",
-  "55:6 "draw" keyword",
-  "55:11 "its" keyword",
-  "55:15 "front" property",
-  "55:20 ":" operator",
-  "56:3 "ui-text" type",
-  "56:11 "color" property",
-  "56:18 "its" keyword",
-  "56:22 "color" property",
-  "56:30 "its" keyword",
-  "56:34 "picture" property",
-  "56:44 "ui-text" type",
+  "53:3 "to" keyword",
+  "53:6 "draw" keyword",
+  "53:11 "its" keyword",
+  "53:15 "front" property",
+  "53:20 ":" operator",
+  "54:3 "ui-text" type",
+  "54:11 "color" property",
+  "54:18 "its" keyword",
+  "54:22 "color" property",
+  "54:30 "its" keyword",
+  "54:34 "picture" property",
+  "54:44 "ui-text" type",
 ]
 `;
 
@@ -94,7 +90,6 @@ exports[`SpellLanguageService > structure > document symbols:  properties and me
   state (Property)
     rank (Variable)
     direction (Variable)
-  click (Event)
   picture (Property)
     column (Variable)
   card setup (Function)
@@ -104,19 +99,19 @@ exports[`SpellLanguageService > structure > document symbols:  properties and me
 
 exports[`SpellLanguageService > structure > folding ranges 1`] = `
 [
-  "6-84",
+  "6-82",
   "9-10",
   "16-17",
   "18-20",
   "21-25",
   "32-35",
-  "46-54",
+  "44-52",
+  "46-47",
   "48-49",
   "50-51",
-  "52-53",
+  "53-54",
   "55-56",
-  "57-58",
-  "60-84",
+  "58-82",
   "1-4 comment",
 ]
 `;
