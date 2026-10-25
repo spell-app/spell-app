@@ -126,15 +126,15 @@ ui-menu.PanelMenu ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
   color: var(--spell-bar-icon-color);
 }
 ui-menu.AppMenu ui-icon.IconAction,
-.AppPaneHeader > ui-icon.IconAction {
-  --ui-icon-width: 1em;
+.AppPaneHeader ui-icon.IconAction {
+  --ui-icon-width: auto;
   --ui-icon-distance: 0;
   --ui-icon-link-opacity: 1;
   color: var(--spell-bar-icon-color);
 }
 ui-menu.AppMenu ui-icon.IconAction,
 ui-menu.AppMenu .YouAvatar,
-.AppPaneHeader > ui-icon.IconAction {
+.AppPaneHeader ui-icon.IconAction {
   margin-inline: calc(var(--spell-bar-icon-gap) / 2);
 }
 /* the "..." menu's icon the size of the bar's other icons:  it drew half as wide again, and stood apart */

@@ -26,7 +26,7 @@ describe("Inspector.partFor()", () => {
     expect(part && { value: part.value.constructor.name, schema: part.schema, label: part.label }).toEqual({
       value: button.querySelector("ui-button")!.constructor.name,
       schema: "ui-button",
-      label: "<ui-button> · Go"
+      label: '<ui-button "Go" />'
     })
   })
 
@@ -48,7 +48,7 @@ describe("picking", () => {
 
     area.querySelector("ui-button")!.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }))
     flush()
-    expect(Inspector.picked?.label).toBe("<ui-button> · Go")
+    expect(Inspector.picked?.label).toBe('<ui-button "Go" />')
     expect(pressed).toBe(0)
     // picked:  the app has its clicks back
     expect(Inspector.isPicking).toBe(false)
@@ -63,7 +63,7 @@ describe("picking", () => {
     await ElementFixture.settle(host)
     const editor = host.querySelector<HTMLElement & { schema: unknown }>(".Inspector ui-property-editor")!
     expect(editor.schema).toBe("ui-input")
-    expect(host.querySelector(".Inspector ui-panel")!.getAttribute("label")).toBe("<ui-input>")
+    expect(host.querySelector(".InspectorCard h2")!.textContent!.trim()).toBe("<ui-input />")
   })
 })
 
@@ -80,7 +80,7 @@ describe("the parts tree and events", () => {
     flush()
     await ElementFixture.settle(host)
     const rows = [...host.querySelectorAll<HTMLElement>(".InspectorTree li")]
-    expect(rows.map((row) => row.textContent)).toEqual(["<ui-segment>", "<ui-button> · Go"])
+    expect(rows.map((row) => row.textContent)).toEqual(["<ui-segment />", '<ui-button "Go" />'])
     rows[1]!.click()
     flush()
     expect(Inspector.picked?.element).toBe(area.querySelector("ui-button"))
@@ -94,10 +94,10 @@ describe("the parts tree and events", () => {
     flush()
     await ElementFixture.settle(host)
     const labels = () => [...host.querySelectorAll(".InspectorTree li")].map((row) => row.textContent)
-    expect(labels()).toEqual(["<ui-segment>", "<ui-button> · go", "<ui-button> · Stop"])
+    expect(labels()).toEqual(["<ui-segment />", '<ui-button "go" />', '<ui-button "Stop" />'])
     host.querySelector<HTMLElement>(".InspectorTree li ui-icon.InspectorFold")!.click()
     flush()
-    expect(labels()).toEqual(["<ui-segment>", "<ui-button> · Stop"])
+    expect(labels()).toEqual(["<ui-segment />", '<ui-button "Stop" />'])
     host.querySelector<HTMLElement>(".InspectorTree li ui-icon.InspectorFold")!.click()
     flush()
     expect(labels()).toHaveLength(3)
@@ -125,6 +125,30 @@ describe("the parts tree and events", () => {
     Inspector.addEvent(button, "mousedown")
     flush()
     expect(Inspector.eventsOf(button)).toEqual(["click", "mousedown"])
+  })
+})
+
+describe("the cards", () => {
+  test("a card hides and folds;  the column opens again with the cards it last showed", async () => {
+    const host = await mount(() => <InspectorColumn />)
+    Inspector.toggle()
+    flush()
+    const titles = () => [...host.querySelectorAll(".InspectorCard")].map((card) => card.classList.contains("folded"))
+    expect(titles()).toEqual([false, false, false])
+    Inspector.setShown("events", false)
+    Inspector.toggleFolded("views")
+    flush()
+    expect(titles()).toEqual([false, true])
+    // closed, then opened again, a click each
+    Inspector.toggle()
+    flush()
+    Inspector.toggle()
+    flush()
+    expect(titles()).toEqual([false, true])
+    // as it was, for the other tests
+    Inspector.setShown("events", true)
+    Inspector.toggleFolded("views")
+    flush()
   })
 })
 
