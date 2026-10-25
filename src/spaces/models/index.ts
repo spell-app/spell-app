@@ -1,6 +1,7 @@
 /**
  * Spaces' models:  project groups and lists, a project's file edits -- safe in a browser.
  * - `PROJECT_GROUPS`:  spell's project groups;  SIDE EFFECT:  loading this registers them with spell.
+ * - `SPELL_UI_PACK`:  Spell UI, as a spellx drawing names its components bare;  SIDE EFFECT:  registers it with spell.
  * - `SpellProjectRoot`:  a group's list of projects, and its project create, copy, rename and delete.
  * - `ProjectFiles`:  a project's file create, copy, rename and delete (decision Q20).
  * - `TypeSchemas`:  a spell type's properties, from its project's declarations, for a property editor.
@@ -11,6 +12,7 @@
  *   Node-only code is `spell-app/spaces/server/node/...`.
  */
 export * from "./projectGroups"
+export * from "./spellUIPack"
 export * from "./spaceNames"
 export * from "./SpellProjectRoot"
 export * from "./TypeSchemas"
