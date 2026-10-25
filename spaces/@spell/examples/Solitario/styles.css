@@ -76,15 +76,24 @@
   width: calc(var(--card-width) * 1em);
   height: calc(var(--card-width) * var(--card-height) * 1em);
   overflow: hidden;
-  /* its letter's ink starts 0.224em below a line's top at a line height of 1:  a line of 0.568 starts it 0.008em down */
-  line-height: 0.568;
-  --ui-text-line-height: 0.568;
+  /* in the font that draws the cards, so the page's font never moves them:  a line's height comes from its FIRST font,
+     and a theme's (Fruity's system font) set them 0.027em higher than Lato did, cutting off their tops */
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
+  /* the card's spare room above and below its ink (0.008em) padding, its white face only the content, so it hugs the ink
+     (not a border:  a browser rounds a border to whole pixels) */
+  box-sizing: border-box;
+  padding-block: 0.008em;
+  /* Apple Symbols rises 0.67em and drops 0.25em, its card's ink 0.666em above its baseline:
+     a line of 0.917 starts the ink at the top of the face (measured:  0.912 by the font's rounded numbers) */
+  line-height: 0.917;
+  --ui-text-line-height: 0.917;
   text-indent: -0.049em;
   user-select: none;
 }
 /* a card's letter is only its ink:  a white face, its corners rounded as the letter's are, hides the cards below */
 [disposición] > * {
   background: #fff;
+  background-clip: content-box;
   border-radius: 0.035em;
 }
 
