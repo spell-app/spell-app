@@ -125,6 +125,8 @@ ui-item.ThemeMenu ui-docs-themes::part(palette) {
   background: transparent;
   box-shadow: none;
   font-size: 1.3em;
+  /* the bar's text colour, as Home's:  not the theme menu's muted one (Owen:  "white is better") */
+  color: var(--ui-text-color);
 }
 /* Home, beside it:  as close (Owen:  "still too much space") */
 .AppMenu ui-icon.IconAction[name="home"] {
