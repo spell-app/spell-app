@@ -10,7 +10,7 @@
  *     start it first, with `yarn start` or `spell app serve`.
  *   - A library has no app of its own, so no picture.
  * - Rewrites the table between the page's two marker comments, `<!-- examples:start -->` and `<!-- examples:end -->`;
- *   the rest of the page is written by hand.
+ *   the rest of the page is written by hand (the kit's `spliceGenerated()` and `writeOrCheck()`).
  * - Options:
  *   - `--check`:  writes nothing;  exits 1 if the table is out of date, or an example has no picture
  *     (the spaces tests run this)
@@ -20,12 +20,13 @@
  *   check `git status` after.
  * - Plain node and `tsx`:  no `spell-app` imports, so it needs no alias hook.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs"
 import path from "node:path"
 
 import JSON5 from "json5"
 
 import { BrowserPage } from "spell/element-tools/BrowserPage"
+import { spliceGenerated, writeOrCheck } from "spell/element-tools/generatedFiles"
 import { pageServerRoot } from "spell/server/page/settings"
 
 /** spell-app's checkout. */
@@ -84,11 +85,10 @@ const only = new Set(args.filter((arg) => !arg.startsWith("--")))
 
 const projects = readProjects()
 const table = tableFor(projects)
-if (isCheck) process.exitCode = check(table, projects) ? 0 : 1
-else {
-  if (withPictures) await takePictures(projects.filter((project) => project.hasPicture))
-  writeTable(table)
-}
+if (withPictures) await takePictures(projects.filter((project) => project.hasPicture))
+writeOrCheck([[README, pageWith(table)]], { command: "examples:readme", isCheck })
+if (isCheck) checkPictures(projects)
+else console.log(`${path.relative(process.cwd(), README)}:  ${projects.length} projects`)
 
 ////////////////
 // ## The projects
@@ -191,42 +191,14 @@ function altFor(project: Project): string {
 /** The page with `table` between its markers;  throws if the page has no markers. */
 function pageWith(table: string): string {
   const page = readFileSync(README, "utf8")
-  const start = page.indexOf(START)
-  const end = page.indexOf(END)
-  if (start === -1 || end < start)
-    throw new Error(`examples-readme:  ${README} has no ${START} ... ${END};  put them where the table goes`)
-  return `${page.slice(0, start + START.length)}\n\n${table}\n\n${page.slice(end)}`
+  return spliceGenerated(page, { file: README, start: START, end: END, block: () => `\n${table}\n\n` })
 }
 
-/** Write the table into the page. */
-function writeTable(table: string): void {
-  writeFileSync(README, pageWith(table))
-  console.log(`${path.relative(process.cwd(), README)}:  ${projects.length} projects`)
-}
-
-/**
- * `true` if the page's table says what `table` does, and every example's picture is there;  else says why.
- * - Compares cell by cell, so the formatter's padding of the table's columns doesn't count.
- */
-function check(table: string, projects: Project[]): boolean {
-  const page = readFileSync(README, "utf8")
-  const current = page.slice(page.indexOf(START) + START.length, page.indexOf(END))
-  const cells = (text: string) =>
-    text
-      .split("\n")
-      .filter((line) => line.trim().startsWith("|") && !/^\|[\s|:-]+\|$/.test(line.trim()))
-      .map((line) =>
-        line
-          .split("|")
-          .map((cell) => cell.trim())
-          .join("|")
-      )
-      .join("\n")
+/** Every example with an app has its picture;  else says which, and sets exit code 1. */
+function checkPictures(projects: Project[]): void {
   const missing = projects.filter((project) => project.hasPicture && !existsSync(path.join(ROOT, pictureOf(project))))
-  if (cells(current) !== cells(table))
-    console.error("README-examples.md's table is out of date:  run `yarn examples:readme` in spell-app")
   for (const project of missing) console.error(`no picture of ${project.address}:  run \`yarn examples:readme\``)
-  return cells(current) === cells(table) && !missing.length
+  if (missing.length) process.exitCode = 1
 }
 
 ////////////////

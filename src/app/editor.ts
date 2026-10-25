@@ -1,4 +1,4 @@
-import { UIError, Observable, prop, CONFIRM } from "spell/util"
+import { $fetch, UIError, Observable, prop, CONFIRM } from "spell/util"
 
 import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
@@ -1065,7 +1065,5 @@ function runtimeUrl(): string {
 async function fetchCompiled(projectId: string): Promise<string> {
   const { projectName } = new SP.SpellLocation(projectId)
   const url = SP.SpellUrls.fileUrl(SP.SpellLocation.join(projectId, `${projectName}${SP.COMPILED_JS_SUFFIX}`))
-  const response = await fetch(url, { cache: "no-cache" })
-  if (!response.ok) throw new Error(`Couldn't load project '${projectId}':  ${response.status} ${response.statusText}`)
-  return response.text()
+  return $fetch<string>({ url, cache: "no-cache" })
 }
