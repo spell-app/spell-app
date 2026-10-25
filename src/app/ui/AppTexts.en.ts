@@ -211,6 +211,8 @@ export const APP_TEXTS = {
   inspectorClose: "Close the Inspector",
   inspectorTip: "Pick a part of the app with the crosshairs, to see what it is and change it.",
   inspectorPicking: "Click a part of the app;  Alt-click for any part inside it.  Esc stops picking.",
+  inspectorText: "Text",
+  inspectorMore: "More",
   closeProgram: "Close the Program panel",
   thingsTab: "Things",
   typesTab: "Templates",

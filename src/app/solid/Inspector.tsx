@@ -1,4 +1,4 @@
-import { Show, createSignal, onCleanup } from "solid-js"
+import { For, Show, createSignal, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { editorPrefs } from "spell-app/app/editorPrefs"
@@ -105,7 +105,22 @@ export class Inspector {
       }
     }
     if (element.localName.startsWith(UI_PREFIX)) {
-      return { element, value: element, schema: element.localName, label: `<${element.localName}>` }
+      // its attributes as its vocabulary lists them:  those it sets first, the rest under "More"
+      const component = (element as Element & { component?: { vocabulary?: { attributes?: { name: string }[] } } })
+        .component
+      const names = component?.vocabulary?.attributes?.map((attribute) => attribute.name) ?? []
+      return {
+        element,
+        value: element,
+        schema: element.localName,
+        label: `<${element.localName}>`,
+        layout: {
+          // its text, when it holds only text:  a button's words aren't an attribute
+          hasText: element.childElementCount === 0 && !!element.textContent?.trim(),
+          set: names.filter((name) => element.hasAttribute(name)),
+          more: names.filter((name) => !element.hasAttribute(name))
+        }
+      }
     }
     return undefined
   }
@@ -121,6 +136,18 @@ export type Picked = {
   schema: ReturnType<typeof ClassSchemas.fromClass> | string
   /** Its title:  `Card · the queen of spades`, `<ui-input>`. */
   label: string
+  /**
+   * A Spell UI element's fields, in the editor's order:  what it sets first, the rest folded under "More";
+   * `undefined`, the schema's own order (a thing's properties are all set).
+   */
+  layout?: {
+    /** It holds only text, its words:  a field for them first, its `textContent`. */
+    hasText: boolean
+    /** The attributes it sets, in its vocabulary's order. */
+    set: string[]
+    /** The rest. */
+    more: string[]
+  }
 }
 
 /** The preference that remembers whether the Inspector is open. */
@@ -289,8 +316,10 @@ const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-t
  * The Inspector, a tall column at the page's far right, while it's open (`Inspector.isOpen`).
  * - Its look is the brand's Theme Creator inspector, in the Spell Brand theme whatever the editor wears:
  *   that theme's tokens, re-declared on the column (`UI.themes.scopedTokens()`, J63).
- * - Its header:  its title, then crosshairs (pick again) and Close.
+ * - Its header:  its title, then crosshairs (pick again;  a round button of the theme's, pressed while picking)
+ *   and Close.
  * - Below:  what's picked, a `<ui-property-editor>` in a panel titled with what it is;
+ *   a Spell UI element's fields in its `layout`:  its text, what it sets, then "More" folded;
  *   nothing picked:  a tip.
  ****************/
 export function InspectorColumn(): JSX.Element {
@@ -301,11 +330,15 @@ export function InspectorColumn(): JSX.Element {
         <style>{brandTokens()}</style>
         <header class="InspectorHead">
           <span class="InspectorTitle">{appTexts.text("inspector")}</span>
-          <ui-icon
-            name="crosshairs"
-            link=""
-            class={["IconAction", { active: Inspector.isPicking }]}
-            label={appTexts.text("inspectorPick")}
+          <ui-button
+            icon="crosshairs"
+            circular=""
+            basic={Inspector.isPicking ? undefined : ""}
+            active={Inspector.isPicking}
+            size="small"
+            class="InspectorPick"
+            aria-label={appTexts.text("inspectorPick")}
+            aria-pressed={Inspector.isPicking ? "true" : "false"}
             data-tooltip={appTexts.text("inspectorPick")}
             data-position="bottom right"
             data-inverted=""
@@ -336,7 +369,23 @@ export function InspectorColumn(): JSX.Element {
                 schema={part.schema}
                 value={part.value}
                 ref={(propertyEditor) => onCleanup(Compact.keep(propertyEditor))}
-              />
+              >
+                <Show when={part.layout}>
+                  {(layout) => (
+                    <>
+                      <Show when={layout().hasText}>
+                        <ui-property name="textContent" label={appTexts.text("inspectorText")} />
+                      </Show>
+                      <For each={layout().set}>{(name) => <ui-property name={name} />}</For>
+                      <Show when={layout().more.length}>
+                        <ui-property-group label={appTexts.text("inspectorMore")} collapsible="" collapsed="">
+                          <For each={layout().more}>{(name) => <ui-property name={name} />}</For>
+                        </ui-property-group>
+                      </Show>
+                    </>
+                  )}
+                </Show>
+              </ui-property-editor>
             </ui-panel>
           )}
         </Show>
