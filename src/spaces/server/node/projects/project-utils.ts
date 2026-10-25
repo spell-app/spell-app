@@ -309,6 +309,16 @@ export function isManifestFile(name: string, projectName = "") {
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
+/**
+ * Is `path` a `.spellx` file whose `.spell` twin is in the same project (`manifest`):  `Card.spellx` beside `Card.spell`?
+ * - The examples keep both forms side by side (epic `elemental-spell` P13):  the project file lists the `.spell`,
+ *   which the app opens;  the `.spellx` would declare everything twice, so `getIndex()` never adds it as an import.
+ * - Still in the manifest:  the editor shows it, and opens it as text or a notebook.
+ */
+function isSpellxTwin(path: string, manifest: ManifestJSON): boolean {
+  return path.endsWith(SP.SPELLX_SUFFIX) && path.slice(0, -1) in manifest
+}
+
 /** Given a file `name`, return `true` if we should preload it (fetch `contents` eagerly in `getIndex()`). */
 function isPreloadFile(name: string) {
   return manifestExtensions.some((extension) => name.endsWith(extension))
@@ -433,6 +443,8 @@ export const getIndex = async (
   Object.keys(existingPaths).forEach((path) => {
     const location = new SP.SpellLocation(path)
     if (!location.filePath) return
+    // A `.spellx` beside its `.spell` is that file's other form, never a second import:  see `isSpellxTwin()`
+    if (isSpellxTwin(path, manifest)) return
     // Record as a local `filePath` string, which includes the folder / leading slash
     importsFile.imports.push({ path: location.filePath, active: true })
     anythingChanged = true

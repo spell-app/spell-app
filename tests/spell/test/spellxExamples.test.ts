@@ -76,6 +76,48 @@ function sourcesOf(folder: string): SpellSourceFile[] {
     .map(({ path }) => ({ path, contents: readFileSync(resolve(folder, `.${path}`), "utf8") }))
 }
 
+/**
+ * The examples kept in BOTH forms (epic `elemental-spell` P13, J54, J55):  a `.spellx` beside each `.spell`.
+ * - The project file lists only the `.spell` files, which the app opens;  the `.spellx` twins are read here, by name
+ *   (`Card.spell` => `Card.spellx` beside it), and parsed as a project of their own.
+ * - Each `.spellx` must compile to the same javascript as its `.spell`, with no errors but plain HTML
+ *   (`<div>`:  epic `elemental-spell` J83, and Spell UI has no plain layout box yet, Q50).
+ */
+const PAIRED_EXAMPLES = ["Solitaire", "TaskList", "tic-tac-toe", "Solitario", "ListaDeTareas"]
+
+/** The paired examples whose `.spellx` can't compile the same today, and why:  each an item on the epic page. */
+const PAIR_GAPS: Record<string, string> = {
+  Solitario: KNOWN_GAPS.Solitario!,
+  "tic-tac-toe": KNOWN_GAPS["tic-tac-toe"]!
+}
+
+describe("the examples kept as .spellx beside their .spell compile to the same javascript", () => {
+  for (const name of PAIRED_EXAMPLES) {
+    const known = PAIR_GAPS[name]
+    ;(known ? test.fails : test)(known ? `${name} -- known gap, ${known}` : name, () => pairCompilesTheSame(name))
+  }
+})
+
+/** Example `name`'s `.spellx` files, beside its `.spell` files, compile to the same javascript, file by file. */
+function pairCompilesTheSame(name: string) {
+  const folder = resolve(EXAMPLES_DIR, name)
+  const sources = sourcesOf(folder)
+  const parentScope = SP.Language.rootScopeFor([...new Set(sources.map(({ path }) => SP.Language.forFile(path)))])
+  const before = parseSpellProject(sources, { parentScope }).files
+  const twins = sources.map(({ path }) => ({
+    path: `${path}x`,
+    contents: readFileSync(resolve(folder, `.${path}x`), "utf8")
+  }))
+  const after = parseSpellProject(twins, { parentScope }).files
+  for (const [index, file] of after.entries()) {
+    expect(
+      file.errors.filter((it) => !PLAIN_HTML.test(it)),
+      file.path
+    ).toEqual([])
+    expect(codeOf(file.compiled), file.path).toBe(codeOf(before[index]!.compiled))
+  }
+}
+
 /** `compiled` without its `DECLARES` header, comment lines and blank lines:  they carry line numbers. */
 function codeOf(compiled: string): string {
   return compiled

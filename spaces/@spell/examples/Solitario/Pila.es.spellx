@@ -1,0 +1,60 @@
+## Una pila de cartas, p. ej. el mazo de reserva de un juego o sus descartes
+// El juego que usa estas cartas nombra sus pilas, y dice qué toma cada tipo de pila.
+// Una lista visible:  su elemento contiene los elementos de sus cartas, p. ej. `<solitario-pila>` alrededor de `<solitario-carta>`s.
+<encanto-cosa "pila" plantilla="lista visible de cartas">
+	// cómo la llama el juego, p. ej. "reserva"
+	<propiedad "nombre">texto</>
+	// cómo están sus cartas:  una sobre otra, hacia abajo en una columna, a lo largo de una fila,
+	// o en abanico, como se sostiene una mano -- styles.css
+	<propiedad "disposición">una de apilada, vertical, horizontal o abanico</>
+	// en la página, se le puede soltar una carta encima:  brilla cuando la tomaría, según sus propias reglas
+	<encanto>
+		- se puede soltar encima
+	</encanto>
+	<propiedad "color" descripción="el color y el valor de su última carta:  sobre qué va la siguiente carta">
+		"ninguno" si está vacía
+		el color de su última carta de lo contrario
+	</propiedad>
+	<propiedad "valor">
+		0 si está vacía
+		el valor de su última carta de lo contrario
+	</propiedad>
+
+	## estado de la pila, para depurar
+	<propiedad "estado">
+		poner estado a (su nombre o "pila") + ":"
+		para cada carta en la pila
+			poner estado a estado + " " + el estado de la carta
+		devolver estado
+	</propiedad>
+</encanto-cosa>
+
+// una carta está en una sola pila a la vez:  ponerla en otra pila la quita de esta
+<encanto>
+	una carta pertenece a una pila
+
+
+	## Pruebas
+	para probar las pilas
+		poner la reserva a una nueva pila con nombre = "reserva"
+		el color de la reserva debería ser "ninguno"
+		el valor de la reserva debería ser 0
+
+		agregar (una nueva carta cuyo rango es dama, palo es espadas y dirección es arriba) a la reserva
+		agregar (una nueva carta cuyo rango es 7, palo es corazones y dirección es abajo) a la reserva
+		eco el estado de la reserva
+		el color de la reserva debería ser rojo
+		el valor de la reserva debería ser 7
+		el estado de la reserva debería ser "reserva: D♠↑ 7♥↓"
+
+		// una carta solo puede estar en una pila a la vez
+		poner los descartes a una nueva pila con nombre = "descartes"
+
+		obtener la última carta de la reserva
+		agregar eso a los descartes
+		su pila es los descartes debería ser sí
+
+		el número de cartas en la reserva debería ser 1
+		el número de cartas en los descartes debería ser 1
+		el estado de los descartes debería ser "descartes: 7♥↓"
+</encanto>
