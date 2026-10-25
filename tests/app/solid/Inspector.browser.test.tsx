@@ -3,7 +3,7 @@ import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "spell/test-helpers/ElementFixture"
-import { Inspector, InspectorColumn, uiReady } from "spell-app/app/solid"
+import { Inspector, InspectorColumn, isThing, itemsOf, uiReady } from "spell-app/app/solid"
 
 /**
  * The Inspector (`Inspector.tsx`):  what a part of the app is, picking it, and the column that shows it.
@@ -168,6 +168,38 @@ describe("the cards", () => {
     Inspector.setShown("events", true)
     Inspector.toggleFolded("views")
     flush()
+  })
+})
+
+describe("things inside things", () => {
+  /** A stand-in for a spell class:  its class carries a `schema` symbol, as the runtime's do, and it has `toJSON()`. */
+  class Pile {
+    name = "discards"
+    cards: Pile[] = []
+    toJSON() {
+      return { $type: "Pile" }
+    }
+    *[Symbol.iterator]() {
+      yield* this.cards
+    }
+  }
+
+  Object.defineProperty(Pile, Symbol("schema"), { value: {} })
+
+  test("a spell thing is one, a plain value or object isn't", () => {
+    expect(isThing(new Pile())).toBe(true)
+    expect(isThing({ name: "x" })).toBe(false)
+    expect(isThing("discards")).toBe(false)
+    expect(isThing(document.createElement("div"))).toBe(false)
+  })
+
+  test("a list's items;  a title by type and name, a list item's place when it has no name", () => {
+    const pile = new Pile()
+    pile.cards = [new Pile()]
+    expect(itemsOf(pile)).toEqual(pile.cards)
+    expect(Inspector.thingLabel(pile)).toBe("Pile · discards")
+    pile.name = ""
+    expect(Inspector.thingLabel(pile, "#3")).toBe("Pile #3")
   })
 })
 

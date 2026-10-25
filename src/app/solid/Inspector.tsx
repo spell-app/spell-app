@@ -4,6 +4,7 @@ import type { JSX } from "@solidjs/web"
 import { E } from "spell/element"
 import { editor } from "spell-app/app/editor"
 import { editorPrefs } from "spell-app/app/editorPrefs"
+import { PropertySchemas } from "spell-ui/property"
 import { ValueSets } from "spell-ui/vocabulary"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import { ClassSchemas } from "spell-app/app/ui/ClassSchemas"
@@ -122,26 +123,108 @@ export class Inspector {
     Picker.stop()
   }
 
-  /** Pick `element` (`undefined`:  nothing), outlined while it stays picked. */
-  static pick(element: Element | undefined): void {
-    setPicked(element && Inspector.partFor(element))
-    Picker.select(element)
+  /**
+   * Pick `element` (`undefined`:  nothing), outlined while it stays picked.
+   * - A new pick starts the trail afresh (`inspected`);  `trail`, picking it again after a redraw, follows that one.
+   * - NOTE:  the new pick and trail are passed along, never read back:  a signal reads its old value until the next
+   *   flush.
+   */
+  static pick(element: Element | undefined, { trail: steps = [] as readonly string[] } = {}): void {
+    const part = element && Inspector.partFor(element)
+    setPicked(part)
+    setTrail(steps)
+    editorPrefs.set(Inspector.projectPref(TRAIL_PREF), steps)
+    Picker.select((part && Inspector.outlinedElement(steps, part)) || element)
     const address = element && Inspector.addressOf(element)
     if (address) editorPrefs.set(Inspector.pickedPref, address)
+  }
+
+  /**
+   * What the properties card shows (reactive):  what's picked, or the thing its TRAIL leads to from it
+   * (Owen:  "I'd expect that the \"new discards\" line would make something that could be inspected").
+   * - The trail:  the steps from the picked part's thing, a property's name (`discards`) or a list's item (`#3`);
+   *   remembered with the project, as the pick is.
+   * - A step that leads nowhere any more (the program changed) ends the trail there.
+   * - The thing at its end is drawn when an element in the app draws it (`element`):  else it has none.
+   */
+  static get inspected(): Inspected | undefined {
+    const base = picked()
+    if (!base) return undefined
+    const crumbs: Crumb[] = [{ label: base.label, depth: 0 }]
+    let value = base.value
+    for (const step of trail()) {
+      const next = stepInto(value, step)
+      if (!next) break
+      value = next
+      crumbs.push({ label: Inspector.thingLabel(next, step), depth: crumbs.length })
+    }
+    if (value === base.value) return { ...base, crumbs }
+    return {
+      element: Inspector.elementDrawing(value),
+      value,
+      schema: ClassSchemas.fromClass(value.constructor),
+      label: crumbs.at(-1)!.label,
+      crumbs
+    }
+  }
+
+  /** Inspect what `step` leads to from what's inspected now:  a property's thing (`discards`), a list's item (`#3`). */
+  static inspect(step: string): void {
+    Inspector.followTrail([...trail(), step])
+  }
+
+  /** Go back along the trail to step `depth` (0:  what's picked). */
+  static backTo(depth: number): void {
+    Inspector.followTrail(trail().slice(0, depth))
+  }
+
+  /** Follow `steps` from what's picked;  remember them, and outline what they lead to when it's drawn. */
+  private static followTrail(steps: readonly string[]): void {
+    setTrail(steps)
+    editorPrefs.set(Inspector.projectPref(TRAIL_PREF), steps)
+    // `steps` itself:  the trail signal reads its old value until the next flush
+    Picker.select(Inspector.outlinedElement(steps))
+  }
+
+  /** The element to outline:  the one drawing what `steps` lead to (the trail), else what's picked. */
+  private static outlinedElement(steps: readonly string[], base = picked()): Element | undefined {
+    if (!base) return undefined
+    let value = base.value
+    for (const step of steps) value = stepInto(value, step) ?? value
+    return (value !== base.value && Inspector.elementDrawing(value)) || base.element
+  }
+
+  /** The element in the app that draws `thing`, if one does. */
+  static elementDrawing(thing: object): Element | undefined {
+    const area = appArea
+    return area
+      ? Inspector.partsIn(area).find((row) => SpellElement.thingOf(row.element) === thing)?.element
+      : undefined
+  }
+
+  /** A thing's title:  its type, then its name if it has one (`DiscardPile · discards`);  a list's item, its place too. */
+  static thingLabel(thing: object, step = ""): string {
+    const type = thing.constructor.name
+    const name = (thing as { name?: unknown }).name
+    const titled = typeof name === "string" && name ? `${type} · ${name}` : type
+    return step.startsWith(ITEM_STEP) && !(typeof name === "string" && name) ? `${titled} ${step}` : titled
   }
 
   /**
    * Pick again what was picked, once the app's parts are drawn:  after a reload, a restart, a recompile
    * (Owen:  "keep everything EXACTLY THE SAME across page moves").
    * - `rows`:  the app's parts, as the parts tree walks them (`partsIn()`).
-   * - Nothing to do while what's picked is still in the app.
+   * - While what's picked is still in the app, only its outline is put on what the trail leads to again.
    * - Found by its place among the parts and its tag (`PartAddress`), for this project:  none there, nothing's picked.
    */
   static restorePick(rows: readonly PartRow[]): void {
-    if (picked()?.element.isConnected) return
+    // still there:  only its outline, on what the trail leads to now (a redraw replaces a drawn thing's element)
+    if (picked()?.element.isConnected) return Picker.select(Inspector.outlinedElement(trail()))
     const address = editorPrefs.get(Inspector.pickedPref) as PartAddress | undefined
     const row = address && rows[address.index]
-    if (row && row.element.localName === address.tag) Inspector.pick(row.element)
+    // the trail from it too, as it was left
+    const steps = (editorPrefs.get(Inspector.projectPref(TRAIL_PREF)) as string[] | undefined) ?? []
+    if (row && row.element.localName === address.tag) Inspector.pick(row.element, { trail: steps })
     else if (picked()) Inspector.pick(undefined)
   }
 
@@ -315,6 +398,17 @@ export class Inspector {
   }
 }
 
+/** What the properties card shows:  a pick, or the thing its trail leads to, with the trail to it. */
+export type Inspected = Omit<Picked, "element"> & {
+  /** The element drawing it, outlined:  none for a thing nothing draws. */
+  element?: Element
+  /** The trail from what's picked to it, a step each (what's picked first). */
+  crumbs: Crumb[]
+}
+
+/** One step of the trail:  its title, and how far along it is (0:  what's picked). */
+export type Crumb = { label: string; depth: number }
+
 /** A part of the running app, picked in the Inspector. */
 export type Picked = {
   /** Its element in the app, outlined. */
@@ -385,6 +479,8 @@ export type FieldSpec = { name: string; kind?: string; group?: E.AttributeGroup;
 
 /** The preference that remembers whether the Inspector is open. */
 const OPEN_PREF = "inspector"
+/** The start of the pref remembering the trail, a project's each. */
+const TRAIL_PREF = "inspector:trail"
 /** The pref remembering which cards show. */
 const PANELS_PREF = "inspector:panels"
 /** The pref remembering which of the properties card's sections are folded. */
@@ -444,6 +540,44 @@ function setPanels(panels: readonly InspectorPanel[]): void {
 }
 const [isPicking, setPicking] = createSignal(false)
 const [picked, setPicked] = createSignal<Picked | undefined>(undefined)
+/** The trail from what's picked (`Inspector.inspected`):  property names and list items (`#3`). */
+const [trail, setTrail] = createSignal<readonly string[]>([])
+
+/** Where a step leads from `value`:  a property's thing (`discards`), a list's item (`#3`);  `undefined` if nowhere. */
+function stepInto(value: object, step: string): object | undefined {
+  const next = step.startsWith(ITEM_STEP)
+    ? itemsOf(value)?.[Number(step.slice(ITEM_STEP.length))]
+    : (value as Record<string, unknown>)[step]
+  return isThing(next) ? next : undefined
+}
+
+/**
+ * Is `value` one of the program's things:  an instance of a spell class (lists too)?
+ * - By what its class carries, its `schema` symbol:  the runtime has its own copy of `spell/util`, so no symbol
+ *   or class of the page's own would match.
+ */
+export function isThing(value: unknown): value is object {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    value instanceof Node ||
+    typeof (value as { toJSON?: unknown }).toJSON !== "function"
+  )
+    return false
+  for (let Class = value.constructor; Class && Class !== Function.prototype; Class = Object.getPrototypeOf(Class)) {
+    if (Object.getOwnPropertySymbols(Class).some((symbol) => symbol.description === "schema")) return true
+  }
+  return false
+}
+
+/** A list thing's items (a `Deck`'s cards), when it's a list:  else `undefined`. */
+export function itemsOf(value: object): unknown[] | undefined {
+  if (typeof (value as { [Symbol.iterator]?: unknown })[Symbol.iterator] !== "function") return undefined
+  return [...(value as Iterable<unknown>)]
+}
+
+/** How a list's item is named in the trail:  `#3`. */
+export const ITEM_STEP = "#"
 
 /**
  * Where the running app draws, as `<AppPane>` last handed it over.
@@ -678,6 +812,9 @@ const FOLDED_CARD_HEIGHT = 40
  * (Owen:  "lose that [More]. Show all of the properties").
  * - Picking again is the App pane's crosshairs (`<InspectorPick>`), beside the Inspector's button.
  * - Nothing picked:  the card is titled "Inspector", and says how to pick.
+ * - A thing's property whose value is a thing is a link to it (`<ThingLink>`);  a list's items are links too.
+ *   Following one, the title is the TRAIL from what was picked (`Solitaire › DiscardPile · discards`),
+ *   each step a pill that goes back to it (`Inspector.inspected`).
  ****************/
 function PropertiesCard(): JSX.Element {
   return (
@@ -685,13 +822,35 @@ function PropertiesCard(): JSX.Element {
       panel="properties"
       class="InspectorMain"
       title={
-        <Show when={Inspector.picked} fallback={appTexts.text("inspector")}>
-          {(part) => <span class="InspectorPartTag">{part().label}</span>}
+        <Show when={Inspector.inspected} fallback={appTexts.text("inspector")}>
+          {(part) => (
+            <span class="InspectorTrail">
+              <For each={part().crumbs}>
+                {(crumb) => (
+                  <>
+                    <Show when={crumb.depth}>
+                      <span class="InspectorTrailStep">›</span>
+                    </Show>
+                    <span
+                      class={["InspectorPartTag", { back: crumb.depth < part().crumbs.length - 1 }]}
+                      onClick={(event: MouseEvent) => {
+                        if (crumb.depth === part().crumbs.length - 1) return
+                        event.stopPropagation()
+                        Inspector.backTo(crumb.depth)
+                      }}
+                    >
+                      {crumb.label}
+                    </span>
+                  </>
+                )}
+              </For>
+            </span>
+          )}
         </Show>
       }
     >
       <Show
-        when={Inspector.picked}
+        when={Inspector.inspected}
         keyed
         fallback={
           <p class="InspectorTip">{appTexts.text(Inspector.isPicking ? "inspectorPicking" : "inspectorTip")}</p>
@@ -725,6 +884,9 @@ function PropertiesCard(): JSX.Element {
                 </For>
               )}
             </Show>
+            <Show when={!part.layout}>
+              <ThingFields value={part.value} schema={part.schema as ReturnType<typeof ClassSchemas.fromClass>} />
+            </Show>
           </ui-property-editor>
         )}
       </Show>
@@ -749,6 +911,60 @@ function sectionsFor(fields: FieldSpec[], hasText: boolean): InspectorSection[] 
 
 /** One of the Inspector's sections:  a group, its fields, and whether the element's text heads it. */
 type InspectorSection = { group: E.AttributeGroup; hasText: boolean; fields: FieldSpec[] }
+
+/****************
+ * ### `<ThingFields>`
+ * A thing's properties, as the properties card lists them:  a field each, or a link to the thing it holds;
+ * then, for a list, its items, a link each.
+ ****************/
+function ThingFields(props: { value: object; schema: ReturnType<typeof ClassSchemas.fromClass> }): JSX.Element {
+  const holds = (name: string) => (props.value as Record<string, unknown>)[name]
+  const items = () => itemsOf(props.value)?.filter(isThing) ?? []
+  return (
+    <>
+      <For each={props.schema.attributes}>
+        {(attribute) => (
+          <Show when={isThing(holds(attribute.name))} fallback={<ui-property name={attribute.name} />}>
+            <ThingLink
+              label={PropertySchemas.labelOf(attribute)}
+              thing={holds(attribute.name) as object}
+              step={attribute.name}
+            />
+          </Show>
+        )}
+      </For>
+      <Show when={items().length}>
+        <div class="InspectorItems">
+          <span class="InspectorItemsLabel">{appTexts.text("inspectorItems", { count: items().length })}</span>
+          <For each={items()}>{(item, index) => <ThingLink thing={item} step={`${ITEM_STEP}${index()}`} />}</For>
+        </div>
+      </Show>
+    </>
+  )
+}
+
+/****************
+ * ### `<ThingLink>`
+ * A link to a thing a property (or a list) holds:  its title, then `›`;  a click inspects it.
+ * - `label`:  the property's label, above it, as a field's;  none for a list's item.
+ ****************/
+function ThingLink(props: { thing: object; step: string; label?: string }): JSX.Element {
+  return (
+    <div class={["InspectorThingLink", { item: !props.label }]}>
+      <Show when={props.label}>{(label) => <span class="InspectorThingLabel">{label()}</span>}</Show>
+      <ui-button
+        basic=""
+        size="small"
+        icon="angle right"
+        icon-position="right"
+        class="InspectorThingButton"
+        onClick={() => Inspector.inspect(props.step)}
+      >
+        {Inspector.thingLabel(props.thing, props.step)}
+      </ui-button>
+    </div>
+  )
+}
 
 /****************
  * ### `<Field>`

@@ -228,6 +228,7 @@ export const APP_TEXTS = {
   inspectorTip: "Pick a part of the app with the crosshairs, to see what it is and change it.",
   inspectorPicking: "Click a part of the app;  Alt-click for any part inside it.  Esc stops picking.",
   inspectorText: "Text",
+  inspectorItems: "Its {count} items",
   // the properties card's sections, a Spell UI attribute group each (`E.ATTRIBUTE_GROUPS`)
   "inspectorGroup.name": "Name",
   "inspectorGroup.content": "Content",
