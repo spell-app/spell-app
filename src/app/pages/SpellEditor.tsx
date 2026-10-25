@@ -22,17 +22,14 @@ import {
   SplitPanel,
   Submenu,
   ThemeMenu,
-  ThingExplorer,
   TreeRoot,
-  TypeExplorer,
   tracked,
   trackProjectRoot,
   type Mode
 } from "spell-app/app/solid"
-import { editor, runtimeCore } from "spell-app/app/editor"
+import { editor } from "spell-app/app/editor"
 import { editorPrefs } from "spell-app/app/editorPrefs"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
-import type { ThingExplorerState } from "spell-app/app/ui/ui.types"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
 import { RunnerPane, type RunnerTab } from "spell-app/app/runner/RunnerPane"
 import { editorHotkeys } from "./editorHotkeys"
@@ -120,20 +117,16 @@ export function AppPane() {
  * ### `<ProgramPanel>`
  * Debug's panel under the code:  one pane of tabs (`<RunnerPane>`), as VS Code's runner panel has.
  * - Program Output:  what the program logged, and how compiling and running it went (`<ConsoleViewer>`).
- * - Things:  what the running program has made, live (`<ThingExplorer>` on `runtimeCore()`'s `things`).
- * - Types:  every type the code knows (`<TypeExplorer>` on `editor.scopeTree`, from the in-page language service).
  * - JavaScript:  the compiled code (`<OutputRoot>`);  TypeScript and Python:  the project as those targets write it.
  * - Sentence Tree:  the spell tree of the cursor's line (`<TreeRoot>`).
  * - At the right, whatever tab shows:  Clear Console, on Program Output only, and Close (`onClose`).
- * - Types and Things follow each compile:  `editor.compileApp()` works out a new tree, and runs the program.
  * - Remembers which tab shows, as the editor's preference `spellEditor:programTab`.
- * - Switching tabs loses neither explorer's state, while the page is up:
- *   the Types tab keeps its own, and the Things tab's is kept here (`thingsState`).
+ * - Things and Types (Templates) are the Inspector's now, in its Views card (`<InspectorViews>`):
+ *   a tab remembered from before shows Program Output.
  ****************/
 export function ProgramPanel(props: { onClose: () => void }) {
-  const [tab, setTab] = createSignal(editorPrefs.get(TAB_PREF) as ProgramTabId)
-  // the Things tab's state, kept here so it outlives switching tabs:  the explorer reads it once, as it mounts
-  let thingsState: ThingExplorerState = {}
+  const remembered = editorPrefs.get(TAB_PREF) as ProgramTabId
+  const [tab, setTab] = createSignal<ProgramTabId>(PROGRAM_TABS.includes(remembered) ? remembered : "output")
   return (
     <RunnerPane
       class="ProgramPanel"
@@ -161,26 +154,6 @@ export function ProgramPanel(props: { onClose: () => void }) {
       <Switch>
         <Match when={tab() === "output"}>
           <ConsoleRoot showToolbar={false} />
-        </Match>
-        <Match when={tab() === "things"}>
-          <Show when={runtimeCore()?.things} keyed>
-            {(things) => (
-              <ThingExplorer
-                things={things}
-                words={editor.programWords}
-                state={thingsState}
-                onStateChange={(changed) => (thingsState = changed)}
-              />
-            )}
-          </Show>
-        </Match>
-        <Match when={tab() === "types"}>
-          <TypeExplorer
-            tree={editor.scopeTree}
-            onOpen={editor.openScopeLink}
-            loadDetails={editor.scopeDetails}
-            onRefresh={() => void editor.refreshScopes()}
-          />
         </Match>
         <Match when={tab() === "javascript"}>
           <OutputRoot showToolbar={false} />
@@ -217,14 +190,12 @@ function columnsFor(isRunning: boolean, isInspecting: boolean): { id: string; co
 }
 
 /** Tabs of `<ProgramPanel>`, in order. */
-const PROGRAM_TABS = ["output", "things", "types", "javascript", "typescript", "python", "tree"] as const
+const PROGRAM_TABS = ["output", "javascript", "typescript", "python", "tree"] as const
 /** One of `<ProgramPanel>`'s tabs. */
 type ProgramTabId = (typeof PROGRAM_TABS)[number]
 /** Icon of each tab (Fomantic's names, else Font Awesome's), and its title's key. */
 const TAB_LOOKS: Record<ProgramTabId, { icon: string; text: AppTextKey }> = {
   output: { icon: "list", text: "outputTab" },
-  things: { icon: "cubes", text: "thingsTab" },
-  types: { icon: "sitemap", text: "typesTab" },
   javascript: { icon: "js", text: "javascriptTab" },
   typescript: { icon: "code", text: "typescriptTab" },
   python: { icon: "python", text: "pythonTab" },
