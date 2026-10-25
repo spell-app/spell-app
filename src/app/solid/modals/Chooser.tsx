@@ -35,7 +35,7 @@ export function Chooser(props: ChooserProps) {
       class="Chooser"
       size="tiny"
       closedby="closerequest"
-      header={props.header}
+      heading={props.header}
       aria-label={props.header ? undefined : props.message}
       visible=""
       ref={(element: HTMLElement) => {
