@@ -4,8 +4,10 @@ import type { EditorStore } from "spell-app/app/editor"
 
 // ## Routing
 
-/** Params parsed out of the `/edit/*address` and `/run/*address` routes. */
+/** Params parsed out of the `/:page/*address` route:  `/edit/...`, `/run/...`. */
 export type SpellRouteParams = {
+  /** Which page:  `edit` or `run`. */
+  page: string
   /**
    * The address, each part decoded by the router, e.g. `@spell/examples/Solitaire/a b.spell`.
    * - NEVER decode it again:  a name with an encoded `%` in it, `a%25b`, would lose it.

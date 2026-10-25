@@ -1475,7 +1475,7 @@
         {
           "name": "useRunner",
           "type": "boolean",
-          "description": "Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked."
+          "description": "Open the file in Run, not Edit, when an item is clicked."
         },
         {
           "name": "showActions",
@@ -1861,10 +1861,6 @@
         {
           "name": "InputToolbar",
           "file": "src/app/solid/InputEditor.tsx"
-        },
-        {
-          "name": "ProjectActionsDropdown",
-          "file": "src/app/solid/chrome.tsx"
         }
       ],
       "href": "chrome.html#MoreMenu"
@@ -2058,55 +2054,6 @@
       "href": "chrome.html#PanelMenu"
     },
     {
-      "tag": "ProjectActionsDropdown",
-      "name": "ProjectActionsDropdown",
-      "folder": "chrome",
-      "mainTag": "AppMenu",
-      "main": false,
-      "page": false,
-      "topics": [
-        "shell"
-      ],
-      "aka": [],
-      "description": "`<MoreMenu>` of `Actions.PROJECT_DROPDOWN_ACTIONS`.",
-      "noun": "ProjectActionsDropdown",
-      "attributes": [],
-      "slots": [],
-      "events": [],
-      "parts": [],
-      "states": [],
-      "texts": [],
-      "props": [
-        {
-          "name": "...UIDropdownJSXAttributes",
-          "type": "UIDropdownJSXAttributes",
-          "description": "Every prop of this type too."
-        },
-        {
-          "name": "stub",
-          "type": "boolean",
-          "description": "A disabled placeholder item instead of the real dropdown."
-        },
-        {
-          "name": "item",
-          "type": "boolean",
-          "description": "Wrapped in a `<ui-item>`, to sit in a menu.  Default:  `true`."
-        },
-        {
-          "name": "icon",
-          "type": "string",
-          "description": "Icon name.  Default:  `\"ellipsis horizontal\"`."
-        }
-      ],
-      "usedIn": [
-        {
-          "name": "EditorToolbar",
-          "file": "src/app/pages/SpellEditor.tsx"
-        }
-      ],
-      "href": "chrome.html#ProjectActionsDropdown"
-    },
-    {
       "tag": "ProjectDropdown",
       "name": "ProjectDropdown",
       "folder": "ProjectDropdown",
@@ -2117,7 +2064,7 @@
         "menus and dialogs"
       ],
       "aka": [],
-      "description": "Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-dropdown>` showing `editor.project`; choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`. Built as `<FileDropdown>` is.",
+      "description": "Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-dropdown>` showing `editor.project`; choosing one shows it in `<SpellEditor>`, or in Run with `useRunner`. Built as `<FileDropdown>` is.",
       "noun": "ProjectDropdown",
       "attributes": [],
       "slots": [],
@@ -2134,7 +2081,12 @@
         {
           "name": "useRunner",
           "type": "boolean",
-          "description": "Open `<SpellRunner>` instead of `<SpellEditor>`."
+          "description": "Open it in Run, not Edit."
+        },
+        {
+          "name": "showActions",
+          "type": "boolean",
+          "description": "At its foot, the project's actions:  Rename, Duplicate, Delete, then New, each after a divider (choosing one does it, as a file dropdown's do) -- never in the static build, which has none."
         }
       ],
       "usedIn": [
@@ -2156,7 +2108,7 @@
         "menus and dialogs"
       ],
       "aka": [],
-      "description": "Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-menu>` of links; choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.",
+      "description": "Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-menu>` of links; choosing one shows it in `<SpellEditor>`, or in Run with `useRunner`.",
       "noun": "ProjectMenu",
       "attributes": [],
       "slots": [],
@@ -2178,7 +2130,7 @@
         {
           "name": "useRunner",
           "type": "boolean",
-          "description": "Open `<SpellRunner>` instead of `<SpellEditor>`."
+          "description": "Open it in Run, not Edit."
         }
       ],
       "href": "ProjectDropdown.html#ProjectMenu"
@@ -2721,10 +2673,6 @@
         {
           "name": "SpellEditor",
           "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
-          "name": "SpellRunner",
-          "file": "src/app/pages/SpellRunner.tsx"
         }
       ],
       "href": "SpellPage.html"
@@ -2878,10 +2826,6 @@
         {
           "name": "SpellEditor",
           "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
-          "name": "SpellRunner",
-          "file": "src/app/pages/SpellRunner.tsx"
         }
       ],
       "href": "SplitPanel.html"
@@ -3026,6 +2970,11 @@
           "name": "spring",
           "type": "boolean",
           "description": "Add a `<Spring>` between this section and its neighbor(s)."
+        },
+        {
+          "name": "mark",
+          "type": "boolean",
+          "description": "Spell's hat first (`<AppMark>`), in one of the editor's looks:  an app bar's left section. - Inside the section, so it counts in that third, and the centre one stays on the bar's middle."
         }
       ],
       "usedIn": [
@@ -3495,8 +3444,7 @@
         "Submenu",
         "MenuHeader",
         "Spring",
-        "MoreMenu",
-        "ProjectActionsDropdown"
+        "MoreMenu"
       ],
       "tokens": []
     },

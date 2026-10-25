@@ -347,12 +347,11 @@ export const Actions = {
   // ## Groups of actions
   ////////////////
 
-  /** Project dropdown items:  create, duplicate, rename, delete the app. */
+  /** The project's own actions, at the foot of its dropdown:  rename, duplicate, delete it (New is apart). */
   PROJECT_DROPDOWN_ACTIONS: (): JSX.Element => (
     <>
-      <Actions.createApp />
-      <Actions.duplicateApp />
       <Actions.renameApp />
+      <Actions.duplicateApp />
       <Actions.deleteApp />
     </>
   ),

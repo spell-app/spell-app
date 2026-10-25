@@ -34,7 +34,7 @@ void EditorTheme.restore()
 
 /**
  * Draw the app, in Solid, into `#app-root` (inside `index.html`'s `<ui-root icons="fomantic">`).
- * - `<Routes>` picks `<ProjectChooser>` / `<SpellEditor>` / `<SpellRunner>` by URL.
+ * - `<Routes>` picks `<ProjectChooser>` / `<SpellEditor>` (in Edit, Debug or Run) by URL.
  * - `<Notice>` / `<ErrorNotice>` show `editor.notice` / `editor.error` over every page.
  * - Dialogs need no root:  each `editor.alert()` / `choose()` ... opens its own `<ui-modal>`.
  * - A running program draws with the page's Solid, in its own root on `<AppRoot>`'s element:
