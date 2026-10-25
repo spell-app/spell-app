@@ -6,10 +6,13 @@ import { describe, expect, it } from "vite-plus/test"
 import { compiledSpellProject } from "spell-parser/spell/test"
 import { SPACES } from "spell-app/spaces"
 
-/** The Solitaire example's compiled declarations, as committed beside it:  its cards, deck and piles among them. */
+/**
+ * The Solitaire example's compiled declarations, as its fixture snapshot pins them:  its cards, deck and piles among them.
+ * - Its own `Solitaire.declarations.json5` is built, in `build/`, not committed (epic `elemental-spell` P4).
+ */
 const CARDS = JSON5.parse(
   fs.readFileSync(
-    path.resolve(import.meta.dirname, "../../../spaces/@spell/examples/Solitaire/Solitaire.declarations.json5"),
+    path.resolve(import.meta.dirname, "../../spell/__examples__/Solitaire/Solitaire.snapshot.declarations.json5"),
     "utf8"
   )
 )

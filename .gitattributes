@@ -17,9 +17,5 @@ app/docs/__data/search.json5                                  linguist-generated
 # vendored Fomantic build
 app/static/semantic-ui-css/**                                 linguist-vendored -diff
 
-# spell:  what a project offers its importers, written by each compile beside its source.  JSON5 since epic
-# `people-and-orgs` P12, `.declarations.json` before
-spaces/@spell/**/*.declarations.json5                         linguist-generated
-
 # spell:  its compiled libraries, the `ts/lib` target (`spell compile @library`)
 spaces/@spell/library/**/*.lib.ts                             linguist-generated merge=binary

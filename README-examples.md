@@ -101,8 +101,8 @@ Everything else on this page is written by hand.
   it fails while the table is out of date, or an example has no picture.
   spell-app's tests run it, so a new example fails `yarn test` until the page is made again.
 - The table draws each picture 360 pixels wide;  a click opens it whole.
-- Opening a project in the editor compiles it, which may rewrite its declarations and words files beside its source:
-  look at `git status` after.
+- Opening a project in the editor compiles it:  its declarations and words go in `build/` with its compiled code,
+  so nothing beside its source changes.
 
 </details>
 
