@@ -105,6 +105,29 @@ describe("SpellElement", () => {
     expect(customElements.get("solitaire-card")).toBe(defined)
   })
 
+  test("an app mounts as <arcade-app>:  its shadow root a slot, its drawing the element's children (elemental-spell Q62)", async () => {
+    /** An app, its element named for its project:  `core.defineElement(this, "Arcade", "App")`. */
+    class Arcade extends App {
+      static elementTag = core.defineElement(this, "Arcade", "App")
+      draw(): ReturnType<View["draw"]> {
+        return (h("div", { class: "Board" }, "board") as unknown as () => ReturnType<View["draw"]>)()
+      }
+    }
+    expect(Arcade.elementTag).toBe("arcade-app")
+    await Promise.resolve()
+    const root = document.createElement("div")
+    document.body.append(root)
+    core.mountApp(new Arcade(), root)
+    flush()
+    const element = root.querySelector("arcade-app")!
+    expect(element).not.toBeNull()
+    // the board is the element's child, where the project's styles reach it:  not inside its shadow root
+    expect(element.querySelector(":scope > .Board")?.textContent).toBe("board")
+    expect(element.shadowRoot!.querySelector("slot")).not.toBeNull()
+    expect(element.shadowRoot!.querySelector(".Board")).toBeNull()
+    root.remove()
+  })
+
   describe("a program draws a view as its element (P5)", () => {
     /** A card that draws its rank as a button, counting its clicks;  a rank of `bad` throws. */
     class Ace extends View {

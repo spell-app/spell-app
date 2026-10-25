@@ -6,8 +6,8 @@
  *     `{type}` (`example`), `{Type}` (`Example`), `{theType}` (`the example`)
  *   - Each language writes the sentence its own way, with the ones it needs.
  * - Other languages:  a file beside it each, `AppTexts.<lang>.ts`, with every key (its type says so).
- * - Pure data, no imports:  the editor's entry, the runner and `<spell-app>` all carry it.
- * - The web components' own texts (`<spell-app>`, `<spell-editor>`) are in their vocabularies, `Spell<Name>.en.ts`.
+ * - Pure data, no imports:  the editor's entry, the runner and `<spell-viewer>` all carry it.
+ * - The web components' own texts (`<spell-viewer>`, `<spell-editor>`) are in their vocabularies, `Spell<Name>.en.ts`.
  */
 export const APP_TEXTS = {
   ////////////////

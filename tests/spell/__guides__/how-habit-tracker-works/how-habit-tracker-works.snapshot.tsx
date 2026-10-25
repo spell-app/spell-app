@@ -1,4 +1,5 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
+import { core, App, prop, derived, drawn } from "@spell/core"
+import { E, SpellElement } from "@spell/elements"
 
 core.heading("How the Habit Tracker works")
 /////////////////////////////////
@@ -14,6 +15,8 @@ core.heading("How the Habit Tracker works")
 core.heading("A habit:  its name, and a yes or no for each day of the week")
 /** A habit:  its name, and a yes or no for each day of the week */
 export class Habit extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "name" is text
   @prop({ type: "text" })
   accessor name!: string
@@ -96,6 +99,26 @@ export class Habit extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a habit, drawn in its own element, e.g. by `draw the habit`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its habit's properties;  its methods call its habit's.
+ * - What every view's element does, e.g. drawing its habit, is `SpellElement`'s.
+ */
+export class HabitElement extends SpellElement<Habit> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "habit", [
+    { name: "name", kind: "string", description: "Its name." },
+    { name: "monday", kind: "boolean", description: "Its monday." },
+    { name: "tuesday", kind: "boolean", description: "Its tuesday." },
+    { name: "wednesday", kind: "boolean", description: "Its wednesday." },
+    { name: "thursday", kind: "boolean", description: "Its thursday." },
+    { name: "friday", kind: "boolean", description: "Its friday." },
+    { name: "saturday", kind: "boolean", description: "Its saturday." },
+    { name: "sunday", kind: "boolean", description: "Its sunday." }
+  ])
+}
+core.useElement(Habit, HabitElement)
 export const habit = new Habit()
 
 core.heading("Start:  read on Monday, Tuesday and Thursday")
@@ -139,3 +162,13 @@ core.heading("Try it")
 core.installStyles(undefined, `/* File styles.css:  how the habit looks -- its name, a row of seven checkboxes, then its count and streak. */¬¬.Habit {¬  max-width: 24em;¬  margin: 2em auto;¬}¬¬.Days {¬  display: flex;¬  justify-content: space-between;¬}¬¬.Habit p {¬  margin-block-start: 1em;¬  white-space: pre;¬}¬`)
 // -----------
 if (!core.isCarryingOver) testStreaks()
+
+// each view type's tag, for the JSX
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      /** `HabitElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+    }
+  }
+}

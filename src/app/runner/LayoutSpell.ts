@@ -15,10 +15,10 @@ import {
 
 /****************
  * ### `LayoutSpell`
- * The spell written in a `<spell-app>`'s layout, compiled in the page against its program (epic `drawable-thing` P9):
+ * The spell written in a `<spell-viewer>`'s layout, compiled in the page against its program (epic `drawable-thing` P9):
  *
  * ```html
- * <spell-app project="@spell/examples/Solitaire">
+ * <spell-viewer project="@spell/examples/Solitaire">
  *   <ui-text>Score {the score of the game}</ui-text>          <!-- a hole:  shown, and kept up to date -->
  *   <ui-button action={auto-play}>AutoPlay</ui-button>       <!-- an action:  run on a click -->
  *   <solitaire-stock-pile>
@@ -27,7 +27,7 @@ import {
  *         play from the stock pile                           <!-- a handler, on its element -->
  *     </spell>
  *   </solitaire-stock-pile>
- * </spell-app>
+ * </spell-viewer>
  * ```
  *
  * - Names resolve innermost first (Q18):
@@ -445,7 +445,7 @@ export class LayoutSpell {
 
 /** What a `LayoutSpell` binds. */
 export type LayoutSpellOptions = {
-  /** The layout:  the `<spell-app>` whose markup it is. */
+  /** The layout:  the `<spell-viewer>` whose markup it is. */
   root: Element
   /** Its project's id, e.g. `@spell/examples/Solitaire`. */
   projectId: string

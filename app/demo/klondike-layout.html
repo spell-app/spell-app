@@ -2,7 +2,7 @@
 <!--
   Owen's Klondike sketch:  a spell app laid out in plain HTML, around its program.
   - Served by the dev server at `/demo/klondike-layout.html`, after `yarn build:element` (epic `drawable-thing`, P9).
-  - The `<spell-app>`'s markup IS the app's drawing:  the game's own `to draw` isn't drawn.
+  - The `<spell-viewer>`'s markup IS the app's drawing:  the game's own `to draw` isn't drawn.
   - Each view tag is the program's thing its `id` names, as the part of a reference after its `#` (P18, J43):
     - `T1` ... the tableaus
     - `clubs` ... the foundations
@@ -23,7 +23,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Klondike layout demo</title>
-    <script type="module" src="/element/spell-app.js"></script>
+    <script type="module" src="/element/spell-viewer.js"></script>
     <style>
       body {
         margin: 0;
@@ -46,7 +46,7 @@
     </style>
   </head>
   <body>
-    <spell-app project="@spell/examples/Solitaire" name="Solitaire">
+    <spell-viewer project="@spell/examples/Solitaire" name="Solitaire">
       <div class="row">
         <div class="title">Klondike Solitaire</div>
         <div class="score">Score {the score of the solitaire}</div>
@@ -78,6 +78,6 @@
         <solitaire-tableau id="T7"></solitaire-tableau>
       </div>
       <div>{the number of cards in the stock of the solitaire} cards left in the stock</div>
-    </spell-app>
+    </spell-viewer>
   </body>
 </html>

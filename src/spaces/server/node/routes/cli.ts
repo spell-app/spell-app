@@ -18,7 +18,7 @@ import { APP_DIR } from "./EditorServer"
  * - Bodies parse for EVERY verb (a `DELETE` with a JSON body too), up to 10mb:
  *   as JSON5 (forgiving JSON), text or a form.
  * - production (`NODE_ENV=production`):  `dist/`, and `index.html` for any other path (the SPA's client routing)
- * - development:  `/static`, `/element` (`<spell-app>`'s bundle) and `/demo`;  the editor UI itself is vite's
+ * - development:  `/static`, `/element` (`<spell-viewer>`'s bundle) and `/demo`;  the editor UI itself is vite's
  * - those folders are the app's (`APP_DIR`), wherever it's started from
  * - binds 0.0.0.0, as Express did:  vite (and a LAN device) reach it
  *   - no `Host` check, since vite's proxy and the page server pass requests on with their own

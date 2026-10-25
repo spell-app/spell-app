@@ -1,4 +1,5 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
+import { core, App, prop, drawn } from "@spell/core"
+import { E, SpellElement } from "@spell/elements"
 
 core.heading("Your first spell")
 //////////////////////
@@ -26,6 +27,8 @@ core.heading("Step 1:  read the sign")
  * - Each line starting with a dash says one thing about it:  a PROPERTY, something it keeps, like its greeting.
  */
 export class HelloSign extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "greeting" is text
   @prop({ type: "text" })
   accessor greeting!: string
@@ -69,6 +72,25 @@ export class HelloSign extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a hello sign, drawn in its own element, e.g. by `draw the hello sign`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its hello sign's properties;  its methods call its hello sign's.
+ * - What every view's element does, e.g. drawing its hello sign, is `SpellElement`'s.
+ */
+export class HelloSignElement extends SpellElement<HelloSign> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "hello sign", [
+    { name: "greeting", kind: "string", description: "Its greeting." },
+    { name: "name", kind: "string", description: "Its name." },
+    { name: "waves", kind: "number", description: "Its waves." }
+  ])
+
+  waveBack() {
+    return this.currentThing?.waveBack()
+  }
+}
+core.useElement(HelloSign, HelloSignElement)
 export const helloSign = new HelloSign()
 
 core.heading("Step 2:  change one sentence")
@@ -167,3 +189,13 @@ core.heading("Where next")
 core.installStyles(undefined, `/* File styles.css:  how the sign looks -- centred, the greeting big. */¬¬.Sign {¬  max-width: 28em;¬  margin-inline: auto;¬  padding-block: 2em;¬  text-align: center;¬}¬¬.Sign h1 {¬  font-size: 2.5em;¬}¬`)
 // -----------
 if (!core.isCarryingOver) testWavingBack()
+
+// each view type's tag, for the JSX
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      /** `HelloSignElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+    }
+  }
+}

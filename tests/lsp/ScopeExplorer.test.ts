@@ -302,7 +302,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
   }
 })
 
-/** Scope packs:  what `<spell-app>` shows of a project, with no parser -- see `LSP.ScopePack`. */
+/** Scope packs:  what `<spell-viewer>` shows of a project, with no parser -- see `LSP.ScopePack`. */
 describe("ScopeExplorer scope packs", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-packs-"))
   copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
@@ -438,7 +438,7 @@ describe("ScopeExplorer built-in types", () => {
     expect(thing.members.map(({ kind, name }) => `${kind} ${name}`)).toContain("method draw (a thing)")
     expect(explorer.details(project, thing.path)!.description).toMatch(/^What your own types are made from/)
     const app = find(tree, "App")
-    expect(app.super).toBe("type:Thing")
+    expect(app.super).toBe("type:View")
     expect(
       app.members.map(({ name, inheritedFrom }) => `${name}${inheritedFrom ? ` < ${inheritedFrom}` : ""}`)
     ).toEqual(expect.arrayContaining(["start (an app)", "draw (a thing) < Thing"]))

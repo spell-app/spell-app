@@ -21,23 +21,23 @@ import {
   type SpellAppControls,
   type SpellAppSource
 } from "spell-app/app/runner/SpellAppRunner"
-import { spellAppVocabulary } from "./SpellApp.en"
+import { spellViewerVocabulary } from "./SpellViewer.en"
 
-import "./SpellApp.css"
+import "./SpellViewer.css"
 
 // Every Solid computation follows spell cells.
 import "spell-app/app/solid/cellsBridge"
 
 /****************
- * ### `DOMSpellAppElement`
- * The DOM element of `<spell-app>`:  it adds the app's script API, `run(compiled)` and `restart()`.
+ * ### `DOMSpellViewerElement`
+ * The DOM element of `<spell-viewer>`:  it adds the app's script API, `run(compiled)` and `restart()`.
  * - Its attributes are properties too (`app.project = ...`).
  *   `pushed`, the code pushed to it last, is a property only.
  * - `run()` works before the element joins the page:
  *   it runs the code once it does, and keeps it across leaving and rejoining the page.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMSpellAppElement extends E.DOMElement {
+export class DOMSpellViewerElement extends E.DOMElement {
   /**
    * What `pushed` was pushed for:  our `project`, `src`, `scopes`, `name` and `editor` then (`pushedKey()`).
    * - Pushed code counts only while they're the same.
@@ -59,42 +59,42 @@ export class DOMSpellAppElement extends E.DOMElement {
 
   /** Run the program again, afresh:  code pushed to us, if any. */
   restart() {
-    ;(this.component as SpellApp | undefined)?.restart()
+    ;(this.component as SpellViewer | undefined)?.restart()
   }
 }
 
 /** The vocabulary's properties, typed:  `pushed` as what it holds. */
-export interface DOMSpellAppElement extends Omit<E.AttributeValues<typeof spellAppVocabulary>, "pushed"> {
+export interface DOMSpellViewerElement extends Omit<E.AttributeValues<typeof spellViewerVocabulary>, "pushed"> {
   pushed: SpellCompiled | undefined
 }
 
 /****************
  * ### `vocabulary`
- * `<spell-app>`'s whole vocabulary:  a root's names (`<ui-root>`'s), then its own (`SpellApp.en.ts`).
+ * `<spell-viewer>`'s whole vocabulary:  a root's names (`<ui-root>`'s), then its own (`SpellViewer.en.ts`).
  * - Where both name an attribute, its own wins (`display`, `icons`, `width`, `height`, `assets`).
  * - Its own slots only:  it shows no children, it draws its app.
  * - Above the component:  its `@E.proto static vocabulary` reads it while the class is built.
  ****************/
 const ROOT_VOCABULARY: RootVocabulary = UIRoot.describe()
-const OWN_ATTRIBUTES = new Set<string>(spellAppVocabulary.attributes.map(({ name }) => name))
+const OWN_ATTRIBUTES = new Set<string>(spellViewerVocabulary.attributes.map(({ name }) => name))
 const vocabulary = {
-  ...spellAppVocabulary,
+  ...spellViewerVocabulary,
   attributes: [
     ...ROOT_VOCABULARY.attributes.filter(({ name }) => !OWN_ATTRIBUTES.has(name)),
-    ...spellAppVocabulary.attributes
+    ...spellViewerVocabulary.attributes
   ],
-  events: [...ROOT_VOCABULARY.events, ...spellAppVocabulary.events],
-  parts: [...ROOT_VOCABULARY.parts, ...spellAppVocabulary.parts],
-  states: [...ROOT_VOCABULARY.states, ...spellAppVocabulary.states],
-  texts: [...ROOT_VOCABULARY.texts, ...spellAppVocabulary.texts]
+  events: [...ROOT_VOCABULARY.events, ...spellViewerVocabulary.events],
+  parts: [...ROOT_VOCABULARY.parts, ...spellViewerVocabulary.parts],
+  states: [...ROOT_VOCABULARY.states, ...spellViewerVocabulary.states],
+  texts: [...ROOT_VOCABULARY.texts, ...spellViewerVocabulary.texts]
 } satisfies E.ComponentVocabulary
 
 /****************
- * ### `SpellApp`
- * The component behind `<spell-app>`:
+ * ### `SpellViewer`
+ * The component behind `<spell-viewer>`:
  * runs a compiled spell project in any page, in its own shadow root, with no editor.
  * It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
- * - What to run, one of (see the vocabulary, `SpellApp.en.ts`):
+ * - What to run, one of (see the vocabulary, `SpellViewer.en.ts`):
  *   - `project="@spell/examples/Solitaire"`, a project's address:  from the spell server's `/api`
  *   - `src="apps/Solitaire.spell.js"`:  from anywhere, what goes with it beside it
  *   - `editor="#ed"`:  what that `<spell-editor>` compiles (`SPELL_COMPILED_EVENT`), and what it compiled already
@@ -107,7 +107,7 @@ const vocabulary = {
  *   - the Spell UI widgets the runner draws load the first time each appears (`contentRoots`:  in its shadow root)
  *   - so does a spell tag inside it:
  *     `<spell-editor>` from `spell-editor.js`, beside its own script (`ownTagLoader()`);
- *     a page with only `<spell-app>`s never downloads the editor
+ *     a page with only `<spell-viewer>`s never downloads the editor
  *   - its `icons` default to `fomantic`:  the runner's icon names are Fomantic's.
  *     The page's own `ui-*` keep theirs
  *   - inside another root (a docs page, the editor demo), it's a nested root:  the outer one waits for it
@@ -115,17 +115,17 @@ const vocabulary = {
  *   Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
  * - `width` / `height` set our inline style, so page CSS works too.
  * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.
- * - SEE:  its App UI components page, `app/docs/spell-app.html` (`/components/app/spell-app.html`).
+ * - SEE:  its App UI components page, `app/docs/spell-viewer.html` (`/components/app/spell-viewer.html`).
  ****************/
-export class SpellApp extends UIRoot<typeof vocabulary> {
+export class SpellViewer extends UIRoot<typeof vocabulary> {
   @E.proto static vocabulary = vocabulary
   @E.protoMerged static elementSetup = {
-    DOMElement: DOMSpellAppElement,
+    DOMElement: DOMSpellViewerElement,
     // clicking the program's text must not move focus to its first button
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  declare readonly domElement: DOMSpellAppElement
+  declare readonly domElement: DOMSpellViewerElement
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
@@ -278,7 +278,7 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
   }
 
   /**
-   * Is the app laid out in markup inside us, e.g. `<spell-app><ui-row>...</ui-row></spell-app>`?
+   * Is the app laid out in markup inside us, e.g. `<spell-viewer><ui-row>...</ui-row></spell-viewer>`?
    * - Then that markup is the app's drawing, and its `to draw` isn't drawn (epic `drawable-thing` P9, Q10).
    * - Read as the runner starts:  markup added later doesn't switch a running app over.
    */
@@ -289,7 +289,7 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
   /** The runner, or why there's nothing to run;  hidden while the root loads, if `display` says so. */
   protected content(): JSX.Element {
     return (
-      <div class="SpellAppContent" style={this.contentStyle}>
+      <div class="SpellViewerContent" style={this.contentStyle}>
         <Show
           when={this.source}
           fallback={
@@ -322,7 +322,7 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
 }
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`):  `pushed` as what it holds. */
-export interface SpellApp extends Omit<E.AttributeValues<typeof spellAppVocabulary>, "pushed"> {
+export interface SpellViewer extends Omit<E.AttributeValues<typeof spellViewerVocabulary>, "pushed"> {
   pushed: SpellCompiled | undefined
 }
 
@@ -332,7 +332,7 @@ export interface SpellApp extends Omit<E.AttributeValues<typeof spellAppVocabula
  */
 const BUNDLE = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 
-/** Prefix of spell's own tags, which a `<spell-app>` loads from beside its script (`ownTagLoader()`). */
+/** Prefix of spell's own tags, which a `<spell-viewer>` loads from beside its script (`ownTagLoader()`). */
 const SPELL_TAG_PREFIX = "spell-"
 
 /**

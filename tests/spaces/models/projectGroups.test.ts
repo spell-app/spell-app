@@ -7,11 +7,11 @@ import { SPACES } from "spell-app/spaces"
  * (epic `people-and-orgs` P15).
  * - So every program that reads a spell path must load them first, or every address is "invalid".
  * - One test per ENTRY POINT:  each, loaded alone in a fresh module graph, registers them.
- * - The browser's entries (the editor, `<spell-app>`) load `spell-app/spaces` / `spell-app/spaces/models/projectGroups` the same way.
+ * - The browser's entries (the editor, `<spell-viewer>`) load `spell-app/spaces` / `spell-app/spaces/models/projectGroups` the same way.
  */
 const ENTRIES: Record<string, () => Promise<unknown>> = {
   "spaces' barrel (spell-app/spaces)": () => import("spell-app/spaces"),
-  "spaces' groups alone (<spell-app>'s)": () => import("spell-app/spaces/models/projectGroups"),
+  "spaces' groups alone (<spell-viewer>'s)": () => import("spell-app/spaces/models/projectGroups"),
   "spaces' disk reader (tests, the language server)": () => import("spell-app/spaces/server/node/projects/disk-fetch"),
   "spaces' routes (the page server, `yarn start:server`)": () => import("spell-app/spaces/server/node/routes/api"),
   "the language server's workspace": () => import("spell-app/lsp/SpellDiskWorkspace"),

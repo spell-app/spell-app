@@ -24,19 +24,19 @@
     <script defer src="/_epic/assets/spell-comments.js"></script>
   </head>
   <body class="ui-typography">
-    <main id="main" class="site-main" data-toc-header="&lt;spell-app&gt;">
+    <main id="main" class="site-main" data-toc-header="&lt;spell-viewer&gt;">
       <ui-segment vertical class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/components/spell-app/SpellApp.tsx"
+              href="../../src/app/components/spell-viewer/SpellViewer.tsx"
               icon="code"
-              aria-label="Its code, SpellApp.tsx"
-              title="Its code, SpellApp.tsx"
+              aria-label="Its code, SpellViewer.tsx"
+              title="Its code, SpellViewer.tsx"
             ></ui-item>
           </ui-menu>
           <ui-header level="1" class="site-title">
-            &lt;spell-app&gt;
+            &lt;spell-viewer&gt;
             <ui-header>Runs a spell project in any page, in its own shadow root.</ui-header>
           </ui-header>
         </ui-container>
@@ -65,10 +65,10 @@
               and its console.
             </p>
             <ui-docs-example description="A project from the spell server, with its toolbar.">
-              <spell-app project="@spell/examples/calculator" toolbar height="460px"></spell-app>
+              <spell-viewer project="@spell/examples/calculator" toolbar height="460px"></spell-viewer>
             </ui-docs-example>
             <ui-docs-example description="A program with no app of its own:  its console instead, on the debug pane.">
-              <spell-app project="@spell/examples/fizzbuzz" toolbar debug="console" height="320px"></spell-app>
+              <spell-viewer project="@spell/examples/fizzbuzz" toolbar debug="console" height="320px"></spell-viewer>
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
@@ -82,7 +82,7 @@
             <p>A page loads it either way:</p>
             <ul>
               <li>
-                by itself, its own script, with nothing around it: each <code>&lt;spell-app&gt;</code> is a root, as
+                by itself, its own script, with nothing around it: each <code>&lt;spell-viewer&gt;</code> is a root, as
                 <code>&lt;ui-root&gt;</code> is
               </li>
               <li>
@@ -94,7 +94,7 @@
               <ui-title>By itself · 2 lines</ui-title>
               <ui-content>
                 <!-- from a file:  in a `<script type="text/plain">`, the `</script>` it shows would close that one -->
-                <ui-code language="html" source="_examples/spell-app-alone.html"></ui-code>
+                <ui-code language="html" source="_examples/spell-viewer-alone.html"></ui-code>
               </ui-content>
             </ui-accordion>
             <ui-accordion class="spell-code" styled>
@@ -104,7 +104,7 @@
                   ><script type="text/plain">
                     <ui-root>
                       <ui-components source="/element/spell.pack.js"></ui-components>
-                      <spell-app project="@spell/examples/Solitaire" toolbar></spell-app>
+                      <spell-viewer project="@spell/examples/Solitaire" toolbar></spell-viewer>
                     </ui-root>
                   </script></ui-code
                 >
@@ -131,14 +131,16 @@
                 draws as its own
                 <a href="spell-element.html" target="src-packages-app-docs-spell-element-html">element</a>.
               </li>
-              <li>More, with a page of several: the demo, <code>/demo/spell-app.html</code> on the editor's server.</li>
+              <li>
+                More, with a page of several: the demo, <code>/demo/spell-viewer.html</code> on the editor's server.
+              </li>
             </ul>
           </ui-section>
 
           <ui-section id="3-api" label="3. Attributes, events and texts" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <p>Its own names, then those it takes as a root (<code>&lt;ui-root&gt;</code>'s):</p>
-            <ui-docs-api family="spell-app"></ui-docs-api>
+            <ui-docs-api family="spell-viewer"></ui-docs-api>
             <p class="meta">
               From its vocabulary, by <code>yarn site:data</code> in
               <a href="../../" target="src-spell-app"><code>spell-app</code></a
@@ -151,16 +153,16 @@
             <ul>
               <li>
                 <a
-                  href="../../src/app/components/spell-app/SpellApp.tsx"
+                  href="../../src/app/components/spell-viewer/SpellViewer.tsx"
                   target="src-packages-app-components-spell-app-spellapp-tsx"
-                  ><code title="src/app/components/spell-app/SpellApp.tsx">SpellApp.tsx</code></a
+                  ><code title="src/app/components/spell-viewer/SpellViewer.tsx">SpellViewer.tsx</code></a
                 >: its DOM element (the script API) and its component, a root
               </li>
               <li>
                 <a
-                  href="../../src/app/components/spell-app/SpellApp.en.ts"
+                  href="../../src/app/components/spell-viewer/SpellViewer.en.ts"
                   target="src-packages-app-components-spell-app-spellapp-en-ts"
-                  ><code title="src/app/components/spell-app/SpellApp.en.ts">SpellApp.en.ts</code></a
+                  ><code title="src/app/components/spell-viewer/SpellViewer.en.ts">SpellViewer.en.ts</code></a
                 >: its vocabulary, every name it uses
               </li>
               <li>

@@ -56,7 +56,7 @@ export type AppUIGroup = {
 
 /**
  * One page of the set.
- * - A web component (`spell-app`) or a vocabulary's element (`spell-element`):  its id is its tag;  its tags come
+ * - A web component (`spell-viewer`) or a vocabulary's element (`spell-element`):  its id is its tag;  its tags come
  *   from its vocabulary, by Spell UI's builder.
  * - A Solid component file (`SplitPanel`):  its id names the page;  its tags are the file's exported components
  *   with a banner (`### `<Name>``), in file order.

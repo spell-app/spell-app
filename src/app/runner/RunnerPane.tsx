@@ -13,8 +13,8 @@ import "./RunnerPane.css"
  *   as its tabs, the chosen one raised.  In a narrow pane they scroll sideways, with `‹` / `›` buttons,
  *   never wrapping, and `tools` stay at the right, on the same bar.
  *   Whoever mounts a runner defines the `<ui-*>` tags,
- *   with `spell-app/app/solid/loadUI`, or a root around it (`<spell-app>`),
- *   and gives it Fomantic's icon names (`<ui-root icons="fomantic">`, `<spell-app>`'s default `icons`).
+ *   with `spell-app/app/solid/loadUI`, or a root around it (`<spell-viewer>`),
+ *   and gives it Fomantic's icon names (`<ui-root icons="fomantic">`, `<spell-viewer>`'s default `icons`).
  * - HACK: each tab's icon is a slotted `<ui-icon>`, not the item's `icon`:
  *   `<ui-menu>` draws that at 0 x 0 (epic page I1, as `spell-app/app/solid`'s `<Action>`).
  * - SEE:  its App UI components page, `app/docs/RunnerPane.html` (`/components/app/RunnerPane.html`).

@@ -6,4 +6,4 @@
   ✅ As expected `the waves of hello sign` is `3`
   ▶️ Executing   `set the waves of hello sign to 0`
 
-<div id="spell-app-root"><div class="Sign"><h1>Hello, Maya!</h1><ui-button primary="" style="cursor:pointer;user-select:none">Wave back</ui-button><p>0 waves so far</p></div></div>
+<div id="spell-app-root"><test-project-app><div class="Sign"><h1>Hello, Maya!</h1><ui-button primary="" style="cursor:pointer;user-select:none">Wave back</ui-button><p>0 waves so far</p></div></test-project-app></div>

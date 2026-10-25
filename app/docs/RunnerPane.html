@@ -51,7 +51,8 @@
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the runner, or adding a tab to its debug pane</ui-item>
             <ui-item icon="play"
-              >Live: inside a real <code>&lt;spell-app&gt;</code>, from the app's element build this page loads</ui-item
+              >Live: inside a real <code>&lt;spell-viewer&gt;</code>, from the app's element build this page
+              loads</ui-item
             >
           </ui-list>
 
@@ -62,7 +63,7 @@
               is a RunnerPane: click a tab to switch.
             </p>
             <ui-docs-example description="The debug pane below the app:  a RunnerPane of three tabs.">
-              <spell-app project="@spell/examples/TaskList" toolbar debug="things" height="480px"></spell-app>
+              <spell-viewer project="@spell/examples/TaskList" toolbar debug="things" height="480px"></spell-viewer>
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
@@ -74,8 +75,8 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              <code>&lt;spell-app&gt;</code>'s runner draws two: the debug pane, and, for a program with no app of its
-              own, its console on top.
+              <code>&lt;spell-viewer&gt;</code>'s runner draws two: the debug pane, and, for a program with no app of
+              its own, its console on top.
             </p>
             <ui-accordion class="spell-code" styled>
               <ui-title>SpellAppRunner.tsx · the debug pane, and a lone console · 13 lines</ui-title>
@@ -108,7 +109,7 @@
               <li>Each tab has an id, a Fomantic icon name and a title: <code>sitemap</code>, "Type Explorer".</li>
               <li>
                 Its tabs are <code>&lt;ui-item&gt;</code>s in a <code>&lt;ui-menu&gt;</code>. So whatever draws a runner
-                loads those tags too, as <code>&lt;spell-app&gt;</code> does.
+                loads those tags too, as <code>&lt;spell-viewer&gt;</code> does.
               </li>
               <li>
                 It sits in a

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, View, ViewableList, h } from "@spell/core"
 
 core.heading("Habit Tracker")
 ///////////////////
@@ -123,6 +123,8 @@ export class Week extends ViewableList {
 core.heading("The tracker")
 /** The tracker */
 export class HabitTracker extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "habits" is a new week
   static { this.declareProp("habits", { init: () => new Week(), early: true }) }
   get habits() { return this.getProp("habits") }

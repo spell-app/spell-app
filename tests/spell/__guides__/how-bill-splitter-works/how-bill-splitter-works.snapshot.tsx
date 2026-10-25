@@ -1,4 +1,5 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
+import { core, App, prop, drawn } from "@spell/core"
+import { E, SpellElement } from "@spell/elements"
 
 core.heading("How the Bill Splitter works")
 /////////////////////////////////
@@ -32,6 +33,8 @@ export function writeAmountAsMoney(amount: number) {
 core.heading("The bill")
 /** The bill */
 export class Bill extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   /** what the three boxes hold */
   // - its "amount" is a number
   @prop({ type: "number" })
@@ -82,6 +85,21 @@ export class Bill extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a bill, drawn in its own element, e.g. by `draw the bill`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its bill's properties;  its methods call its bill's.
+ * - What every view's element does, e.g. drawing its bill, is `SpellElement`'s.
+ */
+export class BillElement extends SpellElement<Bill> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "bill", [
+    { name: "amount", kind: "number", description: "Its amount." },
+    { name: "percent", kind: "number", description: "Its percent." },
+    { name: "people", kind: "number", description: "Its people." }
+  ])
+}
+core.useElement(Bill, BillElement)
 export const bill = new Bill()
 
 core.heading("Start:  a $60 dinner for three, with an 18% tip")
@@ -125,3 +143,13 @@ core.installStyles(undefined, `/* File styles.css:  how the bill looks -- the th
 // -----------
 if (!core.isCarryingOver) testMoney()
 if (!core.isCarryingOver) testSplitting()
+
+// each view type's tag, for the JSX
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      /** `BillElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+    }
+  }
+}

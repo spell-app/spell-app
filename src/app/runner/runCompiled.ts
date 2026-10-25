@@ -1,5 +1,5 @@
 /**
- * Running compiled spell javascript -- in every runner:  the app, the VS Code runner's webview, and `<spell-app>`.
+ * Running compiled spell javascript -- in every runner:  the app, the VS Code runner's webview, and `<spell-viewer>`.
  * - Compiled spell `import`s `@spell/core`, and any projects it imports as `@spell/project/<projectId>`.
  *   - Compiled TypeScript's element classes also import `@spell/elements` (epic `drawable-thing` P10):
  *     the runtime exports that too.

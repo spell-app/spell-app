@@ -11,9 +11,9 @@
       "spell-app-source": "./src/app/index.tsx",
       "default": "./src/app/index.tsx"
     },
-    "./app/components/spell-app": {
-      "spell-app-source": "./src/app/components/spell-app/index.ts",
-      "default": "./src/app/components/spell-app/index.ts"
+    "./app/components/spell-viewer": {
+      "spell-app-source": "./src/app/components/spell-viewer/index.ts",
+      "default": "./src/app/components/spell-viewer/index.ts"
     },
     "./app/components/spell-code": {
       "spell-app-source": "./src/app/components/spell-code/index.ts",

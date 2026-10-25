@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
+import { core, List, App, View, ViewableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 
 core.heading("Una carta de la baraja -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -626,6 +626,8 @@ export class Columna extends Pila {
 
 /** El solitario:  sus pilas, sus movimientos, el juego solo y su dibujo */
 export class Solitario extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // su "puntuación" es un número
   static { this.declareProp("puntuación", { type: "number" }) }
   get puntuación() { return this.getProp("puntuación") }

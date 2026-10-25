@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, h } from "@spell/core"
 
 core.heading("Your first spell")
 //////////////////////
@@ -26,6 +26,8 @@ core.heading("Step 1:  read the sign")
  * - Each line starting with a dash says one thing about it:  a PROPERTY, something it keeps, like its greeting.
  */
 export class HelloSign extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "greeting" is text
   static { this.declareProp("greeting", { type: "text" }) }
   get greeting() { return this.getProp("greeting") }

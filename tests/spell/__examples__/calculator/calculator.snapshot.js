@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, h } from "@spell/core"
 
 core.heading("Calculator")
 ////////////////
@@ -14,6 +14,8 @@ core.heading("Calculator")
 core.heading("What it keeps")
 /** What it keeps */
 export class Calculator extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // a calculator has an input as text
   static { this.declareProp("input", { type: "text" }) }
   get input() { return this.getProp("input") }

@@ -214,9 +214,8 @@ describe("SpellProject imports", () => {
     )
     await app.compile()
     const compiled = readFileSync(resolve(workspace, "linked_app", `linked_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    expect(compiled).toContain(
-      `import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList } from "@spell/core"`
-    )
+    // only the core classes it uses:  none here, its classes are the library's (epic `elemental-spell` I2)
+    expect(compiled).toContain(`import { core } from "@spell/core"`)
     expect(compiled).toMatch(/import \{ Card, [^}]*Deck, Pile[^}]* \} from "@spell\/project\/@local\/[^"]*\/lib"/)
 
     const run = runLinked(app, [libId])

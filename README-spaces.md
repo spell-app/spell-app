@@ -332,7 +332,7 @@ plain classes in [src/spaces/models/](src/spaces/models/), safe in a browser, im
 So a program that reads an address must load the groups first, and there are three ways in:
 - through `spell-app/spaces`, as the editor does
 - through spaces' disk reader, `installDiskFetch()`:  the [language server](README-lsp.md) and `spell` do this
-- or `spell-app/spaces/models/projectGroups` alone, as `<spell-app>` does to stay clear of the parser
+- or `spell-app/spaces/models/projectGroups` alone, as `<spell-viewer>` does to stay clear of the parser
 
 The line between the two repos is sharp.
 A project's own reading, compiling and saving is its `SpellProject`
@@ -356,7 +356,7 @@ and the page server is the one program running.
 | --- | --- |
 | `/api/...` | the app's API (below), its bodies read as JSON5, up to 10 MB |
 | `/spaces/<address>` | a project's file, which is how Spell reads every file |
-| `/element/...` | `<spell-app>`'s and `<spell-editor>`'s bundles, from the app's `dist-element/` |
+| `/element/...` | `<spell-viewer>`'s and `<spell-editor>`'s bundles, from the app's `dist-element/` |
 | `/editor` | the site header's "Editor" link, redirected to wherever the editor is |
 | `/hello` | a liveness check |
 

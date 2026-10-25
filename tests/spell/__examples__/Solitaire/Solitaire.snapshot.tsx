@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, on } from "@spell/core"
+import { core, List, App, View, ViewableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("A playing card -- in the outline style:  its name, then what's true of it")
@@ -810,6 +810,8 @@ core.useElement(Tableau, TableauElement)
 /** The solitaire:  its piles, its moves, auto play and drawing */
 @thing
 export class Solitaire extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "score" is a number
   @prop({ type: "number" })
   accessor score!: number
@@ -1047,6 +1049,66 @@ export class Solitaire extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a solitaire, drawn in its own element, e.g. by `draw the solitaire`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its solitaire's properties;  its methods call its solitaire's.
+ * - What every view's element does, e.g. drawing its solitaire, is `SpellElement`'s.
+ */
+export class SolitaireElement extends SpellElement<Solitaire> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "solitaire", [
+    { name: "score", kind: "number", description: "Its score." },
+    { name: "hint", kind: "string", description: "Its hint." },
+    { name: "deck", kind: "json", description: "Its deck." },
+    { name: "stock", kind: "json", description: "Its stock." },
+    { name: "discards", kind: "json", description: "Its discards." },
+    { name: "clubs", kind: "json", description: "Its clubs." },
+    { name: "diamonds", kind: "json", description: "Its diamonds." },
+    { name: "hearts", kind: "json", description: "Its hearts." },
+    { name: "spades", kind: "json", description: "Its spades." },
+    { name: "-t1", kind: "json", description: "Its T1." },
+    { name: "-t2", kind: "json", description: "Its T2." },
+    { name: "-t3", kind: "json", description: "Its T3." },
+    { name: "-t4", kind: "json", description: "Its T4." },
+    { name: "-t5", kind: "json", description: "Its T5." },
+    { name: "-t6", kind: "json", description: "Its T6." },
+    { name: "-t7", kind: "json", description: "Its T7." }
+  ])
+
+  create() {
+    return this.currentThing?.create()
+  }
+
+  debug() {
+    return this.currentThing?.debug()
+  }
+
+  resetTheStock() {
+    return this.currentThing?.resetTheStock()
+  }
+
+  playFromTheStock() {
+    return this.currentThing?.playFromTheStock()
+  }
+
+  dealTheCards() {
+    return this.currentThing?.dealTheCards()
+  }
+
+  startANewGame() {
+    return this.currentThing?.startANewGame()
+  }
+
+  cheat() {
+    return this.currentThing?.cheat()
+  }
+
+  autoPlay() {
+    return this.currentThing?.autoPlay()
+  }
+}
+core.useElement(Solitaire, SolitaireElement)
 export const solitaire = new Solitaire()
 
 core.heading("Playing a card:  what a click or a drag does")
@@ -1164,6 +1226,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-foundation": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `TableauElement` */
       "test-project-tableau": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `SolitaireElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

@@ -31,7 +31,7 @@ import "./TypeExplorer.css"
  *   - `state` is read ONCE, as it mounts:  after that, ours is the truth, and `onStateChange` hears each change.
  *     So a caller echoing `onStateChange` back into `state` is fine.
  * - A node's details are asked for with `loadDetails()` when first shown, and kept until a new `tree` comes.
- * - `readonly`, e.g. embedded in a page by `<spell-app>`:  descriptions can't be edited, whatever `onSaveDescription`.
+ * - `readonly`, e.g. embedded in a page by `<spell-viewer>`:  descriptions can't be edited, whatever `onSaveDescription`.
  * - NOTE: imports its peers directly, NOT the `spell-app/app/solid` barrel:
  *   a runner's bundle would get the whole editor through it (`Actions.tsx`).
  *   - So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.

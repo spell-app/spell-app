@@ -57,9 +57,9 @@ export interface DOMSpellEditorElement extends E.AttributeValues<typeof spellEdi
 /****************
  * ### `SpellEditor`
  * The component behind `<spell-editor>`:  edits a spell project in any page, in Monaco,
- * and feeds `<spell-app>`s on the page what it compiles.
+ * and feeds `<spell-viewer>`s on the page what it compiles.
  * - `project="@spell/examples/Solitaire"`:
- *   from the spell server's `/api`, as `<spell-app project>`.
+ *   from the spell server's `/api`, as `<spell-viewer project>`.
  *   - Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
  * - Compiles when it opens the project, `COMPILE_DELAY` after typing stops, and at once on Cmd+Enter.
  *   After each compile with no parse errors:
@@ -236,15 +236,15 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
   }
 
   /**
-   * Hand `compiled` to each `<spell-app>` our `app` selector finds, to `run()`.
-   * - Waits for `<spell-app>` to be defined, if its script hasn't run yet, and hands on nothing if we've compiled
+   * Hand `compiled` to each `<spell-viewer>` our `app` selector finds, to `run()`.
+   * - Waits for `<spell-viewer>` to be defined, if its script hasn't run yet, and hands on nothing if we've compiled
    *   again meanwhile.
    * - NOTE: an app added to the page later gets our NEXT compile.  One that names us, with `editor`, gets this one.
    */
   private async pushToApps(compiled: SpellCompiled) {
     const selector = this.app
     if (!selector) return
-    await customElements.whenDefined(APP_TAG)
+    await customElements.whenDefined(VIEWER_TAG)
     if (compiled !== this.compiled) return
     const root = this.domElement.getRootNode() as Document | ShadowRoot
     for (const app of selectAll(root, selector)) {
@@ -477,7 +477,7 @@ const BUNDLE = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 const EDITOR_CSS = ["spell-editor.css"]
 
 /** The element we feed what we compile. */
-const APP_TAG = "spell-app"
+const VIEWER_TAG = "spell-viewer"
 
 /** `spell-app/app/solid/monaco`, loaded once:  Monaco is most of our code, so it waits till there's a project to show. */
 let monacoModule: Promise<MonacoModule> | undefined

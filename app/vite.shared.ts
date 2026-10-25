@@ -82,11 +82,11 @@ export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
 /**
  * Files of the shared Solid build, `vite.solid.config.ts`:
  * every other bundle of ours imports Solid and `spell-ui` from these, beside it,
- * so a page with `<spell-app>`s AND a `<spell-editor>` loads ONE copy of each.
+ * so a page with `<spell-viewer>`s AND a `<spell-editor>` loads ONE copy of each.
  * - `solid`:  `solid-js`, `@solidjs/web` (`@solidjs/signals` under them),
  *   `spell-ui`'s element core, `spell-ui/core`, and its root family, `spell-ui/components/ui-root`, each whole:
- *   `<spell-app>` and `<spell-editor>` are Spell UI components (`UIComponent`), defined as their scripts run,
- *   and `<spell-app>` is a root (`UIRoot`);
+ *   `<spell-viewer>` and `<spell-editor>` are Spell UI components (`UIComponent`), defined as their scripts run,
+ *   and `<spell-viewer>` is a root (`UIRoot`);
  *   and `@solidjs/h` (as `h`), which compiled spell draws with (`spell-runtime.js`)
  * - `shared`:  what the other bundles import instead of `solid`, written by `vite.solid.config.ts`:
  *   the same names, taken from the PAGE when it has them (a docs page's `SpellUI.packModules`), else from `solid`
@@ -134,7 +134,7 @@ const DRAWN_FAMILIES = ["ui-checkbox", "ui-divider", "ui-list", "ui-parts", "ui-
  * - Only those our code imports:
  *   `solid-js/internal` (from `@solidjs/web`) and `@solidjs/signals` (from `solid-js`) stay INSIDE `spell-solid.js`.
  * - `spell-ui/core` and `spell-ui/components/ui-root` are in `spell-solid.js`, not `spell-ui.js`:
- *   `<spell-app>` and `<spell-editor>` define themselves on them as their scripts run, before the rest of `ui` loads.
+ *   `<spell-viewer>` and `<spell-editor>` define themselves on them as their scripts run, before the rest of `ui` loads.
  * - The code and markdown families come through `spell-solid-shared.js`'s partner, `spell-ui-shared.js`
  *   (`SHARED_FAMILIES`, `DRAWN_FAMILIES`).
  * - Each through `spell-solid-shared.js`:  the page's copy when it has one (`SHARED_SPECIFIERS`).
@@ -145,7 +145,7 @@ const FROM_SHARED_SOLID = new Map<string, string>([
   ["solid-js", SHARED_SOLID.shared],
   ["@solidjs/web", SHARED_SOLID.shared],
   ["@solidjs/h", SHARED_SOLID.shared],
-  // spell-element, which `<spell-app>` and `<spell-editor>` are written on:  `spell-ui/core` carries all of it, and
+  // spell-element, which `<spell-viewer>` and `<spell-editor>` are written on:  `spell-ui/core` carries all of it, and
   // its `E` holds every name spell-element's does, so it comes BEFORE `spell-ui/core` (a page's module,
   // `spell-solid-shared.js`)
   ["spell/element", SHARED_SOLID.shared],

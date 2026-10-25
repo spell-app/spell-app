@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn, positionOf, spellPosition } from "@spell/core"
+import { core, App, View, ViewableList, prop, drawn, positionOf, spellPosition } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Cómo funciona Solitario")
@@ -144,6 +144,8 @@ core.useElement(Columna, ColumnaElement)
 core.heading("La mesa:  una columna, y una mano de cartas para probar en ella")
 /** La mesa:  una columna, y una mano de cartas para probar en ella */
 export class Mesa extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // su "columna" es una nueva columna
   @prop({ init: () => new Columna(), early: true })
   accessor columna!: Columna
@@ -168,6 +170,21 @@ export class Mesa extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a mesa, drawn in its own element, e.g. by `draw the mesa`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its mesa's properties;  its methods call its mesa's.
+ * - What every view's element does, e.g. drawing its mesa, is `SpellElement`'s.
+ */
+export class MesaElement extends SpellElement<Mesa> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "mesa", [
+    { name: "columna", kind: "json", description: "Its columna." },
+    { name: "mano", kind: "json", description: "Its mano." },
+    { name: "mensaje", kind: "string", description: "Its mensaje." }
+  ])
+}
+core.useElement(Mesa, MesaElement)
 export const mesa = new Mesa()
 
 core.heading("Inicio:  un rey de espadas en la columna")
@@ -223,6 +240,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-pila": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `ColumnaElement` */
       "test-project-columna": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `MesaElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

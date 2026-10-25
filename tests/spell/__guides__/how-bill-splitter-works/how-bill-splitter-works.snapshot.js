@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, h } from "@spell/core"
 
 core.heading("How the Bill Splitter works")
 /////////////////////////////////
@@ -32,6 +32,8 @@ export function writeAmountAsMoney(amount) {
 core.heading("The bill")
 /** The bill */
 export class Bill extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   /** what the three boxes hold */
   // - its "amount" is a number
   static { this.declareProp("amount", { type: "number" }) }

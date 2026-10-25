@@ -396,7 +396,7 @@ from VS Code's CSS service (`vscode-css-languageservice`), the one VS Code's HTM
 
 ## Scope packs:  the Type Explorer without a parser
 
-`<spell-app>` runs a project on any page, and its Type Explorer shows what the project declares,
+`<spell-viewer>` runs a project on any page, and its Type Explorer shows what the project declares,
 with no parser on the page at all.
 It reads a SCOPE PACK, `<Project>.scopes.js`:  the scope explorer's tree, written out as a script.
 

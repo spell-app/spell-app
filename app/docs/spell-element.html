@@ -52,7 +52,7 @@
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone writing a view in spell, or changing how programs draw</ui-item>
             <ui-item icon="play"
-              >Live: a real program's elements, in a <code>&lt;spell-app&gt;</code> this page loads</ui-item
+              >Live: a real program's elements, in a <code>&lt;spell-viewer&gt;</code> this page loads</ui-item
             >
           </ui-list>
 
@@ -66,7 +66,7 @@
             <ui-docs-example
               description="Every card and pile in this game is a SpellElement, styled by its type's own CSS."
             >
-              <spell-app project="@spell/examples/Solitaire" toolbar height="420px"></spell-app>
+              <spell-viewer project="@spell/examples/Solitaire" toolbar height="420px"></spell-viewer>
             </ui-docs-example>
             <p>
               Its tags work outside the program too. Written by hand, each card makes its own card from its attributes:
@@ -74,7 +74,7 @@
             <ui-docs-example
               description="Cards written by hand:  the hidden app only runs the project, which defines the tags."
             >
-              <spell-app project="@spell/examples/Solitaire" hidden></spell-app>
+              <spell-viewer project="@spell/examples/Solitaire" hidden></spell-viewer>
               <ui-grid columns="4">
                 <ui-column>
                   <solitaire-card rank="ace" suit="spades" direction="up"></solitaire-card>
@@ -153,7 +153,8 @@
               <li>Written by hand, with no <code>thing</code>, it makes its own: a new thing of its type.</li>
               <li>
                 In a
-                <a href="spell-app.html" target="src-packages-app-docs-spell-app-html"><code>&lt;spell-app&gt;</code></a
+                <a href="spell-viewer.html" target="src-packages-app-docs-spell-viewer-html"
+                  ><code>&lt;spell-viewer&gt;</code></a
                 >'s own markup, it draws the program's thing of its type named by its <code>id</code>, or says there's
                 none.
               </li>

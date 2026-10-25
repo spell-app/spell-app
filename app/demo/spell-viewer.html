@@ -1,10 +1,10 @@
 <!doctype html>
 <!--
-  Trying out `<spell-app>` -- served by the dev server at `/demo/spell-app.html`, after `yarn build:element`.
+  Trying out `<spell-viewer>` -- served by the dev server at `/demo/spell-viewer.html`, after `yarn build:element`.
   - Several apps at once, each on its own copy of the spell runtime.
   - This page's own `.ui.menu` rule is garish on purpose:  it must NOT reach inside an app's shadow root.
-  - Loaded by its own script, `/element/spell-app.js`, with nothing around it:
-    each `<spell-app>` is a root (as `<ui-root>` is), which loads the Spell UI widgets it draws as they appear.
+  - Loaded by its own script, `/element/spell-viewer.js`, with nothing around it:
+    each `<spell-viewer>` is a root (as `<ui-root>` is), which loads the Spell UI widgets it draws as they appear.
   - The editor is never downloaded here.
 -->
 <html lang="en">
@@ -12,7 +12,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>spell-app demo</title>
-    <script type="module" src="/element/spell-app.js"></script>
+    <script type="module" src="/element/spell-viewer.js"></script>
     <style>
       body {
         margin: 0;
@@ -23,7 +23,7 @@
       h2 {
         margin: 32px 0 8px;
       }
-      spell-app {
+      spell-viewer {
         border: 1px solid #ccc;
       }
       .side-by-side {
@@ -42,18 +42,18 @@
     <div class="ui menu">This page's own <code>.ui.menu</code>: pink here, but never inside an app.</div>
 
     <h2>A project from the server, with the Type Explorer open</h2>
-    <spell-app project="@spell/examples/Solitaire" toolbar debug="explorer" height="640px"></spell-app>
+    <spell-viewer project="@spell/examples/Solitaire" toolbar debug="explorer" height="640px"></spell-viewer>
 
     <h2>Two at once</h2>
     <div class="side-by-side">
-      <spell-app project="@spell/examples/calculator" toolbar width="50%"></spell-app>
-      <spell-app project="@spell/examples/TaskList" toolbar width="50%"></spell-app>
+      <spell-viewer project="@spell/examples/calculator" toolbar width="50%"></spell-viewer>
+      <spell-viewer project="@spell/examples/TaskList" toolbar width="50%"></spell-viewer>
     </div>
 
     <h2>A program with no app: its console instead</h2>
-    <spell-app project="@spell/examples/fizzbuzz" toolbar></spell-app>
+    <spell-viewer project="@spell/examples/fizzbuzz" toolbar></spell-viewer>
 
     <h2>No toolbar</h2>
-    <spell-app project="@spell/examples/Solitario" height="480px"></spell-app>
+    <spell-viewer project="@spell/examples/Solitario" height="480px"></spell-viewer>
   </body>
 </html>

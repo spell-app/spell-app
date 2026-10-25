@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
+import { core, List, App, View, prop, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Flash Cards")
@@ -82,6 +82,8 @@ export class Deck extends List<FlashCard> {
 core.heading("The quiz:  the deck, the card showing, and the score")
 /** The quiz:  the deck, the card showing, and the score */
 export class Quiz extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "deck" is a new deck
   @prop({ init: () => new Deck(), early: true })
   accessor deck!: Deck
@@ -161,6 +163,38 @@ export class Quiz extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a quiz, drawn in its own element, e.g. by `draw the quiz`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its quiz's properties;  its methods call its quiz's.
+ * - What every view's element does, e.g. drawing its quiz, is `SpellElement`'s.
+ */
+export class QuizElement extends SpellElement<Quiz> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "quiz", [
+    { name: "deck", kind: "json", description: "Its deck." },
+    { name: "card", kind: "string", description: "Its card." },
+    { name: "known", kind: "number", description: "Its known." },
+    { name: "tried", kind: "number", description: "Its tried." }
+  ])
+
+  dealACard() {
+    return this.currentThing?.dealACard()
+  }
+
+  sayIKnew() {
+    return this.currentThing?.sayIKnew()
+  }
+
+  sayIMissed() {
+    return this.currentThing?.sayIMissed()
+  }
+
+  startOver() {
+    return this.currentThing?.startOver()
+  }
+}
+core.useElement(Quiz, QuizElement)
 export const quiz = new Quiz()
 
 core.heading("The deck:  twelve Spanish words -- add your own")
@@ -221,6 +255,8 @@ declare module "@solidjs/web/types/jsx.js" {
     interface IntrinsicElements {
       /** `FlashCardElement` */
       "test-project-flash-card": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `QuizElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

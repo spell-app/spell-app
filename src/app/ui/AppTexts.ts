@@ -22,7 +22,7 @@ const ENGLISH = "en"
  *   - It makes Spell UI speak the language too (`RootLoader.useLanguage()`), so its own texts match ours.
  * - Reactive:  `text()` reads `lang`, a spell cell, so a Solid reader redraws when another language's texts arrive.
  * - Position in the import graph:  NO value import of Solid or `spell-ui`,
- *   so `editor.ts`, the runners and `<spell-app>` can all read it.
+ *   so `editor.ts`, the runners and `<spell-viewer>` can all read it.
  *   - Spell UI comes in through dynamic `import()`s.
  *   - Imported by path, `spell-app/app/ui/AppTexts`:  the `UI` barrel is types only.
  * - ONE instance per page bundle, `appTexts`, below.
@@ -104,7 +104,7 @@ export class AppTexts extends Observable {
    * Give the page a `lang` when it names none:  the browser's language.
    * - The editor app's entry calls it before anything draws,
    *   so Spell UI's `<ui-root>` and screen readers agree with the texts.
-   * - NEVER from code a host page loads (`<spell-app>`):  the host's document is its own.
+   * - NEVER from code a host page loads (`<spell-viewer>`):  the host's document is its own.
    */
   static namePageLanguage(): void {
     const root = globalThis.document?.documentElement
@@ -209,14 +209,14 @@ export type ProjectGroupWords = {
 }
 
 /**
- * A web component's texts in one language, in a file beside its vocabulary (`SpellApp.es.ts`).
+ * A web component's texts in one language, in a file beside its vocabulary (`SpellViewer.es.ts`).
  * - Texts only:  the app's tags keep their English names in every language.
  * - `V`:  its vocabulary, so a text it doesn't have is a type error.
  */
 export type AppTagTexts<V extends E.ComponentVocabulary = E.ComponentVocabulary> = {
   /** Language code, e.g. `es`. */
   lang: string
-  /** Its tag, e.g. `spell-app`. */
+  /** Its tag, e.g. `spell-viewer`. */
   tag: V["tag"]
   /** Text key => its text in `lang`:  every one its vocabulary has. */
   texts: Readonly<Record<E.TextKey<V>, string>>

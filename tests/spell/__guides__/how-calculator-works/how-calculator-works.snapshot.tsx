@@ -1,4 +1,5 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
+import { core, App, prop, drawn } from "@spell/core"
+import { E, SpellElement } from "@spell/elements"
 
 core.heading("How the Calculator works")
 //////////////////////////////
@@ -22,6 +23,8 @@ core.heading("What it keeps")
  * (A tour of Spell writes them as a list under the thing's name instead.  Both mean the same.)
  */
 export class AddingMachine extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // an adding machine has a total as a number
   @prop({ type: "number" })
   accessor total!: number
@@ -95,6 +98,32 @@ export class AddingMachine extends App {
   }
 }
 
+/**
+ * `<test-project-app>`:  an adding machine, drawn in its own element, e.g. by `draw the adding machine`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its adding machine's properties;  its methods call its adding machine's.
+ * - What every view's element does, e.g. drawing its adding machine, is `SpellElement`'s.
+ */
+export class AddingMachineElement extends SpellElement<AddingMachine> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "adding machine", [
+    { name: "total", kind: "number", description: "Its total." },
+    { name: "input", kind: "string", description: "Its input." }
+  ])
+
+  pressDigitOnAddingMachine(digit: string) {
+    return this.currentThing?.pressDigitOnAddingMachine(digit)
+  }
+
+  addTheInputToAddingMachine() {
+    return this.currentThing?.addTheInputToAddingMachine()
+  }
+
+  clear() {
+    return this.currentThing?.clear()
+  }
+}
+core.useElement(AddingMachine, AddingMachineElement)
+
 core.heading("Start")
 /** Start */
 export const adder = new AddingMachine()
@@ -138,3 +167,13 @@ core.heading("Try it")
 core.installStyles(undefined, `/* File styles.css:  how the adding machine looks -- the display over a row of keys. */¬¬.Adder {¬  max-width: 20em;¬  margin: 2em auto;¬}¬¬.Display {¬  padding: 0.5em;¬  font-size: 2em;¬  text-align: right;¬  font-variant-numeric: tabular-nums;¬}¬¬.Keys {¬  display: grid;¬  grid-template-columns: repeat(5, 1fr);¬  gap: 0.4em;¬}¬`)
 // -----------
 if (!core.isCarryingOver) testAddingUp()
+
+// each view type's tag, for the JSX
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      /** `AddingMachineElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+    }
+  }
+}

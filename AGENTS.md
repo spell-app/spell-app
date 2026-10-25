@@ -16,7 +16,7 @@ working with code in this repository, `spell-app`.
 ## Overview
 
 - spell-app:  Spell's editor and its servers.
-  - The editor app, `<spell-app>` / `<spell-editor>`, the runner;  spaces, where projects and people live;
+  - The editor app, `<spell-viewer>` / `<spell-editor>`, the runner;  spaces, where projects and people live;
     the language server;  the `spell` CLI;  the app's part of the kit's page server;  the spell language's VS Code
     extension.
   - Since epic `repo-split` P8 it holds only those.
@@ -100,7 +100,7 @@ Each folder of `src/` links to its own `AGENTS.md`:  read it before working ther
 
 | Folder | Import | Namespace | What it is |
 | --- | --- | --- | --- |
-| [app](src/app/AGENTS.md) | `spell-app/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components (`src/app/components/`);  `yarn start` / `build*` are its scripts, at the repo's root;  its build folder is `app/` (Vite's configs and root), with App UI, the docs pages of its components, in `app/docs/` (at `/components/app/`) |
+| [app](src/app/AGENTS.md) | `spell-app/app` | `UI` | the web app, the runner, and the `<spell-viewer>` / `<spell-editor>` web components (`src/app/components/`);  `yarn start` / `build*` are its scripts, at the repo's root;  its build folder is `app/` (Vite's configs and root), with App UI, the docs pages of its components, in `app/docs/` (at `/components/app/`) |
 | [spaces](src/spaces/AGENTS.md) | `spell-app/spaces` | `SPACES` | where projects and people live:  its models (`models/`, browser-safe:  spell's project groups and lists), projects on disk (`server/node/projects/`), and the servers that serve them, the editor's (`server/node/`) and Python's, `spell_quart` (`server/py/`, a uv project);  the built-in projects are in `spaces/@spell/`, beside `src/` |
 | [lsp](src/lsp/AGENTS.md) | `spell-app/lsp` | `LSP` | spell's language server:  the service browser-safe, its process (`server.ts`) and disk workspace node only |
 | [cli](src/cli/AGENTS.md) | `spell-app/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see the kit's [README-cli.md](../README-cli.md) too |

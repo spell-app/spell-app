@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, List, App, View, ViewableList, h } from "@spell/core"
 
 core.heading("Cómo funciona Lista de tareas")
 ///////////////////////////////////
@@ -80,6 +80,8 @@ export class Agenda extends ViewableList {
 core.heading("La aplicación")
 /** La aplicación */
 export class ListaDeTareas extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // sus "tareas" es una nueva agenda
   static { this.declareProp("tareas", { init: () => new Agenda(), early: true }) }
   get tareas() { return this.getProp("tareas") }

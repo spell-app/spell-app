@@ -1,5 +1,5 @@
 /**
- * `yarn lsp:scopes`:  write scope packs -- what `<spell-app>`'s Type Explorer shows with no parser.
+ * `yarn lsp:scopes`:  write scope packs -- what `<spell-viewer>`'s Type Explorer shows with no parser.
  * - See `LSP.ScopePack`.
  * - `yarn lsp:scopes @spell/examples/Solitaire @spell/examples/calculator ...`:
  *   each project's `<Project>.scopes.js`,

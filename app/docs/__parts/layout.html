@@ -2,7 +2,7 @@
 <!--
   App UI's LAYOUT:  every page's chrome, written ONCE, as Epic UI's (`spell-epic/src/docs/__parts/layout.html`) and
   Spell UI's (`spell-ui/docs/__parts/layout.html`) are.
-  - App UI is the docs set of the spell app's own components (epic `epic-workflow` P11):  the `<spell-app>` and
+  - App UI is the docs set of the spell app's own components (epic `epic-workflow` P11):  the `<spell-viewer>` and
     `<spell-editor>` web components, and the app's Solid components.  Its pages live here, in `app/docs/`,
     beside the two web components' code (`src/app/components/`).
   - Served at `/components/app/` by the page server (its `componentSets` setting, in the root `package.json`), with
@@ -13,7 +13,7 @@
     root, at `/worktrees/<w>/components/app/` too.  The shell makes them absolute as it mounts.
   - Against Epic UI's:
     - `<ui-components>`:  the app's element pack (`/element/spell.pack.js`, `yarn build:element` in spell-app,
-      served by the page server's app routes), for the pages' live `<spell-app>`s and `<spell-editor>`;  the site
+      served by the page server's app routes), for the pages' live `<spell-viewer>`s and `<spell-editor>`;  the site
       bundle shares its Solid and Spell UI with it (`SitePacks.ts`).  Absolute:  the app's routes serve it at the
       server's root, a worktree's page too.
     - the brand reads "App UI";  the side column's links and groups come from `__data/` (`yarn site:data`, in

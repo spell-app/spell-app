@@ -84,17 +84,17 @@ export type ProjectSettings = {
 export type RunnerPaneId = "types" | "things" | "output"
 
 // ## Editors and apps
-//  how a `<spell-editor>` feeds `<spell-app>`s on the same page -- see `SpellEditorElement`, `SpellAppElement`.
+//  how a `<spell-editor>` feeds `<spell-viewer>`s on the same page -- see `SpellEditorElement`, `SpellViewer`.
 
 /**
  * Event a `<spell-editor>` fires after each clean compile, with a `SpellCompiled` as its `detail`.
  * - Bubbles, and is `composed`, so it's heard from outside a shadow root too.
- * - A `<spell-app editor="<selector>">` listens for it -- see `SpellAppElement`.
+ * - A `<spell-viewer editor="<selector>">` listens for it -- see `SpellViewer`.
  */
 export const SPELL_COMPILED_EVENT = "spell-compiled"
 
 /**
- * What a `<spell-editor>` compiled, for `<spell-app>`s to run -- see `SPELL_COMPILED_EVENT`.
+ * What a `<spell-editor>` compiled, for `<spell-viewer>`s to run -- see `SPELL_COMPILED_EVENT`.
  * - A NEW object per compile:  an app runs each one once, however it hears of it.
  *   Its `editor` attribute AND the editor's `app` attribute can both name it.
  */
@@ -113,7 +113,7 @@ export type SpellCompiled = {
 
 ////////////////
 // ## Spell in a layout
-//  what `<spell-app>`'s layout may hold (epic `drawable-thing` P9) -- here, so the runner can tell
+//  what `<spell-viewer>`'s layout may hold (epic `drawable-thing` P9) -- here, so the runner can tell
 //  WITHOUT loading `LayoutSpell`, which holds the parser
 ////////////////
 

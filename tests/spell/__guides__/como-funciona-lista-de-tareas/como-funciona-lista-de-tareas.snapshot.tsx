@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
+import { core, List, App, View, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Cómo funciona Lista de tareas")
@@ -113,6 +113,8 @@ core.useElement(Agenda, AgendaElement)
 core.heading("La aplicación")
 /** La aplicación */
 export class ListaDeTareas extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // sus "tareas" es una nueva agenda
   @prop({ init: () => new Agenda(), early: true })
   accessor tareas!: Agenda
@@ -142,6 +144,19 @@ export class ListaDeTareas extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a lista de tareas, drawn in its own element, e.g. by `draw the lista de tareas`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its lista de tareas's properties;  its methods call its lista de tareas's.
+ * - What every view's element does, e.g. drawing its lista de tareas, is `SpellElement`'s.
+ */
+export class ListaDeTareasElement extends SpellElement<ListaDeTareas> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "lista de tareas", [
+    { name: "tareas", kind: "json", description: "Its tareas." }
+  ])
+}
+core.useElement(ListaDeTareas, ListaDeTareasElement)
 export const listaDeTareas = new ListaDeTareas()
 
 core.heading("Inicio:  tres tareas, una de ellas hecha")
@@ -189,6 +204,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-tarea": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `AgendaElement` */
       "test-project-agenda": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `ListaDeTareasElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

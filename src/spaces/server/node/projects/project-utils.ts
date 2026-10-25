@@ -491,7 +491,7 @@ export function fileOrOldName(serverPath: string): string {
  *   (`serverPath`):  its URL sits beside its source's.
  * - Returns:  raw file body via `SRV.Reply.sendFile()`, `{ dotfiles: "allow" }`, so dotfiles can be fetched too.
  *   - Its mime type is set from its extension, `.js` as javascript:
- *     so a runner imports a compiled project from here, and `<spell-app>` loads its scope pack.
+ *     so a runner imports a compiled project from here, and `<spell-viewer>` loads its scope pack.
  * - Failure:
  *   - 404 (via `responseUtils.sendFile()`) if file not found
  *   - 400 if the URL names no project's file (no file after the project, an unknown group, a bad part)

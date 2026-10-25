@@ -94,7 +94,7 @@ const STATES_CSS = `
  *   - written by hand with an `id`, on any page:  the program's thing the id names,
  *     as the part of a reference after its `#` -- see `boundThing`
  *     - `<solitaire-tableau id="T1">` is `Tableau#T1`
- *   - written by hand with no `id`:  in a `<spell-app>`'s layout, the program's one thing of its type;
+ *   - written by hand with no `id`:  in a `<spell-viewer>`'s layout, the program's one thing of its type;
  *     elsewhere it makes its own, a new thing of its type, once mounted
  * - ONE tag per view template, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
@@ -179,9 +179,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     return SPELL_ELEMENTS.get(this.domElement.localName)
   }
 
-  /** Are we in a `<spell-app>`'s layout, its markup around the program?  See `SpellApp.hasLayout`. */
+  /** Are we in a `<spell-viewer>`'s layout, its markup around the program?  See `SpellViewer.hasLayout`. */
   get isInLayout(): boolean {
-    return !!this.domElement.closest("spell-app")
+    return !!this.domElement.closest("spell-viewer")
   }
 
   /**
@@ -202,12 +202,16 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 
   /**
    * Our thing's drawing -- nothing before our tag's runtime is known.
+   * - An app's element shows its drawing as its children, so it draws only a `<slot>` here:
+   *   its class `drawsInItsChildren`, and `core.drawThing()` hands the drawing over as our children
+   *   (epic `elemental-spell` Q62).
    * - In a layout, or with an `id`, and no thing of ours in the program:  a stand-in saying so, not a blank (Q9).
    */
   get drawing(): JSX.Element {
     const thing = this.currentThing
     const { entry } = this
     if (!entry) return null
+    if (thing && drawsInItsChildren(entry.Class)) return <slot />
     if (thing) return entry.core.drawOwn(thing) as JSX.Element
     const isMissing = this.isInLayout || this.idName
     return isMissing ? <span class="spell-draw-error">{this.missingText(entry)}</span> : null
@@ -797,7 +801,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   /**
    * Load each Spell UI family our drawing uses, the first time one of its tags shows in our shadow root:
    * a card drawn as `<ui-text>`, or as `<es-texto>` in a Spanish program.
-   * - Why here:  a root (`<spell-app>`, `<ui-root>`) loads the tags in its own content and shadow root,
+   * - Why here:  a root (`<spell-viewer>`, `<ui-root>`) loads the tags in its own content and shadow root,
    *   never inside another element's shadow root, where our drawing is.
    * - A page language's tags load once the runner has turned the language on (`RootLoader.useLanguage()`).
    * - Watches until we're released:  a drawing that changes may draw a tag of another family.
@@ -1028,7 +1032,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    *   - so both targets' tags have the same attributes, and behave the same
    * - Its methods are its type's (`addMethods()`).
    * - Its sheet is its type's (`sheetFor()`).
-   * - Again (a program run again after an edit, or another `<spell-app>` running the same project):
+   * - Again (a program run again after an edit, or another `<spell-viewer>` running the same project):
    *   the platform can't define a tag twice, so it stays, and what's behind it is swapped (epic `drawable-thing` P7):
    *   - it draws with the latest `core` from then on (`SPELL_ELEMENTS`)
    *   - its type's CSS is replaced in every element of the tag on the page, at once (`restyle()`)
@@ -1274,7 +1278,7 @@ type SpellElementEntry = {
 
 /**
  * Each view template's tag, and what it draws with -- ONE map per page, on `globalThis`:
- * every runtime copy (each `<spell-app>` has its own) shares the page's custom elements.
+ * every runtime copy (each `<spell-viewer>` has its own) shares the page's custom elements.
  */
 const SPELL_ELEMENTS: Map<string, SpellElementEntry> = ((globalThis as SpellElementsGlobal)[
   Symbol.for("spell-app:spell-elements")
@@ -1305,6 +1309,15 @@ const SELECTION_ANCHORS = new WeakMap<object, object>()
 
 /** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
 const BASE_LIST_NAMES = new Set(["ViewableList", "List", "Observable", "Object"])
+
+/**
+ * Does view class `Class`'s element show its thing's drawing as its children, in its `<slot>`?
+ * - An app's does (core's `App.drawsInItsChildren`):  `core.drawThing()` hands its drawing over as our children,
+ *   so the project's styles, around the app, still reach it.
+ */
+function drawsInItsChildren(Class: Function): boolean {
+  return (Class as { drawsInItsChildren?: boolean }).drawsInItsChildren === true
+}
 
 /**
  * Each moment a list's drag handler is for:  the end of its method's name, e.g. `whenCardDraggedOver`.

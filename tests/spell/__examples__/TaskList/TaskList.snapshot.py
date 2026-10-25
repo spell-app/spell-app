@@ -156,6 +156,8 @@ class Checklist(ViewableList):
 class TaskList(App):
     """The app:  its menu, the new task's field, the list, and the property editor"""
 
+    element_tag = "test-project-app"
+
     # - its "tasks" is a new checklist
     tasks = prop(init=lambda: Checklist(), early=True)
 

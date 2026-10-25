@@ -1,9 +1,9 @@
 /**
  * Barrel for the runners:  run a compiled spell project with no editor -- in the VS Code extension's
- * "Run Project" webview, and the `<spell-app>` web component.
+ * "Run Project" webview, and the `<spell-viewer>` web component.
  * - The shared pieces first:  `runCompiled()`, and the split, pane and console runners lay out.
  * - NOTE: left out:  bundle entries, which act the moment they're imported (`main.tsx`, `spellRuntime.ts`).
- *   The element itself, `<spell-app>`, is a family of its own:  `spell-app/app/components/spell-app`.
+ *   The element itself, `<spell-viewer>`, is a family of its own:  `spell-app/app/components/spell-viewer`.
  */
 export * from "./runner.types"
 

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, List, App, View, h } from "@spell/core"
 
 core.heading("Flash Cards")
 /////////////////
@@ -61,6 +61,8 @@ export class Deck extends List {
 core.heading("The quiz:  the deck, the card showing, and the score")
 /** The quiz:  the deck, the card showing, and the score */
 export class Quiz extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "deck" is a new deck
   static { this.declareProp("deck", { init: () => new Deck(), early: true }) }
   get deck() { return this.getProp("deck") }

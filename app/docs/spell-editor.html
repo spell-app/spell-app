@@ -47,7 +47,9 @@
           <p class="lede">
             One tag puts the spell app's code editor in a page: a tab per file, Monaco, and a status line. It compiles
             as you type, and hands what it compiled to the
-            <a href="spell-app.html" target="src-packages-app-docs-spell-app-html"><code>&lt;spell-app&gt;</code></a>
+            <a href="spell-viewer.html" target="src-packages-app-docs-spell-viewer-html"
+              ><code>&lt;spell-viewer&gt;</code></a
+            >
             elements beside it, which run it at once.
           </p>
           <ui-list class="spell-meta">
@@ -76,7 +78,7 @@
                   ></spell-editor>
                 </ui-column>
                 <ui-column>
-                  <spell-app id="app-ui-calculator" project="@spell/examples/calculator" toolbar></spell-app>
+                  <spell-viewer id="app-ui-calculator" project="@spell/examples/calculator" toolbar></spell-viewer>
                 </ui-column>
               </ui-grid>
             </ui-docs-example>
@@ -100,7 +102,7 @@
                   ><script type="text/plain">
                     <div class="side-by-side">
                       <spell-editor project="@spell/examples/calculator" app="#calculator" height="420px"></spell-editor>
-                      <spell-app id="calculator" project="@spell/examples/calculator" toolbar></spell-app>
+                      <spell-viewer id="calculator" project="@spell/examples/calculator" toolbar></spell-viewer>
                     </div>
                   </script></ui-code
                 >
@@ -113,8 +115,8 @@
                   ><script type="text/plain">
                     <spell-editor id="tasks" project="@spell/examples/TaskList" height="360px"></spell-editor>
                     <div class="side-by-side">
-                      <spell-app editor="#tasks" toolbar></spell-app>
-                      <spell-app editor="#tasks" toolbar></spell-app>
+                      <spell-viewer editor="#tasks" toolbar></spell-viewer>
+                      <spell-viewer editor="#tasks" toolbar></spell-viewer>
                     </div>
                   </script></ui-code
                 >
@@ -122,8 +124,8 @@
             </ui-accordion>
             <ul>
               <li>
-                What it edits: <code>project</code>, from the spell server, as <code>&lt;spell-app&gt;</code> takes it.
-                <code>file</code> picks the file shown first; tabs show the others.
+                What it edits: <code>project</code>, from the spell server, as <code>&lt;spell-viewer&gt;</code> takes
+                it. <code>file</code> picks the file shown first; tabs show the others.
               </li>
               <li>Edits SAVE back to the project: every compile saves the files edited since, and Cmd+S saves.</li>
               <li>It compiles as it opens the project, 2 seconds after typing stops, and at once on Cmd+Enter.</li>
@@ -144,7 +146,8 @@
               </li>
               <li>
                 A page loads it as it loads
-                <a href="spell-app.html" target="src-packages-app-docs-spell-app-html"><code>&lt;spell-app&gt;</code></a
+                <a href="spell-viewer.html" target="src-packages-app-docs-spell-viewer-html"
+                  ><code>&lt;spell-viewer&gt;</code></a
                 >: by itself, or by the element pack.
               </li>
             </ul>

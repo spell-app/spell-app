@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, positionOf, spellPosition } from "@spell/core"
+import { core, App, View, ViewableList, h, positionOf, spellPosition } from "@spell/core"
 
 core.heading("Cómo funciona Solitario")
 /////////////////////////////
@@ -99,6 +99,8 @@ export class Columna extends Pila {
 core.heading("La mesa:  una columna, y una mano de cartas para probar en ella")
 /** La mesa:  una columna, y una mano de cartas para probar en ella */
 export class Mesa extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // su "columna" es una nueva columna
   static { this.declareProp("columna", { init: () => new Columna(), early: true }) }
   get columna() { return this.getProp("columna") }

@@ -69,7 +69,7 @@ export class ScopeExplorer {
 
   /**
    * `project`'s scope pack:  its entries, and those of the projects it imports compiled, each with its details --
-   * for a page with no parser to show, e.g. `<spell-app>`.  See `LSP.ScopePack`.
+   * for a page with no parser to show, e.g. `<spell-viewer>`.  See `LSP.ScopePack`.
    * - NOT the built-in types:  they're in their own pack, see `exportBuiltIns()`.
    * - Its `file:` URIs are made portable -- see `portable()`.
    * - The caller MUST parse `importedProjects()` first, as for `tree()`.

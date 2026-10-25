@@ -11,7 +11,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *     what the page server adds to the docs pages it serves
  * - The component pack, `spell.pack.js` (`vite.element.config.ts`), imports the first two too.
  * - Its own build, not more entries of `vite.element.config.ts`:
- *   that one puts everything its entries share in ONE chunk (`spell-shared.js`), which `<spell-app>` loads up front.
+ *   that one puts everything its entries share in ONE chunk (`spell-shared.js`), which `<spell-viewer>` loads up front.
  * - The heavy halves are lazy chunks, `spell-code-*.js`:
  *   - spell's parser and rules, for the colours (`SpellLanguage`), the first time a page shows spell
  *   - spell's markdown engine (`MDEngine`), on the first render
@@ -19,7 +19,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   `spell-code.js`, which would define `<spell-code>` and need Spell UI's families.
  *   - And `spell-language.js` imports it LAZILY:  so does nothing else up front (Vite's preload helper too is a chunk
  *     of its own, `spell-code-preload.js`).
- * - Solid and Spell UI are NOT bundled, as for `<spell-app>`:  `sharedSolid()`.
+ * - Solid and Spell UI are NOT bundled, as for `<spell-viewer>`:  `sharedSolid()`.
  *   - Solid and the core through `spell-solid-shared.js`;  the code and markdown families through
  *     `spell-ui-shared.js` (`SHARED_FAMILIES`).
  *   - Both the page's own, on a page with Spell UI of its own (a docs page):  one Solid, one Spell UI.

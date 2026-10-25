@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, thing, drawn, position } from "@spell/core"
+import { core, App, View, ViewableList, prop, thing, drawn, position } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("How Tic-Tac-Toe works")
@@ -94,6 +94,8 @@ core.heading("The game")
 /** The game */
 @thing
 export class TicTacToe extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "board" is a new board
   @prop({ init: () => new Board(), early: true })
   accessor board!: Board
@@ -151,6 +153,37 @@ export class TicTacToe extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a tic tac toe, drawn in its own element, e.g. by `draw the tic tac toe`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its tic tac toe's properties;  its methods call its tic tac toe's.
+ * - What every view's element does, e.g. drawing its tic tac toe, is `SpellElement`'s.
+ */
+export class TicTacToeElement extends SpellElement<TicTacToe> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "tic tac toe", [
+    { name: "board", kind: "json", description: "Its board." },
+    { name: "turn", kind: "string", description: "Its turn." },
+    { name: "winner", kind: "string", description: "Its winner." }
+  ])
+
+  create() {
+    return this.currentThing?.create()
+  }
+
+  startANewGame() {
+    return this.currentThing?.startANewGame()
+  }
+
+  checkTheLineFromSquareAThroughBToC(a: number, b: number, c: number) {
+    return this.currentThing?.checkTheLineFromSquareAThroughBToC(a, b, c)
+  }
+
+  checkForAWinner() {
+    return this.currentThing?.checkForAWinner()
+  }
+}
+core.useElement(TicTacToe, TicTacToeElement)
 export const ticTacToe = new TicTacToe()
 
 core.heading("Start")
@@ -212,6 +245,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-square": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `BoardElement` */
       "test-project-board": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `TicTacToeElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

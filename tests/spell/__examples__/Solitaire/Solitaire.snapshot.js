@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
+import { core, List, App, View, ViewableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 
 core.heading("A playing card -- in the outline style:  its name, then what's true of it")
 ///////////////////////////////////////////////////////////////////////////////
@@ -624,6 +624,8 @@ export class Tableau extends Pile {
 
 /** The solitaire:  its piles, its moves, auto play and drawing */
 export class Solitaire extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "score" is a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }

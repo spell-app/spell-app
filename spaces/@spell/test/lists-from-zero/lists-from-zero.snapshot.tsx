@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, thing } from "@spell/core"
+import { core, Thing, List, prop, thing } from "@spell/core"
 
 core.heading("Counting from 0:  this project's lists start at 0 (its project file)")
 //////////////////////////////////////////////////////////////////////////

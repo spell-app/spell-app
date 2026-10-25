@@ -7,7 +7,7 @@ import { appConfig } from "./app/vite.shared.ts"
 
 /**
  * The app's tests that need a real browser, and Solid's CLIENT build:
- * `*.browser.test.ts(x)`, anywhere in its tests (`<spell-app>`, `<spell-editor>` too).
+ * `*.browser.test.ts(x)`, anywhere in its tests (`<spell-viewer>`, `<spell-editor>` too).
  */
 const BROWSER_TESTS = ["**/*.browser.test.{ts,tsx}"]
 

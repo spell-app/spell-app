@@ -10,7 +10,7 @@ import { AppUIDataBuilder } from "spell-app/app/tools/AppUIDataBuilder"
 
 /** The pages read from a vocabulary, not a `file`:  the component file whose banner names the page. */
 const VOCABULARY_FAMILY_FILES = {
-  "spell-app": "src/app/components/spell-app/SpellApp.tsx",
+  "spell-viewer": "src/app/components/spell-viewer/SpellViewer.tsx",
   "spell-editor": "src/app/components/spell-editor/SpellEditor.tsx",
   "spell-code": "src/app/components/spell-code/SpellCode.tsx",
   "spell-markdown": "src/app/components/spell-markdown/SpellMarkdown.tsx",
@@ -64,10 +64,10 @@ describe("AppUIDataBuilder.build()", () => {
       topics: ["shell"],
       href: "SplitPanel.html#SplitPane"
     })
-    expect(DATA.components.find((tag) => tag.tag === "spell-app")).toMatchObject({
-      name: "<spell-app>",
+    expect(DATA.components.find((tag) => tag.tag === "spell-viewer")).toMatchObject({
+      name: "<spell-viewer>",
       topics: ["web components"],
-      href: "spell-app.html"
+      href: "spell-viewer.html"
     })
   })
 

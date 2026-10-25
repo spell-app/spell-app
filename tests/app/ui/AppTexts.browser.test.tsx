@@ -38,7 +38,9 @@ describe("appTexts, on a page in Spanish", () => {
   test("the web components' own texts, and Spell UI's, are Spanish too", async () => {
     await appTexts.load()
     const { i18n } = await UI.load()
-    expect(i18n.t("nothingToRun", undefined, "spell-app")).toBe("Dale a <spell-app> un project o un src que ejecutar.")
+    expect(i18n.t("nothingToRun", undefined, "spell-viewer")).toBe(
+      "Dale a <spell-viewer> un project o un src que ejecutar."
+    )
     expect(i18n.t("noProject", undefined, "spell-editor")).toBe("Dale a <spell-editor> un project que editar.")
     // Spell UI's shared text, which `<Chooser>` reads for its Cancel button
     expect(i18n.t("cancel")).toBe("Cancelar")

@@ -52,7 +52,7 @@
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the runners' debug pane, or reading its code</ui-item>
             <ui-item icon="play"
-              >Live: a real <code>&lt;spell-app&gt;</code>, its debug pane opened on this tab</ui-item
+              >Live: a real <code>&lt;spell-viewer&gt;</code>, its debug pane opened on this tab</ui-item
             >
           </ui-list>
 
@@ -63,7 +63,7 @@
               "Scopes" tree, open Card.spell under Solitaire and click Card, to see its details beside it.
             </p>
             <ui-docs-example description="Solitaire, its debug pane on the Type Explorer tab.">
-              <spell-app project="@spell/examples/Solitaire" toolbar debug="explorer" height="820px"></spell-app>
+              <spell-viewer project="@spell/examples/Solitaire" toolbar debug="explorer" height="820px"></spell-viewer>
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
@@ -105,7 +105,8 @@
               <li>
                 <code>tree</code> is the tree of scopes: from the language server in VS Code, or from the project's
                 scope pack in a
-                <a href="spell-app.html" target="src-packages-app-docs-spell-app-html"><code>&lt;spell-app&gt;</code></a
+                <a href="spell-viewer.html" target="src-packages-app-docs-spell-viewer-html"
+                  ><code>&lt;spell-viewer&gt;</code></a
                 >, which needs no parser in the page.
               </li>
               <li>
@@ -125,7 +126,7 @@
                 What's picked and open is kept by each scope's path, so it stays put as new trees come in, after each
                 run. <code>state</code> and <code>onStateChange</code> remember it, else it's kept in the browser.
               </li>
-              <li><code>readonly</code>, as in a <code>&lt;spell-app&gt;</code>: docstrings can't be edited.</li>
+              <li><code>readonly</code>, as in a <code>&lt;spell-viewer&gt;</code>: docstrings can't be edited.</li>
               <li>
                 Each row of its tree is a <a href="#TreeRow">TreeRow</a>: its arrow opens and closes it, the rest picks
                 it. The

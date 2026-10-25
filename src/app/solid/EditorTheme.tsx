@@ -25,7 +25,7 @@ import "./EditorTheme.css"
  * - The code's colours aren't a page theme:  Monaco's Purple follows the page's light / dark by itself
  *   (`spell-app/app/ui/monaco/themes`).
  * - Loads lazily, as `loadUI()` does:  Spell UI's docs half is its own chunk, off the app's first paint.
- * - The editor app's only:  NEVER from `<spell-app>` / `<spell-editor>`, which live on other people's pages.
+ * - The editor app's only:  NEVER from `<spell-viewer>` / `<spell-editor>`, which live on other people's pages.
  ****************/
 export class EditorTheme {
   /** The theme the editor starts in:  Fruity, the Glass look of the facelift boards (epic `debut` Q14). */

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, h } from "@spell/core"
 import { Counter } from "@spell/project/@spell/test/counter"
 
 core.heading("A counter app:  a counter from another project, made and drawn")
@@ -7,6 +7,8 @@ core.heading("A counter app:  a counter from another project, made and drawn")
 ////////////////////////////////////////////////////////////////////
 /** Its counter is the frozen counter library's (`@spell/test/counter`), which its project file imports. */
 export class Tally extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "counter" is a new counter
   static { this.declareProp("counter", { init: () => new Counter(), early: true }) }
   get counter() { return this.getProp("counter") }
