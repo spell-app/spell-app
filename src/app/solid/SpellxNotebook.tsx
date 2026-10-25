@@ -1,7 +1,7 @@
 import { For, Loading, Show, createMemo, createSignal, onSettled, untrack } from "solid-js"
 
 import { PrefStore } from "spell/util/persist/PrefStore"
-import { appTexts } from "spell-app/app/ui/AppTexts"
+import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 import { LazyMonaco } from "./LazyMonaco"
 import { Markdown } from "./Markdown"
 import { NotebookCells, type ChunkCell, type NotebookCell, type PropertyForm } from "./NotebookCells"
@@ -13,7 +13,12 @@ import "./SpellxNotebook.css"
  * A `.spellx` file as a NOTEBOOK (epic `elemental-spell` P11, J53):  cells down the page, like Jupyter's.
  * - Its prose is drawn as markdown;  each template and member is a CARD that folds,
  *   its code in a small editor, edited in place.
- * - A `<property>` card shows a form instead:  its name, its values, its aliases;  "Code" shows its text.
+ * - A template's card holds its members:  open, it shows its own head as code, then its prose and member cards;
+ *   folded, only its title.
+ * - A `<property>` card shows a form instead:  its name, its values, its aliases, then its body as code;
+ *   "Show the code" shows its whole text.
+ * - A card's header opens and folds it, anywhere on it;  its tools (form / code, move up, move down)
+ *   show while it's pointed at, focused or open, and always on a touch screen.
  * - Cards move up and down among their template's members;  prose stays where it is.
  * - Every edit is the file's NEW TEXT, changed only in the card's span (`NotebookCells`), handed to `onChange`:
  *   the editor treats it as typed, so the parse, the running program and the Text view follow.
@@ -33,84 +38,125 @@ export function SpellxNotebook(props: SpellxNotebookProps) {
   })
   return (
     <div class="SpellxNotebook" ref={(element) => (scroller = element)} onScroll={() => keep()}>
-      <For each={cells()} keyed={(cell) => cell.id}>
+      {cellsIn(undefined)}
+    </div>
+  )
+
+  /** The cells inside template `templateId` (`undefined`:  outside every template), each drawn. */
+  function cellsIn(templateId: string | undefined) {
+    return (
+      <For each={NotebookCells.membersOf(cells(), templateId)} keyed={(cell) => cell.id}>
         {(cell) => (
           <Show
             when={cell().kind === "chunk"}
             fallback={<Markdown class="NotebookProse" text={proseText(cell())} onOpen={() => {}} />}
           >
-            {(() => {
-              const chunk = () => cell() as ChunkCell
-              return (
-                <section class={["NotebookCard", { open: isOpen(chunk().id), template: !chunk().parentId }]}>
-                  <header class="NotebookCardHead">
-                    <ui-icon
-                      link=""
-                      name={isOpen(chunk().id) ? "chevron down" : "chevron right"}
-                      label={appTexts.text(isOpen(chunk().id) ? "notebookFold" : "notebookUnfold")}
-                      onClick={() => toggle(chunk().id)}
-                    />
-                    <ui-label size="mini" basic="">
-                      {chunk().word}
-                    </ui-label>
-                    <span class="NotebookCardTitle" onClick={() => toggle(chunk().id)}>
-                      {chunk().title}
-                    </span>
-                    <Show when={chunk().parentId}>
-                      <span class="NotebookCardTools">
-                        <Show when={chunk().property}>
-                          <ui-button
-                            circular=""
-                            basic=""
-                            size="mini"
-                            icon={showsCode(chunk().id) ? "list" : "code"}
-                            title={appTexts.text(showsCode(chunk().id) ? "notebookShowForm" : "notebookShowCode")}
-                            onClick={() => toggleCode(chunk().id)}
-                          />
-                        </Show>
-                        <ui-button
-                          circular=""
-                          basic=""
-                          size="mini"
-                          icon="arrow up"
-                          title={appTexts.text("notebookMoveUp")}
-                          onClick={() => props.onChange(NotebookCells.moved(props.text, cells(), chunk(), "up"))}
-                        />
-                        <ui-button
-                          circular=""
-                          basic=""
-                          size="mini"
-                          icon="arrow down"
-                          title={appTexts.text("notebookMoveDown")}
-                          onClick={() => props.onChange(NotebookCells.moved(props.text, cells(), chunk(), "down"))}
-                        />
-                      </span>
-                    </Show>
-                  </header>
-                  <Show when={isOpen(chunk().id)}>
-                    <Show
-                      when={chunk().property && !showsCode(chunk().id)}
-                      fallback={
-                        <CellCode
-                          code={chunk().code}
-                          onChange={(code) => props.onChange(NotebookCells.withCode(props.text, chunk(), code))}
-                        />
-                      }
-                    >
-                      <PropertyEditor
-                        cell={chunk()}
-                        onChange={(form) => props.onChange(NotebookCells.withProperty(props.text, chunk(), form))}
-                      />
-                    </Show>
-                  </Show>
-                </section>
-              )
-            })()}
+            {card(() => cell() as ChunkCell)}
           </Show>
         )}
       </For>
-    </div>
-  )
+    )
+  }
+
+  /** Chunk `chunk`'s card:  its header, and (open) its code, form or members. */
+  function card(chunk: () => ChunkCell) {
+    return (
+      <section class={["NotebookCard", { open: isOpen(chunk().id), template: !chunk().parentId }]}>
+        <header class="NotebookCardHead" onClick={() => toggle(chunk().id)}>
+          <ui-icon
+            link=""
+            class="NotebookChevron"
+            name={isOpen(chunk().id) ? "chevron down" : "chevron right"}
+            title={appTexts.text(isOpen(chunk().id) ? "notebookFold" : "notebookUnfold")}
+            label={appTexts.text(isOpen(chunk().id) ? "notebookFold" : "notebookUnfold")}
+          />
+          <span class="NotebookCardWord">
+            <ui-label size="mini" basic="">
+              {chunk().word}
+            </ui-label>
+          </span>
+          <span class="NotebookCardTitle">{chunk().title}</span>
+          <Show when={chunk().parentId}>
+            <span class="NotebookCardTools" onClick={(event) => event.stopPropagation()}>
+              <Show when={chunk().property}>
+                {tool(
+                  showsCode(chunk().id) ? "list" : "code",
+                  showsCode(chunk().id) ? "notebookShowForm" : "notebookShowCode",
+                  () => toggleCode(chunk().id)
+                )}
+              </Show>
+              {tool("arrow up", "notebookMoveUp", () =>
+                props.onChange(NotebookCells.moved(props.text, cells(), chunk(), "up"))
+              )}
+              {tool("arrow down", "notebookMoveDown", () =>
+                props.onChange(NotebookCells.moved(props.text, cells(), chunk(), "down"))
+              )}
+            </span>
+          </Show>
+        </header>
+        <Show when={isOpen(chunk().id)}>
+          <Show when={chunk().parentId} fallback={templateBody(chunk)}>
+            {memberBody(chunk)}
+          </Show>
+        </Show>
+      </section>
+    )
+  }
+
+  /** An open template's card:  its head as code, then its prose and members. */
+  function templateBody(chunk: () => ChunkCell) {
+    return (
+      <>
+        <CellCode
+          code={chunk().code}
+          onChange={(code) => props.onChange(NotebookCells.withCode(props.text, chunk(), code))}
+        />
+        <div class="NotebookMembers">{cellsIn(chunk().id)}</div>
+      </>
+    )
+  }
+
+  /** An open member's card:  a property's form and body, or its code. */
+  function memberBody(chunk: () => ChunkCell) {
+    return (
+      <Show
+        when={chunk().property && !showsCode(chunk().id)}
+        fallback={
+          <CellCode
+            code={chunk().code}
+            onChange={(code) => props.onChange(NotebookCells.withCode(props.text, chunk(), code))}
+          />
+        }
+      >
+        <PropertyEditor
+          cell={chunk()}
+          onChange={(form) => props.onChange(NotebookCells.withProperty(props.text, chunk(), form))}
+        />
+        <Show when={chunk().property?.body}>
+          {(body) => (
+            <CellCode
+              code={body().code}
+              onChange={(code) => props.onChange(NotebookCells.withCode(props.text, body(), code))}
+            />
+          )}
+        </Show>
+      </Show>
+    )
+  }
+
+  /** A card's tool:  a plain icon, its text the tooltip. */
+  function tool(icon: string, text: AppTextKey, run: () => void) {
+    return (
+      <ui-icon
+        link=""
+        class="NotebookTool"
+        name={icon}
+        title={appTexts.text(text)}
+        label={appTexts.text(text)}
+        onClick={() => run()}
+      />
+    )
+  }
 
   /** Is card `id` open? */
   function isOpen(id: string): boolean {
@@ -153,7 +199,8 @@ export type SpellxNotebookProps = {
 
 /****************
  * ### `<CellCode>`
- * A card's code in a small editor, as tall as its lines (at most 24), no line numbers or minimap.
+ * A card's code in a small editor, as tall as its lines (at most 24), no line numbers or minimap;
+ * its background the card's.
  ****************/
 function CellCode(props: { code: string; onChange: (code: string) => void }) {
   const lines = () => Math.min(24, props.code.split("\n").length)
@@ -176,7 +223,7 @@ function CellCode(props: { code: string; onChange: (code: string) => void }) {
  * A `<property>` card's form:  its name, its values (`one-of`), and its aliases, one field each and one to add.
  * - A field's change is committed when it's left or Enter is pressed (`ui-changed`), never per keystroke:
  *   so the file isn't rewritten under the cursor.
- * - Its body stays code:  the card's Code button shows it.
+ * - Its body is code, in its own editor below the form (`<SpellxNotebook>`).
  ****************/
 function PropertyEditor(props: { cell: ChunkCell; onChange: (form: PropertyForm) => void }) {
   const form = (): PropertyForm => {
@@ -261,8 +308,11 @@ function stateKey(path: string | undefined): string {
   return `spellEditor:notebook:${path ?? "untitled"}`
 }
 
-/** Height of a line in a card's editor, px. */
-const LINE_HEIGHT = 19
+/** Height of a line in a card's editor, px:  for `CODE_FONT_SIZE`. */
+const LINE_HEIGHT = 20
+
+/** Size of a card's code, px:  the size of the notebook's text, a step under the Text view's. */
+const CODE_FONT_SIZE = 13
 
 /**
  * Monaco's language for spell code, `SpellMonaco.LANGUAGE`.
@@ -272,6 +322,8 @@ const SPELL_LANGUAGE = "spell"
 
 /** A card's editor:  no line numbers, minimap or scrolling past the end;  it follows its box's size. */
 const CODE_OPTIONS = {
+  fontSize: CODE_FONT_SIZE,
+  lineHeight: LINE_HEIGHT,
   lineNumbers: "off",
   minimap: { enabled: false },
   scrollBeyondLastLine: false,

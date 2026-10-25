@@ -216,7 +216,7 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
 }
 
 /*
- * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  a header like every other pane's
+ * Tab bars (the Program panel's, the Inspector's Views | Things | Templates, the code pane's Text | Notebook):  a header like every other pane's
  * (40px, see-through, a hairline under it), its tabs a slim track in it, as the docs site's tabs
  * (Owen:  "doesn't match ... too tall, colors don't match, font size difference"):
  * - the track:  the tabs sharing the header's width evenly, the chosen one a raised white pill (Owen:  "still want
@@ -226,7 +226,7 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
 :root {
   --spell-tabs-track: light-dark(rgb(40 20 90 / 0.06), rgb(255 255 255 / 0.06));
 }
-:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) {
+:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs, ui-menu.InputViewSwitch) {
   --ui-menu-segmented-background: var(--spell-tabs-track);
   --ui-menu-segmented-border: 0 solid transparent;
   --ui-menu-segmented-radius: 9999px;
