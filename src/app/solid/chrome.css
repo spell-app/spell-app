@@ -204,6 +204,8 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
 :is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) {
   --ui-menu-segmented-radius: 8px;
   --ui-menu-segmented-padding: 2px;
+  /* a tab's inner corners as its outer ones (the track's, less its inset):  the theme makes them pill-round */
+  --ui-menu-segmented-item-radius: 6px;
 }
 :is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) > ui-item::part(item) {
   flex: 1 1 0;
