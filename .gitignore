@@ -73,3 +73,6 @@ dist-types/
 
 # graphify's knowledge graph:  rebuilt on demand, never committed
 graphify-out/
+
+# `spell map`'s map of this repo (graphify's, epic coherence P1):  rebuilt on demand, never committed
+graphify-out/
