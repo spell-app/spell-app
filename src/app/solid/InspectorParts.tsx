@@ -227,9 +227,9 @@ function PartsTree(props: { rows: readonly PartRow[] }): JSX.Element {
           {(row) => (
             <li
               role="treeitem"
-              class={{ picked: Inspector.picked?.element === row.element }}
+              class={{ picked: Inspector.inspected?.element === row.element }}
               style={{ "--depth": row.depth }}
-              aria-selected={Inspector.picked?.element === row.element ? "true" : "false"}
+              aria-selected={Inspector.inspected?.element === row.element ? "true" : "false"}
               aria-expanded={row.hasChildren ? (row.isFolded ? "false" : "true") : undefined}
               onClick={() => Inspector.pick(row.element)}
             >
@@ -310,7 +310,10 @@ const FOLDED_PREF = "inspector:folded"
  * - Nothing picked:  a tip.
  ****************/
 export function InspectorEvents(): JSX.Element {
-  const events = createMemo(() => (Inspector.picked ? Inspector.eventsOf(Inspector.picked.element) : []))
+  const events = createMemo(() => {
+    const element = Inspector.inspected?.element
+    return element ? Inspector.eventsOf(element) : []
+  })
   const addable = () => DEFAULT_EVENTS.filter((event) => !events().includes(event))
   return (
     <InspectorCard
@@ -319,7 +322,7 @@ export function InspectorEvents(): JSX.Element {
       icon="bolt"
       title={appTexts.text("inspectorEvents")}
       actions={
-        <Show when={Inspector.picked && addable().length}>
+        <Show when={Inspector.inspected?.element && addable().length}>
           <ui-dropdown
             class="InspectorAddEvent"
             aria-label={appTexts.text("inspectorAddEvent")}
@@ -327,7 +330,7 @@ export function InspectorEvents(): JSX.Element {
             data-position="bottom right"
             data-inverted=""
             ref={on<{ value: string }>("ui-change", (event) => {
-              const element = Inspector.picked?.element
+              const element = Inspector.inspected?.element
               if (element && event.detail.value) Inspector.addEvent(element, event.detail.value)
             })}
           >
@@ -337,16 +340,16 @@ export function InspectorEvents(): JSX.Element {
         </Show>
       }
     >
-      <Show when={Inspector.picked} keyed fallback={<p class="InspectorNone">{appTexts.text("inspectorEventsTip")}</p>}>
-        {(part) => (
+      <Show
+        when={Inspector.inspected?.element}
+        keyed
+        fallback={<p class="InspectorNone">{appTexts.text("inspectorEventsTip")}</p>}
+      >
+        {(element) => (
           <Show when={events().length} fallback={<p class="InspectorNone">{appTexts.text("inspectorNoEvents")}</p>}>
             <For each={events()}>
               {(event) => (
-                <EventCode
-                  element={part.element}
-                  event={event}
-                  written={Inspector.writtenHandlersOf(part.element)[event]}
-                />
+                <EventCode element={element} event={event} written={Inspector.writtenHandlersOf(element)[event]} />
               )}
             </For>
           </Show>

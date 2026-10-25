@@ -354,3 +354,56 @@ ui-icon.InspectorPick.picking {
   background: color-mix(in oklab, var(--ui-text-color) 12%, transparent);
   box-shadow: 0 0 0 5px color-mix(in oklab, var(--ui-text-color) 12%, transparent);
 }
+
+/* the trail in the properties card's header:  a pill a step, `›` between;  an earlier step goes back to it */
+.InspectorTrail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+
+  & > .InspectorTrailStep {
+    color: var(--ui-text-muted);
+  }
+  & > .InspectorPartTag {
+    flex: 0 1 auto;
+    white-space: nowrap;
+  }
+  & > .InspectorPartTag.back {
+    cursor: pointer;
+    opacity: 0.75;
+  }
+  & > .InspectorPartTag.back:hover {
+    opacity: 1;
+  }
+}
+
+/* a property holding a thing:  its label as a field's, then a link to it, the row's full width */
+.Inspector .InspectorThingLink {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+
+  & > .InspectorThingLabel {
+    font-size: 13px;
+    font-weight: var(--ui-font-weight-semibold, 600);
+  }
+  &.item {
+    flex-direction: row;
+  }
+}
+/* a list's items:  a full row, a link each, close together */
+.Inspector .InspectorItems {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  & > .InspectorItemsLabel {
+    font-size: 13px;
+    font-weight: var(--ui-font-weight-semibold, 600);
+  }
+}
