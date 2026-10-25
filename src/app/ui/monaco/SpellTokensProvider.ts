@@ -86,7 +86,8 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
    */
   tokenize(line: string, state: monaco.languages.IState): monaco.languages.ILineTokens {
     const { SPELL_LINE, EMBEDDED_BLOCKS } = SpellTokensProvider
-    // a spellx file goes back to no tags open after a block:  none of the examples has one
+    // CONSIDER:  a spellx file goes back to no tags open after a `<css>` / `<markdown>` block;  none of the examples
+    // has one.  And a tag's head over several lines is read a line at a time (`SP.SpellxTokenizer.tokenizeLine()`).
     const lineState = this.spellx ? SpellxLineState.NONE_OPEN : SPELL_LINE
     const inside = EMBEDDED_BLOCKS.find((block) => block.state === state)
     if (inside) {
