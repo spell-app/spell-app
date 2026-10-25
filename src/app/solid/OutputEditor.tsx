@@ -48,7 +48,10 @@ export function OutputToolbar() {
  * ### `<OutputEditor>`
  * Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`;
  * or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`);
- * or, with `target="spell"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins.
+ * or, with `target="spell"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins;
+ * or, with `target="spellx"`, `editor.file` as spellx:  a `.spell` file's, written by `SX.SpellxWriter`.
+ * - Those two are a file's OTHER FORM, a view:  a template lives in ONE file, `.spell` or `.spellx`
+ *   (epic `elemental-spell` J95).
  * - Coloured by Monaco's own highlighting for the language;  it doesn't follow the cursor in `<InputEditor>`.
  * - A target whose writer can't write the project shows why, as a comment, instead of its code.
  * - SEE:  its App UI components page, `app/docs/OutputEditor.html` (`/components/app/OutputEditor.html`).
@@ -61,6 +64,10 @@ export function OutputEditor(props: OutputEditorProps) {
       // read so a compile writes it afresh, as the targets' code
       void editor.project?.compiled
       return codeSpellOf(editor.file)
+    }
+    if (target === "spellx") {
+      void editor.project?.compiled
+      return spellxOf(editor.file)
     }
     if (!target) {
       const { file } = editor
@@ -106,7 +113,9 @@ const TARGET_LOOKS = {
   "ts/solid": { language: "typescript", comment: "//" },
   py: { language: "python", comment: "#" },
   // not a target:  the code spell a `.spellx` file means (epic `elemental-spell` P8)
-  spell: { language: "spell", comment: "//" }
+  spell: { language: "spell", comment: "//" },
+  // not a target either:  a `.spell` file as spellx (J95)
+  spellx: { language: "spellx", comment: "//" }
 } as const
 
 /**
@@ -122,6 +131,20 @@ function codeSpellOf(file: typeof editor.file): string {
   if (file.form !== "spellx") return text
   try {
     return SX.CodeSpellWriter.write(text, { path: file.path, language: file.language })
+  } catch (error) {
+    return `// ${file.file}:  ${error instanceof Error ? error.message : String(error)}\n`
+  }
+}
+
+/**
+ * `file` as spellx, as text:  a `.spell` file's, written by `SX.SpellxWriter` from its last parse;
+ * a `.spellx` file's own text;  nothing for a file that isn't spell.
+ * - NEVER throws:  a file that can't be written says why, as a comment.
+ */
+function spellxOf(file: typeof editor.file): string {
+  if (!(file instanceof SP.SpellFile)) return ""
+  try {
+    return SX.SpellxWriter.textOf(file)
   } catch (error) {
     return `// ${file.file}:  ${error instanceof Error ? error.message : String(error)}\n`
   }

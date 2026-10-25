@@ -944,6 +944,17 @@ describe("SpellLanguageService", () => {
     expect(compiled).not.toContain("SPELL: DECLARES")
   })
 
+  // epic `elemental-spell` J95:  the other form is a view, never a second file
+  test("custom requests:  Show as Spellx, a .spell file written as spellx;  one that can't be says why", () => {
+    const spellx = service.compiled(card, "spellx")
+    expect(spellx).toMatch(/^<spell-view "card"/m)
+    expect(spellx).toContain('\t<property "suit"')
+    const unparsed = Object.create(card, { match: { value: undefined } }) as SP.SpellFile
+    expect(service.compiled(unparsed, "spellx")).toBe(
+      "// Card.spell couldn't be written as spellx:  SpellxWriter.textOf():  Card.spell hasn't been parsed;  parse it first"
+    )
+  })
+
   test("custom requests:  a file that can't be compiled says why, naming its target", () => {
     const unparsed = Object.create(card, { match: { value: undefined } }) as SP.SpellFile
     expect(service.compiled(unparsed, "ts")).toBe("// Card.spell hasn't been parsed")

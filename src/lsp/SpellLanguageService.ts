@@ -1446,6 +1446,7 @@ export class SpellLanguageService {
   compiled(file: SP.SpellFile, target: LSP.CompiledTarget = "js"): string {
     const { name, comment } = SpellLanguageService.COMPILED_TARGETS[target]
     if (target === "spell") return this.codeSpellOf(file)
+    if (target === "spellx") return SpellLanguageService.spellxOf(file)
     if (!file.match) return `${comment} ${file.file} hasn't been parsed`
     const { writer } = SP.targetFor(name)
     return (
@@ -1463,7 +1464,21 @@ export class SpellLanguageService {
     js: { name: SP.RUNNING_TARGET, comment: "//" },
     ts: { name: "ts/solid", comment: "//" },
     py: { name: "py", comment: "#" },
-    spell: { name: "spell", comment: "//" }
+    spell: { name: "spell", comment: "//" },
+    spellx: { name: "spellx", comment: "//" }
+  }
+
+  /**
+   * The spellx `file` reads as:  a `.spell` file written as spellx (`SX.SpellxWriter.textOf()`, J95);
+   * a `.spellx` file's own text.
+   * - NEVER throws:  a file that can't be written says so, as a comment.
+   */
+  static spellxOf(file: SP.SpellFile): string {
+    try {
+      return SX.SpellxWriter.textOf(file)
+    } catch (error) {
+      return `// ${file.file} couldn't be written as spellx:  ${(error as Error).message}`
+    }
   }
 
   /**

@@ -80,6 +80,7 @@ const APP_TEXTS_ES: AppTextPack = {
   typescriptTab: "TypeScript",
   pythonTab: "Python",
   codeSpellTab: "Encanto en código",
+  spellxTab: "Encanto en etiquetas",
   inspector: "Inspector",
   inspectorPick: "Elegir una parte de la app",
   inspectorTip: "Elige una parte de la app con la mira, para ver qué es y cambiarla.",

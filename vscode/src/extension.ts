@@ -50,10 +50,12 @@ const COMPILED_TARGETS = {
   ts: { language: "typescript", comment: "//" },
   py: { language: "python", comment: "#" },
   // a `.spellx` file's code spell, "Show as Code Spell" (epic `elemental-spell` P8)
-  spell: { language: "spell", comment: "//" }
+  spell: { language: "spell", comment: "//" },
+  // a `.spell` file as spellx, "Show as Spellx":  a view, never a second file (J95)
+  spellx: { language: "spellx", comment: "//" }
 } as const
 
-/** A short name for a target:  `js`, `ts`, `py` or `spell` -- see `COMPILED_TARGETS`. */
+/** A short name for a target:  `js`, `ts`, `py`, `spell` or `spellx` -- see `COMPILED_TARGETS`. */
 type CompiledTarget = keyof typeof COMPILED_TARGETS
 
 /** How long to wait after the last edit before refreshing an open compiled view, in msec. */
@@ -144,7 +146,8 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
     vscode.commands.registerCommand("spell.showCompiled", () => showCompiled("js")),
     vscode.commands.registerCommand("spell.showCompiledTypeScript", () => showCompiled("ts")),
     vscode.commands.registerCommand("spell.showCompiledPython", () => showCompiled("py")),
-    vscode.commands.registerCommand("spell.showCodeSpell", () => showCompiled("spell"))
+    vscode.commands.registerCommand("spell.showCodeSpell", () => showCompiled("spell")),
+    vscode.commands.registerCommand("spell.showSpellx", () => showCompiled("spellx"))
   )
   await client.start()
 }
@@ -183,7 +186,8 @@ async function showCompiled(target: CompiledTarget): Promise<void> {
 /****************
  * ### `CompiledProvider`
  * Read-only documents holding the code a spell file compiles to, from the server's `spell/compiled` request.
- * - One per target:  javascript, TypeScript, Python (`COMPILED_TARGETS`).
+ * - One per target:  javascript, TypeScript, Python;  and a spell file's other form, code spell or spellx
+ *   (`COMPILED_TARGETS`).
  * - The document's URI ends with its target, and carries the spell file's URI in its query -- see `uriFor()`.
  * - Refreshes each open one a moment after its spell file changes.
  ****************/

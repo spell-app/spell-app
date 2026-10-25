@@ -118,7 +118,9 @@ export function AppPane() {
  * Debug's panel under the code:  one pane of tabs (`<RunnerPane>`), as VS Code's runner panel has.
  * - Output:  what the program logged, and how compiling and running it went (`<ConsoleViewer>`).
  * - JavaScript:  the compiled code (`<OutputRoot>`);  TypeScript and Python:  the project as those targets write it.
- * - Code Spell:  the code spell a `.spellx` file means (`SX.CodeSpellWriter`;  epic `elemental-spell` P8).
+ * - The file's other form, a read-only view (epic `elemental-spell` J95:  a template lives in ONE file):
+ *   - Code Spell, on a `.spellx` file:  the code spell it means (`SX.CodeSpellWriter`;  P8)
+ *   - Spellx, on a `.spell` file:  it written as spellx (`SX.SpellxWriter`)
  * - Sentence:  the spell tree of the cursor's line (`<TreeRoot>`).
  * - At the right, whatever tab shows:  Clear Console, on Output only, and Close (`onClose`).
  * - Remembers which tab shows, as the editor's preference `spellEditor:programTab`.
@@ -128,10 +130,12 @@ export function AppPane() {
 export function ProgramPanel(props: { onClose: () => void }) {
   const remembered = editorPrefs.get(TAB_PREF) as ProgramTabId
   const [tab, setTab] = createSignal<ProgramTabId>(PROGRAM_TABS.includes(remembered) ? remembered : "output")
+  // which form the file is in:  its other form is the `spell` tab's view
+  const form = tracked(() => (editor.file instanceof SP.SpellFile ? editor.file.form : undefined))
   return (
     <RunnerPane
       class="ProgramPanel"
-      tabs={PROGRAM_TABS.map(tabFor)}
+      tabs={PROGRAM_TABS.map((id) => tabFor(id, form()))}
       pane={tab()}
       onPane={showTab}
       tools={
@@ -165,8 +169,11 @@ export function ProgramPanel(props: { onClose: () => void }) {
         <Match when={tab() === "python"}>
           <OutputEditor showError={editor.showError} target="py" />
         </Match>
-        <Match when={tab() === "spell"}>
+        <Match when={tab() === "spell" && form() === "spellx"}>
           <OutputEditor showError={editor.showError} target="spell" />
+        </Match>
+        <Match when={tab() === "spell"}>
+          <OutputEditor showError={editor.showError} target="spellx" />
         </Match>
         <Match when={tab() === "tree"}>
           <TreeRoot showToolbar={false} />
@@ -193,7 +200,7 @@ function columnsFor(isRunning: boolean, isInspecting: boolean): { id: string; co
   return { id, columns: isRunning ? "*,380px" : "*,*,380px" }
 }
 
-/** Tabs of `<ProgramPanel>`, in order. */
+/** Tabs of `<ProgramPanel>`, in order;  `spell` is the file's other form, code spell or spellx (`tabFor()`). */
 const PROGRAM_TABS = ["output", "javascript", "typescript", "python", "spell", "tree"] as const
 /** One of `<ProgramPanel>`'s tabs. */
 type ProgramTabId = (typeof PROGRAM_TABS)[number]
@@ -211,9 +218,13 @@ const TAB_PREF = "programTab"
 // TODO:  drop the rename once every browser has opened the editor since epic `prefs-and-undo` P1
 editorPrefs.declare(TAB_PREF, { oneOf: PROGRAM_TABS }).rename("spellEditor.programTab", TAB_PREF)
 
-/** Tab `id`, titled in the page's language. */
-function tabFor(id: ProgramTabId): RunnerTab<ProgramTabId> {
-  return { id, icon: TAB_LOOKS[id].icon, title: appTexts.text(TAB_LOOKS[id].text) }
+/**
+ * Tab `id`, titled in the page's language.
+ * - `spell`, the file's other form:  "Code Spell" on a `.spellx` file, "Spellx" on a `.spell` file (`form`).
+ */
+function tabFor(id: ProgramTabId, form: SP.SpellForm | undefined): RunnerTab<ProgramTabId> {
+  const text = id === "spell" && form !== "spellx" ? "spellxTab" : TAB_LOOKS[id].text
+  return { id, icon: TAB_LOOKS[id].icon, title: appTexts.text(text) }
 }
 
 /****************

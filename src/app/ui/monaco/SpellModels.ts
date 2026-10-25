@@ -50,11 +50,6 @@ export class SpellModels {
   /**
    * Model for `file`, made if need be -- along with one for every spell file its project parses.
    * - SIDE EFFECT:  a file of another project disposes of the last project's models first, unless it's `use()`d.
-   * - SIDE EFFECT:  a spellx twin its project leaves out, `Card.spellx` beside `Card.spell`, parses in its `.spell`
-   *   twin's place while it's shown, so it has errors, hover and the parse's colours (`SP.SpellProject.showForm()`);
-   *   showing `Card.spell` again puts it back.
-   *   - Heard as an edit (`onEdit`), so whoever shows it compiles again, which parses:  never a `parse()` of our own,
-   *     which would cancel a compile already under way.
    */
   modelFor(file: SP.AnySpellFile): monaco.editor.ITextModel {
     const previous = this.#project
@@ -62,7 +57,6 @@ export class SpellModels {
       this.#project = file.project
       if (previous && !this.#users.has(previous)) this.disposeProject(previous)
     }
-    if (file instanceof SP.SpellFile && file.project.showForm(file)) this.onEdit(file)
     for (const spellFile of file.project.spellFiles) this.ensureModel(spellFile)
     return this.ensureModel(file)
   }
