@@ -193,7 +193,8 @@
  * The three cards (`<SplitPanel rows resizable>`):  what's picked, its events, the app's views.
  * - Each a card as the editor's panes are (the look's), the page in the seams;  each scrolls by itself, and the
  *   bars between them drag.
- * - No white edge (Owen:  "lose the white border around panels").
+ * - No white edge, and no shadow under them (Owen:  "lose the white border around panels";
+ *   "lose background shading underneath").
  */
 .InspectorSplit {
   flex: 1 1 auto;
@@ -201,6 +202,7 @@
 }
 .SpellPage .InspectorColumn > .SplitPanel.InspectorSplit > .SplitPanelPane {
   border: 0;
+  box-shadow: none;
 }
 /* a card's scrolling inside:  its last panel's tint running to its bottom (Owen:  "all the way to the bottom of the panel") */
 .InspectorSection {

@@ -346,8 +346,12 @@ const [isOpen, setOpen] = createSignal(editorPrefs.get(OPEN_PREF) as boolean)
 const [isPicking, setPicking] = createSignal(false)
 const [picked, setPicked] = createSignal<Picked | undefined>(undefined)
 
-/** Where the running app draws, as `<AppPane>` last handed it over. */
-let appArea: HTMLElement | undefined
+/**
+ * Where the running app draws, as `<AppPane>` last handed it over.
+ * - Kept through a hot reload of this file:  the pane hands it over only as it's drawn, so without it the reloaded
+ *   Inspector had no app (Views empty, the crosshairs picking nothing) until the page was reloaded.
+ */
+let appArea = import.meta.hot?.data.appArea as HTMLElement | undefined
 /**
  * Counts the area's moves, for its reactive readers (`Inspector.area`).
  * - The area itself is a plain variable:  a signal reads its old value until the next flush,
@@ -358,8 +362,10 @@ const [areaMoved, setAreaMoved] = createSignal(0)
 /** Watch `area` from now on (`undefined`:  none), and tell its reactive readers. */
 function setArea(area: HTMLElement | undefined): void {
   appArea = area
+  if (import.meta.hot) import.meta.hot.data.appArea = area
   setAreaMoved((count) => count + 1)
 }
+
 /** Counts the events added in the Inspector, so their lists read them again. */
 const [eventsAdded, setEventsAdded] = createSignal(0)
 
