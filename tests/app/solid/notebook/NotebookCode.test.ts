@@ -17,6 +17,6 @@ describe("NotebookCode", () => {
   test("back to spellx:  each tag a bare name gives, that name;  anything else as written", () => {
     expect(
       NotebookCode.toSpellx('<ui-button color="primary">Go</ui-button><ui-label>x</ui-label>', (tag) => words[tag])
-    ).toBe('<button primary="">Go</button><ui-label>x</ui-label>')
+    ).toBe('<button color="primary">Go</button><ui-label>x</ui-label>')
   })
 })
