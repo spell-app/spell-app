@@ -272,10 +272,9 @@ What each printed on a real run is under it.
    and push it wherever you like.
 
    - Commit everything in the folder:  there's nothing to ignore.
-   - The compiled program goes in spell-app's `build/` folder, never beside your source.
-   - What a compile does leave beside it is meant to be committed:
-     `hello.declarations.json5`, what it declares, for projects that import it;  and `hello.en.js`, its words.
-   - Opening a project in the editor compiles it, which may rewrite those two:  look at `git status` after.
+   - What a compile writes goes in spell-app's `build/` folder, never beside your source:
+     the compiled program, `hello.declarations.json5` (what it declares, for projects that import it)
+     and `hello.en.js`, its words.
    - Every target's files, and where each goes:  [spell-parser's README-targets.md](https://github.com/spell-app/spell-parser/blob/main/README-targets.md).
 
 Somewhere else on disk:  `spell app create hello --in <folder>` makes it there, and `spell run <folder>/hello` runs

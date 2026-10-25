@@ -67,6 +67,50 @@ describe("picking", () => {
   })
 })
 
+describe("the parts tree and events", () => {
+  test("lists the app's parts, nested, looking through what isn't one;  a row picks its part", async () => {
+    const area = await inArea(`<ui-segment><div><ui-button>Go</ui-button></div></ui-segment><p>words</p>`)
+    cleanups.push(Inspector.watch(area))
+    expect(Inspector.partsIn(area).map((row) => [row.element.localName, row.depth])).toEqual([
+      ["ui-segment", 0],
+      ["ui-button", 1]
+    ])
+    const host = await mount(() => <InspectorColumn />)
+    Inspector.toggle()
+    flush()
+    await ElementFixture.settle(host)
+    const rows = [...host.querySelectorAll<HTMLElement>(".InspectorTree li")]
+    expect(rows.map((row) => row.textContent)).toEqual(["<ui-segment>", "<ui-button>"])
+    rows[1]!.click()
+    flush()
+    expect(Inspector.picked?.element).toBe(area.querySelector("ui-button"))
+  })
+
+  test("what's picked is picked again once the app is drawn afresh", async () => {
+    const area = await inArea(`<ui-segment></ui-segment><ui-button>Go</ui-button>`)
+    cleanups.push(Inspector.watch(area))
+    Inspector.pick(area.querySelector("ui-button")!)
+    // the app drawn afresh:  new elements, the same parts
+    area.innerHTML = `<ui-segment></ui-segment><ui-button>Go</ui-button>`
+    await ElementFixture.settle(area)
+    Inspector.restorePick(Inspector.partsIn(area))
+    flush()
+    expect(Inspector.picked?.element).toBe(area.querySelector("ui-button"))
+  })
+
+  test("a part's events:  what it handles, then what was added", async () => {
+    const area = await inArea(`<ui-button>Go</ui-button>`)
+    cleanups.push(Inspector.watch(area))
+    const button = area.querySelector("ui-button")!
+    // Solid's delegated handler, as `onClick` leaves it
+    Object.assign(button, { _$click: () => {}, _$clickData: 1 })
+    expect(Inspector.eventsOf(button)).toEqual(["click"])
+    Inspector.addEvent(button, "mousedown")
+    flush()
+    expect(Inspector.eventsOf(button)).toEqual(["click", "mousedown"])
+  })
+})
+
 /** An app area holding `html`, on the page for the test. */
 async function inArea(html: string): Promise<HTMLElement> {
   await uiReady

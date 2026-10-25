@@ -541,12 +541,19 @@ describe("compiled, scopes and words files", () => {
     expect(scopes.text).toBe(readFixture("built/Fresh/Fresh.scopes.js"))
   }, 60_000)
 
-  it("its words => 200 text/javascript, its English words, beside its source", async () => {
-    writeFixture("user/Proj/Proj.en.js", 'export const words = { lang: "en", types: {} }\n')
+  it("its words => 200 text/javascript, its English words, from its build folder", async () => {
+    writeFixture("built/Proj/Proj.en.js", 'export const words = { lang: "en", types: {} }\n')
     const reply = await request("GET", `${FILES}Proj.en.js`)
     expect(reply.status).toBe(200)
     expect(reply.contentType).toMatch(/^text\/javascript/)
     expect(reply.text).toBe('export const words = { lang: "en", types: {} }\n')
+  })
+
+  it("its declarations => 200, from its build folder", async () => {
+    writeFixture("built/Proj/Proj.declarations.json5", '{ "provides": [] }\n')
+    const reply = await request("GET", `${FILES}Proj.declarations.json5`)
+    expect(reply.status).toBe(200)
+    expect(reply.text).toBe('{ "provides": [] }\n')
   })
 
   it("a project's words, in any language, are NOT one of its files:  its index leaves them out", async () => {

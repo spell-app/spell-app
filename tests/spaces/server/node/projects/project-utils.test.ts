@@ -22,13 +22,27 @@ let buildDir: string
 let workspace: string
 let realFolders: { packagesDir: string; buildDir: string }
 
-/** Built file names of project `Proj`:  each goes in its build folder. */
-const BUILT = ["Proj.spell.js", "Proj.spell.tsx", "Proj.spell.py", "Proj.elements.spell.js", "Proj.scopes.js"]
-/** Files of project `Proj` which stay beside its source, built or not. */
-const BESIDE = [
+/**
+ * Built file names of project `Proj`:  each goes in its build folder.
+ * - Its declarations and words too, in any language, since epic `elemental-spell` P4.
+ */
+const BUILT = [
+  "Proj.spell.js",
+  "Proj.spell.tsx",
+  "Proj.spell.py",
+  "Proj.elements.spell.js",
+  "Proj.scopes.js",
   "Proj.declarations.json5",
   "Proj.en.js",
+  "Proj.es.js",
+  "Proj.pt-BR.js",
   "Proj.py.en.json5",
+  "Proj.py.es.json5"
+]
+/** Files of project `Proj` which stay beside its source, built or not. */
+const BESIDE = [
+  "Other.en.js",
+  "Proj.socket.io.js",
   "Proj.lib.ts",
   "Proj.app.py",
   "__project.json5",
@@ -104,13 +118,23 @@ describe("buildFolderFor()", () => {
 })
 
 describe("SpellLocation.serverPath, in this repo", () => {
-  test("a built-in project's built file is in `build/`, at its path in the repo", () => {
+  test("a built-in project's built files are in `build/`, at its path in the repo:  its declarations and words too", () => {
     expect(environment.buildDir).toBe(resolve(environment.repoDir, "build"))
     expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.spell.js").serverPath).toBe(
       resolve(environment.buildDir, "spaces/@spell/examples/Solitaire/Solitaire.spell.js")
     )
-    expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.en.js").serverPath).toBe(
-      resolve(environment.systemFilesRoot, "examples/Solitaire/Solitaire.en.js")
+    expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.declarations.json5").serverPath).toBe(
+      resolve(environment.buildDir, "spaces/@spell/examples/Solitaire/Solitaire.declarations.json5")
+    )
+    expect(new SP.SpellLocation("@spell/examples/Solitario/Solitario.es.js").serverPath).toBe(
+      resolve(environment.buildDir, "spaces/@spell/examples/Solitario/Solitario.es.js")
+    )
+    expect(new SP.SpellLocation("@spell/examples/Solitaire/Solitaire.py.en.json5").serverPath).toBe(
+      resolve(environment.buildDir, "spaces/@spell/examples/Solitaire/Solitaire.py.en.json5")
+    )
+    // what others import or edit stays beside the source
+    expect(new SP.SpellLocation("@spell/library/people/people.lib.ts").serverPath).toBe(
+      resolve(environment.systemFilesRoot, "library/people/people.lib.ts")
     )
   })
 })

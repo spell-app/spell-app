@@ -7,6 +7,7 @@
  * - NOTE: loads spaces' barrel, so spell's project groups are registered (`SPACES.PROJECT_GROUPS`).
  */
 import { existsSync, readFileSync } from "fs"
+import escapeRegExp from "lodash/escapeRegExp"
 import { basename, dirname, isAbsolute, relative, resolve, sep } from "path"
 
 import type { SRV } from "spell/server"
@@ -89,15 +90,19 @@ export function folderForPlace(place: string): string {
 /**
  * Ends of the names of the files spell BUILDS for a project, which go in its build folder (`buildFolderFor()`):
  * only `<Project>` and one of these, at the top of the project, e.g. `Solitaire.spell.js`.
- * - What's committed stays beside the source, e.g. `Solitaire.declarations.json5`, `Solitaire.en.js`,
- *   `Solitaire.py.en.json5`, `Solitaire.lib.ts`, `Solitaire.app.py`.
+ * - Its words files are built too, in any language:  `isWordsFileOf()`.
+ * - Its declarations and words were committed beside the source until epic `elemental-spell` P4:
+ *   every compile rewrote them, so test and README runs left changed files in every checkout.
+ * - What's committed stays beside the source:  code others import or edit,
+ *   `Solitaire.lib.ts` (the `ts/lib` target) and `Solitaire.app.py`.
  */
 const BUILT_SUFFIXES = [
   SP.COMPILED_JS_SUFFIX, // `Solitaire.spell.js`
   SP.COMPILED_TSX_SUFFIX, // `Solitaire.spell.tsx`
   SP.COMPILED_PY_SUFFIX, // `Solitaire.spell.py`
   SP.ELEMENTS_JS_SUFFIX, // `Solitaire.elements.spell.js`, a Python program's page file
-  SP.SCOPES_JS_SUFFIX // `Solitaire.scopes.js`, its scope pack
+  SP.SCOPES_JS_SUFFIX, // `Solitaire.scopes.js`, its scope pack
+  SP.DECLARATIONS_JSON_SUFFIX // `Solitaire.declarations.json5`, what it offers projects importing it
 ]
 
 /**
@@ -106,12 +111,36 @@ const BUILT_SUFFIXES = [
  */
 const OLD_BUILT_SUFFIXES = [".compiled.js", ".compiled.tsx", ".compiled.py", ".elements.js"]
 
-/** Is `location` a file spell builds for its project, e.g. `Solitaire.spell.js`?  See `BUILT_SUFFIXES`. */
+/**
+ * Is `location` a file spell builds for its project, e.g. `Solitaire.spell.js`, `Solitaire.en.js`?
+ * See `BUILT_SUFFIXES`, `isWordsFileOf()`.
+ */
 export function isBuiltFile(location: SP.SpellLocation): boolean {
   const { projectName, folder, file } = location
-  if (!projectName || folder !== "/") return false
-  return BUILT_SUFFIXES.some((suffix) => file === `${projectName}${suffix}`)
+  if (!projectName || !file || folder !== "/") return false
+  return BUILT_SUFFIXES.some((suffix) => file === `${projectName}${suffix}`) || isWordsFileOf(file, projectName)
 }
+
+/**
+ * Is `file` one of project `projectName`'s words files, in any language?
+ * - Its own, e.g. `Solitaire.en.js`, `Solitario.es.js`:  `SP.SpellWords.isWordsFile()`
+ * - Each target's own, e.g. Python's `Solitaire.py.en.json5`:  `TARGET_WORDS`
+ */
+function isWordsFileOf(file: string, projectName: string): boolean {
+  if (SP.SpellWords.isWordsFile(file, projectName)) return true
+  const rest = file.startsWith(`${projectName}.`) ? file.slice(projectName.length) : undefined
+  return rest !== undefined && TARGET_WORDS.some((pattern) => pattern.test(rest))
+}
+
+/**
+ * Ends of the names of the targets' own words files, in any language:  `.py.en.json5` => `.py.<lang>.json5`.
+ * - `SP.Target.wordsSuffix` names English;  another language's file names its own, as `targetWordsFileFor()` writes it.
+ */
+const TARGET_WORDS = Object.values(SP.TARGETS).flatMap(({ wordsSuffix }) => {
+  if (!wordsSuffix) return []
+  const [before, after] = wordsSuffix.split(".en.") as [string, string]
+  return [new RegExp(`^${escapeRegExp(before)}\\.[a-z]{2}(-[A-Za-z]{2,4})?\\.${escapeRegExp(after)}$`)]
+})
 
 /**
  * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`:

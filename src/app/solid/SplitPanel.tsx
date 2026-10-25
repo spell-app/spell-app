@@ -129,7 +129,9 @@ export function SplitPanel(props: SplitPanelProps) {
    */
   function startDragging(event: MouseEvent, pane1: number, pane2: number) {
     try {
-      dragging = measure(paneElements(), sizes, pane1, pane2, props.columns ? "horizontal" : "vertical", minPercent())
+      const direction = props.columns ? "horizontal" : "vertical"
+      const mouse = direction === "vertical" ? event.pageY : event.pageX
+      dragging = measure(paneElements(), sizes, pane1, pane2, direction, minPercent(), mouse)
     } catch (error) {
       console.error("<SplitPanel> couldn't measure its panes:", error)
       return
@@ -140,14 +142,28 @@ export function SplitPanel(props: SplitPanelProps) {
     event.stopPropagation()
   }
 
-  /** `mousemove` while dragging:  resize the two panes so the gap between them is under the mouse. */
+  /**
+   * `mousemove` while dragging:  resize the two panes so the gap between them follows the mouse,
+   * held where it was grabbed (near an edge of the gap, it stays near that edge:  no jump on the first move).
+   */
   function drag(event: MouseEvent) {
     if (!dragging) return
-    const { pane1, pane2, direction, pageMin, gapOffset, innerSize, activePercent, minPercent, maxPercent } = dragging
+    const { pane1, pane2, direction, pageMin, grabOffset, innerSize, activePercent, minPercent, maxPercent } = dragging
     const mouse = direction === "vertical" ? event.pageY : event.pageX
     if (isNaN(innerSize) || isNaN(mouse)) return
+    // a fixed-size pane (`380px`) stays fixed:  it takes the move in px, the share beside it the rest,
+    // so no other pane moves (switching it to a share moved the others:  a jump on the first move)
+    const fixed = [pane1, pane2].find((index) => sizes[index]?.units !== "%")
+    if (fixed !== undefined) {
+      const { mouseStart, size1, size2 } = dragging
+      const moved = mouse - mouseStart
+      const start = fixed === pane1 ? size1 : size2
+      const value = Math.round(Math.min(size1 + size2, Math.max(0, fixed === pane1 ? start + moved : start - moved)))
+      apply(sizes.map((size, index) => (index === fixed ? { value, units: "px" } : size)))
+      return
+    }
     // the first pane's share, clamped, to 2 decimals;  the second gets what's left
-    let value1 = ((mouse - pageMin - gapOffset) * activePercent) / innerSize
+    let value1 = ((mouse - pageMin - grabOffset) * activePercent) / innerSize
     value1 = Math.round(Math.min(maxPercent, Math.max(minPercent, value1)) * 100) / 100
     const value2 = Math.round((activePercent - value1) * 100) / 100
     apply(
@@ -348,7 +364,8 @@ function measure(
   pane1: number,
   pane2: number,
   direction: "horizontal" | "vertical",
-  minPercent: number
+  minPercent: number,
+  mouse: number
 ): SplitPanelDimensions {
   const rect1 = panes[pane1].getBoundingClientRect()
   const rect2 = panes[pane2].getBoundingClientRect()
@@ -357,7 +374,7 @@ function measure(
   const scroll = vertical ? window.scrollY : window.scrollX
   const pageMin = (vertical ? rect1.top : rect1.left) + scroll
   const pageMax = (vertical ? rect2.bottom : rect2.right) + scroll
-  // the gap between the panes, kept centred under the mouse
+  // the gap between the panes
   const gap = Math.ceil(vertical ? rect2.top - rect1.bottom : rect2.left - rect1.right)
   // padding counts in the panes' `flex` sizes
   const pad1 = padding(panes[pane1], vertical)
@@ -374,7 +391,11 @@ function measure(
     pane2,
     direction,
     pageMin,
-    gapOffset: gap / 2,
+    mouseStart: mouse,
+    size1: vertical ? rect1.height : rect1.width,
+    size2: vertical ? rect2.height : rect2.width,
+    // where in the gap the mouse took hold, from the first pane's far edge
+    grabOffset: mouse - ((vertical ? rect1.bottom : rect1.right) + scroll),
     innerSize,
     activePercent,
     minPercent,
@@ -403,8 +424,14 @@ type SplitPanelDimensions = {
   direction: "horizontal" | "vertical"
   /** Page coordinate where `pane1` starts. */
   pageMin: number
-  /** Half the gap between the panes, so the gap stays centred under the mouse. */
-  gapOffset: number
+  /** Where the mouse was when the drag started, page px. */
+  mouseStart: number
+  /** `pane1`'s size when the drag started, px. */
+  size1: number
+  /** `pane2`'s size when the drag started, px. */
+  size2: number
+  /** Where the mouse took hold of the gap, from the first pane's far edge:  kept as it moves. */
+  grabOffset: number
   /** Room the two panes share, less the gap and their padding, px. */
   innerSize: number
   /** Percent the two panes share. */
