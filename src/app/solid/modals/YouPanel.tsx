@@ -87,13 +87,13 @@ export function YouPanel(props: YouPanelProps) {
                   <ui-button
                     icon="trash alternate outline"
                     aria-label={appTexts.text("dateRemove")}
-                    basic=""
+                    appearance="basic"
                     onClick={() => setDates(dates().filter((each) => each !== date))}
                   />
                 </div>
               )}
             </For>
-            <ui-button icon="plus" basic="" size="small" onClick={() => setDates([...dates(), { label: "", day: "" }])}>
+            <ui-button icon="plus" appearance="basic" size="small" onClick={() => setDates([...dates(), { label: "", day: "" }])}>
               {appTexts.text("addDate")}
             </ui-button>
           </ui-field>
@@ -113,7 +113,7 @@ export function YouPanel(props: YouPanelProps) {
       </ui-content>
       <ui-actions>
         <ui-button class="cancel">{SpellUI.i18n.t("cancel")}</ui-button>
-        <ui-button class="approve" primary="" onClick={save}>
+        <ui-button class="approve" color="primary" onClick={save}>
           {appTexts.text("save")}
         </ui-button>
       </ui-actions>

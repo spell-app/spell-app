@@ -127,7 +127,7 @@ describe("<FileDropdown>", () => {
     expect(dropdown.hasAttribute("loading")).toBe(false)
     expect(dropdown.value).toBe("test-project/one.js")
     const items = [...dropdown.querySelectorAll(":scope > ui-item")]
-    expect(items.map((item) => item.getAttribute("value") ?? item.getAttribute("type") ?? text(item))).toEqual([
+    expect(items.map((item) => item.getAttribute("value") ?? item.getAttribute("kind") ?? text(item))).toEqual([
       "test-project/one.js",
       "test-project/two.js",
       "divider",

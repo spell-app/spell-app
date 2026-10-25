@@ -28,11 +28,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="Chrome">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/chrome.tsx"
+              link="../../src/app/solid/chrome.tsx"
               icon="code"
               aria-label="Its code, chrome.tsx"
               title="Its code, chrome.tsx"
@@ -66,8 +66,7 @@
             <ui-image
               src="_images/chrome.png"
               alt="A violet bar: Example Solitaire, Preview, Settings and a dots menu on the left; Open or Create in the middle; About Spell, Docs and a dimmed dots menu on the right"
-              bordered
-              rounded
+              appearance="bordered rounded"
             ></ui-image>
             <p class="meta">
               A picture, taken by <code>yarn site:pictures</code> in
@@ -84,7 +83,7 @@
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>The editor page's top bar, above: an AppMenu of three Submenus:</p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>SpellEditor.tsx · the editor page's top bar · 14 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
@@ -107,7 +106,7 @@
                 >
               </ui-content>
             </ui-accordion>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>TreeViewer.tsx · a pane's toolbar · 5 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

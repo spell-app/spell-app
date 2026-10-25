@@ -226,7 +226,7 @@ describe("<SpellAppRunner>", () => {
     const button = await waitFor(() => host.querySelector<HTMLButtonElement>(".SpellAppApp .App button.count"))
     expect(button.textContent).toBe("Count: 1")
     expect(host.querySelector(".SpellAppApp")!.classList.contains("hidden")).toBe(false)
-    expect(host.querySelector(".SpellAppToolbar ui-item[type=header]")!.textContent).toBe("Counter")
+    expect(host.querySelector(".SpellAppToolbar ui-item[kind=header]")!.textContent).toBe("Counter")
   })
 
   test("the Thing Explorer follows the program's things, live", async () => {
@@ -323,7 +323,7 @@ describe("<SpellAppRunner>", () => {
     await waitFor(() =>
       host.querySelector(".RunnerSplitTop > .RunnerPane .RunnerConsole")?.textContent?.includes("hello")
     )
-    expect(host.querySelector(".SpellAppToolbar ui-item[type=header]")!.textContent).toBe("Printer")
+    expect(host.querySelector(".SpellAppToolbar ui-item[kind=header]")!.textContent).toBe("Printer")
   })
 })
 
@@ -838,7 +838,7 @@ describe("<spell-viewer>", () => {
     await waitFor(() => root.querySelector("button.count"))
     expect(root.querySelector("ui-root")).toBeNull()
     expect(app.icons).toBe("fomantic")
-    expect(root.querySelector(".SpellAppToolbar ui-item[type=header]")!.textContent).toBe("Test")
+    expect(root.querySelector(".SpellAppToolbar ui-item[kind=header]")!.textContent).toBe("Test")
   })
 
   test("an editor's compile runs, from `editor`;  a change of what to run drops it", async () => {

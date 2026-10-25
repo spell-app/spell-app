@@ -45,20 +45,20 @@ export function ProjectChooser() {
           id="examples"
           projectRoot={examples}
           line={appTexts.text("homeExamplesLine")}
-          create={<Actions.createExample button basic="" size="small" />}
+          create={<Actions.createExample button appearance="basic" size="small" />}
         />
         <ProjectCards
           id="guides"
           projectRoot={guides}
           line={appTexts.text("homeGuidesLine")}
           empty={appTexts.text("homeNoGuides")}
-          create={<Actions.createGuide button basic="" size="small" />}
+          create={<Actions.createGuide button appearance="basic" size="small" />}
         />
         <ProjectCards
           id="projects"
           projectRoot={projects}
           line={appTexts.text("homeProjectsLine")}
-          create={<Actions.createProject button basic="" size="small" />}
+          create={<Actions.createProject button appearance="basic" size="small" />}
         />
         <Show when={showFixtures}>
           <ProjectCards id="fixtures" projectRoot={fixtures} line={appTexts.text("homeFixturesLine")} small />
@@ -85,7 +85,7 @@ function Hero(props: { examples: ProjectRootState; guides: ProjectRootState }) {
         <p class="intro">{appTexts.text("homeIntro")}</p>
         <div class="buttons">
           <ui-button
-            primary=""
+            color="primary"
             size="large"
             icon={props.examples.icon ?? "lightbulb"}
             disabled={!firstExample()}
@@ -94,7 +94,7 @@ function Hero(props: { examples: ProjectRootState; guides: ProjectRootState }) {
             {appTexts.text("tryAnExample")}
           </ui-button>
           <ui-button
-            basic=""
+            appearance="basic"
             size="large"
             icon={props.guides.icon ?? "book open"}
             onClick={() => {

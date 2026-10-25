@@ -11,12 +11,12 @@ import { isStaticBuild } from "spell-app/app/static/staticBuild"
 
 /****************
  * ### `<Action>`
- * One action as a menu item (`<ui-item link>`, the default) or a button (`<ui-button>`, with `button`).
+ * One action as a menu item (`<ui-item appearance="link">`, the default) or a button (`<ui-button>`, with `button`).
  * - `title` is the text, `icon` an icon name (Fomantic's, see `loadUI.ts`).
  * - `iconOnly`:  just its icon, a plain `<ui-icon link>`, with `title` as its tooltip, below it, after a pause
  *   (`[data-tooltip]`, Spell UI's CSS-only tooltip;  the pause is the editor's, `chrome.css`).
  *   - A `<ui-icon>`, not an item:  an item's box is `display: contents`, which draws no tooltip.
- * - `active` highlights it:  the item's `selected`, the button's `active`, the icon's `color`.
+ * - `active` highlights it:  the item's `selected`, the button's `selected`, the icon's `color`.
  * - Everything else goes to the element as is:  `onClick`, `color`, `disabled`, `value`, `class` ...
  * - Inside a `<MoreMenu>` (a `<ui-dropdown>`) the item is DATA:
  *   the dropdown draws it from its attributes and text (`icon` included).
@@ -29,7 +29,7 @@ export function Action(props: ActionProps) {
   return (
     <Switch
       fallback={
-        <ui-item link="" icon={props.icon} selected={props.active} {...rest}>
+        <ui-item appearance="link" icon={props.icon} selected={props.active} {...rest}>
           {props.title}
         </ui-item>
       }
@@ -48,7 +48,7 @@ export function Action(props: ActionProps) {
         />
       </Match>
       <Match when={props.button}>
-        <ui-button icon={props.icon} active={props.active} {...rest}>
+        <ui-button icon={props.icon} selected={props.active} {...rest}>
           {props.title}
         </ui-button>
       </Match>
@@ -71,7 +71,7 @@ export type ActionProps = {
   button?: boolean
   /** Just its icon, `title` its tooltip:  a `<ui-icon link>` instead of a menu `<ui-item>`. */
   iconOnly?: boolean
-  /** Highlighted:  the item's `selected`, the button's `active`. */
+  /** Highlighted:  the item's `selected`, the button's `selected`. */
   active?: boolean
   /** Hue:  of the item or icon while `active`;  of the button always. */
   color?: UIButtonAttributes["color"]

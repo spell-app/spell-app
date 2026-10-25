@@ -26,7 +26,7 @@ export function RunnerPane<Id extends string>(props: RunnerPaneProps<Id>) {
         <For each={props.tabs}>
           {(tab) => (
             <ui-item
-              link={props.onPane ? "" : undefined}
+              appearance={props.onPane ? "link" : undefined}
               selected={props.pane === tab.id}
               data-tab={tab.id}
               onClick={() => props.onPane?.(tab.id)}

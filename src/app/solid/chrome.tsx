@@ -108,7 +108,7 @@ export type SubmenuProps = UIMenuJSXAttributes & {
  ****************/
 export function MenuHeader(props: UIItemJSXAttributes) {
   return (
-    <ui-item type="header" {...omit(props, "children")}>
+    <ui-item kind="header" {...omit(props, "children")}>
       {props.children}
     </ui-item>
   )
@@ -138,7 +138,7 @@ export function MoreMenu(props: MoreMenuProps) {
     <Show
       when={!props.stub}
       fallback={
-        // HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>`
+        // HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>`;  a dropdown's `padding` (`compact`) is no item's
         <ui-item disabled="" {...omit(rest, "padding", "prop:padding")}>
           <ui-icon name={icon()} />
         </ui-item>

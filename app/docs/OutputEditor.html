@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="OutputEditor">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/OutputEditor.tsx"
+              link="../../src/app/solid/OutputEditor.tsx"
               icon="code"
               aria-label="Its code, OutputEditor.tsx"
               title="Its code, OutputEditor.tsx"
@@ -62,8 +62,7 @@
             <ui-image
               src="_images/OutputEditor.png"
               alt="The Javascript Output pane:  the compiled javascript of Card.spell, starting export class Card extends Thing"
-              bordered
-              rounded
+              appearance="bordered rounded"
             >
             </ui-image>
             <p class="meta">
@@ -80,7 +79,7 @@
               without its toolbar, for the open file's javascript; on its own, with a <code>target</code>, for the
               project's TypeScript and Python:
             </p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>SpellEditor.tsx · the Program panel's code tabs · 9 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

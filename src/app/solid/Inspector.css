@@ -92,25 +92,19 @@
   & ui-property-editor > ui-property-group {
     grid-column: 1 / -1;
   }
-  & ui-property-group::part(section) {
-    margin: 0;
-  }
   & ui-property-group::part(content) {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 12px;
     row-gap: var(--ui-form-row-distance);
   }
-  /*
-   * ... in the cards' titles' type, a step smaller (the brand's serif headings read as another app's), and folding
-   * as a card does:  a caret down while open, right while folded (the brand's chevron points up)
-   */
-  & ui-property-group {
-    --ui-font-family-heading: var(--ui-font-family);
-    --ui-section-h2: 0.93;
-    --ui-section-h3: 0.93;
-    --ui-section-title-weight: var(--ui-font-weight-semibold, 600);
-    --ui-section-title-padding: 6px 0 4px;
+  /* ... their titles the theme editor's bands (a group is a panel band:  `UIPropertyGroup`), out to the card's edges
+     through its padding (`.InspectorSection`) */
+  & ui-property-editor {
+    --ui-panel-padding: 14px;
+    /* a band 12px under the fields above it, not the panels' 20px */
+    --ui-panel-band-space: 12px;
+    /* the chevron down while open, as the theme editor's (the brand theme points it up) */
     --ui-section-fold-icon-rotate: 0deg;
     --ui-section-fold-icon-folded-rotate: -90deg;
   }
