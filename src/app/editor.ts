@@ -383,6 +383,7 @@ export class EditorStore extends Observable {
    *   - `restartApp()` asked for a fresh start
    *   - or the edit changed the program's start (`runCompiled()`, P17)
    * - Runs what it wrote to `<Project>.spell.js`:  its declarations are in `<Project>.declarations.json5`.
+   * - Its remembered props come back from its last run, kept under its project id (`runCompiled()`).
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.
    */
@@ -413,7 +414,8 @@ export class EditorStore extends Observable {
       keepConsole: true,
       keepThings,
       loadImport: fetchCompiled,
-      messages: lang ? SP.SpellWords.messagesFor(lang) : undefined
+      messages: lang ? SP.SpellWords.messagesFor(lang) : undefined,
+      projectId: project.projectId
     })
     output.groupEnd()
     if (error) output.error(appTexts.text("consoleFailed", words), error)

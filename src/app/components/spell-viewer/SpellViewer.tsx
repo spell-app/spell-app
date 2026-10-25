@@ -343,6 +343,7 @@ function projectSource(project: string): SpellAppSource {
   const projectId = project
   return {
     name: nameOf(projectId),
+    projectId,
     compiledUrl: builtUrl(projectId, COMPILED_JS),
     declarationsUrl: builtUrl(projectId, DECLARATIONS_JSON),
     scopesUrl: builtUrl(projectId, SCOPES_JS),
