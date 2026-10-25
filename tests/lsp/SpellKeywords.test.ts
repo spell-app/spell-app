@@ -5,6 +5,7 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import { CompletionItemKind, DiagnosticSeverity, type CompletionList, type TextEdit } from "vscode-languageserver"
 
+import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import { SpellDiskWorkspace } from "spell-app/lsp/SpellDiskWorkspace"
@@ -39,6 +40,13 @@ describe("SpellKeywords", () => {
 
     test("never a word the pack ALSO has as a keyword of its own:  `si` is `if`, so never `sí`", () => {
       expect(fixesOf(SP.spanish).has("si")).toBe(false)
+    })
+
+    test("a word only a repeat's separator says is one of the keywords too", () => {
+      const separator = new P.Keyword(["después", "despues"])
+      const parser = { rules: { steps: new P.Repeat({ rule: new P.Keyword("paso"), delimiter: separator }) } }
+      const keywords = new LSP.SpellKeywords({ parser } as unknown as SP.Language)
+      expect(keywords.accentFixFor(separator, "despues")).toBe("después")
     })
 
     test("English has none", () => {
