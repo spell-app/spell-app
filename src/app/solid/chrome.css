@@ -104,23 +104,33 @@ ui-icon.IconAction {
  * consistent"):
  * - GROUPS stand `--spell-bar-group-gap` apart, at least:  the project on the left, Run | Edit | Debug in the middle,
  *   the icons on the right
- * - ICONS within a group (Restart, the Inspector, Settings, the palette, Home and the avatar) stand
+ * - ICONS within a group (the palette, Home and the avatar;  a pane header's) stand
  *   `--spell-bar-icon-gap` apart, glyph to glyph:  each takes half of it on either side, and no margin of its own;
  *   an icon's box is its glyph's width (`--ui-icon-width: 1em`), not the usual 1.18em, with no room after it for a
  *   label (`--ui-icon-distance`):  both stood them further apart
- * - every icon the bar's text colour, at full strength (Owen:  "inconsistent colors in icons"):
- *   a link icon is drawn at 80% by default, the palette at 100%
+ * - every icon dark grey, the theme's muted text (`--spell-bar-icon-color`), at full strength
+ *   (Owen:  "inconsistent colors in icons";  "header icons should all be dark gray rather than black"):
+ *   a link icon is drawn at 80% by default
  */
-ui-menu.AppMenu {
+ui-menu.AppMenu,
+ui-menu.PanelMenu,
+.AppPaneHeader {
   --spell-bar-group-gap: 60px;
   --spell-bar-icon-gap: 12px;
+  --spell-bar-icon-color: var(--ui-text-muted);
+}
+/* a pane toolbar's icons (the code pane's:  upload, reload, new file, "..."):  the same grey, their spacing their own */
+ui-menu.PanelMenu ui-icon.IconAction,
+ui-menu.PanelMenu ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
+  --ui-icon-link-opacity: 1;
+  color: var(--spell-bar-icon-color);
 }
 ui-menu.AppMenu ui-icon.IconAction,
 .AppPaneHeader > ui-icon.IconAction {
   --ui-icon-width: 1em;
   --ui-icon-distance: 0;
   --ui-icon-link-opacity: 1;
-  color: var(--ui-text-color);
+  color: var(--spell-bar-icon-color);
 }
 ui-menu.AppMenu ui-icon.IconAction,
 ui-menu.AppMenu .YouAvatar,
@@ -178,10 +188,10 @@ ui-item.ThemeMenu ui-docs-themes::part(palette) {
   background: transparent;
   box-shadow: none;
   font-size: 1.3em;
-  /* the bar's text colour, as Home's:  not the theme menu's muted one (Owen:  "white is better") */
-  color: var(--ui-text-color);
+  /* the bar's icon colour, as Home's (above) */
+  color: var(--spell-bar-icon-color);
 }
 ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
   background: transparent;
-  color: var(--ui-text-color);
+  color: var(--spell-bar-icon-color);
 }

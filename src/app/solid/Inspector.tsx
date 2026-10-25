@@ -16,7 +16,7 @@ import "./Inspector.css"
 /****************
  * ### `Inspector`
  * Look inside the running app, and change it (epic `debut` P13):  a part picked in the app, its properties to edit.
- * - Open or closed:  `<InspectorToggle>` in the editor's top bar;  remembered in the browser (`OPEN_PREF`).
+ * - Open or closed:  `<InspectorToggle>` in the App pane's header;  remembered in the browser (`OPEN_PREF`).
  * - PICKING:  while it's on, pointing at the app outlines the part under the pointer, and a click picks it:
  *   a drawn thing or a Spell UI control (an input, a button);  Alt-click picks any Spell UI element.
  *   - It starts as the Inspector opens, and stops once something's picked:  the app works as ever again.
@@ -676,7 +676,7 @@ function chipFor(hue: string): string {
 
 /****************
  * ### `<InspectorToggle>`
- * The Inspector's button, in the editor's top bar:  opens and closes the column.
+ * The Inspector's button, in the App pane's header:  opens and closes the column.
  ****************/
 export function InspectorToggle(): JSX.Element {
   return (
