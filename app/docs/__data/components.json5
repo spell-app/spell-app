@@ -2931,6 +2931,10 @@
         {
           "name": "SpellEditor",
           "file": "src/app/pages/SpellEditor.tsx"
+        },
+        {
+          "name": "ThemeEditorPage",
+          "file": "src/app/pages/ThemeEditorPage.tsx"
         }
       ],
       "href": "SpellPage.html"
@@ -3048,6 +3052,11 @@
           "name": "resizable",
           "type": "boolean",
           "description": "Bars to drag between the panes;  sizes remembered under `id`."
+        },
+        {
+          "name": "onDragged",
+          "type": "(panes: HTMLElement[]) => void",
+          "description": "A drag between two panes ended:  the panes, in order, at their new sizes."
         },
         {
           "name": "minSize",
