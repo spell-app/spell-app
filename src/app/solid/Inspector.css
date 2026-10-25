@@ -11,8 +11,8 @@
   flex: 1 1 auto;
   box-sizing: border-box;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  /* its two halves scroll, each by itself (`.InspectorSplit`, below) */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   /* the panel IS the column, as the Theme Creator's:  its bands run edge to edge, no card inside a card */
@@ -24,10 +24,12 @@
   font-family: var(--ui-font-family);
 
   /* compact, as the Theme Creator's inspector:  15px type, fields 12px apart, the control 4px under its label */
+  /* its controls size their text from the theme's, 16px:  14px, as the rest */
+  & :is(ui-property-editor, ui-dropdown.InspectorAddEvent) {
+    --ui-font-size: 14px;
+  }
   & ui-property-editor {
     font-size: 14px;
-    /* the controls it makes size their text from the theme's, 16px:  14px, as the rest */
-    --ui-font-size: 14px;
     --ui-form-row-distance: 10px;
     /* controls about 30px tall, as the Theme Creator's (Owen:  "make fields in the inspector more compact") */
     --ui-input-padding-block: 0.4em;
@@ -115,26 +117,18 @@
   }
 }
 
-/* its header:  the eyebrow title, then its two icons */
-.InspectorHead {
+/* the whole column:  its header (the App pane's, `.AppPaneHeader`, in the editor's theme), then the Inspector */
+.InspectorColumn {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 10px 8px 14px;
+  flex-direction: column;
+  min-height: 0;
+}
 
-  & > .InspectorTitle {
-    flex: 1 1 auto;
-    font: var(--spell-type-eyebrow, 600 11px / 1 var(--ui-font-family));
-    letter-spacing: var(--spell-tracking-eyebrow, 0.12em);
-    text-transform: uppercase;
-    color: var(--spell-text-accent, var(--ui-text-muted));
-  }
-  & > ui-icon.IconAction {
-    margin: 0;
-  }
+/* its header's crosshairs, between the title and Close */
+.InspectorHead {
   /* the crosshairs:  the theme's own round button (Owen:  "doesn't match the theme"), pressed while picking */
   & > ui-button.InspectorPick {
-    --ui-button-margin-inline: 0;
+    --ui-button-margin-inline: 0 calc(var(--spell-bar-icon-gap) / 2);
   }
   /* a true circle, the glyph in its middle:  `circular` alone drew a pill the icon's width */
   & > ui-button.InspectorPick::part(button) {
@@ -179,4 +173,102 @@
 .InspectorPicked {
   outline: 2px solid var(--ui-primary);
   outline-offset: 2px;
+}
+
+/*
+ * Under its header, split in two (`<SplitPanel rows resizable>`):  what's picked above, the parts tree below.
+ * - Each half scrolls by itself;  the bar between them drags.
+ */
+.InspectorSplit {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+/* what's picked:  its panels in a column, the last one's tint running to the bottom (Owen:  "all the way to the
+   bottom of the panel") */
+.InspectorMain {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  & > ui-panel:last-of-type {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  & > ui-panel:last-of-type::part(section) {
+    flex: 1 0 auto;
+  }
+}
+/* its events:  a row each, then "Add event" */
+.InspectorEventList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+
+  & > li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+.InspectorNone {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ui-text-muted);
+  font-style: italic;
+}
+ui-dropdown.InspectorAddEvent [slot="trigger"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* the parts tree:  a panel as the others, its tint running to the bottom;  a row a part, indented by its depth */
+.InspectorTree {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  & > ui-panel {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  & > ui-panel::part(section) {
+    flex: 1 0 auto;
+  }
+  & ul {
+    /* rows run the panel's width:  its padding taken back, then given to each row */
+    margin: 0 -14px;
+    padding: 0;
+    list-style: none;
+  }
+  & li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 26px;
+    padding-inline: calc(14px + var(--depth, 0) * 14px) 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+      background: color-mix(in oklab, var(--ui-primary) 6%, transparent);
+    }
+    &.picked {
+      background: var(--ui-primary-background);
+      color: var(--ui-primary-text, var(--ui-text-color));
+    }
+    & > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 }

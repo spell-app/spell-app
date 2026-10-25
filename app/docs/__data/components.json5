@@ -2824,6 +2824,10 @@
       ],
       "usedIn": [
         {
+          "name": "InspectorColumn",
+          "file": "src/app/solid/Inspector.tsx"
+        },
+        {
           "name": "SpellEditor",
           "file": "src/app/pages/SpellEditor.tsx"
         }
