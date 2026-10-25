@@ -107,8 +107,17 @@ ui-menu.AppMenu {
   --spell-bar-icon-gap: 12px;
 }
 ui-menu.AppMenu ui-icon.IconAction,
-ui-menu.AppMenu .YouAvatar {
+ui-menu.AppMenu .YouAvatar,
+.AppPaneHeader > ui-icon.IconAction {
   margin-inline: calc(var(--spell-bar-icon-gap) / 2);
+}
+/* the "..." menu's icon the size of the bar's other icons:  it drew half as wide again, and stood apart */
+ui-menu.AppMenu ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
+  font-size: 1.15em;
+}
+ui-menu.AppMenu ui-item.more-menu ui-dropdown {
+  /* no room before its icon:  a dropdown keeps it for the text it shows, and this one shows none */
+  --ui-dropdown-icon-spacing: 0px;
 }
 ui-menu.AppMenu ui-item:is(.more-menu, .ThemeMenu)::part(item) {
   padding-inline: calc(var(--spell-bar-icon-gap) / 2);
@@ -128,9 +137,11 @@ ui-menu.AppMenu ui-item.ModeButtons::part(item) {
 ui-menu.ModeTabs {
   --ui-menu-segmented-item-padding: 0.45em 1.1em;
   --ui-menu-segmented-border: 0 solid transparent;
+  /* the track and its band let the bar's background show through (Owen:  "what if the background bled through") */
+  --ui-menu-segmented-background: light-dark(rgb(40 20 90 / 0.06), rgb(255 255 255 / 0.06));
 }
 ui-menu.ModeTabs::part(menu) {
-  box-shadow: 0 0 0 5px light-dark(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.08));
+  box-shadow: 0 0 0 5px light-dark(rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.05));
 }
 ui-menu.ModeTabs ui-item::part(item) {
   gap: 0.4em;
