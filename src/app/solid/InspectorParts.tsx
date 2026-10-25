@@ -7,7 +7,7 @@ import { on } from "./on"
 
 /****************
  * ### `<InspectorTree>`
- * The running app's parts as a tree, under the Inspector's editor (epic `debut` P13, C22):  a row each,
+ * The running app's parts as a tree, "Views", the Inspector's bottom pane (epic `debut` P13, C22):  a row each,
  * its icon and title, nested as they are in the app.
  * - A part is a drawn thing or a Spell UI element (`Inspector.isPart()`);  the elements between them are skipped.
  * - Clicking a row picks that part;  the picked one is highlighted.
@@ -45,7 +45,7 @@ export function InspectorTree(): JSX.Element {
     Inspector.restorePick(rows)
   })
   return (
-    <section class="InspectorTree">
+    <section class="InspectorSection InspectorTree">
       <ui-panel label={appTexts.text("inspectorParts")} class="InspectorPanel">
         <Show when={rows().length} fallback={<p class="InspectorTip">{appTexts.text("inspectorNoParts")}</p>}>
           <ul role="tree">
@@ -72,17 +72,36 @@ export function InspectorTree(): JSX.Element {
 
 /****************
  * ### `<InspectorEvents>`
- * The picked part's events, in a panel under its properties (epic `debut` P13, C23).
+ * The picked part's events, a pane of the Inspector's own, between its properties and its views
+ * (epic `debut` P13, C23).
+ * - Nothing picked:  a tip.
  * - What it handles already (`Inspector.eventsOf()`), then what was added here;  "None yet." when neither.
  * - "Add event":  a dropdown of the events a part understands, those it doesn't handle yet.
  *   - For now, the DOM's everyday ones (`DEFAULT_EVENTS`):  click, mouse down ...
  *   - An added event is listed only:  writing its handler into the code is later (T18).
  ****************/
-export function InspectorEvents(props: { element: Element }): JSX.Element {
+export function InspectorEvents(): JSX.Element {
+  return (
+    <section class="InspectorSection InspectorEvents">
+      <ui-panel label={appTexts.text("inspectorEvents")} class="InspectorPanel">
+        <Show
+          when={Inspector.picked}
+          keyed
+          fallback={<p class="InspectorNone">{appTexts.text("inspectorEventsTip")}</p>}
+        >
+          {(part) => <PartEvents element={part.element} />}
+        </Show>
+      </ui-panel>
+    </section>
+  )
+}
+
+/** One part's events, and "Add event". */
+function PartEvents(props: { element: Element }): JSX.Element {
   const events = createMemo(() => Inspector.eventsOf(props.element))
   const addable = () => DEFAULT_EVENTS.filter((event) => !events().includes(event))
   return (
-    <ui-panel label={appTexts.text("inspectorEvents")} class="InspectorPanel InspectorEvents">
+    <>
       <Show when={events().length} fallback={<p class="InspectorNone">{appTexts.text("inspectorNoEvents")}</p>}>
         <ul class="InspectorEventList">
           <For each={events()}>
@@ -110,7 +129,7 @@ export function InspectorEvents(props: { element: Element }): JSX.Element {
           <For each={addable()}>{(event) => <ui-item value={event}>{eventText(event)}</ui-item>}</For>
         </ui-dropdown>
       </Show>
-    </ui-panel>
+    </>
   )
 }
 

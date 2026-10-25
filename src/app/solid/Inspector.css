@@ -176,16 +176,26 @@
 }
 
 /*
- * Under its header, split in two (`<SplitPanel rows resizable>`):  what's picked above, the parts tree below.
- * - Each half scrolls by itself;  the bar between them drags.
+ * Under its header, split in three (`<SplitPanel rows resizable>`):  what's picked, its events, the app's views.
+ * - Each pane scrolls by itself;  the bars between them drag.
+ * - One surface, the panels' own tint (Owen:  "lose background color between panels and white border around
+ *   panels"):  the look's pane box (edge, radius, shadow) is taken off, and the gaps show the same tint.
  */
 .InspectorSplit {
   flex: 1 1 auto;
   min-height: 0;
+  background: color-mix(in oklab, var(--ui-primary-background) 35%, var(--ui-surface));
 }
-/* what's picked:  its panels in a column, the last one's tint running to the bottom (Owen:  "all the way to the
-   bottom of the panel") */
-.InspectorMain {
+.Inspector > .SplitPanel.InspectorSplit > .SplitPanelPane {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* a pane of the split:  its last panel's tint running to its bottom (Owen:  "all the way to the bottom of the panel") */
+.InspectorSection {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -228,21 +238,8 @@ ui-dropdown.InspectorAddEvent [slot="trigger"] {
   gap: 6px;
 }
 
-/* the parts tree:  a panel as the others, its tint running to the bottom;  a row a part, indented by its depth */
+/* the views tree:  a row a part, indented by its depth */
 .InspectorTree {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-
-  & > ui-panel {
-    flex: 1 0 auto;
-    display: flex;
-    flex-direction: column;
-  }
-  & > ui-panel::part(section) {
-    flex: 1 0 auto;
-  }
   & ul {
     /* rows run the panel's width:  its padding taken back, then given to each row */
     margin: 0 -14px;

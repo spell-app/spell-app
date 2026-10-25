@@ -484,11 +484,13 @@ const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-t
  *   and Close.
  * - Below it, the brand's Theme Creator inspector, in the Spell Brand theme whatever the editor wears:
  *   that theme's tokens, re-declared on `.Inspector` (`UI.themes.scopedTokens()`, J63).
- * - Below, split in two, resizable (its sizes remembered):
+ * - Below, split in three, resizable (its sizes remembered):
  *   - what's picked:  a `<ui-property-editor>` in a panel titled with what it is,
  *     a Spell UI element's fields in its `layout`:  its text, what it sets, then "More" folded;
- *     then its events (`<InspectorEvents>`);  nothing picked:  a tip
- *   - the app's parts as a tree (`<InspectorTree>`), thinner
+ *     nothing picked:  a tip
+ *   - its events (`<InspectorEvents>`)
+ *   - the app's parts as a tree, "Views" (`<InspectorTree>`)
+ * - Each pane's panel runs its height;  no box, border or colour between them (Owen).
  ****************/
 export function InspectorColumn(): JSX.Element {
   void loadBrandTokens()
@@ -527,8 +529,8 @@ export function InspectorColumn(): JSX.Element {
         </header>
         <aside class="Inspector" aria-label={appTexts.text("inspector")}>
           <style>{brandTokens()}</style>
-          <SplitPanel id="spellEditor-inspector" rows="65%" resizable class="InspectorSplit">
-            <div class="InspectorMain">
+          <SplitPanel id="spellEditor-inspector-panes" rows="50%,20%,30%" resizable class="InspectorSplit">
+            <div class="InspectorSection InspectorMain">
               <Show
                 when={Inspector.picked}
                 keyed
@@ -563,11 +565,11 @@ export function InspectorColumn(): JSX.Element {
                         </Show>
                       </ui-property-editor>
                     </ui-panel>
-                    <InspectorEvents element={part.element} />
                   </>
                 )}
               </Show>
             </div>
+            <InspectorEvents />
             <InspectorTree />
           </SplitPanel>
         </aside>

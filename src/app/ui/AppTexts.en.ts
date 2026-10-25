@@ -216,8 +216,9 @@ export const APP_TEXTS = {
   inspectorNone: "none",
   inspectorEvents: "Events",
   inspectorNoEvents: "None yet.",
+  inspectorEventsTip: "Pick a part to see its events.",
   inspectorAddEvent: "Add event",
-  inspectorParts: "Components",
+  inspectorParts: "Views",
   inspectorNoParts: "Run the app to see its parts.",
   // an event's name, for people (`<InspectorEvents>`):  "event.<the DOM event>"
   "event.click": "click",
