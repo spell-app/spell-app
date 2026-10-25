@@ -48,10 +48,12 @@ const COMPILED_SCHEME = "spell-compiled"
 const COMPILED_TARGETS = {
   js: { language: "javascript", comment: "//" },
   ts: { language: "typescript", comment: "//" },
-  py: { language: "python", comment: "#" }
+  py: { language: "python", comment: "#" },
+  // a `.spellx` file's code spell, "Show as Code Spell" (epic `elemental-spell` P8)
+  spell: { language: "spell", comment: "//" }
 } as const
 
-/** A short name for a target:  `js`, `ts` or `py` -- see `COMPILED_TARGETS`. */
+/** A short name for a target:  `js`, `ts`, `py` or `spell` -- see `COMPILED_TARGETS`. */
 type CompiledTarget = keyof typeof COMPILED_TARGETS
 
 /** How long to wait after the last edit before refreshing an open compiled view, in msec. */
@@ -76,7 +78,7 @@ let serverStarted = false
 export function activate(context: vscode.ExtensionContext): void {
   ElementsHelp.register(context)
   const startFor = (document: vscode.TextDocument) => {
-    if (serverStarted || document.languageId !== "spell") return
+    if (serverStarted || !RunnerPanel.isSpellDocument(document)) return
     serverStarted = true
     void startLanguageServer(context).catch((error) => vscode.window.showErrorMessage(`Spell:  ${error}`))
   }
@@ -128,7 +130,7 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
     options: { cwd: repoRoot }
   }
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: "file", language: "spell" }]
+    documentSelector: RunnerPanel.LANGUAGES.map((language) => ({ scheme: "file", language }))
   }
   client = new LanguageClient("spell", "Spell", serverOptions, clientOptions)
   client.info(`Language server from ${repoRoot}:  ${choice.reason}`)
@@ -141,7 +143,8 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
     vscode.workspace.onDidChangeTextDocument(({ document }) => compiled.sourceChanged(document.uri)),
     vscode.commands.registerCommand("spell.showCompiled", () => showCompiled("js")),
     vscode.commands.registerCommand("spell.showCompiledTypeScript", () => showCompiled("ts")),
-    vscode.commands.registerCommand("spell.showCompiledPython", () => showCompiled("py"))
+    vscode.commands.registerCommand("spell.showCompiledPython", () => showCompiled("py")),
+    vscode.commands.registerCommand("spell.showCodeSpell", () => showCompiled("spell"))
   )
   await client.start()
 }
@@ -167,7 +170,7 @@ function findTsx(repoRoot: string): string | undefined {
 /** Open the code the active spell file compiles to for `target` beside it, read-only, highlighted as its language. */
 async function showCompiled(target: CompiledTarget): Promise<void> {
   const editor = vscode.window.activeTextEditor
-  if (!editor || editor.document.languageId !== "spell") return
+  if (!editor || !RunnerPanel.isSpellDocument(editor.document)) return
   const document = await vscode.workspace.openTextDocument(CompiledProvider.uriFor(editor.document.uri, target))
   await vscode.languages.setTextDocumentLanguage(document, COMPILED_TARGETS[target].language)
   await vscode.window.showTextDocument(document, {

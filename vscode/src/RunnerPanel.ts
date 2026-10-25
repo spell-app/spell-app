@@ -30,6 +30,17 @@ import type { Diagnostic, LanguageClient } from "vscode-languageclient/node"
  *   in the project's `settings.json5`, and sends it back on `ready`.  See `readSettings()`.
  ****************/
 export class RunnerPanel {
+  /**
+   * The editor languages a spell source file is:  code spell, and spellx, its tag-shaped form (`Card.spellx`;
+   * epic `elemental-spell` P8).
+   */
+  static readonly LANGUAGES: readonly string[] = ["spell", "spellx"]
+
+  /** Is `document` a spell source file, code spell or spellx -- see `LANGUAGES`? */
+  static isSpellDocument(document: vscode.TextDocument | undefined): document is vscode.TextDocument {
+    return !!document && RunnerPanel.LANGUAGES.includes(document.languageId)
+  }
+
   /** Open panels, by project id. */
   static panels = new Map<string, RunnerPanel>()
 
@@ -115,7 +126,7 @@ export class RunnerPanel {
       vscode.commands.registerCommand("spell.runTests", () => RunnerPanel.runTests(client, repoRoot)),
       // an edit may fix it, or move its line:  the next test run says
       vscode.workspace.onDidChangeTextDocument(({ document, contentChanges }) => {
-        if (document.languageId === "spell" && contentChanges.length) RunnerPanel.testDiagnostics.delete(document.uri)
+        if (RunnerPanel.isSpellDocument(document) && contentChanges.length) RunnerPanel.testDiagnostics.delete(document.uri)
       }),
       client.onNotification("spell/projectCompiled", ({ project, compiled }: ProjectCompiled) => {
         const panel = RunnerPanel.panels.get(project)
@@ -134,7 +145,7 @@ export class RunnerPanel {
     repoRoot: string
   ): Promise<{ panel: RunnerPanel; isNew: boolean } | undefined> {
     const document = vscode.window.activeTextEditor?.document
-    if (document?.languageId !== "spell") return undefined
+    if (!RunnerPanel.isSpellDocument(document)) return undefined
     const spellApp = resolve(repoRoot, "app")
     if (!existsSync(resolve(spellApp, "dist-runner/runner.js"))) {
       void vscode.window.showErrorMessage(`Spell:  no runner bundle.  Run \`yarn build:runner\` in '${spellApp}'.`)
@@ -172,7 +183,7 @@ export class RunnerPanel {
    * - every OTHER panel fetches fresh scopes:  it may be a file of a project it imports
    */
   static async saved(client: LanguageClient, document: vscode.TextDocument): Promise<void> {
-    if (document.languageId !== "spell" || !RunnerPanel.panels.size) return
+    if (!RunnerPanel.isSpellDocument(document) || !RunnerPanel.panels.size) return
     const compileOnSave = vscode.workspace.getConfiguration("spell").get<boolean>("compileOnSave")
     const info = await client.sendRequest<ProjectInfo | null>("spell/project", { uri: document.uri.toString() })
     for (const panel of RunnerPanel.panels.values()) {
@@ -350,7 +361,7 @@ export class RunnerPanel {
   static async open(href: string): Promise<void> {
     const uri = vscode.Uri.parse(href)
     const line = Number(/^L(\d+)$/.exec(uri.fragment)?.[1] ?? 1) - 1
-    const column = vscode.window.visibleTextEditors.find(({ document }) => document.languageId === "spell")?.viewColumn
+    const column = vscode.window.visibleTextEditors.find(({ document }) => RunnerPanel.isSpellDocument(document))?.viewColumn
     await vscode.window.showTextDocument(uri.with({ fragment: "" }), {
       viewColumn: column ?? vscode.ViewColumn.One,
       selection: new vscode.Range(line, 0, line, 0)

@@ -31,7 +31,7 @@
           "light": "media/ts-light.svg",
           "dark": "media/ts-dark.svg"
         },
-        "enablement": "editorLangId == spell"
+        "enablement": "editorLangId =~ /^spellx?$/"
       },
       {
         "command": "spell.showCompiled",
@@ -41,7 +41,7 @@
           "light": "media/js-light.svg",
           "dark": "media/js-dark.svg"
         },
-        "enablement": "editorLangId == spell"
+        "enablement": "editorLangId =~ /^spellx?$/"
       },
       {
         "command": "spell.showCompiledPython",
@@ -51,27 +51,34 @@
           "light": "media/py-light.svg",
           "dark": "media/py-dark.svg"
         },
-        "enablement": "editorLangId == spell"
+        "enablement": "editorLangId =~ /^spellx?$/"
+      },
+      {
+        "command": "spell.showCodeSpell",
+        "title": "Show as Code Spell",
+        "category": "Spell",
+        "icon": "$(symbol-text)",
+        "enablement": "editorLangId == spellx"
       },
       {
         "command": "spell.showLineTree",
         "title": "Show Tree for This Line",
         "category": "Spell",
-        "enablement": "editorLangId == spell"
+        "enablement": "editorLangId =~ /^spellx?$/"
       },
       {
         "command": "spell.runProject",
         "title": "Run Project",
         "category": "Spell",
         "icon": "$(play)",
-        "enablement": "editorLangId == spell"
+        "enablement": "editorLangId =~ /^spellx?$/"
       },
       {
         "command": "spell.runTests",
         "title": "Run Tests",
         "category": "Spell",
         "icon": "$(beaker)",
-        "enablement": "editorLangId == spell"
+        "enablement": "editorLangId =~ /^spellx?$/"
       }
     ],
     "html": {
@@ -112,6 +119,15 @@
         }
       },
       {
+        "language": "spellx",
+        "scopeName": "source.spellx",
+        "path": "./syntaxes/spellx.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.css": "css",
+          "meta.embedded.block.markdown": "markdown"
+        }
+      },
+      {
         "scopeName": "inline.spell.css-template",
         "path": "./syntaxes/css-template.tmLanguage.json",
         "injectTo": [
@@ -138,40 +154,58 @@
           ".es.spell"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "spellx",
+        "aliases": [
+          "Spellx",
+          "spellx"
+        ],
+        "extensions": [
+          ".spellx",
+          ".en.spellx",
+          ".es.spellx"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "menus": {
       "editor/context": [
         {
           "command": "spell.showLineTree",
-          "when": "editorLangId == spell",
+          "when": "editorLangId =~ /^spellx?$/",
           "group": "navigation"
         }
       ],
       "editor/title": [
         {
+          "command": "spell.showCodeSpell",
+          "when": "editorLangId == spellx",
+          "group": "navigation@0"
+        },
+        {
           "command": "spell.showCompiledTypeScript",
-          "when": "editorLangId == spell",
+          "when": "editorLangId =~ /^spellx?$/",
           "group": "navigation@1"
         },
         {
           "command": "spell.showCompiled",
-          "when": "editorLangId == spell",
+          "when": "editorLangId =~ /^spellx?$/",
           "group": "navigation@2"
         },
         {
           "command": "spell.showCompiledPython",
-          "when": "editorLangId == spell",
+          "when": "editorLangId =~ /^spellx?$/",
           "group": "navigation@3"
         },
         {
           "command": "spell.runProject",
-          "when": "editorLangId == spell",
+          "when": "editorLangId =~ /^spellx?$/",
           "group": "navigation@4"
         },
         {
           "command": "spell.runTests",
-          "when": "editorLangId == spell",
+          "when": "editorLangId =~ /^spellx?$/",
           "group": "navigation@5"
         }
       ]
@@ -207,6 +241,30 @@
           },
           "comment.strikethrough:spell": {
             "strikethrough": true
+          },
+          "comment.heading1:spellx": {
+            "bold": true
+          },
+          "comment.heading2:spellx": {
+            "bold": true
+          },
+          "comment.heading3:spellx": {
+            "bold": true
+          },
+          "comment.heading4:spellx": {
+            "bold": true
+          },
+          "comment.bold:spellx": {
+            "bold": true
+          },
+          "comment.italic:spellx": {
+            "italic": true
+          },
+          "comment.link:spellx": {
+            "underline": true
+          },
+          "comment.strikethrough:spellx": {
+            "strikethrough": true
           }
         }
       },
@@ -219,6 +277,11 @@
             }
           }
         ]
+      },
+      "[spellx]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false,
+        "editor.formatOnType": true
       }
     },
     "semanticTokenModifiers": [
@@ -258,6 +321,7 @@
   },
   "activationEvents": [
     "onLanguage:spell",
+    "onLanguage:spellx",
     "onLanguage:typescriptreact",
     "onLanguage:javascriptreact"
   ],

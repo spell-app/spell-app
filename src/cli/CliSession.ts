@@ -1,4 +1,3 @@
-import { existsSync } from "fs"
 import { relative } from "path"
 import { fileURLToPath } from "url"
 import { DiagnosticSeverity } from "vscode-languageserver"
@@ -142,9 +141,9 @@ export class CliSession {
         ? "forced"
         : stale
           ? await CLI.staleBecause(imported)
-          : [imported.outputFile, imported.declarationsFile].every((file) => existsSync(file.location.serverPath))
-            ? undefined
-            : "never compiled"
+          : SpellDiskWorkspace.isNeverCompiled(imported)
+            ? "never compiled"
+            : undefined
       if (!why) continue
 
       const row = status?.start(`${imported.projectId}  (imported by ${project.projectName})`)

@@ -206,6 +206,8 @@ export const APP_TEXTS = {
   outputTab: "Program Output",
   typescriptTab: "TypeScript",
   pythonTab: "Python",
+  // a .spellx file's code spell, the text it reads as (epic `elemental-spell` P8)
+  codeSpellTab: "Code Spell",
   inspector: "Inspector",
   inspectorPick: "Pick a part of the app",
   inspectorTip: "Pick a part of the app with the crosshairs, to see what it is and change it.",

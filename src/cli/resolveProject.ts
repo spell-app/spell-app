@@ -106,7 +106,7 @@ async function resolveLocation(arg: string, path: string): Promise<CLI.CliProjec
     throw new CLI.CliError(`No project '${location.projectId}' (looked in ${projectDir})`)
   if (location.isProjectPath) return { kind: "project", arg, project: new SP.SpellProject(location.projectId) }
 
-  if (!location.isSpellFile) throw new CLI.CliError(`'${arg}' isn't a .spell file`)
+  if (!location.isSpellFile) throw new CLI.CliError(`'${arg}' isn't a .spell or .spellx file`)
   if (!existsSync(location.serverPath)) throw new CLI.CliError(`No file '${arg}' (looked for ${location.serverPath})`)
   return { kind: "file", arg, file: new SP.SpellFile(location.path) }
 }

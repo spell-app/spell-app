@@ -79,6 +79,42 @@ export class SpellKeywords {
   private accentedWords?: Map<string, string>
 
   /**
+   * The accented word to write for `word`, one of the language's SPELLX words typed without its accent
+   * (epic `elemental-spell` P8, Q49):  `accion` => `acción`, `descripcion` => `descripción`;  `undefined` for none.
+   * - A tag's word (`<accion>`, `<encanto-pagina>`'s `pagina`) or an attribute's (`uno-de`, `descripcion=`):
+   *   every table of `SP.SpellxWords`.
+   * - Only when it's UNAMBIGUOUS:  one accented spelling has `word`'s letters, and means what `word` does when the table
+   *   has `word` too (`pagina`, the plain spelling of `página`).
+   */
+  spellxAccentFixFor(word: string): string | undefined {
+    this.spellxAccents ??= SpellKeywords.spellxAccentsOf(this.language)
+    return this.spellxAccents.get(word)
+  }
+  /** `spellxAccentFixFor()`'s fixes, worked out on first use. */
+  private spellxAccents?: Map<string, string>
+
+  /** Every spellx word of `language` written with an accent, by its spelling without:  see `spellxAccentFixFor()`. */
+  private static spellxAccentsOf(language: SP.Language): Map<string, string> {
+    const words = language.words.spellx
+    const fixes = new Map<string, string>()
+    if (!words) return fixes
+    const { templates, declarations, notes, handlers, controls, attributes } = words
+    for (const table of [templates, declarations, notes, handlers, controls, attributes] as Record<string, string>[]) {
+      const ambiguous = new Set<string>()
+      for (const [spelling, meaning] of Object.entries(table)) {
+        const plain = withoutAccents(spelling)
+        if (plain === spelling) continue
+        // the plain spelling means something else:  never "fixed" to this one
+        if (plain in table && table[plain] !== meaning) continue
+        if (fixes.has(plain) && fixes.get(plain) !== spelling) ambiguous.add(plain)
+        fixes.set(plain, spelling)
+      }
+      for (const plain of ambiguous) fixes.delete(plain)
+    }
+    return fixes
+  }
+
+  /**
    * Fill `fixesByRule` from every keyword rule of the pack -- see `accentFixFor()`.
    * - A word pairs with its accented form when both are alternatives in ONE place:
    *   - in a keyword's own list, `(número|numero)`, or one place of a phrase, `la (posición|posicion) de`

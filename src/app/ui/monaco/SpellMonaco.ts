@@ -1,4 +1,4 @@
-import type { SP } from "spell-parser/spell"
+import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import type * as UIT from "spell-app/app/ui/ui.types"
 import { CodeThemes } from "spell-app/app/ui/monaco/themes/CodeThemes"
@@ -122,7 +122,7 @@ export class SpellMonaco {
     const { LANGUAGE } = SpellMonaco
     CodeThemes.register()
     SpellHeadings.watch(LANGUAGE)
-    monaco.languages.register({ id: LANGUAGE, extensions: [".spell"], mimetypes: ["text/spell", "text/x-spell"] })
+    monaco.languages.register({ id: LANGUAGE, extensions: [".spell", ".spellx"], mimetypes: ["text/spell", "text/x-spell"] })
     monaco.languages.setLanguageConfiguration(LANGUAGE, SpellMonaco.CONFIGURATION)
     monaco.languages.setTokensProvider(LANGUAGE, new SpellTokensProvider())
     // `<css>` and `<markdown>` blocks colour with Monaco's own colouring, which loads lazily:
@@ -148,7 +148,7 @@ export class SpellMonaco {
   /** Monaco language id for a file named `path`, by its extension. */
   static languageForPath(path: string | undefined): string {
     const extension = path?.match(/\.[^./]+$/)?.[0]
-    if (extension === ".spell") return SpellMonaco.LANGUAGE
+    if (SP.isSpellSourceName(extension)) return SpellMonaco.LANGUAGE
     if (extension === ".js" || extension === ".jsx") return "javascript"
     if (extension === ".css") return "css"
     if (extension === ".md") return "markdown"

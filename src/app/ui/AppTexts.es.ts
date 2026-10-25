@@ -66,6 +66,7 @@ const APP_TEXTS_ES: AppTextPack = {
   outputTab: "Salida del programa",
   typescriptTab: "TypeScript",
   pythonTab: "Python",
+  codeSpellTab: "Encanto en código",
   inspector: "Inspector",
   inspectorPick: "Elegir una parte de la app",
   inspectorTip: "Elige una parte de la app con la mira, para ver qué es y cambiarla.",

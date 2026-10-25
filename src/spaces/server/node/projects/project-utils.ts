@@ -299,7 +299,7 @@ const GENERATED_SUFFIXES = [
  *   `__init__.js` or `__helpers__.spell` still list.
  * - Lists property editor pages (`SP.EDITOR_PAGE_SUFFIX`, `Card.editor.html`):  the editor opens them as text.
  */
-const manifestExtensions = [".spell", ".css", ".js", ".jsx", SP.EDITOR_PAGE_SUFFIX]
+const manifestExtensions = [SP.SPELL_SUFFIX, SP.SPELLX_SUFFIX, ".css", ".js", ".jsx", SP.EDITOR_PAGE_SUFFIX]
 export function isManifestFile(name: string, projectName = "") {
   if (SPACES.isSpaceName(name)) return false
   if (GENERATED_SUFFIXES.some((suffix) => name.endsWith(suffix))) return false

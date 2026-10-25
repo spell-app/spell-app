@@ -1,8 +1,9 @@
-import { mkdirSync, writeFileSync } from "fs"
-import { basename, dirname } from "path"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
+import { basename, dirname, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import { SP } from "spell-parser/spell"
+import environment from "spell-app/spaces/server/node/environment"
 import { installDiskFetch, locationForDiskPath } from "spell-app/spaces/server/node/projects/disk-fetch"
 import { LSP } from "spell-app/lsp"
 
@@ -11,6 +12,8 @@ import { LSP } from "spell-app/lsp"
  * the same `SP.SpellProject` / `SP.SpellFile` the app uses, loading from disk.
  * - Maps editor document URIs <=> `SpellFile`s (`LSP.FileAddresses`).
  * - A file's project is the nearest folder with a project file:  see `locationForDiskPath()`.
+ * - A project it imports that was never compiled is compiled first, before the project parses:
+ *   its built files are what the import reads (epic `elemental-spell` C13) -- see `compileNeverCompiled()`.
  * - Open documents' text wins over disk:  it goes through `project.updateText()`, as the app's editor's does.
  * - Every method that changes anything returns the spell files whose parse changed,
  *   so the server can publish their diagnostics.
@@ -59,6 +62,18 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
       this.#uriByPath.set(file.path, uri)
     }
     return uri
+  }
+
+  /**
+   * URI and text of spell file `path`, which no project holds:  a built-in template's source, in the core's
+   * `templates/` folder (`SP.builtInTemplateFileFor()`), so hover and go-to open it (epic `elemental-spell` C20).
+   * - `undefined` for any other path, or one not on disk.
+   */
+  sourceFor(path: string): { uri: string; text: string } | undefined {
+    const name = SP.builtInTemplateFileFor(path)
+    const diskPath = name && resolve(environment.coreDir, "templates", name)
+    if (!diskPath || !existsSync(diskPath)) return undefined
+    return { uri: pathToFileURL(diskPath).href, text: readFileSync(diskPath, "utf8") }
   }
 
   ////////////////
@@ -150,8 +165,41 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     return firstParse
   }
 
-  /** Parse `project` (from scratch unless its incremental parse is good).  A crash is left in `project.parseError`. */
+  /**
+   * Has `project` never been compiled:  no `<Project>.spell.js` or `<Project>.declarations.json5` in its build folder?
+   * - A project that imports it reads those files, so it can't parse until they're there.
+   */
+  static isNeverCompiled(project: SP.SpellProject): boolean {
+    return [project.outputFile, project.declarationsFile].some((file) => !existsSync(file.location.serverPath))
+  }
+
+  /**
+   * Compile each project `project` imports -- and what THEY import, first -- that was never compiled:
+   * so a fresh checkout's editor reads an import nobody compiled yet, as `spell` commands do
+   * (`CliSession.compileImports()`, which also recompiles stale ones on request).
+   * - SIDE EFFECT:  writes each one's built files.
+   * - NEVER throws:  an import that won't compile stays as it was, and the project's parse says so.
+   */
+  async compileNeverCompiled(project: SP.SpellProject, seen = new Set<SP.SpellProject>()): Promise<void> {
+    try {
+      await project.load(undefined)
+    } catch {
+      return
+    }
+    for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
+      if (seen.has(imported)) continue
+      seen.add(imported)
+      await this.compileNeverCompiled(imported, seen)
+      if (SpellDiskWorkspace.isNeverCompiled(imported)) await imported.compile().catch(() => undefined)
+    }
+  }
+
+  /**
+   * Parse `project` (from scratch unless its incremental parse is good), after compiling its never-compiled imports.
+   * - A crash is left in `project.parseError`.
+   */
   private async parseProject(project: SP.SpellProject): Promise<void> {
+    await this.compileNeverCompiled(project)
     await project.parse().catch(() => undefined)
   }
 
