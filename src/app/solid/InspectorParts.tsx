@@ -133,7 +133,6 @@ export function InspectorViews(props: {
       title={
         <ui-menu
           appearance="segmented"
-          size="mini"
           class="InspectorViewTabs"
           onClick={(event: MouseEvent) => event.stopPropagation()}
         >
@@ -302,7 +301,8 @@ const FOLDED_PREF = "inspector:folded"
 /****************
  * ### `<InspectorEvents>`
  * The picked part's events, a card of the Inspector's own (epic `debut` P13, C23).
- * - Each:  its name as a heading, then its code, typed into a box that grows with it (`<EventCode>`).
+ * - Each:  its name as a heading, then its code, typed into a box that grows with it (`<EventCode>`);
+ *   what the program was written with to start with (`Inspector.writtenHandlersOf()`).
  * - What it handles already (`Inspector.eventsOf()`), then what was added here;  "None yet." when neither.
  * - The header's "+" adds one:  a dropdown of the events a part understands, those it doesn't handle yet.
  *   - For now, the DOM's everyday ones (`DEFAULT_EVENTS`):  click, mouse down ...
@@ -340,7 +340,15 @@ export function InspectorEvents(): JSX.Element {
       <Show when={Inspector.picked} keyed fallback={<p class="InspectorNone">{appTexts.text("inspectorEventsTip")}</p>}>
         {(part) => (
           <Show when={events().length} fallback={<p class="InspectorNone">{appTexts.text("inspectorNoEvents")}</p>}>
-            <For each={events()}>{(event) => <EventCode element={part.element} event={event} />}</For>
+            <For each={events()}>
+              {(event) => (
+                <EventCode
+                  element={part.element}
+                  event={event}
+                  written={Inspector.writtenHandlersOf(part.element)[event]}
+                />
+              )}
+            </For>
           </Show>
         )}
       </Show>
@@ -348,8 +356,11 @@ export function InspectorEvents(): JSX.Element {
   )
 }
 
-/** One of a part's events:  its name, then its code, in a box that grows as it's typed into. */
-function EventCode(props: { element: Element; event: string }): JSX.Element {
+/**
+ * One of a part's events:  its name, then its code, in a box that grows as it's typed into.
+ * - Its code:  what was typed here, else what the program was written with (`written`), else empty.
+ */
+function EventCode(props: { element: Element; event: string; written?: string }): JSX.Element {
   const key = () => `${Inspector.keyOf(props.element) ?? ""}|${props.event}`
   return (
     <section class="InspectorEvent">
@@ -359,7 +370,7 @@ function EventCode(props: { element: Element; event: string }): JSX.Element {
         rows={2}
         spellcheck={false}
         placeholder={appTexts.text("inspectorEventCode", { event: eventText(props.event) })}
-        value={eventCode()[key()] ?? ""}
+        value={eventCode()[key()] ?? props.written ?? ""}
         ref={(textarea) => requestAnimationFrame(() => fitHeight(textarea))}
         onInput={(input) => {
           fitHeight(input.currentTarget)

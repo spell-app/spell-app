@@ -55,7 +55,7 @@ export const APP_TEXTS = {
 
   appMenu: "App",
   javascriptOutput: "Javascript Output",
-  programOutput: "Program Output",
+  programOutput: "Output",
   spellTree: "Spell Tree",
   spellTreeHint: "Put the cursor on a line to see its spell tree.",
   loadingEditor: "Loading editor…",
@@ -203,7 +203,7 @@ export const APP_TEXTS = {
   thingsInOrderMade: "In the order they were made",
   thingsByType: "By template, sub-templates included",
   // the Program panel's tabs (`<ProgramPanel>`)
-  outputTab: "Program Output",
+  outputTab: "Output",
   typescriptTab: "TypeScript",
   pythonTab: "Python",
   inspector: "Inspector",
@@ -211,6 +211,16 @@ export const APP_TEXTS = {
   inspectorTip: "Pick a part of the app with the crosshairs, to see what it is and change it.",
   inspectorPicking: "Click a part of the app;  Alt-click for any part inside it.  Esc stops picking.",
   inspectorText: "Text",
+  // the properties card's sections, a Spell UI attribute group each (`E.ATTRIBUTE_GROUPS`)
+  "inspectorGroup.name": "Name",
+  "inspectorGroup.content": "Content",
+  "inspectorGroup.appearance": "Appearance",
+  "inspectorGroup.layout": "Layout",
+  "inspectorGroup.states": "States",
+  "inspectorGroup.form": "Form",
+  "inspectorGroup.link": "Link",
+  "inspectorGroup.behaviour": "Behaviour",
+  "inspectorGroup.advanced": "Advanced",
   inspectorNone: "none",
   inspectorEvents: "Events",
   inspectorNoEvents: "None yet.",
@@ -243,7 +253,7 @@ export const APP_TEXTS = {
   thingsTab: "Things",
   typesTab: "Templates",
   javascriptTab: "JavaScript",
-  treeTab: "Sentence Tree",
+  treeTab: "Sentence",
 
   ////////////////
   // ## The runners (`SpellAppRunner.tsx`, `VSCodeRunner.tsx`)

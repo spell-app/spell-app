@@ -88,6 +88,24 @@
     flex: 0 0 auto;
     width: auto;
   }
+  /* the sections, a group each:  a full row, their fields on the same two-column grid, their titles small bands */
+  & ui-property-editor > ui-property-group {
+    grid-column: 1 / -1;
+  }
+  & ui-property-group::part(section) {
+    margin: 0;
+  }
+  & ui-property-group::part(content) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: var(--ui-form-row-distance);
+  }
+  & ui-property-group {
+    --ui-section-h2: 0.9;
+    --ui-section-h3: 0.9;
+    --ui-section-title-padding: 6px 0 4px;
+  }
   /* segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */
   & ui-menu[appearance="segmented"] {
     --ui-menu-segmented-background: var(--ui-accent-background);
@@ -152,18 +170,10 @@
     color: var(--spell-bar-icon-color);
     --ui-dropdown-icon-spacing: 2px;
   }
-  /* a header holding tabs (Views') is their track (`--spell-tabs-track`), edge to edge, its caret and buttons on it */
-  &:has(ui-menu.InspectorViewTabs) {
-    padding-block: 4px;
-    padding-inline-start: 8px;
-    background: var(--spell-tabs-track);
-    border-bottom: 0;
-  }
   /* Views' switch:  Views | Things | Templates, small, in the title's place */
   & ui-menu.InspectorViewTabs {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 12px;
     font-weight: normal;
   }
   & ui-menu.InspectorViewTabs::part(menu) {
@@ -229,18 +239,6 @@
   padding: 12px 14px;
   overflow-y: auto;
   overscroll-behavior: contain;
-
-  /* more below:  the card's colour fading up over its last 8px, not a hard edge (Owen) */
-  &::after {
-    content: "";
-    position: sticky;
-    inset-block-end: -12px;
-    flex: none;
-    height: 8px;
-    margin-block-start: -8px;
-    pointer-events: none;
-    background: linear-gradient(to top, var(--spell-pane-background, var(--ui-background)), transparent);
-  }
 }
 /* its events:  each a heading, then its code, in a box that grows with it */
 .InspectorEvent {
@@ -267,6 +265,10 @@
     background: var(--ui-surface);
     color: var(--ui-text-color);
     font: 13px / 1.4 var(--ui-font-mono, ui-monospace, monospace);
+  }
+  /* its hint as light as an input's, so it never reads as typed */
+  & > .InspectorCode::placeholder {
+    color: color-mix(in oklab, var(--ui-text-light) 55%, transparent);
   }
 }
 .InspectorNone {

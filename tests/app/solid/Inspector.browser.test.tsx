@@ -67,6 +67,25 @@ describe("picking", () => {
   })
 })
 
+describe("the properties card", () => {
+  test("a Spell UI element's fields in sections, a group each, in the groups' order;  its words head Content", async () => {
+    const area = await inArea(`<ui-button>Go</ui-button>`)
+    const host = await mount(() => <InspectorColumn />)
+    Inspector.toggle()
+    Inspector.pick(area.querySelector("ui-button")!)
+    flush()
+    await ElementFixture.settle(host)
+    const sections = [...host.querySelectorAll(".InspectorMain ui-property-group")]
+    const labels = sections.map((section) => section.getAttribute("label"))
+    expect(labels.slice(0, 4)).toEqual(["Name", "Content", "Appearance", "Layout"])
+    const content = sections[1]!
+    expect(content.querySelector("ui-property")!.getAttribute("name")).toBe("textContent")
+    expect([...sections[2]!.querySelectorAll(":scope > ui-property")].map((p) => p.getAttribute("name"))).toContain(
+      "color"
+    )
+  })
+})
+
 describe("the parts tree and events", () => {
   test("lists the app's parts, nested, looking through what isn't one;  a row picks its part", async () => {
     const area = await inArea(`<ui-segment><div><ui-button>Go</ui-button></div></ui-segment><p>words</p>`)

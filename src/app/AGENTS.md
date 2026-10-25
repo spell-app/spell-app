@@ -139,7 +139,7 @@ and in the app's build folder, `app/` at the repo's root.
     - VS Code's "Run Project" webview (`VSCodeRunner`, `yarn build:runner`)
       - Its Run Tests runs the project's tests on a runtime copy of their own (`testApp()`),
         as `spell test` does (`core.runTests()`, which both share).
-      - How they went shows in Program Output ([testResults.ts](runner/testResults.ts)),
+      - How they went shows in Output ([testResults.ts](runner/testResults.ts)),
         and goes to the extension, which shows each failed check on its line (lsp's `spell/testDiagnostics`).
     - the `<spell-viewer>` web component, in `components/spell-viewer/`
       - built by `yarn build:element`, into `dist-element/`

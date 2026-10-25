@@ -90,6 +90,7 @@ const KIND_FOR_TYPE: Record<V.ValueType, V.AttributeKind> = {
   boolean: "boolean",
   date: "string",
   choice: "enum",
+  icon: "icon",
   list: "json",
   thing: "json",
   data: "json"

@@ -1,6 +1,7 @@
 import { For, Show, createMemo, createSignal, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
+import { E } from "spell/element"
 import { editor } from "spell-app/app/editor"
 import { editorPrefs } from "spell-app/app/editorPrefs"
 import { ValueSets } from "spell-ui/vocabulary"
@@ -9,6 +10,7 @@ import { ClassSchemas } from "spell-app/app/ui/ClassSchemas"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
 import { SpellElement } from "spell-app/app/runner/SpellElement"
 import { InspectorCard, InspectorEvents, InspectorViews, appParts } from "./InspectorParts"
+import { handlersInSource } from "./InspectorSource"
 import { on } from "./on"
 import { SplitPanel } from "./SplitPanel"
 
@@ -72,6 +74,18 @@ export class Inspector {
     setPanels(next)
     if (!next.length) Inspector.close()
     else if (!isOpen()) Inspector.toggle()
+  }
+
+  /** Is the properties card's section for `group` folded (reactive)?  Advanced starts folded. */
+  static isGroupFolded(group: E.AttributeGroup): boolean {
+    return foldedGroups().includes(group)
+  }
+
+  /** Fold the properties card's section for `group`, or unfold it;  remember which. */
+  static setGroupFolded(group: E.AttributeGroup, isFolded: boolean): void {
+    const next = [...foldedGroups().filter((each) => each !== group), ...(isFolded ? [group] : [])]
+    setFoldedGroups(next)
+    editorPrefs.set(FOLDED_GROUPS_PREF, next)
   }
 
   /** Is card `panel` folded to its header (reactive)? */
@@ -216,16 +230,31 @@ export class Inspector {
    * here (`addEvent()`), each once (reactive, for the added ones).
    * - The added ones are remembered by the part's place, a project's each:  a reload keeps them.
    * - A drawn thing's drawing is in its shadow root:  its handlers count as the thing's.
-   * - NOT what's listened for with `addEventListener()`:  nothing on the element says so.
+   * - And those its tag was written with in the program (`writtenHandlersOf()`), whatever listens for them.
    */
   static eventsOf(element: Element): string[] {
     const handled = [element, ...(element.shadowRoot?.querySelectorAll("*") ?? [])].flatMap((at) =>
       Object.keys(at).flatMap((key) => SOLID_HANDLER.exec(key)?.[1] ?? [])
     )
+    handled.push(...Object.keys(Inspector.writtenHandlersOf(element)))
     eventsAdded()
     const address = Inspector.addressOf(element)
     const added = address ? (Inspector.addedEvents[addressKey(address)] ?? []) : []
     return [...new Set([...handled, ...added])]
+  }
+
+  /**
+   * The code `element` was written with for each event, from the program's spell (`handlersInSource()`):
+   * `{ click: "add someone" }`.
+   * - A drawn thing's handlers are on what its drawing holds:  the thing's, merged.
+   * - Not found:  `{}`.
+   */
+  static writtenHandlersOf(element: Element): Record<string, string> {
+    const sources = editor.project?.spellFiles.map((file) => file.contents ?? "") ?? []
+    const handling = [...(element.shadowRoot?.querySelectorAll("*") ?? [])].filter((at) =>
+      Object.keys(at).some((key) => SOLID_HANDLER.test(key))
+    )
+    return Object.assign({}, ...[element, ...handling].map((at) => handlersInSource(at, sources)))
   }
 
   /**
@@ -352,12 +381,14 @@ export function addressKey(address: PartAddress): string {
 }
 
 /** What the Inspector reads of a Spell UI attribute:  its name and kind (`size`, `color` ...). */
-export type FieldSpec = { name: string; kind?: string }
+export type FieldSpec = { name: string; kind?: string; group?: E.AttributeGroup; description?: string }
 
 /** The preference that remembers whether the Inspector is open. */
 const OPEN_PREF = "inspector"
 /** The pref remembering which cards show. */
 const PANELS_PREF = "inspector:panels"
+/** The pref remembering which of the properties card's sections are folded. */
+const FOLDED_GROUPS_PREF = "inspector:foldedGroups"
 /** The pref remembering which cards are folded. */
 const FOLDED_PANELS_PREF = "inspector:foldedPanels"
 /** The Inspector's icon:  its toggle's, and its header's. */
@@ -399,6 +430,11 @@ const [shownPanels, setShownPanels] = createSignal<readonly InspectorPanel[]>(
 /** The cards folded to their headers (remembered:  `FOLDED_PANELS_PREF`). */
 const [foldedPanels, setFoldedPanels] = createSignal<readonly InspectorPanel[]>(
   (editorPrefs.get(FOLDED_PANELS_PREF) as InspectorPanel[] | undefined) ?? []
+)
+
+/** The properties card's folded sections (remembered:  `FOLDED_GROUPS_PREF`). */
+const [foldedGroups, setFoldedGroups] = createSignal<readonly E.AttributeGroup[]>(
+  (editorPrefs.get(FOLDED_GROUPS_PREF) as E.AttributeGroup[] | undefined) ?? ["advanced"]
 )
 
 /** Show `panels`, and remember them. */
@@ -570,7 +606,7 @@ class Compact {
 }
 
 /** The controls a property makes that take the column's width. */
-const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-textarea, ui-calendar)"
+const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-textarea, ui-calendar, ui-icon-picker)"
 
 /****************
  * ### `<InspectorColumn>`
@@ -668,17 +704,26 @@ function PropertiesCard(): JSX.Element {
             ref={(propertyEditor) => onCleanup(Compact.keep(propertyEditor))}
           >
             <Show when={part.layout}>
-              {(layout) => {
-                const fields = () => [...layout().set, ...layout().more]
-                return (
-                  <>
-                    <Show when={layout().hasText}>
-                      <ui-property name="textContent" label={appTexts.text("inspectorText")} />
-                    </Show>
-                    <For each={fields()}>{(field) => <Field field={field} fields={fields()} />}</For>
-                  </>
-                )
-              }}
+              {(layout) => (
+                <For each={sectionsFor([...layout().set, ...layout().more], layout().hasText)}>
+                  {(section) => (
+                    <ui-property-group
+                      label={appTexts.text(`inspectorGroup.${section.group}` as AppTextKey)}
+                      collapsible=""
+                      collapsed={Inspector.isGroupFolded(section.group) ? "" : undefined}
+                      ref={(group) => {
+                        on("ui-closing", () => Inspector.setGroupFolded(section.group, true))(group)
+                        on("ui-opening", () => Inspector.setGroupFolded(section.group, false))(group)
+                      }}
+                    >
+                      <Show when={section.hasText}>
+                        <ui-property name="textContent" label={appTexts.text("inspectorText")} />
+                      </Show>
+                      <For each={section.fields}>{(field) => <Field field={field} fields={section.fields} />}</For>
+                    </ui-property-group>
+                  )}
+                </For>
+              )}
             </Show>
           </ui-property-editor>
         )}
@@ -687,22 +732,46 @@ function PropertiesCard(): JSX.Element {
   )
 }
 
+/**
+ * A Spell UI element's fields in the Inspector's sections, one per group, in the groups' order
+ * (`E.ATTRIBUTE_GROUPS`:  Name, Content, Appearance, Layout ...).
+ * - A field keeps its place in `fields` within its section:  those it sets first.
+ * - A field with no group goes in Appearance;  the element's own text (`hasText`) heads Content.
+ * - A section with nothing in it isn't drawn.
+ */
+function sectionsFor(fields: FieldSpec[], hasText: boolean): InspectorSection[] {
+  return E.ATTRIBUTE_GROUPS.map((group) => ({
+    group,
+    hasText: hasText && group === "content",
+    fields: fields.filter((field) => (field.group ?? "appearance") === group)
+  })).filter((section) => section.fields.length || section.hasText)
+}
+
+/** One of the Inspector's sections:  a group, its fields, and whether the element's text heads it. */
+type InspectorSection = { group: E.AttributeGroup; hasText: boolean; fields: FieldSpec[] }
+
 /****************
  * ### `<Field>`
  * One of a Spell UI element's attributes, as the Inspector lays it out.
  * - A size or a colour is half a row (`.half`), so the two share one:  each is a short choice.
  * - So is an attribute and the one that places it, side by side:  `icon` and `icon-position`.
  * - A colour's choices are chips (`<HueSelect>`), not words alone.
+ * - Its info icon's tip is the attribute's description, shown after a 2s hover (`chrome.css`).
  ****************/
 function Field(props: { field: FieldSpec; fields: FieldSpec[] }): JSX.Element {
   const isHalf = HALF_KINDS.has(props.field.kind ?? "") || isPositionPair(props.field, props.fields)
   return (
-    <ui-property name={props.field.name} class={{ half: isHalf }}>
+    <ui-property name={props.field.name} class={{ half: isHalf }} description={tipFor(props.field)}>
       <Show when={props.field.kind === "color"}>
         <HueSelect name={props.field.name} />
       </Show>
     </ui-property>
   )
+}
+
+/** A field's info tip:  its vocabulary's description, its `code` marks dropped (the tip is plain text). */
+function tipFor(field: FieldSpec): string | undefined {
+  return field.description?.replace(/`/g, "")
 }
 
 /** It places the field beside it, or the one beside it places it:  `icon` and `icon-position`. */

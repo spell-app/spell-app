@@ -69,6 +69,25 @@ ui-icon.IconAction {
   transition-delay: 2s;
 }
 
+/*
+ * Tooltips in the theme (Owen:  "make tooltips match theme"):  a deep shade of its primary colour, white words,
+ * the brand inspector's look;  the editor's (`[data-tooltip][data-inverted]`) and a field's info tip alike.
+ * - A field's tip waits as long as the editor's tooltips (`--ui-field-tip-delay`).
+ */
+:root {
+  --spell-tooltip-background: color-mix(in oklab, var(--ui-primary) 45%, #10061f);
+  --ui-field-tip-background: var(--spell-tooltip-background);
+  --ui-field-tip-color: white;
+  --ui-field-tip-delay: 2s;
+}
+#app-root [data-tooltip][data-inverted] {
+  --ui-tooltip-background: var(--spell-tooltip-background);
+  --ui-tooltip-color: white;
+}
+#app-root [data-tooltip][data-inverted]::after {
+  border-radius: 8px;
+}
+
 /* `Actions.you`:  the person's avatar, a round button */
 .YouAvatar {
   display: inline-flex;
@@ -197,21 +216,26 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
 }
 
 /*
- * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  the bar IS the track, as the docs
- * site's tabs (Owen:  "more like this, but with less rounding and no gap"):
- * - one grey band across the card's top, edge to edge, its tools on it too;  no bar around it, no line under it
- * - the tabs share it evenly;  the chosen one a raised white tab, 6px round on every corner
+ * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  a header like every other pane's
+ * (40px, see-through, a hairline under it), its tabs a slim track in it, as the docs site's tabs
+ * (Owen:  "doesn't match ... too tall, colors don't match, font size difference"):
+ * - the track:  the tabs sharing the header's width evenly, the chosen one a raised white pill (Owen:  "still want
+ *   the buttons to be pills")
+ * - the tabs' text the headers' size
  */
 :root {
   --spell-tabs-track: light-dark(rgb(40 20 90 / 0.06), rgb(255 255 255 / 0.06));
 }
 :is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) {
-  /* the menu draws no track of its own:  the bar behind it is the track */
-  --ui-menu-segmented-background: transparent;
+  --ui-menu-segmented-background: var(--spell-tabs-track);
   --ui-menu-segmented-border: 0 solid transparent;
-  --ui-menu-segmented-radius: 6px;
-  --ui-menu-segmented-padding: 0px;
-  --ui-menu-segmented-item-radius: 6px;
+  --ui-menu-segmented-radius: 9999px;
+  --ui-menu-segmented-padding: 2px;
+  --ui-menu-segmented-item-radius: 9999px;
+  --ui-menu-segmented-item-padding: 0.25em 0.75em;
+  /* the size of a header's plain words (the code pane's menus), a step under its bold title */
+  --ui-font-size: 13px;
+  font-size: 13px;
 }
 :is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) > ui-item::part(item) {
   flex: 1 1 0;

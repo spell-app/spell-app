@@ -3061,10 +3061,6 @@
           "file": "src/app/solid/InspectorParts.tsx"
         },
         {
-          "name": "ProgramPanel",
-          "file": "src/app/pages/SpellEditor.tsx"
-        },
-        {
           "name": "SpellAppRunner",
           "file": "src/app/runner/SpellAppRunner.tsx"
         },
@@ -3324,10 +3320,6 @@
         {
           "name": "InspectorViews",
           "file": "src/app/solid/InspectorParts.tsx"
-        },
-        {
-          "name": "ProgramPanel",
-          "file": "src/app/pages/SpellEditor.tsx"
         },
         {
           "name": "SpellAppRunner",
@@ -6044,8 +6036,14 @@
     {
       "id": "motion",
       "title": "Motion",
-      "description": "Durations and easing curves.",
+      "description": "Durations, easing curves, and how long a hover waits.",
       "tokens": [
+        {
+          "name": "--ui-hover-delay",
+          "default": "800ms",
+          "description": "How long a hover popup waits before it shows.",
+          "type": "time"
+        },
         {
           "name": "--ui-duration-fast",
           "default": "100ms",
