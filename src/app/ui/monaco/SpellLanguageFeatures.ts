@@ -28,8 +28,12 @@ export class SpellLanguageFeatures {
     Object.assign(this, props)
   }
 
-  /** Register everything with Monaco for `language`.  Returns what unregisters it all. */
-  register(language: string): monaco.IDisposable[] {
+  /**
+   * Register everything with Monaco for `language`, e.g. both of spell's, `["spell", "spellx"]`.
+   * - Once:  the editor and link openers aren't a language's, so a second call would open each file twice.
+   * - Returns what unregisters it all.
+   */
+  register(language: monaco.languages.LanguageSelector): monaco.IDisposable[] {
     const { languages, editor } = monaco
     return [
       languages.registerDocumentSemanticTokensProvider(language, {

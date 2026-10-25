@@ -15,19 +15,19 @@ export class SpellHeadings {
   static MAX_LEVEL = 4
 
   /**
-   * Decorate the headings of `language` models -- those there now, and each made from now on -- as they're edited.
+   * Decorate the headings of models in `languages` -- those there now, and each made from now on -- as they're edited.
    * - Call once, e.g. from `SpellMonaco.register()`.
    */
-  static watch(language: string): monaco.IDisposable {
-    for (const model of monaco.editor.getModels()) SpellHeadings.follow(model, language)
-    return monaco.editor.onDidCreateModel((model) => SpellHeadings.follow(model, language))
+  static watch(languages: readonly string[]): monaco.IDisposable {
+    for (const model of monaco.editor.getModels()) SpellHeadings.follow(model, languages)
+    return monaco.editor.onDidCreateModel((model) => SpellHeadings.follow(model, languages))
   }
 
   /**
-   * Keep `model`'s heading decorations up to date, while it's a `language` model.
+   * Keep `model`'s heading decorations up to date, while it's in one of `languages`.
    * - Recomputes every line on each change:  spell files are small, and it's one regex a line.
    */
-  private static follow(model: monaco.editor.ITextModel, language: string): void {
+  private static follow(model: monaco.editor.ITextModel, languages: readonly string[]): void {
     let ids: string[] = []
     update()
     model.onDidChangeContent(update)
@@ -35,7 +35,7 @@ export class SpellHeadings {
 
     /** Replace `model`'s heading decorations with those for its text now. */
     function update() {
-      const decorations = model.getLanguageId() === language ? SpellHeadings.decorationsFor(model) : []
+      const decorations = languages.includes(model.getLanguageId()) ? SpellHeadings.decorationsFor(model) : []
       ids = model.deltaDecorations(ids, decorations)
     }
   }
