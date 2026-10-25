@@ -706,23 +706,82 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   ////////////////
 
   /**
-   * Our thing's handler for a mouse event of ours, if it has one, run through its program's core:
-   * `- on mouse down:` in its outline is `onMouseDown()`, run as we hear `mousedown` -- see `THING_EVENTS`.
-   * - The INNERMOST thing with one takes the event:  a card's runs, its pile's doesn't too.
-   *   Spell swallows an event its handler catches (Owen's event model, T1);  `pass event` comes with the event phase.
+   * One of our element's mouse events, sent to our thing (epic `elemental-spell` P9):  `click` is `click`,
+   * `mousedown` is `mouse down` -- see `THING_EVENTS`.
+   * - Through the program's core, `core.send()`:  our thing's handler takes it (`- on mouse down:` is
+   *   `onMouseDown()`), or hands it up with `pass event` -- the list holding it, then the app.
+   * - Sent once, by the INNERMOST thing's element:  an element around us doesn't send it again.
    * - Not a press in a control inside us:  that's the control's.
-   * - It's handed `{ type }`, spell's name for the event (`mouse-down`):  never the browser's event, which spell
-   *   doesn't depend on (the mouse and keys are read from the input state instead, the event phase).
-   * - Wherever the program runs, Python's too (`core.runHandler()`).
+   * - Spell never reads the browser's event:  the mouse and keys are `core.input` (`noteInput()`).
+   * - A program running elsewhere (Python, `core.remote`) hears only its own handler, as before.
    */
   private runThingHandler(event: Event) {
     const spellEvent = THING_EVENTS[event.type]
     const thing = this.currentThing as Record<string, unknown> | undefined
     if (!spellEvent || !thing || HANDLED_EVENTS.has(event) || this.isInAControl(event)) return
+    HANDLED_EVENTS.add(event)
+    this.noteInput(event)
+    const { core } = this.entry!
+    if (event.type === "mouseenter") core.input?.pointAt(thing)
+    this.runWhile(event, thing)
+    if (!core.remote && core.send) {
+      this.runHandler(() => core.send(thing, spellEvent))
+      return
+    }
     const handler = `on${spellEvent.replace(/(^|-)(\w)/g, (_dash, _start, letter: string) => letter.toUpperCase())}`
     if (typeof thing[handler] !== "function") return
-    HANDLED_EVENTS.add(event)
-    this.runHandler(() => this.entry!.core.runHandler(thing, handler, { type: spellEvent }))
+    this.runHandler(() => core.runHandler(thing, handler, { type: spellEvent }))
+  }
+
+  /**
+   * Our thing's `while` handler for this moment, if it has one (Q51, Q52 A):  `- while the mouse is down:`
+   * starts as the mouse goes down on us and is put back as it goes up anywhere;  `- while the mouse is over it:`
+   * as it comes and goes.  Through core's `startWhile()` / `endWhile()`, as a drag's `while` is.
+   */
+  private runWhile(event: Event, thing: Record<string, unknown>) {
+    const { core } = this.entry!
+    if (event.type === "mousedown" && typeof thing.whileMouseDown === "function") {
+      this.runHandler(() => core.startWhile(thing, "whileMouseDown"))
+      const end = () => this.runHandler(() => core.endWhile(thing, "whileMouseDown"))
+      window.addEventListener("mouseup", end, { once: true, capture: true })
+    } else if (event.type === "mouseenter" && typeof thing.whileMouseOver === "function") {
+      this.runHandler(() => core.startWhile(thing, "whileMouseOver"))
+    } else if (event.type === "mouseleave" && typeof thing.whileMouseOver === "function") {
+      this.runHandler(() => core.endWhile(thing, "whileMouseOver"))
+    }
+  }
+
+  /**
+   * The program's core keeps up with the page's mouse and keys (`core.input`), from the first event any of its
+   * elements hears:  once per core, listening on the window (`InputState.listen()`).
+   * - The meta key is command on a Mac, control elsewhere:  this page's system says.
+   * - As the mouse is still down on a thing, it's sent `mouse still down`.
+   * - Keys go to the thing that has the focus, else the app (Q35 B:  the focus chain for keys):  `key down`
+   *   with the key's name, `- on key down with a key:`.
+   */
+  private noteInput(event?: Event) {
+    const { core } = this.entry ?? {}
+    if (!core?.input || LISTENING_CORES.has(core)) return
+    LISTENING_CORES.add(core)
+    const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
+    core.input.listen(window, { isMac })
+    if (event instanceof KeyboardEvent || event instanceof MouseEvent) core.input.set({ shiftKey: event.shiftKey })
+    core.input.onStillDown = (thing) => void core.send?.(thing, "mouse-still-down")?.catch(() => {})
+    window.addEventListener("keydown", (key) => {
+      const focused = SpellElement.focusedThing()
+      void core.send?.(focused, "key-down", { key: key.key.toLowerCase() })?.catch(() => {})
+    })
+  }
+
+  /** The thing whose element has the focus, through shadow roots:  where a key goes first (Q35 B). */
+  private static focusedThing(): object | undefined {
+    let active: Element | null = document.activeElement
+    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+    for (let at: Element | null = active; at; at = at.parentElement ?? (at.getRootNode() as ShadowRoot).host ?? null) {
+      const component = SpellElement.componentOf(at)
+      if (component?.currentThing) return component.currentThing
+    }
+    return undefined
   }
 
   @E.on("click")
@@ -1382,8 +1441,8 @@ const SELECTION_ANCHORS = new WeakMap<object, object>()
 /**
  * The browser's mouse events a view's thing may handle, by spell's name for each (Q30, Q32):
  * `mousedown` is `mouse down`, so `- on mouse down:` is its handler, `onMouseDown()`.
- * - English's words only, so far:  a Spanish outline's `- al presionar el ratón:` waits for the event phase's table,
- *   which names each event once, whatever the language.
+ * - Spell's names for events are the same whatever the language a template is written in (Owen's event-names page);
+ *   a Spanish outline's `- al presionar el ratón:` waits for its words to map to them (C16).
  */
 const THING_EVENTS: Record<string, string> = {
   click: "click",
@@ -1395,6 +1454,9 @@ const THING_EVENTS: Record<string, string> = {
   mouseenter: "mouse-enter",
   mouseleave: "mouse-leave"
 }
+
+/** The cores keeping up with the page's mouse and keys already:  see `SpellElement.noteInput()`. */
+const LISTENING_CORES = new WeakSet<object>()
 
 /** The browser's events a thing's handler has taken already:  a thing around it doesn't run its own too. */
 const HANDLED_EVENTS = new WeakSet<Event>()
