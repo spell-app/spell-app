@@ -334,14 +334,16 @@ Then how a task draws, with [Spell UI](https://github.com/spell-app/spell-ui/blo
 a form of its own, bound to the task.
 
 ```html
-<draw description="A form of its own, bound to it:  checking the box, or typing a title, changes the task">
+<draw description="A form of its own, bound to it:  checking the box, or typing a title, changes the task;  its priority shows only when it isn't normal">
 	<html>
 		<ui-form value={it}>
 			<div part="row">
 				<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
 				<ui-checkbox name="done" aria-label="Done"/>
 				<ui-input part="title" name="title" aria-label="Task" appearance="transparent"/>
-				<ui-label part="priority" size="tiny" color={"red" if its priority is high otherwise "grey"}>{its priority}</ui-label>
+				<if its priority is not normal>
+					<ui-label part="priority" size="tiny" color={"red" if its priority is high otherwise "grey"}>{its priority}</ui-label>
+				</>
 			</div>
 		</ui-form>
 	</html>
@@ -353,7 +355,9 @@ a form of its own, bound to the task.
 - There's no change handler anywhere.
   The form is bound to the task (`value={it}`):
   each named field shows its task's property, and writes it back as you type or tick.
-- The style sheet shows the priority label only when it isn't normal, and fades a task that's done.
+- `<if its priority is not normal>` inside the row keeps the label on the page, hidden while the task's priority is
+  normal:  changing it shows or hides the same label, never makes a new one.
+- The style sheet fades a task that's done.
 - A press in the title field or on the checkbox is theirs:  a drag starts from the grip, or the task's bare row.
 
 Then the list, which decides which tasks to show:
