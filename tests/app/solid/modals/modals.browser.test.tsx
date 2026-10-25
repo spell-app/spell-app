@@ -27,7 +27,7 @@ describe("alert / confirm", () => {
   test("alert():  header, message, OK;  resolves `undefined`", async () => {
     const answer = editor.alert({ header: "Header", message: "Yo!", ok: "Got it" })
     const modal = await current()
-    expect(modal.getAttribute("header")).toBe("Header")
+    expect(modal.getAttribute("heading")).toBe("Header")
     expect(modal.querySelector("p")!.textContent).toBe("Yo!")
     expect(buttons(modal)).toEqual(["Got it"])
     click(modal, ".approve")
@@ -126,7 +126,7 @@ describe("choose", () => {
   test("single:  radios;  resolves the chosen option's value", async () => {
     const answer = editor.choose({ header: "Pick one", message: "Message", options: ["A", "B", "C"] })
     const modal = await current()
-    expect(modal.getAttribute("header")).toBe("Pick one")
+    expect(modal.getAttribute("heading")).toBe("Pick one")
     const radios = choices(modal, "ui-radio")
     expect(radios.map((radio) => radio.textContent)).toEqual(["A", "B", "C"])
     expect(radios.some((radio) => radio.selected)).toBe(false)

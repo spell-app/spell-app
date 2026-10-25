@@ -11,6 +11,7 @@ import type { monaco } from "spell-app/app/ui/monaco"
 // NOTE: types only:  the dialogs themselves load on first use, see `dialogs()`.
 import type * as Modals from "spell-app/app/solid/modals"
 import { navigate } from "spell-app/app/pages/navigation"
+import { THEME_PAGE } from "spell-app/app/pages/pages.types"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { editorPrefs } from "spell-app/app/editorPrefs"
 // Import directly, NOT through the runner barrel, which brings the runners
@@ -67,6 +68,11 @@ export class EditorStore extends Observable {
   /** Show the project / example / guide chooser page. */
   showProjectChooser(): void {
     navigate("/")
+  }
+
+  /** Show the theme editor's page (`<ThemeEditorPage>`). */
+  showThemeEditor(): void {
+    navigate(THEME_PAGE)
   }
 
   /**

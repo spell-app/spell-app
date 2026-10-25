@@ -25,6 +25,7 @@ import path from "node:path"
 
 import JSON5 from "json5"
 
+import { BrowserPage } from "spell/element-tools/BrowserPage"
 import { pageServerRoot } from "spell/server/page/settings"
 
 /** spell-app's checkout. */
@@ -238,14 +239,12 @@ async function takePictures(projects: Project[]): Promise<void> {
   if (!existsSync(editorFile))
     throw new Error("examples-readme:  the editor isn't running here;  `yarn start` first, or pass --no-pictures")
   const editor = (JSON.parse(readFileSync(editorFile, "utf8")) as { url: string }).url
-  // Import here:  `--check` and `--no-pictures` need no browser
-  const { chromium } = await import("playwright")
   mkdirSync(path.join(ROOT, IMAGES), { recursive: true })
-  const browser = await chromium.launch()
-  try {
+  // `BrowserPage` loads Playwright only here:  `--check` and `--no-pictures` need no browser
+  await BrowserPage.with(async (browser) => {
     for (const project of projects) {
       if (only.size && !only.has(project.name)) continue
-      const page = await browser.newPage({ viewport: WINDOW })
+      const page = await BrowserPage.newPage(browser, { viewport: WINDOW })
       await page.goto(new URL(`edit/${project.address}`, editor).href, { waitUntil: "networkidle" })
       await page.waitForTimeout(SETTLE_MS)
       const file = path.join(ROOT, pictureOf(project))
@@ -253,7 +252,5 @@ async function takePictures(projects: Project[]): Promise<void> {
       console.log(path.relative(process.cwd(), file))
       await page.close()
     }
-  } finally {
-    await browser.close()
-  }
+  })
 }

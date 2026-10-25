@@ -65,6 +65,7 @@ const [editingMode, setEditingMode] = createSignal(editorPrefs.get(MODE_PREF) as
  * - A segmented menu (`<ui-menu appearance="segmented">`), inside the bar's own:
  *   its thumb slides to the mode chosen.
  * - Its look is set in `chrome.css`, through the theme's `--ui-menu-segmented-*` settings.
+ * - On a phone, each its icon alone (`.ModeText` read, not shown).
  ****************/
 export function ModeButtons(props: { current: Mode }): JSX.Element {
   return (
@@ -74,7 +75,7 @@ export function ModeButtons(props: { current: Mode }): JSX.Element {
           {(mode) => (
             <ui-item link="" selected={props.current === mode} onClick={() => EditorMode.show(mode)}>
               <ui-icon name={MODE_LOOKS[mode].icon} />
-              {appTexts.text(MODE_LOOKS[mode].text)}
+              <span class="ModeText">{appTexts.text(MODE_LOOKS[mode].text)}</span>
             </ui-item>
           )}
         </For>

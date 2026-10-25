@@ -1,6 +1,7 @@
 import { Show, createSignal } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
+import { editor } from "spell-app/app/editor"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { uiReady } from "./loadUI"
 
@@ -69,6 +70,26 @@ export class EditorTheme {
     }
   }
 
+  /**
+   * Wear the theme the theme editor kept (Use this theme):  its base chosen, as the menu would, and its sheet over it;
+   * none kept (Stop using):  take its sheet off.
+   * - NEVER throws:  a failure says so on the console.
+   */
+  static async wearKept(): Promise<void> {
+    try {
+      const [{ ThemePreference }, { SavedTheme }] = await Promise.all([
+        import("spell-ui/docs-components"),
+        import("spell-ui/components/ui-theme-editor/SavedTheme")
+      ])
+      const base = SavedTheme.choices?.base
+      // a new base:  choosing it puts the kept sheet on too (`follow()`);  the same one:  the sheet changed
+      if (base && base !== ThemePreference.look.theme) await ThemePreference.setTheme(base)
+      else await SavedTheme.follow(ThemePreference.look.theme)
+    } catch (error) {
+      console.error("EditorTheme.wearKept():  couldn't wear the kept theme", error)
+    }
+  }
+
   /** Theme `theme` is chosen:  note it, mark `<html>` with its look, and wear the kept theme on it, if any. */
   private static follow(theme: string | undefined): void {
     setChosenTheme(theme)
@@ -115,12 +136,18 @@ const [isMenuDefined, setMenuDefined] = createSignal(false)
  * The editor's theme menu, in a menu bar:  a palette button opening Light | Dark | Auto and every theme.
  * - The palette:  `<ui-docs-themes>`, inverted while the bar is the old violet one (no look).
  * - Picking applies at once, and the editor remembers it (`EditorTheme`).
+ * - At its foot, "Edit theme...":  the theme editor's page (`<ThemeEditorPage>`, epic `debut` P6).
  ****************/
 export function ThemeMenu(): JSX.Element {
   return (
     <Show when={isMenuDefined()}>
       <ui-item class="ThemeMenu">
-        <ui-docs-themes inverted={EditorTheme.look ? undefined : ""} size="small" />
+        <ui-docs-themes inverted={EditorTheme.look ? undefined : ""} size="small">
+          <button type="button" slot="end" class="EditThemeEntry" onClick={() => editor.showThemeEditor()}>
+            <ui-icon name="paint brush" />
+            {appTexts.text("editTheme")}
+          </button>
+        </ui-docs-themes>
       </ui-item>
     </Show>
   )
@@ -131,13 +158,14 @@ export function ThemeMenu(): JSX.Element {
  * Spell's hat and name, first in the editor's top bar:  a link to the landing page.
  * - The hat alone, in the theme's primary colour:  the favicon's hat without its dark square
  *   (`/static/favicon/hat.svg`, drawn as a mask, `EditorTheme.css`).
+ * - On a phone, the hat alone (`.AppName` read, not shown:  `chrome.css`).
  ****************/
 export function AppMark(): JSX.Element {
   return (
     <ui-item class="AppMark">
       <a link="" href="/">
         <span class="hat" />
-        <span>{appTexts.text("appName")}</span>
+        <span class="AppName">{appTexts.text("appName")}</span>
       </a>
     </ui-item>
   )

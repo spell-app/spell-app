@@ -1,3 +1,4 @@
+import { escapeRegExp, withoutAccents } from "spell/util/string"
 import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
 
@@ -70,7 +71,7 @@ export class SpellKeywords {
     this.accentedWords ??= new Map([...this.fixesByRule.values()].flatMap((pairs) => [...pairs]))
     const accented = this.accentedWords.get(word)
     if (accented) return { label: accented, filterText: word }
-    const plain = withoutAccents(word)
+    const plain = withoutAccents(word, KEEP_LETTERS)
     return plain !== word && this.accentedWords.get(plain) === word
       ? { label: word, filterText: plain }
       : { label: word }
@@ -102,7 +103,7 @@ export class SpellKeywords {
     for (const table of [templates, declarations, notes, handlers, controls, attributes] as Record<string, string>[]) {
       const ambiguous = new Set<string>()
       for (const [spelling, meaning] of Object.entries(table)) {
-        const plain = withoutAccents(spelling)
+        const plain = withoutAccents(spelling, KEEP_LETTERS)
         if (plain === spelling) continue
         // the plain spelling means something else:  never "fixed" to this one
         if (plain in table && table[plain] !== meaning) continue
@@ -133,7 +134,8 @@ export class SpellKeywords {
       for (const plain of phrases) {
         for (const accented of phrases) {
           if (plain === accented || plain.words.length !== accented.words.length) continue
-          if (!plain.words.every((word, index) => word === withoutAccents(accented.words[index]!))) continue
+          if (!plain.words.every((word, index) => word === withoutAccents(accented.words[index]!, KEEP_LETTERS)))
+            continue
           plain.words.forEach((word, index) => {
             if (word !== accented.words[index]) addFix(phrasePairs, plain.rule, word, accented.words[index]!)
           })
@@ -146,7 +148,7 @@ export class SpellKeywords {
     for (const rule of rules) {
       for (const alternatives of placesOf(rule)) {
         for (const word of alternatives) {
-          const accented = alternatives.find((it) => it !== word && withoutAccents(it) === word)
+          const accented = alternatives.find((it) => it !== word && withoutAccents(it, KEEP_LETTERS) === word)
           if (accented) addFix(fixes, rule, word, accented)
           else if (!phrasePairs.get(rule)?.has(word)) standalone.add(word)
         }
@@ -185,12 +187,16 @@ export class SpellKeywords {
     return ARTICLE_RULES.flatMap((name) => this.leadingPhrasesOf(name))
   }
 
-  /** Phrases the rules named `name` start with, a category's too:  each one's leading keywords, e.g. `else`'s. */
+  /**
+   * Phrases the rules named `name` start with, a category's too:  each one's leading keywords, e.g. `else`'s.
+   * - Through sequences, choices and repeats (`P.leadingRules()`), and a `{subrule}` to a single rule,
+   *   NOT a category like `{expression}`, which could start with anything.
+   */
   leadingPhrasesOf(name: string): string[] {
     const { parser } = this.language
     const rule = parser.rules[name]
     const rules = rule instanceof P.Choice ? rule.rules : rule ? [rule] : []
-    const phrases = new Set(rules.flatMap((it) => leadingPhrases(it, parser, new Set())))
+    const phrases = new Set(rules.flatMap((it) => P.leadingRules(it, { parser }).flatMap(phrasesOf)))
     return [...phrases].filter((phrase) => PHRASE.test(phrase))
   }
 
@@ -226,14 +232,13 @@ export class SpellKeywords {
   // ## Helpers
   ////////////////
 
-  /** Every rule of the pack, nested ones too -- each once. */
+  /** Every rule of the pack, nested ones too, a repeat's separator too -- each once. */
   private allRules(): P.Rule[] {
     const found = new Set<P.Rule>()
-    const visit = (rule: P.Rule | undefined) => {
-      if (!rule || found.has(rule)) return
+    const visit = (rule: P.Rule) => {
+      if (found.has(rule)) return
       found.add(rule)
-      if (rule instanceof P.Choice || rule instanceof P.Sequence) rule.rules.forEach(visit)
-      else if (rule instanceof P.Repeat) visit(rule.rule)
+      rule.childRules.forEach(visit)
     }
     Object.values(this.language.parser.rules).forEach(visit)
     return [...found]
@@ -264,13 +269,8 @@ const WORD_END = "(?![\\p{L}\\p{M}\\d_-])"
 /** The most phrases one keyword rule expands to, e.g. `(el|la) (número|numero|cantidad) de`. */
 const MAX_PHRASES = 64
 
-/** `word` with its written accents off:  `número` => `numero`;  `ñ` and `ü` kept. */
-function withoutAccents(word: string): string {
-  return word
-    .normalize("NFD")
-    .replace(/\u0301/g, "")
-    .normalize("NFC")
-}
+/** Letters whose marks a keyword keeps when its accents come off:  `número` => `numero`, but `año` and `pingüino` stay. */
+const KEEP_LETTERS = { keep: "ñü" }
 
 /** Each place of keyword `rule` and the words that may go there:  `[["la"], ["posición", "posicion"], ["de"]]`. */
 function placesOf(rule: P.Rule): string[][] {
@@ -292,39 +292,21 @@ function addFix(fixes: Map<P.Rule, Map<string, string>>, rule: P.Rule, word: str
 }
 
 /**
- * Keyword phrases `rule` can start with:  its leading keywords, through sequences, choices and repeats.
+ * The phrases keyword `rule` says, `[]` for any other rule -- `leadingPhrasesOf()` reads it over `P.leadingRules()`.
  * - A phrase's optional words are left out, its alternatives each make a phrase:
  *   `(si no|sino) :?` => `si no`, `sino`.
- * - Follows a `{subrule}` only to a single rule, NOT a category like `{expression}`, which could start with anything.
+ * - At most `MAX_PHRASES`.
  */
-function leadingPhrases(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>): string[] {
-  if (visited.has(rule)) return []
-  visited.add(rule)
-  if (rule instanceof P.Keyword || rule instanceof P.Keywords) {
-    const places = rule instanceof P.Keywords ? rule.literals.filter((it) => !it.optional) : undefined
-    const alternatives = places ? places.map(({ literal }) => [literal].flat().map(String)) : placesOf(rule)
-    let phrases = [""]
-    for (const words of alternatives) {
-      phrases = phrases.flatMap((phrase) => words.map((word) => (phrase ? `${phrase} ${word}` : word)))
-      if (phrases.length > MAX_PHRASES) break
-    }
-    return phrases.slice(0, MAX_PHRASES)
+function phrasesOf(rule: P.Rule): string[] {
+  if (!(rule instanceof P.Keyword || rule instanceof P.Keywords)) return []
+  const places = rule instanceof P.Keywords ? rule.literals.filter((it) => !it.optional) : undefined
+  const alternatives = places ? places.map(({ literal }) => [literal].flat().map(String)) : placesOf(rule)
+  let phrases = [""]
+  for (const words of alternatives) {
+    phrases = phrases.flatMap((phrase) => words.map((word) => (phrase ? `${phrase} ${word}` : word)))
+    if (phrases.length > MAX_PHRASES) break
   }
-  if (rule instanceof P.Sequence) {
-    const phrases: string[] = []
-    for (const child of rule.rules) {
-      phrases.push(...leadingPhrases(child, parser, visited))
-      if (!child.optional) break
-    }
-    return phrases
-  }
-  if (rule instanceof P.Choice) return rule.rules.flatMap((child) => leadingPhrases(child, parser, visited))
-  if (rule instanceof P.Repeat) return leadingPhrases(rule.rule, parser, visited)
-  if (rule instanceof P.Subrule) {
-    const target = parser.rules[rule.rule]
-    if (target && !(target instanceof P.Group)) return leadingPhrases(target, parser, visited)
-  }
-  return []
+  return phrases.slice(0, MAX_PHRASES)
 }
 
 /** `phrases`, each once, longest first:  so a pattern tries `is not` before `is`. */
@@ -334,5 +316,5 @@ function byLength(phrases: string[]): string[] {
 
 /** `phrases` as a regex alternation, any run of spaces between words. */
 function alternation(phrases: string[]): string {
-  return phrases.map((phrase) => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+")).join("|")
+  return phrases.map((phrase) => escapeRegExp(phrase).replace(/ /g, "\\s+")).join("|")
 }

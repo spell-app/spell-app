@@ -37,7 +37,7 @@ export function YouPanel(props: YouPanelProps) {
       class="YouPanel"
       size="small"
       closedby="closerequest"
-      header={appTexts.text("youHeader", { address: props.me.person.address })}
+      heading={appTexts.text("youHeader", { address: props.me.person.address })}
       visible=""
       ref={(element: HTMLElement) => {
         modal = element
@@ -47,7 +47,7 @@ export function YouPanel(props: YouPanelProps) {
     >
       <ui-content>
         <Show when={props.me.problems.length > 0}>
-          <ui-message state="warning" size="small" header={appTexts.text("fileProblems")}>
+          <ui-message state="warning" size="small" heading={appTexts.text("fileProblems")}>
             <ul>
               <For each={props.me.problems}>
                 {(problem) => (

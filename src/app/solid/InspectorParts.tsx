@@ -34,7 +34,7 @@ export function InspectorCard(props: {
 }): JSX.Element {
   const isFolded = () => Inspector.isFolded(props.panel)
   return (
-    <section class={["InspectorCard", { folded: isFolded() }]}>
+    <section class={["InspectorCard", { folded: isFolded() }]} data-panel={props.panel}>
       <header class="AppPaneHeader InspectorCardHead">
         <h2
           aria-expanded={isFolded() ? "false" : "true"}
@@ -367,10 +367,10 @@ function EventCode(props: { element: Element; event: string; written?: string })
   const key = () => `${Inspector.keyOf(props.element) ?? ""}|${props.event}`
   return (
     <section class="InspectorEvent">
-      <h3>{eventText(props.event)}</h3>
+      <h3>{appTexts.text("inspectorEventHeading", { event: eventText(props.event) })}</h3>
       <textarea
         class="InspectorCode"
-        rows={2}
+        rows={1}
         spellcheck={false}
         placeholder={appTexts.text("inspectorEventCode", { event: eventText(props.event) })}
         value={eventCode()[key()] ?? props.written ?? ""}

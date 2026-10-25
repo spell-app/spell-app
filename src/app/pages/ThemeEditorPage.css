@@ -1,0 +1,18 @@
+/*
+ * Look of the theme editor's page, `<ThemeEditorPage>` (`ThemeEditorPage.tsx`):  the top bar, a title, then the
+ * theme editor at the page's width, as the landing page lays out its own (`ProjectChooser.css`).
+ */
+
+.ThemeEditorPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px 24px;
+
+  & > .ThemeEditorTitle {
+    margin: 8px 4px 0;
+    font-family: var(--ui-font-family-heading);
+    font-size: 1.6em;
+    color: var(--ui-text-color);
+  }
+}

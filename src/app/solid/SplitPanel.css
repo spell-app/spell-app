@@ -68,6 +68,19 @@
     inset: 0;
   }
 
+  /* an `auto` pane (`fit`):  as tall as its child, which shrinks with it when there's no room */
+  &.fit {
+    display: flex;
+    flex-direction: column;
+
+    & > * {
+      position: relative;
+      inset: auto;
+      flex: 0 1 auto;
+      min-height: 0;
+    }
+  }
+
   &.padded > * {
     inset: var(--spell-normal-padding);
   }

@@ -237,6 +237,10 @@
   border: 0;
   box-shadow: none;
 }
+/* Events, as tall as its events (`cardsLayout()`), up to this much of the column */
+.SpellPage .InspectorColumn > .SplitPanel.InspectorSplit > .SplitPanelPane.fit {
+  max-height: 45%;
+}
 .SpellPage .InspectorColumn > .SplitPanel.InspectorSplit > .SplitPanelSizer {
   flex-basis: 6px;
 }
@@ -263,7 +267,8 @@
   & > .InspectorCode {
     box-sizing: border-box;
     width: 100%;
-    min-height: calc(2lh + 12px);
+    /* one line, growing with its code (Owen:  "textarea should be one line") */
+    min-height: calc(1lh + 14px);
     max-height: 20lh;
     padding: 6px 8px;
     resize: none;

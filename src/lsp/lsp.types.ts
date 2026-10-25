@@ -3,6 +3,7 @@
  */
 import type { Diagnostic, DocumentSymbol } from "vscode-languageserver"
 
+import { indented } from "spell/util/string"
 import type { P } from "spell-parser/parser"
 import type { SP } from "spell-parser/spell"
 
@@ -546,7 +547,7 @@ export function scopePackScript(pack: ScopePack): string {
     "{",
     ...Object.entries(rest).map(([key, value]) => `  ${key}: ${packValue(value)},`),
     "  entries: [",
-    entries.map((entry) => indentPackLines(packEntryLiteral(entry), "    ")).join(",\n"),
+    entries.map((entry) => indented(packEntryLiteral(entry), 4)).join(",\n"),
     "  ]",
     "}"
   ]
@@ -582,14 +583,6 @@ function packEntryLiteral(entry: ScopeEntry): string {
 function packValue(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(packValue).join(", ")}]`
   return JSON.stringify(value)
-}
-
-/** Each line of `text` indented by `indent`. */
-function indentPackLines(text: string, indent: string): string {
-  return text
-    .split("\n")
-    .map((line) => indent + line)
-    .join("\n")
 }
 
 /**

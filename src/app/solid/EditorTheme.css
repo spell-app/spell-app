@@ -40,13 +40,25 @@
   --spell-bar-border: 0 solid transparent;
   --spell-bar-radius: 14px;
   --spell-bar-filter: var(--fruity-blur);
-  --spell-pane-background: var(--fruity-glass-strong);
+  /* a pane's body clearer than its header (Owen:  "The panel bodies used to be less opaque than the header, I liked
+     that") */
+  --spell-pane-background: var(--fruity-glass);
+  --spell-header-background: light-dark(rgb(255 255 255 / 0.4), rgb(255 255 255 / 0.05));
   --spell-pane-border-color: var(--fruity-edge);
   --spell-pane-radius: 14px;
   --spell-pane-filter: var(--fruity-blur);
   /* a panel's header a wash of the theme's purple:  the frosted glass draws its top edge whiter than the rest
      (the blur reaches past the panel), so a see-through header stood out near-white (Owen, epic `elemental-spell` C39) */
   --spell-header-background: color-mix(in oklab, var(--fruity-accent-wash) 50%, transparent);
+}
+
+/* ... and the code editors see-through, the frosted panel behind the code:  Purple's near-white page and lavender
+   margin read as a white box laid in it (Owen:  "white background under `<spell-view "card">` is distracting") */
+:root[data-spell-look="glass"] .monaco-editor {
+  --vscode-editor-background: transparent;
+  --vscode-editorGutter-background: transparent;
+  /* the lines stuck at the top while scrolling keep Purple's own page (`ShadesOfPurple`):  the code scrolls under them */
+  --vscode-editorStickyScroll-background: light-dark(#fbfaff, #2d2b55);
 }
 
 /* Brand (Spell Brand):  white cards with soft shadows on the brand's pale page;  the bar has no box */

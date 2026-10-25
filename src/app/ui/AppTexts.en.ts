@@ -274,6 +274,11 @@ export const APP_TEXTS = {
   inspectorEvents: "Events",
   inspectorNoEvents: "None yet.",
   inspectorEventsTip: "Pick a part to see its events.",
+  // an event's heading over its code (Owen:  "make label `on click`")
+  // the theme editor's page (`<ThemeEditorPage>`), and the palette menu's way there
+  themeEditorTitle: "Theme editor",
+  editTheme: "Edit theme…",
+  inspectorEventHeading: "on {event}",
   inspectorEventCode: "What happens on {event}",
   inspectorProperties: "Properties",
   inspectorThings: "Things",
