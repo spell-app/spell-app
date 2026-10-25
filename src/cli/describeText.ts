@@ -18,6 +18,15 @@ const LABEL_WIDTH = 12
 const INDENT = "  "
 
 /**
+ * The words people read for the explorer's kinds and groups (epic elemental-spell P1, J15):
+ * template, not type;  action, not method.
+ * - The explorer keeps its own names:  its tree's paths are made of them.
+ */
+const KIND_WORDS: Partial<Record<LSP.ScopeKind, string>> = { type: "template", method: "action" }
+/** A member group's label as `spell describe` prints it -- see `KIND_WORDS`. */
+const GROUP_WORDS: Record<string, string> = { Types: "Templates" }
+
+/**
  * Overview of file or project `node`:  what it declares, one line each, with each type's members grouped under it.
  * - A project:  its own constants, then each of its files.
  * - Descriptions show their first line only.
@@ -92,21 +101,21 @@ function fileOverview(node: LSP.ScopeNode, indent: string, options: DescribeText
   return lines
 }
 
-/** One line naming `thing`:  its kind, name and detail, e.g. `type Card  is a Thing`. */
+/** One line naming `thing`:  its kind, name and detail, e.g. `template Card  is a View`. */
 function heading(thing: LSP.ScopeNode | LSP.ScopeMember): string {
   const detail = thing.detail ? chalk.dim(`  ${thing.detail}`) : ""
-  return `${chalk.dim(thing.kind)} ${chalk.bold(thing.name)}${detail}`
+  return `${chalk.dim(kindWord(thing.kind))} ${chalk.bold(thing.name)}${detail}`
 }
 
 /**
- * One line saying what `thing` is, atop all about it, e.g. `type Card is a Thing`, `property color of Card`.
+ * One line saying what `thing` is, atop all about it, e.g. `template Card is a View`, `property color of Card`.
  * - A type's member says whose it is -- from its `path`, where its owner's segment comes before its own.
- * - Anything else ends with its `detail`, e.g. a type's `is a Thing`.
+ * - Anything else ends with its `detail`, e.g. a template's `is a View`.
  */
 function summary(thing: LSP.ScopeNode | LSP.ScopeMember): string {
   const owner = LSP.scopeSegment(LSP.parentScopePath(thing.path))
   const about = owner.kind === "type" ? `of ${owner.name}` : thing.detail
-  return `${thing.kind} ${chalk.bold(thing.name)}${about ? ` ${about}` : ""}`
+  return `${kindWord(thing.kind)} ${chalk.bold(thing.name)}${about ? ` ${about}` : ""}`
 }
 
 /**
@@ -121,7 +130,9 @@ function memberGroups(members: LSP.ScopeMember[], indent: string, options: Descr
       shown.filter((member) => kinds.includes(member.kind)),
       options
     )
-    return items.length ? wrapped(`${indent}${label.padEnd(LABEL_WIDTH)}`, items, options.width) : []
+    return items.length
+      ? wrapped(`${indent}${(GROUP_WORDS[label] ?? label).padEnd(LABEL_WIDTH)}`, items, options.width)
+      : []
   })
 }
 
@@ -219,4 +230,9 @@ function firstLine(text: string | undefined): string | undefined {
 /** Columns `text` takes on screen, ignoring colour codes. */
 function visibleLength(text: string): number {
   return stripVTControlCharacters(text).length
+}
+
+/** The word people read for explorer kind `kind`, e.g. `type` => `template` -- see `KIND_WORDS`. */
+function kindWord(kind: LSP.ScopeKind): string {
+  return KIND_WORDS[kind] ?? kind
 }

@@ -488,13 +488,13 @@ describe("spell describe", () => {
   test("a file:  what it declares", () => {
     const { status, stdout } = spell(["describe", "Card.spell"], SOLITAIRE)
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Card\.spell\n {2}type Card {2}is a View\n/)
+    expect(stdout).toMatch(/^Card\.spell\n {2}template Card {2}is a View\n/)
   })
 
   test("one thing, by name -- ignoring case, and spaces ~== `_`", () => {
     const { status, stdout } = spell(["describe", ".", "STOCK pile"], fixtureFolder("Solitaire"))
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^type StockPile is a Pile\nSolitaire\.spell:\d+\n/)
+    expect(stdout).toMatch(/^template StockPile is a Pile\nSolitaire\.spell:\d+\n/)
   })
 
   test("a member of a thing", () => {
