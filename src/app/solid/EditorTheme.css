@@ -21,7 +21,7 @@
   --spell-gap: 14px;
   /* the top bar */
   --spell-bar-background: var(--ui-surface);
-  --spell-bar-border: 1px solid var(--ui-border-color);
+  --spell-bar-border: 0 solid transparent;
   --spell-bar-radius: var(--ui-radius-l);
   --spell-bar-shadow: var(--ui-shadow-raised);
   --spell-bar-filter: none;
@@ -37,7 +37,7 @@
 /* Glass (Fruity):  frosted panels over the wallpaper */
 :root[data-spell-look="glass"] {
   --spell-bar-background: var(--fruity-glass);
-  --spell-bar-border: 1px solid var(--fruity-edge);
+  --spell-bar-border: 0 solid transparent;
   --spell-bar-radius: 14px;
   --spell-bar-filter: var(--fruity-blur);
   --spell-pane-background: var(--fruity-glass-strong);
