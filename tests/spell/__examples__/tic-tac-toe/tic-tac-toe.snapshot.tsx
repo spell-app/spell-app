@@ -155,7 +155,7 @@ export class TicTacToe extends App {
       <div class="TicTacToe">
         <h2 class="Message">{this.message}</h2>
         {core.drawThing(this.board)}
-        <ui-button primary={true} onClick={() => this.startANewGame()} style="cursor:pointer;user-select:none">
+        <ui-button color="primary" onClick={() => this.startANewGame()} style="cursor:pointer;user-select:none">
           New game
         </ui-button>
       </div>

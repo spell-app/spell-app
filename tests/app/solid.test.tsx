@@ -14,7 +14,7 @@ import type { UIT } from "spell-ui"
 
 /** A Solid component around a `<ui-button>`:  its label from a prop, read where used. */
 function SaveButton(props: { label: string }) {
-  return <ui-button primary="">{props.label}</ui-button>
+  return <ui-button color="primary">{props.label}</ui-button>
 }
 
 describe("Solid in the app", () => {

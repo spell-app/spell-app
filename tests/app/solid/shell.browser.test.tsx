@@ -166,12 +166,12 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
     const root = fakeRoot(false)
     const host = await mount(() => (
       <>
-        <ProjectMenu class="editing" vertical="" projectRoot={root} />
+        <ProjectMenu class="editing" direction="vertical" projectRoot={root} />
         <ProjectMenu class="running" projectRoot={root} useRunner />
       </>
     ))
     const editing = host.querySelector("ui-menu.ProjectMenu.editing")!
-    expect(editing.hasAttribute("vertical")).toBe(true)
+    expect(editing.getAttribute("direction")).toBe("vertical")
     expect(root.load).toHaveBeenCalled()
     expect(text(editing)).toBe("Loading...")
 

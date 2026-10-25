@@ -79,7 +79,7 @@
       ],
       "kind": "method",
       "name": "draw (an adding machine)",
-      "defined": "/HowCalculatorWorks.spell:1888-2424"
+      "defined": "/HowCalculatorWorks.spell:1888-2453"
     },
     {
       "syntax": "test adding up",
@@ -88,7 +88,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "adding up",
-      "defined": "/HowCalculatorWorks.spell:2534-2784"
+      "defined": "/HowCalculatorWorks.spell:2563-2813"
     }
   ],
   "codeLines": [
@@ -99,6 +99,6 @@
     53,
     61,
     73,
-    116
+    119
   ]
 }

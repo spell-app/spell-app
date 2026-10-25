@@ -118,8 +118,8 @@ export class Quiz extends App {
   /** the score, the card, then what you can do:  turn it over, or say how you did */
   draw() {
     return h("div", { class: "Quiz" },
-      h("ui-menu", { secondary: true },
-        h("ui-item", { type: "header" }, "Flash Cards"),
+      h("ui-menu", { appearance: "secondary" },
+        h("ui-item", { kind: "header" }, "Flash Cards"),
         h("ui-item", () => this.score),
         h("ui-menu", { position: "right" },
           h("ui-item", { onClick: () => this.startOver(), style: "cursor:pointer;user-select:none" },
@@ -130,18 +130,18 @@ export class Quiz extends App {
       ),
       () => core.drawThing(this.card),
       h("div", { class: "Answers" },
-        () => !this.card.isTurnedOver ? h("ui-button", { primary: true, onClick: () => this.card.turnOver(), style: "cursor:pointer;user-select:none" },
+        () => !this.card.isTurnedOver ? h("ui-button", { color: "primary", onClick: () => this.card.turnOver(), style: "cursor:pointer;user-select:none" },
           "Show the answer"
         ) : [
           h("ui-button", {
-            positive: true,
+            color: "positive",
             icon: "check",
             onClick: () => this.sayIKnew(),
             style: "cursor:pointer;user-select:none"
           }, "I knew it"),
           h("ui-button", {
-            negative: true,
-            basic: true,
+            color: "negative",
+            appearance: "basic",
             icon: "close",
             onClick: () => this.sayIMissed(),
             style: "cursor:pointer;user-select:none"

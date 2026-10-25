@@ -130,7 +130,7 @@ export class TicTacToe extends App {
     return h("div", { class: "TicTacToe" },
       h("h2", { class: "Message" }, () => this.message),
       () => core.drawThing(this.board),
-      h("ui-button", { primary: true, onClick: () => this.startANewGame(), style: "cursor:pointer;user-select:none" },
+      h("ui-button", { color: "primary", onClick: () => this.startANewGame(), style: "cursor:pointer;user-select:none" },
         "New game"
       )
     )

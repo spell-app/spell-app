@@ -100,7 +100,7 @@ export class Calculator extends App {
   /** How it draws:  the display, then the keypad, four keys a row */
   draw() {
     return h("div", { class: "Calculator" },
-      h("ui-segment", { raised: true },
+      h("ui-segment", { appearance: "raised" },
         h("div", { class: "Display" },
           h("div", { class: "Sum" },
             () => !this.left ? "0" : this.left,
@@ -115,19 +115,19 @@ export class Calculator extends App {
           h("ui-button", {
             class: "Wide",
             fluid: true,
-            negative: true,
+            color: "negative",
             onClick: () => this.clear(),
             style: "cursor:pointer;user-select:none"
           }, "C"),
           h("ui-button", {
             fluid: true,
-            secondary: true,
+            color: "secondary",
             onClick: () => this.finish(),
             style: "cursor:pointer;user-select:none"
           }, "="),
           h("ui-button", {
             fluid: true,
-            primary: true,
+            color: "primary",
             onClick: () => this.applyOpToCalculator("÷"),
             style: "cursor:pointer;user-select:none"
           }, "÷"),
@@ -148,7 +148,7 @@ export class Calculator extends App {
           }, "9"),
           h("ui-button", {
             fluid: true,
-            primary: true,
+            color: "primary",
             onClick: () => this.applyOpToCalculator("×"),
             style: "cursor:pointer;user-select:none"
           }, "×"),
@@ -169,7 +169,7 @@ export class Calculator extends App {
           }, "6"),
           h("ui-button", {
             fluid: true,
-            primary: true,
+            color: "primary",
             onClick: () => this.applyOpToCalculator("–"),
             style: "cursor:pointer;user-select:none"
           }, "–"),
@@ -190,7 +190,7 @@ export class Calculator extends App {
           }, "3"),
           h("ui-button", {
             fluid: true,
-            primary: true,
+            color: "primary",
             onClick: () => this.applyOpToCalculator("+"),
             style: "cursor:pointer;user-select:none"
           }, "+"),

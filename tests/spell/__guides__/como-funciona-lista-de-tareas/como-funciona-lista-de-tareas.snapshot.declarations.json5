@@ -76,7 +76,7 @@
     {
       "type": "ListaDeTareas",
       "superType": "App",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:1728-2635"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:1728-2649"
     },
     {
       "property": "tareas",
@@ -98,7 +98,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "la cuenta pendiente",
-      "defined": "/ComoFuncionaListaDeTareas.es.spell:3103-3360"
+      "defined": "/ComoFuncionaListaDeTareas.es.spell:3117-3374"
     }
   ],
   "codeLines": [

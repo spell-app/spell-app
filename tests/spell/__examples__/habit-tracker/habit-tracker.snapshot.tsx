@@ -78,7 +78,7 @@ export class Habit extends View {
     return (
       <ui-form value={this}>
         <div part="row">
-          <ui-input part="name" name="name" aria-label="Habit" transparent={true} />
+          <ui-input part="name" name="name" aria-label="Habit" appearance="transparent" />
           <ui-checkbox name="monday" aria-label="Monday" />
           <ui-checkbox name="tuesday" aria-label="Tuesday" />
           <ui-checkbox name="wednesday" aria-label="Wednesday" />
@@ -179,7 +179,7 @@ export class HabitTracker extends App {
         <ui-form value={this}>
           <div class="NewHabit">
             <ui-input name="draft" placeholder="A habit to keep, e.g. Read" aria-label="New habit" fluid={true} />
-            <ui-button primary={true} disabled={this.draft === ""} onClick={() => this.addTheDraft()} style="cursor:pointer;user-select:none">
+            <ui-button color="primary" disabled={this.draft === ""} onClick={() => this.addTheDraft()} style="cursor:pointer;user-select:none">
               Add
             </ui-button>
           </div>

@@ -80,7 +80,7 @@ export class Quiz extends App {
   draw() {
     return h("div", { class: "Quiz" },
       () => core.drawThing(this.card),
-      h("ui-button", { primary: true, onClick: () => this.dealACard(), style: "cursor:pointer;user-select:none" },
+      h("ui-button", { color: "primary", onClick: () => this.dealACard(), style: "cursor:pointer;user-select:none" },
         "Next card"
       )
     )

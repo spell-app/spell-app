@@ -84,7 +84,7 @@ export class Habit extends View {
   draw() {
     return h("ui-form", { value: this },
       h("div", { part: "row" },
-        h("ui-input", { part: "name", name: "name", "aria-label": "Habit", transparent: true }),
+        h("ui-input", { part: "name", name: "name", "aria-label": "Habit", appearance: "transparent" }),
         h("ui-checkbox", { name: "monday", "aria-label": "Monday" }),
         h("ui-checkbox", { name: "tuesday", "aria-label": "Tuesday" }),
         h("ui-checkbox", { name: "wednesday", "aria-label": "Wednesday" }),
@@ -151,7 +151,7 @@ export class HabitTracker extends App {
         h("div", { class: "NewHabit" },
           h("ui-input", { name: "draft", placeholder: "A habit to keep, e.g. Read", "aria-label": "New habit", fluid: true }),
           h("ui-button", {
-            primary: true,
+            color: "primary",
             disabled: () => this.draft === "",
             onClick: () => this.addTheDraft(),
             style: "cursor:pointer;user-select:none"

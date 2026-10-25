@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe("Inspector.partFor()", () => {
   test("a Spell UI element:  itself, with its tag's attributes", async () => {
-    const button = await inArea(`<ui-button primary>Go</ui-button>`)
+    const button = await inArea(`<ui-button color="primary">Go</ui-button>`)
     const part = Inspector.partFor(button.querySelector("ui-button")!)
     expect(part && { value: part.value.constructor.name, schema: part.schema, label: part.label }).toEqual({
       value: button.querySelector("ui-button")!.constructor.name,

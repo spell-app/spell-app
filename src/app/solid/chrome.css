@@ -12,7 +12,7 @@ ui-menu.PanelMenu::part(menu) {
   z-index: 10;
   box-shadow: var(--ui-shadow-raised);
 }
-ui-menu.PanelMenu > ui-item[type="header"]::part(item) {
+ui-menu.PanelMenu > ui-item[kind="header"]::part(item) {
   padding-left: 1em;
 }
 

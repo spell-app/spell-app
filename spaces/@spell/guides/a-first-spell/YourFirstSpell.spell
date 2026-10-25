@@ -34,7 +34,7 @@ hello sign is an app where:
 	- to draw it:
 		return <div class="Sign">
 			<h1>{its message}</h1>
-			<ui-button primary onClick={wave back}>Wave back</ui-button>
+			<ui-button color="primary" onClick={wave back}>Wave back</ui-button>
 			<p>{its count}</p>
 		</div>
 

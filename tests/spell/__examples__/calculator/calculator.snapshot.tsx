@@ -96,19 +96,19 @@ export class Calculator extends App {
   @drawn draw() {
     return (
       <div class="Calculator">
-        <ui-segment raised={true}>
+        <ui-segment appearance="raised">
           <div class="Display">
             <div class="Sum">{!this.left ? "0" : this.left}{" "}{this.operator}{" "}{this.right}</div>
             <div class="Total">{this.output}</div>
           </div>
           <div class="Keypad">
-            <ui-button class="Wide" fluid={true} negative={true} onClick={() => this.clear()} style="cursor:pointer;user-select:none">
+            <ui-button class="Wide" fluid={true} color="negative" onClick={() => this.clear()} style="cursor:pointer;user-select:none">
               C
             </ui-button>
-            <ui-button fluid={true} secondary={true} onClick={() => this.finish()} style="cursor:pointer;user-select:none">
+            <ui-button fluid={true} color="secondary" onClick={() => this.finish()} style="cursor:pointer;user-select:none">
               =
             </ui-button>
-            <ui-button fluid={true} primary={true} onClick={() => this.applyOpToCalculator("÷")} style="cursor:pointer;user-select:none">
+            <ui-button fluid={true} color="primary" onClick={() => this.applyOpToCalculator("÷")} style="cursor:pointer;user-select:none">
               ÷
             </ui-button>
             <ui-button fluid={true} onClick={() => this.appendDigitToCalculator("7")} style="cursor:pointer;user-select:none">
@@ -120,7 +120,7 @@ export class Calculator extends App {
             <ui-button fluid={true} onClick={() => this.appendDigitToCalculator("9")} style="cursor:pointer;user-select:none">
               9
             </ui-button>
-            <ui-button fluid={true} primary={true} onClick={() => this.applyOpToCalculator("×")} style="cursor:pointer;user-select:none">
+            <ui-button fluid={true} color="primary" onClick={() => this.applyOpToCalculator("×")} style="cursor:pointer;user-select:none">
               ×
             </ui-button>
             <ui-button fluid={true} onClick={() => this.appendDigitToCalculator("4")} style="cursor:pointer;user-select:none">
@@ -132,7 +132,7 @@ export class Calculator extends App {
             <ui-button fluid={true} onClick={() => this.appendDigitToCalculator("6")} style="cursor:pointer;user-select:none">
               6
             </ui-button>
-            <ui-button fluid={true} primary={true} onClick={() => this.applyOpToCalculator("–")} style="cursor:pointer;user-select:none">
+            <ui-button fluid={true} color="primary" onClick={() => this.applyOpToCalculator("–")} style="cursor:pointer;user-select:none">
               –
             </ui-button>
             <ui-button fluid={true} onClick={() => this.appendDigitToCalculator("1")} style="cursor:pointer;user-select:none">
@@ -144,7 +144,7 @@ export class Calculator extends App {
             <ui-button fluid={true} onClick={() => this.appendDigitToCalculator("3")} style="cursor:pointer;user-select:none">
               3
             </ui-button>
-            <ui-button fluid={true} primary={true} onClick={() => this.applyOpToCalculator("+")} style="cursor:pointer;user-select:none">
+            <ui-button fluid={true} color="primary" onClick={() => this.applyOpToCalculator("+")} style="cursor:pointer;user-select:none">
               +
             </ui-button>
             <ui-button class="Wide" fluid={true} onClick={() => this.appendDigitToCalculator("0")} style="cursor:pointer;user-select:none">

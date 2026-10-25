@@ -73,7 +73,7 @@ export class AddingMachine extends App {
    */
   draw() {
     return h("div", { class: "Adder" },
-      h("ui-segment", { raised: true },
+      h("ui-segment", { appearance: "raised" },
         h("div", { class: "Display" }, () => !this.input ? this.total : this.input),
         h("div", { class: "Keys" },
           h("ui-button", {
@@ -93,13 +93,16 @@ export class AddingMachine extends App {
           }, "5"),
           h("ui-button", {
             fluid: true,
-            primary: true,
+            color: "primary",
             onClick: () => this.addTheInputToAddingMachine(),
             style: "cursor:pointer;user-select:none"
           }, "+"),
-          h("ui-button", { fluid: true, negative: true, onClick: () => this.clear(), style: "cursor:pointer;user-select:none" },
-            "C"
-          )
+          h("ui-button", {
+            fluid: true,
+            color: "negative",
+            onClick: () => this.clear(),
+            style: "cursor:pointer;user-select:none"
+          }, "C")
         )
       )
     )

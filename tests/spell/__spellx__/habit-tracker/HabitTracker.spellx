@@ -40,7 +40,7 @@
 		- to draw it:
 			return <ui-form value={it}>
 				<div part="row">
-					<ui-input part="name" name="name" aria-label="Habit" transparent/>
+					<ui-input part="name" name="name" aria-label="Habit" appearance="transparent"/>
 					<ui-checkbox name="monday" aria-label="Monday"/>
 					<ui-checkbox name="tuesday" aria-label="Tuesday"/>
 					<ui-checkbox name="wednesday" aria-label="Wednesday"/>
@@ -89,7 +89,7 @@
 				<ui-form value={it}>
 					<div class="NewHabit">
 						<ui-input name="draft" placeholder="A habit to keep, e.g. Read" aria-label="New habit" fluid/>
-						<ui-button primary disabled={its draft is ""} onClick={add the draft}>Add</ui-button>
+						<ui-button color="primary" disabled={its draft is ""} onClick={add the draft}>Add</ui-button>
 					</div>
 				</ui-form>
 				<div class="Days">

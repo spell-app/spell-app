@@ -53,7 +53,7 @@
       "kind": "method",
       "name": "play (a square)",
       "returns": "nothing",
-      "defined": "/TicTacToe.spell:2824-3060"
+      "defined": "/TicTacToe.spell:2832-3068"
     },
     {
       "type": "Board",
@@ -71,7 +71,7 @@
     {
       "type": "TicTacToe",
       "superType": "App",
-      "defined": "/TicTacToe.spell:813-2740"
+      "defined": "/TicTacToe.spell:813-2748"
     },
     {
       "property": "board",
@@ -185,7 +185,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TicTacToe.spell:2555-2740"
+      "defined": "/TicTacToe.spell:2555-2748"
     },
     {
       "syntax": "test three in a row",
@@ -194,7 +194,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "three in a row",
-      "defined": "/TicTacToe.spell:3118-3480"
+      "defined": "/TicTacToe.spell:3126-3488"
     }
   ],
   "codeLines": [

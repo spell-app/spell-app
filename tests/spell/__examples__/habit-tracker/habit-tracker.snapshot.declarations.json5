@@ -10,7 +10,7 @@
     {
       "type": "Habit",
       "superType": "View",
-      "defined": "/HabitTracker.spell:425-1882"
+      "defined": "/HabitTracker.spell:425-1895"
     },
     {
       "property": "name",
@@ -89,37 +89,37 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/HabitTracker.spell:1258-1882"
+      "defined": "/HabitTracker.spell:1258-1895"
     },
     {
       "type": "Week",
       "superType": "ViewableList",
       "itemType": "Habit",
-      "defined": "/HabitTracker.spell:1920-2103"
+      "defined": "/HabitTracker.spell:1933-2116"
     },
     {
       "property": "week",
       "of": "Habit",
       "datatype": "Week",
       "exclusive": true,
-      "defined": "/HabitTracker.spell:2131-2158"
+      "defined": "/HabitTracker.spell:2144-2171"
     },
     {
       "type": "HabitTracker",
       "superType": "App",
-      "defined": "/HabitTracker.spell:2176-3101"
+      "defined": "/HabitTracker.spell:2189-3122"
     },
     {
       "property": "habits",
       "of": "HabitTracker",
       "datatype": "Week",
-      "defined": "/HabitTracker.spell:2210-2236"
+      "defined": "/HabitTracker.spell:2223-2249"
     },
     {
       "property": "draft",
       "of": "HabitTracker",
       "datatype": "text",
-      "defined": "/HabitTracker.spell:2277-2296"
+      "defined": "/HabitTracker.spell:2290-2309"
     },
     {
       "syntax": "add the draft (of {thisArg:expression})?",
@@ -133,7 +133,7 @@
       "kind": "method",
       "name": "add the draft",
       "returns": "nothing",
-      "defined": "/HabitTracker.spell:2362-2481"
+      "defined": "/HabitTracker.spell:2375-2494"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -146,7 +146,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/HabitTracker.spell:2551-3101"
+      "defined": "/HabitTracker.spell:2564-3122"
     },
     {
       "syntax": "test streaks",
@@ -155,7 +155,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "streaks",
-      "defined": "/HabitTracker.spell:3503-3761"
+      "defined": "/HabitTracker.spell:3524-3782"
     }
   ],
   "codeLines": [

@@ -94,8 +94,8 @@ export class ListaDeTareas extends App {
 
   draw() {
     return h("es-contenedor", { class: "ListaDeTareas" },
-      h("es-menu", { secundario: true },
-        h("es-elemento", { tipo: "encabezado" }, () => `${this.cuentaPendiente} pendientes`),
+      h("es-menu", { apariencia: "secundario" },
+        h("es-elemento", { clase: "encabezado" }, () => `${this.cuentaPendiente} pendientes`),
         h("es-elemento", {
           seleccionado: () => this.tareas.mostrando === "todas",
           onClick: () => (this.tareas.mostrando = "todas"),

@@ -93,8 +93,8 @@ export class TaskList extends App {
 
   draw() {
     return h("ui-container", { class: "TaskList" },
-      h("ui-menu", { secondary: true },
-        h("ui-item", { type: "header" }, () => `${this.activeCount} to do`),
+      h("ui-menu", { appearance: "secondary" },
+        h("ui-item", { kind: "header" }, () => `${this.activeCount} to do`),
         h("ui-item", {
           selected: () => this.tasks.showing === "all",
           onClick: () => (this.tasks.showing = "all"),

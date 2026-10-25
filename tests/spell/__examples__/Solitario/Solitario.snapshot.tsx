@@ -1013,20 +1013,20 @@ export class Solitario extends App {
     return (
       <es-contenedor>
         <es-menu>
-          <es-elemento tipo="encabezado">Solitario Klondike</es-elemento>
+          <es-elemento clase="encabezado">Solitario Klondike</es-elemento>
           <es-elemento>{`Puntos: ${this.puntuación}${this.pista}`}</es-elemento>
           <es-menu posicion="derecha">
             <es-elemento aria-label="Jugar solo" onClick={() => this.jugarSolo()} style="cursor:pointer;user-select:none">
               <es-icono name="fast forward" />
-              <es-emergente contenido="Jugar solo" invertido={true} tamano="pequeño" />
+              <es-emergente etiqueta="Jugar solo" invertido={true} tamano="pequeño" />
             </es-elemento>
             <es-elemento aria-label="Trampa" onClick={() => this.hacerTrampa()} style="cursor:pointer;user-select:none">
               <es-icono name="eye" />
-              <es-emergente contenido="Trampa" invertido={true} tamano="pequeño" />
+              <es-emergente etiqueta="Trampa" invertido={true} tamano="pequeño" />
             </es-elemento>
             <es-elemento aria-label="Reiniciar" onClick={() => this.empezarElJuego()} style="cursor:pointer;user-select:none">
               <es-icono name="redo" />
-              <es-emergente contenido="Reiniciar" invertido={true} tamano="pequeño" />
+              <es-emergente etiqueta="Reiniciar" invertido={true} tamano="pequeño" />
             </es-elemento>
           </es-menu>
         </es-menu>

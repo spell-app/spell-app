@@ -73,7 +73,7 @@ export class AddingMachine extends App {
   @drawn draw() {
     return (
       <div class="Adder">
-        <ui-segment raised={true}>
+        <ui-segment appearance="raised">
           <div class="Display">{!this.input ? this.total : this.input}</div>
           <div class="Keys">
             <ui-button fluid={true} onClick={() => this.pressDigitOnAddingMachine("1")} style="cursor:pointer;user-select:none">
@@ -85,10 +85,10 @@ export class AddingMachine extends App {
             <ui-button fluid={true} onClick={() => this.pressDigitOnAddingMachine("5")} style="cursor:pointer;user-select:none">
               5
             </ui-button>
-            <ui-button fluid={true} primary={true} onClick={() => this.addTheInputToAddingMachine()} style="cursor:pointer;user-select:none">
+            <ui-button fluid={true} color="primary" onClick={() => this.addTheInputToAddingMachine()} style="cursor:pointer;user-select:none">
               +
             </ui-button>
-            <ui-button fluid={true} negative={true} onClick={() => this.clear()} style="cursor:pointer;user-select:none">
+            <ui-button fluid={true} color="negative" onClick={() => this.clear()} style="cursor:pointer;user-select:none">
               C
             </ui-button>
           </div>

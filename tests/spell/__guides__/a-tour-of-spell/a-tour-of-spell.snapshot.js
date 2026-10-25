@@ -83,7 +83,7 @@ export class Plant extends View {
       h("h3", () => this.name),
       h("p", () => this.status),
       h("ui-button", {
-        basic: true,
+        appearance: "basic",
         size: "small",
         icon: "tint",
         onClick: () => this.water(),
@@ -127,7 +127,7 @@ export class Garden extends App {
 
   draw() {
     return h("div", { class: "Garden" },
-      h("ui-button", { primary: true, onClick: () => this.waitADay(), style: "cursor:pointer;user-select:none" },
+      h("ui-button", { color: "primary", onClick: () => this.waitADay(), style: "cursor:pointer;user-select:none" },
         "A day goes by"
       ),
       () => core.drawThing(this.sill)

@@ -54,7 +54,7 @@ export class Carta extends View {
   // un clic la juega en la columna
   @drawn draw() {
     return (
-      <es-boton basico={true} color={this.color} onClick={() => this.jugar()} style="cursor:pointer;user-select:none">
+      <es-boton apariencia="básico" color={this.color} onClick={() => this.jugar()} style="cursor:pointer;user-select:none">
         {this.nombre}
       </es-boton>
     )

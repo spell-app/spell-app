@@ -15,7 +15,7 @@
       "type": "Carta",
       "superType": "View",
       "gender": "feminine",
-      "defined": "/ComoFuncionaSolitario.es.spell:808-1381"
+      "defined": "/ComoFuncionaSolitario.es.spell:808-1394"
     },
     {
       "property": "rango",
@@ -90,50 +90,50 @@
       ],
       "kind": "method",
       "name": "jugar una carta",
-      "defined": "/ComoFuncionaSolitario.es.spell:2506-2786"
+      "defined": "/ComoFuncionaSolitario.es.spell:2519-2799"
     },
     {
       "type": "Pila",
       "superType": "ViewableList",
       "gender": "feminine",
       "itemType": "Carta",
-      "defined": "/ComoFuncionaSolitario.es.spell:1411-1452"
+      "defined": "/ComoFuncionaSolitario.es.spell:1424-1465"
     },
     {
       "property": "pila",
       "of": "Carta",
       "datatype": "Pila",
       "exclusive": true,
-      "defined": "/ComoFuncionaSolitario.es.spell:1532-1562"
+      "defined": "/ComoFuncionaSolitario.es.spell:1545-1575"
     },
     {
       "type": "Columna",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/ComoFuncionaSolitario.es.spell:1796-2037"
+      "defined": "/ComoFuncionaSolitario.es.spell:1809-2050"
     },
     {
       "type": "Mesa",
       "superType": "App",
-      "defined": "/ComoFuncionaSolitario.es.spell:2107-2449"
+      "defined": "/ComoFuncionaSolitario.es.spell:2120-2462"
     },
     {
       "property": "columna",
       "of": "Mesa",
       "datatype": "Columna",
-      "defined": "/ComoFuncionaSolitario.es.spell:2140-2173"
+      "defined": "/ComoFuncionaSolitario.es.spell:2153-2186"
     },
     {
       "property": "mano",
       "of": "Mesa",
       "datatype": "Pila",
-      "defined": "/ComoFuncionaSolitario.es.spell:2177-2204"
+      "defined": "/ComoFuncionaSolitario.es.spell:2190-2217"
     },
     {
       "property": "mensaje",
       "of": "Mesa",
       "datatype": "text",
-      "defined": "/ComoFuncionaSolitario.es.spell:2208-2229"
+      "defined": "/ComoFuncionaSolitario.es.spell:2221-2242"
     },
     {
       "syntax": "probar la columna",
@@ -142,7 +142,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "la columna",
-      "defined": "/ComoFuncionaSolitario.es.spell:3280-3586"
+      "defined": "/ComoFuncionaSolitario.es.spell:3293-3599"
     }
   ],
   "codeLines": [

@@ -842,7 +842,7 @@ export class Solitario extends App {
   draw() {
     return h("es-contenedor",
       h("es-menu",
-        h("es-elemento", { tipo: "encabezado" }, "Solitario Klondike"),
+        h("es-elemento", { clase: "encabezado" }, "Solitario Klondike"),
         h("es-elemento", () => `Puntos: ${this.puntuación}${this.pista}`),
         h("es-menu", { posicion: "derecha" },
           h("es-elemento", {
@@ -851,11 +851,11 @@ export class Solitario extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("es-icono", { name: "fast forward" }),
-            h("es-emergente", { contenido: "Jugar solo", invertido: true, tamano: "pequeño" })
+            h("es-emergente", { etiqueta: "Jugar solo", invertido: true, tamano: "pequeño" })
           ),
           h("es-elemento", { "aria-label": "Trampa", onClick: () => this.hacerTrampa(), style: "cursor:pointer;user-select:none" },
             h("es-icono", { name: "eye" }),
-            h("es-emergente", { contenido: "Trampa", invertido: true, tamano: "pequeño" })
+            h("es-emergente", { etiqueta: "Trampa", invertido: true, tamano: "pequeño" })
           ),
           h("es-elemento", {
             "aria-label": "Reiniciar",
@@ -863,7 +863,7 @@ export class Solitario extends App {
             style: "cursor:pointer;user-select:none"
           },
             h("es-icono", { name: "redo" }),
-            h("es-emergente", { contenido: "Reiniciar", invertido: true, tamano: "pequeño" })
+            h("es-emergente", { etiqueta: "Reiniciar", invertido: true, tamano: "pequeño" })
           )
         )
       ),

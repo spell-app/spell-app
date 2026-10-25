@@ -11,7 +11,7 @@
     {
       "type": "Card",
       "superType": "View",
-      "defined": "/HowSolitaireWorks.spell:667-1206"
+      "defined": "/HowSolitaireWorks.spell:667-1219"
     },
     {
       "property": "rank",
@@ -86,7 +86,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/HowSolitaireWorks.spell:1111-1206"
+      "defined": "/HowSolitaireWorks.spell:1111-1219"
     },
     {
       "syntax": "try {thisArg:expression}",
@@ -99,48 +99,48 @@
       ],
       "kind": "method",
       "name": "try (a card)",
-      "defined": "/HowSolitaireWorks.spell:2311-2580"
+      "defined": "/HowSolitaireWorks.spell:2324-2593"
     },
     {
       "type": "Pile",
       "superType": "ViewableList",
       "itemType": "Card",
-      "defined": "/HowSolitaireWorks.spell:1233-1269"
+      "defined": "/HowSolitaireWorks.spell:1246-1282"
     },
     {
       "property": "pile",
       "of": "Card",
       "datatype": "Pile",
       "exclusive": true,
-      "defined": "/HowSolitaireWorks.spell:1351-1377"
+      "defined": "/HowSolitaireWorks.spell:1364-1390"
     },
     {
       "type": "Column",
       "superType": "Pile",
-      "defined": "/HowSolitaireWorks.spell:1632-1866"
+      "defined": "/HowSolitaireWorks.spell:1645-1879"
     },
     {
       "type": "Table",
       "superType": "App",
-      "defined": "/HowSolitaireWorks.spell:1927-2235"
+      "defined": "/HowSolitaireWorks.spell:1940-2248"
     },
     {
       "property": "column",
       "of": "Table",
       "datatype": "Column",
-      "defined": "/HowSolitaireWorks.spell:1953-1981"
+      "defined": "/HowSolitaireWorks.spell:1966-1994"
     },
     {
       "property": "hand",
       "of": "Table",
       "datatype": "Pile",
-      "defined": "/HowSolitaireWorks.spell:1985-2009"
+      "defined": "/HowSolitaireWorks.spell:1998-2022"
     },
     {
       "property": "message",
       "of": "Table",
       "datatype": "text",
-      "defined": "/HowSolitaireWorks.spell:2013-2034"
+      "defined": "/HowSolitaireWorks.spell:2026-2047"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -153,7 +153,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/HowSolitaireWorks.spell:2039-2235"
+      "defined": "/HowSolitaireWorks.spell:2052-2248"
     },
     {
       "syntax": "test the column",
@@ -162,7 +162,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "the column",
-      "defined": "/HowSolitaireWorks.spell:3028-3379"
+      "defined": "/HowSolitaireWorks.spell:3041-3392"
     }
   ],
   "codeLines": [

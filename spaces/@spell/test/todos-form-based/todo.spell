@@ -35,8 +35,8 @@ to draw (a todos-app)
 	return
 		<ui-container>
 			<ui-segment>
-				<ui-menu inverted color="violet" borderless>
-					<ui-item type="header">To Do:</ui-item>
+				<ui-menu inverted color="violet" appearance="borderless">
+					<ui-item kind="header">To Do:</ui-item>
 					<ui-menu position="right">
 						<ui-item>Show:</ui-item>
 						<ui-item onClick={set the filter of the app to "all"} selected={the filter of the app is "all"}>All</ui-item>
@@ -59,7 +59,7 @@ to draw (a todos-app)
 				<br/>
 				<br/>
 				<ui-menu inverted color="grey">
-					<ui-item type="header">Test:</ui-item>
+					<ui-item kind="header">Test:</ui-item>
 					<ui-item onClick={create a new task with title = "Moar"}>Add Item</ui-item>
 					<ui-item onClick={remove the first item of the tasks of the app}>Remove Item</ui-item>
 					<ui-item onClick={set the title of the first item of the tasks of the app to "New title"}>Change name</ui-item>

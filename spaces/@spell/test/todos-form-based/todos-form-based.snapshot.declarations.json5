@@ -88,7 +88,7 @@
       ],
       "kind": "method",
       "name": "draw (a todos-app)",
-      "defined": "/todo.spell:1173-2957"
+      "defined": "/todo.spell:1173-2970"
     },
     {
       "syntax": "create a new task (with {props:object_literal_properties})?",

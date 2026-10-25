@@ -84,7 +84,7 @@
     {
       "type": "TaskList",
       "superType": "App",
-      "defined": "/HowTaskListWorks.spell:1599-2375"
+      "defined": "/HowTaskListWorks.spell:1599-2388"
     },
     {
       "property": "tasks",
@@ -110,7 +110,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/HowTaskListWorks.spell:1810-2375"
+      "defined": "/HowTaskListWorks.spell:1810-2388"
     },
     {
       "syntax": "test counting the tasks to do",
@@ -119,7 +119,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "counting the tasks to do",
-      "defined": "/HowTaskListWorks.spell:2764-3001"
+      "defined": "/HowTaskListWorks.spell:2777-3014"
     }
   ],
   "codeLines": [

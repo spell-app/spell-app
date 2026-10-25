@@ -43,7 +43,7 @@ quiz is an app where:
 	- to draw it:
 		return <div class="Quiz">
 			{draw its card}
-			<ui-button primary onClick={deal a card}>Next card</ui-button>
+			<ui-button color="primary" onClick={deal a card}>Next card</ui-button>
 		</div>
 
 

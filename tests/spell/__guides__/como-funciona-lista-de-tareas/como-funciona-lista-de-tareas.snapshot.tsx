@@ -127,8 +127,8 @@ export class ListaDeTareas extends App {
   @drawn draw() {
     return (
       <es-contenedor class="ListaDeTareas">
-        <es-menu secundario={true}>
-          <es-elemento tipo="encabezado">{`${this.cuentaPendiente} pendientes`}</es-elemento>
+        <es-menu apariencia="secundario">
+          <es-elemento clase="encabezado">{`${this.cuentaPendiente} pendientes`}</es-elemento>
           <es-elemento seleccionado={this.tareas.mostrando === "todas"} onClick={() => (this.tareas.mostrando = "todas")} style="cursor:pointer;user-select:none">
             Todas
           </es-elemento>

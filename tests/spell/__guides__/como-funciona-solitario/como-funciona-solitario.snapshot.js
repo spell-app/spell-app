@@ -52,7 +52,7 @@ export class Carta extends View {
   // un clic la juega en la columna
   draw() {
     return h("es-boton", {
-      basico: true,
+      apariencia: "básico",
       color: () => this.color,
       onClick: () => this.jugar(),
       style: "cursor:pointer;user-select:none"

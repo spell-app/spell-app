@@ -44,14 +44,14 @@ to clear (an adding machine):
 // The display shows the number being typed, or the total when nothing is.
 to draw (an adding machine)
 	return <div class="Adder">
-		<ui-segment raised>
+		<ui-segment appearance="raised">
 			<div class="Display">{its total if its input is empty otherwise its input}</div>
 			<div class="Keys">
 				<ui-button fluid onClick={press "1" on it}>1</ui-button>
 				<ui-button fluid onClick={press "2" on it}>2</ui-button>
 				<ui-button fluid onClick={press "5" on it}>5</ui-button>
-				<ui-button fluid primary onClick={add the input to it}>+</ui-button>
-				<ui-button fluid negative onClick={clear it}>C</ui-button>
+				<ui-button fluid color="primary" onClick={add the input to it}>+</ui-button>
+				<ui-button fluid color="negative" onClick={clear it}>C</ui-button>
 			</div>
 		</ui-segment>
 	</div>
