@@ -271,13 +271,17 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
   --ui-menu-segmented-radius: 9999px;
   --ui-menu-segmented-padding: 2px;
   --ui-menu-segmented-item-radius: 9999px;
-  --ui-menu-segmented-item-padding: 0.25em 0.75em;
+  /* taller pills in the same 40px header (Owen:  "make the buttons taller leaving the header the same height") */
+  --ui-menu-segmented-item-padding: 0.5em 0.85em;
+  /* the words a shade darker and heavier (Owen:  "the text is a little light") */
+  --ui-menu-segmented-item-color: var(--ui-text-dark, var(--ui-text-color));
   /* the size of a header's plain words (the code pane's menus), a step under its bold title */
   --ui-font-size: 13px;
   font-size: 13px;
 }
 :is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) > ui-item::part(item) {
   flex: 1 1 0;
+  font-weight: 500;
   min-width: max-content;
   justify-content: center;
 }
