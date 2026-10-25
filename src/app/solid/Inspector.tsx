@@ -381,7 +381,7 @@ export function addressKey(address: PartAddress): string {
 }
 
 /** What the Inspector reads of a Spell UI attribute:  its name and kind (`size`, `color` ...). */
-export type FieldSpec = { name: string; kind?: string; group?: E.AttributeGroup }
+export type FieldSpec = { name: string; kind?: string; group?: E.AttributeGroup; description?: string }
 
 /** The preference that remembers whether the Inspector is open. */
 const OPEN_PREF = "inspector"
@@ -756,16 +756,22 @@ type InspectorSection = { group: E.AttributeGroup; hasText: boolean; fields: Fie
  * - A size or a colour is half a row (`.half`), so the two share one:  each is a short choice.
  * - So is an attribute and the one that places it, side by side:  `icon` and `icon-position`.
  * - A colour's choices are chips (`<HueSelect>`), not words alone.
+ * - Its info icon's tip is the attribute's description, shown after a 2s hover (`chrome.css`).
  ****************/
 function Field(props: { field: FieldSpec; fields: FieldSpec[] }): JSX.Element {
   const isHalf = HALF_KINDS.has(props.field.kind ?? "") || isPositionPair(props.field, props.fields)
   return (
-    <ui-property name={props.field.name} class={{ half: isHalf }}>
+    <ui-property name={props.field.name} class={{ half: isHalf }} description={tipFor(props.field)}>
       <Show when={props.field.kind === "color"}>
         <HueSelect name={props.field.name} />
       </Show>
     </ui-property>
   )
+}
+
+/** A field's info tip:  its vocabulary's description, its `code` marks dropped (the tip is plain text). */
+function tipFor(field: FieldSpec): string | undefined {
+  return field.description?.replace(/`/g, "")
 }
 
 /** It places the field beside it, or the one beside it places it:  `icon` and `icon-position`. */

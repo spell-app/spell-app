@@ -69,6 +69,25 @@ ui-icon.IconAction {
   transition-delay: 2s;
 }
 
+/*
+ * Tooltips in the theme (Owen:  "make tooltips match theme"):  a deep shade of its primary colour, white words,
+ * the brand inspector's look;  the editor's (`[data-tooltip][data-inverted]`) and a field's info tip alike.
+ * - A field's tip waits as long as the editor's tooltips (`--ui-field-tip-delay`).
+ */
+:root {
+  --spell-tooltip-background: color-mix(in oklab, var(--ui-primary) 45%, #10061f);
+  --ui-field-tip-background: var(--spell-tooltip-background);
+  --ui-field-tip-color: white;
+  --ui-field-tip-delay: 2s;
+}
+#app-root [data-tooltip][data-inverted] {
+  --ui-tooltip-background: var(--spell-tooltip-background);
+  --ui-tooltip-color: white;
+}
+#app-root [data-tooltip][data-inverted]::after {
+  border-radius: 8px;
+}
+
 /* `Actions.you`:  the person's avatar, a round button */
 .YouAvatar {
   display: inline-flex;
