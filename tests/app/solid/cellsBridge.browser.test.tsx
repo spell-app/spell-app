@@ -298,7 +298,7 @@ describe("the bridge", () => {
     expect(host.textContent).toBe("3 of clubs (black)")
   })
 
-  test("follows the cells of ANOTHER copy of the cells module -- e.g. a `<spell-app>`'s `spell-runtime.js`", async () => {
+  test("follows the cells of ANOTHER copy of the cells module -- e.g. a `<spell-viewer>`'s `spell-runtime.js`", async () => {
     // `?copy`:  a separate instance of the module, as each runtime bundle has its own `spell/util`
     // @ts-expect-error -- a query on purpose:  Vite loads the file again, a second module
     const copy = (await import("spell/util/reactive/cells?copy")) as typeof import("spell/util")

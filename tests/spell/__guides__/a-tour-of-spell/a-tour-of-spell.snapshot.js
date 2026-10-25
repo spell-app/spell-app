@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, View, ViewableList, h } from "@spell/core"
 
 core.heading("A tour of Spell")
 /////////////////////
@@ -113,6 +113,8 @@ export class Windowsill extends ViewableList {
 
 /** the app:  the page on the right */
 export class Garden extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "sill" is a new windowsill
   static { this.declareProp("sill", { init: () => new Windowsill(), early: true }) }
   get sill() { return this.getProp("sill") }

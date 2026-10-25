@@ -3,12 +3,12 @@ import { flush } from "solid-js"
 
 import { ElementFixture } from "spell/test-helpers/ElementFixture"
 import type { SpellCompiled } from "spell-app/app/runner/runner.types"
-import type { DOMSpellAppElement } from "spell-app/app/components/spell-app"
+import type { DOMSpellViewerElement } from "spell-app/app/components/spell-viewer"
 import type { P } from "spell-parser/parser"
 import type { SP } from "spell-parser/spell"
 
 /**
- * `<spell-app>` as a root (`UIRoot`), on a page with nothing else of Spell UI.
+ * `<spell-viewer>` as a root (`UIRoot`), on a page with nothing else of Spell UI.
  * - NO `loadUI.ts` here:
  *   every `<ui-*>` the runner draws is defined by the element itself, the first time it appears.
  * - The runtime and the shadow styles are stubbed, as in `runner.browser.test.tsx`.
@@ -52,10 +52,10 @@ export let board = new Board()
 board.start()
 `
 
-describe("<spell-app>, a root", () => {
+describe("<spell-viewer>, a root", () => {
   test("loads the Spell UI widgets its runner draws, on demand:  none before", async () => {
     expect(customElements.get("ui-menu")).toBeUndefined()
-    const app = await mountApp(`<spell-app toolbar></spell-app>`)
+    const app = await mountApp(`<spell-viewer toolbar></spell-viewer>`)
     app.run({ projectId: "@spell/test/Test", compiled: PROGRAM } satisfies SpellCompiled)
     const root = app.shadowRoot!
     await waitFor(() => root.querySelector("button.shown"))
@@ -66,7 +66,7 @@ describe("<spell-app>, a root", () => {
   })
 
   test("loads a spell tag inside it from beside its script:  `<spell-editor>` => `spell-editor.js`", async () => {
-    const app = await mountApp(`<spell-app><spell-nothing-here></spell-nothing-here></spell-app>`)
+    const app = await mountApp(`<spell-viewer><spell-nothing-here></spell-nothing-here></spell-viewer>`)
     const failed = await new Promise<{ tag: string; reason: string }[]>((resolve) =>
       app.addEventListener("ui-ready", (event) => resolve((event as CustomEvent).detail.failed), { once: true })
     )
@@ -75,12 +75,12 @@ describe("<spell-app>, a root", () => {
   })
 })
 
-describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
+describe("<spell-viewer> laid out in markup (epic `drawable-thing` P9)", () => {
   test("its markup is the app's drawing, not its `to draw`;  each tag is the program's thing named by its id", async () => {
     const app = await mountApp(
-      `<spell-app><div class="row">` +
+      `<spell-viewer><div class="row">` +
         `<layout-tile id="T1"></layout-tile><layout-tile id="T2"></layout-tile><layout-tile id="T9"></layout-tile>` +
-        `</div></spell-app>`
+        `</div></spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Tiles", compiled: TILES } satisfies SpellCompiled)
     const tile = (id: string) => app.querySelector(`layout-tile#${id}`)!.shadowRoot?.textContent
@@ -93,7 +93,7 @@ describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
   })
 })
 
-describe("<spell-app>'s layout:  a tag's id is its thing's reference (P18, J43)", () => {
+describe("<spell-viewer>'s layout:  a tag's id is its thing's reference (P18, J43)", () => {
   /** Two piles, a sub-type's:  a tableau is a pile.  The project's word "drawable" stays out of its tags. */
   const PILES = `
 import { core, App, View, h } from "@spell/core"
@@ -119,13 +119,13 @@ board.start()
 
   test("<floor-tableau id=T1>, id=1 and <floor-pile id=T1> each find tableau T1, as Tableau#T1, Tableau#1 and Pile#T1 do", async () => {
     const app = await mountApp(
-      `<spell-app>` +
+      `<spell-viewer>` +
         `<floor-tableau id="T1"></floor-tableau>` +
         `<floor-tableau id="1"></floor-tableau>` +
         `<floor-pile id="T1"></floor-pile>` +
         `<floor-pile id="T2"></floor-pile>` +
         `<floor-tableau id="9"></floor-tableau>` +
-        `</spell-app>`
+        `</spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Floor", compiled: PILES } satisfies SpellCompiled)
     const drawn = () => [...app.children].map((tag) => tag.shadowRoot?.textContent)
@@ -134,7 +134,7 @@ board.start()
   })
 })
 
-describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", () => {
+describe("<spell-viewer>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", () => {
   /** A game with a score, a function that bumps it, and one tile that's a view, as a project compiles them. */
   const GAME = [
     "a tile is a view",
@@ -156,12 +156,12 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
 
   test("holes show the program's values, live;  an action runs on a click;  a <spell> block handles its element's", async () => {
     const app = await mountApp(
-      `<spell-app>` +
+      `<spell-viewer>` +
         `<p class="score">Score {the score of the game}</p>` +
         `<button class="bump" action="{bump the score}">Bump</button>` +
         `<test-project-tile id="T1"><spell>\n  when clicked\n    set its count to its count + 1\n</spell></test-project-tile>` +
         `<p class="count">{the count of T1} left</p>` +
-        `</spell-app>`
+        `</spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     const text = (selector: string) => app.querySelector(selector)?.textContent
@@ -180,11 +180,11 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
 
   test("a hole names one thing by its name or place:  {the count of tile T1}, {the count of the first tile} (P19)", async () => {
     const app = await mountApp(
-      `<spell-app>` +
+      `<spell-viewer>` +
         `<test-project-tile id="T1"><spell>\n  when clicked\n    set its count to its count + 1\n</spell></test-project-tile>` +
         `<p class="named">{the count of tile T1}</p>` +
         `<p class="placed">{the name of the first tile}:  {the count of the last tile}</p>` +
-        `</spell-app>`
+        `</spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     const text = (selector: string) => app.querySelector(selector)?.textContent
@@ -200,14 +200,14 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
 
   test("any element handles events (P12):  a one-line handler, `on`, several words, and on-click= / when-clicked=", async () => {
     const app = await mountApp(
-      `<spell-app>` +
+      `<spell-viewer>` +
         `<p class="score">Score {the score of the game}</p>` +
         `<button class="one-line"><spell>when clicked: bump the score</spell></button>` +
         `<div class="on-words"><spell>\n  on double click:\n    bump the score\n</spell></div>` +
         `<button class="on-click" on-click="{bump the score}">+1</button>` +
         // no quotes:  the browser splits it at its spaces, and the layout puts it back together (C15)
         `<button class="bare" when-clicked={bump the score}>+1</button>` +
-        `</spell-app>`
+        `</spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     const score = () => app.querySelector(".score")?.textContent
@@ -254,7 +254,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
       "start the board"
     ].join("\n")
     const app = await mountApp(
-      `<spell-app><test-project-pile><h3 class="title" in="header">Stock</h3><p class="body">cards</p></test-project-pile></spell-app>`
+      `<spell-viewer><test-project-pile><h3 class="title" in="header">Stock</h3><p class="body">cards</p></test-project-pile></spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Piles", ...(await compiledProject(PILES)) } satisfies SpellCompiled)
     const title = app.querySelector(".title")!
@@ -265,7 +265,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
 
   test("spell that doesn't read shows ⚠ where it was -- a hole that leaves out `the` too (J26)", async () => {
     const app = await mountApp(
-      `<spell-app><p class="bad">{no such thing at all}</p><p class="short">{score of the game}</p></spell-app>`
+      `<spell-viewer><p class="bad">{no such thing at all}</p><p class="short">{score of the game}</p></spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     await waitFor(() => app.querySelector(".bad")?.textContent === "⚠", 10_000)
@@ -301,7 +301,7 @@ describe("<markdown> blocks:  drawn by <ui-markdown>, their holes live (P14, Q22
     [...(article?.querySelectorAll("strong") ?? [])].map((bold) => bold.textContent)
 
   test("a drawn rules panel shows the heading and the bold text;  a hole follows its value", async () => {
-    const app = await mountApp(`<spell-app></spell-app>`)
+    const app = await mountApp(`<spell-viewer></spell-viewer>`)
     app.run({ projectId: "@spell/test/Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
     const article = () => articleIn(app.shadowRoot!.querySelector(".rules"))
     await waitFor(() => article()?.querySelector("h2")?.textContent === "Klondike", 10_000)
@@ -313,10 +313,10 @@ describe("<markdown> blocks:  drawn by <ui-markdown>, their holes live (P14, Q22
 
   test("in a layout:  drawn by <ui-markdown> too, its holes live", async () => {
     const app = await mountApp(
-      `<spell-app>` +
+      `<spell-viewer>` +
         `<markdown>\n  ## Rules\n  Score:  **{the score of the game}**, and \`{code}\` keeps its braces\n</markdown>` +
         `<button class="bump" action="{bump the score}">Bump</button>` +
-        `</spell-app>`
+        `</spell-viewer>`
     )
     app.run({ projectId: "@spell/test/Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
     const article = () => articleIn(app)
@@ -332,7 +332,7 @@ describe("<markdown> blocks:  drawn by <ui-markdown>, their holes live (P14, Q22
 
 /**
  * Spell project `text`, one file, compiled as a project is:  its javascript, and its declarations.
- * - Spell imported only now:  imported with the file, it loads before `<spell-app>`'s own setup has run.
+ * - Spell imported only now:  imported with the file, it loads before `<spell-viewer>`'s own setup has run.
  */
 async function compiledProject(text: string): Promise<{ compiled: string; declarations: SP.SpellDeclarationsData }> {
   const [{ P }, { SP }] = await Promise.all([import("spell-parser/parser"), import("spell-parser/spell")])
@@ -372,12 +372,12 @@ async function testRuntime() {
   return { runtime, coreUrl: url, release: () => {} }
 }
 
-/** Add `<spell-app>` markup `html` to the page;  removed after the test. */
-async function mountApp(html: string): Promise<DOMSpellAppElement> {
-  await import("spell-app/app/components/spell-app")
+/** Add `<spell-viewer>` markup `html` to the page;  removed after the test. */
+async function mountApp(html: string): Promise<DOMSpellViewerElement> {
+  await import("spell-app/app/components/spell-viewer")
   const holder = document.createElement("div")
   holder.innerHTML = html
-  const app = holder.firstElementChild as DOMSpellAppElement
+  const app = holder.firstElementChild as DOMSpellViewerElement
   document.body.append(app)
   cleanups.push(() => app.remove())
   await ElementFixture.settle(app)

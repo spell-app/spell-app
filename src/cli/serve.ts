@@ -14,7 +14,7 @@ import { SRV } from "spell/server"
 /** What a route answers:  text (with its type), or a file on disk. */
 export type Served = { text: string; type: string } | { file: string }
 
-/** Answers each path, e.g. `/`, `/element/spell-app.js` -- `undefined` for 404. */
+/** Answers each path, e.g. `/`, `/element/spell-viewer.js` -- `undefined` for 404. */
 export type Routes = (path: string) => Served | undefined | Promise<Served | undefined>
 
 /** Start serving `routes` on loopback -- resolves to its URL, e.g. `http://localhost:53122/`, and the server. */

@@ -10,7 +10,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   - `spell-runtime.js`:  what programs run on, which the runner loads a copy of -- see `spellRuntime.ts`
  * - What both use goes in ONE shared chunk.
  *   - `core` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
- *   - As `vite.element.config.ts`, which builds `<spell-app>`.
+ *   - As `vite.element.config.ts`, which builds `<spell-viewer>`.
  * - Solid and `spell-ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`), as in
  *   `dist-element/`:  one layout, one pin.
  * - Semantic UI + Lato are NOT bundled:  the webview loads them straight from `static/`.

@@ -51,7 +51,8 @@
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing how a runner lays out its app and debug pane</ui-item>
             <ui-item icon="play"
-              >Live: inside a real <code>&lt;spell-app&gt;</code>, from the app's element build this page loads</ui-item
+              >Live: inside a real <code>&lt;spell-viewer&gt;</code>, from the app's element build this page
+              loads</ui-item
             >
           </ui-list>
 
@@ -62,7 +63,7 @@
               above, the bar, the debug pane below. Drag the bar to move it; click Debug to close the bottom pane.
             </p>
             <ui-docs-example description="The app on top, the debug pane below, and the bar between them.">
-              <spell-app project="@spell/examples/calculator" toolbar debug="explorer" height="560px"></spell-app>
+              <spell-viewer project="@spell/examples/calculator" toolbar debug="explorer" height="560px"></spell-viewer>
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
@@ -73,7 +74,7 @@
 
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
-            <p><code>&lt;spell-app&gt;</code>'s runner splits its app from its debug pane:</p>
+            <p><code>&lt;spell-viewer&gt;</code>'s runner splits its app from its debug pane:</p>
             <ui-accordion class="spell-code" styled>
               <ui-title>SpellAppRunner.tsx · the app above, the debug pane below · 9 lines</ui-title>
               <ui-content>
@@ -98,7 +99,7 @@
                 the top pane's share of a fixed height.
               </li>
               <li>
-                With <code>"px"</code>, for a runner as tall as its app (a <code>&lt;spell-app&gt;</code> with no
+                With <code>"px"</code>, for a runner as tall as its app (a <code>&lt;spell-viewer&gt;</code> with no
                 height), it's the bottom pane's height.
               </li>
               <li>

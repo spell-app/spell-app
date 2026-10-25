@@ -17,8 +17,8 @@ import { isServer } from "@solidjs/web"
  *   - NOT page-wide here:  a page-wide pack would reach a host page's own `<ui-*>`, which must keep their icons
  *     (27 names mean another icon in Font Awesome:  `packages/ui/docs/icons.md`, "Clashes";  epic page C16).
  *   - The editor app also wants it page-wide, for dialogs opened outside its root:  `addAppIconsPageWide()`.
- * - NOT `<spell-app>`'s:  it's a root itself, loading each `<ui-*>` it draws as it appears,
- *   with `icons` defaulting to `fomantic` (`components/spell-app/SpellApp.tsx`).
+ * - NOT `<spell-viewer>`'s:  it's a root itself, loading each `<ui-*>` it draws as it appears,
+ *   with `icons` defaulting to `fomantic` (`components/spell-viewer/SpellViewer.tsx`).
  * - Builds:  the packs load from beside `BuiltInPacks`' chunk;  the app's `vite.config.ts` emits them there
  *   (`appConfig({ iconPacks })`).  In dev and tests they're served from `packages/ui/src/icons/icon-packs/`.
  * - NEVER reachable from `spell-runtime.js` (`spellRuntime.ts`):  compiled spell runs without Solid or `spell-ui`.
@@ -28,7 +28,7 @@ export const uiReady: Promise<void> = isServer ? Promise.resolve() : loadUI()
 
 /**
  * Add the `fomantic` icon pack PAGE-wide, for `<ui-*>` outside any `<ui-root icons>`, e.g. dialogs on `<body>`.
- * - The editor app's, from its entry:  NEVER from code a host page loads (`<spell-app>`):  see above.
+ * - The editor app's, from its entry:  NEVER from code a host page loads (`<spell-viewer>`):  see above.
  */
 export async function addAppIconsPageWide(): Promise<void> {
   if (isServer) return

@@ -1,11 +1,11 @@
 # The editor and the runners
 
 ```html
-<script type="module" src="/element/spell-app.js"></script>
-<spell-app project="@spell/examples/calculator" toolbar></spell-app>
+<script type="module" src="/element/spell-viewer.js"></script>
+<spell-viewer project="@spell/examples/calculator" toolbar></spell-viewer>
 ```
 
-_From [the `<spell-app>` demo page](app/demo/spell-app.html), which puts five apps on one page this way;
+_From [the `<spell-viewer>` demo page](app/demo/spell-viewer.html), which puts five apps on one page this way;
 the calculator's `width` left out._
 
 A page needs nothing more:  no framework, no build step of its own, nothing wrapped around the tag.
@@ -42,7 +42,7 @@ flowchart TB
   end
   store --> runner["the runner:  runCompiled()"]
   panel["VS Code's Run Project panel"] --> runner
-  element["&lt;spell-app&gt;, on any page"] --> runner
+  element["&lt;spell-viewer&gt;, on any page"] --> runner
   runner --> runtime["a copy of the runtime:  spell-runtime.js"]
   runtime --> program["your program, drawing on the page"]
   %% the Spell look:  yarn mermaid:pretty
@@ -62,7 +62,7 @@ Inside a framework's page is another matter:  Spell UI's `<ui-dropdown>` has bee
 
 | Tag | What it does | What you set |
 | --- | --- | --- |
-| `<spell-app>` | runs a project, with an optional toolbar and a debug pane below it:  the Type Explorer, the Thing Explorer and the console;  a root of its own, so the page needs nothing around it | `project` or `src`:  what to run;  `editor`:  a `<spell-editor>` to take programs from;  `toolbar`;  `debug`:  the pane's first tab |
+| `<spell-viewer>` | runs a project, with an optional toolbar and a debug pane below it:  the Type Explorer, the Thing Explorer and the console;  a root of its own, so the page needs nothing around it | `project` or `src`:  what to run;  `editor`:  a `<spell-editor>` to take programs from;  `toolbar`;  `debug`:  the pane's first tab |
 | `<spell-editor>` | Monaco with tabs, editing a project on the page server;  it compiles as it opens, two seconds after typing stops and on Cmd+Enter, and hands what it compiled to its apps | `project`;  `file`:  the one to show first;  `app`:  a selector for the apps it feeds |
 | `<spell-code>` | Spell UI's `<ui-code>`, colouring Spell with Spell's own parser;  once it loads, every `<ui-code language="spell">` on the page is coloured too | `language`:  `spell` unless it says otherwise |
 | `<spell-markdown>` | Spell UI's `<ui-markdown>`, drawn by spell-parser's own markdown engine, its Spell blocks coloured | `editable`:  Write and Preview tabs |
@@ -70,28 +70,28 @@ Inside a framework's page is another matter:  Spell UI's `<ui-dropdown>` has bee
 Put them on a page either way:
 
 ```html
-<!-- by itself:  a <spell-app> is a root, and loads what it draws -->
-<script type="module" src="/element/spell-app.js"></script>
-<spell-app project="@spell/examples/Solitaire" toolbar debug="explorer" height="640px"></spell-app>
+<!-- by itself:  a <spell-viewer> is a root, and loads what it draws -->
+<script type="module" src="/element/spell-viewer.js"></script>
+<spell-viewer project="@spell/examples/Solitaire" toolbar debug="explorer" height="640px"></spell-viewer>
 
 <!-- as a component pack, under a <ui-root>:  here an editor beside the app it feeds -->
 <script type="module" src="/element/spell-ui.js"></script>
 <ui-root>
   <ui-components source="/element/spell.pack.js"></ui-components>
   <spell-editor project="@spell/examples/calculator" app="#calculator" height="420px"></spell-editor>
-  <spell-app id="calculator" project="@spell/examples/calculator" toolbar></spell-app>
+  <spell-viewer id="calculator" project="@spell/examples/calculator" toolbar></spell-viewer>
 </ui-root>
 ```
 
-_From the two demo pages, [spell-app.html](app/demo/spell-app.html) and [spell-editor.html](app/demo/spell-editor.html),
+_From the two demo pages, [spell-viewer.html](app/demo/spell-viewer.html) and [spell-editor.html](app/demo/spell-editor.html),
 their styles and headings left out._
 
 - `/element/...` is the page server's:  it serves the app's `dist-element/`, which `yarn build:element` builds.
   It serves it under every worktree's address too (the settings' `engineRoutes`), so App UI's pages find `spell.pack.js` there.
 - The demos are on the editor's own server, port 3000 when it's free:
-  `/demo/spell-app.html`, `/demo/spell-editor.html`, and two more below.
+  `/demo/spell-viewer.html`, `/demo/spell-editor.html`, and two more below.
   To see them, from spell-app's folder:  `yarn build:element`, then `yarn start`.
-- A `<spell-app>` loads each tag inside it the first time it appears, from beside its own script:
+- A `<spell-viewer>` loads each tag inside it the first time it appears, from beside its own script:
   a `<spell-editor>` inside one brings `spell-editor.js`, and a page of apps loaded this way never does.
 - An editor and its apps link from either side:  the editor's `app="#calculator"`, or an app's `editor="#todos"`.
   Two apps may follow one editor;  an app that names only its editor waits for the editor's first compile.
@@ -107,7 +107,7 @@ Where it stops:
   A page with a `<spell-editor>` is for your own machine, not the open web.
 - The pack defines all four tags as it registers, so it fetches `spell-editor.js`, 2.0 MB, even where no editor is.
   Monaco still waits for an editor to open.
-  A page of apps alone is lighter loading `spell-app.js` by itself.
+  A page of apps alone is lighter loading `spell-viewer.js` by itself.
 - Only a checkout's page server serves the elements today:  `spell-app` is a private package, not on npm,
   and `dist-element/` is never committed, so a fresh checkout serves nothing there until it's built.
   `src` runs a compiled program from any address;  `dist-element/` copied to another host hasn't been tried.
@@ -115,9 +115,9 @@ Where it stops:
 <details>
 <summary>Every attribute, event and script call of the app and the editor</summary>
 
-`<spell-app>` takes `<ui-root>`'s attributes too, since it is one;  where both name one, these win.
+`<spell-viewer>` takes `<ui-root>`'s attributes too, since it is one;  where both name one, these win.
 
-| `<spell-app>` | What it does |
+| `<spell-viewer>` | What it does |
 | --- | --- |
 | `project` | what to run, from the page server's `/api`, sources and all:  `@spell/examples/Solitaire`;  its Type Explorer then shows each declaration's Spell and compiled code |
 | `src` | what to run, from anywhere:  `apps/Solitaire.spell.js`, with its scope pack, declarations, words and the projects it imports beside it |
@@ -137,9 +137,9 @@ Where it stops:
 
 | `<spell-editor>` | What it does |
 | --- | --- |
-| `project` | what to edit, from the page server's `/api`, as `<spell-app project>` names it;  edits save back to it |
+| `project` | what to edit, from the page server's `/api`, as `<spell-viewer project>` names it;  edits save back to it |
 | `file` | which file to show first, `Card.spell`;  default, its first Spell file, with tabs for the others |
-| `app` | a CSS selector for the `<spell-app>`s it runs what it compiles in, `#game`;  an app can name the editor instead |
+| `app` | a CSS selector for the `<spell-viewer>`s it runs what it compiles in, `#game`;  an app can name the editor instead |
 | `width`, `height` | a CSS length, set as its inline style |
 | `assets` | where `spell-editor.css` and Lato are;  default, beside its script |
 | `compile()` | saves the files edited since, then compiles now;  resolves with what it compiled, or `undefined` when there were errors |
@@ -160,10 +160,10 @@ Where it stops:
 
 ### Its markup can be the app's drawing
 
-Put markup inside a `<spell-app>`, and that markup is what the app draws, with the program's things in it:
+Put markup inside a `<spell-viewer>`, and that markup is what the app draws, with the program's things in it:
 
 ```html
-<spell-app project="@spell/examples/Solitaire" name="Solitaire">
+<spell-viewer project="@spell/examples/Solitaire" name="Solitaire">
   <div class="row">
     <div class="title">Klondike Solitaire</div>
     <div class="score">Score {the score of the solitaire}</div>
@@ -186,7 +186,7 @@ Put markup inside a `<spell-app>`, and that markup is what the app draws, with t
     <!-- T2 to T7 the same -->
   </div>
   <div>{the number of cards in the stock of the solitaire} cards left in the stock</div>
-</spell-app>
+</spell-viewer>
 ```
 
 _Trimmed from [the Klondike layout demo](app/demo/klondike-layout.html):  the game's own drawing isn't drawn;
@@ -212,7 +212,7 @@ What differs is who compiles, and what runs a program again:
 | --- | --- | --- | --- |
 | the editor's App pane | the page itself:  `editor.compileApp()` | ONE for the page, `editor.loadRuntime()`:  the editor runs one program at a time | a compile, two seconds after typing stops;  `Mod+Enter`;  Restart |
 | VS Code's Run Project panel | the language server, asked by the panel | the panel's own | each compile, a save, and `<Project>.spell.js` changing on disk;  a failed compile sends nothing, so the last good app keeps running |
-| `<spell-app>` | the page server, when the compiled file isn't there yet;  or the `<spell-editor>` it follows | its OWN, one per element | its editor's next compile;  Restart, which fetches the program afresh |
+| `<spell-viewer>` | the page server, when the compiled file isn't there yet;  or the `<spell-editor>` it follows | its OWN, one per element | its editor's next compile;  Restart, which fetches the program afresh |
 
 A program isn't a component, and it doesn't run in an iframe.
 It's an ES module, and `runCompiled()` ([runCompiled.ts](src/app/runner/runCompiled.ts)) runs it in the page itself:
@@ -227,7 +227,7 @@ It's an ES module, and `runCompiled()` ([runCompiled.ts](src/app/runner/runCompi
 4. It hands the program's top-level things to `core.things`, for the Thing Explorer.
 5. It answers the error message if the program threw, else `undefined`;  the stack goes to devtools too.
 
-No import map:  a page has only one, and each `<spell-app>` needs its own `@spell/core`.
+No import map:  a page has only one, and each `<spell-viewer>` needs its own `@spell/core`.
 
 The edges:
 - Two projects that import each other stop the run:  `Projects import each other: ...`, naming the loop.
@@ -238,13 +238,13 @@ The edges:
 
 Programs run on `spell-runtime.js`, a copy of [spell-parser's core](https://github.com/spell-app/spell-parser/blob/main/README-core.md) built into each bundle,
 never on one the page itself imported.
-Each `<spell-app>` loads a copy of its own.
+Each `<spell-viewer>` loads a copy of its own.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"15px","primaryColor":"#EFECFB","primaryBorderColor":"#6550CA","primaryTextColor":"#1A1C27","secondaryColor":"#F4F1E9","tertiaryColor":"#F7F6FC","lineColor":"#7F6FD6","textColor":"#7F6FD6","clusterBkg":"#F7F6FC","clusterBorder":"#B9B0E8","titleColor":"#1A1C27","edgeLabelBackground":"#F7F6FC","actorBkg":"#EFECFB","actorBorder":"#6550CA","actorTextColor":"#1A1C27","actorLineColor":"#9C90DE","signalColor":"#7F6FD6","signalTextColor":"#7F6FD6","labelBoxBkgColor":"#EFECFB","labelBoxBorderColor":"#6550CA","labelTextColor":"#1A1C27","loopTextColor":"#7F6FD6","noteBkgColor":"#F1E7D4","noteBorderColor":"#C9B48A","noteTextColor":"#1A1C27","activationBkgColor":"#DCD6F7","activationBorderColor":"#6550CA","sequenceNumberColor":"#FFFFFF"},"flowchart":{"curve":"basis","padding":12,"nodeSpacing":40,"rankSpacing":44}}}%%
 flowchart TB
-  page["a page with two &lt;spell-app&gt;s"] --> a["&lt;spell-app&gt; for the calculator"]
-  page --> b["&lt;spell-app&gt; for the to-do list"]
+  page["a page with two &lt;spell-viewer&gt;s"] --> a["&lt;spell-viewer&gt; for the calculator"]
+  page --> b["&lt;spell-viewer&gt; for the to-do list"]
   a --> ra["runtime copy A, from its own blob: URL"]
   b --> rb["runtime copy B, from its own blob: URL"]
   ra --> pa["the calculator:  its things, console, listeners"]
@@ -257,7 +257,7 @@ flowchart TB
 
 _Each app has a runtime, and so things, of its own;  they all draw with the page's one Solid._
 
-- Each `<spell-app>` fetches the runtime's text once per page, about 140 KB, then imports a fresh copy per element
+- Each `<spell-viewer>` fetches the runtime's text once per page, about 140 KB, then imports a fresh copy per element
   from a `blob:` URL of its own ([loadRuntime.ts](src/app/runner/loadRuntime.ts)).
   So two apps on a page share no things, no console, no event listeners and no mount point.
 - The program draws with the page's Solid, into a `<div>` its host hands it and never touches again.
@@ -345,7 +345,7 @@ the card's members, its types and its JSX declaration left out._
   adding what TypeScript writes out:  so both targets draw the same element.
 
 Because it's a real tag, a plain page can write one by hand.
-[The drawable elements demo](app/demo/drawable-elements.html) runs Solitaire in a hidden `<spell-app>`,
+[The drawable elements demo](app/demo/drawable-elements.html) runs Solitaire in a hidden `<spell-viewer>`,
 which defines its tags, and then:
 
 ```html
@@ -364,7 +364,7 @@ _Trimmed from the demo.
 
 ### The explorers read files, not the parser
 
-A `<spell-app>` can show what a program made and what it declares without the parser on the page:
+A `<spell-viewer>` can show what a program made and what it declares without the parser on the page:
 each explorer reads something the program or its compile left behind.
 
 - The **Thing Explorer** reads the runtime copy's `core.things`:
@@ -373,7 +373,7 @@ each explorer reads something the program or its compile left behind.
     from the project's words file, `<Project>.en.js`, committed beside its source.
   - With no words file, each goes by its name:  `move to pile`.
 - The **Type Explorer** reads the project's scope pack, `<Project>.scopes.js`.
-  - In a `<spell-app>` it's read-only, and a link in it sends `spell-open`.
+  - In a `<spell-viewer>` it's read-only, and a link in it sends `spell-open`.
   - In the editor, its Types tab has the parser at hand, so it asks the language service in the page instead
     ([Debug's Program panel](#run-edit-and-debug--the-app-and-the-program-panel)).
   - Who writes the packs, and what's in one:
@@ -496,7 +496,7 @@ The top bar's Run | Edit | Debug buttons pick how much of the editor shows:
     (`SpellProject.codeFor()`, in spell-parser)
   - Sentence Tree:  the Spell tree of the cursor's line
 - At the panel's right:  Clear Console, on Program Output only, and Close, which goes back to Edit.
-- It's the same pane VS Code's Run Project panel and `<spell-app>` use, `RunnerPane`:
+- It's the same pane VS Code's Run Project panel and `<spell-viewer>` use, `RunnerPane`:
   in a narrow pane its tabs scroll sideways with ‹ › keys instead of wrapping.
 
 The rest of the top bar, left to right:
@@ -558,7 +558,7 @@ A Spanish browser gets "Guardar" where an English one gets "Save":
   - A sentence that names something takes it as a param:  `Created {type} {name}.`, `Se creó {theType} {name}.`
 - Spanish is [AppTexts.es.ts](src/app/ui/AppTexts.es.ts), with every key:  a chunk only a Spanish page loads.
   - The web components' own Spanish is beside each one:
-    - [SpellApp.es.ts](src/app/components/spell-app/SpellApp.es.ts)
+    - [SpellViewer.es.ts](src/app/components/spell-viewer/SpellViewer.es.ts)
     - [SpellEditor.es.ts](src/app/components/spell-editor/SpellEditor.es.ts)
   - A Spanish page loads Spell UI's own Spanish too, so its dialogs' buttons match.
 - The language server's labels follow the language of the FILE they're about instead, by its name ([README-lsp.md](README-lsp.md)):
@@ -658,7 +658,7 @@ Five builds, each run from spell-app's folder, each into a folder of [app/](app/
 | --- | --- | --- |
 | `yarn build` | `app/dist/` | the editor app, after a type check |
 | `yarn build:runner` | `app/dist-runner/` | VS Code's Run Project panel |
-| `yarn build:element` | `app/dist-element/` | `spell-app.js`, `spell-editor.js`, `spell-code.js`, `spell-markdown.js`, `spell-language.js`, and the pack, `spell.pack.js` |
+| `yarn build:element` | `app/dist-element/` | `spell-viewer.js`, `spell-editor.js`, `spell-code.js`, `spell-markdown.js`, `spell-language.js`, and the pack, `spell.pack.js` |
 | `spell app preview build` | `app/dist-static/` | the public preview:  the editor in Vite's `static` mode, with the examples and guides compiled in ([above](#the-public-preview--the-editor-as-plain-files)) |
 | `yarn build:page` | `app/dist-page/` | `spell-page.js`, the page side of a Python Spell app, which [spaces' Python server](README-spaces.md#the-python-server) serves |
 
@@ -666,7 +666,7 @@ Two copies of Solid on one page break silently, so however many of these bundles
 it gets ONE Solid.
 What each bundle costs is the other half of the design:
 - Monaco loads only when an editor opens:  4.2 MB as `<spell-editor>` builds it, 5.5 MB in the app's own build.
-- `<spell-editor>` has a build of its own, so Monaco's styles stay out of `<spell-app>`'s:
+- `<spell-editor>` has a build of its own, so Monaco's styles stay out of `<spell-viewer>`'s:
   `spell-app.css` is 8 KB, `spell-editor.css` 188 KB.
 - `spell-language.js` is 611 bytes:  it registers Spell's colours with the page's `<ui-code>`, no element,
   and fetches Spell's parser to colour with the first time a Spell block appears.
@@ -709,7 +709,7 @@ It's 31 pages in seven groups, from the four web components through the panes an
   `yarn site:pictures [name...]`, headless screenshots of this checkout's running editor, into `app/docs/_images/`.
   - Check `git status` after:  opening the editor compiles its project,
     which may rewrite its declarations and words files.
-- The web components and the runner's pieces are shown live, inside a `<spell-app>`:
+- The web components and the runner's pieces are shown live, inside a `<spell-viewer>`:
   they need `yarn build:element`, since every page loads `/element/spell.pack.js`.
 
 <details>
@@ -717,7 +717,7 @@ It's 31 pages in seven groups, from the four web components through the panes an
 
 1. Add its entry to [the hand-kept facts](app/docs/__data/pages.json5), then run `yarn site:data`.
 2. Copy a page like it:  [Notice.html](app/docs/Notice.html) for one shown by a picture,
-   [spell-app.html](app/docs/spell-app.html) for a live one.
+   [spell-viewer.html](app/docs/spell-viewer.html) for a live one.
 3. Link it from [the home page](app/docs/index.html).
 
 </details>

@@ -25,7 +25,7 @@ import "./SpellAppRunner.css"
 
 /****************
  * ### `<SpellAppRunner>`
- * Runs one spell app in a page, inside `<spell-app>`'s shadow root:
+ * Runs one spell app in a page, inside `<spell-viewer>`'s shadow root:
  * an optional toolbar, the app, and a "debug" pane below it --
  * the Type Explorer, the Thing Explorer, and the program's console.
  * - Runs on its OWN copy of the spell runtime -- see `loadRuntime()` -- so many can run on a page at once.
@@ -45,7 +45,7 @@ import "./SpellAppRunner.css"
  *   They're loaded afresh after each run, as its imports are.
  * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
  * - Its `<ui-*>` tags are the caller's to define, with Fomantic's icon names:
- *   `<spell-app>` is a root that loads them as they appear;  the VS Code runner imports `spell-app/app/solid/loadUI`.
+ *   `<spell-viewer>` is a root that loads them as they appear;  the VS Code runner imports `spell-app/app/solid/loadUI`.
  * - NEVER imports `spell-parser/core`:  it'd land in the bundle's shared chunk, so every app would share it.
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/
@@ -205,7 +205,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     unbindLayout = undefined
     unslot?.()
     unslot = undefined
-    // read props before waiting:  by then, whoever handed them to us may be gone (`<spell-app>` dropping its source)
+    // read props before waiting:  by then, whoever handed them to us may be gone (`<spell-viewer>` dropping its source)
     const layout = props.layout
     if (layout) unslot = slotsFromIn(layout)
     const keepThings = how === "keep things" && isSameProgram(lastSource, source)
@@ -285,14 +285,14 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
 /** Props for `<SpellAppRunner>`. */
 export type SpellAppRunnerProps = {
   /**
-   * What to run, and where its scope pack is -- from `<spell-app>`'s attributes, or pushed by an editor.
+   * What to run, and where its scope pack is -- from `<spell-viewer>`'s attributes, or pushed by an editor.
    * - Re-run when this is a NEW object -- see `SpellAppSource`.
    */
   source: SpellAppSource
   /** Show the toolbar? */
   toolbar: boolean
   /**
-   * The element whose markup lays the app out, inside its `<spell-app>`:  the `<spell-app>` itself, if it has some.
+   * The element whose markup lays the app out, inside its `<spell-viewer>`:  the `<spell-viewer>` itself, if it has some.
    * - That markup shows, through a slot, and the app's `to draw` isn't drawn -- see `core.appLayout`.
    * - Its spell (holes, actions, `<spell>` blocks) is compiled in the page, after each run -- see `LayoutSpell`.
    */
@@ -312,7 +312,7 @@ export type SpellAppRunnerProps = {
 }
 
 /**
- * Where a `<spell-app>`'s program, and what's around it, come from --
+ * Where a `<spell-viewer>`'s program, and what's around it, come from --
  * worked out from its attributes, or from code a `<spell-editor>` pushed to it.  See `pushedSource()`.
  * - NOTE: `compiled`, `scopes`, `declarations` and `words` are in memory, the rest are URLs.
  *   An in-memory one wins over its URL.
@@ -353,13 +353,13 @@ export type SpellAppSource = {
   sourceUrl?: (uri: string) => string
 }
 
-/** What a `<spell-app>` can ask its runner to do. */
+/** What a `<spell-viewer>` can ask its runner to do. */
 export type SpellAppControls = {
   /** Run the program again, afresh. */
   restart: () => void
 }
 
-/** Tab of the debug pane:  the Type Explorer, the Thing Explorer, or the program's console (`<spell-app debug>`). */
+/** Tab of the debug pane:  the Type Explorer, the Thing Explorer, or the program's console (`<spell-viewer debug>`). */
 export type DebugPane = "explorer" | "things" | "console"
 
 /****************
@@ -554,12 +554,12 @@ const LANG = "{lang}"
 
 ////////////////
 // ## Fed by an editor
-//  what a `<spell-app editor="<selector>">` decides --
-//  here, NOT in its component (`SpellApp`), so it's testable with no DOM.
+//  what a `<spell-viewer editor="<selector>">` decides --
+//  here, NOT in its component (`SpellViewer`), so it's testable with no DOM.
 ////////////////
 
 /**
- * What a `<spell-app>` runs for `pushed`, code an editor compiled.
+ * What a `<spell-viewer>` runs for `pushed`, code an editor compiled.
  * - `base` (its project's source, for its imports and sources),
  *   with `pushed`'s javascript, scope pack, declarations and words in memory.
  * - A NEW object, so `<SpellAppRunner>` re-runs it.
@@ -577,7 +577,7 @@ export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?:
 }
 
 /**
- * What code pushed to a `<spell-app>` was pushed FOR, as one string:
+ * What code pushed to a `<spell-viewer>` was pushed FOR, as one string:
  * the app's `PUSHED_FOR` attributes then -- `project`, `src`, `scopes`, `name` and `editor`.
  * - Pushed code counts only while the app's are the same:
  *   a change of what it runs, or of which editor feeds it, drops it.
@@ -588,14 +588,14 @@ export function pushedKey(app: PushedFor): string {
   return JSON.stringify(PUSHED_FOR.map((name) => app[name] ?? null))
 }
 
-/** The `<spell-app>` attributes whose change drops the code an editor pushed to it -- see `pushedKey()`. */
+/** The `<spell-viewer>` attributes whose change drops the code an editor pushed to it -- see `pushedKey()`. */
 export const PUSHED_FOR = ["project", "src", "scopes", "name", "editor"] as const
 
-/** A `<spell-app>`, or its component, as far as `pushedKey()` cares. */
+/** A `<spell-viewer>`, or its component, as far as `pushedKey()` cares. */
 export type PushedFor = { readonly [Name in (typeof PUSHED_FOR)[number]]?: string | null }
 
 /**
- * Is `target`, what fired an event, an element `selector` matches -- e.g. a `<spell-app>`'s `editor`?
+ * Is `target`, what fired an event, an element `selector` matches -- e.g. a `<spell-viewer>`'s `editor`?
  * - `false` if it's not an element, or `selector` isn't a CSS selector.
  * - NOTE: duck-typed, NOT `instanceof Element`, which throws where there's no DOM.
  */
@@ -614,10 +614,10 @@ export function editorCompiled(root: EditorRoot, selector: string): SpellCompile
   return editor?.compiled
 }
 
-/** Where a `<spell-app>` looks for its editor:  its root node, a document or a shadow root. */
+/** Where a `<spell-viewer>` looks for its editor:  its root node, a document or a shadow root. */
 export type EditorRoot = { querySelector(selector: string): Element | null }
 
-/** A `<spell-editor>`, as far as a `<spell-app>` cares:  what it compiled last, if anything. */
+/** A `<spell-editor>`, as far as a `<spell-viewer>` cares:  what it compiled last, if anything. */
 type EditorElement = { compiled?: SpellCompiled }
 
 /**

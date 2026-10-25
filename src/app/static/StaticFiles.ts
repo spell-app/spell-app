@@ -1,4 +1,15 @@
-import { $fetch, KnownFormat, LoadableFile, UIError, parseJSON, parseJSON5, type $FetchParams } from "spell/util"
+import {
+  $fetch,
+  DatabasePlace,
+  KnownFormat,
+  LoadableFile,
+  PrefStore,
+  UIError,
+  parseJSON,
+  parseJSON5,
+  type $FetchParams,
+  type PrefPlace
+} from "spell/util"
 import { SP } from "spell-parser/spell"
 
 import { STATIC_BUILD_CLASS } from "./staticBuild"
@@ -17,25 +28,32 @@ import "./static.css"
  *   - anything else (create, rename, delete, settings):  a `UIError`, as the build hides those
  * - What's kept, and where:
  *   - a file of the project's own, one its index lists (`Solitaire.spell`):
- *     the browser's `localStorage`, so an edit stays after a reload, until "Reset Example" (`reset()`)
+ *     the browser's database (`DatabasePlace`, the store `spell-static`), so an edit stays after a reload,
+ *     until "Reset Example" (`reset()`);  and this page's memory, so a refused save still holds for the visit
  *   - what spell builds from them (`Solitaire.spell.js`, its words and declarations):
  *     this page's memory only, as each visit compiles afresh
+ *   - edits kept in `localStorage` before epic `prefs-and-undo` P3 (`spell-static:<address>`):  moved into the
+ *     database on first use, once
  * - The page's own `fetch()`es of compiled files (`fetchCompiled()`, the runners' `fetchText()`) read the build's
  *   copies:  they load OTHER projects, which a visitor can't edit.
  * - Browser code;  imports only `spell/util` and spell's barrel.
  */
 export class StaticFiles {
-  /** Where edits are kept:  the browser's `localStorage`, or none (a private window that refuses it). */
-  readonly storage: Storage | undefined
+  /** Where a project's own files' edits are kept:  the store `spell-static`, by file address. */
+  readonly edits: PrefStore
 
-  /** What spell built this visit, by file address:  never kept past the page. */
+  /** What this visit wrote, built or edited, by file address:  read first, never kept past the page. */
   readonly built = new Map<string, string>()
 
   /** Each project's index as the build wrote it, by project id:  says which of its files are its own. */
   private indexes = new Map<string, SP.ProjectManifestJSON5>()
 
-  constructor(storage: Storage | undefined = storageOrNone()) {
-    this.storage = storage
+  /** `localStorage`, where edits were kept before:  moved out on first use (`moveOldEdits()`). */
+  private oldStorage: Storage | undefined
+
+  constructor({ place = DatabasePlace.shared, oldStorage = storageOrNone() }: StaticFilesProps = {}) {
+    this.edits = new PrefStore(EDITS_STORE, { place })
+    this.oldStorage = oldStorage
   }
 
   /**
@@ -56,29 +74,31 @@ export class StaticFiles {
   fetch = async <T = any>($params: $FetchParams): Promise<T> => {
     const url = $params.url.split(/[?#]/)[0]!
     const isSaving = $params.contents != null || ($params.method && $params.method !== "GET")
-    if (url.startsWith(SP.SpellUrls.SAVE) && isSaving) return this.save(url, $params.contents) as T
+    if (url.startsWith(SP.SpellUrls.SAVE) && isSaving) return (await this.save(url, $params.contents)) as T
     if (isSaving) throw new UIError(`${url}:  not in the preview -- it keeps your edits in this browser only`)
     if (url.startsWith(SP.SpellUrls.LIST)) return (await this.fromBuild(url, [])) as T
     if (url.startsWith(SP.SpellUrls.INDEX)) return (await this.index(url)) as T
     if (url.startsWith(SP.SpellUrls.SPACES)) {
-      const kept = this.keptText(SP.SpellUrls.fileForUrl(url).path)
+      const kept = await this.keptText(SP.SpellUrls.fileForUrl(url).path)
       if (kept !== undefined) return asFormat(kept, $params.format) as T
     }
     return $fetch<T>($params)
   }
 
   /** Has the visitor changed any file of project `projectId`? */
-  hasEdits(projectId: string): boolean {
-    return this.keptKeys(projectId).length > 0
+  async hasEdits(projectId: string): Promise<boolean> {
+    await this.ready()
+    return (await this.edits.loadKeysUnder(`${projectId}/`)).length > 0
   }
 
   /**
    * Forget the visitor's edits to project `projectId`, and what this visit built of it:
    * its files read as the build wrote them again.
-   * - The caller reloads the project (the page) to show them.
+   * - The caller reloads the project (the page) to show them, once this is done.
    */
-  reset(projectId: string): void {
-    for (const key of this.keptKeys(projectId)) this.storage?.removeItem(key)
+  async reset(projectId: string): Promise<void> {
+    await this.ready()
+    await this.edits.forgetUnder(`${projectId}/`)
     for (const path of [...this.built.keys()]) if (path.startsWith(`${projectId}/`)) this.built.delete(path)
   }
 
@@ -98,52 +118,83 @@ export class StaticFiles {
     this.indexes.set(projectId, index)
     for (const entry of index.imports ?? []) {
       if (SP.SpellLocation.isAddress(entry.path)) continue
-      const kept = this.keptText(`${projectId}${entry.path}`)
+      const kept = await this.keptText(`${projectId}${entry.path}`)
       if (kept !== undefined) entry.contents = kept
     }
     return index
   }
 
   /**
-   * Save file at `url`:  a project's own file in the browser's storage, a built one in memory -- see the class.
+   * Save file at `url`:  in this page's memory, and a project's own file in the browser's database too -- see the class.
    * - Its text as the page server gets it:  a string as is, anything else as JSON.
-   * - Returns `true`, as the server does.
+   * - Returns `true`, as the server does;  a refused save (the database full) is logged, and holds for this visit.
    */
-  private save(url: string, contents: unknown): true {
+  private async save(url: string, contents: unknown): Promise<true> {
     const { projectId, path } = SP.SpellUrls.fileForUrl(url)
     const text = typeof contents === "string" ? contents : JSON.stringify(contents)
-    const isOwnFile = !!this.indexes.get(projectId)?.manifest?.[path]
-    if (isOwnFile && this.storage) {
-      try {
-        this.storage.setItem(STORAGE_PREFIX + path, text)
-        return true
-      } catch (error) {
-        // full, or refused:  kept for this visit only
-        console.error(`StaticFiles:  couldn't keep ${path} in this browser`, error)
-      }
-    }
     this.built.set(path, text)
+    const isOwnFile = !!this.indexes.get(projectId)?.manifest?.[path]
+    if (isOwnFile) {
+      await this.ready()
+      await this.edits.save(path, text)
+    }
     return true
   }
 
   /** Text kept for file `path` (its address), this visit's first:  `undefined` if none. */
-  private keptText(path: string): string | undefined {
-    return this.built.get(path) ?? this.storage?.getItem(STORAGE_PREFIX + path) ?? undefined
+  private async keptText(path: string): Promise<string | undefined> {
+    const visit = this.built.get(path)
+    if (visit !== undefined) return visit
+    await this.ready()
+    const kept = await this.edits.load(path)
+    return typeof kept === "string" ? kept : undefined
   }
 
-  /** Storage keys of project `projectId`'s kept files. */
-  private keptKeys(projectId: string): string[] {
-    const { storage } = this
-    if (!storage) return []
-    const prefix = `${STORAGE_PREFIX}${projectId}/`
-    return Array.from({ length: storage.length }, (_, index) => storage.key(index)!).filter((key) =>
-      key?.startsWith(prefix)
-    )
+  ////////////////
+  // ## Edits kept before
+  ////////////////
+
+  /** Every read and save waits for this:  the old edits moved over first (`moveOldEdits()`), once. */
+  private ready(): Promise<void> {
+    return (this.moving ??= this.moveOldEdits())
+  }
+  private moving: Promise<void> | undefined
+
+  /**
+   * Move the edits `localStorage` kept before (`spell-static:<address>`) into the database, and forget them there.
+   * - Read raw:  a file's text is kept as it is, never read as JSON.
+   * - NEVER throws:  storage blocked, there's nothing to move.
+   * - TODO:  drop once every browser has opened the static build since epic `prefs-and-undo` P3
+   */
+  private async moveOldEdits(): Promise<void> {
+    const storage = this.oldStorage
+    if (!storage) return
+    try {
+      const keys = Array.from({ length: storage.length }, (_, index) => storage.key(index) ?? "")
+      for (const key of keys.filter((each) => each.startsWith(OLD_STORAGE_PREFIX))) {
+        const text = storage.getItem(key)
+        if (text !== null) await this.edits.save(key.slice(OLD_STORAGE_PREFIX.length), text)
+        storage.removeItem(key)
+      }
+    } catch (error) {
+      console.error("StaticFiles:  couldn't move the edits kept in localStorage:", error)
+    }
   }
 }
 
-/** Start of the storage key of each file a visitor changed:  then its address, `@spell/examples/x/x.spell`. */
-export const STORAGE_PREFIX = "spell-static:"
+/** Props for a `StaticFiles`. */
+export type StaticFilesProps = {
+  /** Where edits are kept:  default the browser's database (`DatabasePlace.shared`);  a test's own. */
+  place?: PrefPlace
+  /** Where edits were kept before:  default `localStorage`;  a test's own. */
+  oldStorage?: Storage
+}
+
+/** The store of the files a visitor changed, in the browser's database:  each under its address. */
+export const EDITS_STORE = "spell-static"
+
+/** Start of each changed file's `localStorage` key before epic `prefs-and-undo` P3:  then its address. */
+export const OLD_STORAGE_PREFIX = "spell-static:"
 
 /** End of the files the build writes for the API's lists and indexes:  `/api/projects/list/@spell/examples.json`. */
 export const BUILT_DATA_SUFFIX = ".json"

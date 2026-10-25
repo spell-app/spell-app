@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, on } from "@spell/core"
+import { core, List, App, View, ViewableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Una carta de la baraja -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
@@ -812,6 +812,8 @@ core.useElement(Columna, ColumnaElement)
 /** El solitario:  sus pilas, sus movimientos, el juego solo y su dibujo */
 @thing
 export class Solitario extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // su "puntuación" es un número
   @prop({ type: "number" })
   accessor puntuación!: number
@@ -1048,6 +1050,66 @@ export class Solitario extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a solitario, drawn in its own element, e.g. by `draw the solitario`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its solitario's properties;  its methods call its solitario's.
+ * - What every view's element does, e.g. drawing its solitario, is `SpellElement`'s.
+ */
+export class SolitarioElement extends SpellElement<Solitario> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "solitario", [
+    { name: "puntuación", kind: "number", description: "Its puntuación." },
+    { name: "pista", kind: "string", description: "Its pista." },
+    { name: "mazo", kind: "json", description: "Its mazo." },
+    { name: "reserva", kind: "json", description: "Its reserva." },
+    { name: "descartes", kind: "json", description: "Its descartes." },
+    { name: "tréboles", kind: "json", description: "Its tréboles." },
+    { name: "diamantes", kind: "json", description: "Its diamantes." },
+    { name: "corazones", kind: "json", description: "Its corazones." },
+    { name: "espadas", kind: "json", description: "Its espadas." },
+    { name: "-c1", kind: "json", description: "Its C1." },
+    { name: "-c2", kind: "json", description: "Its C2." },
+    { name: "-c3", kind: "json", description: "Its C3." },
+    { name: "-c4", kind: "json", description: "Its C4." },
+    { name: "-c5", kind: "json", description: "Its C5." },
+    { name: "-c6", kind: "json", description: "Its C6." },
+    { name: "-c7", kind: "json", description: "Its C7." }
+  ])
+
+  create() {
+    return this.currentThing?.create()
+  }
+
+  depurar() {
+    return this.currentThing?.depurar()
+  }
+
+  rehacerLaReserva() {
+    return this.currentThing?.rehacerLaReserva()
+  }
+
+  robarDeLaReserva() {
+    return this.currentThing?.robarDeLaReserva()
+  }
+
+  repartirLasCartas() {
+    return this.currentThing?.repartirLasCartas()
+  }
+
+  empezarElJuego() {
+    return this.currentThing?.empezarElJuego()
+  }
+
+  hacerTrampa() {
+    return this.currentThing?.hacerTrampa()
+  }
+
+  jugarSolo() {
+    return this.currentThing?.jugarSolo()
+  }
+}
+core.useElement(Solitario, SolitarioElement)
 export const solitario = new Solitario()
 
 core.heading("Jugar una carta:  qué hace un clic o un arrastre")
@@ -1165,6 +1227,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-fundacion": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `ColumnaElement` */
       "test-project-columna": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `SolitarioElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

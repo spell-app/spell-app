@@ -55,7 +55,7 @@
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the runners' debug pane, or reading its code</ui-item>
             <ui-item icon="play"
-              >Live: a real <code>&lt;spell-app&gt;</code>, its debug pane opened on this tab</ui-item
+              >Live: a real <code>&lt;spell-viewer&gt;</code>, its debug pane opened on this tab</ui-item
             >
           </ui-list>
 
@@ -66,7 +66,7 @@
               Click a thing to see its details, then add a todo, or tick one, and watch the tree and the details change.
             </p>
             <ui-docs-example description="The todos example, its debug pane on the Thing Explorer tab.">
-              <spell-app project="@spell/examples/TaskList" toolbar debug="things" height="760px"></spell-app>
+              <spell-viewer project="@spell/examples/TaskList" toolbar debug="things" height="760px"></spell-viewer>
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
@@ -107,7 +107,7 @@
             <ul>
               <li>
                 <code>things</code> is the list of things the running program made, from ITS copy of the runtime, never
-                the page's own: each <code>&lt;spell-app&gt;</code> on a page has its own things.
+                the page's own: each <code>&lt;spell-viewer&gt;</code> on a page has its own things.
               </li>
               <li>
                 The tree shows the program's top-level things first, then all of them: in the order they were made,

@@ -3,7 +3,7 @@
  * headless screenshots of the running editor app.
  * - For the Solid components that can't be drawn alone on a docs page (they need the whole editor around them):
  *   the editor's page shell, its panes and editors, its menus, dialogs and notices.
- *   The runner's pieces and the explorers are drawn LIVE on their pages instead, inside a `<spell-app>`.
+ *   The runner's pieces and the explorers are drawn LIVE on their pages instead, inside a `<spell-viewer>`.
  * - Needs this checkout's editor running:  `spell server start` starts it,
  *   and writes its URL to `.spell-server.editor.json`, at the kit's root.
  * - Rerun after changing how one of them looks, then look at the pictures and commit them.

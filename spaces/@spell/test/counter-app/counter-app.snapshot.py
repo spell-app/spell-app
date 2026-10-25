@@ -14,6 +14,8 @@ from counter import Counter
 class Tally(App):
     """Its counter is the frozen counter library's (`@spell/test/counter`), which its project file imports."""
 
+    element_tag = "test-project-app"
+
     # - its "counter" is a new counter
     counter = prop(init=lambda: Counter(), early=True)
 

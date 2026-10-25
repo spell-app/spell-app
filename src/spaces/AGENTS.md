@@ -64,7 +64,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - So every program that reads a spell path loads them first, one of these ways:
     - through `spell-app/spaces`
     - through our disk reader (below)
-    - or `spell-app/spaces/models/projectGroups` alone:  `<spell-app>` does that, to stay light
+    - or `spell-app/spaces/models/projectGroups` alone:  `<spell-viewer>` does that, to stay light
   - Spell NEVER imports us.
 - Each group is named by its ADDRESS, and its folder comes from that (`SP.SpellUrls.folderFor()`):
 
@@ -249,7 +249,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `spell/server`
   - it may import `spell-parser/core` and `spell/util`
   - [projectGroups.ts](models/projectGroups.ts) imports spell's light `spell-parser/spell/SpellSetup` alone.
-    So `<spell-app>` can load it by path, `spell-app/spaces/models/projectGroups`, without the parser.
+    So `<spell-viewer>` can load it by path, `spell-app/spaces/models/projectGroups`, without the parser.
 - NEVER the app, lsp or cli folders:  they import it.
 - `spell` NEVER imports it.
 - NOT in the barrel (WWOD §8 › "Barrels"):  everything under `server/`, and `test/`.

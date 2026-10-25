@@ -203,8 +203,8 @@ All of this runs now, on your own machine.
 - **Put a running program on any web page**, with two lines of HTML, the code web pages are written in:
 
   ```html
-  <script type="module" src="/element/spell-app.js"></script>
-  <spell-app project="@spell/examples/calculator" toolbar></spell-app>
+  <script type="module" src="/element/spell-viewer.js"></script>
+  <spell-viewer project="@spell/examples/calculator" toolbar></spell-viewer>
   ```
 
   What else it takes, and what it costs:  [four elements, for any page](README-app.md#four-elements-for-any-page).
@@ -250,7 +250,7 @@ and they come back as modes:  browse (use it), author (lay it out) and script (w
   The first question it has to answer is what a drop writes into your program:  Spell, page markup, or a layout file.
 - **What it stands on**, all built:
   - Spell's templates are real page elements already:  a card that's a `view` is a `<solitaire-card>` on the page.
-  - `<spell-app>` is laid out in plain HTML.
+  - `<spell-viewer>` is laid out in plain HTML.
   - Spell UI has a property editor, a form drawn from a kind of thing, one field for each fact about it,
     still marked in progress ([its row in the components table](https://github.com/spell-app/spell-ui/blob/main/README-components.md)).
     The editor already makes one for a template in your program, with "New Property Editor..." among its file actions:
@@ -316,7 +316,7 @@ It's the same name inside spell-app as from any other repo.
 
 | Page | The folder it covers | What's on it |
 | --- | --- | --- |
-| [README-app.md](README-app.md) | [src/app/](src/app/), `spell-app/app`;  its build folder, [app/](app/) | <ul><li>four elements for any page:  `<spell-app>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`</li><li>one runner in three places;  a runtime per program;  a recompile that keeps what the program made</li><li>the editor:  one object behind every pane;  three looks;  the explorers' tabs</li><li>the public preview:  the editor as plain files</li><li>the builds, one Solid per page;  App UI, a page per component</li></ul> |
+| [README-app.md](README-app.md) | [src/app/](src/app/), `spell-app/app`;  its build folder, [app/](app/) | <ul><li>four elements for any page:  `<spell-viewer>`, `<spell-editor>`, `<spell-code>`, `<spell-markdown>`</li><li>one runner in three places;  a runtime per program;  a recompile that keeps what the program made</li><li>the editor:  one object behind every pane;  three looks;  the explorers' tabs</li><li>the public preview:  the editor as plain files</li><li>the builds, one Solid per page;  App UI, a page per component</li></ul> |
 | [README-spaces.md](README-spaces.md) | [src/spaces/](src/spaces/), `spell-app/spaces` | <ul><li>addresses:  the folder is in the name</li><li>setting up spaces for your own project, in seven steps</li><li>the models, the editor's API, and the Python server</li><li>people and orgs, declared in Spell;  🌱 sign-in</li></ul> |
 | [README-examples.md](README-examples.md) | [spaces/@spell/](spaces/@spell/):  data, not code | <ul><li>ten apps, simplest first, each running</li><li>twelve guides, programs that read as prose</li><li>the four parts of every app, and why the Calculator's wording counts</li><li>FizzBuzz, Task List and the two solitaires, line by line</li><li>ideas for your own;  the frozen test projects</li></ul> |
 | [README-lsp.md](README-lsp.md) | [src/lsp/](src/lsp/), `spell-app/lsp` | <ul><li>one service in three places:  the browser, VS Code, the command line</li><li>it reads the parse the compiler already made;  one queue</li><li>what it answers, request by request</li><li>scope packs;  where it stops</li></ul> |
@@ -494,7 +494,7 @@ Where a page says more, the row links it.
 ## See also
 
 - [The editor and the runners](README-app.md):  the next page down, the live loop's code,
-  `<spell-app>` and its three siblings
+  `<spell-viewer>` and its three siblings
 - [spell-parser](https://github.com/spell-app/spell-parser/blob/main/README.md):  the language the editor runs, and the three it compiles to
 - [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md):  the components every Spell app draws with
 - [The kit's front page](https://github.com/spell-app/spell/blob/main/README.md#every-readme):  the five repos, setup from zero, and every page of each

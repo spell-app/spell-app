@@ -54,7 +54,7 @@
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing a console in the app, or reading its code</ui-item>
-            <ui-item icon="play">Live: a real <code>&lt;spell-app&gt;</code>, showing its console</ui-item>
+            <ui-item icon="play">Live: a real <code>&lt;spell-viewer&gt;</code>, showing its console</ui-item>
           </ui-list>
 
           <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
@@ -65,7 +65,7 @@
               text.
             </p>
             <ui-docs-example description="FizzBuzz:  a program with no app, so its console in the app's place.">
-              <spell-app project="@spell/examples/fizzbuzz" toolbar height="420px"></spell-app>
+              <spell-viewer project="@spell/examples/fizzbuzz" toolbar height="420px"></spell-viewer>
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
@@ -78,7 +78,8 @@
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
               A console hands it its lines, and keeps them live. The runners' console, under every
-              <a href="spell-app.html" target="src-packages-app-docs-spell-app-html"><code>&lt;spell-app&gt;</code></a
+              <a href="spell-viewer.html" target="src-packages-app-docs-spell-viewer-html"
+                ><code>&lt;spell-viewer&gt;</code></a
               >, is little more than this:
             </p>
             <ui-accordion class="spell-code" styled>

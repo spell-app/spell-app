@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
+import { core, App, View, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Habit Tracker")
@@ -153,6 +153,8 @@ core.useElement(Week, WeekElement)
 core.heading("The tracker")
 /** The tracker */
 export class HabitTracker extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "habits" is a new week
   @prop({ init: () => new Week(), early: true })
   accessor habits!: Week
@@ -199,6 +201,24 @@ export class HabitTracker extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a habit tracker, drawn in its own element, e.g. by `draw the habit tracker`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its habit tracker's properties;  its methods call its habit tracker's.
+ * - What every view's element does, e.g. drawing its habit tracker, is `SpellElement`'s.
+ */
+export class HabitTrackerElement extends SpellElement<HabitTracker> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "habit tracker", [
+    { name: "habits", kind: "json", description: "Its habits." },
+    { name: "draft", kind: "string", description: "Its draft." }
+  ])
+
+  addTheDraft() {
+    return this.currentThing?.addTheDraft()
+  }
+}
+core.useElement(HabitTracker, HabitTrackerElement)
 export const habitTracker = new HabitTracker()
 
 core.heading("Start")
@@ -255,6 +275,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-habit": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `WeekElement` */
       "test-project-week": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `HabitTrackerElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

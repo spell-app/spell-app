@@ -67,7 +67,7 @@ and in the app's build folder, `app/` at the repo's root.
   - `yarn build`:  the app.
     - `yarn build:runner`:  `app/dist-runner/`, VS Code's "Run Project" webview
     - `yarn build:element`:  `app/dist-element/`, the web components and their pack
-      - `<spell-app>` and `<spell-editor>`
+      - `<spell-viewer>` and `<spell-editor>`
       - `<spell-code>` and `<spell-markdown>`, and `spell-language.js` (`vite.code.config.ts`, below)
       - their pack, `spell.pack.js`
     - `yarn build:page`:  `app/dist-page/`, the page side of a Python spell app (epic `python-target` P20)
@@ -137,22 +137,24 @@ and in the app's build folder, `app/` at the repo's root.
         as `spell test` does (`core.runTests()`, which both share).
       - How they went shows in Program Output ([testResults.ts](runner/testResults.ts)),
         and goes to the extension, which shows each failed check on its line (lsp's `spell/testDiagnostics`).
-    - the `<spell-app>` web component, in `components/spell-app/`
+    - the `<spell-viewer>` web component, in `components/spell-viewer/`
       - built by `yarn build:element`, into `dist-element/`
-      - its demo:  `/demo/spell-app.html`, on the dev server
+      - its demo:  `/demo/spell-viewer.html`, on the dev server
   - Solid (P7), on `spell-ui`.
     - The runners import the Solid panes' FILES, never the `spell-app/app/solid` barrel (it pulls in the editor).
       - e.g. `spell-app/app/solid/ThingExplorer`, `.../ConsoleLines`, `.../loadUI`
-    - `<spell-app>` is a root itself, with Fomantic's icons by default.
+    - `<spell-viewer>` is a root itself, with Fomantic's icons by default.
     - VS Code's webview HTML wraps its `#runner-root` in `<ui-root icons="fomantic">`.
   - The PROGRAM draws with the page's Solid too:  `App.start()` mounts its own root (`core.mountApp()`).
     - A runner hands it `appRoot`, a `<div>` drawn once and never touched again.
+    - An app is a view:  it mounts as its own element, `<solitaire-app>`, its drawing that element's children
+      (epic `elemental-spell` Q62), so the project's `.css` still reaches it.
     - Semantic UI's CSS stays wherever programs draw.
     - Each drawn thing has its own error boundary:  a stand-in, a `ui-error`, and the rest keeps drawing.
   - Programs run on `spell-runtime.js`, NEVER the page's own `core`.
     - It's built from [spellRuntime.ts](runner/spellRuntime.ts).
     - The app loads it once (`editor.loadRuntime()`), and so does the VS Code runner.
-    - Each `<spell-app>` loads its OWN copy (`loadRuntime()`).
+    - Each `<spell-viewer>` loads its OWN copy (`loadRuntime()`).
       So apps on a page don't share a `core`.
     - No import map:  `runCompiled()` links each program's imports.
     - A recompile of the same program keeps its things, e.g. the game in progress
@@ -201,43 +203,43 @@ and in the app's build folder, `app/` at the repo's root.
       - The words come from the project's words file, `<Project>.en.js`, committed beside its source.
       - The code:  `SP.SpellWords`, and the runner's [words.ts](runner/words.ts).
       - Each runner loads the file beside the scope pack:
-        - `<spell-app>`, by URL
+        - `<spell-viewer>`, by URL
         - VS Code's, from the extension's `run` message, which brings them
         - an editor's, in what it pushes
       - No words file:  each by its name, `move to pile`.
-- `components/`:  `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4);
+- `components/`:  `<spell-viewer>` and `<spell-editor>` (epic `spell-element`, P4);
   `<spell-code>` and `<spell-markdown>` (epic `repo-split` P2).
   - They're Spell UI components, written as a component pack's families are
     ([spell-epic's AGENTS.md](../../../spell-epic/src/AGENTS.md)).
   - `components/<tag>/` holds:
     - `<Name>.en.ts`:  the vocabulary
     - `<Name>.tsx`:  two classes
-      - the DOM element class, with its script API (`DOMSpellAppElement`)
+      - the DOM element class, with its script API (`DOMSpellViewerElement`)
       - then the component, on `E.UIComponent` (`import { E } from "spell/element"`).
-        `<spell-app>`'s is on `UIRoot`.
+        `<spell-viewer>`'s is on `UIRoot`.
     - Held to Spell UI's patterns by the lint guard, as every set's elements are (`spell-ui/*`:
       [ui's AGENTS.md](../../../spell-ui/AGENTS.md), "The lint guard";  since epic `people-and-orgs` P17).
     - `index.ts`:  defines the tag;  also the bundle's entry
   - `spell-app/app/components/<tag>` imports one.
-  - `<spell-app>` is a ROOT (`SpellApp extends UIRoot`, J37):  a page needs nothing around it.
+  - `<spell-viewer>` is a ROOT (`SpellViewer extends UIRoot`, J37):  a page needs nothing around it.
     - It loads each Spell UI family the runner draws, the first time one appears (in its shadow root too).
       A drawable thing's element loads its own:  a root never sees into another element's shadow root.
     - It never loads all of `spell-ui`:  `loadUI.ts` is the editor app's and VS Code's, not its.
     - A spell tag inside it loads from beside its script (`spell-editor` => `spell-editor.js`).
-      So a page with only `<spell-app>`s never downloads the editor.
+      So a page with only `<spell-viewer>`s never downloads the editor.
     - It takes a root's attributes, like its timeout, theme and size.
     - By default its icons are Fomantic's, and its `display` is `immediately`.
     - Inside another root (a docs page, the editor demo), it's a nested root.
   - A page loads them either way:
-    - by itself:  `<script type="module" src="/element/spell-app.js">` (or `spell-editor.js`)
+    - by itself:  `<script type="module" src="/element/spell-viewer.js">` (or `spell-editor.js`)
     - under a `<ui-root>`, once Spell UI is loaded (`spell-ui.js`)
       - `<ui-components source="/element/spell.pack.js">`
-      - e.g. the editor demo:  its editors sit beside the apps, outside any `<spell-app>`
+      - e.g. the editor demo:  its editors sit beside the apps, outside any `<spell-viewer>`
   - The pack is NOT `spell pack build`'s one classic script.
     - [vite.element.config.ts](../../app/vite.element.config.ts) writes it, with `componentPack()`:  a classic `spell.pack.js`.
     - Its `define()` imports each family's ES module beside it, one per folder of `components/`.
       - One that won't load is a warning, and the rest still define:
-        `spell-code.js` on a docs page whose Spell UI shares no code family, where `<spell-app>` still runs.
+        `spell-code.js` on a docs page whose Spell UI shares no code family, where `<spell-viewer>` still runs.
     - They need lazy chunks (Monaco, the parser), and `spell-runtime.js` per app.
   - On a docs page (with Spell UI of its own), both take Solid and Spell UI's core from the page.
     - That's `SpellUI.packModules`, through `spell-solid-shared.js`.
@@ -267,7 +269,7 @@ and in the app's build folder, `app/` at the repo's root.
   - Served at `/components/app/`.
   - Laid out as every set is since P18 of `people-and-orgs` (the root's `AGENTS.md`).
   - ONE flat folder:
-    - a page per documented component, `<Name>.html` (the web components' `spell-app.html` ...)
+    - a page per documented component, `<Name>.html` (the web components' `spell-viewer.html` ...)
     - its home, `index.html`
     - `__parts/` (the layout and footer, every page's frame) and `__data/`
     - `_images/` (the pictures) and `_examples/` (snippets a page shows):
@@ -301,12 +303,12 @@ and in the app's build folder, `app/` at the repo's root.
     the layout loads `/element/spell.pack.js`.
   - A new page:
     1. its entry in `pages.json5`, then `yarn site:data`
-    2. a copy of a page like it:  `Notice.html` for a picture, `spell-app.html` for a live one
+    2. a copy of a page like it:  `Notice.html` for a picture, `spell-viewer.html` for a live one
     3. linked from `index.html`
 - `spellEditor/` is `<spell-editor>`'s pane:  the app's Monaco editor, as a web component.
   - `yarn build:element` => `spell-editor.js`
   - its demo:  `/demo/spell-editor.html`
-  - It edits a server project, and feeds `<spell-app>`s what it compiles.
+  - It edits a server project, and feeds `<spell-viewer>`s what it compiles.
     - That's `SPELL_COMPILED_EVENT`, and `SpellCompiled` in [runner.types.ts](runner/runner.types.ts).
   - Its OWN build, `vite.editor.config.ts`, so Monaco's CSS stays out of `spell-app.css`.
     - Monaco is a lazy chunk:  the parser compiles, and apps run, before it loads.
@@ -343,7 +345,7 @@ and in the app's build folder, `app/` at the repo's root.
     talks to spaces' people routes in plain JSON:  it never loads the people library.
     - the route:  `/api/people/me`
     - typed by `SPACES.MeAnswer`
-  - `<spell-app>` loads only the light files, without the parser:
+  - `<spell-viewer>` loads only the light files, without the parser:
     - `spell-app/spaces/models/projectGroups`, which registers spell's project groups
     - `spell-parser/spell/SpellSetup`
     - `spell-parser/spell/SpellUrls`

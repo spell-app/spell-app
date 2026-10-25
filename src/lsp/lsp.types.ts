@@ -496,7 +496,7 @@ const MEMBER_KINDS = SCOPE_MEMBER_GROUPS.flatMap(({ kinds }) => kinds)
 
 /**
  * A flat part of a Type Explorer's tree, with the details of everything in it.
- * - For pages which show a project's scopes WITHOUT the parser, e.g. `<spell-app>`.
+ * - For pages which show a project's scopes WITHOUT the parser, e.g. `<spell-viewer>`.
  *   See `scopeTreeFromPacks()`.
  * - Plain data:  NOT tied to the parser, so one can be written by hand,
  *   e.g. to document `Thing` or `List`, which are javascript.

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
+import { core, App, View, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Bill Splitter")
@@ -118,6 +118,8 @@ export function writeAmountAsMoney(amount: number) {
 core.heading("The bill splitter")
 /** The bill splitter */
 export class BillSplitter extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "diners" is a new table
   @prop({ init: () => new Table(), early: true })
   accessor diners!: Table
@@ -181,6 +183,24 @@ export class BillSplitter extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a bill splitter, drawn in its own element, e.g. by `draw the bill splitter`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its bill splitter's properties;  its methods call its bill splitter's.
+ * - What every view's element does, e.g. drawing its bill splitter, is `SpellElement`'s.
+ */
+export class BillSplitterElement extends SpellElement<BillSplitter> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "bill splitter", [
+    { name: "diners", kind: "json", description: "Its diners." },
+    { name: "percent", kind: "number", description: "Its percent." }
+  ])
+
+  addSomeone() {
+    return this.currentThing?.addSomeone()
+  }
+}
+core.useElement(BillSplitter, BillSplitterElement)
 export const billSplitter = new BillSplitter()
 
 core.heading("The table:  the diners, one a row")
@@ -216,6 +236,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-diner": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `TableElement` */
       "test-project-table": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `BillSplitterElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

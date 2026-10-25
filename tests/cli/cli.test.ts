@@ -207,7 +207,8 @@ describe("spell app serve", () => {
       expect(await (await fetch(`${editor}/`)).text()).toContain("<html")
       // the page it opens loads its app:  each module script, and what each imports, asked for as a browser asks
       const scripts = await moduleScripts(out.trim())
-      expect(scripts.filter((script) => script.endsWith("/src/app/index.tsx"))).toHaveLength(1)
+      // Vite stamps a source changed since it started (`index.tsx?t=...`):  compare the path alone
+      expect(scripts.filter((script) => new URL(script).pathname.endsWith("/src/app/index.tsx"))).toHaveLength(1)
       for (const script of scripts) {
         const response = await fetch(script, { headers: SCRIPT_REQUEST })
         expect(`${response.status} ${response.headers.get("content-type")}`, script).toBe("200 text/javascript")
@@ -547,7 +548,7 @@ describe("spell run", () => {
     expect(status).toBe(0)
   })
 
-  test("a UI project runs in the browser, in <spell-app>, until interrupted -- writing nothing into it", async () => {
+  test("a UI project runs in the browser, in <spell-viewer>, until interrupted -- writing nothing into it", async () => {
     // the fixture's files and its build folder's, each by when it last changed:  none added or written by the run
     const before = fixtureFiles("Solitaire")
     const child = spawn(process.execPath, [SPELL, "run", "@spell/examples/Solitaire"], {
@@ -560,10 +561,10 @@ describe("spell run", () => {
     // after what the program printed as it ran under node
     await until(() => /http:\/\/localhost:\d+\/\n/.test(out), 120_000)
     const url = /http:\/\/localhost:\d+\//.exec(out)![0]
-    expect(await (await fetch(url)).text()).toContain('<spell-app src="app/Solitaire.spell.js" toolbar>')
+    expect(await (await fetch(url)).text()).toContain('<spell-viewer src="app/Solitaire.spell.js" toolbar>')
     expect(await (await fetch(new URL("app/Solitaire.spell.js", url))).text()).toContain("class Tableau")
     expect(await (await fetch(new URL("app/Solitaire.scopes.js", url))).text()).toContain("type:Tableau")
-    expect((await fetch(new URL("element/spell-app.js", url))).status).toBe(200)
+    expect((await fetch(new URL("element/spell-viewer.js", url))).status).toBe(200)
     expect((await fetch(new URL("element/../../package.json", url))).status).toBe(404)
 
     child.kill("SIGINT")

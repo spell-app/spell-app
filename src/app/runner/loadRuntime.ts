@@ -1,5 +1,5 @@
 /**
- * Loading a FRESH copy of `spell-runtime.js` for each `<spell-app>` -- see `spellRuntime.ts`.
+ * Loading a FRESH copy of `spell-runtime.js` for each `<spell-viewer>` -- see `spellRuntime.ts`.
  * - The browser keeps one module per URL, so a copy needs a URL of its own:
  *   we fetch the runtime's text ONCE per page, then import it from a new `blob:` URL per copy.
  * - Its imports of the bundle's shared chunks, e.g. the page's Solid through `spell-solid-shared.js`, are relative,

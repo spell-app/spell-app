@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, position } from "@spell/core"
+import { core, App, View, ViewableList, h, position } from "@spell/core"
 
 core.heading("Tic-Tac-Toe")
 /////////////////
@@ -60,6 +60,8 @@ export class Board extends ViewableList {
 core.heading("The game")
 /** The game */
 export class TicTacToe extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "board" is a new board
   static { this.declareProp("board", { init: () => new Board(), early: true }) }
   get board() { return this.getProp("board") }

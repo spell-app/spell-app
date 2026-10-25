@@ -13,7 +13,7 @@ const UI_ENTRY = "\0spell-ui-entry"
 const UI_CORE = sourceOf("spell-ui/core.ts")
 
 /**
- * `spell-ui`'s root family, `spell-ui/components/ui-root`:  in `SHARED_SOLID.solid`, as `<spell-app>` is a root.
+ * `spell-ui`'s root family, `spell-ui/components/ui-root`:  in `SHARED_SOLID.solid`, as `<spell-viewer>` is a root.
  * - Its loader imports every other family on demand:  each a lazy chunk of `ui/`.
  */
 const UI_ROOT = sourceOf("spell-ui/components/ui-root")
@@ -26,12 +26,12 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
 
 /**
  * The ONE Solid and `spell-ui` every other bundle of ours imports,
- * so a page with `<spell-app>`s and a `<spell-editor>` loads one copy of each
+ * so a page with `<spell-viewer>`s and a `<spell-editor>` loads one copy of each
  * (two Solids on a page fail silently -- `solid-2.md`).
  * - Built by `yarn build:element` (FIRST, it empties `dist-element/`) and `yarn build:runner` (`--outDir dist-runner`).
  * - `spell-solid.js`:  `solid-js` and `@solidjs/web` (and `@solidjs/signals` under them),
  *   `ui`'s element core, `spell-ui/core` (`UIComponent`, `DOMElement` ...), and its root family (`UIRoot`),
- *   which `<spell-app>` and `<spell-editor>` are defined on,
+ *   which `<spell-viewer>` and `<spell-editor>` are defined on,
  *   and `@solidjs/h` (as `h`), which compiled spell draws with (`spell-runtime.js`).
  *   - Each is re-exported WHOLE:  the other builds can't tell this one which names they use.
  *   - None of their names clash.
@@ -47,7 +47,7 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *   the app imports it lazily (`loadUI.ts`), and a page may load it itself, to have `<ui-root>`.
  *   - It also puts `registerPack` on `globalThis.SpellUI`, as the docs bundle does,
  *     so a `<ui-components source>` can load a component pack:
- *     `spell.pack.js`, `<spell-app>` and `<spell-editor>`'s (`vite.element.config.ts`).
+ *     `spell.pack.js`, `<spell-viewer>` and `<spell-editor>`'s (`vite.element.config.ts`).
  *   - Its lazy chunks (the `UI` runtime, emoji data, `<ui-root>`'s families) go in `ui/`.
  * - `spell-ui-shared.js`, what `<spell-code>` and `<spell-markdown>` import Spell UI's code and markdown families from
  *   (`SHARED_FAMILIES`):  the page's, on the same condition, else `spell-ui.js`'s (`sharedPage()`).
@@ -126,7 +126,7 @@ function sharedEntries(): Plugin {
  * every name `spell-solid.js` exports, taken from the page if it has them, else from `spell-solid.js`.
  * - A docs page has its own Solid and Spell UI (the docs bundle, a classic script),
  *   and puts their modules on `globalThis.SpellUI.packModules` for component packs.
- *   `<spell-app>` there must use THOSE:  a second Solid on a page fails silently (`solid-2.md`).
+ *   `<spell-viewer>` there must use THOSE:  a second Solid on a page fails silently (`solid-2.md`).
  * - Only when the page has every specifier the other builds take from here (`SHARED_SPECIFIERS`):
  *   a page with some missing (an older docs bundle) gets ours, whole.
  * - Read as the module runs:  the docs bundle must run first (it does:  a classic script runs before any module).

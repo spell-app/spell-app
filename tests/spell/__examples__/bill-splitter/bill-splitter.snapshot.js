@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, View, ViewableList, h } from "@spell/core"
 
 core.heading("Bill Splitter")
 ///////////////////
@@ -100,6 +100,8 @@ export function writeAmountAsMoney(amount) {
 core.heading("The bill splitter")
 /** The bill splitter */
 export class BillSplitter extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "diners" is a new table
   static { this.declareProp("diners", { init: () => new Table(), early: true }) }
   get diners() { return this.getProp("diners") }

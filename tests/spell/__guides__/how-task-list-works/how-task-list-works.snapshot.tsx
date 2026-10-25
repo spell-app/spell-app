@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
+import { core, List, App, View, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("How the Task List works")
@@ -111,6 +111,8 @@ core.useElement(Checklist, ChecklistElement)
 core.heading("The app")
 /** The app */
 export class TaskList extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "tasks" is a new checklist
   @prop({ init: () => new Checklist(), early: true })
   accessor tasks!: Checklist
@@ -140,6 +142,19 @@ export class TaskList extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a task list, drawn in its own element, e.g. by `draw the task list`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its task list's properties;  its methods call its task list's.
+ * - What every view's element does, e.g. drawing its task list, is `SpellElement`'s.
+ */
+export class TaskListElement extends SpellElement<TaskList> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "task list", [
+    { name: "tasks", kind: "json", description: "Its tasks." }
+  ])
+}
+core.useElement(TaskList, TaskListElement)
 export const taskList = new TaskList()
 
 core.heading("Start:  three tasks, one of them done")
@@ -190,6 +205,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-task": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `ChecklistElement` */
       "test-project-checklist": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `TaskListElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

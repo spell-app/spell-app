@@ -1,8 +1,8 @@
 /**
- * Every name `<spell-app>` adds to a root's:  tag, attributes, events, texts.
+ * Every name `<spell-viewer>` adds to a root's:  tag, attributes, events, texts.
  * Schema:  `E.ComponentVocabulary` (`spell-ui/core`).
- * - `<spell-app>` is a root (`UIRoot`):
- *   its whole vocabulary is `<ui-root>`'s names, then these (`SpellApp.vocabulary`, `SpellApp.tsx`).
+ * - `<spell-viewer>` is a root (`UIRoot`):
+ *   its whole vocabulary is `<ui-root>`'s names, then these (`SpellViewer.vocabulary`, `SpellViewer.tsx`).
  * - Where both name an attribute, this one wins:
  *   `display` and `icons` (other defaults), `width`, `height` and `assets` (other meanings).
  * - Pure data:  `import type` only, so node can read it (the component pack's catalog, `vite.element.config.ts`).
@@ -11,12 +11,12 @@
 import type { E } from "spell/element"
 
 /****************
- * ### `<spell-app>`
+ * ### `<spell-viewer>`
  * Runs a compiled spell project in any page, in its own shadow root:  no editor.
  * A root, as `<ui-root>` is.
  ****************/
-export const spellAppVocabulary = {
-  tag: "spell-app",
+export const spellViewerVocabulary = {
+  tag: "spell-viewer",
   topics: ["containers", "views"],
   aka: ["app runner", "program", "playground", "embed"],
   noun: "app",
@@ -115,7 +115,7 @@ export const spellAppVocabulary = {
   parts: [],
   states: [],
   texts: [
-    { key: "nothingToRun", text: "Give <spell-app> a project or src to run.", description: "Nothing to run." },
+    { key: "nothingToRun", text: "Give <spell-viewer> a project or src to run.", description: "Nothing to run." },
     {
       key: "waitingForEditor",
       text: "Waiting for its editor, {editor}, to compile…",

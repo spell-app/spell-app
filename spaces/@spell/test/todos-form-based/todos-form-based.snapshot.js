@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, Thing, List, App, h } from "@spell/core"
 
 core.heading("Todo app example")
 /** Todo app example */
@@ -23,6 +23,8 @@ export class Task extends Thing {
 }
 
 export class TodosApp extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // a todos-app has a property tasks as a new list of tasks
   static { this.declareProp("tasks", { itemType: "Task", init: () => new List({ instanceType: "Task" }) }) }
   get tasks() { return this.getProp("tasks") }

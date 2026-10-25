@@ -8,7 +8,7 @@ import type { E } from "spell/element"
 
 /****************
  * ### `<spell-editor>`
- * Edits a spell project in any page, in Monaco, and feeds `<spell-app>`s on the page what it compiles.
+ * Edits a spell project in any page, in Monaco, and feeds `<spell-viewer>`s on the page what it compiles.
  ****************/
 export const spellEditorVocabulary = {
   tag: "spell-editor",
@@ -18,13 +18,13 @@ export const spellEditorVocabulary = {
   ui: false,
   description:
     "Edits a spell project in any page, in Monaco, saving back to the spell server;  compiles as it opens, after " +
-    "typing stops and on Cmd+Enter, and feeds `<spell-app>`s what it compiled.",
+    "typing stops and on Cmd+Enter, and feeds `<spell-viewer>`s what it compiled.",
   attributes: [
     {
       name: "project",
       kind: "string",
       description:
-        "What to edit, from the spell server's `/api`, as `<spell-app project>`:  `@spell/examples/Solitaire`." +
+        "What to edit, from the spell server's `/api`, as `<spell-viewer project>`:  `@spell/examples/Solitaire`." +
         "  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves."
     },
     {
@@ -36,7 +36,7 @@ export const spellEditorVocabulary = {
       name: "app",
       kind: "string",
       description:
-        "A CSS selector for `<spell-app>`s to run what it compiles, e.g. `#game`.  Or an app can name the editor, " +
+        "A CSS selector for `<spell-viewer>`s to run what it compiles, e.g. `#game`.  Or an app can name the editor, " +
         "with its `editor` attribute:  either will do."
     },
     { name: "width", kind: "string", description: "A CSS length (`50%`, `30em`), set as its inline style." },

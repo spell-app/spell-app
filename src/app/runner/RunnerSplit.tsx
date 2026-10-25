@@ -8,7 +8,7 @@ import "./RunnerSplit.css"
  * `children` in a pane on top, then `bottom` below while `showBottom` -- split by a bar you drag.
  * - `unit`:
  *   - `"%"`, for a split of a fixed height:  `split` is the TOP pane's share of it, in %
- *   - `"px"`, for one as tall as it needs to be, e.g. a fluid `<spell-app>`:  the top pane is as tall as its
+ *   - `"px"`, for one as tall as it needs to be, e.g. a fluid `<spell-viewer>`:  the top pane is as tall as its
  *     content, and `split` is the BOTTOM pane's height, in px
  * - Dragging shows as it goes, and says `onSplit()` only when let go:
  *   so e.g. the VS Code extension writes `settings.json5` once.

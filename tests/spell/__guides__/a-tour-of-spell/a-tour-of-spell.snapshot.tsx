@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
+import { core, App, View, ViewableList, prop, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("A tour of Spell")
@@ -139,6 +139,8 @@ core.useElement(Windowsill, WindowsillElement)
 
 /** the app:  the page on the right */
 export class Garden extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "sill" is a new windowsill
   @prop({ init: () => new Windowsill(), early: true })
   accessor sill!: Windowsill
@@ -159,6 +161,23 @@ export class Garden extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a garden, drawn in its own element, e.g. by `draw the garden`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its garden's properties;  its methods call its garden's.
+ * - What every view's element does, e.g. drawing its garden, is `SpellElement`'s.
+ */
+export class GardenElement extends SpellElement<Garden> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "garden", [
+    { name: "sill", kind: "json", description: "Its sill." }
+  ])
+
+  waitADay() {
+    return this.currentThing?.waitADay()
+  }
+}
+core.useElement(Garden, GardenElement)
 export const garden = new Garden()
 
 core.heading("Start:  three plants, one of them thirsty")
@@ -233,6 +252,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-plant": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `WindowsillElement` */
       "test-project-windowsill": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `GardenElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

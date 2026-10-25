@@ -10,7 +10,7 @@
  */
 
 import type { AppLanguagePack, AppTextPack } from "spell-app/app/ui/AppTexts"
-import { spellAppEs } from "spell-app/app/components/spell-app/SpellApp.es"
+import { spellViewerEs } from "spell-app/app/components/spell-viewer/SpellViewer.es"
 import { spellEditorEs } from "spell-app/app/components/spell-editor/SpellEditor.es"
 
 /** The editor's own texts, in Spanish. */
@@ -285,5 +285,5 @@ const APP_TEXTS_ES: AppTextPack = {
 export const appTextsEs: AppLanguagePack = {
   lang: "es",
   texts: APP_TEXTS_ES,
-  tags: [spellAppEs, spellEditorEs]
+  tags: [spellViewerEs, spellEditorEs]
 }

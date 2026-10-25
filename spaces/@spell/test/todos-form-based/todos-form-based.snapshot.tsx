@@ -1,4 +1,5 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
+import { core, Thing, List, App, prop, derived, drawn } from "@spell/core"
+import { E, SpellElement } from "@spell/elements"
 
 core.heading("Todo app example")
 /** Todo app example */
@@ -23,6 +24,8 @@ export class Task extends Thing {
 export type Filter = (typeof TodosApp.Filters)[number]
 
 export class TodosApp extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // a todos-app has a property tasks as a new list of tasks
   @prop({ itemType: "Task", init: () => new List<Task>({ instanceType: "Task" }) })
   accessor tasks!: List<Task>
@@ -106,6 +109,21 @@ export class TodosApp extends App {
   }
 }
 
+/**
+ * `<test-project-app>`:  a todos app, drawn in its own element, e.g. by `draw the todos app`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its todos app's properties;  its methods call its todos app's.
+ * - What every view's element does, e.g. drawing its todos app, is `SpellElement`'s.
+ */
+export class TodosAppElement extends SpellElement<TodosApp> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "todos app", [
+    { name: "tasks", kind: "json", description: "Its tasks." },
+    { name: "new-task-name", kind: "string", description: "Its newTaskName." },
+    { name: "filter", kind: "string", description: "Its filter." }
+  ])
+}
+core.useElement(TodosApp, TodosAppElement)
+
 export const app = new TodosApp()
 app.filter = "all"
 app.newTaskName = ""
@@ -127,3 +145,13 @@ createANewTask({ title: "Test app" })
 
 if (!core.isCarryingOver) app.start()
 core.console.log(app)
+
+// each view type's tag, for the JSX
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      /** `TodosAppElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+    }
+  }
+}

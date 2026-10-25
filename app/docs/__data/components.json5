@@ -33,226 +33,6 @@
   ],
   "components": [
     {
-      "tag": "spell-app",
-      "name": "<spell-app>",
-      "folder": "spell-app",
-      "topics": [
-        "web components"
-      ],
-      "aka": [
-        "app runner",
-        "program",
-        "playground",
-        "embed"
-      ],
-      "description": "Runs a compiled spell project in any page, in its own shadow root:  from the spell server (`project`), from files anywhere (`src`), or what a `<spell-editor>` compiles (`editor`, `run()`).  A root, as `<ui-root>` is:  it loads the Spell UI widgets it draws, and the other spell tags inside it, as they appear.",
-      "noun": "app",
-      "attributes": [
-        {
-          "name": "project",
-          "kind": "string",
-          "description": "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/Solitaire`.  The Template Explorer shows each declaration's spell and compiled code."
-        },
-        {
-          "name": "src",
-          "kind": "string",
-          "description": "What to run, from anywhere:  `apps/Solitaire.spell.js`.  Its scope pack (`Solitaire.scopes.js`), declarations (`Solitaire.declarations.json5`), words (`Solitaire.en.js`) and the projects it imports (`Cards.spell.js`) are beside it."
-        },
-        {
-          "name": "scopes",
-          "kind": "string",
-          "description": "Where its scope pack is, if not where `project` / `src` says."
-        },
-        {
-          "name": "name",
-          "kind": "string",
-          "description": "Its name in the toolbar;  default, its project's."
-        },
-        {
-          "name": "editor",
-          "kind": "string",
-          "description": "A CSS selector for a `<spell-editor>` in the same document or shadow root:  runs what it compiles, and what it compiled already.  Waits for it without `project` or `src`."
-        },
-        {
-          "name": "toolbar",
-          "kind": "boolean",
-          "description": "Shows the toolbar:  its name, Restart, Debug."
-        },
-        {
-          "name": "debug",
-          "kind": "enum",
-          "values": [
-            "explorer",
-            "things",
-            "console"
-          ],
-          "description": "Opens the debug pane to start, on that tab."
-        },
-        {
-          "name": "width",
-          "kind": "string",
-          "description": "`fluid` (the default) or a CSS length (`50%`, `30em`), set as its inline style."
-        },
-        {
-          "name": "height",
-          "kind": "string",
-          "description": "`fluid` (the default:  as tall as the app, plus the debug pane if open) or a CSS length, set as its inline style."
-        },
-        {
-          "name": "assets",
-          "kind": "string",
-          "description": "Where Semantic UI, Lato, `spell-app.css` and the icon packs (`icon-packs/`) are;  default, beside its script.  Semantic UI's sheets are read as it joins the page."
-        },
-        {
-          "name": "display",
-          "kind": "enum",
-          "values": [
-            "skeleton",
-            "when-ready",
-            "immediately"
-          ],
-          "default": "immediately",
-          "description": "While the Spell UI widgets it draws load, as `<ui-root>`'s:  `immediately` (the default) -- draw as they arrive;  `when-ready` -- nothing (space kept) until they're ready;  `skeleton` -- placeholders."
-        },
-        {
-          "name": "icons",
-          "kind": "string",
-          "default": "fomantic",
-          "description": "Icon packs for everything inside, as `<ui-root>`'s:  default `fomantic`, the names its toolbar and panes use.  The page's own icons, outside it, keep theirs."
-        },
-        {
-          "name": "pushed",
-          "kind": "json",
-          "reflect": false,
-          "description": "A PROPERTY:  the code pushed to it last (`run()`, or its `editor`), a `SpellCompiled`.  Dropped when `project`, `src`, `scopes`, `name` or `editor` changes."
-        },
-        {
-          "name": "disabled",
-          "kind": "boolean",
-          "shared": true,
-          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
-        },
-        {
-          "name": "loading",
-          "kind": "boolean",
-          "shared": true,
-          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
-        },
-        {
-          "name": "visible",
-          "kind": "boolean",
-          "shared": true,
-          "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins."
-        },
-        {
-          "name": "animation",
-          "kind": "enum",
-          "values": [
-            "fade",
-            "fade up",
-            "fade down",
-            "fade left",
-            "fade right",
-            "scale",
-            "zoom",
-            "drop",
-            "browse",
-            "browse right",
-            "fly",
-            "fly up",
-            "fly down",
-            "fly left",
-            "fly right",
-            "slide",
-            "slide up",
-            "slide down",
-            "slide left",
-            "slide right",
-            "swing",
-            "swing up",
-            "swing down",
-            "swing left",
-            "swing right",
-            "horizontal flip",
-            "vertical flip",
-            "flash",
-            "shake",
-            "bounce",
-            "tada",
-            "pulse",
-            "jiggle",
-            "glow",
-            "none"
-          ],
-          "shared": true,
-          "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on."
-        }
-      ],
-      "slots": [],
-      "events": [
-        {
-          "name": "spell-open",
-          "detail": "{ href: string }",
-          "description": "A Template Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`."
-        }
-      ],
-      "parts": [],
-      "states": [
-        {
-          "name": "disabled",
-          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
-        },
-        {
-          "name": "loading",
-          "description": "`loading` is set."
-        },
-        {
-          "name": "busy",
-          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
-        },
-        {
-          "name": "dimmed",
-          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
-        },
-        {
-          "name": "hidden",
-          "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
-        },
-        {
-          "name": "still",
-          "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
-        },
-        {
-          "name": "hiding",
-          "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
-        },
-        {
-          "name": "pending",
-          "description": "Defined by its `<ui-root>` before its family loaded:  no component yet, its values kept until it arrives."
-        },
-        {
-          "name": "ready",
-          "description": "Ready to go:  drawn with its styles (its `ready` promise has resolved)."
-        }
-      ],
-      "texts": [
-        {
-          "key": "nothingToRun",
-          "text": "Give <spell-app> a project or src to run.",
-          "description": "Nothing to run."
-        },
-        {
-          "key": "waitingForEditor",
-          "text": "Waiting for its editor, {editor}, to compile…",
-          "description": "An `editor` that hasn't compiled yet, and nothing else to run."
-        }
-      ],
-      "mainTag": "spell-app",
-      "main": true,
-      "page": true,
-      "href": "spell-app.html"
-    },
-    {
       "tag": "spell-code",
       "name": "<spell-code>",
       "folder": "spell-code",
@@ -395,13 +175,13 @@
         "ide",
         "monaco"
       ],
-      "description": "Edits a spell project in any page, in Monaco, saving back to the spell server;  compiles as it opens, after typing stops and on Cmd+Enter, and feeds `<spell-app>`s what it compiled.",
+      "description": "Edits a spell project in any page, in Monaco, saving back to the spell server;  compiles as it opens, after typing stops and on Cmd+Enter, and feeds `<spell-viewer>`s what it compiled.",
       "noun": "editor",
       "attributes": [
         {
           "name": "project",
           "kind": "string",
-          "description": "What to edit, from the spell server's `/api`, as `<spell-app project>`:  `@spell/examples/Solitaire`.  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves."
+          "description": "What to edit, from the spell server's `/api`, as `<spell-viewer project>`:  `@spell/examples/Solitaire`.  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves."
         },
         {
           "name": "file",
@@ -411,7 +191,7 @@
         {
           "name": "app",
           "kind": "string",
-          "description": "A CSS selector for `<spell-app>`s to run what it compiles, e.g. `#game`.  Or an app can name the editor, with its `editor` attribute:  either will do."
+          "description": "A CSS selector for `<spell-viewer>`s to run what it compiles, e.g. `#game`.  Or an app can name the editor, with its `editor` attribute:  either will do."
         },
         {
           "name": "width",
@@ -684,6 +464,226 @@
       "main": true,
       "page": true,
       "href": "spell-markdown.html"
+    },
+    {
+      "tag": "spell-viewer",
+      "name": "<spell-viewer>",
+      "folder": "spell-viewer",
+      "topics": [
+        "web components"
+      ],
+      "aka": [
+        "app runner",
+        "program",
+        "playground",
+        "embed"
+      ],
+      "description": "Runs a compiled spell project in any page, in its own shadow root:  from the spell server (`project`), from files anywhere (`src`), or what a `<spell-editor>` compiles (`editor`, `run()`).  A root, as `<ui-root>` is:  it loads the Spell UI widgets it draws, and the other spell tags inside it, as they appear.",
+      "noun": "app",
+      "attributes": [
+        {
+          "name": "project",
+          "kind": "string",
+          "description": "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/Solitaire`.  The Template Explorer shows each declaration's spell and compiled code."
+        },
+        {
+          "name": "src",
+          "kind": "string",
+          "description": "What to run, from anywhere:  `apps/Solitaire.spell.js`.  Its scope pack (`Solitaire.scopes.js`), declarations (`Solitaire.declarations.json5`), words (`Solitaire.en.js`) and the projects it imports (`Cards.spell.js`) are beside it."
+        },
+        {
+          "name": "scopes",
+          "kind": "string",
+          "description": "Where its scope pack is, if not where `project` / `src` says."
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "description": "Its name in the toolbar;  default, its project's."
+        },
+        {
+          "name": "editor",
+          "kind": "string",
+          "description": "A CSS selector for a `<spell-editor>` in the same document or shadow root:  runs what it compiles, and what it compiled already.  Waits for it without `project` or `src`."
+        },
+        {
+          "name": "toolbar",
+          "kind": "boolean",
+          "description": "Shows the toolbar:  its name, Restart, Debug."
+        },
+        {
+          "name": "debug",
+          "kind": "enum",
+          "values": [
+            "explorer",
+            "things",
+            "console"
+          ],
+          "description": "Opens the debug pane to start, on that tab."
+        },
+        {
+          "name": "width",
+          "kind": "string",
+          "description": "`fluid` (the default) or a CSS length (`50%`, `30em`), set as its inline style."
+        },
+        {
+          "name": "height",
+          "kind": "string",
+          "description": "`fluid` (the default:  as tall as the app, plus the debug pane if open) or a CSS length, set as its inline style."
+        },
+        {
+          "name": "assets",
+          "kind": "string",
+          "description": "Where Semantic UI, Lato, `spell-app.css` and the icon packs (`icon-packs/`) are;  default, beside its script.  Semantic UI's sheets are read as it joins the page."
+        },
+        {
+          "name": "display",
+          "kind": "enum",
+          "values": [
+            "skeleton",
+            "when-ready",
+            "immediately"
+          ],
+          "default": "immediately",
+          "description": "While the Spell UI widgets it draws load, as `<ui-root>`'s:  `immediately` (the default) -- draw as they arrive;  `when-ready` -- nothing (space kept) until they're ready;  `skeleton` -- placeholders."
+        },
+        {
+          "name": "icons",
+          "kind": "string",
+          "default": "fomantic",
+          "description": "Icon packs for everything inside, as `<ui-root>`'s:  default `fomantic`, the names its toolbar and panes use.  The page's own icons, outside it, keep theirs."
+        },
+        {
+          "name": "pushed",
+          "kind": "json",
+          "reflect": false,
+          "description": "A PROPERTY:  the code pushed to it last (`run()`, or its `editor`), a `SpellCompiled`.  Dropped when `project`, `src`, `scopes`, `name` or `editor` changes."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins."
+        },
+        {
+          "name": "animation",
+          "kind": "enum",
+          "values": [
+            "fade",
+            "fade up",
+            "fade down",
+            "fade left",
+            "fade right",
+            "scale",
+            "zoom",
+            "drop",
+            "browse",
+            "browse right",
+            "fly",
+            "fly up",
+            "fly down",
+            "fly left",
+            "fly right",
+            "slide",
+            "slide up",
+            "slide down",
+            "slide left",
+            "slide right",
+            "swing",
+            "swing up",
+            "swing down",
+            "swing left",
+            "swing right",
+            "horizontal flip",
+            "vertical flip",
+            "flash",
+            "shake",
+            "bounce",
+            "tada",
+            "pulse",
+            "jiggle",
+            "glow",
+            "none"
+          ],
+          "shared": true,
+          "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on."
+        }
+      ],
+      "slots": [],
+      "events": [
+        {
+          "name": "spell-open",
+          "detail": "{ href: string }",
+          "description": "A Template Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`."
+        }
+      ],
+      "parts": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+        },
+        {
+          "name": "still",
+          "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+        },
+        {
+          "name": "hiding",
+          "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+        },
+        {
+          "name": "pending",
+          "description": "Defined by its `<ui-root>` before its family loaded:  no component yet, its values kept until it arrives."
+        },
+        {
+          "name": "ready",
+          "description": "Ready to go:  drawn with its styles (its `ready` promise has resolved)."
+        }
+      ],
+      "texts": [
+        {
+          "key": "nothingToRun",
+          "text": "Give <spell-viewer> a project or src to run.",
+          "description": "Nothing to run."
+        },
+        {
+          "key": "waitingForEditor",
+          "text": "Waiting for its editor, {editor}, to compile…",
+          "description": "An `editor` that hasn't compiled yet, and nothing else to run."
+        }
+      ],
+      "mainTag": "spell-viewer",
+      "main": true,
+      "page": true,
+      "href": "spell-viewer.html"
     },
     {
       "tag": "Action",
@@ -3382,15 +3382,15 @@
   ],
   "docs": [],
   "families": {
-    "spell-app": {
-      "folder": "spell-app",
-      "mainTag": "spell-app",
-      "title": "<spell-app>",
-      "summary": "Runs a spell project in any page, in its own shadow root.",
+    "spell-viewer": {
+      "folder": "spell-viewer",
+      "mainTag": "spell-viewer",
+      "title": "<spell-viewer>",
+      "summary": "Runs a spell app in any page, in its own shadow root.",
       "status": "done",
       "docs": false,
       "tags": [
-        "spell-app"
+        "spell-viewer"
       ],
       "tokens": []
     },

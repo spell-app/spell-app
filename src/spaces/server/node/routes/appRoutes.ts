@@ -19,8 +19,8 @@ import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
  *   - `/api/...` -- the app's API, `./api` (as `cli.ts` serves it alone, `yarn start:server`);  bodies as JSON5
  *   - `/spaces/<project>/<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
  *   - `/hello` -- liveness
- *   - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`)
- *     - for the demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`
+ *   - `/element/...` -- `<spell-viewer>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`)
+ *     - for the demo pages, `/demo/spell-viewer.html` on the editor:  vite passes `/element` on to us, as it does `/api`
  *   - `/editor` -- the site header's "Editor":  redirects to the editor, from its record (`EDITOR_FILE`)
  *     - not up yet (vite takes seconds) or not running:  says so
  * - The editor UI (`EditorServer`):  vite's dev server, started once the page server listens and stopped with it.

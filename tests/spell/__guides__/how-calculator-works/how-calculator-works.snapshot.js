@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, App, h } from "@spell/core"
 
 core.heading("How the Calculator works")
 //////////////////////////////
@@ -22,6 +22,8 @@ core.heading("What it keeps")
  * (A tour of Spell writes them as a list under the thing's name instead.  Both mean the same.)
  */
 export class AddingMachine extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // an adding machine has a total as a number
   static { this.declareProp("total", { type: "number" }) }
   get total() { return this.getProp("total") }

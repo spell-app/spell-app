@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, View, h } from "@spell/core"
 
 core.heading("A counter -- in the outline style:  its name, then what's true of it")
 //////////////////////////////////////////////////////////////////////////

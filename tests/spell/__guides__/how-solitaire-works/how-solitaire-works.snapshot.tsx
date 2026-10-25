@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn, positionOf, spellPosition } from "@spell/core"
+import { core, App, View, ViewableList, prop, drawn, positionOf, spellPosition } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("How Solitaire works")
@@ -143,6 +143,8 @@ core.useElement(Column, ColumnElement)
 core.heading("The table:  a column, and a hand of cards to try on it")
 /** The table:  a column, and a hand of cards to try on it */
 export class Table extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "column" is a new column
   @prop({ init: () => new Column(), early: true })
   accessor column!: Column
@@ -167,6 +169,21 @@ export class Table extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a table, drawn in its own element, e.g. by `draw the table`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its table's properties;  its methods call its table's.
+ * - What every view's element does, e.g. drawing its table, is `SpellElement`'s.
+ */
+export class TableElement extends SpellElement<Table> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "table", [
+    { name: "column", kind: "json", description: "Its column." },
+    { name: "hand", kind: "json", description: "Its hand." },
+    { name: "message", kind: "string", description: "Its message." }
+  ])
+}
+core.useElement(Table, TableElement)
 export const table = new Table()
 
 core.heading("Start:  a king of spades on the column")
@@ -221,6 +238,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-pile": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `ColumnElement` */
       "test-project-column": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `TableElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

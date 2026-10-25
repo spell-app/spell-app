@@ -1,5 +1,5 @@
 /**
- * The Type Explorer's data on a page with NO parser, e.g. in `<spell-app>`:  scope packs, loaded as scripts.
+ * The Type Explorer's data on a page with NO parser, e.g. in `<spell-viewer>`:  scope packs, loaded as scripts.
  * - See `LSP.ScopePack`.
  * - A later source may parse in the page instead:  anything giving a `ScopesSource`.
  * - A pack leaves out each declaration's `spell` and `compiled`:

@@ -2,8 +2,8 @@ import { describe, expect, test } from "vite-plus/test"
 
 import { editorCompiled, isEditor, pushedKey, pushedSource, type SpellAppSource } from "spell-app/app/runner"
 
-/** What a `<spell-app editor="<selector>">` decides, with no DOM -- see "Fed by an editor" in `SpellAppRunner`. */
-describe("<spell-app> fed by an editor", () => {
+/** What a `<spell-viewer editor="<selector>">` decides, with no DOM -- see "Fed by an editor" in `SpellAppRunner`. */
+describe("<spell-viewer> fed by an editor", () => {
   const base: SpellAppSource = {
     name: "Solitaire",
     compiledUrl: "/spaces/@spell/examples/Solitaire/Solitaire.spell.js",

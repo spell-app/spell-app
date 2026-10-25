@@ -827,6 +827,8 @@ export class Tableau extends Pile {
   defined: "/Solitaire.spell:633-6082",
 } */
 export class Solitaire extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   /*! SPELL: DECLARES {
     property: "score", of: "Solitaire", datatype: "number",
     defined: "/Solitaire.spell:663-686",

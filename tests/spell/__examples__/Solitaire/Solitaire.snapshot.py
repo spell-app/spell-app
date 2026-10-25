@@ -739,6 +739,8 @@ class Tableau(Pile):
 class Solitaire(App):
     """The solitaire:  its piles, its moves, auto play and drawing"""
 
+    element_tag = "test-project-app"
+
     # - its "score" is a number
     score = prop(type="number")
 

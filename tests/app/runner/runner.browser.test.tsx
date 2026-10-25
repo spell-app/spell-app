@@ -9,11 +9,11 @@ import { uiReady } from "spell-app/app/solid/loadUI"
 import { SpellAppRunner, type SpellAppControls, type SpellAppSource } from "spell-app/app/runner/SpellAppRunner"
 import { RunnerSplit } from "spell-app/app/runner/RunnerSplit"
 import { VSCodeRunner } from "spell-app/app/runner/VSCodeRunner"
-import type { DOMSpellAppElement } from "spell-app/app/components/spell-app"
+import type { DOMSpellViewerElement } from "spell-app/app/components/spell-viewer"
 
 /**
  * The Solid runners, in the browser:
- * `<SpellAppRunner>` running compiled spell into its app root, live, and the `<spell-app>` element around it.
+ * `<SpellAppRunner>` running compiled spell into its app root, live, and the `<spell-viewer>` element around it.
  * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL.
  *   - It's ALSO the program's `@spell/core`, so the program and the runner share its `core`,
  *     as with a real `spell-runtime.js` copy.
@@ -806,11 +806,11 @@ describe("<RunnerSplit>", () => {
   })
 })
 
-describe("<spell-app>", () => {
+describe("<spell-viewer>", () => {
   test("defined once;  `width` / `height` set its inline size", async () => {
-    await import("spell-app/app/components/spell-app")
-    expect(customElements.get("spell-app")).toBeDefined()
-    const app = await mountApp(`<spell-app width="300px" height="200px"></spell-app>`)
+    await import("spell-app/app/components/spell-viewer")
+    expect(customElements.get("spell-viewer")).toBeDefined()
+    const app = await mountApp(`<spell-viewer width="300px" height="200px"></spell-viewer>`)
     expect(app.style.width).toBe("300px")
     expect(app.style.height).toBe("200px")
     app.setAttribute("width", "fluid")
@@ -820,9 +820,9 @@ describe("<spell-app>", () => {
   })
 
   test("nothing to run:  says so -- or that it waits for its editor", async () => {
-    const app = await mountApp(`<spell-app></spell-app>`)
+    const app = await mountApp(`<spell-viewer></spell-viewer>`)
     expect(app.shadowRoot!.querySelector(".SpellAppError")!.textContent).toBe(
-      "Give <spell-app> a project or src to run."
+      "Give <spell-viewer> a project or src to run."
     )
     app.setAttribute("editor", "#ed")
     flush()
@@ -832,7 +832,7 @@ describe("<spell-app>", () => {
   })
 
   test("runs code pushed to it, in its shadow root;  a root itself, with Fomantic's icon names", async () => {
-    const app = await mountApp(`<spell-app toolbar></spell-app>`)
+    const app = await mountApp(`<spell-viewer toolbar></spell-viewer>`)
     app.run(compiled(COUNTER))
     const root = app.shadowRoot!
     await waitFor(() => root.querySelector("button.count"))
@@ -846,7 +846,7 @@ describe("<spell-app>", () => {
     editor.id = "ed"
     document.body.append(editor)
     cleanups.push(() => editor.remove())
-    const app = await mountApp(`<spell-app editor="#ed" toolbar></spell-app>`)
+    const app = await mountApp(`<spell-viewer editor="#ed" toolbar></spell-viewer>`)
     editor.dispatchEvent(
       new CustomEvent("spell-compiled", { detail: compiled(COUNTER), bubbles: true, composed: true })
     )
@@ -862,7 +862,7 @@ describe("<spell-app>", () => {
   })
 
   test("`restart()` runs pushed code afresh", async () => {
-    const app = await mountApp(`<spell-app toolbar></spell-app>`)
+    const app = await mountApp(`<spell-viewer toolbar></spell-viewer>`)
     app.run(compiled(COUNTER))
     const root = app.shadowRoot!
     ;(await waitFor(() => root.querySelector<HTMLButtonElement>("button.count"))).click()
@@ -872,7 +872,7 @@ describe("<spell-app>", () => {
   })
 
   test("a move in one go keeps the app;  leaving the page lets go of it, a microtask later", async () => {
-    const app = await mountApp(`<spell-app toolbar></spell-app>`)
+    const app = await mountApp(`<spell-viewer toolbar></spell-viewer>`)
     app.run(compiled(COUNTER))
     const root = app.shadowRoot!
     await waitFor(() => root.querySelector("button.count"))
@@ -891,7 +891,7 @@ describe("<spell-app>", () => {
   })
 
   test("Type Explorer links go out as `spell-open`", async () => {
-    const app = await mountApp(`<spell-app></spell-app>`)
+    const app = await mountApp(`<spell-viewer></spell-viewer>`)
     expect(app.component!.elementDefinition.event("spell-open")).toBe("spell-open")
   })
 })
@@ -1070,13 +1070,13 @@ function tellRunner(message: ToRunnerMessage) {
   window.dispatchEvent(new MessageEvent("message", { data: message }))
 }
 
-/** Add `<spell-app>` markup `html` to the page;  removed after the test. */
-async function mountApp(html: string): Promise<DOMSpellAppElement> {
+/** Add `<spell-viewer>` markup `html` to the page;  removed after the test. */
+async function mountApp(html: string): Promise<DOMSpellViewerElement> {
   await uiReady
-  await import("spell-app/app/components/spell-app")
+  await import("spell-app/app/components/spell-viewer")
   const holder = document.createElement("div")
   holder.innerHTML = html
-  const app = holder.firstElementChild as DOMSpellAppElement
+  const app = holder.firstElementChild as DOMSpellViewerElement
   document.body.append(app)
   cleanups.push(() => app.remove())
   await ElementFixture.settle(app)

@@ -1,5 +1,5 @@
 import type { SP } from "spell-parser/spell"
-// Import directly:  `<spell-app>` loads this file alone, without spell's barrel and its parser
+// Import directly:  `<spell-viewer>` loads this file alone, without spell's barrel and its parser
 import { SpellSetup } from "spell-parser/spell/SpellSetup"
 
 /**

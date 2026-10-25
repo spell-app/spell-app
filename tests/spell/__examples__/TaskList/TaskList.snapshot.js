@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
+import { core, List, App, View, ViewableList, h } from "@spell/core"
 
 core.heading("A task:  something to do -- in the outline style:  its name, then what's true of it")
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -142,6 +142,8 @@ export class Checklist extends ViewableList {
 core.heading("The app:  its menu, the new task's field, the list, and the property editor")
 /** The app:  its menu, the new task's field, the list, and the property editor */
 export class TaskList extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // - its "tasks" is a new checklist
   static { this.declareProp("tasks", { init: () => new Checklist(), early: true }) }
   get tasks() { return this.getProp("tasks") }

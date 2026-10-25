@@ -1,4 +1,4 @@
-import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
+import { core, App, View, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Una tarea:  algo por hacer -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
@@ -177,6 +177,8 @@ core.useElement(Agenda, AgendaElement)
 core.heading("La aplicación:  su menú, el campo de la nueva tarea, la lista, y el editor de propiedades")
 /** La aplicación:  su menú, el campo de la nueva tarea, la lista, y el editor de propiedades */
 export class ListaDeTareas extends App {
+  static elementTag = core.defineElement(this, "test-project", "App")
+
   // sus "tareas" es una nueva agenda
   @prop({ init: () => new Agenda(), early: true })
   accessor tareas!: Agenda
@@ -251,6 +253,28 @@ export class ListaDeTareas extends App {
     )
   }
 }
+
+/**
+ * `<test-project-app>`:  a lista de tareas, drawn in its own element, e.g. by `draw the lista de tareas`.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
+ * - Its attributes are its lista de tareas's properties;  its methods call its lista de tareas's.
+ * - What every view's element does, e.g. drawing its lista de tareas, is `SpellElement`'s.
+ */
+export class ListaDeTareasElement extends SpellElement<ListaDeTareas> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-app", "lista de tareas", [
+    { name: "tareas", kind: "json", description: "Its tareas." },
+    { name: "borrador", kind: "string", description: "Its borrador." }
+  ])
+
+  agregarElBorrador() {
+    return this.currentThing?.agregarElBorrador()
+  }
+
+  quitarLasTareasHechas() {
+    return this.currentThing?.quitarLasTareasHechas()
+  }
+}
+core.useElement(ListaDeTareas, ListaDeTareasElement)
 export const listaDeTareas = new ListaDeTareas()
 
 core.heading("Inicio")
@@ -293,6 +317,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "test-project-tarea": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
       /** `AgendaElement` */
       "test-project-agenda": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `ListaDeTareasElement` */
+      "test-project-app": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
     }
   }
 }

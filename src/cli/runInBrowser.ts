@@ -1,7 +1,7 @@
 /**
- * Run a project in a browser, in the `<spell-app>` element -- for `spell run` on a project that shows a UI.
- * - Serves a page holding `<spell-app src="app/<Name>.spell.js" toolbar>`, and beside it what the element
- *   looks for (see `SpellAppElement`):
+ * Run a project in a browser, in the `<spell-viewer>` element -- for `spell run` on a project that shows a UI.
+ * - Serves a page holding `<spell-viewer src="app/<Name>.spell.js" toolbar>`, and beside it what the element
+ *   looks for (see `SpellViewer`):
  *   - `app/<Name>.spell.js`:  as compiled for this run, from memory -- nothing is written into the project
  *   - `app/<Name>.scopes.js`:  its scope pack, for the Type Explorer -- see `LSP.ScopePack`
  *   - `app/<Name>.en.js`:  its words, for the Thing Explorer -- see `SP.SpellWords`
@@ -20,13 +20,13 @@ import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
 import { CLI } from "spell-app/cli"
 
-/** `app` -- the package with the `<spell-app>` element. */
+/** `app` -- the package with the `<spell-viewer>` element. */
 const APP_DIR = resolve(environment.packagesDir, "app")
 /** The element's bundle, `yarn build:element`'s output. */
 const ELEMENT_DIR = resolve(APP_DIR, "dist-element")
 
 /**
- * Serve `project` -- compiled, `outputFile.contents` -- in `<spell-app>`, and open it in a browser, until `Ctrl-C`.
+ * Serve `project` -- compiled, `outputFile.contents` -- in `<spell-viewer>`, and open it in a browser, until `Ctrl-C`.
  * - Returns the exit code.
  */
 export async function runInBrowser(session: CLI.CliSession, project: SP.SpellProject): Promise<number> {
@@ -75,7 +75,7 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   return CLI.EXIT.OK
 }
 
-/** The page:  just `<spell-app>`, filling the window. */
+/** The page:  just `<spell-viewer>`, filling the window. */
 function page(name: string): string {
   return `<!doctype html>
 <html lang="en">
@@ -83,25 +83,25 @@ function page(name: string): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${name} · spell run</title>
-<script type="module" src="element/spell-app.js"></script>
+<script type="module" src="element/spell-viewer.js"></script>
 <style>html, body { margin: 0; min-height: 100%; }</style>
 </head>
 <body>
-<spell-app src="app/${name}${SP.COMPILED_JS_SUFFIX}" toolbar></spell-app>
+<spell-viewer src="app/${name}${SP.COMPILED_JS_SUFFIX}" toolbar></spell-viewer>
 </body>
 </html>
 `
 }
 
 /**
- * Build `<spell-app>` -- `yarn build:element` in `app` -- if `dist-element/` isn't there yet, e.g. in a fresh checkout.
+ * Build `<spell-viewer>` -- `yarn build:element` in `app` -- if `dist-element/` isn't there yet, e.g. in a fresh checkout.
  * - Shows it as a status row:  it takes a while.
  * - Throws `CLI.CliError` with the build's last lines if it fails.
  */
 async function ensureElementBuilt(session: CLI.CliSession): Promise<void> {
-  if (existsSync(resolve(ELEMENT_DIR, "spell-app.js"))) return
+  if (existsSync(resolve(ELEMENT_DIR, "spell-viewer.js"))) return
   const status = new CLI.StatusReporter(session.isInteractive)
-  const row = status.start("Building <spell-app> for the browser (once:  yarn build:element)")
+  const row = status.start("Building <spell-viewer> for the browser (once:  yarn build:element)")
   try {
     const { code, output } = await new Promise<{ code: number | null; output: string }>((done) => {
       const child = spawn("yarn", ["build:element"], { cwd: APP_DIR, stdio: ["ignore", "pipe", "pipe"] })

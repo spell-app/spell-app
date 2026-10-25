@@ -1,11 +1,11 @@
 /**
  * Entry of `spell-runtime.js`:  what spell programs run on, in every runner's bundle.
  * - The bundles:
- *   - `<spell-app>`'s (`yarn build:element`)
+ *   - `<spell-viewer>`'s (`yarn build:element`)
  *   - the VS Code runner's (`yarn build:runner`)
  *   - the web app's (`yarn build`)
  * - A runner loads it to run programs on.
- *   `<spell-app>` loads its OWN copy per element (see `loadRuntime()`),
+ *   `<spell-viewer>` loads its OWN copy per element (see `loadRuntime()`),
  *   so each has its own `core`:  its own `RUNTIME`, console, event listeners and mount point.
  * - It IS a program's `@spell/core`:
  *   compiled spell's `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
@@ -146,6 +146,6 @@ export type TestRun = {
 export type RunAppOptions = RunCompiledOptions & {
   /** Where the app draws -- see `core.appRoot`. */
   appRoot?: HTMLElement
-  /** Is the app's page laid out in markup, e.g. inside its `<spell-app>`?  Then its `to draw` isn't drawn. */
+  /** Is the app's page laid out in markup, e.g. inside its `<spell-viewer>`?  Then its `to draw` isn't drawn. */
   layout?: boolean
 }

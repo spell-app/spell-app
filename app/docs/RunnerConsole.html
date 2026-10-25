@@ -51,7 +51,8 @@
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone changing the runner, or how a program's output shows</ui-item>
             <ui-item icon="play"
-              >Live: inside a real <code>&lt;spell-app&gt;</code>, from the app's element build this page loads</ui-item
+              >Live: inside a real <code>&lt;spell-viewer&gt;</code>, from the app's element build this page
+              loads</ui-item
             >
           </ui-list>
 
@@ -62,7 +63,7 @@
               debug pane below it has the explorers.
             </p>
             <ui-docs-example description="A program with no app:  its console on top.">
-              <spell-app project="@spell/examples/fizzbuzz" toolbar debug="console" height="360px"></spell-app>
+              <spell-viewer project="@spell/examples/fizzbuzz" toolbar debug="console" height="360px"></spell-viewer>
             </ui-docs-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
@@ -73,7 +74,7 @@
 
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
-            <p><code>&lt;spell-app&gt;</code>'s runner shows its own runtime's console, once that's loaded:</p>
+            <p><code>&lt;spell-viewer&gt;</code>'s runner shows its own runtime's console, once that's loaded:</p>
             <ui-accordion class="spell-code" styled>
               <ui-title>SpellAppRunner.tsx · the program's console · 7 lines</ui-title>
               <ui-content>
@@ -92,8 +93,8 @@
             </ui-accordion>
             <ul>
               <li>
-                <code>console</code> is the program's own: each <code>&lt;spell-app&gt;</code> runs on its own copy of
-                the spell runtime, so each shows its own console.
+                <code>console</code> is the program's own: each <code>&lt;spell-viewer&gt;</code> runs on its own copy
+                of the spell runtime, so each shows its own console.
               </li>
               <li>
                 It reads <code>console</code> once: draw a new one for another, as the <code>keyed</code> above does.
