@@ -9,8 +9,8 @@
 
 
 ## La agenda:  las tareas, cada una un elemento propio dentro de ella
-// una lista dibujable:  `<lista-de-tareas-agenda>`, alrededor de las `<lista-de-tareas-tarea>` de sus tareas
-una "agenda" es una lista dibujable de tareas donde:
+// una lista visible:  `<lista-de-tareas-agenda>`, alrededor de las `<lista-de-tareas-tarea>` de sus tareas
+una "agenda" es una lista visible de tareas donde:
 	// lo que muestra:  todas las tareas, las pendientes, o las hechas
 	- su "mostrando" es una de todas, pendientes o hechas
 	// en la página, sus tareas se pueden arrastrar a otro lugar:  se mueven con el puntero, deslizándose

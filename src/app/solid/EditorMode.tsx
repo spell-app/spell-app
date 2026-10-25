@@ -60,26 +60,24 @@ const [editingMode, setEditingMode] = createSignal(editorPrefs.get(MODE_PREF) as
 
 /****************
  * ### `<ModeButtons>`
- * Run | Edit | Debug, a group of buttons in the top bar:  the one showing is pressed.
+ * Run | Edit | Debug in the top bar, as the theme's segmented tabs:  the one showing is chosen.
  * - `current`:  the mode the page is in, e.g. `"run"` on the run page.
+ * - Plain buttons in the theme's segmented colours (`--ui-menu-segmented-*`, `chrome.css`), not a
+ *   `<ui-menu appearance="segmented">`:  inside the bar's menu, a menu is its sub-menu, and loses that look.
  ****************/
 export function ModeButtons(props: { current: Mode }): JSX.Element {
   return (
     <ui-item class="ModeButtons">
-      <ui-buttons size="small">
+      <ui-menu appearance="segmented" size="small" class="ModeTabs" aria-label={appTexts.text("modes")}>
         <For each={MODES}>
           {(mode) => (
-            <ui-button
-              icon={MODE_LOOKS[mode].icon}
-              active={props.current === mode}
-              aria-pressed={props.current === mode ? "true" : "false"}
-              onClick={() => EditorMode.show(mode)}
-            >
+            <ui-item link="" selected={props.current === mode} onClick={() => EditorMode.show(mode)}>
+              <ui-icon name={MODE_LOOKS[mode].icon} />
               {appTexts.text(MODE_LOOKS[mode].text)}
-            </ui-button>
+            </ui-item>
           )}
         </For>
-      </ui-buttons>
+      </ui-menu>
     </ui-item>
   )
 }

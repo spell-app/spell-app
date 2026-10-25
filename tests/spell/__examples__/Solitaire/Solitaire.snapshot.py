@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from spell_core import core, List, App, Drawable, DrawableList, prop, h, position, spell_position
+from spell_core import core, List, App, View, ViewableList, prop, h, position, spell_position
 
 
 ##############################################################################
@@ -11,10 +11,10 @@ from spell_core import core, List, App, Drawable, DrawableList, prop, h, positio
 ##############################################################################
 
 
-class Card(Drawable):
+class Card(View):
     """
     The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
-    A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
+    A view:  each card is its own element on the page, e.g. `<cards-card>`.
     """
 
     element_tag = "test-project-card"
@@ -516,10 +516,10 @@ def test_deck_with_jokers() -> Any:
 #########################################################
 
 
-class Pile(DrawableList):
+class Pile(ViewableList):
     """
     The game that uses these cards names its piles, and says what each kind of pile takes.
-    A drawable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
+    A viewable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
     """
 
     item_type = Card
@@ -994,7 +994,7 @@ solitaire.start()
 ########################################################################
 # ## The piles:  each kind, what it may take or give up, and how it lies
 ########################################################################
-# Each pile is a drawable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
+# Each pile is a viewable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
 # How its cards lie is its layout:  styles.css draws each one.
 # While it's empty, it shows its placeholder, if it has one.
 

@@ -13,7 +13,7 @@ import {
  * CSS inside spell:  the `<css>` blocks a type's outline holds, edited AS CSS.
  *
  * ```spell
- * a card is a drawable thing
+ * a card is a view
  *   - it has a rank as a number
  *   <css>
  *     :host { display: inline-block }

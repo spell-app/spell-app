@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("Bill Splitter")
 ///////////////////
@@ -15,7 +15,7 @@ core.heading("Bill Splitter")
 
 core.heading("Money:  an amount as dollars and cents, e.g. 12.5 => \"$12.50\"")
 /** A diner:  their name, what they ordered, and what they owe */
-export class Diner extends Drawable {
+export class Diner extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "name" is text
@@ -77,7 +77,7 @@ export class Diner extends Drawable {
 }
 
 /** The table:  the diners, one a row */
-export class Table extends DrawableList {
+export class Table extends ViewableList {
   static instanceType = Diner
   static elementTag = core.defineElement(this, "test-project")
 

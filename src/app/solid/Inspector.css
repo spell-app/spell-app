@@ -1,0 +1,94 @@
+/*
+ * The Inspector (`Inspector.tsx`):  a tall column at the page's far right, and its outlines over the app.
+ * - Its look and sizes are the brand's Theme Creator inspector (`brand/spell-design-system/Theme Creator.spell.html`):
+ *   a 380px column, 16px in, 16px between panels, fields 4px under their labels, segmented tracks tinted to the panel.
+ * - Its colours, fonts and radii are the Spell Brand theme's, re-declared on `.Inspector` (`InspectorColumn`):
+ *   this sheet reads only tokens.
+ */
+
+/* the column:  a card of its own, beside the editor's panels, the page's full height */
+.Inspector {
+  flex: 0 0 380px;
+  box-sizing: border-box;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--ui-background);
+  color: var(--ui-text-color);
+  font-family: var(--ui-font-family);
+  border: 1px solid var(--ui-border-color);
+  border-radius: var(--spell-pane-radius, var(--ui-radius-l));
+  box-shadow: var(--ui-shadow-raised);
+
+  /* compact, as the Theme Creator's inspector:  15px type, fields 12px apart, the control 4px under its label */
+  & ui-property-editor {
+    font-size: 15px;
+    --ui-form-row-distance: 12px;
+  }
+  & :is(ui-field, ui-property) {
+    --ui-form-label-distance: 4px;
+  }
+  & ui-panel {
+    --ui-panel-gap: 16px;
+  }
+  /* segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */
+  & ui-menu[appearance="segmented"] {
+    --ui-menu-segmented-background: var(--ui-accent-background);
+    --ui-menu-segmented-border: 1px solid color-mix(in oklab, var(--ui-accent) 28%, var(--ui-surface));
+  }
+}
+
+/* its header:  the eyebrow title, then its two icons */
+.InspectorHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  & > .InspectorTitle {
+    flex: 1 1 auto;
+    font: var(--spell-type-eyebrow, 600 11px / 1 var(--ui-font-family));
+    letter-spacing: var(--spell-tracking-eyebrow, 0.12em);
+    text-transform: uppercase;
+    color: var(--spell-text-accent, var(--ui-text-muted));
+  }
+  & > ui-icon.IconAction {
+    margin: 0;
+  }
+  & > ui-icon.IconAction.active {
+    color: var(--ui-primary);
+  }
+}
+
+/* the tip, while nothing's picked:  the Theme Creator's 14px tips */
+.InspectorTip {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--ui-text-muted);
+}
+
+/* the outlines over the app:  what a click would pick, and what's picked */
+.InspectorBox {
+  position: fixed;
+  z-index: 2147483000;
+  box-sizing: border-box;
+  pointer-events: none;
+  border-radius: 4px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+.InspectorHover {
+  outline: 2px dashed var(--ui-primary);
+  outline-offset: 1px;
+  background: color-mix(in oklab, var(--ui-primary) 8%, transparent);
+}
+.InspectorPicked {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 2px;
+}

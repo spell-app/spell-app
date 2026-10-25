@@ -6,7 +6,7 @@ import { describe, test, expect } from "vite-plus/test"
  * The page side (`spellPage.ts`, `spell-page.js`) is a Python app's page's `@spell/core`:
  * the program's drawing half imports from it what compiled javascript imports from the runtime (`spellRuntime.ts`).
  * - Read from the two files' `export { ... }` lists:  importing either sets up a page.
- * - drawable-thing added `css` to the runtime and not here, and a drawable program's page failed to load:
+ * - drawable-thing added `css` to the runtime and not here, and the page of a program with views failed to load:
  *   "The requested module '@spell/core' does not provide an export named 'css'" (epic `python-target` P28).
  */
 const RUNNER = resolve(import.meta.dirname, "../../../src/app/runner")

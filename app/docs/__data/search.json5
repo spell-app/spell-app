@@ -283,7 +283,7 @@
     {
       "path": "spell-element.html",
       "title": "SpellElement",
-      "summary": "A drawable thing, drawn as an element of its own, one tag per type.",
+      "summary": "A view, drawn as an element of its own, one tag per template.",
       "sections": [
         {"id":"1-example","title":"1. Example"},
         {"id":"2-using-it","title":"2. Using it"},

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
 import { Counter } from "@spell/project/@spell/test/counter"
 
 core.heading("A counter app:  a counter from another project, made and drawn")

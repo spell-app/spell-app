@@ -194,8 +194,8 @@ this markup is._
 
 - `{the score of the solitaire}` is a hole:  Spell, read against the running program, its value kept live.
 - `on-click="{auto play}"`, and a `<spell>` block inside any element, are its handlers.
-- Each drawable tag is the program's thing its `id` names:  `<solitaire-tableau id="T1">` is the game's `Tableau#T1`.
-  With no `id`, it's the program's one thing of that type, like the stock.
+- Each view's tag is the program's thing its `id` names:  `<solitaire-tableau id="T1">` is the game's `Tableau#T1`.
+  With no `id`, it's the program's one thing of that template, like the stock.
 - A `<markdown>` block draws as formatted text, its holes live too.
 - Holes and handlers compile in the page, so a layout with Spell in it loads Spell's parser,
   about 390 KB more;  a layout without any doesn't.
@@ -275,24 +275,24 @@ The console says what came over:  `Kept ... from the last run:  Restart starts a
 It starts afresh instead, and says why on the console, when:
 - you press Restart:  a new deal, on purpose
 - the edit changed the program's start
-  - in a project of several files:  the file that starts its app, like Drawable Solitaire's,
-    which ends `start the game`;  an edit to a file of types, like the card's, keeps the game
+  - in a project of several files:  the file that starts its app, like Solitaire's,
+    which ends `start the game`;  an edit to a file of templates, like the card's, keeps the game
   - in a project of one file:  the lines that start its app or run its tests
   - either way, a file more or less
-- one of the last run's things can't come over:  its type changed, say
+- one of the last run's things can't come over:  its template changed, say
 - it's a different program:  the editor carries things over only for the project it ran last
 
 And a run that throws doesn't cost you the game:
 the next good compile carries over the things of the last run that finished.
 How a thing comes over (a property added, dropped or retyped):  [spell-parser's core](https://github.com/spell-app/spell-parser/blob/main/README-core.md).
 
-### A drawable thing is its own element
+### A view is its own element
 
-Declare a type `drawable`, and each of its things draws as a custom element of its own, named after the project.
-Here's the card, every line of it;  in a project named `solitaire`, it draws as `<solitaire-card>`:
+Declare a template a `view`, and each of its things draws as a custom element of its own, named after the app.
+Here's the card, every line of it;  in an app named `solitaire`, it draws as `<solitaire-card>`:
 
 ```spell
-a "card" is a drawable thing:
+a "card" is a view:
 	- its "suit" is one of clubs, diamonds, hearts or spades
 	- its "color" is:
 		red if its suit is diamonds or hearts
@@ -307,9 +307,9 @@ a "card" is a drawable thing:
 Compiled to TypeScript, it's two classes:  the card, and the element that draws it.
 
 ```ts
-export class Card extends Drawable {
+export class Card extends View {
   static elementTag = core.defineElement(this, "solitaire")
-  // ... its suit, color, rank and phrases
+  // ... its suit, color, rank and aliases
 }
 
 export class CardElement extends SpellElement<Card> {
@@ -333,19 +333,19 @@ _Trimmed from `spell compile --stdout --target ts/solid`:
 the card's members, its types and its JSX declaration left out._
 
 - The element is a Spell UI component, [SpellElement](src/app/runner/SpellElement.tsx):
-  a shadow root with the page's theme, then the type's own `<css>` block.
-- Its outside is its type's.
+  a shadow root with the page's theme, then the template's own `<css>` block.
+- Its outside is its template's.
   Each property is an attribute and a property, kept the same on the element and its thing, both ways;
-  each of the type's methods is a method of the element, so a page's script can ask `card.isARank("ace")`.
+  each of the template's methods is a method of the element, so a page's script can ask `card.isARank("ace")`.
 - A property holding a thing shows as that thing's reference:  `<solitaire-card pile="Tableau#T1">`.
 - Each drawn thing is its own error boundary:  one that fails shows a stand-in and sends `ui-error`,
   and the rest keeps drawing.
 - There's ONE tag per type per page, shared by every runtime copy on it.
-- Compiled to JavaScript, the card names its tag and no more, and the page builds the element from the type,
+- Compiled to JavaScript, the card names its tag and no more, and the page builds the element from the template,
   adding what TypeScript writes out:  so both targets draw the same element.
 
 Because it's a real tag, a plain page can write one by hand.
-[The drawable elements demo](app/demo/drawable-elements.html) runs Drawable Solitaire in a hidden `<spell-app>`,
+[The drawable elements demo](app/demo/drawable-elements.html) runs Solitaire in a hidden `<spell-app>`,
 which defines its tags, and then:
 
 ```html
@@ -355,7 +355,7 @@ which defines its tags, and then:
 ```
 
 _Trimmed from the demo.
-`direction` is Drawable Solitaire's card's own, up or down;  the card above has none._
+`direction` is Solitaire's card's own, up or down;  the card above has none._
 
 - A tag written by hand with no `id` makes its own thing:  a new ace of spades.
 - `<solitaire-tableau id="T1">` is the hidden game's own tableau, its cards and all.
@@ -433,6 +433,20 @@ A compile, in the order Debug's Program Output tab logs it:
 3. `executeCompiledApp()` runs it on the runtime, carrying things over when it's the project it ran last.
 4. The console ends "Example executed without errors.", or with the error.
 
+### The Inspector:  look inside the running app
+
+The sliders button in the app's header opens the Inspector, a column at the window's far right.
+Point at the app and a part of it is outlined;  click, and its properties are there to change.
+- A drawn Spell thing, a card in Solitaire:  its type's properties, rank, suit, direction.
+- A Spell UI control, a button or an input:  its attributes, as its tag names them.
+- Alt-click picks any Spell UI element, the text inside a card too.
+- A change shows in the app at once:  set a card's direction to `up` and it turns over.
+- The click goes to the Inspector, never the app;  picking stops once something's picked,
+  and the crosshairs start it again.  Esc stops it.
+- It wears a theme of its own, whatever the editor wears:  that theme's tokens, laid on the column alone.
+
+**Not yet:**  a change isn't written back into the code.  Restart, and the app is as the code says.
+
 ### Themes, and Purple code
 
 The palette button at the top bar's right picks light, dark or auto, and any of Spell UI's 28 themes.
@@ -489,8 +503,8 @@ The rest of the top bar, left to right:
 - in a look, Spell's hat and name, a link to the landing page
 - the project dropdown, its trigger showing the project's group icon
 - Settings, an icon;  the project's "..." menu
-- "Open or Create...", in the middle
-- the theme menu, and you, as an avatar
+- at the right:  Home (the landing page, where every project is opened or made), an icon;
+  the theme menu, a palette;  and you, as an avatar
 
 Every project group has ONE icon, the same in the dropdown, the app's header and the landing page's cards:
 a folder for your projects, a lightbulb for examples, an open book for guides,
@@ -633,7 +647,7 @@ How a page with no server reads and saves files:
 
 **Not yet:**  it's built, not deployed anywhere.
 And it must be served at a domain's root:  the editor's routes and files are absolute paths.
-"Open or Create..." is still in the top bar, and Save and Reload on the code's toolbar:
+Home is still in the top bar, and Save and Reload on the code's toolbar:
 they read oddly when nothing goes to a server.
 
 ## The builds:  one Solid per page, however many bundles

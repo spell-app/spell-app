@@ -275,7 +275,7 @@ describe("spell compile", () => {
     const { status, stdout } = spell(["compile", "Card.spell"], SOLITAIRE)
     expect(status).toBe(0)
     // after the file's heading and docstring;  just code:  declarations go in the project's declarations file
-    expect(stdout).toMatch(/^core\.heading\([^]*\nexport class Card extends Drawable \{/)
+    expect(stdout).toMatch(/^core\.heading\([^]*\nexport class Card extends View \{/)
     expect(stdout).not.toContain("SPELL:")
   })
 
@@ -354,6 +354,42 @@ describe("spell lint", () => {
       expect.objectContaining({ path: resolve(broken, "Broken.spell"), line: 2, column: 1 })
     ])
   })
+})
+
+describe("spell lint:  retired words (epic elemental-spell, Q61)", () => {
+  const SOURCE =
+    'a "card" is a drawable thing where:\n\t- its "rank" is a number\na "pile" is a drawable list of cards\n'
+
+  test("each one is an error naming its new word, exit 1;  writes nothing", () => {
+    const retired = tempProject("Retired", SOURCE)
+    const { status, stdout } = spell(["lint", "."], retired)
+    expect(stdout).toBe(
+      [
+        'Retired.spell:1:15  "drawable thing" is now "view":  say "view" instead',
+        'Retired.spell:3:15  "drawable list" is now "viewable list":  say "viewable list" instead',
+        ""
+      ].join("\n")
+    )
+    expect(status).toBe(1)
+    expect(readFileSync(resolve(retired, "Retired.spell"), "utf8")).toBe(SOURCE)
+  })
+
+  test("--fix writes the new words and says what it did, exit 0;  then a check is clean", () => {
+    const fixing = tempProject("Fixing", SOURCE)
+    const { status, stdout } = spell(["lint", ".", "--fix"], fixing)
+    expect(stdout).toBe(
+      [
+        'Fixing.spell:1:15  fixed:  "drawable thing" is now "view"',
+        'Fixing.spell:3:15  fixed:  "drawable list" is now "viewable list"',
+        ""
+      ].join("\n")
+    )
+    expect(status).toBe(0)
+    expect(readFileSync(resolve(fixing, "Fixing.spell"), "utf8")).toBe(
+      'a "card" is a view where:\n\t- its "rank" is a number\na "pile" is a viewable list of cards\n'
+    )
+    expect(spell(["lint", "."], fixing).status).toBe(0)
+  }, 30_000)
 })
 
 describe("spell lint:  editor pages (epic property-editor P6, Q17)", () => {
@@ -451,7 +487,7 @@ describe("spell describe", () => {
   test("a file:  what it declares", () => {
     const { status, stdout } = spell(["describe", "Card.spell"], SOLITAIRE)
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Card\.spell\n {2}type Card {2}is a Drawable\n/)
+    expect(stdout).toMatch(/^Card\.spell\n {2}type Card {2}is a View\n/)
   })
 
   test("one thing, by name -- ignoring case, and spaces ~== `_`", () => {
@@ -909,14 +945,14 @@ describe("spell explain", () => {
   test("--in a project:  what it declares, as the editor's hover shows it", () => {
     const { status, stdout } = spell(["explain", "tableau", "--in", "@spell/examples/Solitaire"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/Solitaire\.spell:\d+\ntype Tableau is a Pile\n/)
+    expect(stdout).toMatch(/Solitaire\.spell:\d+\ntemplate Tableau is a Pile\n/)
   })
 
   test("--in a project:  what the projects it imports declare, too", () => {
     // the type `Counter` is the frozen counter library's, which counter-app imports
     const { status, stdout } = spell(["explain", "counter", "--in", "@spell/test/counter-app"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/(^|[/\n])counter\/Counter\.spell:\d+\ntype Counter is a Drawable\n/)
+    expect(stdout).toMatch(/(^|[/\n])counter\/Counter\.spell:\d+\ntemplate Counter is a View\n/)
   })
 
   test("nothing by that name", () => {

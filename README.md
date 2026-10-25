@@ -8,7 +8,7 @@ The left half of that picture is the program.
 Here is what a task is, the seven lines at the top of its file, their comments left out:
 
 ```spell
-a "task" is a drawable thing where:
+a "task" is a view where:
 	- its "title" is text
 	- its "notes" is text
 	- its "priority" is one of low, normal or high
@@ -33,7 +33,7 @@ read one and you know what the app does;  change one and watch the app change.
 <summary>What the browser runs instead:  those seven lines, as JavaScript</summary>
 
 ```js
-export class Task extends Drawable {
+export class Task extends View {
   static elementTag = core.defineElement(this, "TaskList")
 
   // - its "title" is text
@@ -67,7 +67,7 @@ export class Task extends Drawable {
 ```
 
 - Real output:  `spell compile @spell/examples/TaskList --stdout`, trimmed to those seven lines.
-- `drawable` makes each task an element of its own on the page, `<task-list-task>`:  that's `elementTag`.
+- `view` makes each task an element of its own on the page, `<task-list-task>`:  that's `elementTag`.
 - The whole Task List is 144 lines of Spell in two files, and about 270 of JavaScript, its styles among them.
 - The editor shows it too, under the app, and you never have to read it.
 
@@ -168,7 +168,7 @@ flowchart LR
    the cards on the table, the tasks in the list.
    So a game in progress survives your edit, and Restart is there for when you want a new deal.
 7. **Draw.**  The app draws itself on the page;
-   a thing declared `drawable` draws as an element of its own, a piece of the page with its own name:
+   a thing whose template is a `view` draws as an element of its own, a piece of the page with its own name:
    `<solitaire-card>`.
 8. **Inspect.**  Switch to Debug, and a panel under the code shows what the program printed;
    the Thing Explorer shows every thing it made, in Spell's words, and the Type Explorer what each type is.
@@ -188,7 +188,7 @@ All of this runs now, on your own machine.
 - **See mistakes as you type.**  On a line Spell can't read at all, it offers to teach Spell the phrase:
   "Define `to <phrase>`".
   The same checker runs in VS Code and on the command line ([the language server](README-lsp.md)).
-- **Make an app that draws itself.**  A thing you declare `drawable`, like a playing card,
+- **Make an app that draws itself.**  A thing you declare a `view`, like a playing card,
   becomes a piece of the page of its own, with its look written inside its definition
   ([Solitaire](spaces/@spell/examples/Solitaire/), below).
 - **Watch it while it runs:**  the things it made, and the kinds of thing it declares,
@@ -225,8 +225,8 @@ Three pieces are planned, none of them started, and each stands on something alr
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"15px","primaryColor":"#EFECFB","primaryBorderColor":"#6550CA","primaryTextColor":"#1A1C27","secondaryColor":"#F4F1E9","tertiaryColor":"#F7F6FC","lineColor":"#7F6FD6","textColor":"#7F6FD6","clusterBkg":"#F7F6FC","clusterBorder":"#B9B0E8","titleColor":"#1A1C27","edgeLabelBackground":"#F7F6FC","actorBkg":"#EFECFB","actorBorder":"#6550CA","actorTextColor":"#1A1C27","actorLineColor":"#9C90DE","signalColor":"#7F6FD6","signalTextColor":"#7F6FD6","labelBoxBkgColor":"#EFECFB","labelBoxBorderColor":"#6550CA","labelTextColor":"#1A1C27","loopTextColor":"#7F6FD6","noteBkgColor":"#F1E7D4","noteBorderColor":"#C9B48A","noteTextColor":"#1A1C27","activationBkgColor":"#DCD6F7","activationBorderColor":"#6550CA","sequenceNumberColor":"#FFFFFF"},"flowchart":{"curve":"basis","padding":12,"nodeSpacing":40,"rankSpacing":44}}}%%
 flowchart LR
-  drawable["drawable things:  types that are pieces of the page"] --> place["🌱 Build by placing things"]
-  props["the property editor:  a form from a type"] --> place
+  drawable["views:  templates that are pieces of the page"] --> place["🌱 Build by placing things"]
+  props["the property editor:  a form from a template"] --> place
   patches["the Python web apps:  the whole state, then only what changed"] --> share["🌱 Several people in one project"]
   agents["coding assistants that write Spell"] --> ai["🌱 AI in the editor"]
   fixes["suggestions and quick fixes as you type"] --> ai
@@ -249,12 +249,12 @@ and they come back as modes:  browse (use it), author (lay it out) and script (w
 - **Where it stands:**  planned, not started.
   The first question it has to answer is what a drop writes into your program:  Spell, page markup, or a layout file.
 - **What it stands on**, all built:
-  - Spell's types are real page elements already:  a `drawable` card is a `<solitaire-card>` on the page.
+  - Spell's templates are real page elements already:  a card that's a `view` is a `<solitaire-card>` on the page.
   - `<spell-app>` is laid out in plain HTML.
   - Spell UI has a property editor, a form drawn from a kind of thing, one field for each fact about it,
     still marked in progress ([its row in the components table](https://github.com/spell-app/spell-ui/blob/main/README-components.md)).
-    The editor already makes one for a type in your program, with "New Property Editor..." among its file actions:
-    a page of plain markup, `Card.editor.html`, which `spell lint` checks still fits the type.
+    The editor already makes one for a template in your program, with "New Property Editor..." among its file actions:
+    a page of plain markup, `Card.editor.html`, which `spell lint` checks still fits the template.
 
 ### 🌱 Several people in one project
 
@@ -378,7 +378,7 @@ http://localhost:3000/
 The spell app is at http://localhost:3000/;  docs, epics, goals and Spell UI at http://127.0.0.1:4747/ -- Ctrl-C to stop
 ```
 
-Open the editor's address, `http://localhost:3000/`, and pick an example under "Open or Create...".
+Open the editor's address, `http://localhost:3000/`, and pick an example on its landing page (Home, the house icon in the top bar).
 Start with FizzBuzz, the simplest:  `http://localhost:3000/edit/@spell/examples/fizzbuzz`.
 
 - `yarn start` runs the install first, and stops the kit's page server, so you always get a fresh pair.
@@ -512,7 +512,7 @@ It needs a checkout with the content folder beside it, and the page server runni
 - "People and Orgs":  `/guides/people-and-orgs.html`
 - "The Python Target":  `/guides/python-target.html`
 - "Outline Spell":  `/guides/outline-spell.html`
-- "Drawable Things":  `/guides/drawable-thing.html`
+- "Views":  `/guides/drawable-thing.html`
 - "Commands":  `/guides/dev/commands/commands.html`
 - "Spell on Solid 2":  `/guides/solid/solid-2.html`
 

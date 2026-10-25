@@ -10,14 +10,14 @@
  * - It IS a program's `@spell/core`:
  *   compiled spell's `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
  *   It exports what compiled spell imports:
- *   - `core`, `Thing`, `List`, `App`, `Drawable`, `DrawableList`
+ *   - `core`, `Thing`, `List`, `App`, `View`, `ViewableList`, `Page`, `TwoSidedView`
  *   - Solid's `h()`, which it draws with
  *   - the helpers it calls by name:  `on()`, `trigger()`, `positionOf()` ...
- *   - the `css` tag a drawable type's style sheet is written with
+ *   - the `css` tag a view template's style sheet is written with
  * - It's a program's `@spell/elements` too, for compiled TypeScript's element classes (epic `drawable-thing` P10):
  *   `SpellElement`, and Spell UI's `E` as they use it -- see `spellElements.ts`.
  * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
- * - A drawable thing draws as its own Spell UI element, e.g. `<solitaire-card>`:  see `SpellElement`.
+ * - A view draws as its own Spell UI element, e.g. `<solitaire-card>`:  see `SpellElement`.
  * - MUST be the only module in a bundle that imports `core`'s code,
  *   so it's all HERE, not in a shared chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  */
@@ -26,8 +26,10 @@ import {
   Thing,
   List,
   App,
-  Drawable,
-  DrawableList,
+  View,
+  ViewableList,
+  Page,
+  TwoSidedView,
   h,
   css,
   on,
@@ -45,7 +47,7 @@ import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "
 import { installSpellElements } from "./SpellElement"
 import { E as UIElements, SpellElement } from "./spellElements"
 
-// a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
+// a view's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
 installSpellElements(core)
 
 /**
@@ -57,12 +59,12 @@ installSpellElements(core)
 const E = { proto: UIElements.proto, protoMerged: UIElements.protoMerged }
 
 // What compiled spell imports, e.g. `import { core, Thing, List, App, h } from "@spell/core"`.
-// - `Drawable`, `DrawableList`:  what a drawable type extends (epic `drawable-thing`).
+// - `View`, `ViewableList`, `Page`, `TwoSidedView`:  what a view template extends (epic `drawable-thing`).
 // - The helpers it calls by name, e.g. `trigger("card-click", ...)`, `positionOf(...)` (epic `output-targets`, P19).
 // - `h`:  what compiled spell draws with (P20), Solid's own.
 //   The PAGE's one copy, taken through `spell-solid-shared.js` as core's drawing takes it,
 //   never one of its own (`element.build.test.ts`).
-// - `css`:  the tag a drawable type's `<css>` block compiles to (epic `drawable-thing` P10).
+// - `css`:  the tag a view template's `<css>` block compiles to (epic `drawable-thing` P10).
 // - `E`, `SpellElement`:  what compiled TypeScript's element classes build on, imported as `@spell/elements` (P10).
 //   Spell UI's core comes from `spell-solid-shared.js`, as `SpellElement`'s does:  never a copy of its own.
 export {
@@ -70,8 +72,10 @@ export {
   Thing,
   List,
   App,
-  Drawable,
-  DrawableList,
+  View,
+  ViewableList,
+  Page,
+  TwoSidedView,
   h,
   css,
   on,
@@ -106,7 +110,7 @@ export function runApp(compiled: string, { appRoot, layout, ...options }: RunApp
  * Run `compiled`'s tests in this copy, as `spell test` does:  load it afresh, which runs the tests it runs itself,
  * then each other `to test ...` it exports -- and answer how each went, and the error message if it threw.
  * - Headless while it loads:  starting its app does nothing, nor does adding its styles, so the page shows nothing of it.
- *   - Its drawable types' tags aren't defined either:  the page's `<solitaire-card>`s stay the app's copy's.
+ *   - Its view templates' tags aren't defined either:  the page's `<solitaire-card>`s stay the app's copy's.
  *   - Put back as they were after.
  * - MUST be a copy of its own, never the one an app runs in (the VS Code runner's Run Tests):
  *   loading afresh takes down that copy's app, and clears its things and console.
@@ -121,7 +125,7 @@ export async function testApp(compiled: string, options: RunCompiledOptions): Pr
   core.appRoot = document.createElement("div")
   try {
     const problem = await runCompiled(compiled, { ...options, keepThings: false, runTests: true })
-    // a drawable class tells the definer a microtask after it's declared:  let that pass, with none, first
+    // a view class tells the definer a microtask after it's declared:  let that pass, with none, first
     await new Promise((resolve) => setTimeout(resolve))
     return { problem, results: core.testResults() }
   } finally {

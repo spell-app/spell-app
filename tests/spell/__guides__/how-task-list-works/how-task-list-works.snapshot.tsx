@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("How the Task List works")
@@ -17,7 +17,7 @@ core.heading("How the Task List works")
 
 core.heading("A task")
 /** A task */
-export class Task extends Drawable {
+export class Task extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "title" is text
@@ -57,7 +57,7 @@ export class Task extends Drawable {
  * `<test-project-task>`:  a task, drawn in its own element, e.g. by `draw the task`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its task's properties;  its methods call its task's.
- * - What every drawable thing's element does, e.g. drawing its task, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its task, is `SpellElement`'s.
  */
 export class TaskElement extends SpellElement<Task> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-task", "task", [
@@ -70,7 +70,7 @@ core.heading("The checklist:  the tasks, shown as its filter says")
 export type Showing = (typeof Checklist.Showings)[number]
 
 /** The checklist:  the tasks, shown as its filter says */
-export class Checklist extends DrawableList<Task> {
+export class Checklist extends ViewableList<Task> {
   static instanceType = Task
   static elementTag = core.defineElement(this, "test-project")
 
@@ -94,7 +94,7 @@ export class Checklist extends DrawableList<Task> {
  * `<test-project-checklist>`:  a checklist, drawn in its own element, e.g. by `draw the checklist`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its checklist's properties;  its methods call its checklist's.
- * - What every drawable thing's element does, e.g. drawing its checklist, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its checklist, is `SpellElement`'s.
  */
 export class ChecklistElement extends SpellElement<Checklist> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-checklist", "checklist", [
@@ -182,7 +182,7 @@ core.installStyles(undefined, `/* File styles.css:  how the list looks -- a menu
 // -----------
 if (!core.isCarryingOver) testCountingTheTasksToDo()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("How Flash Cards work")
@@ -17,7 +17,7 @@ core.heading("A card:  a word on the front, what it means on the back")
 export type Side = (typeof FlashCard.Sides)[number]
 
 /** A card:  a word on the front, what it means on the back */
-export class FlashCard extends Drawable {
+export class FlashCard extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "front" is text
@@ -56,7 +56,7 @@ export class FlashCard extends Drawable {
  * `<test-project-flash-card>`:  a flash card, drawn in its own element, e.g. by `draw the flash card`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its flash card's properties;  its methods call its flash card's.
- * - What every drawable thing's element does, e.g. drawing its flash card, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its flash card, is `SpellElement`'s.
  */
 export class FlashCardElement extends SpellElement<FlashCard> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-flash-card", "flash card", [
@@ -160,7 +160,7 @@ core.installStyles(undefined, `/* File styles.css:  how the quiz looks -- a big 
 // -----------
 if (!core.isCarryingOver) testTurningACardOver()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

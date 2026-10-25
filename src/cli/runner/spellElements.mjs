@@ -11,7 +11,7 @@
  * - `hooks.mjs` points `@spell/elements` here.
  */
 
-/** The element every drawable thing's element class builds on:  here, nothing. */
+/** The element every view's element class builds on:  here, nothing. */
 export class SpellElement {
   /** As the real one's:  the vocabulary an element class says, as it's written. */
   static vocabularyFor(tag, noun, attributes) {

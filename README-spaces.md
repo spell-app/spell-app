@@ -198,7 +198,7 @@ What each printed on a real run is under it.
 
    - It opens your browser at `http://localhost:3000/edit/owen@spell/hello`;  `Ctrl-C` stops what it started.
      Its options:  [the command line's page](https://github.com/spell-app/spell/blob/main/README-cli.md#spell-app).
-   - In an editor that's already open:  "Open or Create...", then "Projects".
+   - In an editor that's already open:  Home (the house icon), then "Projects".
 
 5. Add a file:  "New File" in the editor, or any file you make in the project's folder.
 

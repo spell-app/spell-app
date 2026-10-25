@@ -35,7 +35,7 @@ describe("SpellDeclarations, inline", () => {
     expect(lines[rankLine + 1]).toMatch(/^ {2}static Ranks = \[/)
     expect(lines[rankLine + 2]).toMatch(/^ {2}static \{ this\.declareProp\("rank", /)
     const card = declarations.statements.findIndex(({ type }) => type === "Card")
-    expect(lines[declarations.codeLines![card]!]).toBe("export class Card extends Drawable {")
+    expect(lines[declarations.codeLines![card]!]).toBe("export class Card extends View {")
   })
 
   test("`fromComments()` still reads a compiled .js from before declarations files", () => {
@@ -162,7 +162,7 @@ describe("SpellDeclarations.importScope()", () => {
     test("a type, its properties and constants:  `declaredAt` -- in the project's own files", () => {
       const card = imports.types.get("Card", "LOCAL_ONLY")!
       expect(card.declaredAt?.path).toBe(`${projectId}/Card.spell`)
-      expect(sourceAt(card.declaredAt)).toMatch(/^a "card" is a drawable thing where:\n/)
+      expect(sourceAt(card.declaredAt)).toMatch(/^a "card" is a view where:\n/)
       // its suit, its list of suits and each suit:  all made by one statement
       const suits = /^its "suit" is one of clubs, diamonds, hearts or spades$/
       expect(sourceAt(card.variables.get("suit", "LOCAL_ONLY")?.declaredAt)).toMatch(suits)
@@ -191,7 +191,7 @@ describe("SpellDeclarations.importScope()", () => {
 
     test("renamed, it's still where it was", () => {
       const renamed = importLibrary({ projectId, import: ["Card:Playingcard"] })
-      expect(sourceAt(renamed.types.get("Playingcard", "LOCAL_ONLY")?.declaredAt)).toMatch(/^a "card" is a drawable/)
+      expect(sourceAt(renamed.types.get("Playingcard", "LOCAL_ONLY")?.declaredAt)).toMatch(/^a "card" is a view/)
       expect(renamed.rules.get("turn_face_up", "LOCAL_ONLY")?.declared?.owner).toBe("Playingcard")
     })
 
@@ -260,8 +260,8 @@ describe("SpellDeclarations.importScope()", () => {
 
   test("a picked type brings the types it depends on", () => {
     const { scope } = parseSpellProject([], { parentScope: importLibrary({ import: ["Pile"] }) })
-    // `Pile` is a `DrawableList`, which is built in -- `Card` it only holds, so it doesn't come along
-    expect(scope.types.get("Pile")?.superType).toBe("DrawableList")
+    // `Pile` is a `ViewableList`, which is built in -- `Card` it only holds, so it doesn't come along
+    expect(scope.types.get("Pile")?.superType).toBe("ViewableList")
   })
 
   describe("`Card:Playingcard` loads `Card` as `Playingcard`", () => {

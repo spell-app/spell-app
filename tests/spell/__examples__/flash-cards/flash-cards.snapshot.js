@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("Flash Cards")
 /////////////////
@@ -16,7 +16,7 @@ core.heading("Flash Cards")
 
 core.heading("A card:  a word on the front, what it means on the back")
 /** A card:  a word on the front, what it means on the back */
-export class FlashCard extends Drawable {
+export class FlashCard extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "front" is text

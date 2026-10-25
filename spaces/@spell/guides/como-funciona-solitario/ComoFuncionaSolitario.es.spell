@@ -12,7 +12,7 @@
 
 ## Una carta
 // "uno de" enumera cada valor que puede tener una propiedad:  "2 ... 10" son todos los números entre ellos
-una "carta" es una cosa dibujable donde:
+una "carta" es una vista donde:
 	- su "rango" es uno de as, 2 ... 10, jota, dama, rey
 	- su "palo" es uno de tréboles, diamantes, corazones o espadas
 
@@ -31,7 +31,7 @@ una "carta" es una cosa dibujable donde:
 
 
 ## Una pila, y una columna
-una "pila" es una lista dibujable de cartas
+una "pila" es una lista visible de cartas
 // una carta está en una sola pila a la vez:  ponerla en otra la quita de esta
 una carta pertenece a una pila
 

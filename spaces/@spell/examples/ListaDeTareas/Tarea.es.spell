@@ -1,6 +1,6 @@
 ## Una tarea:  algo por hacer -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella
-// Una cosa dibujable:  cada tarea es un elemento propio en la página, `<lista-de-tareas-tarea>`.
-una "tarea" es una cosa dibujable donde:
+// Una vista:  cada tarea es un elemento propio en la página, `<lista-de-tareas-tarea>`.
+una "tarea" es una vista donde:
 	- su "título" es texto
 	- su "nota" es texto
 	- su "prioridad" es una de baja, normal o alta

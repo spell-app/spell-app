@@ -1,6 +1,6 @@
 /**
  * The language server's words, in English:
- * the labels around what a hover, a completion or the Type Explorer shows (epic `spanish` P13).
+ * the labels around what a hover, a completion or the Template Explorer shows (epic `spanish` P13).
  * - Read through `LspTexts.of(scope).text(key, params)` (`LspTexts.ts`):
  *   the PROJECT's language, not the editor's -- a Spanish program reads Spanish in an English editor.
  * - `{name}` is a placeholder, filled from the params.
@@ -18,13 +18,13 @@ export const LSP_TEXTS = {
   variable: "variable",
   as: "as",
   alias: "alias",
-  type: "type",
+  type: "template",
   isA: " is a {superType}",
   stub: "(stub)",
   properties: "properties",
   enumerations: "enumerations",
   constant: "constant",
-  method: "method",
+  method: "action",
   function: "function",
   matches: "matches",
   or: "or",
@@ -43,7 +43,7 @@ export const LSP_TEXTS = {
   statement: "statement",
   next: "next",
   spellWordFor: "spell's word for <{tag}>",
-  typeNamed: "type {name}",
+  typeNamed: "template {name}",
   propertyOf: "property of {types}",
 
   ////////////////
@@ -53,7 +53,7 @@ export const LSP_TEXTS = {
   define: "Define `{signature}`",
 
   ////////////////
-  // ## The Type Explorer's tree (`ScopeExplorer`)
+  // ## The Template Explorer's tree (`ScopeExplorer`)
   ////////////////
 
   imported: "imported",

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, positionOf, spellPosition } from "@spell/core"
 
 core.heading("Cómo funciona Solitario")
 /////////////////////////////
@@ -19,7 +19,7 @@ core.heading("Una carta")
 // ## Una carta
 ///////////////
 /** "uno de" enumera cada valor que puede tener una propiedad:  "2 ... 10" son todos los números entre ellos */
-export class Carta extends Drawable {
+export class Carta extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // su "rango" es uno de as, 2 ... 10, jota, dama, rey
@@ -74,7 +74,7 @@ export class Carta extends Drawable {
 
 core.heading("Una pila, y una columna")
 /** Una pila, y una columna */
-export class Pila extends DrawableList {
+export class Pila extends ViewableList {
   static instanceType = Carta
   static elementTag = core.defineElement(this, "test-project")
 

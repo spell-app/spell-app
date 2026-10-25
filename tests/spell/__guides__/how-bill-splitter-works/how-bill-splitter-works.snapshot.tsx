@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
 
 core.heading("How the Bill Splitter works")
 /////////////////////////////////

@@ -39,7 +39,7 @@ describe("LSP.LspTexts", () => {
       const line = mazo.parseText.split("\n").findIndex((text) => text.startsWith('un "mazo" es una lista de cartas'))
       const character = mazo.parseText.split("\n")[line]!.indexOf("cartas")
       const markdown = (service.hover(mazo, { line, character })!.contents as { value: string }).value
-      expect(markdown).toMatch(/tipo \*\*Carta\*\*/)
+      expect(markdown).toMatch(/plantilla \*\*Carta\*\*/)
       expect(markdown).toContain("declarado en [Carta.es.spell:")
       expect(markdown).not.toContain("declared in")
     })

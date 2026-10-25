@@ -317,6 +317,9 @@ and in the app's build folder, `app/` at the repo's root.
     - NEVER import `UI` or `LazyMonaco` there.
 - Styles:  WWOD §18 › "Plain `.css` beside its component" (no Less).
   - app-wide sheets:  `spell.css`, `syntax.css`
+  - The top bar's SPACING is one rule, in `solid/chrome.css` (Owen, 2026-10-24):
+    groups 60px apart (`--spell-bar-group-gap`), icons in a group 12px apart (`--spell-bar-icon-gap`).
+    A new item takes its place in a group;  never a margin of its own.
 - Prod builds keep class names (`output.keepNames`, here):
   SEE [parser's AGENTS.md](../../../spell-parser/src/parser/AGENTS.md), `keepNames`.
 

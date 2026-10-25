@@ -65,7 +65,7 @@ bill splitter is an app where:
 
 
 ## A diner:  their name, what they ordered, and what they owe
-a "diner" is a drawable thing where:
+a "diner" is a view where:
 	- its "name" is text
 	// what they ordered, before the tip
 	- its "amount" is a number
@@ -85,7 +85,7 @@ a "diner" is a drawable thing where:
 		</ui-form>
 
 ## The table:  the diners, one a row
-a "table" is a drawable list of diners where:
+a "table" is a viewable list of diners where:
 	- to draw its placeholder:
 		return <div part="placeholder">Nobody yet:  add someone</div>
 

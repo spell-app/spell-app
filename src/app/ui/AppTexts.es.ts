@@ -22,7 +22,7 @@ const APP_TEXTS_ES: AppTextPack = {
   editApp: "Editar {type}",
   preview: "Ejecutar",
   settings: "Ajustes",
-  openOrCreate: "Abrir o crear...",
+  home: "Inicio",
   help: "Ayuda",
   you: "Tú",
   createApp: "Crear {type}",
@@ -30,13 +30,14 @@ const APP_TEXTS_ES: AppTextPack = {
   renameApp: "Renombrar {type}",
   deleteApp: "Borrar {type}",
   restart: "Reiniciar",
+  modes: "Ejecutar, editar o depurar",
   runMode: "Ejecutar",
   editMode: "Editar",
   debugMode: "Depurar",
   showLineNumbers: "Mostrar los números de línea",
   resetApp: "Restablecer {theType}",
   runTests: "Ejecutar las pruebas",
-  newProject: "Proyecto nuevo",
+  newProject: "Aplicación nueva",
   newExample: "Ejemplo nuevo",
   newGuide: "Guía nueva",
   newFile: "Archivo nuevo",
@@ -65,9 +66,14 @@ const APP_TEXTS_ES: AppTextPack = {
   outputTab: "Salida del programa",
   typescriptTab: "TypeScript",
   pythonTab: "Python",
+  inspector: "Inspector",
+  inspectorPick: "Elegir una parte de la app",
+  inspectorClose: "Cerrar el inspector",
+  inspectorTip: "Elige una parte de la app con la mira, para ver qué es y cambiarla.",
+  inspectorPicking: "Haz clic en una parte de la app;  Alt y clic, en cualquier parte de dentro.  Esc deja de elegir.",
   closeProgram: "Cerrar el panel del programa",
   thingsTab: "Cosas",
-  typesTab: "Tipos",
+  typesTab: "Plantillas",
   javascriptTab: "JavaScript",
   treeTab: "Árbol de la frase",
   loadingEditor: "Cargando el editor…",
@@ -89,7 +95,7 @@ const APP_TEXTS_ES: AppTextPack = {
 
   welcome: "¡Te damos la bienvenida a Spell!",
   openGroup: "Abrir {type}",
-  createNewProject: "Crear un proyecto nuevo",
+  createNewProject: "Crear una aplicación nueva",
   createNewExample: "Crear un ejemplo nuevo",
   createNewGuide: "Crear una guía nueva",
   loadingGroup: "Cargando...",
@@ -115,23 +121,23 @@ const APP_TEXTS_ES: AppTextPack = {
   homeExamplesLine: "Abre uno, cámbialo, hazlo tuyo.",
   homeGuidesLine: "Tu idea, a tu ritmo.",
   homeProjectsLine: "Lo que has hecho, y por dónde empezar lo siguiente.",
-  homeFixturesLine: "Los proyectos congelados con los que corren las pruebas.",
+  homeFixturesLine: "Las aplicaciones congeladas con las que corren las pruebas.",
   homeNoGuides: "Las guías están en camino.",
 
   ////////////////
   // ## Project groups
   ////////////////
 
-  "type.project": "proyecto",
-  "Type.project": "Proyecto",
-  "theType.project": "el proyecto",
-  "title.project": "Proyectos",
-  "description.project": "Tus propios proyectos",
+  "type.project": "aplicación",
+  "Type.project": "Aplicación",
+  "theType.project": "la aplicación",
+  "title.project": "Aplicaciones",
+  "description.project": "Tus propias aplicaciones",
   "type.example": "ejemplo",
   "Type.example": "Ejemplo",
   "theType.example": "el ejemplo",
   "title.example": "Ejemplos",
-  "description.example": "Proyectos de ejemplo",
+  "description.example": "Aplicaciones de ejemplo",
   "type.guide": "guía",
   "Type.guide": "Guía",
   "theType.guide": "la guía",
@@ -142,13 +148,13 @@ const APP_TEXTS_ES: AppTextPack = {
   "theType.library": "la biblioteca",
   "title.library": "Bibliotecas",
   "description.library":
-    "Bibliotecas que importan otros proyectos, p. ej. `@spell/library/people` en un archivo de proyecto",
-  "type.fixture": "proyecto de prueba",
-  "Type.fixture": "Proyecto de prueba",
-  "theType.fixture": "el proyecto de prueba",
-  "title.fixture": "Proyectos de prueba",
+    "Bibliotecas que importan otras aplicaciones, p. ej. `@spell/library/people` en el `__project.json5` de una aplicación",
+  "type.fixture": "aplicación de prueba",
+  "Type.fixture": "Aplicación de prueba",
+  "theType.fixture": "la aplicación de prueba",
+  "title.fixture": "Aplicaciones de prueba",
   "description.fixture":
-    "Proyectos congelados contra los que corren las pruebas:  edita uno, y luego `yarn spell:test:fixtures:bless`",
+    "Aplicaciones congeladas contra las que corren las pruebas:  edita una, y luego `yarn spell:test:fixtures:bless`",
 
   ////////////////
   // ## Notices and errors
@@ -164,10 +170,10 @@ const APP_TEXTS_ES: AppTextPack = {
   fileDuplicated: "Se duplicó el archivo.",
   fileRenamed: "Se renombró el archivo.",
   fileRemoved: "Se borró el archivo.",
-  noTypesYet: "{Type} {name}:  aún no tiene tipos;  compila primero.",
-  noSuchType: "{Type} {name}:  no tiene el tipo `{typeName}`.",
+  noTypesYet: "{Type} {name}:  aún no tiene plantillas;  compila primero.",
+  noSuchType: "{Type} {name}:  no tiene la plantilla `{typeName}`.",
   propertyEditorHeader: "Editor de propiedades nuevo",
-  propertyEditorMessage: "¿Para qué tipo hacemos un editor de propiedades?",
+  propertyEditorMessage: "¿Para qué plantilla hacemos un editor de propiedades?",
   create: "Crear",
 
   ////////////////
@@ -176,7 +182,7 @@ const APP_TEXTS_ES: AppTextPack = {
 
   scopes: "Ámbitos",
   refreshScopes: "Actualizar los ámbitos",
-  runToSeeScopes: "Ejecuta el proyecto para ver sus ámbitos.",
+  runToSeeScopes: "Ejecuta la aplicación para ver sus ámbitos.",
   details: "Detalles",
   orderDocument: "En el orden del documento, bajo sus encabezados",
   orderAlphabetical: "En orden alfabético",
@@ -188,7 +194,7 @@ const APP_TEXTS_ES: AppTextPack = {
   compiledOutput: "Salida compilada",
   clickToEdit: "Haz clic para editar",
   addDescription: "Añade una descripción…",
-  "members.Types": "Tipos",
+  "members.Types": "Plantillas",
   "members.Properties": "Propiedades",
   "members.Actions": "Acciones",
   "members.Constants": "Constantes",
@@ -200,7 +206,7 @@ const APP_TEXTS_ES: AppTextPack = {
   ////////////////
 
   things: "Cosas",
-  runToSeeThings: "Ejecuta el proyecto para ver sus cosas.",
+  runToSeeThings: "Ejecuta la aplicación para ver sus cosas.",
   topLevel: "Nivel superior",
   allThings: "Todas las cosas",
   selectThing: "Elige una cosa para ver sus propiedades.",
@@ -214,13 +220,13 @@ const APP_TEXTS_ES: AppTextPack = {
   listOf: "{type} de {count}",
   doIt: "Hazlo:  {action}()",
   thingsInOrderMade: "En el orden en que se crearon",
-  thingsByType: "Por tipo, con sus subtipos",
+  thingsByType: "Por plantilla, con sus subplantillas",
 
   ////////////////
   // ## The runners
   ////////////////
 
-  typeExplorer: "Explorador de tipos",
+  typeExplorer: "Explorador de plantillas",
   thingExplorer: "Explorador de cosas",
   console: "Consola",
   debug: "Depurar",
@@ -264,8 +270,9 @@ const APP_TEXTS_ES: AppTextPack = {
 
   projectSettings: "Ajustes de {title}",
   titleHint: "El nombre de su carpeta, en palabras, si se deja vacío.",
-  titleTip: "El nombre del proyecto para las personas, en la lista de proyectos y en la barra de título del editor.",
-  versionTip: "Su versión, como `1.2.0`:  se marca en lo que declara, para los proyectos que lo importan.",
+  titleTip:
+    "El nombre de la aplicación para las personas, en la lista de aplicaciones y en la barra de título del editor.",
+  versionTip: "Su versión, como `1.2.0`:  se marca en lo que declara, para las aplicaciones que la importan.",
   targetsLabel: "También compila a",
   targetsTip: "Lenguajes a los que compila además de JavaScript, al que compila siempre.",
   listsStartAtLabel: "Las listas empiezan en",

@@ -30,7 +30,7 @@ import { ComponentSource } from "./ComponentSource.ts"
  *   - the web components, `<spell-app>`, `<spell-editor>`, `<spell-code>` and `<spell-markdown>`:  from their
  *     vocabularies, by Spell UI's own builder
  *     (`SiteDataBuilder`), as Epic UI's elements and the brand elements are
- *   - the drawable thing's element (`spell-element`):  its vocabulary too, read from `src/app/runner/`
+ *   - the view's element (`spell-element`):  its vocabulary too, read from `src/app/runner/`
  *   - a Solid component FILE (`src/app/solid/SplitPanel.tsx`):  its exported components with a banner, their props
  *     and where the app draws them, read from the source (`ComponentSource`)
  * - The groups (`pages.json5`'s `groups`) are the data's topics:  the side column's Topics view.
@@ -268,7 +268,7 @@ export class AppUIDataBuilder {
 const APP_ROOT = path.resolve(import.meta.dirname, "../../..")
 
 /**
- * Where the vocabularies are, from spell-app's root:  the web components, and the runner's drawable-thing element
+ * Where the vocabularies are, from spell-app's root:  the web components, and the runner's view element
  * (`src/app/runner/`).
  * - Each a folder of families, `<folder>/<family>/<Family>.en.ts`, as Spell UI's builder reads them.
  * - The web components' first:  their foundation tokens and themes are the set's.

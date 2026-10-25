@@ -142,7 +142,7 @@ describe("SpellProject imports", () => {
     expect(declarations.version).toBe("1.2.0")
     expect(declarations.provides).toEqual(expect.arrayContaining(["Card", "Deck", "Pile"]))
     const compiled = readFileSync(resolve(workspace, "lib", `lib${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    expect(compiled).toContain("export class Card extends Drawable {\n")
+    expect(compiled).toContain("export class Card extends View {\n")
     expect(compiled).not.toContain("SPELL:")
   })
 
@@ -214,7 +214,9 @@ describe("SpellProject imports", () => {
     )
     await app.compile()
     const compiled = readFileSync(resolve(workspace, "linked_app", `linked_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    expect(compiled).toContain(`import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"`)
+    expect(compiled).toContain(
+      `import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList } from "@spell/core"`
+    )
     expect(compiled).toMatch(/import \{ Card, [^}]*Deck, Pile[^}]* \} from "@spell\/project\/@local\/[^"]*\/lib"/)
 
     const run = runLinked(app, [libId])

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from spell_core import core, List, App, Drawable, DrawableList, prop, h
+from spell_core import core, List, App, View, ViewableList, prop, h
 
 
 ########################################################################################
@@ -10,8 +10,8 @@ from spell_core import core, List, App, Drawable, DrawableList, prop, h
 ########################################################################################
 
 
-class Task(Drawable):
-    """A drawable thing:  each task is its own element on the page, `<task-list-task>`."""
+class Task(View):
+    """A view:  each task is its own element on the page, `<task-list-task>`."""
 
     element_tag = "test-project-task"
 
@@ -118,8 +118,8 @@ def test_tasks() -> Any:
 ##############################################################
 
 
-class Checklist(DrawableList):
-    """a drawable list:  `<task-list-checklist>`, around its tasks' `<task-list-task>`s"""
+class Checklist(ViewableList):
+    """a viewable list:  `<task-list-checklist>`, around its tasks' `<task-list-task>`s"""
 
     item_type = Task
     element_tag = "test-project-checklist"

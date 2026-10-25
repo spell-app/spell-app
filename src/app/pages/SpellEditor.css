@@ -4,6 +4,19 @@
  * - Layout only:  each tab's look is its pane's own.
  */
 
+/* the editor's and the run page's body:  the panels, then the Inspector's column while it's open */
+.EditorBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  gap: var(--spell-gap, 8px);
+
+  & > .SplitPanel {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
 /* `<AppPane>`:  its header, then the program, filling the rest */
 .AppPane {
   flex: 1 1 auto;
@@ -11,7 +24,13 @@
   display: flex;
   flex-direction: column;
 
-  & > .AppRoot {
+  & > .AppPaneBody {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  & > .AppPaneBody > .AppRoot {
     flex: 1 1 auto;
     min-height: 0;
   }
@@ -22,7 +41,9 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 0.75em;
+  /* its icons stand the bar's icon gap apart, as the top bar's (`chrome.css`):  no gap of its own */
+  gap: 0;
+  --spell-bar-icon-gap: 12px;
   min-height: 40px;
   padding-inline: 14px 12px;
   border-bottom: 1px solid var(--ui-border-color);
@@ -30,6 +51,7 @@
   & > h2 {
     flex: 1 1 auto;
     min-width: 0;
+    margin-inline-end: 0.75em;
     display: flex;
     align-items: center;
     gap: 0.5em;

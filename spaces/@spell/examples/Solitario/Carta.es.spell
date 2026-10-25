@@ -1,7 +1,7 @@
 ## Una carta de la baraja -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella
 // La carta dice cuáles son sus palos, rangos y colores:  un mazo, una pila o un juego solo los leen.
-// Una cosa dibujable:  cada carta es un elemento propio en la página, p. ej. `<solitario-carta>`.
-una "carta" es una cosa dibujable donde:
+// Una vista:  cada carta es un elemento propio en la página, p. ej. `<solitario-carta>`.
+una "carta" es una vista donde:
 	# rango de la carta
 	- su "rango" es uno de as, 2 ... 10, jota, dama, rey
 	- su "valor" es la posición de su rango      				// as = 1 ... rey = 13

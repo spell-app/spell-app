@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, positionOf, spellPosition } from "@spell/core"
 
 core.heading("How Solitaire works")
 /////////////////////////
@@ -18,7 +18,7 @@ core.heading("A card")
 // ## A card
 ////////////
 /** "one of" lists every value a property can have:  "2 ... 10" means every number in between */
-export class Card extends Drawable {
+export class Card extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "rank" is one of ace, 2 ... 10, jack, queen, king
@@ -73,7 +73,7 @@ export class Card extends Drawable {
 
 core.heading("A pile, and a column")
 /** A pile, and a column */
-export class Pile extends DrawableList {
+export class Pile extends ViewableList {
   static instanceType = Card
   static elementTag = core.defineElement(this, "test-project")
 

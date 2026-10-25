@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Habit Tracker")
@@ -15,7 +15,7 @@ core.heading("Habit Tracker")
 
 core.heading("A habit:  its name, a yes or no for each day of the week")
 /** A habit:  its name, a yes or no for each day of the week */
-export class Habit extends Drawable {
+export class Habit extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "name" is text
@@ -102,7 +102,7 @@ export class Habit extends Drawable {
  * `<test-project-habit>`:  a habit, drawn in its own element, e.g. by `draw the habit`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its habit's properties;  its methods call its habit's.
- * - What every drawable thing's element does, e.g. drawing its habit, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its habit, is `SpellElement`'s.
  */
 export class HabitElement extends SpellElement<Habit> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-habit", "habit", [
@@ -120,7 +120,7 @@ core.useElement(Habit, HabitElement)
 
 core.heading("The week:  the habits, one a row")
 /** The week:  the habits, one a row */
-export class Week extends DrawableList<Habit> {
+export class Week extends ViewableList<Habit> {
   static instanceType = Habit
   static elementTag = core.defineElement(this, "test-project")
 
@@ -137,7 +137,7 @@ export class Week extends DrawableList<Habit> {
  * `<test-project-week>`:  a week, drawn in its own element, e.g. by `draw the week`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its week's properties;  its methods call its week's.
- * - What every drawable thing's element does, e.g. drawing its week, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its week, is `SpellElement`'s.
  */
 export class WeekElement extends SpellElement<Week> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-week", "week", [])
@@ -247,7 +247,7 @@ core.installStyles(undefined, `/* File styles.css:  how the tracker looks.¬   -
 // -----------
 if (!core.isCarryingOver) testStreaks()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

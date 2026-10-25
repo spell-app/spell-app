@@ -1,7 +1,7 @@
 import { createEffect } from "solid-js"
 import { insert, type JSX } from "@solidjs/web"
 
-import { drawableAttributeFor, kebabCase } from "spell/util"
+import { viewAttributeFor, kebabCase } from "spell/util"
 import { E, UI } from "spell-ui/core"
 import { RootLoader } from "spell-ui/components/ui-root"
 import type { ElementApi, Core } from "spell-parser/core"
@@ -11,7 +11,7 @@ import { Dragging } from "./Dragging"
 
 // Above the class:  its `elementSetup` reads it while the class is defined
 /**
- * How a drawable thing's states look.
+ * How a view's states look.
  * - A draggable thing:  the browser's grab cursor, grabbing while it's dragged,
  *   over its drawing's own `cursor` (e.g. a clickable card's pointer).
  *   And a finger drags it, rather than scrolling the page.
@@ -72,7 +72,7 @@ const STATES_CSS = `
 
 /****************
  * ### `SpellElement`
- * The component behind a drawable thing's own element, e.g. `<solitaire-card>` for `a card is a drawable thing`.
+ * The component behind a view's own element, e.g. `<solitaire-card>` for `a card is a view`.
  *
  * - A Spell UI component like any `ui-*` one:  its own shadow root, with the page's theme and base styles.
  *   Then its type's own `<css>`, its class's `static css`, after its super-types' (`cssOf()`).
@@ -96,7 +96,7 @@ const STATES_CSS = `
  *     - `<solitaire-tableau id="T1">` is `Tableau#T1`
  *   - written by hand with no `id`:  in a `<spell-app>`'s layout, the program's one thing of its type;
  *     elsewhere it makes its own, a new thing of its type, once mounted
- * - ONE tag per drawable type, defined the first time a program defines its elements (`defineFor()`).
+ * - ONE tag per view template, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
  * - Compiled TypeScript writes each type's own class on it, saying only what's the type's (epic `drawable-thing` P10):
  *   `class CardElement extends SpellElement<Card>`, with its attributes, its methods and its sheet.
@@ -228,7 +228,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * - Written by hand, handed no thing and with no `id`, outside a layout:  make a thing of our type, once.
    * - Handed a thing:  our `id` is its name (`nameAfterHandedThing()`).
    * - Each of our type's properties stays the same on our thing and our element:  `keepThingAndElementAgreeing()`.
-   * - A drawable list the page wrote puts its own items in, as its children:  in a layout, nothing else draws it.
+   * - A viewable list the page wrote puts its own items in, as its children:  in a layout, nothing else draws it.
    *   Each is what its `to draw each item` draws (`core.drawItems()`), by default the item's own element.
    */
   onMount() {
@@ -241,7 +241,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
       }
     )
     this.nameAfterHandedThing()
-    // a drawable list the PAGE wrote (its thing found in a layout, or made here):
+    // a viewable list the PAGE wrote (its thing found in a layout, or made here):
     // nobody draws it, so it puts its own items in, as its children -- after any the page gave it.
     // The program's own draw puts them in itself.
     insert(
@@ -448,7 +448,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Our thing, dropped on `target`, a drawable list's element.
+   * Our thing, dropped on `target`, a viewable list's element.
    * - A drop among a reordered list's items (`placeDrop()`):
    *   the list's `when a task is dropped on it:` runs for each item it put in place (`heardPlaced()`), and that's all.
    * - Only when the list takes it (`takesDrag()`):  else it slides back, and the program hears nothing of it.
@@ -709,7 +709,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     return (list?.constructor as { reorderItemsAfter?: number } | undefined)?.reorderItemsAfter !== undefined
   }
 
-  /** The `SpellElement` behind `element`, if it's a drawable thing's element. */
+  /** The `SpellElement` behind `element`, if it's a view's element. */
   private static componentOf(element: Element): SpellElement | undefined {
     const { component } = element as Partial<E.DOMElement>
     return component instanceof SpellElement ? component : undefined
@@ -720,7 +720,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   ////////////////
 
   /**
-   * Is our thing selected in its list (`DrawableList.selection`)?  Styled by `:state(selected)`.
+   * Is our thing selected in its list (`ViewableList.selection`)?  Styled by `:state(selected)`.
    * - Followed:  it changes as people click, here or on another of the list's items.
    */
   @E.cssState("selected")
@@ -756,7 +756,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     } else list.select([thing])
   }
 
-  /** The list `element` draws, if it's a drawable list's element -- `undefined` if not. */
+  /** The list `element` draws, if it's a viewable list's element -- `undefined` if not. */
   static listOf(element: Element): object | undefined {
     const component = (element as Partial<E.DOMElement>).component
     const thing = component instanceof SpellElement ? component.currentThing : undefined
@@ -774,12 +774,12 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Number our children, so CSS alone can lay out a drawable list's items:
+   * Number our children, so CSS alone can lay out a viewable list's items:
    * each child's `--index` (from 0), and our `--count`.
    * - e.g. a pile's cards, each 10% lower than the one before:  `top: calc(var(--index) * 10%)`.
    * - Again whenever they change:  a card added, taken away, or moved within the list.
    * - Every child element, the page's too:  `<solitaire-tableau>` written by hand, with cards inside.
-   * - A drawable LIST's element only:  a card numbering its own (no) children would hide its pile's `--count`.
+   * - A viewable LIST's element only:  a card numbering its own (no) children would hide its pile's `--count`.
    * - SIDE EFFECT:  writes the custom properties into each child's `style` and ours.
    */
   @E.watches({ childList: true })
@@ -1018,7 +1018,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Make `tag` the element of drawable class `Class`, from `core`'s program, e.g. `solitaire-card` for `Card`.
+   * Make `tag` the element of view class `Class`, from `core`'s program, e.g. `solitaire-card` for `Card`.
    * - The first time:  a component class for the tag, defined on the page, built on:
    *   - the element class compiled TypeScript handed for `Class`, e.g. `CardElement` (`core.useElement()`, P10)
    *   - else a bare `SpellElement`, as for compiled javascript
@@ -1072,7 +1072,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * The vocabulary of a drawable type's element class, as compiled TypeScript writes it (P10):
+   * The vocabulary of a view template's element class, as compiled TypeScript writes it (P10):
    * ours under its `tag`, called by its `noun`, with `attributes` after ours.
    *
    * ```ts
@@ -1104,7 +1104,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * The sheet of `tag`, drawable class `Class`'s element built on element class `Base`:
+   * The sheet of `tag`, view class `Class`'s element built on element class `Base`:
    * - `Base`'s own sheet under `tag`, if it has one, after its super-types' (`cssOf()`):
    *   compiled TypeScript's `styleSheets: { "solitaire-card": Card.css }`
    * - else `Class`'s, its super-types' first (`cssOf()`), as for javascript
@@ -1118,7 +1118,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 
   /**
    * The attributes of a type's properties, from its `api`, e.g. `short-rank` for `short_rank`:
-   * see `drawableAttributeFor()` in `spell/util`.
+   * see `viewAttributeFor()` in `spell/util`.
    * - Text, a number or a choice:  an attribute and a property.
    * - A thing, e.g. a pile:  an attribute holding its reference, `pile="Tableau#T1"` (P18).
    *   So is the list holding it, for `a card belongs to one pile`.
@@ -1129,7 +1129,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   static typePropertiesOf(api: ElementApi, written: E.AttributeSpec[] = []): TypeProperty[] {
     const properties: TypeProperty[] = []
     for (const { name, type, values, owner } of api.properties) {
-      const attribute = drawableAttributeFor(name, type, owner)
+      const attribute = viewAttributeFor(name, type, owner)
       if (!attribute) continue
       const { kind, description, reference } = attribute
       properties.push({
@@ -1182,13 +1182,13 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     return false
   }
 
-  /** The drawable class `element`'s tag is for, e.g. `Card` for `<solitaire-card>` -- `undefined` for any other tag. */
+  /** The view class `element`'s tag is for, e.g. `Card` for `<solitaire-card>` -- `undefined` for any other tag. */
   static classOf(element: Element): Function | undefined {
     return SPELL_ELEMENTS.get(element.localName)?.Class
   }
 
   /**
-   * Was drawable tag `element` handed its thing by the program, e.g. by `draw the card`, rather than written by hand?
+   * Was view tag `element` handed its thing by the program, e.g. by `draw the card`, rather than written by hand?
    * - Its `id` then is its thing's name, not a name the page gave it (`nameAfterHandedThing()`).
    */
   static isHandedAThing(element: Element): boolean {
@@ -1196,13 +1196,13 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     return !!thing && typeof thing === "object"
   }
 
-  /** The thing drawable tag `element` draws, if any -- see `currentThing`. */
+  /** The thing view tag `element` draws, if any -- see `currentThing`. */
   static thingOf(element: Element): object | undefined {
     return (element as Element & { component?: SpellElement }).component?.currentThing
   }
 
-  /** `element`, or its nearest ancestor, that's a drawable type's tag -- `undefined` if none is. */
-  static closestDrawable(element: Element): Element | undefined {
+  /** `element`, or its nearest ancestor, that's a view template's tag -- `undefined` if none is. */
+  static closestView(element: Element): Element | undefined {
     for (let at: Element | null = element; at; at = at.parentElement) {
       if (SPELL_ELEMENTS.has(at.localName)) return at
     }
@@ -1221,7 +1221,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * The CSS of drawable class `Class`:  each class's own `static css` (its type's `<css>`), its super-types' first.
+   * The CSS of view class `Class`:  each class's own `static css` (its type's `<css>`), its super-types' first.
    * - `""` if none has any.
    */
   static cssOf(Class: Function): string {
@@ -1237,7 +1237,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 export interface SpellElement<Thing extends object = object> extends E.AttributeValues<typeof spellElementVocabulary> {}
 
 /**
- * Let `core` define its drawable classes' elements:  sets `core.elementDefiner`.
+ * Let `core` define its view classes' elements:  sets `core.elementDefiner`.
  * - And `core.beforeMove`:  a thing that moves glides to where it lands (`Glides`).
  * - Called once per runtime copy, by `spellRuntime.ts`.
  */
@@ -1264,16 +1264,16 @@ type TypeProperty = {
   spec: E.AttributeSpec
 }
 
-/** What a drawable type's tag draws with:  its class, and the runtime of the program that defined it last. */
+/** What a view template's tag draws with:  its class, and the runtime of the program that defined it last. */
 type SpellElementEntry = {
-  /** The drawable class, e.g. `Card`. */
+  /** The view class, e.g. `Card`. */
   Class: Function
   /** The runtime its program runs on:  draws its things. */
   core: Core
 }
 
 /**
- * Each drawable type's tag, and what it draws with -- ONE map per page, on `globalThis`:
+ * Each view template's tag, and what it draws with -- ONE map per page, on `globalThis`:
  * every runtime copy (each `<spell-app>` has its own) shares the page's custom elements.
  */
 const SPELL_ELEMENTS: Map<string, SpellElementEntry> = ((globalThis as SpellElementsGlobal)[
@@ -1283,7 +1283,7 @@ const SPELL_ELEMENTS: Map<string, SpellElementEntry> = ((globalThis as SpellElem
 /** `globalThis`, holding `SPELL_ELEMENTS`. */
 type SpellElementsGlobal = typeof globalThis & { [key: symbol]: Map<string, SpellElementEntry> | undefined }
 
-// a drop lands on the element of a drawable list its type says can be dropped on, or reordered:
+// a drop lands on the element of a viewable list its type says can be dropped on, or reordered:
 // `Dragging` knows only what we tell it
 Dragging.isDropTarget = (element) => {
   const list = SpellElement.listOf(element)
@@ -1297,14 +1297,14 @@ const CONTROL_SELECTOR = "input, textarea, select, button, [contenteditable]:not
 /** How far the line sits past a list's first or last item, in pixels, when there's no gap to center it in. */
 const LINE_GAP_PX = 2
 
-/** A drawable list, as selecting reads it:  `DrawableList.selection`, `select()`. */
+/** A viewable list, as selecting reads it:  `ViewableList.selection`, `select()`. */
 type SelectableList = { selection: Iterable<object>; select?: (items: Iterable<object>) => void }
 
 /** Each list's last item clicked to select:  where a shift-click's range starts. */
 const SELECTION_ANCHORS = new WeakMap<object, object>()
 
 /** The core's own list classes:  a dropped-on list's details stop at its family's type, below them. */
-const BASE_LIST_NAMES = new Set(["DrawableList", "List", "Observable", "Object"])
+const BASE_LIST_NAMES = new Set(["ViewableList", "List", "Observable", "Object"])
 
 /**
  * Each moment a list's drag handler is for:  the end of its method's name, e.g. `whenCardDraggedOver`.

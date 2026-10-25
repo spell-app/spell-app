@@ -1,7 +1,7 @@
 # The language server
 
 ```spell
-a "card" is a drawable thing:
+a "card" is a view:
 	- its "suit" is one of clubs, diamonds, hearts or spades
 	- its "color" is:
 		red if its suit is diamonds or hearts
@@ -226,7 +226,7 @@ _The hover from the top of the page, in a terminal:  the same method, over the l
 
 ## It reads the parse the compiler already made
 
-Scope is what a program has declared so far:  its types, properties, variables and phrases.
+Scope is what a program has declared so far:  its types, properties, variables and aliases.
 The parser builds it line by line, and every word it matches records what it resolved to.
 The service is a set of readers over that record.
 
@@ -281,7 +281,7 @@ _A request waits behind every change sent before it, so it always sees the text 
 - A change that throws is logged and skipped, so one bad edit doesn't stop the queue.
   A parse that crashes outright shows ONE error at the top of the file,
   "Parser crashed, will try again after the next edit".
-- Measured once, over stdio, on drawable Solitaire (four files, 510 lines):
+- Measured once, over stdio, on Solitaire (four files, 510 lines):
 
   | You | Diagnostics, after | For |
   | --- | --- | --- |
@@ -325,8 +325,8 @@ A capability goes into the server's reply to `initialize` only once it works;  t
 | format | `formatting`, `rangeFormatting` | whitespace only:  tabs, one space between words, one after `,` and `:`;  it gives up rather than change anything else |
 | accents, as you type | `onTypeFormatting`, on a space or a new line | in Spanish, a keyword typed without its written accent gets it back, `el numero de` => `el número de`, once its line parses;  only where that's unambiguous, so never `si` (`if`) to `sí`, nor a name a person chose |
 
-On the card, the outline the server sends is one type, `Card` (detail `drawable thing`),
-holding `suit`, `color` and `rank` as properties and the three quoted phrases as methods.
+On the card, the outline the server sends is one type, `Card` (detail `view`),
+holding `suit`, `color` and `rank` as properties and the three aliases as methods.
 
 <details>
 <summary>Spell's own requests, beyond the protocol</summary>
@@ -371,7 +371,7 @@ The extension's compiled views and its Run Project panel ask the server for more
 <details>
 <summary>CSS inside Spell:  a <code>&lt;css&gt;</code> block</summary>
 
-A drawable type's outline can hold its styles,
+A view's outline can hold its styles,
 as in [Solitaire's piles](spaces/@spell/examples/Solitaire/Solitaire.spell):
 
 ```spell
@@ -412,9 +412,9 @@ It reads a SCOPE PACK, `<Project>.scopes.js`:  the scope explorer's tree, writte
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card", line: [4, 87],
-      super: "type:Drawable",
+      super: "type:View",
       section: "A playing card -- in the outline style:  its name, then what's true of it",
-      description: "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\nA drawable thing:  each card is its own element on the page, e.g. `<solitaire-card>`."
+      description: "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\nA view:  each card is its own element on the page, e.g. `<solitaire-card>`."
     },
     // ...
 ```

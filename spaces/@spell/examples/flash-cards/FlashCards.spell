@@ -11,7 +11,7 @@
 
 
 ## A card:  a word on the front, what it means on the back
-a "flash card" is a drawable thing where:
+a "flash card" is a view where:
 	- its "front" is text
 	- its "back" is text
 	// which side is up

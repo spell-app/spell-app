@@ -18,13 +18,13 @@ export const LSP_TEXTS_ES: LspTextPack = {
   variable: "variable",
   as: "como",
   alias: "alias",
-  type: "tipo",
-  isA: ", subtipo de {superType}",
+  type: "plantilla",
+  isA: ", subplantilla de {superType}",
   stub: "(esbozo)",
   properties: "propiedades",
   enumerations: "enumeraciones",
   constant: "constante",
-  method: "método",
+  method: "acción",
   function: "función",
   matches: "encaja con",
   or: "o",
@@ -43,7 +43,7 @@ export const LSP_TEXTS_ES: LspTextPack = {
   statement: "sentencia",
   next: "siguiente",
   spellWordFor: "la palabra de spell para <{tag}>",
-  typeNamed: "tipo {name}",
+  typeNamed: "plantilla {name}",
   propertyOf: "propiedad de {types}",
 
   ////////////////
@@ -53,10 +53,10 @@ export const LSP_TEXTS_ES: LspTextPack = {
   define: "Definir `{signature}`",
 
   ////////////////
-  // ## The Type Explorer's tree
+  // ## The Template Explorer's tree
   ////////////////
 
   imported: "importado",
   notParsed: "sin analizar",
-  typeIsA: "subtipo de {superType}"
+  typeIsA: "subplantilla de {superType}"
 }

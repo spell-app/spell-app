@@ -71,7 +71,7 @@ ui-icon.IconAction {
   /* the picture centred in the bar, level with the palette:  it sat at the top of the bar's height */
   align-self: center;
   align-items: center;
-  margin-inline: 0.5em 0.25em;
+  margin-inline: 0;
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -95,7 +95,74 @@ ui-icon.IconAction {
   }
 }
 
-/* `<ModeButtons>`:  Run | Edit | Debug */
-ui-item.ModeButtons::part(item) {
-  padding-inline: 0.5em;
+/*
+ * The top bar's SPACING, one rule for every item in it (Owen, 2026-10-24:  "Make a rule to keep this spacing
+ * consistent"):
+ * - GROUPS (the project's name;  Run | Edit | Debug;  the project's icons) stand `--spell-bar-group-gap` apart
+ * - ICONS within a group (Settings and "...";  Home, the palette and the avatar) stand `--spell-bar-icon-gap` apart:
+ *   each takes half of it on either side, and no margin of its own
+ */
+ui-menu.AppMenu {
+  --spell-bar-group-gap: 60px;
+  --spell-bar-icon-gap: 12px;
+}
+ui-menu.AppMenu ui-icon.IconAction,
+ui-menu.AppMenu .YouAvatar,
+.AppPaneHeader > ui-icon.IconAction {
+  margin-inline: calc(var(--spell-bar-icon-gap) / 2);
+}
+/* the "..." menu's icon the size of the bar's other icons:  it drew half as wide again, and stood apart */
+ui-menu.AppMenu ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
+  font-size: 1.15em;
+}
+ui-menu.AppMenu ui-item.more-menu ui-dropdown {
+  /* no room before its icon:  a dropdown keeps it for the text it shows, and this one shows none */
+  --ui-dropdown-icon-spacing: 0px;
+}
+ui-menu.AppMenu ui-item:is(.more-menu, .ThemeMenu)::part(item) {
+  padding-inline: calc(var(--spell-bar-icon-gap) / 2);
+}
+
+/* `<ModeButtons>`:  Run | Edit | Debug, a group of its own:  the group gap on either side */
+ui-menu.AppMenu ui-item.ModeButtons::part(item) {
+  /* less what its neighbours bring:  the project dropdown's item padding (a tight menu's 8px), Settings' half gap */
+  padding-inline: calc(var(--spell-bar-group-gap) - 8px)
+    calc(var(--spell-bar-group-gap) - var(--spell-bar-icon-gap) / 2);
+}
+/*
+ * ... a segmented menu (the theme's segmented tabs), its thumb sliding to the mode chosen, drawn as the docs
+ * site's tabs (Owen:  "I like this appearance better"):  a half-white band round the grey track, the chosen tab a
+ * raised white pill
+ */
+ui-menu.ModeTabs {
+  --ui-menu-segmented-item-padding: 0.45em 1.1em;
+  --ui-menu-segmented-border: 0 solid transparent;
+  /* the track and its band let the bar's background show through (Owen:  "what if the background bled through") */
+  --ui-menu-segmented-background: light-dark(rgb(40 20 90 / 0.06), rgb(255 255 255 / 0.06));
+}
+ui-menu.ModeTabs::part(menu) {
+  box-shadow: 0 0 0 5px light-dark(rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.05));
+}
+ui-menu.ModeTabs ui-item::part(item) {
+  gap: 0.4em;
+  /* the bar's short-menu rule takes every item's block padding, a nested menu's too:  the tabs' own back */
+  padding-block: 0.45em;
+}
+
+/* `<ThemeMenu>`:  the palette a bare icon, a little bigger (its spacing:  the bar's rule, above) */
+ui-item.ThemeMenu ui-docs-themes::part(palette) {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.3em;
+  /* the bar's text colour, as Home's:  not the theme menu's muted one (Owen:  "white is better") */
+  color: var(--ui-text-color);
+}
+ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
+  background: transparent;
+  color: var(--ui-text-color);
 }

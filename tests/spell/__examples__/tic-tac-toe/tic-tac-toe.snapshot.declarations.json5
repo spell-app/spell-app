@@ -9,14 +9,14 @@
   "statements": [
     {
       "type": "Square",
-      "superType": "Drawable",
-      "defined": "/TicTacToe.spell:410-639"
+      "superType": "View",
+      "defined": "/TicTacToe.spell:410-629"
     },
     {
       "property": "mark",
       "of": "Square",
       "datatype": "text",
-      "defined": "/TicTacToe.spell:451-469"
+      "defined": "/TicTacToe.spell:441-459"
     },
     {
       "syntax": "{operator:is_or_is_not} empty",
@@ -26,7 +26,7 @@
       "kind": "method",
       "name": "\"is empty\"",
       "returns": "choice",
-      "defined": "/TicTacToe.spell:473-504"
+      "defined": "/TicTacToe.spell:463-494"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -39,7 +39,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TicTacToe.spell:561-639"
+      "defined": "/TicTacToe.spell:551-629"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -53,43 +53,43 @@
       "kind": "method",
       "name": "play (a square)",
       "returns": "nothing",
-      "defined": "/TicTacToe.spell:2834-3070"
+      "defined": "/TicTacToe.spell:2824-3060"
     },
     {
       "type": "Board",
-      "superType": "DrawableList",
+      "superType": "ViewableList",
       "itemType": "Square",
-      "defined": "/TicTacToe.spell:710-749"
+      "defined": "/TicTacToe.spell:700-739"
     },
     {
       "property": "board",
       "of": "Square",
       "datatype": "Board",
       "exclusive": true,
-      "defined": "/TicTacToe.spell:779-808"
+      "defined": "/TicTacToe.spell:769-798"
     },
     {
       "type": "TicTacToe",
       "superType": "App",
-      "defined": "/TicTacToe.spell:823-2750"
+      "defined": "/TicTacToe.spell:813-2740"
     },
     {
       "property": "board",
       "of": "TicTacToe",
       "datatype": "Board",
-      "defined": "/TicTacToe.spell:855-881"
+      "defined": "/TicTacToe.spell:845-871"
     },
     {
       "property": "turn",
       "of": "TicTacToe",
       "datatype": "text",
-      "defined": "/TicTacToe.spell:915-933"
+      "defined": "/TicTacToe.spell:905-923"
     },
     {
       "property": "winner",
       "of": "TicTacToe",
       "datatype": "text",
-      "defined": "/TicTacToe.spell:1007-1027"
+      "defined": "/TicTacToe.spell:997-1017"
     },
     {
       "syntax": "{operator:is_or_is_not} over",
@@ -99,13 +99,13 @@
       "kind": "method",
       "name": "\"is over\"",
       "returns": "choice",
-      "defined": "/TicTacToe.spell:1031-1067"
+      "defined": "/TicTacToe.spell:1021-1057"
     },
     {
       "property": "message",
       "of": "TicTacToe",
       "datatype": "text",
-      "defined": "/TicTacToe.spell:1111-1243"
+      "defined": "/TicTacToe.spell:1101-1233"
     },
     {
       "syntax": "create {thisArg:expression}",
@@ -118,7 +118,7 @@
       ],
       "kind": "method",
       "name": "create it",
-      "defined": "/TicTacToe.spell:1370-1448"
+      "defined": "/TicTacToe.spell:1360-1438"
     },
     {
       "syntax": "start a new game (of {thisArg:expression})?",
@@ -131,7 +131,7 @@
       ],
       "kind": "method",
       "name": "start a new game",
-      "defined": "/TicTacToe.spell:1483-1615"
+      "defined": "/TicTacToe.spell:1473-1605"
     },
     {
       "syntax": "check the line from square {callArgs:expression} through {callArgs:expression} to {callArgs:expression} (of {thisArg:expression})?",
@@ -159,7 +159,7 @@
         }
       ],
       "returns": "nothing",
-      "defined": "/TicTacToe.spell:1664-1943"
+      "defined": "/TicTacToe.spell:1654-1933"
     },
     {
       "syntax": "check for a winner (of {thisArg:expression})?",
@@ -172,7 +172,7 @@
       ],
       "kind": "method",
       "name": "check for a winner",
-      "defined": "/TicTacToe.spell:2014-2503"
+      "defined": "/TicTacToe.spell:2004-2493"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -185,7 +185,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TicTacToe.spell:2565-2750"
+      "defined": "/TicTacToe.spell:2555-2740"
     },
     {
       "syntax": "test three in a row",
@@ -194,7 +194,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "three in a row",
-      "defined": "/TicTacToe.spell:3128-3490"
+      "defined": "/TicTacToe.spell:3118-3480"
     }
   ],
   "codeLines": [

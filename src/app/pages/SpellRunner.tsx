@@ -1,6 +1,6 @@
 import type { RouteSectionProps } from "@solidjs/router"
 
-import { SpellPage, SplitPanel } from "spell-app/app/solid"
+import { InspectorColumn, SpellPage, SplitPanel } from "spell-app/app/solid"
 import { AppPane, EditorToolbar } from "./SpellEditor"
 import { followRoute } from "./followRoute"
 
@@ -14,9 +14,12 @@ export function SpellRunner() {
   return (
     <SpellPage id="SpellRunner" fillWindow dark rows>
       <EditorToolbar mode="run" />
-      <SplitPanel id="spellRunner" rows rounded spaced="tightly">
-        <AppPane />
-      </SplitPanel>
+      <div class="EditorBody">
+        <SplitPanel id="spellRunner" rows rounded spaced="tightly">
+          <AppPane />
+        </SplitPanel>
+        <InspectorColumn />
+      </div>
     </SpellPage>
   )
 }

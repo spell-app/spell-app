@@ -9,7 +9,7 @@
 
 
 ## A habit:  its name, a yes or no for each day of the week
-a "habit" is a drawable thing where:
+a "habit" is a view where:
 	- its "name" is text
 	- its "monday" is yes or no
 	- its "tuesday" is yes or no
@@ -55,7 +55,7 @@ a "habit" is a drawable thing where:
 		</ui-form>
 
 ## The week:  the habits, one a row
-a "week" is a drawable list of habits where:
+a "week" is a viewable list of habits where:
 	- its items can be reordered immediately
 	- to draw its placeholder:
 		return <div part="placeholder">No habits yet:  add one above</div>

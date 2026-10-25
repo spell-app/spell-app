@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, thing, drawn, position } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, thing, drawn, position } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Tic-Tac-Toe")
@@ -15,7 +15,7 @@ core.heading("Tic-Tac-Toe")
 
 core.heading("A square:  empty, or holding an X or an O")
 /** A square:  empty, or holding an X or an O */
-export class Square extends Drawable {
+export class Square extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "mark" is text
@@ -48,7 +48,7 @@ export class Square extends Drawable {
  * `<test-project-square>`:  a square, drawn in its own element, e.g. by `draw the square`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its square's properties;  its methods call its square's.
- * - What every drawable thing's element does, e.g. drawing its square, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its square, is `SpellElement`'s.
  */
 export class SquareElement extends SpellElement<Square> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-square", "square", [
@@ -63,7 +63,7 @@ core.useElement(Square, SquareElement)
 
 core.heading("The board:  nine squares, three a row -- styles.css lays them out")
 /** The board:  nine squares, three a row -- styles.css lays them out */
-export class Board extends DrawableList<Square> {
+export class Board extends ViewableList<Square> {
   static instanceType = Square
   static elementTag = core.defineElement(this, "test-project")
 
@@ -74,7 +74,7 @@ export class Board extends DrawableList<Square> {
  * `<test-project-board>`:  a board, drawn in its own element, e.g. by `draw the board`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its board's properties;  its methods call its board's.
- * - What every drawable thing's element does, e.g. drawing its board, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its board, is `SpellElement`'s.
  */
 export class BoardElement extends SpellElement<Board> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-board", "board", [])
@@ -194,7 +194,7 @@ core.installStyles(undefined, `/* File styles.css:  how the game looks.¬   - Th
 // -----------
 if (!core.isCarryingOver) testThreeInARow()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {
