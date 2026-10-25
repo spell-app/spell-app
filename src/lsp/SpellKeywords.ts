@@ -1,3 +1,4 @@
+import { escapeRegExp, withoutAccents } from "spell/util/string"
 import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
 
@@ -70,7 +71,7 @@ export class SpellKeywords {
     this.accentedWords ??= new Map([...this.fixesByRule.values()].flatMap((pairs) => [...pairs]))
     const accented = this.accentedWords.get(word)
     if (accented) return { label: accented, filterText: word }
-    const plain = withoutAccents(word)
+    const plain = withoutAccents(word, KEEP_LETTERS)
     return plain !== word && this.accentedWords.get(plain) === word
       ? { label: word, filterText: plain }
       : { label: word }
@@ -102,7 +103,7 @@ export class SpellKeywords {
     for (const table of [templates, declarations, notes, handlers, controls, attributes] as Record<string, string>[]) {
       const ambiguous = new Set<string>()
       for (const [spelling, meaning] of Object.entries(table)) {
-        const plain = withoutAccents(spelling)
+        const plain = withoutAccents(spelling, KEEP_LETTERS)
         if (plain === spelling) continue
         // the plain spelling means something else:  never "fixed" to this one
         if (plain in table && table[plain] !== meaning) continue
@@ -133,7 +134,8 @@ export class SpellKeywords {
       for (const plain of phrases) {
         for (const accented of phrases) {
           if (plain === accented || plain.words.length !== accented.words.length) continue
-          if (!plain.words.every((word, index) => word === withoutAccents(accented.words[index]!))) continue
+          if (!plain.words.every((word, index) => word === withoutAccents(accented.words[index]!, KEEP_LETTERS)))
+            continue
           plain.words.forEach((word, index) => {
             if (word !== accented.words[index]) addFix(phrasePairs, plain.rule, word, accented.words[index]!)
           })
@@ -146,7 +148,7 @@ export class SpellKeywords {
     for (const rule of rules) {
       for (const alternatives of placesOf(rule)) {
         for (const word of alternatives) {
-          const accented = alternatives.find((it) => it !== word && withoutAccents(it) === word)
+          const accented = alternatives.find((it) => it !== word && withoutAccents(it, KEEP_LETTERS) === word)
           if (accented) addFix(fixes, rule, word, accented)
           else if (!phrasePairs.get(rule)?.has(word)) standalone.add(word)
         }
@@ -264,13 +266,8 @@ const WORD_END = "(?![\\p{L}\\p{M}\\d_-])"
 /** The most phrases one keyword rule expands to, e.g. `(el|la) (número|numero|cantidad) de`. */
 const MAX_PHRASES = 64
 
-/** `word` with its written accents off:  `número` => `numero`;  `ñ` and `ü` kept. */
-function withoutAccents(word: string): string {
-  return word
-    .normalize("NFD")
-    .replace(/\u0301/g, "")
-    .normalize("NFC")
-}
+/** Letters whose marks a keyword keeps when its accents come off:  `número` => `numero`, but `año` and `pingüino` stay. */
+const KEEP_LETTERS = { keep: "ñü" }
 
 /** Each place of keyword `rule` and the words that may go there:  `[["la"], ["posición", "posicion"], ["de"]]`. */
 function placesOf(rule: P.Rule): string[][] {
@@ -334,5 +331,5 @@ function byLength(phrases: string[]): string[] {
 
 /** `phrases` as a regex alternation, any run of spaces between words. */
 function alternation(phrases: string[]): string {
-  return phrases.map((phrase) => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+")).join("|")
+  return phrases.map((phrase) => escapeRegExp(phrase).replace(/ /g, "\\s+")).join("|")
 }

@@ -51,6 +51,18 @@ describe("PeopleStore", () => {
     expect(again.dates.items[0]!.day).toEqual(new Date("1970-01-01"))
   })
 
+  test("view():  a day reads as written, west of Greenwich too (a UTC midnight, the evening before there)", async () => {
+    const person = (await store.person("owen")).person!
+    const zone = process.env.TZ
+    process.env.TZ = "America/Los_Angeles"
+    try {
+      expect(store.view(person).dates).toEqual([{ label: "birthday", day: "1970-01-01" }])
+    } finally {
+      if (zone === undefined) delete process.env.TZ
+      else process.env.TZ = zone
+    }
+  })
+
   test("a friend in another org:  read with them;  written back as a reference, never into their file", async () => {
     await storage.write(personFile("matt", "three-degrees"), MATT)
     const owen = (await store.person("owen")).person!

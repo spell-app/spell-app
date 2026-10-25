@@ -1,3 +1,4 @@
+import { withoutAccents } from "spell/util/string"
 import { SP } from "spell-parser/spell"
 import { ROOT_CATALOG } from "spell-ui/components/ui-root/UIRoot.catalog"
 import { es } from "spell-ui/components/components.es"
@@ -16,7 +17,7 @@ import { es } from "spell-ui/components/components.es"
 export const SPELL_UI_PACK: SP.ComponentPack = {
   name: "spell-ui",
   tagFor(word, language) {
-    return tagsFor(language).get(unaccented(word))
+    return tagsFor(language).get(withoutAccents(word))
   }
 }
 
@@ -29,17 +30,12 @@ function tagsFor(language: string): Map<string, string> {
   if (tags) return tags
   tags = new Map()
   if (language === "es") {
-    for (const name of Object.values(es.tags ?? {})) tags.set(unaccented(name), `es-${name}`)
+    for (const name of Object.values(es.tags ?? {})) tags.set(withoutAccents(name), `es-${name}`)
   } else {
     for (const tag of Object.keys(ROOT_CATALOG)) tags.set(tag.replace(/^ui-/, ""), tag)
   }
   TAGS_BY_LANGUAGE.set(language, tags)
   return tags
-}
-
-/** `word` without its accents:  `botón` => `boton`. */
-function unaccented(word: string): string {
-  return word.normalize("NFD").replace(/\p{M}/gu, "")
 }
 
 SP.ComponentPacks.register(SPELL_UI_PACK)

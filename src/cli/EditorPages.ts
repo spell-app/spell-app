@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from "fs"
 import { dirname, resolve } from "path"
 
+import { escapeRegExp } from "spell/util/string"
 import { SP } from "spell-parser/spell"
 import { SPACES } from "spell-app/spaces"
 import { PropertyEditorPages, type PageProblem } from "spell-ui/property"
@@ -208,11 +209,6 @@ function propertyName(name: string): RegExp {
 /** The editor's `schema="<type>"`, at `schema`. */
 function schemaAttribute(type: string): RegExp {
   return new RegExp(`(<ui-property-editor\\b[^>]*?\\s)schema\\s*=\\s*["']${escapeRegExp(type)}["']`)
-}
-
-/** `text` safe inside a regular expression. */
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
 /** What a fix did about `problem`, in words. */

@@ -94,6 +94,7 @@ export class PeopleStore {
       emails: [...person.emails.items],
       dates: person.dates.items.map(({ label, day }) => ({
         label: label ?? "",
+        // A day is UTC midnight (`new Date("1970-01-01")`, as `change()` makes it), so its UTC date, NOT `localDate()`
         day: day instanceof Date && !Number.isNaN(day.getTime()) ? day.toISOString().slice(0, 10) : ""
       }))
     }

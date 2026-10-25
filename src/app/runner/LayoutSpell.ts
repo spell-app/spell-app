@@ -1,6 +1,6 @@
 import { createEffect } from "solid-js"
 
-import { camelCase, snakeCase } from "spell/util"
+import { camelCase, dedent, snakeCase } from "spell/util"
 import { E } from "spell/element"
 import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
@@ -280,9 +280,9 @@ export class LayoutSpell {
    * - Indents are tabs to spell:  each run of the first indent's spaces is a tab.
    */
   static handlersIn(text: string): Array<{ event: string; body: string; error?: string }> {
-    const lines = text.split("\n").filter((line) => line.trim())
-    const margin = Math.min(...lines.map((line) => /^\s*/.exec(line)![0].length))
-    const outdented = lines.map((line) => line.slice(Number.isFinite(margin) ? margin : 0))
+    const outdented = dedent(text)
+      .split("\n")
+      .filter((line) => line.trim())
     const unit = /^(\s+)/.exec(outdented.find((line) => /^\s/.test(line)) ?? "")?.[1] ?? "\t"
     const handlers: Array<{ event: string; body: string; error?: string }> = []
     for (const line of outdented) {
