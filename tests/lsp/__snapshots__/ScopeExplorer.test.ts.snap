@@ -94,8 +94,10 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
     method shuffle (a list)
   type App (is a Thing)
     method start (an app)
-  type Drawable (is a Thing)
-  type DrawableList (is a List)
+  type View (is a Thing)
+  type Page (is a View)
+  type TwoSidedView (is a View)
+  type ViewableList (is a List)
     property selection (list)
   type Text
     property length (number)
@@ -109,7 +111,7 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
     property day (number)
   project Solitaire
     file Card.spell
-      type Card (is a Drawable)
+      type Card (is a View)
       function test card setup
       type Joker (is a Card)
       function test jokers
@@ -118,7 +120,7 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
       function test deck creation
       function test deck with jokers
     file Pile.spell
-      type Pile (is a DrawableList)
+      type Pile (is a ViewableList)
       function test piles
     file Solitaire.spell
       type Solitaire (is a App)
@@ -165,8 +167,10 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
     method shuffle (a list)
   type App (is a Thing)
     method start (an app)
-  type Drawable (is a Thing)
-  type DrawableList (is a List)
+  type View (is a Thing)
+  type Page (is a View)
+  type TwoSidedView (is a View)
+  type ViewableList (is a List)
     property selection (list)
   type Text
     property length (number)
@@ -180,7 +184,7 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
     property day (number)
   project lib (imported)
     file Card.spell
-      type Card (is a Drawable)
+      type Card (is a View)
       function test card setup
       type Joker (is a Card)
       function test jokers
@@ -189,7 +193,7 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
       function test deck creation
       function test deck with jokers
     file Pile.spell
-      type Pile (is a DrawableList)
+      type Pile (is a ViewableList)
       function test piles
     constant red
     constant black

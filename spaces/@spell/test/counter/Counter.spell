@@ -1,7 +1,7 @@
 ## A counter -- in the outline style:  its name, then what's true of it
 // A library other projects import:  `counter-app` makes one and draws it.
-// A drawable thing:  each counter is its own element on the page, e.g. `<counter-counter>`.
-a "counter" is a drawable thing where:
+// A view:  each counter is its own element on the page, e.g. `<counter-counter>`.
+a "counter" is a view where:
 	- its "count" is a number
 	// a new counter starts at 0
 	- to create it:

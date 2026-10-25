@@ -194,8 +194,8 @@ this markup is._
 
 - `{the score of the solitaire}` is a hole:  Spell, read against the running program, its value kept live.
 - `on-click="{auto play}"`, and a `<spell>` block inside any element, are its handlers.
-- Each drawable tag is the program's thing its `id` names:  `<solitaire-tableau id="T1">` is the game's `Tableau#T1`.
-  With no `id`, it's the program's one thing of that type, like the stock.
+- Each view's tag is the program's thing its `id` names:  `<solitaire-tableau id="T1">` is the game's `Tableau#T1`.
+  With no `id`, it's the program's one thing of that template, like the stock.
 - A `<markdown>` block draws as formatted text, its holes live too.
 - Holes and handlers compile in the page, so a layout with Spell in it loads Spell's parser,
   about 390 KB more;  a layout without any doesn't.
@@ -275,24 +275,24 @@ The console says what came over:  `Kept ... from the last run:  Restart starts a
 It starts afresh instead, and says why on the console, when:
 - you press Restart:  a new deal, on purpose
 - the edit changed the program's start
-  - in a project of several files:  the file that starts its app, like Drawable Solitaire's,
-    which ends `start the game`;  an edit to a file of types, like the card's, keeps the game
+  - in a project of several files:  the file that starts its app, like Solitaire's,
+    which ends `start the game`;  an edit to a file of templates, like the card's, keeps the game
   - in a project of one file:  the lines that start its app or run its tests
   - either way, a file more or less
-- one of the last run's things can't come over:  its type changed, say
+- one of the last run's things can't come over:  its template changed, say
 - it's a different program:  the editor carries things over only for the project it ran last
 
 And a run that throws doesn't cost you the game:
 the next good compile carries over the things of the last run that finished.
 How a thing comes over (a property added, dropped or retyped):  [spell-parser's core](https://github.com/spell-app/spell-parser/blob/main/README-core.md).
 
-### A drawable thing is its own element
+### A view is its own element
 
-Declare a type `drawable`, and each of its things draws as a custom element of its own, named after the project.
-Here's the card, every line of it;  in a project named `solitaire`, it draws as `<solitaire-card>`:
+Declare a template a `view`, and each of its things draws as a custom element of its own, named after the app.
+Here's the card, every line of it;  in an app named `solitaire`, it draws as `<solitaire-card>`:
 
 ```spell
-a "card" is a drawable thing:
+a "card" is a view:
 	- its "suit" is one of clubs, diamonds, hearts or spades
 	- its "color" is:
 		red if its suit is diamonds or hearts
@@ -307,9 +307,9 @@ a "card" is a drawable thing:
 Compiled to TypeScript, it's two classes:  the card, and the element that draws it.
 
 ```ts
-export class Card extends Drawable {
+export class Card extends View {
   static elementTag = core.defineElement(this, "solitaire")
-  // ... its suit, color, rank and phrases
+  // ... its suit, color, rank and aliases
 }
 
 export class CardElement extends SpellElement<Card> {
@@ -333,19 +333,19 @@ _Trimmed from `spell compile --stdout --target ts/solid`:
 the card's members, its types and its JSX declaration left out._
 
 - The element is a Spell UI component, [SpellElement](src/app/runner/SpellElement.tsx):
-  a shadow root with the page's theme, then the type's own `<css>` block.
-- Its outside is its type's.
+  a shadow root with the page's theme, then the template's own `<css>` block.
+- Its outside is its template's.
   Each property is an attribute and a property, kept the same on the element and its thing, both ways;
-  each of the type's methods is a method of the element, so a page's script can ask `card.isARank("ace")`.
+  each of the template's methods is a method of the element, so a page's script can ask `card.isARank("ace")`.
 - A property holding a thing shows as that thing's reference:  `<solitaire-card pile="Tableau#T1">`.
 - Each drawn thing is its own error boundary:  one that fails shows a stand-in and sends `ui-error`,
   and the rest keeps drawing.
 - There's ONE tag per type per page, shared by every runtime copy on it.
-- Compiled to JavaScript, the card names its tag and no more, and the page builds the element from the type,
+- Compiled to JavaScript, the card names its tag and no more, and the page builds the element from the template,
   adding what TypeScript writes out:  so both targets draw the same element.
 
 Because it's a real tag, a plain page can write one by hand.
-[The drawable elements demo](app/demo/drawable-elements.html) runs Drawable Solitaire in a hidden `<spell-app>`,
+[The drawable elements demo](app/demo/drawable-elements.html) runs Solitaire in a hidden `<spell-app>`,
 which defines its tags, and then:
 
 ```html
@@ -355,7 +355,7 @@ which defines its tags, and then:
 ```
 
 _Trimmed from the demo.
-`direction` is Drawable Solitaire's card's own, up or down;  the card above has none._
+`direction` is Solitaire's card's own, up or down;  the card above has none._
 
 - A tag written by hand with no `id` makes its own thing:  a new ace of spades.
 - `<solitaire-tableau id="T1">` is the hidden game's own tableau, its cards and all.

@@ -179,7 +179,7 @@ describe("incremental parsing ~== full parse", () => {
 
     test("typing through broken states, then back, ends up ~== full parse", () => {
       const project = incrementalSpellProject(files, true)
-      const line = 'a "card" is a drawable thing where:'
+      const line = 'a "card" is a view where:'
       // delete the line's text one character at a time, then type it back in
       const steps = Array.from({ length: line.length }, (_, index) => line.slice(0, line.length - index - 1))
       expect(cardText).toContain(line)

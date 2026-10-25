@@ -1,7 +1,7 @@
 ## A playing card -- in the outline style:  its name, then what's true of it
 // The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
-// A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
-a "card" is a drawable thing where:
+// A view:  each card is its own element on the page, e.g. `<cards-card>`.
+a "card" is a view where:
 	# card rank
 	- its "rank" is one of ace, 2 ... 10, jack, queen, king
  	- its "value" is the position of its rank      				// ace = 1 ... king = 13

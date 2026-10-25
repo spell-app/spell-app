@@ -9,8 +9,8 @@
 
 
 ## The checklist:  the tasks, each its own element inside it
-// a drawable list:  `<task-list-checklist>`, around its tasks' `<task-list-task>`s
-a "checklist" is a drawable list of tasks where:
+// a viewable list:  `<task-list-checklist>`, around its tasks' `<task-list-task>`s
+a "checklist" is a viewable list of tasks where:
 	// what it shows:  every task, the ones still to do, or the ones done
 	- its "showing" is one of all, active or done
 	// on the page, its tasks can be dragged to another place:  they move as the pointer does, gliding there

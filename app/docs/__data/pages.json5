@@ -224,7 +224,7 @@
     },
     "spell-element": {
       "title": "SpellElement",
-      "summary": "A drawable thing, drawn as an element of its own, one tag per type.",
+      "summary": "A view, drawn as an element of its own, one tag per template.",
       "status": "done",
       "group": "runner"
     }

@@ -11,7 +11,7 @@ import { SRV } from "spell/server"
 /**
  * A Python spell app in a real browser (epic `python-target` P20):
  * Solitaire compiled to `py`, served on Quart as `spell run --target py` serves it, and played in headless Chromium.
- * - Its cards and its piles are drawable:  each its own element, `<solitaire-card>` inside
+ * - Its cards and its piles are views:  each its own element, `<solitaire-card>` inside
  *   `<solitaire-tableau>` ... (epic `python-target` P28;  epic `spanish` P11, P21).
  * - A project it imports goes beside it, as `counter.py` and its drawing half:
  *   `spell run` writes them in its temp folder, `spell compile` beside the compiled program (J97),

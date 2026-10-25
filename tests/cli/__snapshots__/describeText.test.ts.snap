@@ -2,7 +2,7 @@
 
 exports[`describeOverview() > a file:  each thing it declares, a type's members grouped 1`] = `
 "Card.spell
-  type Card  is a Drawable
+  type Card  is a View
     The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
     Properties  rank, value, suit, color, name, direction, picture, symbol, state, pile
     Actions     is a (rank), is a face card, is a number card, is a (suit), is the (rank) of (suit),
@@ -39,11 +39,11 @@ Compiled
 `;
 
 exports[`describeThing() > a type 1`] = `
-"type Card is a Drawable
+"type Card is a View
 Card.spell:4
 
 The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
-A drawable thing:  each card is its own element on the page, e.g. <cards-card>.
+A view:  each card is its own element on the page, e.g. <cards-card>.
 
 Properties  rank, value, suit, color, name, direction, picture, symbol, state, pile
 Actions     is a (rank), is a face card, is a number card, is a (suit), is the (rank) of (suit),
@@ -53,7 +53,7 @@ Constants   Ranks (ace, jack, queen, king), Suits (clubs, diamonds, hearts, spad
             Directions (up, down)
 
 Spell
-  a "card" is a drawable thing where:
+  a "card" is a view where:
     # card rank
     - its "rank" is one of ace, 2 ... 10, jack, queen, king
      - its "value" is the position of its rank              // ace = 1 ... king = 13

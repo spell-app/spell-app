@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("A tour of Spell")
 /////////////////////
@@ -21,9 +21,9 @@ core.heading("1. Things")
 /**
  * A THING is anything your program is about:  a plant, a card, a task, a person.
  * You say what kind of thing it is once, and then you can make as many of them as you like.
- * "Drawable" means it can show itself on the page;  more on that in part 4.
+ * A "view" can show itself on the page;  more on that in part 4.
  */
-export class Plant extends Drawable {
+export class Plant extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   ///////////////////
@@ -101,8 +101,8 @@ core.heading("Many things together:  a windowsill")
 /////////////////////////////////////////
 // ## Many things together:  a windowsill
 /////////////////////////////////////////
-/** A list of things can be drawable too:  it draws each one in turn. */
-export class Windowsill extends DrawableList {
+/** A list of things can be a view too:  a viewable list draws each one in turn. */
+export class Windowsill extends ViewableList {
   static instanceType = Plant
   static elementTag = core.defineElement(this, "test-project")
 

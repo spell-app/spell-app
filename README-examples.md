@@ -298,7 +298,7 @@ It's written in the OUTLINE style:  a heading line, then what's true of it, as b
 First, what a task IS:
 
 ```spell
-a "task" is a drawable thing where:
+a "task" is a view where:
 	- its "title" is text
 	- its "notes" is text
 	- its "priority" is one of low, normal or high
@@ -312,10 +312,10 @@ a "task" is a drawable thing where:
 	- it can be dragged
 ```
 
-- `a "task" is a drawable thing` declares a new type;  each `its` line gives it a property, with its kind.
+- `a "task" is a view` declares a new template;  each `its` line gives it a property, with its kind.
 - `one of low, normal or high` is a choice of three values.
-- The quoted phrases are new ways to talk about a task:  later lines can say `where it is active`.
-- `drawable` makes each task an element of its own on the page, `<task-list-task>`.
+- The aliases are new ways to talk about a task:  later lines can say `where it is active`.
+- `view` makes each task an element of its own on the page, `<task-list-task>`.
 - `it can be selected`:  a click selects a task, and shift or command (ctrl) selects more.
 - `it can be dragged`:  by its grip, to another place in its list (below).
 
@@ -343,7 +343,7 @@ a form of its own, bound to the task.
 Then the list, which decides which tasks to show:
 
 ```spell
-a "checklist" is a drawable list of tasks where:
+a "checklist" is a viewable list of tasks where:
 	- its "showing" is one of all, active or done
 	- its items can be reordered immediately
 	- to draw each item:
@@ -354,7 +354,7 @@ a "checklist" is a drawable list of tasks where:
 		return <div part="placeholder">Nothing to do</div>
 ```
 
-- A drawable list is an element too, `<task-list-checklist>`, around its tasks' elements.
+- A viewable list is an element too, `<task-list-checklist>`, around its tasks' elements.
 - Each task draws itself;  the list only says which to leave out, and what to show when it's empty.
 - `its items can be reordered immediately`:  drag a task, and it moves as the pointer goes, dimmed, each task gliding
   to its new place.
@@ -367,7 +367,7 @@ a "checklist" is a drawable list of tasks where:
 <summary>What the checklist compiles to</summary>
 
 ```js
-export class Checklist extends DrawableList {
+export class Checklist extends ViewableList {
   static instanceType = Task
   static elementTag = core.defineElement(this, "TaskList")
 
@@ -390,7 +390,7 @@ export class Checklist extends DrawableList {
 ```
 
 - Trimmed from `spell compile @spell/examples/TaskList --stdout`.
-- The two phrases became getters on the task, `isDone` and `isActive`:  `the task is done` reads `item.isDone`.
+- The two aliases became getters on the task, `isDone` and `isActive`:  `the task is done` reads `item.isDone`.
 - `static exclusive` is the line `a task belongs to one checklist`:  a task is in one checklist at a time.
 
 </details>
@@ -546,7 +546,7 @@ The deal is a loop with a pause in it, so you watch it happen:
 What you see:
 - Each card is one character, from Unicode's playing cards:  the queen of spades is 🂭, and the card's test checks it.
 - Each card is its own element, `<solitaire-card>`;
-  each pile is a drawable list, its own element (`<solitaire-tableau>` and the rest), holding its cards' elements.
+  each pile is a viewable list, its own element (`<solitaire-tableau>` and the rest), holding its cards' elements.
 - Each kind of pile styles itself, in the `<css>` block inside its own definition:
   a tableau shows the top of each card below the one before;  a stacked pile, the stock, the discards and the
   foundations, shows its last card, over a dashed place for its first.
@@ -622,8 +622,8 @@ _Solitario open in the editor, dealt:  the same board, its menu in Spanish, draw
 
 
 ## A square:  empty, or holding an X or an O
-// "drawable" means each square shows itself on the page, here as a button
-a "square" is a drawable thing where:
+// "view" means each square shows itself on the page, here as a button
+a "square" is a view where:
 	- its "mark" is text
 	- it "is empty" if its mark is ""
 ```
@@ -662,8 +662,8 @@ The last column says where to borrow from;  where a part isn't in the language y
 | Idea | What it is | Borrow from |
 | --- | --- | --- |
 | A recipe scaler | ingredients with amounts, scaled to a number of servings | numbers, derived properties, `to scale (a recipe) to (servings as a number)` |
-| Dice games (Yahtzee, Pig) | a drawable die, rolled with an animation, scored by phrases | Solitaire's card:  `a "die" is a drawable thing`, Solitaire's piles' `<css>`, `pause for`;  Task List's phrases:  `a roll "is a full house" if ...` |
-| Memory | cards face up and face down in a grid | Solitaire's `Card`, `Deck` and `Pile`, copied in or imported from it;  a drawable grid |
+| Dice games (Yahtzee, Pig) | a die that draws itself, rolled with an animation, scored by aliases | Solitaire's card:  `a "die" is a view`, Solitaire's piles' `<css>`, `pause for`;  Task List's aliases:  `a roll "is a full house" if ...` |
+| Memory | cards face up and face down in a grid | Solitaire's `Card`, `Deck` and `Pile`, copied in or imported from it;  a grid that's a view |
 | A collection catalogue | movies, baseball cards:  items with categories, and filter buttons | `one of ...` kinds and Task List's filter;  `it is saved in its own file`, as the people library's person is |
 | A sign-up sheet | people and a list of slots, in a form | `@spell/library/people` and Task List's forms and property editor;  🌱 a natural first program to share, once editing together arrives |
 | A text adventure | rooms as things, and each way out a button | Task List's clicks, and `print`;  **not yet** typed commands (below) |

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("A tour of Spell")
@@ -22,9 +22,9 @@ core.heading("1. Things")
 /**
  * A THING is anything your program is about:  a plant, a card, a task, a person.
  * You say what kind of thing it is once, and then you can make as many of them as you like.
- * "Drawable" means it can show itself on the page;  more on that in part 4.
+ * A "view" can show itself on the page;  more on that in part 4.
  */
-export class Plant extends Drawable {
+export class Plant extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   ///////////////////
@@ -97,7 +97,7 @@ export class Plant extends Drawable {
  * `<test-project-plant>`:  a plant, drawn in its own element, e.g. by `draw the plant`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its plant's properties;  its methods call its plant's.
- * - What every drawable thing's element does, e.g. drawing its plant, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its plant, is `SpellElement`'s.
  */
 export class PlantElement extends SpellElement<Plant> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-plant", "plant", [
@@ -116,8 +116,8 @@ core.heading("Many things together:  a windowsill")
 /////////////////////////////////////////
 // ## Many things together:  a windowsill
 /////////////////////////////////////////
-/** A list of things can be drawable too:  it draws each one in turn. */
-export class Windowsill extends DrawableList<Plant> {
+/** A list of things can be a view too:  a viewable list draws each one in turn. */
+export class Windowsill extends ViewableList<Plant> {
   static instanceType = Plant
   static elementTag = core.defineElement(this, "test-project")
 
@@ -128,7 +128,7 @@ export class Windowsill extends DrawableList<Plant> {
  * `<test-project-windowsill>`:  a windowsill, drawn in its own element, e.g. by `draw the windowsill`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its windowsill's properties;  its methods call its windowsill's.
- * - What every drawable thing's element does, e.g. drawing its windowsill, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its windowsill, is `SpellElement`'s.
  */
 export class WindowsillElement extends SpellElement<Windowsill> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-windowsill", "windowsill", [])
@@ -225,7 +225,7 @@ core.installStyles(undefined, `/* File styles.css:  how the windowsill looks -- 
 // -----------
 if (!core.isCarryingOver) testThirst()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

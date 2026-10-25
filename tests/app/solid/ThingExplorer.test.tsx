@@ -85,7 +85,7 @@ describe("<ThingExplorer> (Solid)", () => {
   })
 
   test("says to run the project, before it's made anything", () => {
-    expect(draw("document")).toContain("Run the project to see its things.")
+    expect(draw("document")).toContain("Run the app to see its things.")
   })
 
   test("document order:  top-level things, then all of them in the order made -- type and name, no number", () => {
@@ -122,8 +122,8 @@ describe("<ThingExplorer> (Solid)", () => {
 
   test("by type:  says to run the project when no thing is of a program's type", () => {
     new Thing({})
-    expect(draw("type")).toContain("Run the project to see its things.")
-    expect(draw("document")).not.toContain("Run the project to see its things.")
+    expect(draw("type")).toContain("Run the app to see its things.")
+    expect(draw("document")).not.toContain("Run the app to see its things.")
   })
 
   test("icons say what's a type, a list, or any other thing", () => {
@@ -138,7 +138,7 @@ describe("<ThingExplorer> (Solid)", () => {
   test("the button for the order it's in is active", () => {
     new Card({})
     expect(draw("document")).toMatch(/class="order active" title="In the order they were made"/)
-    expect(draw("type")).toMatch(/class="order active" title="By type, sub-types included"/)
+    expect(draw("type")).toMatch(/class="order active" title="By template, sub-templates included"/)
   })
 
   test("selected:  its row is marked;  nothing selected says so", () => {

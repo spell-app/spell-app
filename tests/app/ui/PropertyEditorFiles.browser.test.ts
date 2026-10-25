@@ -163,7 +163,7 @@ describe("editor.createPropertyEditor()", () => {
     await editor.createPropertyEditor()
     expect(choose).not.toHaveBeenCalled()
     expect(created).toEqual([])
-    expect(String(showError.mock.calls[0]![0])).toMatch(/has no types yet:  compile it first/)
+    expect(String(showError.mock.calls[0]![0])).toMatch(/has no templates yet:  compile it first/)
   })
 })
 

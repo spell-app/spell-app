@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("Una tarea:  algo por hacer -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
@@ -7,8 +7,8 @@ core.heading("Una tarea:  algo por hacer -- en el estilo de esquema:  su nombre,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 export type Prioridad = (typeof Tarea.Prioridades)[number]
 
-/** Una cosa dibujable:  cada tarea es un elemento propio en la página, `<lista-de-tareas-tarea>`. */
-export class Tarea extends Drawable {
+/** Una vista:  cada tarea es un elemento propio en la página, `<lista-de-tareas-tarea>`. */
+export class Tarea extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // su "título" es texto
@@ -75,7 +75,7 @@ export class Tarea extends Drawable {
  * `<test-project-tarea>`:  a tarea, drawn in its own element, e.g. by `draw the tarea`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its tarea's properties;  its methods call its tarea's.
- * - What every drawable thing's element does, e.g. drawing its tarea, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its tarea, is `SpellElement`'s.
  */
 export class TareaElement extends SpellElement<Tarea> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-tarea", "tarea", [
@@ -122,8 +122,8 @@ core.heading("La agenda:  las tareas, cada una un elemento propio dentro de ella
 ////////////////////////////////////////////////////////////////////////
 export type Mostrando = (typeof Agenda.Mostrandos)[number]
 
-/** una lista dibujable:  `<lista-de-tareas-agenda>`, alrededor de las `<lista-de-tareas-tarea>` de sus tareas */
-export class Agenda extends DrawableList<Tarea> {
+/** una lista visible:  `<lista-de-tareas-agenda>`, alrededor de las `<lista-de-tareas-tarea>` de sus tareas */
+export class Agenda extends ViewableList<Tarea> {
   static instanceType = Tarea
   static elementTag = core.defineElement(this, "test-project")
 
@@ -154,7 +154,7 @@ export class Agenda extends DrawableList<Tarea> {
  * `<test-project-agenda>`:  an agenda, drawn in its own element, e.g. by `draw the agenda`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its agenda's properties;  its methods call its agenda's.
- * - What every drawable thing's element does, e.g. drawing its agenda, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its agenda, is `SpellElement`'s.
  */
 export class AgendaElement extends SpellElement<Agenda> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-agenda", "agenda", [
@@ -285,7 +285,7 @@ core.installStyles(undefined, `/* File styles.css:  how the task list looks.¬  
 if (!core.isCarryingOver) testLasTareas()
 if (!core.isCarryingOver) testElFiltro()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

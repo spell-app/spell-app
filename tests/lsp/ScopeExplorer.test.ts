@@ -54,8 +54,8 @@ describe("ScopeExplorer", () => {
 
   test("a type's members:  in document order, by file then line -- each with its line", () => {
     const card = find(tree, "Card")
-    expect(card.detail).toBe("is a Drawable")
-    expect(card.super).toBe("type:Drawable")
+    expect(card.detail).toBe("is a View")
+    expect(card.super).toBe("type:View")
     // its first line, to the last of its outline
     const declared = lineOf(CARD_TEXT, CARD_TYPE)
     expect(details(card).line).toEqual([declared, outlineEnd(CARD_TEXT, declared)])
@@ -80,8 +80,8 @@ describe("ScopeExplorer", () => {
     const stock = find(tree, "StockPile")
     const inherited = stock.members.filter((member) => member.inheritedFrom)
     expect(inherited.length).toBeGreaterThan(0)
-    // a pile is a drawable list:  so a drawable list's built-in members too, its `selection`;  and a list's, its `length`
-    expect(new Set(inherited.map((member) => member.inheritedFrom))).toEqual(new Set(["Pile", "DrawableList", "List"]))
+    // a pile is a viewable list:  so a viewable list's built-in members too, its `selection`;  and a list's, its `length`
+    expect(new Set(inherited.map((member) => member.inheritedFrom))).toEqual(new Set(["Pile", "ViewableList", "List"]))
   })
 
   test("paths are unique -- and say what each node is", () => {
@@ -483,7 +483,7 @@ describe("ScopeExplorer in Spanish", () => {
 
   test("its types come from Spanish's built-in types, and show their rules in Spanish", () => {
     const tree = explorer.tree(project)
-    expect(find(tree, "Carta").super).toBe("type:Drawable")
+    expect(find(tree, "Carta").super).toBe("type:View")
     expect(find(tree, "Mazo").super).toBe("type:List")
     expect(explorer.details(project, "type:List/method:number of (items) in (a list)")!.rules).toContainEqual({
       name: "list_count",

@@ -11,7 +11,7 @@
 
 
 ## A task
-a "task" is a drawable thing where:
+a "task" is a view where:
 	- its "title" is text
 	- its "done" is yes or no
 	- it "is done" if its done is yes
@@ -28,7 +28,7 @@ a "task" is a drawable thing where:
 
 
 ## The checklist:  the tasks, shown as its filter says
-a "checklist" is a drawable list of tasks where:
+a "checklist" is a viewable list of tasks where:
 	// what it shows:  every task, the ones still to do, or the ones done
 	- its "showing" is one of all, active or done
 	// each task in turn, unless the filter hides it:  "return nothing" draws nothing

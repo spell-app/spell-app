@@ -108,13 +108,13 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
   "spellVersion": "0.8.0",
   "statements": [
     {
-      "defined": "/Card.spell:260-3120",
-      "superType": "Drawable",
+      "defined": "/Card.spell:250-3100",
+      "superType": "View",
       "type": "Card",
     },
     {
       "classVariable": "Ranks",
-      "defined": "/Card.spell:312-365",
+      "defined": "/Card.spell:292-345",
       "enumeration": [
         "ace",
         2,
@@ -135,12 +135,12 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "datatype": "number",
-      "defined": "/Card.spell:370-409",
+      "defined": "/Card.spell:350-389",
       "of": "Card",
       "property": "value",
     },
     {
-      "defined": "/Card.spell:447-463",
+      "defined": "/Card.spell:427-443",
       "kind": "method",
       "name": ""is a (rank)"",
       "of": "Card",
@@ -166,7 +166,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       },
     },
     {
-      "defined": "/Card.spell:497-551",
+      "defined": "/Card.spell:477-531",
       "kind": "method",
       "name": ""is a face card"",
       "of": "Card",
@@ -176,7 +176,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "{operator:is_or_is_not_a} face card",
     },
     {
-      "defined": "/Card.spell:580-626",
+      "defined": "/Card.spell:560-606",
       "kind": "method",
       "name": ""is a number card"",
       "of": "Card",
@@ -187,7 +187,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "classVariable": "Suits",
-      "defined": "/Card.spell:674-728",
+      "defined": "/Card.spell:654-708",
       "enumeration": [
         "clubs",
         "diamonds",
@@ -198,7 +198,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "property": "suit",
     },
     {
-      "defined": "/Card.spell:732-748",
+      "defined": "/Card.spell:712-728",
       "kind": "method",
       "name": ""is a (suit)"",
       "of": "Card",
@@ -215,7 +215,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       },
     },
     {
-      "defined": "/Card.spell:786-870",
+      "defined": "/Card.spell:766-850",
       "of": "Card",
       "property": "color",
     },
@@ -223,22 +223,22 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "constants": [
         "red",
       ],
-      "defined": "/Card.spell:815-852",
+      "defined": "/Card.spell:795-832",
     },
     {
       "constants": [
         "black",
       ],
-      "defined": "/Card.spell:855-870",
+      "defined": "/Card.spell:835-850",
     },
     {
       "datatype": "text",
-      "defined": "/Card.spell:894-936",
+      "defined": "/Card.spell:874-916",
       "of": "Card",
       "property": "name",
     },
     {
-      "defined": "/Card.spell:964-992",
+      "defined": "/Card.spell:944-972",
       "kind": "method",
       "name": ""is the (rank) of (suit)"",
       "of": "Card",
@@ -271,7 +271,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "classVariable": "Directions",
-      "defined": "/Card.spell:1078-1107",
+      "defined": "/Card.spell:1058-1087",
       "enumeration": [
         "up",
         "down",
@@ -280,7 +280,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "property": "direction",
     },
     {
-      "defined": "/Card.spell:1111-1135",
+      "defined": "/Card.spell:1091-1115",
       "kind": "method",
       "name": ""is face (direction)"",
       "of": "Card",
@@ -299,7 +299,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
         "statement",
         "expression",
       ],
-      "defined": "/Card.spell:1265-1330",
+      "defined": "/Card.spell:1245-1310",
       "kind": "method",
       "name": "turn it face up",
       "of": "Card",
@@ -313,7 +313,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
         "statement",
         "expression",
       ],
-      "defined": "/Card.spell:1334-1403",
+      "defined": "/Card.spell:1314-1383",
       "kind": "method",
       "name": "turn it face down",
       "of": "Card",
@@ -327,7 +327,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
         "statement",
         "expression",
       ],
-      "defined": "/Card.spell:1407-1510",
+      "defined": "/Card.spell:1387-1490",
       "kind": "method",
       "name": "turn it over",
       "of": "Card",
@@ -338,7 +338,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "datatype": "text",
-      "defined": "/Card.spell:1652-2257",
+      "defined": "/Card.spell:1632-2237",
       "of": "Card",
       "property": "picture",
     },
@@ -347,7 +347,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
         "statement",
         "expression",
       ],
-      "defined": "/Card.spell:2549-2741",
+      "defined": "/Card.spell:2529-2721",
       "kind": "method",
       "name": "draw it",
       "of": "Card",
@@ -357,13 +357,13 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "datatype": "text",
-      "defined": "/Card.spell:2746-2871",
+      "defined": "/Card.spell:2726-2851",
       "of": "Card",
       "property": "symbol",
     },
     {
       "datatype": "text",
-      "defined": "/Card.spell:2916-3120",
+      "defined": "/Card.spell:2896-3100",
       "of": "Card",
       "property": "state",
     },
@@ -422,13 +422,13 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "count the points for {thisArg:expression} on {callArgs:expression}",
     },
     {
-      "defined": "/Card.spell:4489-4908",
+      "defined": "/Card.spell:4469-4888",
       "superType": "Card",
       "type": "Joker",
     },
     {
       "classVariable": "Colors",
-      "defined": "/Card.spell:4519-4553",
+      "defined": "/Card.spell:4499-4533",
       "enumeration": [
         "red",
         "black",
@@ -437,7 +437,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "property": "color",
     },
     {
-      "defined": "/Card.spell:4557-4582",
+      "defined": "/Card.spell:4537-4562",
       "kind": "method",
       "name": ""is the (color) joker"",
       "of": "Joker",
@@ -454,31 +454,31 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "datatype": "number",
-      "defined": "/Card.spell:4619-4675",
+      "defined": "/Card.spell:4599-4655",
       "of": "Joker",
       "property": "value",
     },
     {
       "datatype": "text",
-      "defined": "/Card.spell:4680-4710",
+      "defined": "/Card.spell:4660-4690",
       "of": "Joker",
       "property": "picture",
     },
     {
       "datatype": "text",
-      "defined": "/Card.spell:4716-4748",
+      "defined": "/Card.spell:4696-4728",
       "of": "Joker",
       "property": "name",
     },
     {
       "datatype": "text",
-      "defined": "/Card.spell:4752-4908",
+      "defined": "/Card.spell:4732-4888",
       "of": "Joker",
       "property": "state",
     },
     {
       "alias": "statement",
-      "defined": "/Card.spell:3132-4403",
+      "defined": "/Card.spell:3112-4383",
       "kind": "function",
       "name": "card setup",
       "output": "test_card_setup",
@@ -487,7 +487,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "alias": "statement",
-      "defined": "/Card.spell:4910-5623",
+      "defined": "/Card.spell:4890-5603",
       "kind": "function",
       "name": "jokers",
       "output": "test_jokers",
@@ -546,7 +546,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     {
       "defined": "/Pile.spell:258-1087",
       "itemType": "Card",
-      "superType": "DrawableList",
+      "superType": "ViewableList",
       "type": "Pile",
     },
     {

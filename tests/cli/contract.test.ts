@@ -32,7 +32,7 @@ import { CLI } from "spell-app/cli"
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
  *   What it drew is printed last, so drawing is compared too:
- *   each drawable thing as its own element, e.g. `<test-project-card>`, its drawing in its place.
+ *   each view as its own element, e.g. `<test-project-card>`, its drawing in its place.
  * - Its random numbers start from seed 1 (`core.seedRandom()`),
  *   so Solitaire deals the same cards every run, on every target.
  * - Only STDOUT is compared:  the program's own output, as data.
@@ -299,7 +299,7 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
             ...modules,
             "const sent = []",
             `startPage({ modules: [${[...imported, "program"].join(", ")}], state: ${state}, send: (message) => sent.push(message) })`,
-            // the menu's AutoPlay:  in the solitaire's drawing, as each drawable thing draws in its own shadow root
+            // the menu's AutoPlay:  in the solitaire's drawing, as each view draws in its own shadow root
             "const found = (root, selector) => root.querySelector(selector) ??",
             "  [...root.querySelectorAll('*')].map((it) => it.shadowRoot && found(it.shadowRoot, selector)).find(Boolean)",
             `found(document, 'ui-item[aria-label="Auto play"]').dispatchEvent(new Event("click", { bubbles: true }))`,

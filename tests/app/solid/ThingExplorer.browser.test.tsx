@@ -186,7 +186,9 @@ describe("<ThingExplorer> (Solid, live)", () => {
     const host = await mount({ open: ["type:Card"] })
     host.querySelectorAll<HTMLElement>("ui-icon.order")[1]!.click()
     flush()
-    expect(host.querySelector("ui-icon.order.active")!.getAttribute("title")).toBe("By type, sub-types included")
+    expect(host.querySelector("ui-icon.order.active")!.getAttribute("title")).toBe(
+      "By template, sub-templates included"
+    )
     expect(groupLabels(host)).toEqual(["Card1"])
     expect(rowLabels(host)).toEqual(["Card queen-card"])
   })

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>SpellElement</title>
-    <meta name="description" content="A drawable thing, drawn as an element of its own, one tag per type." />
+    <meta name="description" content="A view, drawn as an element of its own, one tag per template." />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
       try {
@@ -37,7 +37,7 @@
           </ui-menu>
           <ui-header level="1" class="site-title">
             SpellElement
-            <ui-header>A drawable thing, drawn as an element of its own, one tag per type.</ui-header>
+            <ui-header>A view, drawn as an element of its own, one tag per template.</ui-header>
           </ui-header>
         </ui-container>
       </ui-segment>
@@ -45,14 +45,12 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            A spell type declared as <code>a card is a drawable thing</code> draws each of its things as its own
-            element, with its own shadow root, styles and error boundary. Its properties are the element's attributes,
-            and its actions the element's methods, so a page's own markup and script can use it too.
+            A spell template declared as <code>a card is a view</code> draws each of its things as its own element, with
+            its own shadow root, styles and error boundary. Its properties are the element's attributes, and its actions
+            the element's methods, so a page's own markup and script can use it too.
           </p>
           <ui-list class="spell-meta">
-            <ui-item icon="user"
-              >Written for: anyone writing a drawable spell type, or changing how programs draw</ui-item
-            >
+            <ui-item icon="user">Written for: anyone writing a view in spell, or changing how programs draw</ui-item>
             <ui-item icon="play"
               >Live: a real program's elements, in a <code>&lt;spell-app&gt;</code> this page loads</ui-item
             >
@@ -61,7 +59,7 @@
           <ui-section id="1-example" label="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
             <p>
-              Solitaire, drawn with drawable things: each card is its own
+              Solitaire, drawn with views: each card is its own
               <code>&lt;solitaire-card&gt;</code> element, and each pile, e.g. a <code>&lt;solitaire-tableau&gt;</code>,
               holds its cards' elements.
             </p>
@@ -98,13 +96,13 @@
 
           <ui-section id="2-using-it" label="2. Using it" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
-            <p>Nobody draws it by name: a program does, when it draws a thing of a drawable type.</p>
+            <p>Nobody draws it by name: a program does, when it draws a thing whose template is a view.</p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>Card.spell · a drawable type, with its own styles · 6 lines</ui-title>
+              <ui-title>Card.spell · a view, with its own styles · 6 lines</ui-title>
               <ui-content>
                 <spell-code
                   ><script type="text/plain">
-                    a card is a drawable thing:
+                    a card is a view:
                     	<css>
                     		.card.red {
                     			color: crimson;
@@ -128,12 +126,12 @@
               </ui-content>
             </ui-accordion>
             <ui-accordion class="spell-code" styled>
-              <ui-title>Drawable Solitaire.spell.js · the class names its tag · 3 lines</ui-title>
+              <ui-title>Solitaire.spell.js · the class names its tag · 3 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
-                    export class Card extends Drawable {
-                      static elementTag = core.defineElement(this, "Drawable Solitaire")
+                    export class Card extends View {
+                      static elementTag = core.defineElement(this, "Solitaire")
                     }
                   </script></ui-code
                 >
@@ -141,7 +139,7 @@
             </ui-accordion>
             <ul>
               <li>
-                ONE tag per drawable type, named for its project and type, and defined the first time a program defines
+                ONE tag per view template, named for its app and template, and defined the first time a program defines
                 its elements. A program run again takes the tag over, and restyles every element of it at once.
               </li>
               <li>
@@ -166,8 +164,8 @@
           <ui-section id="3-api" label="3. Attributes" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="list check"></ui-icon>
             <p>
-              The attributes every drawable type's element starts with. Each type adds one per property it declares: a
-              card's rank, suit and direction.
+              The attributes every view's element starts with. Each template adds one per property it declares: a card's
+              rank, suit and direction.
             </p>
             <ui-docs-api family="spell-element"></ui-docs-api>
             <p class="meta">

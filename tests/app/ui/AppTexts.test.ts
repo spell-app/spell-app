@@ -27,7 +27,7 @@ describe("appTexts.text()", () => {
 
 describe("appTexts.groupWords()", () => {
   test("a project group's words, by its `type`, for the texts that name it", () => {
-    const examples = { type: "example", Type: "Example", title: "Examples", description: "Example projects" }
+    const examples = { type: "example", Type: "Example", title: "Examples", description: "Example apps" }
     const words = appTexts.groupWords(examples)
     expect(words).toEqual({
       type: "example",
@@ -35,15 +35,15 @@ describe("appTexts.groupWords()", () => {
       theType: "the example",
       title: "Examples",
       titleLower: "examples",
-      description: "Example projects"
+      description: "Example apps"
     })
     expect(appTexts.text("createdApp", { ...words, name: "Solitaire" })).toBe("Created example Solitaire.")
     expect(appTexts.text("nothingInGroup", words)).toBe("No Examples yet!")
   })
 
-  test("a group the texts don't know keeps its own words;  none at all is a `Project`", () => {
+  test("a group the texts don't know keeps its own words;  none at all is an `App`", () => {
     const words = appTexts.groupWords({ type: "recipe", Type: "Recipe", title: "Recipes", description: "Food" })
     expect(words).toMatchObject({ type: "recipe", Type: "Recipe", theType: "the recipe", title: "Recipes" })
-    expect(appTexts.text("editApp", appTexts.groupWords(undefined))).toBe("Edit Project")
+    expect(appTexts.text("editApp", appTexts.groupWords(undefined))).toBe("Edit App")
   })
 })

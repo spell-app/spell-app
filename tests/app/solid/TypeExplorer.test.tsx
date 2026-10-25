@@ -48,7 +48,7 @@ function treeLines(html: string): string[] {
 describe("<TypeExplorer> (Solid)", () => {
   test("says to run the project, before there's a tree", () => {
     const html = renderToString(() => <TypeExplorer onOpen={() => {}} loadDetails={async () => null} state={{}} />)
-    expect(html).toContain("Run the project to see its scopes.")
+    expect(html).toContain("Run the app to see its scopes.")
   })
 
   test("document order:  as declared, with a marker for each heading -- a plain rule where there's none", () => {

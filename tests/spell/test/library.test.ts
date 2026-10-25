@@ -29,7 +29,11 @@ describe("a compiled library", () => {
     })
     const local = Object.keys(metafile.inputs)
     expect(local.some((path) => path.endsWith("src/core/model.ts"))).toBe(true)
-    expect(local.filter((path) => /drawing|Drawable|elements|things\.ts/.test(path))).toEqual([])
+    expect(
+      local.filter((path) =>
+        /drawing|classes\/(View|ViewableList|TwoSidedView|Page)\.ts|elements|things\.ts/.test(path)
+      )
+    ).toEqual([])
     expect(local.filter((path) => /solid/.test(path))).toEqual([])
   })
 

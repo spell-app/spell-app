@@ -1,6 +1,6 @@
 /**
  * What compiled TypeScript imports as `@spell/elements` (`SC.SPELL_ELEMENTS_MODULE`):
- * the base of a drawable type's element class (epic `drawable-thing` P10, J41).
+ * the base of a view template's element class (epic `drawable-thing` P10, J41).
  *
  * ```ts
  * import { E, SpellElement } from "@spell/elements"
@@ -11,7 +11,7 @@
  * core.useElement(Card, CardElement)
  * ```
  *
- * - `SpellElement`:  the element every drawable thing draws as, which the class builds on.
+ * - `SpellElement`:  the element every view draws as, which the class builds on.
  * - `E`:  Spell UI's element core, for its decorators (`@E.proto`) and types (`E.ElementSetup`).
  * - A module name of its own, since core never imports Spell UI.
  * - It's resolved in three places:

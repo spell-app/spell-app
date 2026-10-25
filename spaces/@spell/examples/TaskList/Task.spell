@@ -1,6 +1,6 @@
 ## A task:  something to do -- in the outline style:  its name, then what's true of it
-// A drawable thing:  each task is its own element on the page, `<task-list-task>`.
-a "task" is a drawable thing where:
+// A view:  each task is its own element on the page, `<task-list-task>`.
+a "task" is a view where:
 	- its "title" is text
 	- its "notes" is text
 	- its "priority" is one of low, normal or high

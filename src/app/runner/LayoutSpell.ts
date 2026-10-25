@@ -31,18 +31,18 @@ import {
  * ```
  *
  * - Names resolve innermost first (Q18):
- *   1. the component:  `it` / `its`, the drawable tag the spell sits in
+ *   1. the component:  `it` / `its`, the view tag the spell sits in
  *   2. its class:  through `it`, its type's members
- *   3. the page:  each drawable tag written with an `id` is a name, e.g. `T1`;  not one the program drew
+ *   3. the page:  each view tag written with an `id` is a name, e.g. `T1`;  not one the program drew
  *   4. the program:  its top-level things, its functions and types -- from its declarations
  * - A hole is any spell EXPRESSION;  an action or a handler, any spell statements (Q11).
- * - Any element in the layout may handle events (P12):  a Spell UI tag, a plain one or a drawable one.
+ * - Any element in the layout may handle events (P12):  a Spell UI tag, a plain one or a view's.
  *   - in a `<spell>` block inside it:
  *     `when clicked: play a song`, or the statements indented under `when clicked`
  *     - `on drag:` as well as `when dragged:`
  *     - an event in several words:  `when double clicked`
  *   - in an attribute:  `on-click="{play a song}"` or `when-clicked="{play a song}"` (Q20 C)
- *   - `it` is the drawable tag's thing, on one;  elsewhere the page's and the program's names are what's seen.
+ *   - `it` is the view tag's thing, on one;  elsewhere the page's and the program's names are what's seen.
  * - A hole is spell exactly, as everywhere else:  `{the score of the game}`, never `{score of the game}` (J26).
  * - Kept live by Solid effects:  a hole re-runs when what it read changes.
  * - Holds spell's PARSER:  the runner loads it lazily, only for a layout with spell in it (`layoutHasSpell()`).
@@ -58,7 +58,7 @@ export class LayoutSpell {
   /** The program's scope:  its declarations, and its top-level things as variables. */
   private programScope: P.BlockScope
 
-  /** The page's scope:  each drawable tag with an `id`, as a variable. */
+  /** The page's scope:  each view tag with an `id`, as a variable. */
   private pageScope: P.BlockScope
 
   /** Each component's scope, by its element:  `it` its thing. */
@@ -333,7 +333,7 @@ export class LayoutSpell {
     place: Element | null,
     show?: (shown: string) => void
   ): ((it: unknown) => unknown) | undefined {
-    const component = place && SpellElement.closestDrawable(place)
+    const component = place && SpellElement.closestView(place)
     try {
       const run = this.compile(spell.trim(), rule, this.scopeFor(component))
       return () => run(component ? SpellElement.thingOf(component) : undefined)
@@ -372,7 +372,7 @@ export class LayoutSpell {
     return match
   }
 
-  /** The scope of spell in `component`'s drawable tag:  `it` its thing -- else the page's. */
+  /** The scope of spell in `component`'s view tag:  `it` its thing -- else the page's. */
   private scopeFor(component: Element | null | undefined): P.Scope {
     const Class = component && SpellElement.classOf(component)
     if (!component || !Class) return this.pageScope

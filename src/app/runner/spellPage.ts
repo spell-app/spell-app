@@ -10,7 +10,7 @@
  * - Its `connectPage()` turns on the program's language first, so a Spanish program's tags draw (`<es-texto>`):
  *   the drawing half says it, `export const lang = "es"`, when it isn't English.
  * - Unlike a runner's, it sets up the page itself:  Spell UI's elements, Solid following spell's cells,
- *   and a drawable thing's own element, e.g. `<solitaire-card>`.
+ *   and a view's own element, e.g. `<solitaire-card>`.
  *
  * ```html
  * <script type="importmap">{ "imports": { "@spell/core": "/spell/spell-page.js" } }</script>
@@ -28,8 +28,10 @@ import {
   Thing,
   List,
   App,
-  Drawable,
-  DrawableList,
+  View,
+  ViewableList,
+  Page,
+  TwoSidedView,
   h,
   css,
   on,
@@ -48,7 +50,7 @@ import {
 } from "spell-parser/core"
 import { installSpellElements } from "./SpellElement"
 
-// a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
+// a view's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
 installSpellElements(core)
 
 /**
@@ -70,8 +72,10 @@ export {
   Thing,
   List,
   App,
-  Drawable,
-  DrawableList,
+  View,
+  ViewableList,
+  Page,
+  TwoSidedView,
   h,
   css,
   on,

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h } from "@spell/core"
 
 core.heading("A counter -- in the outline style:  its name, then what's true of it")
 //////////////////////////////////////////////////////////////////////////
@@ -6,9 +6,9 @@ core.heading("A counter -- in the outline style:  its name, then what's true of 
 //////////////////////////////////////////////////////////////////////////
 /**
  * A library other projects import:  `counter-app` makes one and draws it.
- * A drawable thing:  each counter is its own element on the page, e.g. `<counter-counter>`.
+ * A view:  each counter is its own element on the page, e.g. `<counter-counter>`.
  */
-export class Counter extends Drawable {
+export class Counter extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   // - its "count" is a number

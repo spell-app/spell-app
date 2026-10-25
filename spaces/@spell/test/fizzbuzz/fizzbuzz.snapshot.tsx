@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList } from "@spell/core"
 
 core.heading("File FizzBuzz.spell")
 /** File FizzBuzz.spell */

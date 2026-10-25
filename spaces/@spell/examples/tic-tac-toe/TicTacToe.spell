@@ -9,7 +9,7 @@
 
 
 ## A square:  empty, or holding an X or an O
-a "square" is a drawable thing where:
+a "square" is a view where:
 	- its "mark" is text
 	- it "is empty" if its mark is ""
 
@@ -18,7 +18,7 @@ a "square" is a drawable thing where:
 		return <button part="mark" onClick={play it}>{its mark}</button>
 
 ## The board:  nine squares, three a row -- styles.css lays them out
-a "board" is a drawable list of squares
+a "board" is a viewable list of squares
 
 // a square is on one board
 a square belongs to one board

@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 
 core.heading("A playing card -- in the outline style:  its name, then what's true of it")
 ///////////////////////////////////////////////////////////////////////////////
@@ -6,9 +6,9 @@ core.heading("A playing card -- in the outline style:  its name, then what's tru
 ///////////////////////////////////////////////////////////////////////////////
 /**
  * The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
- * A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
+ * A view:  each card is its own element on the page, e.g. `<cards-card>`.
  */
-export class Card extends Drawable {
+export class Card extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   /** card rank */
@@ -414,9 +414,9 @@ core.heading("A pile of cards, e.g. a game's stock or its discards")
 //////////////////////////////////////////////////////////
 /**
  * The game that uses these cards names its piles, and says what each kind of pile takes.
- * A drawable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
+ * A viewable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
  */
-export class Pile extends DrawableList {
+export class Pile extends ViewableList {
   static instanceType = Card
   static elementTag = core.defineElement(this, "test-project")
 
@@ -898,7 +898,7 @@ core.heading("The piles:  each kind, what it may take or give up, and how it lie
 /////////////////////////////////////////////////////////////////////////
 // ## The piles:  each kind, what it may take or give up, and how it lies
 /////////////////////////////////////////////////////////////////////////
-// Each pile is a drawable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
+// Each pile is a viewable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
 // How its cards lie is its layout:  styles.css draws each one.
 // While it's empty, it shows its placeholder, if it has one.
 

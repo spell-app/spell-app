@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, on } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, prop, derived, thing, drawn, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
 core.heading("A playing card -- in the outline style:  its name, then what's true of it")
@@ -11,9 +11,9 @@ export type Direction = (typeof Card.Directions)[number]
 
 /**
  * The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
- * A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`.
+ * A view:  each card is its own element on the page, e.g. `<cards-card>`.
  */
-export class Card extends Drawable {
+export class Card extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   /** card rank */
@@ -205,7 +205,7 @@ export class Card extends Drawable {
  * `<test-project-card>`:  a card, drawn in its own element, e.g. by `draw the card`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its card's properties;  its methods call its card's.
- * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its card, is `SpellElement`'s.
  */
 export class CardElement extends SpellElement<Card> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-card", "card", [
@@ -303,7 +303,7 @@ export class Joker extends Card {
  * `<test-project-joker>`:  a joker, drawn in its own element, e.g. by `draw the joker`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its joker's properties;  its methods call its joker's.
- * - What every drawable thing's element does, e.g. drawing its joker, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its joker, is `SpellElement`'s.
  */
 export class JokerElement extends SpellElement<Joker> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-joker", "joker", [
@@ -487,9 +487,9 @@ export type Layout = (typeof Pile.Layouts)[number]
 
 /**
  * The game that uses these cards names its piles, and says what each kind of pile takes.
- * A drawable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
+ * A viewable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
  */
-export class Pile extends DrawableList<Card> {
+export class Pile extends ViewableList<Card> {
   static instanceType = Card
   static elementTag = core.defineElement(this, "test-project")
 
@@ -546,7 +546,7 @@ export interface Pile {
  * `<test-project-pile>`:  a pile, drawn in its own element, e.g. by `draw the pile`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its pile's properties;  its methods call its pile's.
- * - What every drawable thing's element does, e.g. drawing its pile, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its pile, is `SpellElement`'s.
  */
 export class PileElement extends SpellElement<Pile> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-pile", "pile", [
@@ -654,7 +654,7 @@ export class StockPile extends Pile {
  * `<test-project-stock-pile>`:  a stock pile, drawn in its own element, e.g. by `draw the stock pile`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its stock pile's properties;  its methods call its stock pile's.
- * - What every drawable thing's element does, e.g. drawing its stock pile, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its stock pile, is `SpellElement`'s.
  */
 export class StockPileElement extends SpellElement<StockPile> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-stock-pile", "stock pile", [])
@@ -694,7 +694,7 @@ export class DiscardPile extends Pile {
  * `<test-project-discard-pile>`:  a discard pile, drawn in its own element, e.g. by `draw the discard pile`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its discard pile's properties;  its methods call its discard pile's.
- * - What every drawable thing's element does, e.g. drawing its discard pile, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its discard pile, is `SpellElement`'s.
  */
 export class DiscardPileElement extends SpellElement<DiscardPile> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-discard-pile", "discard pile", [])
@@ -749,7 +749,7 @@ export class Foundation extends Pile {
  * `<test-project-foundation>`:  a foundation, drawn in its own element, e.g. by `draw the foundation`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its foundation's properties;  its methods call its foundation's.
- * - What every drawable thing's element does, e.g. drawing its foundation, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its foundation, is `SpellElement`'s.
  */
 export class FoundationElement extends SpellElement<Foundation> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-foundation", "foundation", [
@@ -792,7 +792,7 @@ export class Tableau extends Pile {
  * `<test-project-tableau>`:  a tableau, drawn in its own element, e.g. by `draw the tableau`.
  * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its tableau's properties;  its methods call its tableau's.
- * - What every drawable thing's element does, e.g. drawing its tableau, is `SpellElement`'s.
+ * - What every view's element does, e.g. drawing its tableau, is `SpellElement`'s.
  */
 export class TableauElement extends SpellElement<Tableau> {
   @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-tableau", "tableau", [])
@@ -1063,7 +1063,7 @@ core.heading("The piles:  each kind, what it may take or give up, and how it lie
 /////////////////////////////////////////////////////////////////////////
 // ## The piles:  each kind, what it may take or give up, and how it lies
 /////////////////////////////////////////////////////////////////////////
-// Each pile is a drawable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
+// Each pile is a viewable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
 // How its cards lie is its layout:  styles.css draws each one.
 // While it's empty, it shows its placeholder, if it has one.
 
@@ -1146,7 +1146,7 @@ if (!core.isCarryingOver) testDeckWithJokers()
 if (!core.isCarryingOver) testPiles()
 if (!core.isCarryingOver) testTheMoves()
 
-// each drawable type's tag, for the JSX
+// each view type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {

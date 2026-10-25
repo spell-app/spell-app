@@ -1,4 +1,4 @@
-import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
+import { core, Thing, List, App, View, Page, TwoSidedView, ViewableList, h, positionOf, spellPosition, position, trigger, on } from "@spell/core"
 
 core.heading("Una carta de la baraja -- en el estilo de esquema:  su nombre, luego lo que es cierto de ella")
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -6,9 +6,9 @@ core.heading("Una carta de la baraja -- en el estilo de esquema:  su nombre, lue
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * La carta dice cuáles son sus palos, rangos y colores:  un mazo, una pila o un juego solo los leen.
- * Una cosa dibujable:  cada carta es un elemento propio en la página, p. ej. `<solitario-carta>`.
+ * Una vista:  cada carta es un elemento propio en la página, p. ej. `<solitario-carta>`.
  */
-export class Carta extends Drawable {
+export class Carta extends View {
   static elementTag = core.defineElement(this, "test-project")
 
   /** rango de la carta */
@@ -413,9 +413,9 @@ core.heading("Una pila de cartas, p. ej. el mazo de reserva de un juego o sus de
 ///////////////////////////////////////////////////////////////////////////////
 /**
  * El juego que usa estas cartas nombra sus pilas, y dice qué toma cada tipo de pila.
- * Una lista dibujable:  su elemento contiene los elementos de sus cartas, p. ej. `<solitario-pila>` alrededor de `<solitario-carta>`s.
+ * Una lista visible:  su elemento contiene los elementos de sus cartas, p. ej. `<solitario-pila>` alrededor de `<solitario-carta>`s.
  */
-export class Pila extends DrawableList {
+export class Pila extends ViewableList {
   static instanceType = Carta
   static elementTag = core.defineElement(this, "test-project")
 
@@ -903,7 +903,7 @@ core.heading("Las pilas:  cada tipo, qué puede tomar o soltar, y cómo están s
 //////////////////////////////////////////////////////////////////////////////
 // ## Las pilas:  cada tipo, qué puede tomar o soltar, y cómo están sus cartas
 //////////////////////////////////////////////////////////////////////////////
-// Cada pila es una lista dibujable:  un elemento propio, p. ej. `<solitario-columna>`, alrededor de los elementos de sus cartas.
+// Cada pila es una lista visible:  un elemento propio, p. ej. `<solitario-columna>`, alrededor de los elementos de sus cartas.
 // Cómo están sus cartas es su disposición:  styles.css dibuja cada una.
 // Mientras está vacía, muestra su marcador, si tiene uno.
 

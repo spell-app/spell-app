@@ -44,7 +44,7 @@ describe("appTexts, on a page in Spanish", () => {
     expect(i18n.t("cancel")).toBe("Cancelar")
   })
 
-  test("a pane draws in Spanish:  the Type Explorer with nothing run yet", async () => {
+  test("a pane draws in Spanish:  the Template Explorer with nothing run yet", async () => {
     await uiReady
     await appTexts.load()
     const host = document.createElement("div")
@@ -54,7 +54,7 @@ describe("appTexts, on a page in Spanish", () => {
       host
     )
     flush()
-    expect(host.textContent).toBe("Ejecuta el proyecto para ver sus ámbitos.")
+    expect(host.textContent).toBe("Ejecuta la aplicación para ver sus ámbitos.")
     dispose()
     host.remove()
   })

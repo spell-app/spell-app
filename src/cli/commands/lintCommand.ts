@@ -1,3 +1,5 @@
+import { writeFileSync } from "fs"
+
 import { SP } from "spell-parser/spell"
 import { CLI } from "spell-app/cli"
 
@@ -10,8 +12,10 @@ import { CLI } from "spell-app/cli"
  * - A `.spell` file:  parses its whole project -- it can't parse alone -- but lists only ITS errors.
  * - A project's EDITOR PAGES (`Card.editor.html`) too, against its types, after its spell
  *   (decision Q17;  `CLI.EditorPages`).
- *   - `--fix`:  puts each page right and writes it back,
- *     then lists what it did, one line each (`... fixed:  ...`), on stdout (with `--json`, on stderr).
+ * - `--fix`:  puts right what it can, writes it back,
+ *   then lists what it did, one line each (`... fixed:  ...`), on stdout (with `--json`, on stderr):
+ *   - each retired word in the spell, e.g. `drawable thing` => `view` -- see `fixRetiredWords()`
+ *   - each editor page
  *   - What it can't put right is still an error.
  * - SIDE EFFECT:  compiles any project they import which has never been compiled --
  *   see `CliSession.compileImports()`.
@@ -25,9 +29,11 @@ export async function lintCommand(session: CLI.CliSession, args: string[], optio
   try {
     for (const resolved of resolvedProjects) {
       if (resolved.kind === "file") {
+        if (options.fix) fixes.push(...(await fixRetiredWords(session, resolved.file.project, resolved.file)))
         problems.push(...(await checkProject(session, resolved.file.project, resolved.file, status)))
         continue
       }
+      if (options.fix) fixes.push(...(await fixRetiredWords(session, resolved.project)))
       problems.push(...(await checkProject(session, resolved.project, undefined, status)))
       const pages = await checkPages(session, resolved.project, status, options)
       problems.push(...pages.problems)
@@ -62,6 +68,52 @@ async function checkProject(
     return [{ project: project.projectId, message }]
   }
   return session.report(status, row, project, { file, list: false })
+}
+
+/**
+ * With `--fix`:  put each RETIRED word in `project` right -- only `file`'s, if given --
+ * e.g. `a card is a drawable thing` => `a card is a view`,
+ * and write each changed file back (epic `elemental-spell`, Q61).
+ * - The parser marks each one as an error whose `data.replacement` is its new word:
+ *   see `SpellType.retiredWordErrorsIn()`.
+ * - A word written with a capital keeps it:  `Drawable thing` => `View`.
+ * - Not a test project's files:  they stay frozen, as their editor pages do.
+ * - SIDE EFFECT:  parses `project`, then hands it each file's new text, so what's listed after is what's left.
+ * - Returns what it fixed, each a problem saying so, where the word was.
+ */
+async function fixRetiredWords(
+  session: CLI.CliSession,
+  project: SP.SpellProject,
+  file?: SP.SpellFile
+): Promise<CLI.Problem[]> {
+  await session.parse(project)
+  const fixes: CLI.Problem[] = []
+  // its files load as it parses:  read them after
+  for (const spellFile of file ? [file] : project.spellFiles) {
+    const path = spellFile.location.serverPath
+    const text = spellFile.contents
+    if (!spellFile.match || text === undefined || CLI.isTestProject(path)) continue
+    // each one's place and new word, last first:  a fix never moves one still to make
+    const retired = (SP.Block.getParseErrors(spellFile.match) ?? [])
+      .flatMap(({ start, end, data: { replacement } }) =>
+        typeof replacement === "string" && start !== undefined && end !== undefined ? [{ start, end, replacement }] : []
+      )
+      .sort((a, b) => b.start - a.start)
+    if (!retired.length) continue
+
+    let fixed = text
+    for (const { start, end, replacement } of retired) {
+      const written = text.slice(start, end)
+      const word = /^[A-ZÁÉÍÓÚÑ]/.test(written) ? replacement[0]!.toUpperCase() + replacement.slice(1) : replacement
+      fixed = fixed.slice(0, start) + word + fixed.slice(end)
+      const lines = text.slice(0, start).split("\n")
+      const where = { line: lines.length, column: lines.at(-1)!.length + 1 }
+      fixes.push({ project: project.projectId, path, ...where, message: `fixed:  "${written}" is now "${word}"` })
+    }
+    writeFileSync(path, fixed)
+    await project.updateText(spellFile, fixed)
+  }
+  return fixes.reverse()
 }
 
 /**

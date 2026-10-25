@@ -229,7 +229,7 @@ start solitaire
 
 
 ## The piles:  each kind, what it may take or give up, and how it lies
-// Each pile is a drawable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
+// Each pile is a viewable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
 // How its cards lie is its layout:  styles.css draws each one.
 // While it's empty, it shows its placeholder, if it has one.
 

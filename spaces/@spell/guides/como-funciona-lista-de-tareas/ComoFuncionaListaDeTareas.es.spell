@@ -12,7 +12,7 @@
 
 
 ## Una tarea
-una "tarea" es una cosa dibujable donde:
+una "tarea" es una vista donde:
 	- su "título" es texto
 	- su "hecha" es sí o no
 	- "está hecha" si su hecha es sí
@@ -29,7 +29,7 @@ una "tarea" es una cosa dibujable donde:
 
 
 ## La agenda:  las tareas, mostradas según su filtro
-una "agenda" es una lista dibujable de tareas donde:
+una "agenda" es una lista visible de tareas donde:
 	// lo que muestra:  todas las tareas, las pendientes, o las hechas
 	- su "mostrando" es una de todas, pendientes o hechas
 	// cada tarea, salvo que el filtro la oculte:  "devolver nada" no dibuja nada

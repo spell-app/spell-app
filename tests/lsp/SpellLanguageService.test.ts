@@ -42,9 +42,9 @@ describe("SpellLanguageService", () => {
   let card: SP.SpellFile
   let deck: SP.SpellFile
   let solitaire: SP.SpellFile
-  /** Card.spell's line declaring the card's type:  `a "card" is a drawable thing where:`. */
+  /** Card.spell's line declaring the card's type:  `a "card" is a view where:`. */
   const CARD_TYPE = 'a "card" is'
-  /** Where Card.spell's type names its card:  `"card"` in `a "card" is a drawable thing where:`, 0-based. */
+  /** Where Card.spell's type names its card:  `"card"` in `a "card" is a view where:`, 0-based. */
   const CARD_NAME = rangeAt(cardText, CARD_TYPE, '"card"')
   /** The call to a method of the card's own, in its `to turn it over`. */
   const TURN_CALL = "await turn it face down"
@@ -125,17 +125,14 @@ describe("SpellLanguageService", () => {
     })
 
     test("a half-typed declaration keeps its last good version, so later files don't change", async () => {
-      await withCardText(
-        cardText.replace('a "card" is a drawable thing where:', 'a "card" is a drawable thing wher:'),
-        (changed) => {
-          expect(changed).toEqual([card])
-          expect(service.diagnostics(card)).toHaveLength(1)
-        }
-      )
+      await withCardText(cardText.replace('a "card" is a view where:', 'a "card" is a view wher:'), (changed) => {
+        expect(changed).toEqual([card])
+        expect(service.diagnostics(card)).toHaveLength(1)
+      })
     })
 
     test("changing a declaration re-parses the files after it", async () => {
-      await withCardText(cardText.replace('a "card" is a drawable', 'a "kard" is a drawable'), (changed) => {
+      await withCardText(cardText.replace('a "card" is a view', 'a "kard" is a view'), (changed) => {
         expect(changed.map((file) => file.file)).toEqual(["Card.spell", "Deck.spell", "Pile.spell", "Solitaire.spell"])
       })
     })
@@ -285,7 +282,7 @@ describe("SpellLanguageService", () => {
         return `${index + 1}:${character} ${JSON.stringify(word)} ${type}`
       }
       expect(tokens).toContain(token(CARD_TYPE, '"card"', "type declaration"))
-      expect(tokens).toContain(token(CARD_TYPE, "thing", "type defaultLibrary"))
+      expect(tokens).toContain(token(CARD_TYPE, "view", "type defaultLibrary"))
       expect(tokens).toContain(token("- to turn it face up:", "turn", "function declaration"))
       expect(tokens).toContain(token(TURN_CALL, "turn", "function"))
       expect(tokens).toContain(token(TURN_CALL, "it", "variable"))
@@ -341,13 +338,13 @@ describe("SpellLanguageService", () => {
     test("on a type:  what it is, and where it's declared", () => {
       const hover = service.hover(deck, at(deck, 'a "deck" is', "card"))
       const markdown = (hover!.contents as { value: string }).value
-      expect(markdown).toContain("type **Card** is a Drawable")
+      expect(markdown).toContain("template **Card** is a View")
       expect(markdown).toContain(`[Card.spell:${lineOf(cardText, CARD_TYPE)}]`)
     })
 
     test("on a method call:  its signature, and the javascript it becomes", () => {
       const markdown = (service.hover(card, at(card, TURN_CALL, "turn"))!.contents as { value: string }).value
-      expect(markdown).toContain("method **turn it face down**")
+      expect(markdown).toContain("action **turn it face down**")
       expect(markdown).toContain("compiles to `turnFaceDown()`")
       expect(markdown).toContain("```js\nawait this.turnFaceDown()\n```")
     })
@@ -357,7 +354,7 @@ describe("SpellLanguageService", () => {
       const position = at(solitaire, 'a "tableau" is', "tableau")
       const markdown = (service.hover(solitaire, position)!.contents as { value: string }).value
       expect(markdown).toContain(
-        "type **Tableau** is a Pile\n\na tableau:  a column, built down from king to ace, red and black in turn\n\n"
+        "template **Tableau** is a Pile\n\na tableau:  a column, built down from king to ace, red and black in turn\n\n"
       )
     })
 
@@ -511,7 +508,7 @@ describe("SpellLanguageService", () => {
         (items.find((item) => item.label === label)?.documentation as { value: string })?.value
       expect(docs("card")).toBe(
         "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\n" +
-          "A drawable thing:  each card is its own element on the page, e.g. `<cards-card>`."
+          "A view:  each card is its own element on the page, e.g. `<cards-card>`."
       )
       expect(docs("turn it face up")).toBe("each pauses a moment, so `wait for: turn the card face up` animates")
     })
@@ -933,7 +930,7 @@ describe("SpellLanguageService", () => {
   test("custom requests:  compiled TypeScript, by the `ts/solid` target's writer", () => {
     const compiled = service.compiled(card, "ts")
     expect(compiled).toBe(LSP.SpellLanguageService.compileQuietly(card.match!, SP.targetFor("ts/solid").writer))
-    expect(compiled).toContain("export class Card extends Drawable {\n")
+    expect(compiled).toContain("export class Card extends View {\n")
     // TypeScript's own:  a decorated, typed property
     expect(compiled).toMatch(/@prop\(.*\)\n\s*accessor \w+!?: /)
     expect(compiled).not.toBe(service.compiled(card, "js"))
@@ -942,7 +939,7 @@ describe("SpellLanguageService", () => {
   test("custom requests:  compiled Python, by the `py` target's writer", () => {
     const compiled = service.compiled(card, "py")
     expect(compiled).toBe(LSP.SpellLanguageService.compileQuietly(card.match!, SP.targetFor("py").writer))
-    expect(compiled).toContain("class Card(Drawable):\n")
+    expect(compiled).toContain("class Card(View):\n")
     // the declaration markers are for the declarations file, not for people
     expect(compiled).not.toContain("SPELL: DECLARES")
   })
@@ -967,7 +964,7 @@ describe("SpellLanguageService", () => {
   })
 
   test("custom requests:  compiled javascript, and the project's files", () => {
-    expect(service.compiled(card)).toContain("export class Card extends Drawable {\n")
+    expect(service.compiled(card)).toContain("export class Card extends View {\n")
     expect(service.compiled(card)).toBe(service.compiled(card, "js"))
     expect(service.projectInfo(card).files.map(({ file, errors }) => `${file} ${errors}`)).toEqual([
       "Card.spell 0",
@@ -988,8 +985,8 @@ describe("SpellLanguageService", () => {
   describe("<css> blocks (see LSP.SpellCSS)", () => {
     // a block in the card type's outline, its CSS with a typo:  `colr`
     const withBlock = cardText.replace(
-      'a "card" is a drawable thing where:\n',
-      'a "card" is a drawable thing where:\n\t<css>\n\t\t.red { colr: red }\n\t</css>\n'
+      'a "card" is a view where:\n',
+      'a "card" is a view where:\n\t<css>\n\t\t.red { colr: red }\n\t</css>\n'
     )
     /** The block's `<css>` line, 0-based:  just under the card's declaration. */
     const block = lineOf(cardText, CARD_TYPE)
@@ -1030,8 +1027,8 @@ describe("SpellLanguageService", () => {
     // the card type's description, as markdown in its outline -- with markdown's own `#`, `*`, `<` and braces;
     // its comment docstring blanked, which would win
     const withBlock = cardText.replace(
-      /^## [\s\S]*?a "card" is a drawable thing where:\n/,
-      '\na "card" is a drawable thing where:\n\t<markdown>\n\t\t# A card\n\t\tA *playing* card <b>{rank}</b>.\n\t</markdown>\n'
+      /^## [\s\S]*?a "card" is a view where:\n/,
+      '\na "card" is a view where:\n\t<markdown>\n\t\t# A card\n\t\tA *playing* card <b>{rank}</b>.\n\t</markdown>\n'
     )
 
     test("no errors, and no spell colouring inside;  hover on the type shows it as its description", async () => {
@@ -1039,7 +1036,7 @@ describe("SpellLanguageService", () => {
         expect(errorsIn(service, card)).toEqual([])
         expect(describeTokens(card, [4, 5])).toEqual([])
         const markdown = (service.hover(deck, at(deck, 3, "card"))!.contents as { value: string }).value
-        expect(markdown).toContain("type **Card** is a Drawable\n\n# A card\nA *playing* card <b>{rank}</b>.")
+        expect(markdown).toContain("template **Card** is a View\n\n# A card\nA *playing* card <b>{rank}</b>.")
       })
     })
   })

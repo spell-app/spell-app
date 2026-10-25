@@ -11,7 +11,7 @@
 
 ## A card
 // "one of" lists every value a property can have:  "2 ... 10" means every number in between
-a "card" is a drawable thing where:
+a "card" is a view where:
 	- its "rank" is one of ace, 2 ... 10, jack, queen, king
 	- its "suit" is one of clubs, diamonds, hearts or spades
 
@@ -30,7 +30,7 @@ a "card" is a drawable thing where:
 
 
 ## A pile, and a column
-a "pile" is a drawable list of cards
+a "pile" is a viewable list of cards
 // a card is in one pile at a time:  putting it on another takes it off this one
 a card belongs to one pile
 

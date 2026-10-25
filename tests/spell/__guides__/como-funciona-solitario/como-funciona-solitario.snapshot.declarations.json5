@@ -13,9 +13,9 @@
   "statements": [
     {
       "type": "Carta",
-      "superType": "Drawable",
+      "superType": "View",
       "gender": "feminine",
-      "defined": "/ComoFuncionaSolitario.es.spell:808-1390"
+      "defined": "/ComoFuncionaSolitario.es.spell:808-1381"
     },
     {
       "property": "rango",
@@ -36,7 +36,7 @@
         "dama",
         "rey"
       ],
-      "defined": "/ComoFuncionaSolitario.es.spell:852-902"
+      "defined": "/ComoFuncionaSolitario.es.spell:843-893"
     },
     {
       "property": "palo",
@@ -48,36 +48,36 @@
         "corazones",
         "espadas"
       ],
-      "defined": "/ComoFuncionaSolitario.es.spell:906-966"
+      "defined": "/ComoFuncionaSolitario.es.spell:897-957"
     },
     {
       "property": "valor",
       "of": "Carta",
       "datatype": "number",
-      "defined": "/ComoFuncionaSolitario.es.spell:1047-1084"
+      "defined": "/ComoFuncionaSolitario.es.spell:1038-1075"
     },
     {
       "property": "color",
       "of": "Carta",
-      "defined": "/ComoFuncionaSolitario.es.spell:1088-1169"
+      "defined": "/ComoFuncionaSolitario.es.spell:1079-1160"
     },
     {
       "constants": [
         "rojo"
       ],
-      "defined": "/ComoFuncionaSolitario.es.spell:1105-1145"
+      "defined": "/ComoFuncionaSolitario.es.spell:1096-1136"
     },
     {
       "constants": [
         "negro"
       ],
-      "defined": "/ComoFuncionaSolitario.es.spell:1148-1169"
+      "defined": "/ComoFuncionaSolitario.es.spell:1139-1160"
     },
     {
       "property": "nombre",
       "of": "Carta",
       "datatype": "text",
-      "defined": "/ComoFuncionaSolitario.es.spell:1205-1247"
+      "defined": "/ComoFuncionaSolitario.es.spell:1196-1238"
     },
     {
       "syntax": "jugar {thisArg:expression}",
@@ -90,50 +90,50 @@
       ],
       "kind": "method",
       "name": "jugar una carta",
-      "defined": "/ComoFuncionaSolitario.es.spell:2517-2797"
+      "defined": "/ComoFuncionaSolitario.es.spell:2506-2786"
     },
     {
       "type": "Pila",
-      "superType": "DrawableList",
+      "superType": "ViewableList",
       "gender": "feminine",
       "itemType": "Carta",
-      "defined": "/ComoFuncionaSolitario.es.spell:1420-1463"
+      "defined": "/ComoFuncionaSolitario.es.spell:1411-1452"
     },
     {
       "property": "pila",
       "of": "Carta",
       "datatype": "Pila",
       "exclusive": true,
-      "defined": "/ComoFuncionaSolitario.es.spell:1543-1573"
+      "defined": "/ComoFuncionaSolitario.es.spell:1532-1562"
     },
     {
       "type": "Columna",
       "superType": "Pila",
       "gender": "feminine",
-      "defined": "/ComoFuncionaSolitario.es.spell:1807-2048"
+      "defined": "/ComoFuncionaSolitario.es.spell:1796-2037"
     },
     {
       "type": "Mesa",
       "superType": "App",
-      "defined": "/ComoFuncionaSolitario.es.spell:2118-2460"
+      "defined": "/ComoFuncionaSolitario.es.spell:2107-2449"
     },
     {
       "property": "columna",
       "of": "Mesa",
       "datatype": "Columna",
-      "defined": "/ComoFuncionaSolitario.es.spell:2151-2184"
+      "defined": "/ComoFuncionaSolitario.es.spell:2140-2173"
     },
     {
       "property": "mano",
       "of": "Mesa",
       "datatype": "Pila",
-      "defined": "/ComoFuncionaSolitario.es.spell:2188-2215"
+      "defined": "/ComoFuncionaSolitario.es.spell:2177-2204"
     },
     {
       "property": "mensaje",
       "of": "Mesa",
       "datatype": "text",
-      "defined": "/ComoFuncionaSolitario.es.spell:2219-2240"
+      "defined": "/ComoFuncionaSolitario.es.spell:2208-2229"
     },
     {
       "syntax": "probar la columna",
@@ -142,7 +142,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "la columna",
-      "defined": "/ComoFuncionaSolitario.es.spell:3291-3597"
+      "defined": "/ComoFuncionaSolitario.es.spell:3280-3586"
     }
   ],
   "codeLines": [

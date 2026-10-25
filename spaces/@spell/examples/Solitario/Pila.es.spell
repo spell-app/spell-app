@@ -1,7 +1,7 @@
 ## Una pila de cartas, p. ej. el mazo de reserva de un juego o sus descartes
 // El juego que usa estas cartas nombra sus pilas, y dice qué toma cada tipo de pila.
-// Una lista dibujable:  su elemento contiene los elementos de sus cartas, p. ej. `<solitario-pila>` alrededor de `<solitario-carta>`s.
-una "pila" es una lista dibujable de cartas donde:
+// Una lista visible:  su elemento contiene los elementos de sus cartas, p. ej. `<solitario-pila>` alrededor de `<solitario-carta>`s.
+una "pila" es una lista visible de cartas donde:
 	// cómo la llama el juego, p. ej. "reserva"
 	- su "nombre" es texto
 	// cómo están sus cartas:  una sobre otra, hacia abajo en una columna, a lo largo de una fila,
