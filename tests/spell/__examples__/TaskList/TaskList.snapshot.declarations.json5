@@ -4,26 +4,26 @@
     "Task",
     "Checklist",
     "TaskList",
-    "test_tasks",
+    "test_checking_one_off",
     "test_the_filter"
   ],
   "statements": [
     {
       "type": "Task",
       "superType": "View",
-      "defined": "/Task.spell:161-1469"
+      "defined": "/Task.spellx:138-1402"
     },
     {
       "property": "title",
       "of": "Task",
       "datatype": "text",
-      "defined": "/Task.spell:190-209"
+      "defined": "/Task.spellx:159-206"
     },
     {
       "property": "notes",
       "of": "Task",
       "datatype": "text",
-      "defined": "/Task.spell:213-232"
+      "defined": "/Task.spellx:211-270"
     },
     {
       "property": "priority",
@@ -34,13 +34,13 @@
         "normal",
         "high"
       ],
-      "defined": "/Task.spell:236-280"
+      "defined": "/Task.spellx:275-323"
     },
     {
       "property": "done",
       "of": "Task",
       "datatype": "choice",
-      "defined": "/Task.spell:284-307"
+      "defined": "/Task.spellx:329-355"
     },
     {
       "syntax": "{operator:is_or_is_not} done",
@@ -50,7 +50,7 @@
       "kind": "method",
       "name": "\"is done\"",
       "returns": "choice",
-      "defined": "/Task.spell:311-342"
+      "defined": "/Task.spellx:360-395"
     },
     {
       "syntax": "{operator:is_or_is_not} active",
@@ -60,25 +60,7 @@
       "kind": "method",
       "name": "\"is active\"",
       "returns": "choice",
-      "defined": "/Task.spell:368-400"
-    },
-    {
-      "property": "priority_color",
-      "asWritten": "priority color",
-      "of": "Task",
-      "defined": "/Task.spell:480-551"
-    },
-    {
-      "constants": [
-        "red"
-      ],
-      "defined": "/Task.spell:507-534"
-    },
-    {
-      "constants": [
-        "grey"
-      ],
-      "defined": "/Task.spell:537-551"
+      "defined": "/Task.spellx:400-436"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -91,22 +73,22 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Task.spell:1103-1469"
+      "defined": "/Task.spellx:671-1194"
     },
     {
-      "syntax": "test tasks",
-      "output": "test_tasks",
+      "syntax": "test checking one off",
+      "output": "test_checking_one_off",
       "rule": "method_call",
       "alias": "statement",
       "kind": "function",
-      "name": "tasks",
-      "defined": "/Task.spell:1481-1652"
+      "name": "checking one off",
+      "defined": "/Task.spellx:1206-1393"
     },
     {
       "type": "Checklist",
       "superType": "ViewableList",
       "itemType": "Task",
-      "defined": "/TaskList.spell:503-1135"
+      "defined": "/TaskList.spellx:326-1306"
     },
     {
       "property": "showing",
@@ -117,38 +99,60 @@
         "active",
         "done"
       ],
-      "defined": "/TaskList.spell:626-669"
+      "defined": "/TaskList.spellx:386-548"
+    },
+    {
+      "syntax": "test the filter",
+      "output": "test_the_filter",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "the filter",
+      "defined": "/TaskList.spellx:1065-1297"
     },
     {
       "property": "checklist",
       "of": "Task",
       "datatype": "Checklist",
       "exclusive": true,
-      "defined": "/TaskList.spell:1177-1208"
+      "defined": "/TaskList.spellx:1371-1402"
     },
     {
       "type": "TaskList",
       "superType": "App",
-      "defined": "/TaskList.spell:1290-3797"
+      "defined": "/TaskList.spellx:1514-4242"
     },
     {
-      "property": "tasks",
+      "property": "checklist",
       "of": "TaskList",
       "datatype": "Checklist",
-      "defined": "/TaskList.spell:1320-1350"
+      "defined": "/TaskList.spellx:1527-1564"
     },
     {
       "property": "draft",
       "of": "TaskList",
       "datatype": "text",
-      "defined": "/TaskList.spell:1414-1433"
+      "defined": "/TaskList.spellx:1569-1661"
     },
     {
       "property": "active_count",
       "asWritten": "active count",
       "of": "TaskList",
       "datatype": "number",
-      "defined": "/TaskList.spell:1437-1512"
+      "defined": "/TaskList.spellx:1666-1748"
+    },
+    {
+      "syntax": "create {thisArg:expression}",
+      "output": "create",
+      "rule": "method_call",
+      "of": "TaskList",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "create it",
+      "defined": "/TaskList.spellx:1754-2288"
     },
     {
       "syntax": "add the draft (of {thisArg:expression})?",
@@ -162,20 +166,7 @@
       "kind": "method",
       "name": "add the draft",
       "returns": "nothing",
-      "defined": "/TaskList.spell:1589-1726"
-    },
-    {
-      "syntax": "remove the done tasks (of {thisArg:expression})?",
-      "output": "remove_the_done_tasks",
-      "rule": "method_call",
-      "of": "TaskList",
-      "alias": [
-        "statement",
-        "expression"
-      ],
-      "kind": "method",
-      "name": "remove the done tasks",
-      "defined": "/TaskList.spell:1731-1801"
+      "defined": "/TaskList.spellx:2302-2532"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -188,41 +179,85 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TaskList.spell:2043-3797"
+      "defined": "/TaskList.spellx:3318-4233"
     },
     {
-      "syntax": "test the filter",
-      "output": "test_the_filter",
+      "syntax": "show all (of {thisArg:expression})?",
+      "output": "show_all",
       "rule": "method_call",
-      "alias": "statement",
-      "kind": "function",
-      "name": "the filter",
-      "defined": "/TaskList.spell:4339-4566"
+      "of": "TaskList",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "show all",
+      "defined": "/TaskList.spellx:2647-2762"
+    },
+    {
+      "syntax": "show to do (of {thisArg:expression})?",
+      "output": "show_to_do",
+      "rule": "method_call",
+      "of": "TaskList",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "show to do",
+      "defined": "/TaskList.spellx:2767-2900"
+    },
+    {
+      "syntax": "show done (of {thisArg:expression})?",
+      "output": "show_done",
+      "rule": "method_call",
+      "of": "TaskList",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "show done",
+      "defined": "/TaskList.spellx:2905-3039"
+    },
+    {
+      "syntax": "remove the done tasks (of {thisArg:expression})?",
+      "output": "remove_the_done_tasks",
+      "rule": "method_call",
+      "of": "TaskList",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "remove the done tasks",
+      "defined": "/TaskList.spellx:3044-3153"
     }
   ],
   "codeLines": [
-    7,
-    10,
-    15,
-    20,
-    26,
-    32,
-    37,
-    42,
-    43,
+    9,
+    13,
+    19,
+    24,
+    30,
+    35,
+    39,
     44,
-    54,
-    82,
-    110,
-    115,
-    140,
-    143,
-    146,
-    152,
+    68,
+    93,
+    98,
+    127,
+    141,
+    148,
+    151,
     157,
     162,
-    168,
-    177,
-    260
+    167,
+    180,
+    187,
+    247,
+    248,
+    249,
+    250
   ]
 }

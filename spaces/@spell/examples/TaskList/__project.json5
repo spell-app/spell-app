@@ -1,13 +1,13 @@
 {
   "title": "Task List",
-  "description": "A to-do list in the outline style:  each task its own element, with Spell UI's controls;  `where` filters it, and a click selects tasks (shift and command for more) for a property editor that changes them all at once",
+  "description": "A to-do list in spellx, Spell in tags:  each task its own element, with Spell UI's controls;  a toolbar of actions filters it, ticking the one it shows, and a click selects tasks (shift and command for more) for a property editor that changes them all at once",
   "imports": [
     {
-      "path": "/Task.spell",
+      "path": "/Task.spellx",
       "active": true
     },
     {
-      "path": "/TaskList.spell",
+      "path": "/TaskList.spellx",
       "active": true
     },
     {

@@ -1,23 +1,15 @@
-## Klondike Solitaire
--- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for its rules, and what each pile is called.
-// The cards, the deck and the piles are this project's own:  Card, Deck and Pile.
-// This file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
-// What's where, top to bottom:
-//   the solitaire:  its piles, its moves, auto play and drawing
-//   playing a card:  what a click or a drag does
-//   start
-//   the piles:  each kind, what it may take or give up, and how it lies
-//   tests
+# Klondike Solitaire
+Deal seven columns, then build four foundations, ace to king, one suit each:
+[wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) has its rules, and what each pile is called.
+The cards, the deck and the piles are this project's own:  `Card`, `Deck` and `Pile`.
 
-
-## The solitaire:  its piles, its moves, auto play and drawing
 <spell-app "solitaire">
 	<property "score">a number</>
-	// what the move being dragged would add to the score, e.g. " (+10)":  shown beside it, while a card is over a pile
-	<property "hint">text</>
+	<property "hint" description="What the card being dragged would add to the score, e.g. (+10):  shown beside it">text</>
 	<property "deck">a new deck</>
 
-	<property "stock" description="one of each pile, made with the solitaire">a new stock pile with name = "stock"</>
+	<group "piles" description="One of each, made with the solitaire"/>
+	<property "stock">a new stock pile with name = "stock"</>
 	<property "discards">a new discard pile with name = "discards"</>
 	<property "clubs">a new foundation with name = "clubs", suit = clubs</>
 	<property "diamonds">a new foundation with name = "diamonds", suit = diamonds</>
@@ -30,40 +22,29 @@
 	<property "T5">a new tableau with name = "T5"</>
 	<property "T6">a new tableau with name = "T6"</>
 	<property "T7">a new tableau with name = "T7"</>
-
-	// once, as the solitaire is made:  every card of the deck into the stock
-	// - its deck and piles are made with it, before this runs
-	// - inside the loop `it` is the card:  so the stock is `the stock of solitaire`
-	<action "create it">
+	<action "create it" description="Every card of its deck into the stock:  inside the loop `it` is the card, so the stock is the solitaire's">
 		for each card in its deck
 			add it to the stock of solitaire
 	</action>
 
-	// print each pile's cards, e.g. "stock: Q♠↓ 7♥↓"
-	<action "debug it">
-		for each pile in every pile
-			print the state of the pile
-	</action>
-
-	<action "reset the stock" description="the discards, turned over, back into the stock">
+	<group "dealing" description="Each pauses a moment, so a deal animates"/>
+	<action "reset the stock" description="The discards, turned over, back into the stock">
 		set cards to a copy of list (its discards) as a pile
 		reverse the cards
 		for each card in the cards
 			add it to the stock of the solitaire
 			turn the card face down
 	</action>
-
-	// turn the stock's next card over, onto the discards
 	<spell>
+		// turn the stock's next card over, onto the discards:  the discards back into the stock when it's empty
 		- animation play from the stock:
 			if its stock is empty
 				wait for: reset the stock
-
 			get the last card of its stock
 			turn it face up
+			pause for 50 msec
 			add it to the discards of the solitaire
-
-		// gather every card of its deck into the stock, shuffle it, and deal the tableaus:  one card more in each, left to right
+		// gather every card into the stock, shuffle it, and deal the tableaus:  one card more in each, left to right
 		- animation deal the cards:
 			for each card in its deck
 				set start pile to the pile of the card
@@ -72,41 +53,28 @@
 					add the card to the stock of the solitaire
 					pause for 50 msec
 			shuffle its stock
-
 			for row from 1 to 7
 				turn the last card of its stock face up
 				for column from row to 7
 					add the last card of its stock to item column of the tableaus
 					pause for 50 msec
-
 			wait for: play from the stock
 	</spell>
 
-	<action "start a new game">
+
+	<group "game" description="Its moves:  the menu's buttons, its keys, and the board's right click"/>
+	<action "start a new game" shortcut="N">
 		clear its score
 		clear its hint
 		deal the cards
 	</action>
-
-	<action "cheat" description="turn up a face-down card from a tableau, at random, onto the discards">
-		set remaining piles to piles in the tableaus where it is not empty and its first card is face down
-		if remaining piles is empty return
-		set the pile to a random pile in remaining piles
-		set hidden cards to the cards in the pile where the card is face down
-		set the card to a random card in hidden cards
-		turn the card face up
-		pause for 30 ticks
-		add the card to the discards of the solitaire
-	</action>
-
-	<action "auto play" description="play every card that can go somewhere, until none can">
+	<action "auto play" shortcut="A" description="Play every card that can go somewhere, until none can">
 		set anything changed to no
 		if its discards is not empty
 			set test card to the last card of its discards
 			if await play test card
 				set anything changed to yes
 				pause for 500 msec
-
 		// each tableau's last card onto its foundation
 		for each pile in the tableaus
 			if the pile is empty return
@@ -116,7 +84,6 @@
 				set anything changed to yes
 				await play test card
 				pause for 100 msec
-
 		// each tableau's face-up cards, all together, onto another tableau
 		for each pile in the tableaus
 			set face up cards to the cards in the pile where the card is face up
@@ -126,63 +93,65 @@
 			if await play test card
 				set anything changed to yes
 				pause for 500 msec
-
 		if anything changed await auto play
 	</action>
+	<action "cheat" shortcut="C" description="Turn up a face-down card from a tableau, at random, onto the discards">
+		set remaining piles to piles in the tableaus where it is not empty and its first card is face down
+		if remaining piles is empty return
+		set the pile to a random pile in remaining piles
+		set the card to a random card in (the cards in the pile where the card is face down)
+		turn the card face up
+		pause for 30 ticks
+		add the card to the discards of the solitaire
+	</action>
+	<menu "game menu">
+		<action "start a new game"/>
+		<action "-"/>
+		<action "auto play"/>
+		<action "cheat"/>
+	</menu>
 
-	// its menu, then its piles:  seven to a line, each a cell of its own, the third left empty
-	// - its buttons are icons, each with a tooltip:  the popup right after its icon shows as the pointer rests on it
-	<spell>
-		- to draw it:
-			return <ui-container>
-				<ui-menu>
-					<ui-item type="header">Klondike Solitaire</ui-item>
-					<ui-item>{"Score: " + its score + its hint}</ui-item>
-					<ui-menu position="right">
-						<ui-item aria-label="Auto play" onClick={auto play}>
-							<ui-icon name="fast forward"/>
-							<ui-popup content="Auto play" inverted size="small"/>
-						</ui-item>
-						<ui-item aria-label="Cheat" onClick={cheat}>
-							<ui-icon name="eye"/>
-							<ui-popup content="Cheat" inverted size="small"/>
-						</ui-item>
-						<ui-item aria-label="Restart" onClick={start a new game}>
-							<ui-icon name="redo"/>
-							<ui-popup content="Restart" inverted size="small"/>
-						</ui-item>
-					</ui-menu>
+	<draw description="Its menu, then its piles seven to a line, the third cell empty;  a right click on the board shows the game menu">
+		<container>
+			<ui-menu>
+				<item kind="header">Klondike Solitaire</item>
+				<item>Score: {its score}{its hint}</item>
+				<ui-menu position="right">
+					<item aria-label="Auto play" title="Auto play" onClick={auto play}><icon name="fast forward"/></item>
+					<item aria-label="Cheat" title="Cheat" onClick={cheat}><icon name="eye"/></item>
+					<item aria-label="Restart" title="Restart" onClick={start a new game}><icon name="redo"/></item>
 				</ui-menu>
-				<ui-grid class="Board" columns="7">
-					{draw its stock}
-					{draw its discards}
-					<div/>
-					{draw its clubs}
-					{draw its diamonds}
-					{draw its hearts}
-					{draw its spades}
-					{draw its T1}
-					{draw its T2}
-					{draw its T3}
-					{draw its T4}
-					{draw its T5}
-					{draw its T6}
-					{draw its T7}
-				</ui-grid>
-			</ui-container>
-	</spell>
+			</ui-menu>
+			<grid class="Board" columns="7" context-menu="game menu">
+				{draw its stock}
+				{draw its discards}
+				<column/>
+				{draw its clubs}
+				{draw its diamonds}
+				{draw its hearts}
+				{draw its spades}
+				{draw its T1}
+				{draw its T2}
+				{draw its T3}
+				{draw its T4}
+				{draw its T5}
+				{draw its T6}
+				{draw its T7}
+			</grid>
+		</container>
+	</draw>
 </spell-app>
 
+## Playing a card
+What a click or a drag does:  the card's own moves, and each pile's, as the game plays them.
 
-## Playing a card:  what a click or a drag does
-// the card, and every card on it, onto the first pile that can take it;  it says whether it moved
-// - the stock's card is turned over onto the discards instead
 <spell>
+	// the card, and every card on it, onto the first pile that takes it;  it says whether it moved
+	// - the stock's card turns over onto the discards instead
 	to play a card
 		if the pile of the card is the stock of the solitaire
 			play from the stock
 			return
-
 		set end pile to the first pile in every pile where it can take the card
 		if there is not an end pile return no
 		return put the card on end pile
@@ -194,32 +163,19 @@
 		if start pile cannot give up the card return no
 		if the pile cannot take the card return no
 		set points to count the points for the card on the pile
-
-		set moving cards to cards in start pile starting with the card
-		set the name of moving cards to the name of the start pile
-		print "moving (" + the state of moving cards + ") to (" + the state of the pile + ")"
-
-		for each card in moving cards
+		for each card in (cards in start pile starting with the card)
 			move it to the pile
-
 		if the start pile is a tableau and the start pile is not empty
 			pause for 200 msec
-			get the last card of the start pile
-			print "turning over (" + the name of start pile + ": " + its state + ")"
-			turn it face up
-
+			turn the last card of the start pile face up
 		set the score of the solitaire to the score of the solitaire + points
 		return yes
 
-	// what putting the card on the pile scores:  10 on a foundation, 5 from the discards, else nothing
+	// what the move scores:  10 on a foundation, 5 from the discards, else nothing
 	to count the points for a card on a pile
 		if the pile is a foundation return 10
 		if the pile of the card is the discards of the solitaire return 5
 		return 0
-
-	// a click plays the card;  a drag puts it where it's dropped
-	on card click with a card
-		play the card
 
 	a pile:
 		// while a card it would take is over it, the score shows what the move would add -- gone as the card leaves
@@ -228,76 +184,58 @@
 			if it can take the card and points > 0: set the hint of the solitaire to " (+" + points + ")"
 		- when a card is dropped on it:
 			put the card on it
-
-
-	## Start
-	print solitaire
-	start a new game
-	start solitaire
 </spell>
 
+## The piles
+Each kind of pile, what it may take or give up, and how it lies.
+While one's empty, it shows its placeholder, if it has one.
 
-## The piles:  each kind, what it may take or give up, and how it lies
-// Each pile is a viewable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
-// How its cards lie is its layout:  styles.css draws each one.
-// While it's empty, it shows its placeholder, if it has one.
-
-// the stock:  the cards not played yet, face down;  a click turns the next one over
-<spell-thing "stock pile" template="pile">
+<spell-view "stock pile" template="pile"
+	description="The cards not played yet, face down:  a click turns the next one over, so none can be taken from it"
+>
+	<property "layout">stacked</>
 	<spell>
-		- its layout is stacked
-		// a click turns its card over:  none can be taken from it, so none can be dragged
 		- it can never take a card
 		- it can never let go of a card
-		// empty:  a light grey card, face down -- a click turns the discards back over
-		- to draw its placeholder:
-			return <div part="placeholder" onClick={play from the stock}>🂠</div>
 	</spell>
-</spell-thing>
+	<draw "placeholder" description="A light grey card, face down:  a click turns the discards back over">
+		<text part="placeholder" onClick={play from the stock}>🂠</text>
+	</draw>
+</spell-view>
 
-// the discards:  where the stock's cards go as they're turned over
-<spell-thing "discard pile" template="pile">
+<spell-view "discard pile" template="pile" description="Where the stock's cards go as they're turned over">
+	<property "layout">stacked</>
 	<spell>
-		- its layout is stacked
 		- it can never take a card
 		- it can give up a card if: the card is its last card
 	</spell>
-</spell-thing>
+</spell-view>
 
-// a foundation:  where a suit is built up, ace to king
-<spell-thing "foundation" template="pile">
-	<spell>
-		- its layout is stacked
-	</spell>
+<spell-view "foundation" template="pile" description="Where a suit is built up, ace to king, one card at a time">
+	<property "layout">stacked</>
 	<property "suit">a card suit</>
 	<spell>
 		- it can never let go of a card
-		// one card at a time:  the last of its pile
 		- it can take a card if:
 			if the card is not the last card of the pile of the card return no
 			return its suit is the suit of the card and its value + 1 is the value of the card
-		// empty:  a light grey ace of its suit, face up
-		- to draw its placeholder:
-			return <div part="placeholder">{the picture of a new card whose rank is ace, suit is its suit and direction is up}</div>
 	</spell>
-</spell-thing>
+	<draw "placeholder" description="A light grey ace of its suit, face up">
+		<text part="placeholder">{the picture of a new card whose rank is ace and suit is its suit}</text>
+	</draw>
+</spell-view>
 
-// a tableau:  a column, built down from king to ace, red and black in turn
-<spell-thing "tableau" template="pile">
+<spell-view "tableau" template="pile" description="A column, built down from king to ace, red and black in turn">
+	<property "layout">vertical</>
 	<spell>
-		- its layout is vertical
 		- it can give up a card if: the card is face up
 		- it can take a card if:
 			if it is empty
 				return the card is a king
 			return its color is not the color of the card and its value is the value of the card + 1
 	</spell>
-</spell-thing>
 
-
-## Tests
-<spell>
-	to test the moves
+	<test "the moves">
 		set the column to a new tableau with name = "T1"
 		set the king to a new card whose rank is king, suit is spades and direction is up
 		set the queen to a new card whose rank is queen, suit is hearts and direction is up
@@ -327,4 +265,10 @@
 		the foundation can take the two should be yes
 		add the queen to the column
 		the foundation can take the queen should be no
+	</test>
+</spell-view>
+
+<spell>
+	start a new game
+	start solitaire
 </spell>

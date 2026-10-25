@@ -1,0 +1,53 @@
+# A pile of cards
+A game's stock, its discards, a column on the table:  the game names its piles, and says what each kind takes.
+Each pile is its own element around its cards' elements, `<solitaire-tableau>` around `<solitaire-card>`s.
+
+<spell-view "pile" template="viewable list of cards">
+	<property "name" description="What the game calls it, e.g. stock">text</>
+	<property "layout" one-of="stacked, vertical, horizontal or fanned"
+		description="How its cards lie:  on top of each other, down a column, along a row, or fanned as a hand is held -- styles.css"
+	/>
+	<property "color" description="Its last card's:  what the next card goes on">
+		"none" if it is empty
+		the color of its last card otherwise
+	</property>
+	<property "value" description="Its last card's">
+		0 if it is empty
+		the value of its last card otherwise
+	</property>
+	<property "state" description="Its name, then its cards' short names:  stock: Q♠↑ 7♥↓">
+		set state to (its name or "pile") + ":"
+		for each card in the pile
+			set state to state + " " + the state of the card
+		return state
+	</property>
+
+	<group "dropping" description="A card dragged over it glows when it would take the card, by its own rules"/>
+	<spell>
+		- it can be dropped on
+	</spell>
+
+	<test "piles">
+		set the stock to a new pile with name = "stock"
+		the color of the stock should be "none"
+		the value of the stock should be 0
+		add (a new card whose rank is queen, suit is spades and direction is up) to the stock
+		add (a new card whose rank is 7, suit is hearts and direction is down) to the stock
+		the color of the stock should be red
+		the value of the stock should be 7
+		the state of the stock should be "stock: Q♠↑ 7♥↓"
+
+		// a card is in one pile at a time
+		set the discards to a new pile with name = "discards"
+		get the last card of the stock
+		add it to the discards
+		its pile is the discards should be yes
+		the number of cards in the stock should be 1
+		the state of the discards should be "discards: 7♥↓"
+	</test>
+</spell-view>
+
+<spell>
+	// a card is in one pile at a time:  putting it on another pile takes it off this one
+	a card belongs to one pile
+</spell>

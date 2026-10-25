@@ -1,21 +1,21 @@
 {
   "title": "Solitaire",
-  "description": "Klondike solitaire in the outline style:  its own cards, deck and piles (`Card`, `Deck`, `Pile`), then the game, its kinds of piles (`a \"tableau\" is a pile where:`), their moves, layout and CSS;  `pause for` animates the deal",
+  "description": "Klondike solitaire in spellx, Spell in tags:  its own cards, deck and piles, each its own element;  the card a two sided view, the game's moves its actions, with keys and a right-click menu;  `pause for` animates the deal",
   "imports": [
     {
-      "path": "/Card.spell",
+      "path": "/Card.spellx",
       "active": true
     },
     {
-      "path": "/Deck.spell",
+      "path": "/Deck.spellx",
       "active": true
     },
     {
-      "path": "/Pile.spell",
+      "path": "/Pile.spellx",
       "active": true
     },
     {
-      "path": "/Solitaire.spell",
+      "path": "/Solitaire.spellx",
       "active": true
     },
     {

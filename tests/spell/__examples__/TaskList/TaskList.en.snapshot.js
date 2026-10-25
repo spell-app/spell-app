@@ -9,7 +9,6 @@ export const words = {
       done: "done",
       isDone: "is done",
       isActive: "is active",
-      priorityColor: "priority color",
       draw: "draw it",
       checklist: "checklist"
     },
@@ -17,12 +16,16 @@ export const words = {
       showing: "showing"
     },
     TaskList: {
-      tasks: "tasks",
+      checklist: "checklist",
       draft: "draft",
       activeCount: "active count",
+      create: "create it",
       addTheDraft: "add the draft",
-      removeTheDoneTasks: "remove the done tasks",
-      draw: "draw it"
+      draw: "draw it",
+      showAll: "show all",
+      showToDo: "show to do",
+      showDone: "show done",
+      removeTheDoneTasks: "remove the done tasks"
     }
   }
 }

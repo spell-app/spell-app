@@ -6,22 +6,17 @@
      - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */
 
 /****************
- * The app:  its menu, the new task's field, then the list beside the property editor
+ * The app:  its toolbar, the new task's field, then the list beside the property editor
  ****************/
 
 .TaskList {
   padding-block: 1em;
 }
 
-/* the field and its button on one line */
-.NewTask {
-  display: flex;
-  gap: 0.5em;
+/* the new task's field, between the toolbar and the list */
+.TaskList > ui-form {
+  display: block;
   margin-block: 1em;
-}
-
-.NewTask > ui-input {
-  flex: 1;
 }
 
 /****************
@@ -35,6 +30,7 @@ task-list-checklist {
 }
 
 task-list-checklist::part(placeholder) {
+  display: block;
   padding: 1em;
   color: grey;
   text-align: center;

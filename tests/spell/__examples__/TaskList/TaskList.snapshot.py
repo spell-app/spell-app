@@ -5,19 +5,21 @@ from typing import Any
 from spell_core import core, List, App, View, ViewableList, prop, h
 
 
-########################################################################################
-# ## A task:  something to do -- in the outline style:  its name, then what's true of it
-########################################################################################
+###########
+# ## A task
+###########
+# Something to do:  its title, its priority, and whether it's done.
+# Each task is its own element on the page, `<task-list-task>`.
 
 
 class Task(View):
-    """A view:  each task is its own element on the page, `<task-list-task>`."""
-
     element_tag = "test-project-task"
 
+    # What to do
     # - its "title" is text
     title = prop(type="text")
 
+    # Anything else about it
     # - its "notes" is text
     notes = prop(type="text")
 
@@ -30,30 +32,14 @@ class Task(View):
 
     @property
     def is_done(self) -> bool:
-        """\"task is done\""""
         return self.done
 
     @property
     def is_active(self) -> bool:
-        """\"task is active\""""
-        return not self.done
-
-    @property
-    def priority_color(self) -> Any:
-        """its priority label's color:  red when it's high"""
-        if self.priority == "high":
-            return "red"
-        return "grey"
-
-    #################################################################################################################
-    # ## drawing:  its grip, a checkbox, its title, and its priority -- styles.css shows it only when it isn't normal
-    #################################################################################################################
+        return not self.is_done
 
     def draw(self) -> Any:
-        """
-        a form of its own, bound to it:  checking the box, or typing a title, changes the task
-        - its row and its title are parts:  styles.css lays them out
-        """
+        """A form of its own, bound to it:  checking the box, or typing a title, changes the task"""
         return h(
             "ui-form",
             {"value": self},
@@ -64,11 +50,15 @@ class Task(View):
                 h("ui-checkbox", {"name": "done", "aria-label": "Done"}),
                 h(
                     "ui-input",
-                    {"part": "title", "name": "title", "aria-label": "Task", "transparent": True},
+                    {"part": "title", "name": "title", "aria-label": "Task", "appearance": "transparent"},
                 ),
                 h(
                     "ui-label",
-                    {"part": "priority", "size": "tiny", "color": self.priority_color},
+                    {
+                        "part": "priority",
+                        "size": "tiny",
+                        "color": "red" if self.priority == "high" else "grey",
+                    },
                     self.priority,
                 ),
             ),
@@ -83,14 +73,12 @@ class Task(View):
         return Checklist.owner_of(self)
 
 
-# on the page, a click selects it;  shift and command (ctrl) select more,
-# so the property editor beside the list changes them all at once
-# and dragged, by its grip, to another place in its list:  the selected ones go with it
+# A click selects it, shift and command (ctrl) more, for the property editor;  its grip drags it, the selected ones with it
 
 
-def test_tasks() -> Any:
-    """Tests"""
-    with core.test("test tasks"):
+def test_checking_one_off() -> Any:
+    with core.test("test checking one off"):
+        it = Task()
         core.echo_test_action("set the task to a new task with title = \"Write the tests\"")
         task = Task(title="Write the tests")
         core.expect(task.is_active, "the task is active", True, "yes")
@@ -105,43 +93,41 @@ def test_tasks() -> Any:
 ##############
 # ## Task List
 ##############
-# The tasks are this project's own:  Task.
-# This file adds their list, and the app:  adding a task, filtering the list, and editing what's selected.
-# What's where, top to bottom:
-#   the checklist:  the tasks, shown as the filter says
-#   the app:  its menu, the new task's field, the list and the property editor
-#   start
-#   tests
+# A to-do list:  add a task, check it off, filter the list, and edit the selected tasks together.
+# Its tasks are this project's own `<spell-view "task">`;  this file holds their list, and the app.
 
-##############################################################
-# ## The checklist:  the tasks, each its own element inside it
-##############################################################
+##################
+# ## The checklist
+##################
+# The tasks, each its own element inside it:  `<task-list-checklist>`, around its `<task-list-task>`s.
 
 
 class Checklist(ViewableList):
-    """a viewable list:  `<task-list-checklist>`, around its tasks' `<task-list-task>`s"""
-
     item_type = Task
     element_tag = "test-project-checklist"
 
-    # what it shows:  every task, the ones still to do, or the ones done
+    # What it shows:  every task, the ones still to do, or the ones done
     # - its "showing" is one of all, active or done
+    #   - it "is showing (showing)"
     SHOWINGS = ("all", "active", "done")
     showing = prop(one_of=SHOWINGS)
+
+    def is_showing_showing(self, showing: Any) -> bool:
+        return self.showing == showing
 
     # each task, unless the filter hides it
 
     def draw_each_item(self, item: Task) -> Any:
-        if self.showing == "active" and item.is_done:
+        if self.is_showing_showing("active") and item.is_done:
             return None
-        if self.showing == "done" and item.is_active:
+        if self.is_showing_showing("done") and item.is_active:
             return None
         return core.draw_thing(item)
 
-    # empty:  says so
+    # What it shows while it's empty
 
     def draw_its_placeholder(self) -> Any:
-        return h("div", {"part": "placeholder"}, "Nothing to do")
+        return h("ui-text", {"part": "placeholder"}, "Nothing to do")
 
     reorder_items_after = 0
 
@@ -150,166 +136,10 @@ class Checklist(ViewableList):
 
 # on the page, its tasks can be dragged to another place:  they move as the pointer does, gliding there
 
-# a task is in one checklist at a time
-
-
-class TaskList(App):
-    """The app:  its menu, the new task's field, the list, and the property editor"""
-
-    element_tag = "test-project-app"
-
-    # - its "tasks" is a new checklist
-    tasks = prop(init=lambda: Checklist(), early=True)
-
-    # what the new task's field holds:  the next task's title
-    # - its "draft" is text
-    draft = prop(type="text")
-
-    @property
-    def active_count(self) -> float:
-        return len(self.tasks.filter(lambda task: task.is_active))
-
-    def add_the_draft(self) -> None:
-        """the draft, as a new task at the end of the list;  the field empties"""
-        if self.draft == "":
-            return
-        self.tasks.append(Task(title=self.draft, priority="normal"))
-        self.draft = ""
-
-    def remove_the_done_tasks(self) -> None:
-        self.tasks.remove_where(lambda task: task.is_done)
-
-    def draw(self) -> Any:
-        """
-        its menu, the new task's field, then the list beside the property editor
-        - the menu's buttons are icons, each with a tooltip
-        - the property editor edits every selected task at once:  a property they disagree on shows "Mixed"
-        """
-        def _each_1(event: Any) -> None:
-            self.tasks.showing = "all"
-
-        def _each_2(event: Any) -> None:
-            self.tasks.showing = "active"
-
-        def _each_3(event: Any) -> None:
-            self.tasks.showing = "done"
-
-        return h(
-            "ui-container",
-            {"class": "TaskList"},
-            h(
-                "ui-menu",
-                h("ui-item", {"type": "header"}, "Task List"),
-                h("ui-item", f"{self.active_count} to do"),
-                h(
-                    "ui-menu",
-                    {"position": "right"},
-                    h(
-                        "ui-item",
-                        {
-                            "aria-label": "All",
-                            "selected": self.tasks.showing == "all",
-                            "onClick": _each_1,
-                            "style": "cursor:pointer;user-select:none",
-                        },
-                        h("ui-icon", {"name": "list"}),
-                        h("ui-popup", {"content": "All", "inverted": True, "size": "small"}),
-                    ),
-                    h(
-                        "ui-item",
-                        {
-                            "aria-label": "To do",
-                            "selected": self.tasks.showing == "active",
-                            "onClick": _each_2,
-                            "style": "cursor:pointer;user-select:none",
-                        },
-                        h("ui-icon", {"name": "square outline"}),
-                        h("ui-popup", {"content": "To do", "inverted": True, "size": "small"}),
-                    ),
-                    h(
-                        "ui-item",
-                        {
-                            "aria-label": "Done",
-                            "selected": self.tasks.showing == "done",
-                            "onClick": _each_3,
-                            "style": "cursor:pointer;user-select:none",
-                        },
-                        h("ui-icon", {"name": "check square outline"}),
-                        h("ui-popup", {"content": "Done", "inverted": True, "size": "small"}),
-                    ),
-                    h(
-                        "ui-item",
-                        {
-                            "aria-label": "Remove done",
-                            "onClick": lambda event: self.remove_the_done_tasks(),
-                            "style": "cursor:pointer;user-select:none",
-                        },
-                        h("ui-icon", {"name": "trash alternate outline"}),
-                        h("ui-popup", {"content": "Remove the done tasks", "inverted": True, "size": "small"}),
-                    ),
-                ),
-            ),
-            h(
-                "ui-form",
-                {"value": self},
-                h(
-                    "div",
-                    {"class": "NewTask"},
-                    h(
-                        "ui-input",
-                        {
-                            "name": "draft",
-                            "placeholder": "Something to do",
-                            "aria-label": "New task",
-                            "fluid": True,
-                        },
-                    ),
-                    h(
-                        "ui-button",
-                        {
-                            "primary": True,
-                            "disabled": self.draft == "",
-                            "onClick": lambda event: self.add_the_draft(),
-                            "style": "cursor:pointer;user-select:none",
-                        },
-                        "Add",
-                    ),
-                ),
-            ),
-            h(
-                "ui-grid",
-                {"columns": "2", "stackable": True},
-                core.draw_thing(self.tasks),
-                h(
-                    "ui-property-editor",
-                    {
-                        "label": "Selected tasks",
-                        "schema": "task-list-task",
-                        "prop:value": self.tasks.selection,
-                    },
-                    h("ui-property", {"name": "title"}),
-                    h("ui-property", {"name": "priority"}),
-                    h("ui-property", {"name": "done"}),
-                    h("ui-property", {"name": "notes"}),
-                ),
-            ),
-        )
-
-
-task_list = TaskList()
-
-# Start
-task_list.tasks.showing = "all"
-task_list.tasks.append(Task(title="Write the Task List example", priority="high", done=True))
-task_list.tasks.append(Task(title="Teach it to draw", priority="normal"))
-task_list.tasks.append(Task(title="Select some tasks, then edit them together", priority="normal"))
-task_list.tasks.append(Task(title="Drag tasks to reorder them", priority="low"))
-task_list.start()
-
 
 def test_the_filter() -> Any:
-    """Tests"""
     with core.test("test the filter"):
+        it = Checklist()
         core.echo_test_action("set the tasks to a new checklist")
         tasks = Checklist()
         core.echo_test_action("add (a new task with title = \"a\", done = yes) to the tasks")
@@ -324,6 +154,136 @@ def test_the_filter() -> Any:
         )
 
 
+# a task is in one checklist at a time
+
+############
+# ## The app
+############
+# Its toolbar, the new task's field, then the list beside the property editor.
+
+
+class TaskList(App):
+    element_tag = "test-project-app"
+
+    # - its "checklist" is a new checklist
+    checklist = prop(init=lambda: Checklist(), early=True)
+
+    # The next task's title, as the new task's field holds it
+    # - its "draft" is text
+    draft = prop(type="text")
+
+    @property
+    def active_count(self) -> float:
+        return len(self.checklist.filter(lambda task: task.is_active))
+
+    def create(self) -> None:
+        """A new task list shows every task, and starts with a few"""
+        self.checklist.showing = "all"
+        self.checklist.append(Task(title="Write the Task List example", priority="high", done=True))
+        self.checklist.append(Task(title="Teach it to draw", priority="normal"))
+        self.checklist.append(Task(title="Select some tasks, then edit them together", priority="normal"))
+        self.checklist.append(Task(title="Drag tasks to reorder them", priority="low"))
+
+    def add_the_draft(self) -> None:
+        """The draft, as a new task at the end of the list;  the field empties"""
+        if self.draft == "":
+            return
+        self.checklist.append(Task(title=self.draft, priority="normal"))
+        self.draft = ""
+
+    def draw(self) -> Any:
+        """The property editor edits every selected task at once:  a property they disagree on shows Mixed"""
+        return h(
+            "ui-container",
+            {"class": "TaskList"},
+            h(
+                "ui-toolbar",
+                {"menu": "tasks menu", "aria-label": "Tasks"},
+                h("ui-text", {"slot": "title", "size": "large"}, "Task List"),
+                h("ui-text", {"slot": "right"}, self.active_count, " to do"),
+            ),
+            h(
+                "ui-form",
+                {"value": self},
+                h(
+                    "ui-input",
+                    {
+                        "name": "draft",
+                        "placeholder": "Something to do",
+                        "aria-label": "New task",
+                        "fluid": True,
+                        "action": True,
+                    },
+                    h(
+                        "ui-button",
+                        {
+                            "slot": "action",
+                            "color": "primary",
+                            "disabled": self.draft == "",
+                            "onClick": lambda event: self.add_the_draft(),
+                            "style": "cursor:pointer;user-select:none",
+                        },
+                        "Add",
+                    ),
+                ),
+            ),
+            h(
+                "ui-grid",
+                {"columns": "2", "stackable": True},
+                core.draw_thing(self.checklist),
+                h(
+                    "ui-property-editor",
+                    {
+                        "label": "Selected tasks",
+                        "schema": "task-list-task",
+                        "prop:value": self.checklist.selection,
+                    },
+                    h("ui-property", {"name": "title"}),
+                    h("ui-property", {"name": "priority"}),
+                    h("ui-property", {"name": "done"}),
+                    h("ui-property", {"name": "notes"}),
+                ),
+            ),
+        )
+
+    def show_all(self) -> None:
+        self.checklist.showing = "all"
+
+    @property
+    def show_all_is_selected(self) -> bool:
+        return self.checklist.is_showing_showing("all")
+
+    def show_to_do(self) -> None:
+        self.checklist.showing = "active"
+
+    @property
+    def show_to_do_is_selected(self) -> bool:
+        return self.checklist.is_showing_showing("active")
+
+    def show_done(self) -> None:
+        self.checklist.showing = "done"
+
+    @property
+    def show_done_is_selected(self) -> bool:
+        return self.checklist.is_showing_showing("done")
+
+    def remove_the_done_tasks(self) -> None:
+        self.checklist.remove_where(lambda task: task.is_done)
+
+
+task_list = TaskList()
+
+# Which tasks the list shows:  the toolbar ticks the one it's showing
+core.describe_action(TaskList, "show_all", {"title": "show all", "icon": "list", "selected_when": "show_all_is_selected"})
+core.describe_action(TaskList, "show_to_do", {"title": "show to do", "icon": "square outline", "selected_when": "show_to_do_is_selected"})
+core.describe_action(TaskList, "show_done", {"title": "show done", "icon": "check square outline", "selected_when": "show_done_is_selected"})
+core.describe_action(TaskList, "remove_the_done_tasks", {"title": "remove the done tasks", "icon": "trash alternate outline"})
+# - its "tasks menu" is a menu of "show all" , "show to do" , "show done" , "-" and "remove the done tasks"
+core.describe_menu(TaskList, "tasks_menu", {"items": ["show_all", "show_to_do", "show_done", "-", "remove_the_done_tasks"]})
+
+task_list.start()
+
+
 # -----------
 
 
@@ -335,22 +295,17 @@ core.install_styles(None, """/* File styles.css:  how the task list looks.
      - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */
 
 /****************
- * The app:  its menu, the new task's field, then the list beside the property editor
+ * The app:  its toolbar, the new task's field, then the list beside the property editor
  ****************/
 
 .TaskList {
   padding-block: 1em;
 }
 
-/* the field and its button on one line */
-.NewTask {
-  display: flex;
-  gap: 0.5em;
+/* the new task's field, between the toolbar and the list */
+.TaskList > ui-form {
+  display: block;
   margin-block: 1em;
-}
-
-.NewTask > ui-input {
-  flex: 1;
 }
 
 /****************
@@ -364,6 +319,7 @@ task-list-checklist {
 }
 
 task-list-checklist::part(placeholder) {
+  display: block;
   padding: 1em;
   color: grey;
   text-align: center;
@@ -421,5 +377,5 @@ task-list-task[done] {
 # -----------
 
 
-test_tasks()
+test_checking_one_off()
 test_the_filter()

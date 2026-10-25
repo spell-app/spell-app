@@ -1,2 +1,1 @@
-240 reportAssignmentType Type "Prop" is not assignable to declared type "property"
-869 reportOptionalMemberAccess "filter" is not a known attribute of "None"
+717 reportOptionalMemberAccess "filter" is not a known attribute of "None"

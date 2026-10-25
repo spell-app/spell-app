@@ -1,0 +1,85 @@
+# A playing card
+A card says what its rank, suit and color are:  a deck, a pile or the game only reads them.
+It's a two sided view:  face up it shows its picture, face down the back every card shares.
+On the page each card is its own element, `<solitaire-card>`.
+
+<spell-view "card" template="two sided view">
+	<group "rank" description="Ace is low:  ace = 1 ... king = 13"/>
+	<property "rank" one-of="ace, 2 ... 10, jack, queen, king" alias="is a (rank)"/>
+	<property "value">the position of its rank</>
+	<alias "is a face card">if its rank is jack, queen or king</>
+	<alias "is a number card">if it is not a face card</>
+
+	<group "suit"/>
+	<property "suit" one-of="clubs, diamonds, hearts or spades" alias="is a (suit)"/>
+	<property "color" one-of="red, black">
+		red if it is a diamond or it is a heart
+		black otherwise
+	</property>
+	<property "symbol">
+		"♣" if it is a club
+		"♦" if it is a diamond
+		"♥" if it is a heart
+		"♠" otherwise
+	</property>
+
+	<group "names" description="What a person, a test or the console calls it"/>
+	<property "name">its rank + " of " + its suit</>
+	<alias "is the (rank) of (suit)"/>
+	<property "state" description="Its short name:  Q♠↓ is the queen of spades, face down">
+		rank is 10 if its value is 10 otherwise the first letter of its rank as uppercase
+		direction is "↑" if it is face up otherwise "↓"
+		return rank + its symbol + direction
+	</property>
+
+	<group "playing" description="A click plays it;  a drag puts it where it's dropped, if its pile's rules let it go"/>
+	<spell>
+		- it can be dragged
+	</spell>
+	<on click description="A click plays it:  the game says where it goes">play it</on>
+
+	<group "drawing" description="One letter of unicode's Playing Cards, at the size of the text around it:  its pile scales it to fit -- styles.css"/>
+	<property "picture" description="Its face:  https://www.compart.com/en/unicode/block/U+1F0A0">
+		set column to its value
+		if it is a club
+			return item column of ["🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞"]
+		if it is a diamond
+			return item column of ["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎"]
+		if it is a heart
+			return item column of ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂽", "🂾"]
+		return item column of ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"]
+	</property>
+	<draw "front">
+		<text color={its color}>{its picture}</text>
+	</draw>
+	<draw "back">
+		<text color="blue">🂠</text>
+	</draw>
+
+	<test "card setup">
+		get a new card whose rank is queen, suit is spades and direction is down
+		its name should be "queen of spades"
+		its color should be black
+		its value should be 12
+		its state should be "Q♠↓"
+		it is a face card should be yes
+		it is a spade should be yes
+		it is a club should be no
+		it is a queen should be yes
+		it is a 2 should be no
+		it is the queen of spades should be yes
+		it is the queen of clubs should be no
+		its picture should be "🂭"
+
+		turn it over
+		it is face up should be yes
+		its state should be "Q♠↑"
+
+		set seven to a new card whose rank is 7 and suit is hearts
+		seven is a number card should be yes
+		the color of seven should be red
+		the picture of seven should be "🂷"
+		the picture of a new card whose rank is ace and suit is clubs should be "🃑"
+		the picture of a new card whose rank is king and suit is diamonds should be "🃎"
+	</test>
+</spell-view>

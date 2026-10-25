@@ -312,10 +312,9 @@ First, what a task IS:
 	<alias "is done">if its done is yes</>
 	<alias "is active">if it is not done</>
 
-	## On the page
-	A click selects it;  shift and command (ctrl) select more,
-	so the property editor beside the list changes them all at once.
-	Its grip drags it to another place in its list, the selected ones with it.
+	<group "on the page"
+		description="A click selects it, shift and command (ctrl) more, for the property editor;  its grip drags it, the selected ones with it"
+	/>
 	<spell>
 		- it can be selected
 		- it can be dragged
@@ -323,6 +322,7 @@ First, what a task IS:
 ```
 
 - `<spell-view "task">` declares a new template;  each `<property>` gives it a property, with its kind.
+- `<group "on the page">` is a heading over the members after it, its `description=` what they're for.
 - `one-of="low, normal or high"` is a choice of three values.
 - The aliases are new ways to talk about a task:  later lines can say `where it is active`.
 - A view makes each task an element of its own on the page, `<task-list-task>`.
@@ -485,9 +485,10 @@ spell test @spell/examples/TaskList
 
 ```text
 ✓ Compiling @spell/examples/TaskList
+✓ test checking one off  (2 checks)
 ✓ test the filter  (1 check)
 
-1 passed
+2 passed
 ```
 
 </details>

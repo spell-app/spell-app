@@ -3,110 +3,90 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from spell_core import core, List, App, View, ViewableList, prop, h, position, spell_position
+from spell_core import core, List, App, TwoSidedView, ViewableList, prop, h, position, spell_position
 
 
-##############################################################################
-# ## A playing card -- in the outline style:  its name, then what's true of it
-##############################################################################
+###################
+# ## A playing card
+###################
+# A card says what its rank, suit and color are:  a deck, a pile or the game only reads them.
+# It's a two sided view:  face up it shows its picture, face down the back every card shares.
+# On the page each card is its own element, `<solitaire-card>`.
 
 
-class Card(View):
-    """
-    The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.
-    A view:  each card is its own element on the page, e.g. `<cards-card>`.
-    """
-
+class Card(TwoSidedView):
     element_tag = "test-project-card"
 
-    # card rank
     # - its "rank" is one of ace, 2 ... 10, jack, queen, king
+    #   - it "is a (rank)"
     RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
     rank = prop(one_of=RANKS)
 
-    @property
-    def value(self) -> float:
-        """ace = 1 ... king = 13"""
-        return spell_position(core.position_of(Card.RANKS, self.rank))
-
     def is_a_rank(self, rank: Any) -> bool:
-        """\"card is a king\""""
         return self.rank == rank
 
     @property
+    def value(self) -> float:
+        return spell_position(core.position_of(Card.RANKS, self.rank))
+
+    @property
     def is_a_face_card(self) -> bool:
-        """\"card is a face card\""""
         return self.rank in ["jack", "queen", "king"]
 
     @property
     def is_a_number_card(self) -> bool:
-        """\"card is a number card\""""
         return not self.is_a_face_card
 
-    # card suit
     # - its "suit" is one of clubs, diamonds, hearts or spades
+    #   - it "is a (suit)"
     SUITS = ("clubs", "diamonds", "hearts", "spades")
     suit = prop(one_of=SUITS)
 
     def is_a_suit(self, suit: Any) -> bool:
-        """\"card is a diamond\""""
         return self.suit == suit
 
+    # - its "color" is one of red, black :
+    #   red if it is a diamond or it is a heart
+    #   black otherwise
+    COLORS = ("red", "black")
+
     @property
-    def color(self) -> Any:
-        if self.suit in ["diamonds", "hearts"]:
+    def color(self) -> str:
+        if self.is_a_suit("diamonds") or self.is_a_suit("hearts"):
             return "red"
         return "black"
 
-    # specific cards
-    # "queen of spades"
+    @property
+    def symbol(self) -> str:
+        if self.is_a_suit("clubs"):
+            return "♣"
+        if self.is_a_suit("diamonds"):
+            return "♦"
+        if self.is_a_suit("hearts"):
+            return "♥"
+        return "♠"
 
     @property
     def name(self) -> str:
         return f"{self.rank} of {self.suit}"
 
     def is_the_rank_of_suit(self, rank: Any, suit: Any) -> bool:
-        """\"card is the queen of spades\""""
         return self.rank == rank and self.suit == suit
 
-    # its direction:  face up or face down
-    # - its "direction" is up or down
-    DIRECTIONS = ("up", "down")
-    direction = prop(one_of=DIRECTIONS)
+    @property
+    def state(self) -> str:
+        """Its short name:  Q♠↓ is the queen of spades, face down"""
+        rank = 10 if self.value == 10 else core.upper_case(core.get_item_at(self.rank, 0))
+        direction = "↑" if self.is_face_direction("up") else "↓"
+        return f"{rank}{self.symbol}{direction}"
 
-    def is_face_direction(self, direction: Any) -> bool:
-        """card is face up"""
-        return self.direction == direction
-
-    ##########################
-    # ## turning the card over
-    ##########################
-
-    async def turn_face_up(self) -> None:
-        """each pauses a moment, so `wait for: turn the card face up` animates"""
-        self.direction = "up"
-        await core.pause_for(50, "msec")
-
-    async def turn_face_down(self) -> None:
-        self.direction = "down"
-        await core.pause_for(50, "msec")
-
-    async def turn_over(self) -> None:
-        if self.is_face_direction("up"):
-            await self.turn_face_down()
-        else:
-            await self.turn_face_up()
+    async def on_click(self, event: Any) -> Any:
+        """A click plays it:  the game says where it goes"""
+        return await self.play()
 
     @property
-    def picture(self) -> Any:
-        """
-        Card picture:  drawn with special letters in the unicode character set
-        - SEE:  https://www.compart.com/en/unicode/block/U+1F0A0
-        """
-        if self.is_face_direction("down"):
-            # "Playing Card Back"
-            return "🂠"
-
+    def picture(self) -> str | None:
+        """Its face:  https://www.compart.com/en/unicode/block/U+1F0A0"""
         column = self.value
         if self.is_a_suit("clubs"):
             return core.get_item_at(
@@ -123,58 +103,30 @@ class Card(View):
                 ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂽", "🂾"],
                 position(column),
             )
-        if self.is_a_suit("spades"):
-            return core.get_item_at(
-                ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"],
-                position(column),
-            )
-
-    def draw(self) -> Any:
-        """one letter, at the size of the text around it:  its pile scales it to fit -- styles.css"""
-        return h(
-            "ui-text",
-            {
-                "part": "picture",
-                "color": self.color if self.is_face_direction("up") else "blue",
-                "onClick": lambda event: core.trigger("card-click", card=self),
-                "style": "cursor:pointer;user-select:none",
-            },
-            self.picture,
+        return core.get_item_at(
+            ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"],
+            position(column),
         )
 
-    @property
-    def symbol(self) -> Any:
-        if self.is_a_suit("clubs"):
-            return "♣"
-        if self.is_a_suit("diamonds"):
-            return "♦"
-        if self.is_a_suit("hearts"):
-            return "♥"
-        if self.is_a_suit("spades"):
-            return "♠"
-        return "?"
+    def draw_front(self) -> Any:
+        return h("ui-text", {"color": self.color, "part": "front"}, self.picture)
 
-    @property
-    def state(self) -> str:
-        """card "state", used for debugging"""
-        rank = 10 if self.value == 10 else core.upper_case(core.get_item_at(self.rank, 0))
-        suit = self.symbol
-        direction = "↑" if self.is_face_direction("up") else "↓"
-        return f"{rank}{suit}{direction}"
+    def draw_back(self) -> Any:
+        return h("ui-text", {"color": "blue", "part": "back"}, "🂠")
 
-    #################################################
-    # ## Playing a card:  what a click or a drag does
-    #################################################
+    ###################
+    # ## Playing a card
+    ###################
+    # What a click or a drag does:  the card's own moves, and each pile's, as the game plays them.
 
     async def play(self) -> Any:
         """
-        the card, and every card on it, onto the first pile that can take it;  it says whether it moved
-        - the stock's card is turned over onto the discards instead
+        the card, and every card on it, onto the first pile that takes it;  it says whether it moved
+        - the stock's card turns over onto the discards instead
         """
         if self.pile == solitaire.stock:
             await solitaire.play_from_the_stock()
             return
-
         end_pile = core.filter(core.every_thing(Pile), lambda pile: core.can_take(pile, self)).first_item
         if end_pile is None:
             return False
@@ -192,25 +144,16 @@ class Card(View):
         if not core.can_take(pile, self):
             return False
         points = self.count_the_points_for_card_on_pile(pile)
-
-        moving_cards = start_pile.starting_with(self)
-        moving_cards.name = start_pile.name
-        print(f"moving ({moving_cards.state}) to ({pile.state})")
-
-        for card in moving_cards:
+        for card in start_pile.starting_with(self):
             core.move(card, pile)
-
         if isinstance(start_pile, Tableau) and (start_pile):
             await core.pause_for(200, "msec")
-            it = start_pile.last_item
-            print(f"turning over ({start_pile.name}: {getattr(it, "state", None)})")
-            await it.turn_face_up()
-
+            start_pile.last_item.turn_face_up()
         solitaire.score = solitaire.score + points
         return True
 
     def count_the_points_for_card_on_pile(self, pile: Pile) -> float:
-        """what putting the card on the pile scores:  10 on a foundation, 5 from the discards, else nothing"""
+        """what the move scores:  10 on a foundation, 5 from the discards, else nothing"""
         if isinstance(pile, Foundation):
             return 10
         if self.pile == solitaire.discards:
@@ -224,100 +167,55 @@ class Card(View):
         return Pile.owner_of(self)
 
 
-########################################################################
-# ## drawing:  its picture face up, the back every card shares face down
-########################################################################
-# on the page, a card can be dragged to another pile:  its pile's rules say which cards it gives up
+# Ace is low:  ace = 1 ... king = 13
+
+# What a person, a test or the console calls it
+
+# A click plays it;  a drag puts it where it's dropped, if its pile's rules let it go
+
+# One letter of unicode's Playing Cards, at the size of the text around it:  its pile scales it to fit -- styles.css
 
 
-class Joker(Card):
-    """A joker:  a wild card with no rank or suit -- there's a red one and a black one"""
-
-    element_tag = "test-project-joker"
-
-    # - its "color" is one of red or black
-    COLORS = ("red", "black")
-    color = prop(one_of=COLORS)
-
-    @staticmethod
-    def is_the_color_joker(card: Card, color: Any) -> bool:
-        """\"card is the red joker\""""
-        return isinstance(card, Joker) and card.color == color
-
-    @property
-    def value(self) -> float:
-        if Joker.is_the_color_joker(self, "red"):
-            return 53
-        return 54
-
-    @property
-    def picture(self) -> str:
-        return "🃟"
-
-    @property
-    def name(self) -> str:
-        return f"{self.color} joker"
-
-    @property
-    def state(self) -> str:
-        color = core.upper_case(core.get_item_at(self.color, 0))
-        direction = "↑" if self.is_face_direction("up") else "↓"
-        return f"*{color}{direction}"
-
-
-async def test_card_setup() -> Any:
-    """Tests"""
+def test_card_setup() -> Any:
     with core.test("test card setup"):
+        it = Card()
         core.echo_test_action(
             "get a new card whose rank is queen, suit is spades and direction is down",
         )
-        it = Card(rank="queen", suit="spades", direction="down")
-        core.echo(f"testing the {it.name}")
-        core.expect(it.rank, "its rank", "queen", "queen")
-        core.expect(it.suit, "its suit", "spades", "spades")
-        core.expect(it.name, "its name", "queen of spades", "\"queen of spades\"")
-        core.expect(it.color, "its color", "black", "black")
-        core.expect(it.value, "its value", 12, "12")
-        core.expect(it.state, "its state", "Q♠↓", "\"Q♠↓\"")
-
-        core.expect(it.is_face_direction("down"), "it is face down", True, "yes")
-        core.expect(it.picture, "its picture", "🂠", "\"🂠\"")
-        core.echo_test_action("turn it face up")
-        await it.turn_face_up()
-        core.expect(it.is_face_direction("up"), "it is face up", True, "yes")
-        core.expect(it.picture, "its picture", "🂭", "\"🂭\"")
-
-        core.expect(it.is_a_face_card, "it is a face card", True, "yes")
-        core.expect(not it.is_a_number_card, "it is not a number card", True, "yes")
-
-        core.expect(it.is_a_suit("spades"), "it is a spade", True, "yes")
-        core.expect(it.is_a_suit("clubs"), "it is a club", False, "no")
-
-        core.expect(it.is_a_rank("queen"), "it is a queen", True, "yes")
-        core.expect(it.is_a_rank("ace"), "it is an ace", False, "no")
-        core.expect(it.is_a_rank(2), "it is a 2", False, "no")
-
+        it_2 = Card(rank="queen", suit="spades", direction="down")
+        core.expect(it_2.name, "its name", "queen of spades", "\"queen of spades\"")
+        core.expect(it_2.color, "its color", "black", "black")
+        core.expect(it_2.value, "its value", 12, "12")
+        core.expect(it_2.state, "its state", "Q♠↓", "\"Q♠↓\"")
+        core.expect(it_2.is_a_face_card, "it is a face card", True, "yes")
+        core.expect(it_2.is_a_suit("spades"), "it is a spade", True, "yes")
+        core.expect(it_2.is_a_suit("clubs"), "it is a club", False, "no")
+        core.expect(it_2.is_a_rank("queen"), "it is a queen", True, "yes")
+        core.expect(it_2.is_a_rank(2), "it is a 2", False, "no")
         core.expect(
-            it.is_the_rank_of_suit("queen", "spades"),
+            it_2.is_the_rank_of_suit("queen", "spades"),
             "it is the queen of spades",
             True,
             "yes",
         )
         core.expect(
-            it.is_the_rank_of_suit("queen", "clubs"),
+            it_2.is_the_rank_of_suit("queen", "clubs"),
             "it is the queen of clubs",
             False,
             "no",
         )
-        core.expect(it.is_the_rank_of_suit(2, "clubs"), "it is the 2 of clubs", False, "no")
-        # it is the red joker should be no
+        core.expect(it_2.picture, "its picture", "🂭", "\"🂭\"")
 
-        # a number card:  its rank as it is, and its picture in the row of its suit
-        seven = Card(rank=7, suit="hearts", direction="up")
-        core.echo(f"testing the {seven.name}")
+        core.echo_test_action("turn it over")
+        it_2.turn_over()
+        core.expect(it_2.is_face_direction("up"), "it is face up", True, "yes")
+        core.expect(it_2.state, "its state", "Q♠↑", "\"Q♠↑\"")
+
+        core.echo_test_action("set seven to a new card whose rank is 7 and suit is hearts")
+        seven = Card(rank=7, suit="hearts")
         core.expect(seven.is_a_number_card, "seven is a number card", True, "yes")
-        core.expect(seven.color, "the color of the seven", "red", "red")
-        core.expect(seven.picture, "the picture of the seven", "🂷", "\"🂷\"")
+        core.expect(seven.color, "the color of seven", "red", "red")
+        core.expect(seven.picture, "the picture of seven", "🂷", "\"🂷\"")
         core.expect(
             Card(rank="ace", suit="clubs").picture,
             "the picture of a new card whose rank is ace and suit is clubs",
@@ -332,224 +230,102 @@ async def test_card_setup() -> Any:
         )
 
 
-async def test_jokers() -> Any:
-    with core.test("test jokers"):
-        core.echo_test_action("get a new joker whose color is red and direction is up")
-        it = Joker(color="red", direction="up")
-        core.echo(it)
-        core.expect(isinstance(it, Card), "it is a card", True, "yes")
-        core.expect(isinstance(it, Joker), "it is a joker", True, "yes")
-        core.expect(it.color, "its color", "red", "red")
-        core.expect(it.name, "its name", "red joker", "\"red joker\"")
-        core.expect(it.state, "its state", "*R↑", "\"*R↑\"")
-        core.expect(it.picture, "its picture", "🃟", "\"🃟\"")
-        core.expect(Joker.is_the_color_joker(it, "red"), "it is the red joker", True, "yes")
-        core.expect(Joker.is_the_color_joker(it, "black"), "it is the black joker", False, "no")
-        core.expect(
-            not Joker.is_the_color_joker(it, "black"),
-            "it is not the black joker",
-            True,
-            "yes",
-        )
-
-        core.expect(it.is_face_direction("up"), "it is face up", True, "yes")
-        core.echo_test_action("turn it over")
-        await it.turn_over()
-        core.expect(it.is_face_direction("down"), "it is face down", True, "yes")
-
-        core.echo_test_action("set black joker to a new joker whose color is black")
-        black_joker = Joker(color="black")
-        core.expect(black_joker.picture, "the picture of black joker", "🃟", "\"🃟\"")
-
-        core.echo_test_action(
-            "set the card to a new card whose rank is queen and suit is spades",
-        )
-        card = Card(rank="queen", suit="spades")
-        core.expect(isinstance(card, Joker), "the card is a joker", False, "no")
-        core.expect(not isinstance(card, Joker), "the card is not a joker", True, "yes")
-        core.expect(
-            Joker.is_the_color_joker(card, "red"),
-            "the card is the red joker",
-            False,
-            "no",
-        )
-
-
 # -----------
 
 
-######################################################################################################
-# ## A deck:  the 52 cards of a US standard deck, ace of clubs first -- and its two jokers, if you ask
-######################################################################################################
+###########
+# ## A deck
+###########
+# The 52 cards of a standard deck, ace of clubs first.
 
 
 class Deck(List):
-    """It reads the card's own suits and ranks:  `card suits`, `card ranks`."""
-
     item_type = Card
 
-    # no jokers, unless it's made `with jokers`
-    # - its "jokers" is yes or no
-    jokers = prop(type="choice")
-
-    async def create(self) -> None:
-        """a new deck holds one of each card, ace of clubs first, then its two jokers, red then black"""
+    def create(self) -> None:
+        """One of each card, ace of clubs first:  each starts face down, as every two sided view does"""
         for rank in Card.RANKS:
             for suit in Card.SUITS:
                 self.append(Card(rank=rank, suit=suit))
-        if self.jokers:
-            self.append(Joker(color="red"))
-            self.append(Joker(color="black"))
-        for card in self:
-            await card.turn_face_down()
 
     @property
     def state(self) -> str:
-        """echo its cards' short names, top to bottom"""
+        """Its cards' short names, top to bottom"""
         card_names = List(item_type="text")
         for card in self:
             card_names.append(card.state)
         return f"deck: {card_names}"
 
 
-def test_deck_creation() -> Any:
-    """Tests"""
-    with core.test("test deck creation"):
+def test_a_new_deck() -> Any:
+    with core.test("test a new deck"):
+        it = Deck()
         core.echo_test_action("the deck is a new deck")
         deck = Deck()
         core.expect(len(deck), "the number of cards in the deck", 52, "52")
-        core.echo_test_action(
-            "set the queens to the cards in the deck where the rank of the card is queen",
-        )
-        queens = deck.filter(lambda card: card.rank == "queen")
-        core.expect(len(queens), "the number of cards in the queens", 4, "4")
-        # ace of clubs is the top card
         core.expect(
-            getattr(deck.first_item, "name", None),
-            "the name of the top card of the deck",
-            "ace of clubs",
-            "\"ace of clubs\"",
+            len(deck.filter(lambda card: card.is_a_rank("queen"))),
+            "the number of (cards in the deck where it is a queen)",
+            4,
+            "4",
         )
         core.expect(
             getattr(deck.first_item, "state", None),
-            "the state of the top card of the deck",
+            "the state of the first card of the deck",
             "A♣↓",
             "\"A♣↓\"",
         )
         core.expect(
-            getattr(deck.first_item, "direction", None),
-            "the direction of the top card of the deck",
-            "down",
-            "down",
-        )
-        core.expect(
-            deck.first_item.is_the_rank_of_suit("ace", "clubs"),
-            "the first card of the deck is the ace of clubs",
-            True,
-            "yes",
-        )
-
-        core.expect(
             getattr(deck.last_item, "name", None),
-            "the name of the bottom card of the deck",
+            "the name of the last card of the deck",
             "king of spades",
             "\"king of spades\"",
         )
-        # no jokers!
-        core.expect(
-            isinstance(deck.random_item(), Joker),
-            "a random card of the deck is a joker",
-            False,
-            "no",
-        )
-        core.expect(
-            Joker.is_the_color_joker(deck.random_item(), "red"),
-            "a random card of the deck is the red joker",
-            False,
-            "no",
-        )
-
-        core.echo("the deck before shuffling:")
-        core.echo(deck.state)
         core.echo_test_action("shuffle the deck")
         deck.randomize()
         core.expect(len(deck), "the number of cards in the deck", 52, "52")
-        core.echo("the deck after shuffling:")
-        core.echo(deck.state)
-
-
-def test_deck_with_jokers() -> Any:
-    with core.test("test deck with jokers"):
-        core.echo_test_action("the deck is a new deck with jokers")
-        deck = Deck(jokers=True)
-        core.expect(len(deck), "the number of cards in the deck", 54, "54")
-        core.echo_test_action("set wild cards to the cards in the deck where it is a joker")
-        wild_cards = deck.filter(lambda card: isinstance(card, Joker))
-        core.expect(len(wild_cards), "the number of cards in wild cards", 2, "2")
-        # first card is still ace of clubs
-        core.expect(
-            deck.first_item.is_the_rank_of_suit("ace", "clubs"),
-            "the first card of the deck is the ace of clubs",
-            True,
-            "yes",
-        )
-        # last card should be the black joker
-        core.expect(
-            Joker.is_the_color_joker(deck.last_item, "black"),
-            "the last card of the deck is the black joker",
-            True,
-            "yes",
-        )
-        core.expect(
-            getattr(deck.last_item, "name", None),
-            "the name of the bottom card of the deck",
-            "black joker",
-            "\"black joker\"",
-        )
 
 
 # -----------
 
 
-#########################################################
-# ## A pile of cards, e.g. a game's stock or its discards
-#########################################################
+####################
+# ## A pile of cards
+####################
+# A game's stock, its discards, a column on the table:  the game names its piles, and says what each kind takes.
+# Each pile is its own element around its cards' elements, `<solitaire-tableau>` around `<solitaire-card>`s.
 
 
 class Pile(ViewableList):
-    """
-    The game that uses these cards names its piles, and says what each kind of pile takes.
-    A viewable list:  its element holds its cards' elements, e.g. `<solitaire-pile>` around `<solitaire-card>`s.
-    """
-
     item_type = Card
     element_tag = "test-project-pile"
 
-    # what the game calls it, e.g. "stock"
+    # What the game calls it, e.g. stock
     # - its "name" is text
     name = prop(type="text")
 
-    # how its cards lie:  on top of each other, down a column, along a row, or fanned as a hand is held -- styles.css
+    # How its cards lie:  on top of each other, down a column, along a row, or fanned as a hand is held -- styles.css
     # - its "layout" is one of stacked, vertical, horizontal or fanned
     LAYOUTS = ("stacked", "vertical", "horizontal", "fanned")
     layout = prop(one_of=LAYOUTS)
 
     @property
     def color(self) -> str:
-        """the color and value of its last card:  what the next card goes on"""
+        """Its last card's:  what the next card goes on"""
         if not self:
             return "none"
         return self.last_item.color
 
     @property
     def value(self) -> float:
+        """Its last card's"""
         if not self:
             return 0
         return self.last_item.value
 
     @property
     def state(self) -> str:
-        """pile state for debugging"""
+        """Its name, then its cards' short names:  stock: Q♠↑ 7♥↓"""
         state = f"{self.name or "pile"}:"
         for card in self:
             state = f"{state} {card.state}"
@@ -569,19 +345,16 @@ class Pile(ViewableList):
     exclusive = True
 
 
-# on the page, a card can be dropped on it:  it glows when it would take the card, by its own rules
-
-# a card is in one pile at a time:  putting it on another pile takes it off this one
+# A card dragged over it glows when it would take the card, by its own rules
 
 
 def test_piles() -> Any:
-    """Tests"""
     with core.test("test piles"):
+        it = Pile()
         core.echo_test_action("set the stock to a new pile with name = \"stock\"")
         stock = Pile(name="stock")
         core.expect(stock.color, "the color of the stock", "none", "\"none\"")
         core.expect(stock.value, "the value of the stock", 0, "0")
-
         core.echo_test_action(
             "add (a new card whose rank is queen, suit is spades and direction is up) to the stock",
         )
@@ -590,7 +363,6 @@ def test_piles() -> Any:
             "add (a new card whose rank is 7, suit is hearts and direction is down) to the stock",
         )
         stock.append(Card(rank=7, suit="hearts", direction="down"))
-        core.echo(stock.state)
         core.expect(stock.color, "the color of the stock", "red", "red")
         core.expect(stock.value, "the value of the stock", 7, "7")
         core.expect(
@@ -600,22 +372,19 @@ def test_piles() -> Any:
             "\"stock: Q♠↑ 7♥↓\"",
         )
 
-        # a card can only be in one pile at a time
+        # a card is in one pile at a time
         discards = Pile(name="discards")
-
         core.echo_test_action("get the last card of the stock")
-        it = stock.last_item
+        it_2 = stock.last_item
         core.echo_test_action("add it to the discards")
-        discards.append(it)
+        discards.append(it_2)
         core.expect(
-            getattr(it, "pile", None) == discards,
+            getattr(it_2, "pile", None) == discards,
             "its pile is the discards",
             True,
             "yes",
         )
-
         core.expect(len(stock), "the number of cards in the stock", 1, "1")
-        core.expect(len(discards), "the number of cards in the discards", 1, "1")
         core.expect(
             discards.state,
             "the state of the discards",
@@ -624,25 +393,22 @@ def test_piles() -> Any:
         )
 
 
+# a card is in one pile at a time:  putting it on another pile takes it off this one
+
+
 # -----------
 
 
 #######################
 # ## Klondike Solitaire
 #######################
-# See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for its rules, and what each pile is called.
-# The cards, the deck and the piles are this project's own:  Card, Deck and Pile.
-# This file adds the game, its kinds of piles, what each may take or give up, and how each is laid out.
-# What's where, top to bottom:
-#   the solitaire:  its piles, its moves, auto play and drawing
-#   playing a card:  what a click or a drag does
-#   start
-#   the piles:  each kind, what it may take or give up, and how it lies
-#   tests
+# Deal seven columns, then build four foundations, ace to king, one suit each:
+# [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) has its rules, and what each pile is called.
+# The cards, the deck and the piles are this project's own:  `Card`, `Deck` and `Pile`.
 
 
 class StockPile(Pile):
-    """the stock:  the cards not played yet, face down;  a click turns the next one over"""
+    """The cards not played yet, face down:  a click turns the next one over, so none can be taken from it"""
 
     element_tag = "test-project-stock-pile"
 
@@ -651,27 +417,26 @@ class StockPile(Pile):
         return "stacked"
 
     def can_take(self, card: Card) -> bool:
-        """a click turns its card over:  none can be taken from it, so none can be dragged"""
         return False
 
     def can_give_up(self, card: Card) -> bool:
         return False
 
-    # empty:  a light grey card, face down -- a click turns the discards back over
+    # A light grey card, face down:  a click turns the discards back over
 
     def draw_its_placeholder(self) -> Any:
         async def _each_1(event: Any) -> Any:
             return await solitaire.play_from_the_stock()
 
         return h(
-            "div",
+            "ui-text",
             {"part": "placeholder", "onClick": _each_1, "style": "cursor:pointer;user-select:none"},
             "🂠",
         )
 
 
 class DiscardPile(Pile):
-    """the discards:  where the stock's cards go as they're turned over"""
+    """Where the stock's cards go as they're turned over"""
 
     element_tag = "test-project-discard-pile"
 
@@ -687,7 +452,7 @@ class DiscardPile(Pile):
 
 
 class Foundation(Pile):
-    """a foundation:  where a suit is built up, ace to king"""
+    """Where a suit is built up, ace to king, one card at a time"""
 
     element_tag = "test-project-foundation"
 
@@ -702,24 +467,19 @@ class Foundation(Pile):
         return False
 
     def can_take(self, card: Card) -> bool:
-        """one card at a time:  the last of its pile"""
         assert card.pile is not None
         if card != card.pile.last_item:
             return False
         return self.suit == card.suit and self.value + 1 == card.value
 
-    # empty:  a light grey ace of its suit, face up
+    # A light grey ace of its suit, face up
 
     def draw_its_placeholder(self) -> Any:
-        return h(
-            "div",
-            {"part": "placeholder"},
-            Card(rank="ace", suit=self.suit, direction="up").picture,
-        )
+        return h("ui-text", {"part": "placeholder"}, Card(rank="ace", suit=self.suit).picture)
 
 
 class Tableau(Pile):
-    """a tableau:  a column, built down from king to ace, red and black in turn"""
+    """A column, built down from king to ace, red and black in turn"""
 
     element_tag = "test-project-tableau"
 
@@ -737,21 +497,18 @@ class Tableau(Pile):
 
 
 class Solitaire(App):
-    """The solitaire:  its piles, its moves, auto play and drawing"""
-
     element_tag = "test-project-app"
 
     # - its "score" is a number
     score = prop(type="number")
 
-    # what the move being dragged would add to the score, e.g. " (+10)":  shown beside it, while a card is over a pile
+    # What the card being dragged would add to the score, e.g. (+10):  shown beside it
     # - its "hint" is text
     hint = prop(type="text")
 
     # - its "deck" is a new deck
     deck = prop(init=lambda: Deck(), early=True)
 
-    # one of each pile, made with the solitaire
     # - its "stock" is a new stock pile with name = "stock"
     stock = prop(init=lambda: StockPile(name="stock"), early=True)
 
@@ -791,127 +548,58 @@ class Solitaire(App):
     # - its "T7" is a new tableau with name = "T7"
     t7 = prop(init=lambda: Tableau(name="T7"), early=True)
 
-    async def create(self) -> None:
-        """
-        once, as the solitaire is made:  every card of the deck into the stock
-        - its deck and piles are made with it, before this runs
-        - inside the loop `it` is the card:  so the stock is `the stock of solitaire`
-        """
+    def create(self) -> None:
+        """Every card of its deck into the stock:  inside the loop `it` is the card, so the stock is the solitaire's"""
         for card in self.deck:
             self.stock.append(card)
 
-    def debug(self) -> None:
-        """print each pile's cards, e.g. "stock: Q♠↓ 7♥↓\""""
-        for pile in core.every_thing(Pile):
-            print(pile.state)
-
-    async def reset_the_stock(self) -> None:
-        """the discards, turned over, back into the stock"""
+    def reset_the_stock(self) -> None:
+        """The discards, turned over, back into the stock"""
         cards = self.discards.clone()
         cards.reverse()
         for card in cards:
             self.stock.append(card)
-            await card.turn_face_down()
+            card.turn_face_down()
 
     async def play_from_the_stock(self) -> None:
-        """turn the stock's next card over, onto the discards"""
+        """turn the stock's next card over, onto the discards:  the discards back into the stock when it's empty"""
         if core.process_is_running("play_from_the_stock"):
             return
         core.start_process("play_from_the_stock", "EXCLUSIVE")
         try:
             if not self.stock:
-                await self.reset_the_stock()
-
+                self.reset_the_stock()
             it = self.stock.last_item
-            await it.turn_face_up()
+            it.turn_face_up()
+            await core.pause_for(50, "msec")
             self.discards.append(it)
         finally:
             core.stop_process("play_from_the_stock")
 
     async def deal_the_cards(self) -> None:
-        """gather every card of its deck into the stock, shuffle it, and deal the tableaus:  one card more in each, left to right"""
+        """gather every card into the stock, shuffle it, and deal the tableaus:  one card more in each, left to right"""
         if core.process_is_running("deal_the_cards"):
             return
         core.start_process("deal_the_cards", "EXCLUSIVE")
         try:
             for card in self.deck:
                 start_pile = card.pile
-                await card.turn_face_down()
+                card.turn_face_down()
                 if start_pile != self.stock:
                     self.stock.append(card)
                     await core.pause_for(50, "msec")
             self.stock.randomize()
-
             for row in range(1, 8):
-                await self.stock.last_item.turn_face_up()
+                self.stock.last_item.turn_face_up()
                 for column in core.get_range(row, 7):
                     core.get_item_at(core.every_thing(Tableau), position(column)).append(self.stock.last_item)
                     await core.pause_for(50, "msec")
-
             await self.play_from_the_stock()
         finally:
             core.stop_process("deal_the_cards")
 
-    async def start_a_new_game(self) -> None:
-        self.score = 0
-        self.hint = ""
-        await self.deal_the_cards()
-
-    async def cheat(self) -> None:
-        """turn up a face-down card from a tableau, at random, onto the discards"""
-        remaining_piles = core.filter(
-            core.every_thing(Tableau),
-            lambda pile: (pile) and pile.first_item.is_face_direction("down"),
-        )
-        if core.is_empty(remaining_piles):
-            return
-        pile = core.random_item_of(remaining_piles)
-        hidden_cards = pile.filter(lambda card: card.is_face_direction("down"))
-        card = hidden_cards.random_item()
-        await card.turn_face_up()
-        await core.pause_for(30, "ticks")
-        self.discards.append(card)
-
-    async def auto_play(self) -> None:
-        """play every card that can go somewhere, until none can"""
-        anything_changed = False
-        if self.discards:
-            test_card = self.discards.last_item
-            if await test_card.play():
-                anything_changed = True
-                await core.pause_for(500, "msec")
-
-        # each tableau's last card onto its foundation
-        for pile in core.every_thing(Tableau):
-            if not pile:
-                continue
-            test_card = pile.last_item
-            foundation = core.filter(core.every_thing(Foundation), lambda pile: pile.suit == test_card.suit).first_item
-            if core.can_take(foundation, test_card):
-                anything_changed = True
-                await test_card.play()
-                await core.pause_for(100, "msec")
-
-        # each tableau's face-up cards, all together, onto another tableau
-        for pile in core.every_thing(Tableau):
-            face_up_cards = pile.filter(lambda card: card.is_face_direction("up"))
-            if not face_up_cards:
-                continue
-            test_card = face_up_cards.first_item
-            if test_card.is_a_rank("king") and test_card == pile.first_item:
-                continue
-            if await test_card.play():
-                anything_changed = True
-                await core.pause_for(500, "msec")
-
-        if anything_changed:
-            await self.auto_play()
-
     def draw(self) -> Any:
-        """
-        its menu, then its piles:  seven to a line, each a cell of its own, the third left empty
-        - its buttons are icons, each with a tooltip:  the popup right after its icon shows as the pointer rests on it
-        """
+        """Its menu, then its piles seven to a line, the third cell empty;  a right click on the board shows the game menu"""
         async def _each_1(event: Any) -> Any:
             return await self.auto_play()
 
@@ -925,8 +613,8 @@ class Solitaire(App):
             "ui-container",
             h(
                 "ui-menu",
-                h("ui-item", {"type": "header"}, "Klondike Solitaire"),
-                h("ui-item", f"Score: {self.score}{self.hint}"),
+                h("ui-item", {"kind": "header"}, "Klondike Solitaire"),
+                h("ui-item", "Score: ", self.score, self.hint),
                 h(
                     "ui-menu",
                     {"position": "right"},
@@ -934,36 +622,40 @@ class Solitaire(App):
                         "ui-item",
                         {
                             "aria-label": "Auto play",
+                            "title": "Auto play",
                             "onClick": _each_1,
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "fast forward"}),
-                        h("ui-popup", {"content": "Auto play", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
-                        {"aria-label": "Cheat", "onClick": _each_2, "style": "cursor:pointer;user-select:none"},
+                        {
+                            "aria-label": "Cheat",
+                            "title": "Cheat",
+                            "onClick": _each_2,
+                            "style": "cursor:pointer;user-select:none",
+                        },
                         h("ui-icon", {"name": "eye"}),
-                        h("ui-popup", {"content": "Cheat", "inverted": True, "size": "small"}),
                     ),
                     h(
                         "ui-item",
                         {
                             "aria-label": "Restart",
+                            "title": "Restart",
                             "onClick": _each_3,
                             "style": "cursor:pointer;user-select:none",
                         },
                         h("ui-icon", {"name": "redo"}),
-                        h("ui-popup", {"content": "Restart", "inverted": True, "size": "small"}),
                     ),
                 ),
             ),
             h(
                 "ui-grid",
-                {"class": "Board", "columns": "7"},
+                {"class": "Board", "columns": "7", "context-menu": "game menu"},
                 core.draw_thing(self.stock),
                 core.draw_thing(self.discards),
-                h("div"),
+                h("ui-column"),
                 core.draw_thing(self.clubs),
                 core.draw_thing(self.diamonds),
                 core.draw_thing(self.hearts),
@@ -978,32 +670,84 @@ class Solitaire(App):
             ),
         )
 
+    async def start_a_new_game(self) -> None:
+        self.score = 0
+        self.hint = ""
+        await self.deal_the_cards()
+
+    async def auto_play(self) -> None:
+        anything_changed = False
+        if self.discards:
+            test_card = self.discards.last_item
+            if await test_card.play():
+                anything_changed = True
+                await core.pause_for(500, "msec")
+        # each tableau's last card onto its foundation
+        for pile in core.every_thing(Tableau):
+            if not pile:
+                continue
+            test_card = pile.last_item
+            foundation = core.filter(core.every_thing(Foundation), lambda pile: pile.suit == test_card.suit).first_item
+            if core.can_take(foundation, test_card):
+                anything_changed = True
+                await test_card.play()
+                await core.pause_for(100, "msec")
+        # each tableau's face-up cards, all together, onto another tableau
+        for pile in core.every_thing(Tableau):
+            face_up_cards = pile.filter(lambda card: card.is_face_direction("up"))
+            if not face_up_cards:
+                continue
+            test_card = face_up_cards.first_item
+            if test_card.is_a_rank("king") and test_card == pile.first_item:
+                continue
+            if await test_card.play():
+                anything_changed = True
+                await core.pause_for(500, "msec")
+        if anything_changed:
+            await self.auto_play()
+
+    async def cheat(self) -> None:
+        remaining_piles = core.filter(
+            core.every_thing(Tableau),
+            lambda pile: (pile) and pile.first_item.is_face_direction("down"),
+        )
+        if core.is_empty(remaining_piles):
+            return
+        pile = core.random_item_of(remaining_piles)
+        card = pile.filter(lambda card: card.is_face_direction("down")).random_item()
+        card.turn_face_up()
+        await core.pause_for(30, "ticks")
+        self.discards.append(card)
+
 
 solitaire = Solitaire()
 
+# One of each, made with the solitaire
 
-@core.on("card-click")
-async def on_card_click(event: Any) -> None:
-    card = event.card
-    await card.play()
+# Each pauses a moment, so a deal animates
+
+# Its moves:  the menu's buttons, its keys, and the board's right click
+core.describe_action(Solitaire, "start_a_new_game", {"title": "start a new game", "shortcuts": ["N"]})
+
+# Play every card that can go somewhere, until none can
+core.describe_action(Solitaire, "auto_play", {"title": "auto play", "shortcuts": ["A"]})
+
+# Turn up a face-down card from a tableau, at random, onto the discards
+core.describe_action(Solitaire, "cheat", {"title": "cheat", "shortcuts": ["C"]})
+
+# - its "game menu" is a menu of "start a new game" , "-" , "auto play" and "cheat"
+core.describe_menu(Solitaire, "game_menu", {"items": ["start_a_new_game", "-", "auto_play", "cheat"]})
+
+##############
+# ## The piles
+##############
+# Each kind of pile, what it may take or give up, and how it lies.
+# While one's empty, it shows its placeholder, if it has one.
 
 
-# Start
-core.console.log(solitaire)
-asyncio.run(solitaire.start_a_new_game())
-solitaire.start()
-
-########################################################################
-# ## The piles:  each kind, what it may take or give up, and how it lies
-########################################################################
-# Each pile is a viewable list:  an element of its own, e.g. `<solitaire-tableau>`, around its cards' elements.
-# How its cards lie is its layout:  styles.css draws each one.
-# While it's empty, it shows its placeholder, if it has one.
-
-
-async def test_the_moves() -> Any:
-    """Tests"""
+def test_the_moves() -> Any:
     with core.test("test the moves"):
+        it = Tableau()
         core.echo_test_action("set the column to a new tableau with name = \"T1\"")
         column = Tableau(name="T1")
         core.echo_test_action(
@@ -1035,7 +779,7 @@ async def test_the_moves() -> Any:
             "yes",
         )
         core.echo_test_action("turn the queen face down")
-        await queen.turn_face_down()
+        queen.turn_face_down()
         core.expect(
             core.can_give_up(column, queen),
             "the column can give up the queen",
@@ -1087,6 +831,10 @@ async def test_the_moves() -> Any:
             False,
             "no",
         )
+
+
+asyncio.run(solitaire.start_a_new_game())
+solitaire.start()
 
 
 # -----------
@@ -1238,9 +986,7 @@ core.install_styles(None, """/* File styles.css:  how the board looks -- each ca
 # -----------
 
 
-asyncio.run(test_card_setup())
-asyncio.run(test_jokers())
-test_deck_creation()
-test_deck_with_jokers()
+test_card_setup()
+test_a_new_deck()
 test_piles()
-asyncio.run(test_the_moves())
+test_the_moves()

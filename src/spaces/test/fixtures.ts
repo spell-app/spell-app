@@ -8,6 +8,9 @@ import { SP } from "spell-parser/spell"
 import { parseSpellProject, type SpellSourceFile } from "spell-parser/spell/test"
 import environment from "spell-app/spaces/server/node/environment"
 
+// Spell UI's pack, as every compile has it:  an example written in spellx names its components bare (`<button>`)
+import "spell-app/spaces/models/spellUIPack"
+
 /*
  * The test projects' helpers:  each one read from disk, parsed and compiled headlessly, as a compile would.
  * - Node only, for tests:  imported as `spell-app/spaces/test`, never from spaces' barrel.
@@ -238,7 +241,7 @@ function compileFixture(
   const { scope, files } = parseSpellProject(sources, { parentScope })
   const errors = files.flatMap(({ path, errors }) => errors.map((error) => `// PARSE ERROR ${path}:${error}\n`))
   const parts = imports
-    .filter(({ path, active }) => active !== false && /\.(spell|css)$/.test(path))
+    .filter(({ path, active }) => active !== false && /\.(spell|spellx|css)$/.test(path))
     .map(({ path }) => {
       if (path.endsWith(".css")) return compiledCSS(readFileSync(resolve(projectDir, `.${path}`), "utf8"))
       const file = files.find((it) => it.path === path)!
@@ -336,11 +339,11 @@ function moduleFor(projectId: string): string {
   return `${SP.SPELL_PROJECT_MODULE}${encodeURI(projectId)}`
 }
 
-/** `{ path, contents }` of each spell file in test project `projectName`, in its project file's order. */
+/** `{ path, contents }` of each spell file (`.spell` or `.spellx`) in test project `projectName`, in its project file's order. */
 export function loadFixtureProject(projectName: string): SpellSourceFile[] {
   const projectDir = fixtureFolder(projectName)
   return readProjectFile(projectDir)
-    .imports.filter(({ path, active }) => active !== false && path.endsWith(".spell"))
+    .imports.filter(({ path, active }) => active !== false && /\.spellx?$/.test(path))
     .map(({ path }) => ({ path, contents: readFileSync(resolve(projectDir, `.${path}`), "utf8") }))
 }
 

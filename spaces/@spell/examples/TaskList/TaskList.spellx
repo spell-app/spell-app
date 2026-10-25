@@ -1,0 +1,100 @@
+# Task List
+A to-do list:  add a task, check it off, filter the list, and edit the selected tasks together.
+Its tasks are this project's own `<spell-view "task">`;  this file holds their list, and the app.
+
+## The checklist
+The tasks, each its own element inside it:  `<task-list-checklist>`, around its `<task-list-task>`s.
+
+<spell-view "checklist" template="viewable list of tasks">
+	<property "showing" one-of="all, active or done"
+		description="What it shows:  every task, the ones still to do, or the ones done"
+		alias="is showing (showing)"
+	/>
+
+	<spell>
+		// on the page, its tasks can be dragged to another place:  they move as the pointer does, gliding there
+		- its items can be reordered immediately
+		// each task, unless the filter hides it
+		- to draw each item:
+			if it is showing active and the task is done return nothing
+			if it is showing done and the task is active return nothing
+			return draw the task
+	</spell>
+	<draw "placeholder" description="What it shows while it's empty">
+		<text part="placeholder">Nothing to do</text>
+	</draw>
+
+	<test "the filter">
+		set the tasks to a new checklist
+		add (a new task with title = "a", done = yes) to the tasks
+		add (a new task with title = "b") to the tasks
+		the length of (tasks in the tasks where it is active) should be 1
+	</test>
+</spell-view>
+<spell>
+	// a task is in one checklist at a time
+	a task belongs to one checklist
+</spell>
+
+## The app
+Its toolbar, the new task's field, then the list beside the property editor.
+
+<spell-app "task list">
+	<property "checklist">a new checklist</>
+	<property "draft" description="The next task's title, as the new task's field holds it">text</>
+	<property "active count">the length of (tasks in its checklist where it is active)</>
+
+	<action "create it" description="A new task list shows every task, and starts with a few">
+		set the showing of its checklist to all
+		add (a new task with title = "Write the Task List example", priority = high, done = yes) to its checklist
+		add (a new task with title = "Teach it to draw", priority = normal) to its checklist
+		add (a new task with title = "Select some tasks, then edit them together", priority = normal) to its checklist
+		add (a new task with title = "Drag tasks to reorder them", priority = low) to its checklist
+	</action>
+
+	<action "add the draft" description="The draft, as a new task at the end of the list;  the field empties">
+		if its draft is "" return
+		add (a new task with title = its draft, priority = normal) to its checklist
+		clear its draft
+	</action>
+
+	<group "filter" description="Which tasks the list shows:  the toolbar ticks the one it's showing"/>
+	<action "show all" icon="list" selected-when="its checklist is showing all">set the showing of its checklist to all</>
+	<action "show to do" icon="square outline" selected-when="its checklist is showing active">set the showing of its checklist to active</>
+	<action "show done" icon="check square outline" selected-when="its checklist is showing done">set the showing of its checklist to done</>
+	<action "remove the done tasks" icon="trash alternate outline">remove tasks in its checklist where it is done</>
+	<menu "tasks menu">
+		<action "show all" />
+		<action "show to do" />
+		<action "show done" />
+		<action "-" />
+		<action "remove the done tasks" />
+	</menu>
+
+	<draw description="The property editor edits every selected task at once:  a property they disagree on shows Mixed">
+		<container class="TaskList">
+			<toolbar menu="tasks menu" aria-label="Tasks">
+				<text slot="title" size="large">Task List</text>
+				<text slot="right">{its active count} to do</text>
+			</toolbar>
+			<form value={it}>
+				<input name="draft" placeholder="Something to do" aria-label="New task" fluid action>
+					<button slot="action" color="primary" disabled={its draft is ""} onClick={add the draft}>Add</button>
+				</input>
+			</form>
+			<grid columns="2" stackable>
+				{draw its checklist}
+				<ui-property-editor label="Selected tasks" schema="task-list-task" value={the selection of its checklist}>
+					<ui-property name="title"/>
+					<ui-property name="priority"/>
+					<ui-property name="done"/>
+					<ui-property name="notes"/>
+				</ui-property-editor>
+			</grid>
+		</container>
+	</draw>
+</spell-app>
+
+<spell>
+	start the task list
+</spell>

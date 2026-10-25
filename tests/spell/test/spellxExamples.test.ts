@@ -17,6 +17,7 @@ import "spell-app/spaces"
  * compiles to the same javascript, file by file:  the round trip `.spell` => spellx => javascript, in memory.
  * - Each project is parsed whole, then each `.spell` file converted, then the project parsed again with the
  *   `.spellx` files in their places:  each file's code must match, with no errors.
+ *   - An example written in spellx (Solitaire, Task List) has nothing to convert:  it must compile with no errors.
  * - Read where the examples are, never a frozen copy;  NOTHING is written:  the `.spellx` text lives in the test.
  * - So the editor's "Show as Spellx" view of any example means what its `.spell` file does.
  * - Compared without comments and the `DECLARES` header, which carry line numbers.
@@ -26,11 +27,14 @@ import "spell-app/spaces"
 const EXAMPLES_DIR = resolve(environment.systemFilesRoot, "examples")
 
 /**
- * The examples' spellx, kept as test fixtures:  `__spellx__/<Example>/<File>.spellx`, one per `.spell` file.
- * - NOT in the examples:  a template lives in ONE file, `.spell` or `.spellx`, never both
- *   (Owen, 2026-10-25, epic `elemental-spell` J95:  "one file").
+ * Each example's OTHER form, kept as a test fixture beside the tests:  one file per file of the example
+ * (Owen, 2026-10-25, epic `elemental-spell` J95:  "one file").
+ * - An example written as code spell:  its spellx in `__spellx__/<Example>/<File>.spellx`.
+ * - An example written in spellx, the showcases (Solitaire, Task List):  its code spell in `__spell__/<Example>/<File>.spell`.
+ * - NOT in the examples:  a template lives in ONE file, `.spell` or `.spellx`, never both.
  */
 const SPELLX_FIXTURES_DIR = resolve(environment.repoDir, "tests", "spell", "__spellx__")
+const SPELL_FIXTURES_DIR = resolve(environment.repoDir, "tests", "spell", "__spell__")
 
 /**
  * The examples that don't convert to the same program yet, and why:  each an item on the epic page.
@@ -55,10 +59,12 @@ function convertsTheSame(name: string) {
   const before = parseSpellProject(sources, { parentScope }).files
   expect(before.flatMap((file) => file.errors)).toEqual([])
 
-  const converted = before.map(({ path, contents, match, scope }) => ({
-    path: `${path}x`,
-    contents: SX.SpellxWriter.write({ text: contents, match: match!, scope })
-  }))
+  // a file already in spellx stays as it is
+  const converted = before.map(({ path, contents, match, scope }) =>
+    path.endsWith(".spellx")
+      ? { path, contents }
+      : { path: `${path}x`, contents: SX.SpellxWriter.write({ text: contents, match: match!, scope }) }
+  )
   const after = parseSpellProject(converted, { parentScope }).files
   for (const [index, file] of after.entries()) {
     expect(file.errors, file.path).toEqual([])
@@ -66,25 +72,29 @@ function convertsTheSame(name: string) {
   }
 }
 
-/** The `.spell` files of the project in `folder`, in its project file's order. */
+/** The spell files (`.spell` and `.spellx`) of the project in `folder`, in its project file's order. */
 function sourcesOf(folder: string): SpellSourceFile[] {
   const { imports } = JSON5.parse(readFileSync(projectFileFor(folder), "utf8")) as {
     imports: Array<{ path: string; active?: boolean }>
   }
   return imports
-    .filter(({ path, active }) => active !== false && path.endsWith(".spell"))
+    .filter(({ path, active }) => active !== false && /\.spellx?$/.test(path))
     .map(({ path }) => ({ path, contents: readFileSync(resolve(folder, `.${path}`), "utf8") }))
 }
 
 /**
- * The examples' spellx fixtures (`SPELLX_FIXTURES_DIR`), hand-kept since P13 (J54, J55), compile to the same
- * javascript as the example's `.spell` files, file by file, with no errors.
- * - `Card.spell` in the example => `__spellx__/Solitaire/Card.spellx`, parsed as a project of their own.
- * - A drawing with the web's own elements (`<div>`) is a `<spell>` chunk there, as written (J83).
+ * The examples' fixtures in their other form (`SPELLX_FIXTURES_DIR`, `SPELL_FIXTURES_DIR`), hand-kept since P13
+ * (J54, J55), compile to the same javascript as the example's own files, file by file, with no errors.
+ * - `Deck.spell` in an example => `__spellx__/<Example>/Deck.spellx`;  `Card.spellx` => `__spell__/<Example>/Card.spell`.
+ * - A drawing with the web's own elements (`<div>`) is a `<spell>` chunk, or an `<html>` block, there (J83).
  */
-const FIXTURE_EXAMPLES = readdirSync(SPELLX_FIXTURES_DIR, { withFileTypes: true })
-  .filter((it) => it.isDirectory())
-  .map((it) => it.name)
+const FIXTURE_EXAMPLES = [SPELLX_FIXTURES_DIR, SPELL_FIXTURES_DIR].flatMap((dir) =>
+  existsSync(dir)
+    ? readdirSync(dir, { withFileTypes: true })
+        .filter((it) => it.isDirectory())
+        .map((it) => it.name)
+    : []
+)
 
 /** The fixtures that can't compile the same today, and why:  each an item on the epic page. */
 const FIXTURE_GAPS: Record<string, string> = {
@@ -106,15 +116,16 @@ test("no example keeps a template in both forms:  no `Card.spellx` beside `Card.
   expect(both).toEqual([])
 })
 
-/** Example `name`'s spellx fixtures compile to the same javascript as its `.spell` files, file by file. */
+/** Example `name`'s fixtures compile to the same javascript as its own files, file by file. */
 function fixtureCompilesTheSame(name: string) {
   const sources = sourcesOf(resolve(EXAMPLES_DIR, name))
   const parentScope = SP.Language.rootScopeFor([...new Set(sources.map(({ path }) => SP.Language.forFile(path)))])
   const before = parseSpellProject(sources, { parentScope }).files
-  const fixtures = sources.map(({ path }) => ({
-    path: `${path}x`,
-    contents: readFileSync(resolve(SPELLX_FIXTURES_DIR, name, `.${path}x`), "utf8")
-  }))
+  const fixtures = sources.map(({ path }) => {
+    const twin = path.endsWith(".spellx") ? path.slice(0, -1) : `${path}x`
+    const dir = path.endsWith(".spellx") ? SPELL_FIXTURES_DIR : SPELLX_FIXTURES_DIR
+    return { path: twin, contents: readFileSync(resolve(dir, name, `.${twin}`), "utf8") }
+  })
   const after = parseSpellProject(fixtures, { parentScope }).files
   for (const [index, file] of after.entries()) {
     expect(file.errors, file.path).toEqual([])
