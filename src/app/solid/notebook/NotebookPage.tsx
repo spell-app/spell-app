@@ -1,10 +1,11 @@
-import { For, Show, createEffect, createSignal, getOwner, onCleanup, onSettled, runWithOwner } from "solid-js"
+import { For, Show, createSignal, getOwner, onCleanup, onSettled, runWithOwner } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { setDebugGlobal } from "spell/util"
 import { UI } from "spell-ui/core"
 import type { SP } from "spell-parser/spell"
-import { tracked } from "spell-app/app/solid/tracked"
+// Import directly:  the barrel brings the site header and the section editor too
+import { PagePatch } from "spell/server/site/PagePatch"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { NotebookController, type KeyedCell } from "./NotebookController"
 import { CellEditor, ExampleCode, NotebookCell } from "./NotebookCell"
@@ -24,7 +25,10 @@ import "./NotebookPage.css"
  * - Editing it changes only that cell's span of the file, saves it, and draws only that cell again
  *   (`NotebookController`):  nothing else on the page moves.
  * - ⌘Z, outside an editor:  undoes the last move, delete, add or lock.
- * - A change to the file from outside the page:  the cells it changed draw again (`NotebookController.outsideChange()`).
+ * - A change to the file from outside the page (read every couple of seconds):  only the cells it changed draw again,
+ *   planned by epic-engine's shared page patch;  the cell being typed in keeps its text, with a note
+ *   (`NotebookController.outsideChange()`).
+ * - "On this page" always shows, at the right (above the page on a narrow pane), unless the toolbar hides it.
  * - The program still runs as ever, drawn out of sight:  its classes and its notebook are what the cells draw with.
  * - SIDE EFFECT:  defines `<spell-example>`, the example frame the notebook's examples draw as.
  ****************/
@@ -46,11 +50,15 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
   }
   onCleanup(() => panelDisposers.forEach((dispose) => dispose()))
 
-  // a change from outside the page:  the file's text, as the editor last read it
-  const contents = tracked(() => props.file.contents ?? "")
-  createEffect(contents, (text) => {
-    controller.outsideChange(text)
-  })
+  // a change from outside the page:  the file on the server, read every couple of seconds
+  onSettled(() => controller.watchFile())
+  // the cell being typed in:  the one holding the focused editor (`PagePatch.SHARED`'s fixed ones)
+  controller.typingIn = () => {
+    let active = document.activeElement
+    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+    const editor = active?.closest(PagePatch.SHARED.fixed!)
+    return editor?.closest<HTMLElement>("[data-cell-key]")?.dataset.cellKey
+  }
 
   let page!: HTMLDivElement
   onSettled(() =>
@@ -98,7 +106,10 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
             )}
           </For>
         </main>
-        <nav class="NotebookToc" aria-label={appTexts.text("notebookPageContents")}>
+        <nav
+          class={["NotebookToc", { hidden: !controller.contentsShown() }]}
+          aria-label={appTexts.text("notebookPageContents")}
+        >
           <div class="NotebookTocTitle">{appTexts.text("notebookPageContents")}</div>
           <For each={sections().filter((section) => section.heading !== undefined)} keyed={(section) => section.key}>
             {(section) => (

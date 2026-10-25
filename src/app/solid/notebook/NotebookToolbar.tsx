@@ -74,6 +74,9 @@ export function NotebookToolbar(props: { controller: NotebookController; ref?: (
             {appTexts.text("notebookPageVisitor")}
           </ui-button>
         </Show>
+        {tool("list", controller.contentsShown() ? "notebookPageHideContents" : "notebookPageShowContents", () =>
+          controller.toggleContents()
+        )}
         <Show when={controller.isAdmin()}>
           {tool(locked() ? "lock" : "lock open", locked() ? "notebookPageUnlock" : "notebookPageLock", () =>
             controller.setLocked(!locked())

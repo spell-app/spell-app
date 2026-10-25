@@ -6,8 +6,9 @@ import type { PageCell } from "./NotebookPageCells"
  * - The file holds no ids:  a cell is found by its place among the others.
  *   So after the text changes, each new cell takes the key of the old cell it's the same as.
  * - Matched by code, from both ends:  the cells before and after the change keep theirs.
- *   - In the middle:  a cell with the same code as one there keeps its key (a move);  one edited cell, alone on both
- *     sides, keeps its key too (an edit);  anything else is new (an insert), and what's left goes (a delete).
+ *   - In the middle:  a cell with the same code as one there keeps its key (a move);  then each edited cell keeps the
+ *     key of the next one left over, in order, of its kind (edits, however many);  anything else is new (an insert),
+ *     and what's left goes (a delete).
  * - Pure:  the notebook's controller keeps the keys, and its tests check this in node.
  */
 export class NotebookKeys {
@@ -43,14 +44,16 @@ export class NotebookKeys {
         result[index] = oldMiddle[match]!.key
       }
     }
+    // edited cells:  each left over keeps the key of the next one left over before, in order, of its kind
     const unmatchedOld = oldMiddle.filter((_, at) => !used.has(at))
-    const unmatchedNew = result.flatMap((key, index) => (key === undefined ? [index] : []))
-    if (
-      unmatchedOld.length === 1 &&
-      unmatchedNew.length === 1 &&
-      unmatchedOld[0]!.cell.kind === cells[unmatchedNew[0]!]!.kind
-    )
-      result[unmatchedNew[0]!] = unmatchedOld[0]!.key
+    let next = 0
+    for (const [index, key] of result.entries()) {
+      if (key !== undefined) continue
+      const at = unmatchedOld.findIndex((old, place) => place >= next && old.cell.kind === cells[index]!.kind)
+      if (at < 0) continue
+      result[index] = unmatchedOld[at]!.key
+      next = at + 1
+    }
     return result.map((key) => key ?? NotebookKeys.next())
   }
 }

@@ -30,8 +30,20 @@ export function NotebookCell(props: {
   return (
     <div
       class={["NotebookCell", props.cell.kind, { selected: isSelected() && isEditing() }]}
+      data-cell-key={props.key}
       onClick={() => controller.select(props.key)}
     >
+      <Show when={controller.held()[props.key] !== undefined}>
+        <div class="NotebookHeld" role="status">
+          <span>{appTexts.text("notebookPageChangedElsewhere")}</span>
+          <ui-button size="mini" basic="" onClick={() => controller.takeTheirs(props.key)}>
+            {appTexts.text("notebookPageTakeTheirs")}
+          </ui-button>
+          <ui-button size="mini" basic="" onClick={() => controller.keepMine(props.key)}>
+            {appTexts.text("notebookPageKeepMine")}
+          </ui-button>
+        </div>
+      </Show>
       <Switch>
         <Match when={props.cell.kind === "prose"}>
           <Show when={isEditing() && isSelected()}>

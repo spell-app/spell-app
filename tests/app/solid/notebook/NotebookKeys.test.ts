@@ -17,6 +17,10 @@ describe("NotebookKeys.carried()", () => {
     expect(NotebookKeys.carried(before, keys, cells("A", "B!", "C", "D"))).toEqual(keys)
   })
 
+  test("several edits at once:  each edited cell keeps its key", () => {
+    expect(NotebookKeys.carried(before, keys, cells("A!", "B!", "C", "D!"))).toEqual(keys)
+  })
+
   test("a move:  each cell's key goes with it", () => {
     expect(NotebookKeys.carried(before, keys, cells("A", "C", "B", "D"))).toEqual(["a", "c", "b", "d"])
   })

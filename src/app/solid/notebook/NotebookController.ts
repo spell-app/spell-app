@@ -2,7 +2,7 @@ import { createSignal, runWithOwner, type Accessor } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { PrefStore } from "spell/util/persist/PrefStore"
-import { after } from "spell/element"
+import { after, every } from "spell/element"
 import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
 import { SX } from "spell-parser/spellx"
@@ -42,7 +42,7 @@ export class NotebookController {
     this.file = file
     this.project = project
     const text = file.contents ?? ""
-    this.lastText = text
+    this.onDisk = text
     const model = NotebookPageCells.of(text, file.path)
     this.now = { text, model, keys: model?.cells.map(() => NotebookKeys.next()) ?? [], selected: undefined }
     ;[this.text, this.setText] = createSignal(text)
@@ -53,6 +53,9 @@ export class NotebookController {
     ;[this.visitor, this.setVisitor] = createSignal(false)
     ;[this.saving, this.setSaving] = createSignal(false)
     ;[this.errors, this.setErrors] = createSignal<Record<string, string[]>>({})
+    ;[this.held, this.setHeld] = createSignal<Record<string, string>>({})
+    const contents = PrefStore.getAt(this.contentsKey)
+    ;[this.contentsShown, this.setContentsShown] = createSignal(contents !== false)
     const view = PrefStore.getAt(this.viewKey) as CodeView | undefined
     ;[this.codeView, this.setCodeViewSignal] = createSignal<CodeView>(CODE_VIEWS.includes(view!) ? view! : "spellx")
   }
@@ -161,6 +164,26 @@ export class NotebookController {
     this.setVisitor(!this.visitor())
   }
 
+  /** Is "On this page" shown?  Always, unless hidden from the toolbar:  remembered per notebook. */
+  readonly contentsShown: Accessor<boolean>
+  private readonly setContentsShown: (shown: boolean) => void
+
+  /** Show or hide "On this page", and remember it for this notebook. */
+  toggleContents() {
+    const shown = !this.contentsShown()
+    this.setContentsShown(shown)
+    try {
+      PrefStore.setAt(this.contentsKey, shown)
+    } catch (error) {
+      console.error("NotebookController:  couldn't remember the contents", error)
+    }
+  }
+
+  /** Where "On this page" being shown is remembered:  per notebook. */
+  private get contentsKey(): string {
+    return `spellEditor:notebook-contents:${this.file.path}`
+  }
+
   /** Where the code view is remembered:  per notebook. */
   private get viewKey(): string {
     return `spellEditor:notebook-view:${this.file.path}`
@@ -249,7 +272,6 @@ export class NotebookController {
     const cells = model?.cells ?? []
     const keys = options.keys?.length === cells.length ? options.keys : NotebookKeys.carried(before, oldKeys, cells)
     this.setNow({ text, model, keys })
-    this.lastText = text
     this.later(() => this.redrawChanged(before, oldKeys, cells, keys, text))
     if (this.canSave()) this.saveSoon()
   }
@@ -277,9 +299,6 @@ export class NotebookController {
   }
   private queue: Promise<unknown> = Promise.resolve()
 
-  /** The text last made here or read from the file:  a different one in the file came from outside. */
-  private lastText: string
-
   /** The save waiting for the typing to stop. */
   private pendingSave: ReturnType<typeof after> | undefined
 
@@ -292,8 +311,10 @@ export class NotebookController {
       // the file holds the latest text first:  its parse, after the edits before it
       this.later(async () => {
         try {
-          await this.parsed(this.now.text)
+          const text = this.now.text
+          await this.parsed(text)
           await this.file.save(undefined)
+          this.onDisk = text
         } catch (error) {
           editor.showError(error)
         } finally {
@@ -305,26 +326,90 @@ export class NotebookController {
   }
 
   /**
-   * The file's text changed from OUTSIDE the page (another tab, an agent, the editor's own text view):
-   * the cells it changed draw again, the rest stay as they are.
-   * - Its cells keep their keys where their code is the same (`NotebookKeys`):  so only the changed ones draw.
-   * - TODO: P40:  epic-engine's shared page patch (`PagePatch`, in the kit since P40 merged):  plan the change over
-   *   the chunk tree with `ChunkTreeAdapter`, and apply its steps with `CellRunner`, which never replaces an open
-   *   editor (`data-spell-editor`).  Until it's wired, the cells it changed draw again, which is the section at most.
+   * The file's text changed from OUTSIDE the page (another tab, an agent, a text editor):
+   * only the cells it changed draw again (epic `elemental-spell` P16, Step 4).
+   * - Planned by epic-engine's shared page patch (`PagePatch`, P40), over the cells' chunk trees (`CellRunner`):
+   *   each new cell keeps its old key where it's the same cell (`NotebookKeys`), so a moved one moves, an unchanged
+   *   one stays as it is, and a changed one draws again.
+   * - The cell being typed in (`typingIn`) keeps its text:  the change to it is held back, with a "Changed
+   *   elsewhere" note offering theirs (`held()`, `takeTheirs()`).  An open editor is never replaced.
    */
   outsideChange(text: string) {
-    if (text === this.lastText) return
+    if (text === this.now.text) return
     const before = this.now.model?.cells ?? []
     const oldKeys = this.now.keys
-    const model = NotebookPageCells.of(text, this.file.path)
-    const cells = model?.cells ?? []
-    const keys = NotebookKeys.carried(before, oldKeys, cells)
-    // the seam epic-engine's planner plugs into:  see the TODO above
-    void CellRunner.plan(new ChunkTreeAdapter(before, oldKeys), new ChunkTreeAdapter(cells, keys))
-    this.lastText = text
+    let model = NotebookPageCells.of(text, this.file.path)
+    const keys = NotebookKeys.carried(before, oldKeys, model?.cells ?? [])
+    const steps = CellRunner.plan(new ChunkTreeAdapter(before, oldKeys), new ChunkTreeAdapter(model?.cells ?? [], keys))
+    const typing = this.typingIn?.()
+    const run = CellRunner.run(steps, new Set(typing ? [typing] : []))
+    // the cell being typed in keeps its text:  theirs is kept aside, for its note
+    const held = { ...this.held() }
+    for (const key of run.held) {
+      const mine = before[oldKeys.indexOf(key)]
+      const theirs = model?.cells[keys.indexOf(key)]
+      if (!mine || !theirs) continue
+      held[key] = theirs.code
+      text = NotebookPageCells.withCode(text, theirs, mine.code)
+      model = NotebookPageCells.of(text, this.file.path)
+    }
+    this.setHeld(held)
     this.setNow({ text, model, keys })
-    this.later(() => this.redrawChanged(before, oldKeys, cells, keys, text))
+    const changed = new Set(run.changed)
+    this.later(() => this.redrawChanged(before, oldKeys, model?.cells ?? [], keys, text, changed))
   }
+
+  /** The key of the cell being typed in, if any:  `<NotebookPage>` hands it in, from where the focus is. */
+  typingIn: (() => string | undefined) | undefined
+
+  /** Each held-back change from outside, by its cell's key:  the code the file had for it. */
+  readonly held: Accessor<Record<string, string>>
+  private readonly setHeld: (held: Record<string, string>) => void
+
+  /** Take the change held back for cell `key`:  its code as the file had it. */
+  takeTheirs(key: string) {
+    const theirs = this.held()[key]
+    const cell = this.currentCell(key)
+    const { [key]: _taken, ...rest } = this.held()
+    this.setHeld(rest)
+    if (theirs !== undefined && cell) this.apply(NotebookPageCells.withCode(this.now.text, cell, theirs))
+  }
+
+  /** Keep my text for cell `key`, and forget the change held back for it. */
+  keepMine(key: string) {
+    const { [key]: _kept, ...rest } = this.held()
+    this.setHeld(rest)
+  }
+
+  /**
+   * Watch the file for changes from outside the page:  read it every `FILE_POLL` seconds while the page shows,
+   * and hand a new text to `outsideChange()`.
+   * - Never while a save of ours is on its way:  the file is about to be ours.
+   * - Returns what stops it.
+   */
+  watchFile(): () => void {
+    return every(FILE_POLL, () => {
+      if (document.visibilityState !== "visible" || this.pendingSave || this.saving()) return
+      void this.readFile()
+    })
+  }
+
+  /** The file's text as it is on the server now:  someone else's, if it's not what we last read or saved. */
+  private async readFile() {
+    try {
+      const response = await fetch(this.file.url, { cache: "no-store" })
+      if (!response.ok) return
+      const text = await response.text()
+      if (text === this.onDisk || this.pendingSave || this.saving()) return
+      this.onDisk = text
+      this.outsideChange(text)
+    } catch (error) {
+      console.error("NotebookController:  couldn't read the file", error)
+    }
+  }
+
+  /** The file's text as we last read it or saved it. */
+  private onDisk: string
 
   ////////////////
   // ## Drawing cells
@@ -429,14 +514,16 @@ export class NotebookController {
     oldKeys: readonly string[],
     cells: readonly PageCell[],
     keys: readonly string[],
-    text: string
+    text: string,
+    changed?: ReadonlySet<string>
   ) {
     const old = new Map(oldKeys.map((key, index) => [key, before[index]!]))
     await this.parsed(text)
     for (const [index, cell] of cells.entries()) {
       const key = keys[index]!
       const was = old.get(key)
-      if (was?.code === cell.code) continue
+      // the plan's changed cells, when a plan says (`outsideChange()`);  else each whose code changed
+      if (changed ? !changed.has(key) : was?.code === cell.code) continue
       if (cell.kind === "template") await this.redefine(key, text)
       else if (was && this.drawn.has(key)) await this.redraw(key, text)
     }
@@ -566,6 +653,9 @@ export type KeyedCell = { cell: PageCell; key: string }
 /** How long a cell waits for the editor's first parse of its project, seconds;  and how often it looks. */
 const PARSE_WAIT = 15
 const PARSE_POLL = 0.1
+
+/** How often the page reads its file for a change from outside, seconds. */
+const FILE_POLL = 2
 
 /** How long after the last edit the file's saved, seconds. */
 const SAVE_DELAY = 0.6

@@ -90,14 +90,27 @@
   text-decoration: none;
 }
 
-/* the contents column goes on a narrow pane:  the page alone, full width */
+/* hidden from the toolbar:  the page alone */
+.NotebookToc.hidden {
+  display: none;
+}
+
+.NotebookColumns:has(.NotebookToc.hidden) {
+  grid-template-columns: minmax(0, var(--notebook-width));
+}
+
+/* on a narrow pane, "On this page" goes above the page:  a row of links */
 @container (max-width: 760px) {
   .NotebookColumns {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .NotebookToc {
-    display: none;
+    position: static;
+    order: -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 16px;
   }
 }
 
@@ -216,4 +229,20 @@
 
 .NotebookGroupDescription {
   color: var(--ui-text-muted);
+}
+
+/* a change from outside held back while its cell was typed in */
+.NotebookHeld {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 6px 12px;
+  border-radius: var(--ui-radius-m, 0.5em);
+  background: color-mix(in oklab, var(--ui-orange, #f2711c) 12%, transparent);
+  font-size: 0.85em;
+}
+
+.NotebookHeld span {
+  flex: 1;
 }
