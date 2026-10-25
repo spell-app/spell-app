@@ -904,6 +904,26 @@ describe("spell format", () => {
   })
 })
 
+// epic `elemental-spell` P12
+describe("spell spellx convert", () => {
+  test("--dry-run prints each file as spellx;  then convert writes it beside the .spell file", () => {
+    const folder = tempProject("Deal", 'a "card" is a thing where:\n\t- its "rank" is 1\n')
+    const dryRun = spell(["spellx", "convert", "--dry-run", "."], folder)
+    expect(dryRun.status).toBe(0)
+    expect(dryRun.stdout).toBe('// Deal.spellx\n<spell-thing "card">\n\t<property "rank">1</>\n</spell-thing>\n')
+    expect(existsSync(resolve(folder, "Deal.spellx"))).toBe(false)
+
+    expect(spell(["spellx", "convert", "."], folder).stdout).toBe("Deal.spellx\n")
+    expect(readFileSync(resolve(folder, "Deal.spellx"), "utf8")).toContain('<property "rank">1</>')
+  })
+
+  test("never writes into a test project", () => {
+    const { status, stderr } = spell(["spellx", "convert", "@spell/test/fizzbuzz"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("Won't convert test projects")
+  })
+})
+
 describe("spell speedtest", () => {
   test("times one module's rules:  a table and the pass count", () => {
     const { status, stdout } = spell(["speedtest", "if", "--runs", "1"])

@@ -5,6 +5,7 @@ import { delimiter, dirname, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import environment from "spell-app/spaces/server/node/environment"
+import { P } from "spell-parser/parser"
 import { buildTsx } from "spell-parser/spell/node/buildTsx"
 import { SP } from "spell-parser/spell"
 import { LSP } from "spell-app/lsp"
@@ -182,7 +183,15 @@ export async function runCompiled(
   const code = project.outputFile.contents ?? ""
   // in the language it speaks:  its app's file's, else its first file's (`SP.SpellDeclarations.speakingFirst()`)
   const messages = SP.SpellWords.messagesFor(project.wordsLanguages[0]!)
-  return runCode(mode, name, code, { ...options, projects: importedOutputs(project), capture, messages, reports })
+  const sourceMap = project.sourceMapFileFor(SP.targetFor(SP.RUNNING_TARGET)).contents ?? undefined
+  return runCode(mode, name, code, {
+    ...options,
+    projects: importedOutputs(project),
+    capture,
+    messages,
+    reports,
+    sourceMap
+  })
 }
 
 /**
@@ -210,6 +219,7 @@ export async function runCode(
     pauses,
     messages,
     reports,
+    sourceMap,
     ...options
   }: CLI.TestOptions & {
     extension?: string
@@ -219,11 +229,15 @@ export async function runCode(
     pauses?: boolean
     messages?: Record<string, string>
     reports?: boolean
+    /** the program's source map (its `.spell.js.map`):  inlined into the temp file, so a stack names spell lines */
+    sourceMap?: string
   } = {}
 ): Promise<ChildResult> {
   if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed, pauses, dom, messages })
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
+    // the map beside a compiled file isn't beside this temp one;  a built TypeScript file's lines are its own
+    code = P.SourceMarks.inline(code, extension === TSX ? undefined : sourceMap)
     if (extension === TSX) {
       code = await buildTsx(code, { filename: `${name}.spell${TSX}` })
       extension = ".mjs"

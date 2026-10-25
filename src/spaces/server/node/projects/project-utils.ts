@@ -102,7 +102,9 @@ const BUILT_SUFFIXES = [
   SP.COMPILED_PY_SUFFIX, // `Solitaire.spell.py`
   SP.ELEMENTS_JS_SUFFIX, // `Solitaire.elements.spell.js`, a Python program's page file
   SP.SCOPES_JS_SUFFIX, // `Solitaire.scopes.js`, its scope pack
-  SP.DECLARATIONS_JSON_SUFFIX // `Solitaire.declarations.json5`, what it offers projects importing it
+  SP.DECLARATIONS_JSON_SUFFIX, // `Solitaire.declarations.json5`, what it offers projects importing it
+  `${SP.COMPILED_JS_SUFFIX}.map`, // `Solitaire.spell.js.map`, its source map (epic `elemental-spell` P14)
+  `${SP.COMPILED_TSX_SUFFIX}.map` // `Solitaire.spell.tsx.map`
 ]
 
 /**

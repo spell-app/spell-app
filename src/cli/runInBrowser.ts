@@ -3,6 +3,7 @@
  * - Serves a page holding `<spell-viewer src="app/<Name>.spell.js" toolbar>`, and beside it what the element
  *   looks for (see `SpellViewer`):
  *   - `app/<Name>.spell.js`:  as compiled for this run, from memory -- nothing is written into the project
+ *   - `app/<Name>.spell.js.map`:  its source map, from memory too
  *   - `app/<Name>.scopes.js`:  its scope pack, for the Type Explorer -- see `LSP.ScopePack`
  *   - `app/<Name>.en.js`:  its words, for the Thing Explorer -- see `SP.SpellWords`
  *   - `app/<Import>.spell.js`:  each project it imports, from disk -- and its `.en.js`, if it has one
@@ -33,6 +34,8 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   await ensureElementBuilt(session)
   const name = project.projectName ?? "app"
   const compiled = project.outputFile.contents ?? ""
+  // its source map, which `<spell-viewer>` fetches by the name on the code's last line (epic `elemental-spell` P14)
+  const sourceMap = project.sourceMapFileFor(SP.targetFor(SP.RUNNING_TARGET)).contents ?? undefined
   // where the Type Explorer finds each declaration's code -- see `SP.SpellDeclarations`
   const declarations = project.declarationsFile.contents ?? ""
   // what the Thing Explorer labels members by, a file per language its files are in -- see `SP.SpellWords`
@@ -60,6 +63,8 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   const { url, server } = await CLI.serve((path) => {
     if (path === "/") return { text: page(name), type: "text/html; charset=utf-8" }
     if (path === `/app/${name}${SP.COMPILED_JS_SUFFIX}`) return { text: compiled, type: "text/javascript" }
+    if (sourceMap && path === `/app/${name}${SP.COMPILED_JS_SUFFIX}.map`)
+      return { text: sourceMap, type: "application/json" }
     if (path === `/app/${name}${SP.SCOPES_JS_SUFFIX}`) return { text: scopes, type: "text/javascript" }
     if (path === `/app/${name}${SP.DECLARATIONS_JSON_SUFFIX}`) return { text: declarations, type: "application/json" }
     const ownWords = words.get(path)

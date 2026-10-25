@@ -22,7 +22,8 @@ export const languageCommands: LanguageCommands = {
   repl: (args, options) => CLI.replCommand(session(options), args, options),
   explain: (args, options) => CLI.explainCommand(session(options), args, options),
   translate: (args, options) => CLI.translateCommand(session(options), args, options),
-  translateTime: (args, options) => CLI.translateTimeCommand(session(options), args, options)
+  translateTime: (args, options) => CLI.translateTimeCommand(session(options), args, options),
+  spellxConvert: (args, options) => CLI.spellxConvertCommand(session(options), args, options)
 }
 
 /**

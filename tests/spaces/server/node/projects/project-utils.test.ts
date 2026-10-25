@@ -24,11 +24,13 @@ let realFolders: { packagesDir: string; buildDir: string }
 
 /**
  * Built file names of project `Proj`:  each goes in its build folder.
- * - Its declarations and words too, in any language, since epic `elemental-spell` P4.
+ * - Its declarations and words too, in any language, since epic `elemental-spell` P4;  its source maps since P14.
  */
 const BUILT = [
   "Proj.spell.js",
+  "Proj.spell.js.map",
   "Proj.spell.tsx",
+  "Proj.spell.tsx.map",
   "Proj.spell.py",
   "Proj.elements.spell.js",
   "Proj.scopes.js",

@@ -8,6 +8,7 @@ import type { ElementApi, Core } from "spell-parser/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 import { Glides } from "./Glides"
 import { Dragging } from "./Dragging"
+import { ActionMenus } from "./ActionMenus"
 
 // Above the class:  its `elementSetup` reads it while the class is defined
 /**
@@ -142,9 +143,28 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   render(): JSX.Element {
     return (
       <>
+        {this.menuBar}
         {this.drawing}
         {this.dropLine}
       </>
+    )
+  }
+
+  /**
+   * An app's MENU BAR, above its drawing:  the menu its template names, `- its menu bar is "game menu"`
+   * (spellx's `menu-bar=`), as a toolbar of `<ui-action>`s (epic `elemental-spell` P10).
+   * - None for a thing whose template names none, or a program running elsewhere.
+   */
+  private get menuBar(): JSX.Element {
+    const thing = this.currentThing
+    const { entry } = this
+    const items = thing && entry && !entry.core.remote ? entry.core.menuBarOf(thing) : undefined
+    if (!items?.length) return null
+    const name = (thing!.constructor as { menuBar?: string }).menuBar
+    return (
+      <ui-toolbar part="menu-bar" aria-label={name}>
+        {ActionMenus.itemsFor(items)}
+      </ui-toolbar>
     )
   }
 
@@ -262,6 +282,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     this.keepThingAndElementAgreeing()
     this.loadSpellUIFamilies()
     this.numberItems()
+    this.onChildrenDrawn()
     return super.onMount()
   }
 
@@ -756,8 +777,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * elements hears:  once per core, listening on the window (`InputState.listen()`).
    * - The meta key is command on a Mac, control elsewhere:  this page's system says.
    * - As the mouse is still down on a thing, it's sent `mouse still down`.
-   * - Keys go to the thing that has the focus, else the app (Q35 B:  the focus chain for keys):  `key down`
-   *   with the key's name, `- on key down with a key:`.
+   * - Keys go to the thing that has the focus, else the app (Q35 B:  the focus chain for keys):
+   *   - first to the first enabled action whose shortcut it is, up that chain (`ActionMenus.runShortcut()`)
+   *   - else as `key down` with the key's name, `- on key down with a key:`
    */
   private noteInput(event?: Event) {
     const { core } = this.entry ?? {}
@@ -769,6 +791,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     core.input.onStillDown = (thing) => void core.send?.(thing, "mouse-still-down")?.catch(() => {})
     window.addEventListener("keydown", (key) => {
       const focused = SpellElement.focusedThing()
+      // an action's shortcut takes the key first (epic `elemental-spell` P10, Q35 B)
+      if (!core.remote && ActionMenus.runShortcut(core, focused, key, isMac)) return
       void core.send?.(focused, "key-down", { key: key.key.toLowerCase() })?.catch(() => {})
     })
   }
@@ -794,8 +818,13 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     this.runThingHandler(event)
   }
 
+  /** A right click:  the menu its `context-menu=` names, if any (epic `elemental-spell` P10, Q30), and our handler. */
   @E.on("contextmenu")
   protected onThingRightClick(event: MouseEvent) {
+    const { entry } = this
+    if (entry && !entry.core.remote && !event.defaultPrevented) {
+      ActionMenus.showContextMenu(event, this.domElement, this.currentThing, entry.core)
+    }
     this.runThingHandler(event)
   }
 
@@ -940,12 +969,30 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
           E.Warnings.warn(`<${this.domElement.localName}>`, `can't load the Spell UI family of <${tag}>`, error)
         )
       }
+      this.fillActionMenus(shadowRoot)
     }
     loadNew()
     // our SHADOW root:  `@E.watches` watches the light DOM
     const observer = new MutationObserver(loadNew)
     observer.observe(shadowRoot, { childList: true, subtree: true })
     this.domElement.addReleaseCallback(() => observer.disconnect())
+  }
+
+  /**
+   * Each toolbar or menu our drawing names a menu for, `<ui-toolbar menu="GameMenu" />`, gets its actions
+   * (epic `elemental-spell` P10):  `ActionMenus.fill()`.
+   * - An app's drawing is our children (`drawsInItsChildren`):  watched as they change (`@E.watches`).
+   */
+  private fillActionMenus(root: ParentNode) {
+    const { entry } = this
+    if (entry && !entry.core.remote) ActionMenus.fill(root, this.currentThing, entry.core)
+  }
+
+  /** Our children changed:  an app's drawing may have drawn a toolbar naming a menu. */
+  @E.watches({ childList: true, subtree: true })
+  protected onChildrenDrawn() {
+    const { entry } = this
+    if (entry && drawsInItsChildren(entry.Class)) this.fillActionMenus(this.domElement)
   }
 
   /**
