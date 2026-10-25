@@ -1642,7 +1642,7 @@
         "editors"
       ],
       "aka": [],
-      "description": "Does the code editor show line numbers?  Off at first;  its toolbar's \"...\" menu turns them on, and the browser remembers (`LINE_NUMBERS_PREF`).",
+      "description": "Does the code editor show line numbers?",
       "noun": "LineNumbers",
       "attributes": [],
       "slots": [],
@@ -2688,7 +2688,7 @@
         "shell"
       ],
       "aka": [],
-      "description": "One pane of a `<SplitPanel>`:  write one yourself to give a pane its own look, else the panel wraps each child in one.  Its one child fills it (`SplitPanel.css`).",
+      "description": "One pane of a `<SplitPanel>`:  write one yourself to give a pane its own look.",
       "noun": "SplitPane",
       "attributes": [],
       "slots": [],
@@ -2747,7 +2747,7 @@
         "shell"
       ],
       "aka": [],
-      "description": "Lays its `children` out in a row (`columns`) or a column (`rows`) of panes, sized as `columns` / `rows` say; `resizable` puts a bar between each two you drag to resize them.  Look:  `SplitPanel.css`.",
+      "description": "Lays its `children` out in a row (`columns`) or a column (`rows`) of panes, sized as `columns` / `rows` say.",
       "noun": "SplitPanel",
       "attributes": [],
       "slots": [],
@@ -3308,12 +3308,12 @@
         {
           "name": "state",
           "type": "TypeExplorerState",
-          "description": "What to start with, as last remembered -- read once, as it mounts.  Default:  as saved in `localStorage`."
+          "description": "What to start with, as last remembered -- read once, as it mounts.  Default:  the editor's preference."
         },
         {
           "name": "onStateChange",
           "type": "(state: TypeExplorerState) => void",
-          "description": "Something changed:  remember `state` -- instead of in `localStorage`."
+          "description": "Something changed:  remember `state` -- instead of in the editor's preference."
         }
       ],
       "usedIn": [

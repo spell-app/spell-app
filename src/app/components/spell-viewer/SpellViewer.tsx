@@ -103,6 +103,8 @@ const vocabulary = {
  *   until `project`, `src`, `scopes`, `name` or `editor` changes (`pushedKey()`).
  * - Each runs on its own copy of the spell runtime (`spell-runtime.js` beside its script),
  *   so many can run on a page at once.
+ * - A `project`'s app, or code an editor pushed for one, keeps its remembered props from run to run,
+ *   under the project's address (`runCompiled()`);  a `src` app remembers nothing.
  * - A ROOT (`UIRoot`), as `<ui-root>` is, so a page needs nothing around it:
  *   - the Spell UI widgets the runner draws load the first time each appears (`contentRoots`:  in its shadow root)
  *   - so does a spell tag inside it:

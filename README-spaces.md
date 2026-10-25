@@ -541,26 +541,49 @@ one file at a time, keeping every comment.
 - Spaces' own names, `__me.json5` among them, are known by a list, never by the `__` alone:
   so they never list as a project's files, and Python's `__init__.py` still does.
 
-## Preferences:  each person's, in their space
+## Preferences:  each person's, in a file in their space
 
-A preference you set in one browser follows you to another:  the page server keeps it in your space.
-
-```text
-spell.spaces/@spell/owen@/__prefs/spellEditor.json5        the editor's:  { "mode": "debug" ... }
-spell.spaces/@spell/owen@/__prefs/@owen/solitaire.json5    a store named like a project:  a folder and a file
+```ts
+const prefs = new PrefStore("owen@spell/hello", { place: ServerPlace.shared })
+await prefs.save("theme", "dark")
+await prefs.update<number>("games", (games) => (games ?? 0) + 1)
 ```
 
-- One JSON5 file per store, each pref a key of it:  you can read it, and a comment you write in it stays.
-- The kit's pref store asks for them through its server place (`ServerPlace`, [README-util](https://github.com/spell-app/spell/blob/main/README-util.md)),
-  under `/api/prefs`:  load, save, list a prefix's keys, forget a prefix.
+```text
+spell.spaces/@spell/owen@/__prefs/owen@spell/hello.json5
+{
+  "theme": "dark",
+  "games": 1
+}
+```
+
+_A pref store named for your hello project, on the page server's place:
+what it saves lands in your space, as a file you can open._
+
+`localStorage` keeps a preference in one browser, out of sight.
+This keeps it in a file:  every browser that talks to this page server reads the same one,
+and you can read it, change it, or comment it by hand.
+
+- One JSON5 file per store, each pref a key of it:  a comment you write in it stays.
+- A store named like a project is a folder and a file, as above.
+  One named `spellEditor` is just `__prefs/spellEditor.json5`.
+- The kit's pref store reaches it through its server place, `ServerPlace` ([README-util](https://github.com/spell-app/spell/blob/main/README-util.md)),
+  under `/api/prefs`:  load, save, list a prefix's keys, forget a prefix (the routes, above).
 - [SpacePrefs.ts](src/spaces/server/node/prefs/SpacePrefs.ts) keeps them, one change at a time to each file,
   so two saves at once both land.
-- The edges:
-  - Whose:  this machine's person, `owen@spell`, until sign-in.
-    One function says whose (`prefsPersonFor()`, [prefsRoutes.ts](src/spaces/server/node/prefs/prefsRoutes.ts)), and sign-in replaces it.
-  - A store name with a part starting with a dot, an empty part, a colon or a backslash answers 400:
-    nothing reaches outside your `__prefs/`.
-  - Values travel as JSON, so plain data only;  a `Blob` or a file handle stays in the browser's database.
+
+**Real today:**  the server's side, and the place a store asks it through.
+
+**Not yet:**  nothing asks it unless told to.
+- The editor keeps its own preferences in the browser, `spellEditor:mode` and the rest.
+- So does a running app, for the props it remembers, until whatever runs it hands it `ServerPlace.shared`.
+
+The rest of the edges:
+- Whose:  this machine's person, `owen@spell`, until sign-in.
+  One function says whose (`prefsPersonFor()`, [prefsRoutes.ts](src/spaces/server/node/prefs/prefsRoutes.ts)), and sign-in replaces it.
+- A store name with a part starting with a dot, an empty part, a colon or a backslash answers 400:
+  nothing reaches outside your `__prefs/`.
+- Values travel as JSON, so plain data only;  a `Blob` or a file handle stays in the browser's database.
 
 ## 🌱 Coming:  spaces for organizations, sign-in and permissions
 

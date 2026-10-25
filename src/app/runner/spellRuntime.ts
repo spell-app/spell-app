@@ -107,8 +107,9 @@ export function runApp(compiled: string, { appRoot, layout, ...options }: RunApp
 }
 
 /**
- * Run `compiled`'s tests in this copy, as `spell test` does:  load it afresh, which runs the tests it runs itself,
- * then each other `to test ...` it exports -- and answer how each went, and the error message if it threw.
+ * Run `compiled`'s tests in this copy, as `spell test` does:
+ * answers how each went, and the error message if it threw.
+ * - It loads the program afresh, which runs the tests it runs itself;  then each other `to test ...` it exports.
  * - Headless while it loads:  starting its app does nothing, nor does adding its styles, so the page shows nothing of it.
  *   - Its view templates' tags aren't defined either:  the page's `<solitaire-card>`s stay the app's copy's.
  *   - Put back as they were after.

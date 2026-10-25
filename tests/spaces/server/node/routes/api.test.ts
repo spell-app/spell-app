@@ -9,6 +9,8 @@
  *   - an unknown DELETE gets the API's 404
  *   - a `.spell` file is text
  *   - a bad body is JSON, not an HTML error page
+ *   - a caller's mistake a handler throws (`SRV.HttpError`) answers its own status, e.g. a bad pref store's 400,
+ *     not a 500 (epic `prefs-and-undo` P2)
  * - Files are named by URL, as spell names them (`SP.SpellUrls`, epic `people-and-orgs` P15):
  *   - read at `/spaces/<project>/<file>`
  *   - saved by `POST /api/projects/file/<project>/<file>`

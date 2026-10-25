@@ -960,7 +960,7 @@ export type EditorFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelect
 // ## Overloaded helpers (`arguments.length`-sensitive, so plain `function`s rather than arrows)
 ////////////////
 
-/** Get/save last viewed `projectPath` for `projectRootPath`. */
+/** Get/save last viewed `projectPath` for `projectRootPath`:  the editor's pref `spellEditor:<projectRootPath>`. */
 function lastProjectForRoot(projectRootPath: string): string | undefined
 function lastProjectForRoot(projectRootPath: string, projectPath: string): string
 function lastProjectForRoot(projectRootPath: string, projectPath?: string): string | undefined {
@@ -968,7 +968,7 @@ function lastProjectForRoot(projectRootPath: string, projectPath?: string): stri
   return editorPrefs.set(projectRootPath, projectPath)
 }
 
-/** Get/save last viewed full `filePath` for `projectPath`. */
+/** Get/save last viewed full `filePath` for `projectPath`:  the editor's pref `spellEditor:<projectPath>`. */
 function lastFileForProject(projectPath: string): string | undefined
 function lastFileForProject(projectPath: string, filePath: string): string
 function lastFileForProject(projectPath: string, filePath?: string): string | undefined {
@@ -976,7 +976,7 @@ function lastFileForProject(projectPath: string, filePath?: string): string | un
   return editorPrefs.set(projectPath, filePath)
 }
 
-/** Get/save last `selection` for `filePath`. */
+/** Get/save last `selection` for `filePath`:  the editor's pref `spellEditor:<filePath>`. */
 function lastSelectionForFile(filePath: string): UIT.EditorSelection | undefined
 function lastSelectionForFile(filePath: string, selection: UIT.EditorSelection): UIT.EditorSelection
 function lastSelectionForFile(filePath: string, selection?: UIT.EditorSelection): UIT.EditorSelection | undefined {
@@ -1039,8 +1039,9 @@ function dialogs() {
 
 /**
  * URL of the runtime programs run on -- also their `@spell/core`, so it MUST be the one `loadRuntime()` imports.
- * - dev:  vite serves its source, beside this file (`runner/spellRuntime.ts`, outside the app's Vite root `app/`:
- *   wherever vite serves this file from);  a build has it as its own entry, at a FIXED name -- see `vite.config.ts`.
+ * - dev:  vite serves its source, `runner/spellRuntime.ts`, beside this file, wherever vite serves this file from
+ *   (outside the app's Vite root, `app/`)
+ * - a build:  its own entry, at a FIXED name -- see `vite.config.ts`
  * - NOTE: NOT `new URL(..., import.meta.url)`:  vite takes that for an asset to bundle, and inlines it.
  */
 function runtimeUrl(): string {

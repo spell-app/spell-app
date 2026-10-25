@@ -1,10 +1,9 @@
 //----------------------------
 //
-//  API utility functions to `send` various responses conveniently/consistently, on `spell/server`'s
-//  Express-shaped `SRV.Request` / `SRV.Reply` (the app's server was Express until the unified-server plan).
-//
-//  This is mostly generic express/node stuff -- see `project-utils.ts` for the app-specific handlers
-//  that use these.
+//  Helpers that send the API's answers the same way every time:  text, files, JSON and errors.
+//  - On `spell/server`'s Express-shaped `SRV.Request` / `SRV.Reply`
+//    (the app's server was Express until epic `unified-server`).
+//  - Mostly generic:  the app's own handlers, which use these, are in `project-utils.ts`.
 //
 //----------------------------
 import { SRV } from "spell/server"
@@ -20,8 +19,9 @@ import * as fileUtils from "./file-utils"
 ////////////////
 
 /**
- * If `id` passed in is a string which converts EXACTLY to a number, return the number.
- * Otherwise return the string.  Useful for dealing with provisional ids.
+ * `id` as a number when it's a string that converts EXACTLY to one (`"12"`), else `id` as it is.
+ * - Useful for provisional ids.
+ * - `undefined` for none;  throws `TypeError` for anything but a string or a number.
  */
 export function convertNumericId(id: string): number | string | undefined {
   if (id == null) return undefined
@@ -35,10 +35,7 @@ export function convertNumericId(id: string): number | string | undefined {
   throw new TypeError(`convertNumericId(): don't know how to process id: ${id}`)
 }
 
-/**
- * Given an express `request`, return array of id properties.
- * Uses `convertNumericId` to convert to numbers as appropriate.
- */
+/** `request`'s route params named `idProperties`, each a number when it reads as one (`convertNumericId()`). */
 export function getIdParams(request: Request, ...idProperties: string[]) {
   return idProperties.map((property) => convertNumericId(request.params[property]))
 }
@@ -54,10 +51,11 @@ export function queryText(request: Request, name: string): string {
 ////////////////
 
 /**
- * Wrap `await callback(request, response)` in standard API semantics:
- * - if `callback` returns result, return that to the browser as JSON.
- * - if `callback` throws an `SRV.HttpError` (a caller's mistake), answer with its status:  400 for a bad request ...
- * - if `callback` throws anything else, return a 500 server error with the result.
+ * A route handler that answers with what `await callback(request, response)` returns, as JSON.
+ * - Nothing returned (or anything falsy):  `"OK"`.
+ * - `callback` throws an `SRV.HttpError` (a caller's mistake):  its status, e.g. 400 for a bad request.
+ * - `callback` throws anything else:  500.
+ * - An error's body is `sendError()`'s:  its message and stack.
  */
 export function respondWithJSON(callback: (request: Request, response: Response) => Promise<any>) {
   return async function (request: Request, response: Response) {
@@ -97,8 +95,7 @@ type ExtendedSendFileOptions = SRV.SendFileOptions & {
  * Return file at `path` as `response` to `request`.
  * - `SRV.Reply.sendFile()` sets the content type from the extension, unless one is set.
  * - `options.dotfiles`:  `"allow"` serves a file whose name starts with `.` (default:  404).
- * - Sends a 404 if file was not found, unless you set `options.defaultValue` -- then we return
- *   that instead of failing.
+ * - A missing file answers 404, unless `options.defaultValue` is set:  then that's sent instead.
  */
 export async function sendFile(
   response: Response,
@@ -150,8 +147,8 @@ export function sendJSON(response: Response, json: any) {
 
 /**
  * Return contents of a single file at `path` as JSON `response` to `request`.
- * - NOTE: unlike `sendFile()`, does not check `pathExists` first -- a missing file becomes
- *   `SRV.Reply.sendFile()`'s plain 404 rather than our `sendError()` shape.
+ * - NOTE: unlike `sendFile()`, does not check `pathExists` first:
+ *   a missing file becomes `SRV.Reply.sendFile()`'s plain 404, rather than our `sendError()` shape.
  */
 export function sendJSONFile(response: Response, path: string) {
   response.set("Content-Type", "application/json")
@@ -169,10 +166,11 @@ export function isFileOrFolderNotFoundError(error: any): error is Error {
 }
 
 /**
- * Return an error response: sets `statusCode`, logs `error` to console via `fileUtils.logError()`,
- * and sends `{ errors: [{ message, trace }] }` as the body.
- * - `trace` is `error.stack`, so this LEAKS server stack traces to client -- fine for a local dev
- *   tool, would need locking down before any untrusted-network exposure.
+ * Answer with an error:  status `statusCode`, body `{ errors: [{ message, trace }] }`.
+ * - Logs `error` to the console too (`fileUtils.logError()`).
+ * - `trace` is `error.stack`, so this LEAKS server stack traces to the client:
+ *   fine for a local dev tool, but it needs locking down before any untrusted network can reach it.
+ * - throws `TypeError` without both a `statusCode` and an `error`
  */
 export function sendError(
   response: Response,

@@ -320,7 +320,10 @@ export type SpellAppRunnerProps = {
 export type SpellAppSource = {
   /** Name for the toolbar, e.g. `Solitaire`. */
   name: string
-  /** Its project, e.g. `@spell/examples/solitaire`:  what its remembered props are kept under (`runCompiled()`). */
+  /**
+   * Its project, e.g. `@spell/examples/solitaire`:  what its remembered props are kept under (`runCompiled()`).
+   * - None:  nothing's remembered.
+   */
   projectId?: string
   /**
    * URL of its compiled javascript.

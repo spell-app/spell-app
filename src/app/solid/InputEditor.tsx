@@ -69,8 +69,8 @@ export function InputToolbar() {
 
 /****************
  * ### `LineNumbers`
- * Does the code editor show line numbers?  Off at first;  its toolbar's "..." menu turns them on,
- * and the browser remembers (`LINE_NUMBERS_PREF`).
+ * Does the code editor show line numbers?
+ * - Off at first;  its toolbar's "..." menu turns them on, and the browser remembers (`spellEditor:lineNumbers`).
  ****************/
 export class LineNumbers {
   /** Are they showing (reactive)? */
@@ -104,10 +104,10 @@ const [areShowing, setShowing] = createSignal(editorPrefs.get(LINE_NUMBERS_PREF)
  * The Monaco source editor on `editor.file`, guarded by an `<ErrorBoundary>`.
  * - `<FileEditor>` -- Monaco, loaded on first use (see `LazyMonaco`) -- remade per file:  keyed by its path.
  * - `editor.onInputDidMount()` wires save/reload/compile keys, and cursor/scroll events back into `editor`.
- * - `editor.onInputEffect()` (scroll to and select `file.initialSelection`) runs once the editor's made, and again
- *   whenever `editor.file`, its `isLoaded` or its `initialSelection` change.
- * - On an error:  `showError()` is told, and a plain-text `<FallbackEditor>` takes over.  It heals by itself when
- *   what threw changes (see `<ErrorBoundary>`).
+ * - `editor.onInputEffect()` (scroll to and select `file.initialSelection`) runs once the editor's made,
+ *   and again whenever `editor.file`, its `isLoaded` or its `initialSelection` change.
+ * - On an error:  `showError()` is told, and a plain-text `<FallbackEditor>` takes over.
+ *   It heals by itself when what threw changes (see `<ErrorBoundary>`).
  * - NOTE: React's `match` prop (never passed, it reset the error on change) is gone:  the boundary heals itself.
  * - SEE:  its App UI components page, `app/docs/InputEditor.html` (`/components/app/InputEditor.html`).
  ****************/
@@ -147,9 +147,9 @@ function FileInputEditor() {
 
 /****************
  * ### `<FallbackEditor>`
- * `<InputEditor>`'s editor after a caught error:  plain text, NO spell colouring, in case colouring is what
- * threw -- re-attaching it would just throw again.  It has no model, so edits go in through
- * `editor.onInputChanged()`.
+ * `<InputEditor>`'s editor after a caught error:  plain text, NO spell colouring.
+ * - In case colouring is what threw:  re-attaching it would just throw again.
+ * - It has no model, so edits go in through `editor.onInputChanged()`.
  ****************/
 function FallbackEditor() {
   const contents = tracked(() => editor.file?.contents ?? "Loading")
@@ -180,8 +180,8 @@ function didMount(inputEditor: monaco.editor.IStandaloneCodeEditor, api: typeof 
 }
 
 /**
- * Call `editor.onInputEffect()` whenever `editor.file`, its `isLoaded` or its `initialSelection` change, to
- * scroll to and select that.
+ * Scroll to and select `file.initialSelection` (`editor.onInputEffect()`)
+ * whenever `editor.file`, its `isLoaded` or its `initialSelection` change.
  * - Call in a component body:  the effect and its `tracked()` go with the component.
  * - React ran it after every render, i.e. when `editor.file` changed;  this also catches the file loading later.
  */

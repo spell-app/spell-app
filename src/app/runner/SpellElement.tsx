@@ -83,6 +83,8 @@ const STATES_CSS = `
  *     - the page's change is written to the thing
  *     - the thing's change is written to the element's attribute, so the inspector shows it
  *     - see `keepThingAndElementAgreeing()`
+ *   - a property left unset shows no attribute, as an HTML element's doesn't, though it reads as its default
+ *     (epic `prefs-and-undo` P7):  see `shownValueOf()`
  *   - each method of its type is a method:  `card.turnOver()` calls its thing's `turn_over()`
  *   - a property holding a thing shows as the thing's reference, and follows it (P18):
  *     `<solitaire-card pile="Tableau#T1">`
@@ -949,7 +951,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * `thing`'s value of `property`, as its element shows it:
    * its own value, or for a property holding a thing, the thing's reference, e.g. `"Tableau#T1"` (P18).
    * - Reads the thing's property:  a reader follows it.
-   * - Unset, with only its type's default (`""`, `0`, its first choice):  nothing, so no attribute.
+   * - Unset, reading only its implied default (its first choice, else `""`, `0`, `false`):  nothing, so no attribute.
+   *   - Except a getter with no setter (`isReadOnly()`):  the program's own value shows, whatever it equals.
    */
   private shownValueOf(property: TypeProperty, thing: object): unknown {
     const value = (thing as Record<string, unknown>)[property.name]

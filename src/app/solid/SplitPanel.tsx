@@ -8,24 +8,25 @@ import "./SplitPanel.css"
 
 /****************
  * ### `<SplitPanel>`
- * Lays its `children` out in a row (`columns`) or a column (`rows`) of panes, sized as `columns` / `rows` say;
- * `resizable` puts a bar between each two you drag to resize them.  Look:  `SplitPanel.css`.
+ * Lays its `children` out in a row (`columns`) or a column (`rows`) of panes, sized as `columns` / `rows` say.
+ * - `resizable` puts a bar between each two, which you drag to resize them.
+ * - Its look:  `SplitPanel.css`.
  * - Sizes, as EITHER `rows` or `columns`:
  *   - `true`:  every pane the same size
  *   - an array, e.g. `["20%", "20%", "*", 100]`, or a string, e.g. `"30%,2em"`
  *   - a number, or `px` / `em` / `rem`:  a fixed size
  *   - `%`:  that share of the space the fixed panes leave
- *   - `*`, or missing:  an equal share of the percent left, e.g. `"80%"` ~== `"80%,20%"` for two panes,
- *     `"*,*,200px"` ~== `"50%,50%,200px"`
+ *   - `*`, or missing:  an equal share of the percent left
+ *     - e.g. `"80%"` ~== `"80%,20%"` for two panes, `"*,*,200px"` ~== `"50%,50%,200px"`
  * - A child that draws nothing (a `<Show>` that's off) is no pane:  e.g. the run page's console, while hidden.
- * - Each child becomes a pane:  wrapped in a `<SplitPane>` with the panel's `bordered`, `padded`, `light`,
- *   `rounded` and `scrolling`.  A child that IS a `<SplitPane>` (its own look) or a nested `<SplitPanel>` is a pane
- *   as it is.
- *   - NOTE: one pane per DOM node the children draw:  a child component drawing two top-level nodes makes two
- *     panes.  The editor's panes each draw one `<div>`.
+ * - Each child becomes a pane:
+ *   wrapped in a `<SplitPane>` with the panel's `bordered`, `padded`, `light`, `rounded` and `scrolling`.
+ *   - A child that IS a `<SplitPane>` (its own look) or a nested `<SplitPanel>` is a pane as it is.
+ *   - NOTE: one pane per DOM node the children draw:
+ *     a child component drawing two top-level nodes makes two panes.  The editor's panes each draw one `<div>`.
  * - `spaced`:  room around the panes, and a spacer between them unless `resizable`.
- * - With an `id`, a resizable panel remembers its sizes as a preference under that id (`editorPrefs`):
- *   make it unique in the app.
+ * - With an `id`, a resizable panel remembers its sizes as the editor's preference `spellEditor:<id>`:
+ *   make the id unique in the app.
  * - Sizes are applied as each pane's inline `flex`, NOT drawn by Solid:  a drag rewrites them on every mouse move.
  * - SEE:  its App UI components page, `app/docs/SplitPanel.html` (`/components/app/SplitPanel.html`).
  ****************/
@@ -124,8 +125,8 @@ export function SplitPanel(props: SplitPanelProps) {
 
   /**
    * A sizer's `mousedown`:  measure the two panes it sits between, then follow the mouse until it's let go.
-   * - Measures ONCE, here:  `getBoundingClientRect()` is too slow for every mouse move.  So scrolling the page
-   *   mid-drag would throw it off.
+   * - Measures ONCE, here:  `getBoundingClientRect()` is too slow for every mouse move.
+   *   So scrolling the page mid-drag would throw it off.
    */
   function startDragging(event: MouseEvent, pane1: number, pane2: number) {
     try {
@@ -233,8 +234,9 @@ const PANEL_PROPS = [
 
 /****************
  * ### `<SplitPane>`
- * One pane of a `<SplitPanel>`:  write one yourself to give a pane its own look, else the panel wraps each child
- * in one.  Its one child fills it (`SplitPanel.css`).
+ * One pane of a `<SplitPanel>`:  write one yourself to give a pane its own look.
+ * - Else the panel wraps each child in one.
+ * - Its one child fills it (`SplitPanel.css`).
  ****************/
 export function SplitPane(props: SplitPaneProps) {
   return (
@@ -308,8 +310,8 @@ export type PanelSize = {
 const NUM_WITH_UNITS = /^([0-9]*\.?[0-9]+)(px|em|rem|%)?$/
 
 /**
- * One `PanelSize` per pane from `spec` (`columns` / `rows`, or a stored preference):  cut or padded to `count`,
- * a missing or unreadable entry counting as `*`.
+ * One `PanelSize` per pane from `spec` (`columns` / `rows`, or a stored preference).
+ * - Cut or padded to `count`:  a missing or unreadable entry counts as `*`.
  * - `*` entries share the percent the `%` entries leave, equally (at least 1% each).
  */
 export function normalizeSizes(spec: unknown, count: number): PanelSize[] {

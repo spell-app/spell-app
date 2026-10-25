@@ -87,8 +87,8 @@ export function SpellEditor(props: { mode: Mode }) {
 
 /****************
  * ### `<AppPane>`
- * The running program, under a header:  the project's group icon and its title;  at the right, the Inspector's
- * button and Restart.
+ * The running program, under a header:  the project's group icon and its title;
+ * at the right, the Inspector's button and Restart.
  * - The program's mount point (`<AppRoot>`) is drawn once, and never redrawn.
  * - Its body is the area the Inspector picks parts in (`Inspector.watch()`).
  * - Shown in every mode, Run's too:  the page keeps it as the code column comes and goes.
@@ -123,7 +123,7 @@ export function AppPane() {
  * - Sentence Tree:  the spell tree of the cursor's line (`<TreeRoot>`).
  * - At the right, whatever tab shows:  Clear Console, on Program Output only, and Close (`onClose`).
  * - Types and Things follow each compile:  `editor.compileApp()` works out a new tree, and runs the program.
- * - Remembers which tab shows, as a preference (`TAB_PREF`).
+ * - Remembers which tab shows, as the editor's preference `spellEditor:programTab`.
  * - Switching tabs loses neither explorer's state, while the page is up:
  *   the Types tab keeps its own, and the Things tab's is kept here (`thingsState`).
  ****************/

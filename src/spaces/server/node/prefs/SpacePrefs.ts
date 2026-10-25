@@ -4,17 +4,18 @@ import { editJSON5, readJSON5 } from "spell-app/spaces/server/node/storage/json5
 
 /****************
  * ### `SpacePrefs`
- * Each person's preferences, kept in their own space:  how the page server answers the kit's `ServerPlace`
- * (epic `prefs-and-undo` P2).
+ * Each person's preferences, kept in their own space (epic `prefs-and-undo` P2).
+ * - It's what the page server answers the kit's `ServerPlace` with:  a pref store's place on the server.
  * - One JSON5 file per store, in the person's `__prefs/` folder:
  *   - `@spell/owen@/__prefs/spellEditor.json5`
  *   - a store named like a project is a folder and a file:  `@spell/owen@/__prefs/@owen/solitaire.json5`
- * - Each of the store's keys is a key of its file, its value as JSON5:  a person can read the file, and their
- *   comments in it stay (spaces' JSON5 writer).
+ * - Each of the store's keys is a key of its file, its value as JSON5:
+ *   a person can read the file, and their comments in it stay (spaces' JSON5 writer).
  * - Through `SpaceStorage`, so it works on whatever storage spaces get (the disk's today).
  * - One change at a time to each file, in this server:  two saves at once never lose one.
- * - throws `SRV.HttpError(400)` for a store name that would reach outside the person's `__prefs/`, or a key that
- *   can't be one;  `SyntaxError` for a file a person broke by hand.
+ * - throws:
+ *   - `SRV.HttpError(400)`:  a store name that would reach outside the person's `__prefs/`, or a key that can't be one
+ *   - `SyntaxError`:  a file a person broke by hand
  * - Knows nothing of HTTP's requests:  its routes are `prefsRoutes.ts`.
  ****************/
 export class SpacePrefs {
@@ -56,7 +57,8 @@ export class SpacePrefs {
 
   /**
    * The file `person`'s `store` is kept in, under spell-spaces:  `@spell/owen@/__prefs/spellEditor.json5`.
-   * - throws `SRV.HttpError(400)` for a name that isn't a store's:  empty, a colon, a part starting with a dot
+   * - throws `SRV.HttpError(400)` for a name that isn't a store's:
+   *   empty, a colon or a backslash, a part that's empty or starts with a dot
    */
   fileFor(person: PrefPerson, store: string): string {
     if (!STORE_NAME.test(store)) {
@@ -74,7 +76,10 @@ export class SpacePrefs {
     return readJSON5<PrefValues>(this.storage, this.fileFor(person, store))
   }
 
-  /** `change` `person`'s values of `store` in place, and write its file back, comments kept;  one at a time per file. */
+  /**
+   * `change` `person`'s values of `store` in place, and write its file back, comments kept.
+   * - One at a time per file:  each edit waits for the one before it, failed or not.
+   */
   private edit(person: PrefPerson, store: string, change: (values: PrefValues) => void): Promise<PrefValues> {
     const file = this.fileFor(person, store)
     const before = this.editing.get(file) ?? Promise.resolve()
