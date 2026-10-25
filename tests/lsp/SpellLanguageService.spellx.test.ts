@@ -127,6 +127,73 @@ describe("SpellLanguageService, spellx", () => {
 })
 
 /**
+ * A `.spellx` file its project imports directly, with no `.spell` copy beside it (epic `elemental-spell` C51):
+ * everything VS Code asks for works on it, at positions in its own text.
+ */
+describe("SpellLanguageService, a spellx file its project imports", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-spellx-import-"))
+  const folder = resolve(dir, "Tiles")
+  mkdirSync(folder)
+  const tileText = readFileSync(resolve(PAIRS, "FlipTile.spellx"), "utf8")
+  writeFileSync(resolve(folder, "FlipTile.spellx"), tileText)
+  writeFileSync(resolve(folder, SP.PROJECT_FILE), `{ imports: [{ path: "/FlipTile.spellx", active: true }] }\n`)
+  const uri = pathToFileURL(resolve(folder, "FlipTile.spellx")).href
+  const workspace = new SpellDiskWorkspace()
+  const service = new LSP.SpellLanguageService(workspace)
+  const lines = tileText.split("\n")
+  // a line no spell reads, in place of the action's `set its side to down`
+  const setLine = lines.findIndex((line) => line === "\t\t\tset its side to down")
+  const typoText = tileText.replace("\t\t\tset its side to down\n", "\t\t\tfrobnicate the side wildly\n")
+  let tile: SP.SpellFile
+
+  beforeAll(async () => {
+    await workspace.update(uri, typoText)
+    tile = workspace.fileFor(uri)!
+  })
+
+  test("a typo's error lands on its own line", () => {
+    expect(tile.form).toBe("spellx")
+    expect(service.diagnostics(tile).map((it) => it.range.start.line)).toContain(setLine)
+  })
+
+  test("hover on a tag reads as its code spell", () => {
+    const line = lines.findIndex((it) => it.includes('<property "side"'))
+    const hover = service.hover(tile, { line, character: lines[line]!.indexOf("<property") })
+    expect(JSON.stringify(hover?.contents)).toContain("a flip tile has a side as one of up, down")
+  })
+
+  test("its semantic tokens come back", () => {
+    const { data } = service.semanticTokens(tile) as SemanticTokens
+    expect(data.length).toBeGreaterThan(0)
+  })
+
+  test("go-to-definition from a body line lands on the tag that declares it", async () => {
+    await workspace.update(uri, tileText)
+    try {
+      const file = workspace.fileFor(uri)!
+      const at = { line: setLine, character: lines[setLine]!.indexOf("side") }
+      const found = service.definition(file, at)
+      expect(found.map((it) => [it.uri, it.range.start.line])).toEqual([
+        [uri, lines.findIndex((it) => it.includes('<property "side"'))]
+      ])
+    } finally {
+      await workspace.update(uri, typoText)
+    }
+  })
+
+  test("completion inside an action offers statements", async () => {
+    await workspace.update(uri, tileText)
+    try {
+      const file = workspace.fileFor(uri)!
+      const { items } = service.completion(file, { line: setLine, character: 3 })
+      expect(items.length).toBeGreaterThan(0)
+    } finally {
+      await workspace.update(uri, typoText)
+    }
+  })
+})
+
+/**
  * A SPANISH spellx file (`Ficha.es.spellx`, spell-parser's pair fixture), typed without its accents:
  * its tags' and attributes' words are upgraded as you type, as Spanish code spell's keywords are (Q49).
  */
