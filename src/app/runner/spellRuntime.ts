@@ -114,6 +114,7 @@ export function runApp(compiled: string, { appRoot, layout, ...options }: RunApp
  *   - Put back as they were after.
  * - MUST be a copy of its own, never the one an app runs in (the VS Code runner's Run Tests):
  *   loading afresh takes down that copy's app, and clears its things and console.
+ * - Remembers nothing, whatever `options.projectId` says:  a test mustn't change what a person's runs remember.
  * - NEVER throws:  a test that throws fails.
  */
 export async function testApp(compiled: string, options: RunCompiledOptions): Promise<TestRun> {
@@ -124,7 +125,7 @@ export async function testApp(compiled: string, options: RunCompiledOptions): Pr
   core.elementDefiner = undefined
   core.appRoot = document.createElement("div")
   try {
-    const problem = await runCompiled(compiled, { ...options, keepThings: false, runTests: true })
+    const problem = await runCompiled(compiled, { ...options, projectId: undefined, keepThings: false, runTests: true })
     // a view class tells the definer a microtask after it's declared:  let that pass, with none, first
     await new Promise((resolve) => setTimeout(resolve))
     return { problem, results: core.testResults() }

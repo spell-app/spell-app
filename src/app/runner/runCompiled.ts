@@ -27,6 +27,7 @@ import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "spell-parser/cor
  *   once per run, however many import it, deepest first.
  *   Without `loadImport`, a project which imports another won't run.
  * - `runTests`:  then the tests it didn't run itself, as `spell test` does.
+ * - `projectId`:  its remembered props come back from its last run, read before it starts (`core.remember()`).
  * - SIDE EFFECT:  hands its top-level things to `core.things`, for the Thing Explorer --
  *   NOT those of the projects it imports.
  *   Its classes AND theirs too, so `core.fromJSON()` finds them by name.
@@ -56,6 +57,8 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
   const linked = new Map<string, Promise<string>>()
   const urls: string[] = []
   try {
+    // before it's imported:  importing it starts its app, which may read them
+    if (options.projectId) await core.remember(options.projectId)
     // NOTE: the URL first, THEN `import()` it:  vite wraps `import(...)` in an arrow for its preloading,
     // so an `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
@@ -127,6 +130,12 @@ export type RunCompiledOptions = {
   coreUrl: string
   /** Compiled javascript of project `projectId`, which the program imports. */
   loadImport?: (projectId: string) => Promise<string>
+  /**
+   * The program's project, e.g. `@spell/examples/solitaire`:  what its remembered props are kept under, in the
+   * browser's storage, from run to run (epic `prefs-and-undo` P8).
+   * - None:  nothing's remembered.
+   */
+  projectId?: string
   /** Keep what's on the console, e.g. the app's own "Compiling ..." lines, above the program's. */
   keepConsole?: boolean
   /**

@@ -320,6 +320,8 @@ export type SpellAppRunnerProps = {
 export type SpellAppSource = {
   /** Name for the toolbar, e.g. `Solitaire`. */
   name: string
+  /** Its project, e.g. `@spell/examples/solitaire`:  what its remembered props are kept under (`runCompiled()`). */
+  projectId?: string
   /**
    * URL of its compiled javascript.
    * - NOT fetched while `compiled` is set.  Still required:  every source has one, as a project's is its server's.
@@ -432,6 +434,7 @@ async function runProgram(
       layout,
       keepThings,
       messages,
+      projectId: source.projectId,
       coreUrl: copy.coreUrl,
       loadImport: async (projectId) => {
         const imported = await fetchText(source.importUrl(projectId))
