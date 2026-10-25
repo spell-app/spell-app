@@ -1,0 +1,79 @@
+/* `<SpellxNotebook>` (`SpellxNotebook.tsx`):  a `.spellx` file as cards down the page, with its prose between them. */
+
+.SpellxNotebook {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 12px 16px 40vh;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* a template's members sit one step in from it */
+.NotebookCard:not(.template),
+.NotebookProse {
+  margin-inline-start: 16px;
+}
+
+.NotebookProse {
+  color: var(--spell-text-muted, inherit);
+  font-size: 0.95em;
+}
+
+.NotebookCard {
+  border: 1px solid var(--spell-border, rgb(127 127 127 / 30%));
+  border-radius: 6px;
+  background: var(--spell-view-background);
+}
+
+.NotebookCard.template {
+  border-width: 2px;
+}
+
+.NotebookCardHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  min-height: 32px;
+}
+
+.NotebookCardTitle {
+  flex: 1 1 auto;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.NotebookCardTools {
+  display: flex;
+  gap: 4px;
+}
+
+.NotebookCode {
+  border-top: 1px solid var(--spell-border, rgb(127 127 127 / 30%));
+  position: relative;
+}
+
+.NotebookCodeLoading {
+  margin: 0;
+  padding: 6px 8px;
+  font-family: var(--spell-code-font, monospace);
+  white-space: pre;
+  overflow: hidden;
+}
+
+.NotebookProperty {
+  border-top: 1px solid var(--spell-border, rgb(127 127 127 / 30%));
+  padding: 8px 12px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.NotebookProperty ui-field {
+  display: grid;
+  gap: 4px;
+}

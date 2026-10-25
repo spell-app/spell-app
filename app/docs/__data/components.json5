@@ -1632,6 +1632,27 @@
       "href": "InputEditor.html#InputToolbar"
     },
     {
+      "tag": "InputView",
+      "name": "InputView",
+      "folder": "InputEditor",
+      "mainTag": "InputEditor",
+      "main": false,
+      "page": false,
+      "topics": [
+        "editors"
+      ],
+      "aka": [],
+      "description": "How `<InputRoot>` shows a `.spellx` file:  as text, or as a notebook (`<SpellxNotebook>`).",
+      "noun": "InputView",
+      "attributes": [],
+      "slots": [],
+      "events": [],
+      "parts": [],
+      "states": [],
+      "texts": [],
+      "href": "InputEditor.html#InputView"
+    },
+    {
       "tag": "LineNumbers",
       "name": "LineNumbers",
       "folder": "InputEditor",
@@ -1694,6 +1715,10 @@
         {
           "name": "Description",
           "file": "src/app/solid/ScopeDetailsPane.tsx"
+        },
+        {
+          "name": "SpellxNotebook",
+          "file": "src/app/solid/SpellxNotebook.tsx"
         }
       ],
       "href": "Markdown.html"
@@ -1801,6 +1826,10 @@
         }
       ],
       "usedIn": [
+        {
+          "name": "CellCode",
+          "file": "src/app/solid/SpellxNotebook.tsx"
+        },
         {
           "name": "FallbackEditor",
           "file": "src/app/solid/InputEditor.tsx"
@@ -3557,6 +3586,7 @@
         "InputEditor",
         "InputRoot",
         "InputToolbar",
+        "InputView",
         "LineNumbers"
       ],
       "tokens": []
