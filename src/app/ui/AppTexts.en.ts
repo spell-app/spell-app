@@ -70,7 +70,7 @@ export const APP_TEXTS = {
 
   appMenu: "App",
   javascriptOutput: "Javascript Output",
-  programOutput: "Program Output",
+  programOutput: "Output",
   spellTree: "Spell Tree",
   spellTreeHint: "Put the cursor on a line to see its spell tree.",
   loadingEditor: "Loading editor…",
@@ -218,7 +218,7 @@ export const APP_TEXTS = {
   thingsInOrderMade: "In the order they were made",
   thingsByType: "By template, sub-templates included",
   // the Program panel's tabs (`<ProgramPanel>`)
-  outputTab: "Program Output",
+  outputTab: "Output",
   typescriptTab: "TypeScript",
   pythonTab: "Python",
   // a .spellx file's code spell, the text it reads as (epic `elemental-spell` P8)
@@ -270,7 +270,7 @@ export const APP_TEXTS = {
   thingsTab: "Things",
   typesTab: "Templates",
   javascriptTab: "JavaScript",
-  treeTab: "Sentence Tree",
+  treeTab: "Sentence",
 
   ////////////////
   // ## The runners (`SpellAppRunner.tsx`, `VSCodeRunner.tsx`)

@@ -116,11 +116,11 @@ export function AppPane() {
 /****************
  * ### `<ProgramPanel>`
  * Debug's panel under the code:  one pane of tabs (`<RunnerPane>`), as VS Code's runner panel has.
- * - Program Output:  what the program logged, and how compiling and running it went (`<ConsoleViewer>`).
+ * - Output:  what the program logged, and how compiling and running it went (`<ConsoleViewer>`).
  * - JavaScript:  the compiled code (`<OutputRoot>`);  TypeScript and Python:  the project as those targets write it.
  * - Code Spell:  the code spell a `.spellx` file means (`SX.CodeSpellWriter`;  epic `elemental-spell` P8).
- * - Sentence Tree:  the spell tree of the cursor's line (`<TreeRoot>`).
- * - At the right, whatever tab shows:  Clear Console, on Program Output only, and Close (`onClose`).
+ * - Sentence:  the spell tree of the cursor's line (`<TreeRoot>`).
+ * - At the right, whatever tab shows:  Clear Console, on Output only, and Close (`onClose`).
  * - Remembers which tab shows, as the editor's preference `spellEditor:programTab`.
  * - Things and Types (Templates) are the Inspector's now, in its Views card (`<InspectorViews>`):
  *   a tab remembered from before shows Program Output.

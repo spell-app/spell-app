@@ -729,7 +729,7 @@ if (!core.isCarryingOver) testMath()
     "expect-failed": "Inesperado: {what} debería ser {expected} pero en realidad es {actual}"
   } }`
 
-  test("a project with no app runs its tests by itself:  how they went in Program Output, and to the extension", async () => {
+  test("a project with no app runs its tests by itself:  how they went in Output, and to the extension", async () => {
     const { posted } = await mountVSCode()
     tellRunner({ type: "run", compiled: TESTS_ONLY, words: [SPANISH_WORDS] })
     const sent = await waitFor(() => posted.find((message) => message.type === "testResults"))
