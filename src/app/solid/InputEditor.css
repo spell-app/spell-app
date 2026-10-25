@@ -12,3 +12,8 @@
   flex: 1 1 auto;
   overflow: hidden;
 }
+
+/* the Text | Notebook switch, for a `.spellx` file */
+.InputViewSwitch {
+  margin-inline-end: 8px;
+}

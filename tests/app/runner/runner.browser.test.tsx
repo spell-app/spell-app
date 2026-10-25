@@ -890,9 +890,9 @@ describe("<spell-viewer>", () => {
     await waitFor(() => root.querySelector("button.count"))
   })
 
-  test("Type Explorer links go out as `spell-open`", async () => {
+  test("Type Explorer links go out as `spell-exploring`", async () => {
     const app = await mountApp(`<spell-viewer></spell-viewer>`)
-    expect(app.component!.elementDefinition.event("spell-open")).toBe("spell-open")
+    expect(app.component!.elementDefinition.event("spell-exploring")).toBe("spell-exploring")
   })
 })
 

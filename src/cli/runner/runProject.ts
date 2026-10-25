@@ -117,6 +117,8 @@ function report({ name, passed, checks, output, threw }: TestResult) {
 
 /** Import the project's compiled javascript, running it -- or print why it threw, and return `undefined`. */
 async function load(): Promise<Record<string, unknown> | undefined> {
+  // a stack names the spell lines, through the source map beside the compiled file (epic `elemental-spell` P14)
+  process.setSourceMapsEnabled(true)
   try {
     return (await import(spec.entry)) as Record<string, unknown>
   } catch (error) {

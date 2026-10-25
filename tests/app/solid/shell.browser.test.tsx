@@ -223,7 +223,7 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
       ["@spell/examples/Solitaire", "Solitaire", "app store ios"]
     ])
 
-    dropdown.dispatchEvent(new CustomEvent("ui-change", { detail: { value: "@spell/examples/Solitaire" } }))
+    dropdown.dispatchEvent(new CustomEvent("ui-changed", { detail: { value: "@spell/examples/Solitaire" } }))
     expect(showRunner).toHaveBeenCalledWith("@spell/examples/Solitaire")
     // still showing `editor.project` until it changes
     expect(dropdown.value).toBe("@spell/examples/TaskList")

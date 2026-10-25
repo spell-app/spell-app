@@ -118,6 +118,7 @@ export function AppPane() {
  * Debug's panel under the code:  one pane of tabs (`<RunnerPane>`), as VS Code's runner panel has.
  * - Output:  what the program logged, and how compiling and running it went (`<ConsoleViewer>`).
  * - JavaScript:  the compiled code (`<OutputRoot>`);  TypeScript and Python:  the project as those targets write it.
+ * - Code Spell:  the code spell a `.spellx` file means (`SX.CodeSpellWriter`;  epic `elemental-spell` P8).
  * - Sentence:  the spell tree of the cursor's line (`<TreeRoot>`).
  * - At the right, whatever tab shows:  Clear Console, on Output only, and Close (`onClose`).
  * - Remembers which tab shows, as the editor's preference `spellEditor:programTab`.
@@ -164,6 +165,9 @@ export function ProgramPanel(props: { onClose: () => void }) {
         <Match when={tab() === "python"}>
           <OutputEditor showError={editor.showError} target="py" />
         </Match>
+        <Match when={tab() === "spell"}>
+          <OutputEditor showError={editor.showError} target="spell" />
+        </Match>
         <Match when={tab() === "tree"}>
           <TreeRoot showToolbar={false} />
         </Match>
@@ -190,7 +194,7 @@ function columnsFor(isRunning: boolean, isInspecting: boolean): { id: string; co
 }
 
 /** Tabs of `<ProgramPanel>`, in order. */
-const PROGRAM_TABS = ["output", "javascript", "typescript", "python", "tree"] as const
+const PROGRAM_TABS = ["output", "javascript", "typescript", "python", "spell", "tree"] as const
 /** One of `<ProgramPanel>`'s tabs. */
 type ProgramTabId = (typeof PROGRAM_TABS)[number]
 /** Icon of each tab (Fomantic's names, else Font Awesome's), and its title's key. */
@@ -199,6 +203,7 @@ const TAB_LOOKS: Record<ProgramTabId, { icon: string; text: AppTextKey }> = {
   javascript: { icon: "js", text: "javascriptTab" },
   typescript: { icon: "code", text: "typescriptTab" },
   python: { icon: "python", text: "pythonTab" },
+  spell: { icon: "file alternate outline", text: "codeSpellTab" },
   tree: { icon: "tree", text: "treeTab" }
 }
 /** The preference that remembers which tab `<ProgramPanel>` shows. */

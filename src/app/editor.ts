@@ -415,7 +415,8 @@ export class EditorStore extends Observable {
       keepThings,
       loadImport: fetchCompiled,
       messages: lang ? SP.SpellWords.messagesFor(lang) : undefined,
-      projectId: project.projectId
+      projectId: project.projectId,
+      sourceMap: project.sourceMapFileFor(SP.targetFor(SP.RUNNING_TARGET)).contents ?? undefined
     })
     output.groupEnd()
     if (error) output.error(appTexts.text("consoleFailed", words), error)
@@ -864,7 +865,8 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * The user edited `inputEditor`'s text to `value`, in `<InputEditor>`'s fallback editor, which has no model.
+   * The user edited the file's text to `value` somewhere with no Monaco model:
+   *   `<InputEditor>`'s fallback editor, or a `.spellx` file's notebook (`<SpellxNotebook>`).
    * - The normal editor's edits go through `SpellModels` instead -- see `onFileEdited()`.
    */
   onInputChanged(value: string): void {

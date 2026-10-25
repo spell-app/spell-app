@@ -433,6 +433,7 @@ async function runProgram(
     const text = source.compiled ?? (await fetchText(source.compiledUrl))
     compiled.set(MAIN_PROJECT, text)
     const error = await copy.runtime.runApp(text, {
+      sourceMap: source.compiled === undefined ? await sourceMapOf(text, source.compiledUrl) : undefined,
       appRoot,
       layout,
       keepThings,
@@ -449,6 +450,18 @@ async function runProgram(
   } catch (problem) {
     return { error: messageOf(problem), hasApp: false, compiled }
   }
+}
+
+/**
+ * The source map compiled javascript `text`, fetched from `url`, names on its last line (epic `elemental-spell` P14):
+ * `//# sourceMappingURL=Solitaire.spell.js.map`, beside it.
+ * - Fetched here because the program runs from a `blob:` URL, which can't reach it:  `runCompiled()` inlines it.
+ * - NEVER throws:  `undefined` when it names none, or it isn't there.
+ */
+async function sourceMapOf(text: string, url: string): Promise<string | undefined> {
+  const file = /\n\/\/# sourceMappingURL=([^\s]+)\s*$/.exec(text)?.[1]
+  if (!file || file.startsWith("data:")) return undefined
+  return fetchText(new URL(file, new URL(url, document.baseURI)).href).catch(() => undefined)
 }
 
 /**

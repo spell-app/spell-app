@@ -42,7 +42,7 @@ export function FileDropdown(props: FileDropdownProps) {
         class="FileDropdown"
         loading={!state().ready}
         value={state().path}
-        ref={on<{ value: string }>("ui-change", choose)}
+        ref={on<{ value: string }>("ui-changed", choose)}
       >
         <span slot="trigger" class="FileDropdownTrigger">
           <ui-icon name={FILE_ICON} />
@@ -79,7 +79,7 @@ export type FileDropdownProps = {
 }
 
 /**
- * The dropdown's `ui-change`:  click the item chosen -- a file's opens it, an action's runs it.
+ * The dropdown's `ui-changed`:  click the item chosen -- a file's opens it, an action's runs it.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.file`'s DURING the event, so the dropdown keeps ours:
  *   the host decides (`requestChange()` on a `@controlled` member, the kit's `element/src/Reactive.ts`).
  * - Opening the file then moves it on.

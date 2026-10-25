@@ -35,7 +35,7 @@ export function ErrorDisplay(props: ErrorDisplayProps) {
           id={props.id}
           class={props.class}
           style={props.style}
-          ref={on("ui-dismiss", dismiss)}
+          ref={on("ui-closing", dismiss)}
         >
           <p>{info().message}</p>
           <Show when={info().context}>

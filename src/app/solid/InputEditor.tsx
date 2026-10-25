@@ -8,6 +8,7 @@ import { Actions, ErrorBoundary, MoreMenu, PanelMenu, Submenu, tracked } from "s
 import { isStaticBuild } from "spell-app/app/static/staticBuild"
 import { FileDropdown } from "./FileDropdown"
 import { LazyMonaco } from "./LazyMonaco"
+import { SpellxNotebook } from "./SpellxNotebook"
 
 import "./InputEditor.css"
 
@@ -21,7 +22,9 @@ export function InputRoot(props: InputRootProps) {
       <Show when={props.showToolbar ?? true}>
         <InputToolbar />
       </Show>
-      <InputEditor showError={editor.showError} />
+      <Show when={InputView.isNotebook} fallback={<InputEditor showError={editor.showError} />}>
+        <NotebookRoot />
+      </Show>
     </div>
   )
 }
@@ -46,6 +49,9 @@ export function InputToolbar() {
         <FileDropdown />
       </Submenu>
       <Submenu right spring class="InputTools">
+        <Show when={InputView.canShowNotebook}>
+          <InputViewSwitch />
+        </Show>
         <Actions.saveFile iconOnly />
         <Actions.reloadFile iconOnly />
         <Actions.createFile iconOnly />
@@ -64,6 +70,73 @@ export function InputToolbar() {
         </MoreMenu>
       </Submenu>
     </PanelMenu>
+  )
+}
+
+/****************
+ * ### `<InputViewSwitch>`
+ * Text | Notebook, for a `.spellx` file (epic `elemental-spell` P11):  how `<InputRoot>` shows it.
+ ****************/
+function InputViewSwitch() {
+  return (
+    <ui-buttons size="mini" basic="" class="InputViewSwitch" title={appTexts.text("inputViewHint")}>
+      <ui-button icon="align left" active={!InputView.isNotebook} onClick={() => InputView.show("text")}>
+        {appTexts.text("inputViewText")}
+      </ui-button>
+      <ui-button icon="th list" active={InputView.isNotebook} onClick={() => InputView.show("notebook")}>
+        {appTexts.text("inputViewNotebook")}
+      </ui-button>
+    </ui-buttons>
+  )
+}
+
+/****************
+ * ### `InputView`
+ * How `<InputRoot>` shows a `.spellx` file:  as text, or as a notebook (`<SpellxNotebook>`).
+ * - Text at first;  the switch picks, and the browser remembers (`spellEditor:inputView`), for every `.spellx` file.
+ * - Any other file is always text.
+ ****************/
+export class InputView {
+  /** Can the file showing be a notebook (reactive)?  Only a `.spellx` file. */
+  static get canShowNotebook(): boolean {
+    return /\.spellx$/.test(editor.file?.path ?? "")
+  }
+
+  /** Is the file showing as a notebook (reactive)? */
+  static get isNotebook(): boolean {
+    return InputView.canShowNotebook && view() === "notebook"
+  }
+
+  /** Show files as `next`, and remember it. */
+  static show(next: InputViewName): void {
+    setView(next)
+    editorPrefs.set(INPUT_VIEW_PREF, next)
+  }
+}
+
+/** The two ways `<InputRoot>` shows a `.spellx` file. */
+const INPUT_VIEWS = ["text", "notebook"] as const
+/** One of `INPUT_VIEWS`. */
+type InputViewName = (typeof INPUT_VIEWS)[number]
+/** The preference that remembers how `.spellx` files show. */
+const INPUT_VIEW_PREF = "inputView"
+editorPrefs.declare(INPUT_VIEW_PREF, { oneOf: INPUT_VIEWS })
+const [view, setView] = createSignal<InputViewName>((editorPrefs.get(INPUT_VIEW_PREF) as InputViewName) ?? "text")
+
+/****************
+ * ### `<NotebookRoot>`
+ * `editor.file` as a notebook (`<SpellxNotebook>`):  its edits go in as typed text (`editor.onInputChanged()`).
+ ****************/
+function NotebookRoot() {
+  const file = tracked(() => editor.file)
+  return (
+    <div class="InputEditor InputNotebook">
+      <Show when={file()?.path} keyed>
+        {(path) => (
+          <SpellxNotebook text={file()?.contents ?? ""} path={path} onChange={(text) => editor.onInputChanged(text)} />
+        )}
+      </Show>
+    </div>
   )
 }
 

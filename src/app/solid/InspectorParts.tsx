@@ -329,7 +329,7 @@ export function InspectorEvents(): JSX.Element {
             data-tooltip={appTexts.text("inspectorAddEvent")}
             data-position="bottom right"
             data-inverted=""
-            ref={on<{ value: string }>("ui-change", (event) => {
+            ref={on<{ value: string }>("ui-changed", (event) => {
               const element = Inspector.inspected?.element
               if (element && event.detail.value) Inspector.addEvent(element, event.detail.value)
             })}

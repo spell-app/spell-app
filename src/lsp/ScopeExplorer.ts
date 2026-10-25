@@ -508,17 +508,17 @@ export class ScopeExplorer {
   }
 
   /**
-   * Where `record` was declared, as its `declaredAt` says -- see `P.DeclaredAt`.
+   * Where `record` was declared, as its `declaredAt` says -- see `SpellLanguageService.importedDeclaration()`.
    * - `record` is imported from compiled declarations, so has no `declaredBy`.
-   * - Only if that file's text is loaded, to turn offsets into lines:  a compiled-only library's usually isn't.
+   * - Only if that file's text can be found, to turn offsets into lines:  a compiled-only library's usually can't.
    */
   private importedLocation(record: LSP.ScopeRecord["record"]): { uri: string; line: LSP.ScopeLine } | undefined {
-    const at = "declared" in record ? record.declared?.declaredAt : (record as { declaredAt?: P.DeclaredAt }).declaredAt
-    const file = at && SP.SpellFile.registry.get(at.path)
-    if (!at || !file?.parseText) return undefined
-    const first = this.service.positionAt(file, at.start).line + 1
-    const last = this.service.positionAt(file, Math.max(at.start, at.end - 1)).line + 1
-    return { uri: this.service.addresses.uriFor(file), line: LSP.scopeLine(first, last) }
+    const where = this.service.importedDeclaration(record)
+    if (!where) return undefined
+    const { start, end } = where.range
+    // a statement ends just past its last line:  at the next line's start, it ended on the line before
+    const last = end.character === 0 && end.line > start.line ? end.line : end.line + 1
+    return { uri: where.uri, line: LSP.scopeLine(start.line + 1, last) }
   }
 
   /**

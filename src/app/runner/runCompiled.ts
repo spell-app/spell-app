@@ -10,6 +10,8 @@
  */
 
 import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "spell-parser/core"
+// Import directly:  the parser's barrel would bring the whole parser into the runner;  this file imports no other
+import { SourceMarks } from "spell-parser/parser/writers/SourceMarks"
 
 /**
  * Run `compiled` spell javascript.
@@ -114,7 +116,12 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
       if (!url) linked.set(projectId, (url = loadImport!(projectId).then((text) => link(text, [...chain, projectId]))))
       imports[projectId] = await url
     }
-    const url = URL.createObjectURL(new Blob([linkModule(source, coreUrl, imports)], { type: "text/javascript" }))
+    // the program itself carries its source map inline:  a `blob:` URL can't reach the map file beside it
+    const linkedSource = SourceMarks.inline(
+      linkModule(source, coreUrl, imports),
+      chain.length ? undefined : options.sourceMap
+    )
+    const url = URL.createObjectURL(new Blob([linkedSource], { type: "text/javascript" }))
     urls.push(url)
     return url
   }
@@ -154,6 +161,12 @@ export type RunCompiledOptions = {
    * its words file's `messages` (epic `spanish` P12) -- English with none.
    */
   messages?: Record<string, string>
+  /**
+   * The program's source map, its `<Project>.spell.js.map` (epic `elemental-spell` P14):  inlined into what runs, so dev
+   * tools and an error's stack name its `.spell` / `.spellx` lines.
+   * - None:  the program's own `sourceMappingURL` line comes out, since a `blob:` URL can't fetch the map beside it.
+   */
+  sourceMap?: string
 }
 
 /**

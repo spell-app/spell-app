@@ -140,7 +140,7 @@ describe("<FileDropdown>", () => {
     expect(host.querySelector(".dropdown-label")).toBeNull()
     expect(text(host.querySelector(".FileDropdownTrigger")!)).toBe("one.js")
 
-    dropdown.dispatchEvent(new CustomEvent("ui-change", { detail: { value: "test-project/two.js" } }))
+    dropdown.dispatchEvent(new CustomEvent("ui-changed", { detail: { value: "test-project/two.js" } }))
     expect(showEditor).toHaveBeenCalledWith("test-project/two.js")
     // still showing `editor.file` until it changes
     expect(dropdown.value).toBe("test-project/one.js")

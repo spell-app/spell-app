@@ -167,6 +167,18 @@ export function compiledFixture(projectName: string, target: string | P.ProgramW
   return compileFixture(projectName, target).code
 }
 
+/**
+ * Fixture `projectName` compiled with its source map, as `SpellProject.compile()` makes one (epic `elemental-spell` P14):
+ * `code`, the marks taken out again, must be `compiledFixture()`'s.
+ */
+export function compiledFixtureWithMap(
+  projectName: string,
+  target: string | P.ProgramWriter = SP.RUNNING_TARGET
+): { code: string; map: P.SourceMapV3 } {
+  const { code, map } = compileFixture(projectName, target, { sourceMap: true })
+  return { code, map: map! }
+}
+
 /** Does fixture `projectName` draw:  hold a drawing (JSX) anywhere?  Then a Python target writes its page too. */
 export function fixtureDraws(projectName: string): boolean {
   return compileFixture(projectName).draws
@@ -211,8 +223,9 @@ export function fixtureWords(projectName: string, lang = fixtureLanguages(projec
  */
 function compileFixture(
   projectName: string,
-  target: string | P.ProgramWriter = SP.RUNNING_TARGET
-): { code: string; declarations: SP.SpellDeclarationsData; draws: boolean } {
+  target: string | P.ProgramWriter = SP.RUNNING_TARGET,
+  { sourceMap = false }: { sourceMap?: boolean } = {}
+): { code: string; declarations: SP.SpellDeclarationsData; draws: boolean; map?: P.SourceMapV3 } {
   const projectDir = fixtureFolder(projectName)
   const { version, exports, imports, listsStartAt } = readProjectFile(projectDir)
   const parentScope = fixtureImportScope(projectName)
@@ -230,14 +243,14 @@ function compileFixture(
     })
   const writer = typeof target === "string" ? SP.targetFor(target).writer : target
   const importLines = SP.SpellProject.importHeaderFor(scope, writer)
-  const marked =
-    errors.join("") +
-    scope.parser!.inPlay(() => SP.SpellProject.combineCompiled(parts, writer, importLines, scope, { listsStartAt })) +
-    "\n"
-  return {
-    ...SP.SpellDeclarations.split(marked, scope, { version, exports, languages }),
-    draws: SP.SpellProject.draws(parts)
-  }
+  // a source map as it's written, as `SpellProject.compile()` makes one -- see `P.SourceMarks`
+  const sourceMarks = sourceMap ? new P.SourceMarks(SP.SpellProject.sourcePlaceOf) : undefined
+  const combine = () =>
+    scope.parser!.inPlay(() => SP.SpellProject.combineCompiled(parts, writer, importLines, scope, { listsStartAt }))
+  const marked = errors.join("") + (sourceMarks ? P.SourceMarks.during(sourceMarks, combine) : combine()) + "\n"
+  const split = SP.SpellDeclarations.split(marked, scope, { version, exports, languages })
+  const mapped = sourceMarks?.extract(split.code)
+  return { ...split, ...(mapped ?? {}), draws: SP.SpellProject.draws(parts) }
 }
 
 /**

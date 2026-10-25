@@ -4,6 +4,7 @@ import { fileURLToPath } from "url"
 
 import { describeTypecheckError, typecheck } from "spell-parser/spell/node/typecheck"
 import { describePyrightError, pyright } from "spell-parser/spell/node/pyright"
+import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
 import { buildFolderFor } from "spell-app/spaces/server/node/projects/project-utils"
 import { CLI } from "spell-app/cli"
@@ -96,7 +97,8 @@ async function compileProject(
   }
   // `--stdout`:  the target asked for, else the one that runs
   const printed = targets.find(({ name }) => name === target) ?? targets[0]!
-  if (stdout) output.push(project.outputFileFor(printed).contents ?? "")
+  // without the line naming its source map:  the map isn't printed beside it
+  if (stdout) output.push(P.SourceMarks.inline(project.outputFileFor(printed).contents ?? "", undefined))
   const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile, ...project.wordsFiles]
   const wrote = stdout ? [] : files.map((file) => file.location.serverPath)
   // what it imports, beside it, for a target that imports them from there, e.g. Python's `cards.py`

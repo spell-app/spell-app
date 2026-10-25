@@ -37,7 +37,7 @@ export function ProjectSettings(props: ProjectSettingsProps) {
       visible=""
       ref={(element: HTMLElement) => {
         modal = element
-        modal.addEventListener("ui-hide", () => props.onDone(), { once: true })
+        modal.addEventListener("ui-closed", () => props.onDone(), { once: true })
       }}
     >
       <ui-content>
@@ -46,7 +46,7 @@ export function ProjectSettings(props: ProjectSettingsProps) {
           schema={schema}
           value={settings}
           ref={(editor: HTMLElement) => {
-            editor.addEventListener("ui-saved", () => void save())
+            editor.addEventListener("ui-applied", () => void save())
             editor.addEventListener("ui-cancelled", () => hide())
           }}
         >
@@ -69,7 +69,7 @@ export function ProjectSettings(props: ProjectSettingsProps) {
     }
   }
 
-  /** Close the dialog, by setting its `visible` false:  its `ui-hide` event then calls `onDone()`. */
+  /** Close the dialog, by setting its `visible` false:  its `ui-closed` event then calls `onDone()`. */
   function hide() {
     if (modal) (modal as HTMLElement & { visible: boolean }).visible = false
   }

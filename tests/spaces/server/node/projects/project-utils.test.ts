@@ -24,11 +24,13 @@ let realFolders: { packagesDir: string; buildDir: string }
 
 /**
  * Built file names of project `Proj`:  each goes in its build folder.
- * - Its declarations and words too, in any language, since epic `elemental-spell` P4.
+ * - Its declarations and words too, in any language, since epic `elemental-spell` P4;  its source maps since P14.
  */
 const BUILT = [
   "Proj.spell.js",
+  "Proj.spell.js.map",
   "Proj.spell.tsx",
+  "Proj.spell.tsx.map",
   "Proj.spell.py",
   "Proj.elements.spell.js",
   "Proj.scopes.js",
@@ -190,6 +192,20 @@ describe("project-utils", () => {
     )
     const index = await projectUtils.getIndex(projectId)
     expect(index.imports.map((it) => it.path)).toEqual(["/Paged.spell", `/Card${SP.EDITOR_PAGE_SUFFIX}`])
+  })
+
+  // epic `elemental-spell` P13:  the examples keep `Card.spellx` beside `Card.spell`
+  test("a .spellx beside its .spell is a file of the project, never a second import;  a lone .spellx is one", async () => {
+    const projectId = project("Twins")
+    const folder = resolve(workspace, "Twins")
+    writeFileSync(resolve(folder, "Twins.spellx"), '<spell-thing "twin">\n</spell-thing>\n')
+    writeFileSync(resolve(folder, "Alone.spellx"), '<spell-thing "alone">\n</spell-thing>\n')
+
+    const index = await projectUtils.getIndex(projectId)
+    expect(index.imports.map((it) => it.path)).toEqual(["/Twins.spell", "/Alone.spellx"])
+    expect(Object.keys(index.manifest).map((path) => path.split("/").pop())).toEqual(
+      expect.arrayContaining(["Twins.spell", "Twins.spellx", "Alone.spellx"])
+    )
   })
 
   // the bug of 2026-10-22:  a project copied to a folder of another name read its old words file as spell

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Spellx",
+  "scopeName": "source.spellx",
+  "comment": "Coarse colouring of spellx, spell's tag-shaped form (`Card.spellx`, epic elemental-spell P8), until the language server's semantic tokens arrive:  its tags, their attributes and closers;  everything else is spell's (source.spell).",
+  "patterns": [
+    { "include": "#closer" },
+    { "include": "#tag" },
+    { "include": "source.spell" }
+  ],
+  "repository": {
+    "closer": {
+      "comment": "</>, or a named closer, </property>.",
+      "match": "(</)([\\p{L}][\\p{L}\\p{N}-]*)?(>)",
+      "captures": {
+        "1": { "name": "punctuation.definition.tag.begin.spellx" },
+        "2": { "name": "entity.name.tag.spellx" },
+        "3": { "name": "punctuation.definition.tag.end.spellx" }
+      }
+    },
+    "tag": {
+      "comment": "A tag's head:  its word, a quoted name, attributes;  or, for a handler or control word, a spell phrase up to its >.  Ends at > or />.",
+      "begin": "(<)([\\p{L}][\\p{L}\\p{N}-]*)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.spellx" },
+        "2": { "name": "entity.name.tag.spellx" }
+      },
+      "end": "(/?>)",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.tag.end.spellx" }
+      },
+      "patterns": [
+        { "include": "#attribute" },
+        { "include": "#hole" },
+        { "include": "source.spell#string" },
+        { "include": "source.spell#number" },
+        { "include": "source.spell#keyword" }
+      ]
+    },
+    "attribute": {
+      "match": "([\\p{L}][\\p{L}\\p{N}-]*)(=)",
+      "captures": {
+        "1": { "name": "entity.other.attribute-name.spellx" },
+        "2": { "name": "punctuation.separator.key-value.spellx" }
+      }
+    },
+    "hole": {
+      "comment": "A {hole}:  spell inside an attribute's value.",
+      "begin": "\\{",
+      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.spellx" } },
+      "end": "\\}",
+      "endCaptures": { "0": { "name": "punctuation.section.embedded.end.spellx" } },
+      "patterns": [{ "include": "source.spell" }]
+    }
+  }
+}

@@ -190,11 +190,11 @@ describe("SpellElement", () => {
     class Chit extends View {
       static elementTag = core.defineElement(this, "Tray")
       heard: unknown[] = []
-      onMouseDown(event: unknown) {
-        this.heard.push(event)
+      onMouseDown(event: { type: string }) {
+        this.heard.push({ type: event.type })
       }
-      onRightClick(event: unknown) {
-        this.heard.push(event)
+      onRightClick(event: { type: string }) {
+        this.heard.push({ type: event.type })
       }
       draw(): ReturnType<View["draw"]> {
         return (h("span", {}, "chit") as unknown as () => ReturnType<View["draw"]>)()
@@ -205,8 +205,8 @@ describe("SpellElement", () => {
       static elementTag = core.defineElement(this, "Tray")
       chit = new Chit()
       heard: unknown[] = []
-      onMouseDown(event: unknown) {
-        this.heard.push(event)
+      onMouseDown(event: { type: string }) {
+        this.heard.push({ type: event.type })
       }
       draw(): ReturnType<View["draw"]> {
         return (h("div", {}, () => core.drawThing(this.chit)) as unknown as () => ReturnType<View["draw"]>)()

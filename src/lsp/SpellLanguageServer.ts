@@ -211,7 +211,8 @@ export class SpellLanguageServer {
         watchers: [
           { globPattern: "**/__project.json5" },
           { globPattern: "**/project.json" },
-          { globPattern: "**/*.spell" }
+          { globPattern: "**/*.spell" },
+          { globPattern: "**/*.spellx" }
         ]
       })
       .catch(() => undefined)

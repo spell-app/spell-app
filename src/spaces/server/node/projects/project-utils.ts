@@ -102,7 +102,9 @@ const BUILT_SUFFIXES = [
   SP.COMPILED_PY_SUFFIX, // `Solitaire.spell.py`
   SP.ELEMENTS_JS_SUFFIX, // `Solitaire.elements.spell.js`, a Python program's page file
   SP.SCOPES_JS_SUFFIX, // `Solitaire.scopes.js`, its scope pack
-  SP.DECLARATIONS_JSON_SUFFIX // `Solitaire.declarations.json5`, what it offers projects importing it
+  SP.DECLARATIONS_JSON_SUFFIX, // `Solitaire.declarations.json5`, what it offers projects importing it
+  `${SP.COMPILED_JS_SUFFIX}.map`, // `Solitaire.spell.js.map`, its source map (epic `elemental-spell` P14)
+  `${SP.COMPILED_TSX_SUFFIX}.map` // `Solitaire.spell.tsx.map`
 ]
 
 /**
@@ -299,12 +301,22 @@ const GENERATED_SUFFIXES = [
  *   `__init__.js` or `__helpers__.spell` still list.
  * - Lists property editor pages (`SP.EDITOR_PAGE_SUFFIX`, `Card.editor.html`):  the editor opens them as text.
  */
-const manifestExtensions = [".spell", ".css", ".js", ".jsx", SP.EDITOR_PAGE_SUFFIX]
+const manifestExtensions = [SP.SPELL_SUFFIX, SP.SPELLX_SUFFIX, ".css", ".js", ".jsx", SP.EDITOR_PAGE_SUFFIX]
 export function isManifestFile(name: string, projectName = "") {
   if (SPACES.isSpaceName(name)) return false
   if (GENERATED_SUFFIXES.some((suffix) => name.endsWith(suffix))) return false
   if (SP.SpellWords.isWordsFile(name, projectName)) return false
   return manifestExtensions.some((extension) => name.endsWith(extension))
+}
+
+/**
+ * Is `path` a `.spellx` file whose `.spell` twin is in the same project (`manifest`):  `Card.spellx` beside `Card.spell`?
+ * - The examples keep both forms side by side (epic `elemental-spell` P13):  the project file lists the `.spell`,
+ *   which the app opens;  the `.spellx` would declare everything twice, so `getIndex()` never adds it as an import.
+ * - Still in the manifest:  the editor shows it, and opens it as text or a notebook.
+ */
+function isSpellxTwin(path: string, manifest: ManifestJSON): boolean {
+  return path.endsWith(SP.SPELLX_SUFFIX) && path.slice(0, -1) in manifest
 }
 
 /** Given a file `name`, return `true` if we should preload it (fetch `contents` eagerly in `getIndex()`). */
@@ -431,6 +443,8 @@ export const getIndex = async (
   Object.keys(existingPaths).forEach((path) => {
     const location = new SP.SpellLocation(path)
     if (!location.filePath) return
+    // A `.spellx` beside its `.spell` is that file's other form, never a second import:  see `isSpellxTwin()`
+    if (isSpellxTwin(path, manifest)) return
     // Record as a local `filePath` string, which includes the folder / leading slash
     importsFile.imports.push({ path: location.filePath, active: true })
     anythingChanged = true

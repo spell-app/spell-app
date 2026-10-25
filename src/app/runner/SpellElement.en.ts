@@ -41,6 +41,10 @@ export const spellElementVocabulary = {
   slots: [],
   parts: [
     {
+      name: "menu-bar",
+      description: "An app's menu bar, above its drawing:  the menu its template names (`- its menu bar is ...`)."
+    },
+    {
       name: "drop-line",
       description: "The line showing where dragged items would go, in a list people may reorder."
     }

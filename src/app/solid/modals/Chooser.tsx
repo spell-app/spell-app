@@ -40,8 +40,8 @@ export function Chooser(props: ChooserProps) {
       visible=""
       ref={(element: HTMLElement) => {
         modal = element
-        modal.addEventListener("ui-approve", choose)
-        modal.addEventListener("ui-hide", done, { once: true })
+        modal.addEventListener("ui-approving", choose)
+        modal.addEventListener("ui-closed", done, { once: true })
       }}
     >
       <ui-content>

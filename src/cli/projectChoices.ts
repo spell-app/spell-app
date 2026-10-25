@@ -70,11 +70,11 @@ function nameOf(id: string): string {
   return id.slice(id.lastIndexOf("/") + 1)
 }
 
-/** `.spell` files in `folder` and below, as paths relative to it, sorted -- skipping hidden folders. */
+/** `.spell` and `.spellx` files in `folder` and below, as paths relative to it, sorted -- skipping hidden folders. */
 function spellFilesIn(folder: string): string[] {
   const entries = readdirSync(folder, { recursive: true, withFileTypes: true })
   return entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".spell"))
+    .filter((entry) => entry.isFile() && SP.isSpellSourceName(entry.name))
     .map((entry) => relative(folder, resolve(entry.parentPath, entry.name)))
     .filter((path) => !path.split("/").some((part) => part.startsWith(".")))
     .sort()

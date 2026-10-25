@@ -104,7 +104,7 @@ function fitInput(field: PromptModalProps) {
     if (value === false || value === null || value === undefined) input.removeAttribute(name)
     else input.setAttribute(name, value === true ? "" : String(value))
   }
-  modal.addEventListener("ui-approve", (event) => {
+  modal.addEventListener("ui-approving", (event) => {
     if (input.checkValidity()) return
     event.preventDefault()
     input.reportValidity()

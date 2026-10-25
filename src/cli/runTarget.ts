@@ -69,7 +69,8 @@ export async function runTarget(
     const extension = target.suffix.slice(target.suffix.lastIndexOf("."))
     const code = project.outputFileFor(target).contents ?? ""
     const projects = Object.fromEntries(Object.entries(imports).map(([id, it]) => [id, it.url]))
-    const { exitCode, skipped } = await CLI.runCode("run", name, code, { ...options, extension, projects })
+    const sourceMap = project.sourceMapFileFor(target).contents ?? undefined
+    const { exitCode, skipped } = await CLI.runCode("run", name, code, { ...options, extension, projects, sourceMap })
     // what needed a browser, e.g. `start the game`:  skipped under node
     if (skipped.length && options.browser !== false) {
       session.err(`${name} draws:  its ${target.name} can't open in a browser yet -- \`--target js\` (or none) does`)

@@ -72,15 +72,18 @@ function prefixed(prefix: string, files: Record<string, number>): Record<string,
   return Object.fromEntries(Object.entries(files).map(([name, modified]) => [`${prefix}${name}`, modified]))
 }
 
-/** A throwaway project `name` in `TEMP`, of one file `<name>.spell` holding `source`.  Returns its folder. */
-function tempProject(name: string, source: string): string {
+/**
+ * A throwaway project `name` in `TEMP`, of one file `<name>.spell` holding `source`.  Returns its folder.
+ * - `suffix`:  the file's end, `.spellx` for a spellx file
+ */
+function tempProject(name: string, source: string, suffix = SP.SPELL_SUFFIX): string {
   const folder = resolve(TEMP, name)
   mkdirSync(folder)
   writeFileSync(
     resolve(folder, SP.PROJECT_FILE),
-    JSON.stringify({ imports: [{ path: `/${name}.spell`, active: true }] })
+    JSON.stringify({ imports: [{ path: `/${name}${suffix}`, active: true }] })
   )
-  writeFileSync(resolve(folder, `${name}.spell`), source)
+  writeFileSync(resolve(folder, `${name}${suffix}`), source)
   return folder
 }
 
@@ -390,6 +393,29 @@ describe("spell lint:  retired words (epic elemental-spell, Q61)", () => {
       'a "card" is a view where:\n\t- its "rank" is a number\na "pile" is a viewable list of cards\n'
     )
     expect(spell(["lint", "."], fixing).status).toBe(0)
+  }, 30_000)
+})
+
+describe("spell lint:  a spellx file's HTML habits (epic elemental-spell P8)", () => {
+  const SOURCE =
+    '<spell-view "tile">\n\t<property "side" one-of="up, down" />\n\t<action "flip it">\n\t\tset its side to down\n\t</>\n' +
+    "\t<draw>\n\t\t<ui-button>Go</ui-button>\n\t\t<ui-text on-click={flip it}>face</>\n\t</>\n</spell-view>\n"
+
+  test("--fix names each component bare, its closer with it;  an on-click= is an error it leaves", () => {
+    const habits = tempProject("Habits", SOURCE, SP.SPELLX_SUFFIX)
+    const { status, stdout } = spell(["lint", ".", "--fix"], habits)
+    expect(stdout).toBe(
+      [
+        "Habits.spellx:7:4  fixed:  <ui-button> is <button> in spellx",
+        "Habits.spellx:8:4  fixed:  <ui-text> is <text> in spellx",
+        "Habits.spellx:8:9  on-click= is HTML's habit:  in spellx, handle it in the template, with <on click>...</>",
+        ""
+      ].join("\n")
+    )
+    expect(status).toBe(1)
+    expect(readFileSync(resolve(habits, "Habits.spellx"), "utf8")).toBe(
+      SOURCE.replace("<ui-button>Go</ui-button>", "<button>Go</button>").replace("<ui-text", "<text")
+    )
   }, 30_000)
 })
 
@@ -875,6 +901,26 @@ describe("spell format", () => {
     const { status, stderr } = spell(["format", "@spell/test/fizzbuzz"])
     expect(status).toBe(2)
     expect(stderr).toContain("Won't format test projects")
+  })
+})
+
+// epic `elemental-spell` P12
+describe("spell spellx convert", () => {
+  test("--dry-run prints each file as spellx;  then convert writes it beside the .spell file", () => {
+    const folder = tempProject("Deal", 'a "card" is a thing where:\n\t- its "rank" is 1\n')
+    const dryRun = spell(["spellx", "convert", "--dry-run", "."], folder)
+    expect(dryRun.status).toBe(0)
+    expect(dryRun.stdout).toBe('// Deal.spellx\n<spell-thing "card">\n\t<property "rank">1</>\n</spell-thing>\n')
+    expect(existsSync(resolve(folder, "Deal.spellx"))).toBe(false)
+
+    expect(spell(["spellx", "convert", "."], folder).stdout).toBe("Deal.spellx\n")
+    expect(readFileSync(resolve(folder, "Deal.spellx"), "utf8")).toContain('<property "rank">1</>')
+  })
+
+  test("never writes into a test project", () => {
+    const { status, stderr } = spell(["spellx", "convert", "@spell/test/fizzbuzz"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("Won't convert test projects")
   })
 })
 

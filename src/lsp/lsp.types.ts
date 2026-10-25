@@ -17,6 +17,12 @@ export type FileAddresses = {
   fileFor(uri: string): SP.SpellFile | undefined
   /** Editor's URI for `file`, e.g. a project's compiled javascript;  for a project, its folder. */
   uriFor(file: SP.SpellFile | SP.SpellJSFile | SP.SpellProject): string
+  /**
+   * Editor's URI and text of spell file `path`, which no project holds, if it can find it:
+   * e.g. a built-in template's source, `@spell/core/TwoSidedView/TwoSidedView.spell` (`SP.builtInTemplateFileFor()`).
+   * - Optional:  the app's editor has none.
+   */
+  sourceFor?(path: string): { uri: string; text: string } | undefined
 }
 
 /** What happened to a file on disk, from the editor's file watcher. */
@@ -257,8 +263,10 @@ export type SetDescriptionParams = {
  * - `js`:  javascript, `js/solid`, what the editor and the runners run -- the default
  * - `ts`:  TypeScript on Solid, `ts/solid`, as a person writes it
  * - `py`:  Python on `spell_core`, `py`
+ * - `spell`:  the CODE SPELL a `.spellx` file means, its "Show as .spell" view (epic `elemental-spell` P8);
+ *   a `.spell` file's own text
  */
-export type CompiledTarget = "js" | "ts" | "py"
+export type CompiledTarget = "js" | "ts" | "py" | "spell"
 
 /** Params of `spell/compiled`:  the code spell file `uri` compiles to, for `target`. */
 export type CompiledParams = {

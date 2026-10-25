@@ -313,7 +313,7 @@ export class SpellViewer extends UIRoot<typeof vocabulary> {
               fluid={!cssSize(this.height)}
               runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}
               builtInsUrl={new URL("core.scopes.js", BUNDLE).href}
-              onOpen={(href) => this.send("spell-open", { href })}
+              onOpen={(href) => this.send("spell-exploring", { href })}
               onControls={(controls) => (this.controls = controls)}
             />
           )}

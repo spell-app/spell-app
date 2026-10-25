@@ -354,7 +354,7 @@
         {
           "name": "editable",
           "kind": "boolean",
-          "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn by spell's engine in `ui-*` elements.  Each edit is a `ui-change`;  `save()` writes it."
+          "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn by spell's engine in `ui-*` elements.  Each edit is a `ui-changed`;  `save()` writes it."
         },
         {
           "name": "disabled",
@@ -624,7 +624,7 @@
       "slots": [],
       "events": [
         {
-          "name": "spell-open",
+          "name": "spell-exploring",
           "detail": "{ href: string }",
           "description": "A Template Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`."
         }
@@ -1632,6 +1632,27 @@
       "href": "InputEditor.html#InputToolbar"
     },
     {
+      "tag": "InputView",
+      "name": "InputView",
+      "folder": "InputEditor",
+      "mainTag": "InputEditor",
+      "main": false,
+      "page": false,
+      "topics": [
+        "editors"
+      ],
+      "aka": [],
+      "description": "How `<InputRoot>` shows a `.spellx` file:  as text, or as a notebook (`<SpellxNotebook>`).",
+      "noun": "InputView",
+      "attributes": [],
+      "slots": [],
+      "events": [],
+      "parts": [],
+      "states": [],
+      "texts": [],
+      "href": "InputEditor.html#InputView"
+    },
+    {
       "tag": "LineNumbers",
       "name": "LineNumbers",
       "folder": "InputEditor",
@@ -1694,6 +1715,10 @@
         {
           "name": "Description",
           "file": "src/app/solid/ScopeDetailsPane.tsx"
+        },
+        {
+          "name": "SpellxNotebook",
+          "file": "src/app/solid/SpellxNotebook.tsx"
         }
       ],
       "href": "Markdown.html"
@@ -1801,6 +1826,10 @@
         }
       ],
       "usedIn": [
+        {
+          "name": "CellCode",
+          "file": "src/app/solid/SpellxNotebook.tsx"
+        },
         {
           "name": "FallbackEditor",
           "file": "src/app/solid/InputEditor.tsx"
@@ -1910,7 +1939,7 @@
         "editors"
       ],
       "aka": [],
-      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`).",
+      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`); or, with `target=\"spell\"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins.",
       "noun": "OutputEditor",
       "attributes": [],
       "slots": [],
@@ -2540,6 +2569,10 @@
       "slots": [],
       "events": [],
       "parts": [
+        {
+          "name": "menu-bar",
+          "description": "An app's menu bar, above its drawing:  the menu its template names (`- its menu bar is ...`)."
+        },
         {
           "name": "drop-line",
           "description": "The line showing where dragged items would go, in a list people may reorder."
@@ -3557,6 +3590,7 @@
         "InputEditor",
         "InputRoot",
         "InputToolbar",
+        "InputView",
         "LineNumbers"
       ],
       "tokens": []

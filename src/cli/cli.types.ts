@@ -19,6 +19,7 @@ export type {
   RunOptions,
   SeedOptions,
   SpeedtestOptions,
+  SpellxConvertOptions,
   TestOptions,
   TranslateOptions,
   TranslateTimeOptions,
