@@ -1,3 +1,4 @@
+import { ColorScheme } from "spell/util"
 import { monaco } from "spell-app/app/ui/monaco/monaco"
 import { ShadesOfPurple } from "./ShadesOfPurple"
 
@@ -6,9 +7,9 @@ import { ShadesOfPurple } from "./ShadesOfPurple"
  * The code's colours in every Monaco editor on the page:  Purple (`ShadesOfPurple`), light or dark as the PAGE is.
  * - Purple is the code's colours only (epic `debut` Q12):  the page's own theme (Fruity, Spell Brand ...) never
  *   changes them, and they sit beside any page theme.
- * - Light or dark follows the page, as Spell UI's themes read it:
+ * - Light or dark follows the page, as Spell UI's themes read it (`ColorScheme`, the kit's):
  *   - `<html>` with `ui-dark` / `ui-light` (what a theme menu sets, `ThemePreference.applyScheme()`):  that one
- *   - neither:  the OS's (`prefers-color-scheme`)
+ *   - neither:  the one chosen, else the OS's
  *   - so the editor app, a docs page and another page holding a `<spell-editor>` all work, with no import of the
  *     page's own theme code
  * - Monaco has ONE theme per page:  every editor follows at once.
@@ -36,16 +37,13 @@ export class CodeThemes {
       attributes: true,
       attributeFilter: ["class"]
     })
-    matchMedia(DARK_QUERY).addEventListener("change", () => CodeThemes.apply())
+    ColorScheme.watch(() => CodeThemes.apply())
   }
 
-  /** Is the page dark?  `<html>`'s `ui-dark` / `ui-light`, else the OS's scheme. */
+  /** Is the page dark?  `<html>`'s `ui-dark` / `ui-light`, else the one chosen, else the OS's (`ColorScheme.shown()`). */
   static isPageDark(): boolean {
     if (typeof document === "undefined") return false
-    const { classList } = document.documentElement
-    if (classList.contains(DARK_CLASS)) return true
-    if (classList.contains(LIGHT_CLASS)) return false
-    return typeof matchMedia === "function" && matchMedia(DARK_QUERY).matches
+    return ColorScheme.shown() === "dark"
   }
 
   /** Set Monaco's theme for the page's scheme, if it changed. */
@@ -62,12 +60,3 @@ export class CodeThemes {
   /** The theme last set. */
   private static applied: string | undefined
 }
-
-/** `<html>`'s class for a page shown dark, as Spell UI's themes read it. */
-const DARK_CLASS = "ui-dark"
-
-/** `<html>`'s class for a page shown light. */
-const LIGHT_CLASS = "ui-light"
-
-/** Media query of the OS's dark scheme. */
-const DARK_QUERY = "(prefers-color-scheme: dark)"
