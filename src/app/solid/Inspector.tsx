@@ -606,7 +606,7 @@ class Compact {
 }
 
 /** The controls a property makes that take the column's width. */
-const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-textarea, ui-calendar)"
+const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-textarea, ui-calendar, ui-icon-picker)"
 
 /****************
  * ### `<InspectorColumn>`

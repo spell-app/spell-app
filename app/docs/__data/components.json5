@@ -6036,8 +6036,14 @@
     {
       "id": "motion",
       "title": "Motion",
-      "description": "Durations and easing curves.",
+      "description": "Durations, easing curves, and how long a hover waits.",
       "tokens": [
+        {
+          "name": "--ui-hover-delay",
+          "default": "800ms",
+          "description": "How long a hover popup waits before it shows.",
+          "type": "time"
+        },
         {
           "name": "--ui-duration-fast",
           "default": "100ms",
@@ -6189,18 +6195,6 @@
           "default": "1920px",
           "description": "Narrowest `widescreen` width.",
           "type": "length"
-        }
-      ]
-    },
-    {
-      "id": "other",
-      "title": "Other",
-      "description": "Foundation tokens of no other group.",
-      "tokens": [
-        {
-          "name": "--ui-hover-delay",
-          "default": "800ms",
-          "type": "time"
         }
       ]
     }
