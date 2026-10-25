@@ -36,32 +36,39 @@
         the comments, `/_epic/assets/spell-comments.js`, which draws them with this pack's elements -->
       <ui-components source="/_epic/pack/epics.pack.js"></ui-components>
       <!--
-        Top bar:  ONLY while the right column is hidden (narrower than 1200px);  wide screens have none (Owen:  "lose the
-        top bar entirely").  The menu button and the brand only below 992px, where the nav panel moves into the flyout.
+        Top bar:  only while the right column is hidden (narrower than 1200px);  wide screens have none (Owen:  "lose the
+        top bar entirely").  Spell UI's, a `<ui-toolbar>`'s bar slots:
+        - `icon`:  the menu button, below 992px, where the nav panel moves into the flyout
+        - `title`:  the brand, the hat and "App UI", on one line;  below 992px too
+        - its items:  the site's links, ONE row, scrolling sideways with `‹` / `›` when the bar is too narrow,
+          the current tab scrolled into view (`site.ts`)
+        - `right`:  search and the look controls, at the right edge
       -->
-      <header class="site-topbar">
+      <ui-toolbar class="site-topbar" aria-label="Site">
         <ui-button
+          slot="icon"
           class="site-menu-button"
           icon="bars"
-          basic
-          circular
           aria-label="Components"
           title="Components"
           commandfor="site-nav-flyout"
           command="--show"
+          appearance="basic circular"
         ></ui-button>
+        <a slot="title" class="site-topbar-brand site-wordmark" href="../index.html" target="_self"
+          ><span class="site-hat" aria-hidden="true"></span>App UI</a
+        >
+        <spell-site-header class="site-topbar-links" docked root="../../.."></spell-site-header>
         <ui-button
+          slot="right"
           class="site-search-button"
           icon="search"
-          basic
-          circular
           aria-label="Search"
           title="Search (⌘K)"
+          appearance="basic circular"
         ></ui-button>
-        <ui-header class="site-topbar-brand"><a href="../index.html" target="_self">App UI</a></ui-header>
-        <spell-site-header docked root="../../.."></spell-site-header>
-        <ui-docs-themes size="small" class="site-topbar-themes"></ui-docs-themes>
-      </header>
+        <ui-docs-themes slot="right" size="small" class="site-topbar-themes"></ui-docs-themes>
+      </ui-toolbar>
 
       <!--
         The nav panel's brand:  the Spell lockup (spell-brand's `assets/logo/spell-lockup.svg`, served from every set at
