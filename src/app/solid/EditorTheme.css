@@ -90,7 +90,9 @@
   /* the top bar:  a floating box of its own */
   & ui-menu.AppMenu::part(menu) {
     min-height: 46px;
-    padding-inline: 12px;
+    /* its ends as close as its top and bottom:  the hat and the avatar each 11px from its edge (Owen:  "less
+       padding start/end of bar");  the end items' own room makes up the rest */
+    padding-inline: 4px;
     background: var(--spell-bar-background);
     border: var(--spell-bar-border);
     border-radius: var(--spell-bar-radius);
@@ -150,7 +152,7 @@
 *******************************/
 
 /* `<AppMark>`:  the hat and Spell's name, a link home */
-ui-item.AppMark::part(item) {
+ui-menu.AppMenu ui-item.AppMark::part(item) {
   padding-inline: 6px 12px;
 }
 .AppMark a {
