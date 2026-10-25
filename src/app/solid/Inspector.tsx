@@ -837,7 +837,7 @@ export function InspectorToggle(): JSX.Element {
         data-tooltip={appTexts.text("inspectorPanels")}
         data-position="bottom right"
         data-inverted=""
-        ref={on<{ value: string }>("ui-change", (event) => {
+        ref={on<{ value: string }>("ui-changed", (event) => {
           const panel = event.detail.value as InspectorPanel
           if (!panel) return
           Inspector.setShown(panel, !Inspector.isShown(panel))

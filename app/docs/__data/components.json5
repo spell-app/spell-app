@@ -354,7 +354,7 @@
         {
           "name": "editable",
           "kind": "boolean",
-          "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn by spell's engine in `ui-*` elements.  Each edit is a `ui-change`;  `save()` writes it."
+          "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn by spell's engine in `ui-*` elements.  Each edit is a `ui-changed`;  `save()` writes it."
         },
         {
           "name": "disabled",
@@ -624,7 +624,7 @@
       "slots": [],
       "events": [
         {
-          "name": "spell-open",
+          "name": "spell-exploring",
           "detail": "{ href: string }",
           "description": "A Template Explorer link was clicked:  `href` is the spell source it points at, e.g. `spell:/@spell/examples/Solitaire/Solitaire.spell#L12`."
         }
@@ -1910,7 +1910,7 @@
         "editors"
       ],
       "aka": [],
-      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`).",
+      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`); or, with `target=\"spell\"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins.",
       "noun": "OutputEditor",
       "attributes": [],
       "slots": [],

@@ -78,7 +78,7 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
         class="ProjectDropdown"
         loading={!ready()}
         value={selected()}
-        ref={on<{ value: string }>("ui-change", choose)}
+        ref={on<{ value: string }>("ui-changed", choose)}
       >
         <span slot="trigger" class="ProjectDropdownTrigger">
           <ui-icon name={root().icon ?? PROJECT_ICON} />
@@ -195,7 +195,7 @@ export function openProject(path: string, useRunner?: boolean) {
 }
 
 /**
- * The dropdown's `ui-change`:  click the item chosen, which opens its project.
+ * The dropdown's `ui-changed`:  click the item chosen, which opens its project.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.project`'s DURING the event, so the dropdown keeps ours:
  *   the element decides (`requestChange()` on a `@controlled` member, in `spell/element/Reactive`).
  * - Opening the project then moves it on.

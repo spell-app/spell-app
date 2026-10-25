@@ -126,7 +126,7 @@ export function Spring(props: UIItemJSXAttributes) {
  * ### `<MoreMenu>`
  * A "..." dropdown of actions:  a `<ui-dropdown>` whose trigger is just `icon`, holding `<Action>` items.
  * - Choosing an item CLICKS it, so an `<Action>`'s `onClick` runs whether it's in a menu or here.
- * - The dropdown keeps no value (`ui-change` resets it), so the trigger stays the icon.
+ * - The dropdown keeps no value (`ui-changed` resets it), so the trigger stays the icon.
  * - Items are found by `value`, else text:  give same-titled items distinct `value`s.
  * - `stub`:  a disabled placeholder item with the icon instead, e.g. while the real menu isn't built yet.
  * - `item` (default `true`):  wrapped in a `<ui-item>`, to sit in a menu.
@@ -153,7 +153,7 @@ export function MoreMenu(props: MoreMenuProps) {
   /** The dropdown itself. */
   function dropdown() {
     return (
-      <ui-dropdown {...rest} class={["MoreMenu", props.class]} ref={on<{ value: string }>("ui-change", choose)}>
+      <ui-dropdown {...rest} class={["MoreMenu", props.class]} ref={on<{ value: string }>("ui-changed", choose)}>
         <ui-icon slot="icon" name={icon()} />
         {props.children}
       </ui-dropdown>
@@ -172,7 +172,7 @@ export type MoreMenuProps = UIDropdownJSXAttributes & {
 }
 
 /**
- * A `<MoreMenu>`'s `ui-change`:  click the item chosen, and clear the value.
+ * A `<MoreMenu>`'s `ui-changed`:  click the item chosen, and clear the value.
  * - SIDE EFFECT:  sets the dropdown's `value` DURING the event, so the dropdown keeps ours (`""`):
  *   the element decides (`requestChange()` on a `@controlled` member, in `spell/element/Reactive`).
  */

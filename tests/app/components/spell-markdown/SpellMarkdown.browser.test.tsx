@@ -29,15 +29,15 @@ async function markdown(html: string): Promise<DOMMarkdownElement> {
   return host
 }
 
-/** Resolves on the next `ui-render` or `ui-error` reaching `target`. */
+/** Resolves on the next `ui-drawn` or `ui-error` reaching `target`. */
 function nextRender(target: EventTarget): Promise<void> {
   return new Promise<void>((resolve) => {
-    target.addEventListener("ui-render", done)
+    target.addEventListener("ui-drawn", done)
     target.addEventListener("ui-error", done)
 
     /** Stop listening, and resolve. */
     function done() {
-      target.removeEventListener("ui-render", done)
+      target.removeEventListener("ui-drawn", done)
       target.removeEventListener("ui-error", done)
       resolve()
     }
@@ -93,7 +93,7 @@ describe("<spell-markdown>", () => {
     await customElements.whenDefined("ui-code")
     await new Promise<void>((resolve) => {
       if (block.shadowRoot?.querySelector(".hljs-type")) return resolve()
-      block.addEventListener("ui-highlight", () => resolve(), { once: true })
+      block.addEventListener("ui-coloured", () => resolve(), { once: true })
     })
     expect(block.shadowRoot!.querySelector(".hljs-type")!.textContent).toBe("pile")
   })

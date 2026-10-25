@@ -29,7 +29,7 @@ export function Notice(props: NoticeProps) {
     <Show when={notice()}>
       {(notice) => (
         <div class="Notice" style={FLOATING_MESSAGE_STYLE}>
-          <ui-message state="success" header={notice()} dismissible="" ref={on("ui-dismiss", dismiss)} />
+          <ui-message state="success" header={notice()} dismissible="" ref={on("ui-closing", dismiss)} />
         </div>
       )}
     </Show>

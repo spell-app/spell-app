@@ -34,15 +34,15 @@ async function code(html: string): Promise<DOMCodeElement> {
   return host
 }
 
-/** Resolves on the next `ui-highlight` or `ui-error` reaching `target`. */
+/** Resolves on the next `ui-coloured` or `ui-error` reaching `target`. */
 function highlighted(target: EventTarget): Promise<Event> {
   return new Promise((resolve) => {
-    target.addEventListener("ui-highlight", done)
+    target.addEventListener("ui-coloured", done)
     target.addEventListener("ui-error", done)
 
     /** Stop listening, and resolve. */
     function done(event: Event) {
-      target.removeEventListener("ui-highlight", done)
+      target.removeEventListener("ui-coloured", done)
       target.removeEventListener("ui-error", done)
       resolve(event)
     }

@@ -28,7 +28,7 @@ export const spellMarkdownVocabulary = {
       kind: "boolean",
       description:
         "Write / Preview tabs:  a text box for the markdown, and its preview, drawn by spell's engine in `ui-*` " +
-        "elements.  Each edit is a `ui-change`;  `save()` writes it."
+        "elements.  Each edit is a `ui-changed`;  `save()` writes it."
     }
   ],
   events: [],

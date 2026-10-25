@@ -41,8 +41,8 @@ export function YouPanel(props: YouPanelProps) {
       visible=""
       ref={(element: HTMLElement) => {
         modal = element
-        modal.addEventListener("ui-approve", save)
-        modal.addEventListener("ui-hide", done, { once: true })
+        modal.addEventListener("ui-approving", save)
+        modal.addEventListener("ui-closed", done, { once: true })
       }}
     >
       <ui-content>
@@ -122,7 +122,7 @@ export function YouPanel(props: YouPanelProps) {
 
   /**
    * Save:  note what the fields say now, while they're still in the page.
-   * - On the button's own click as well as the modal's `ui-approve`, so the fields are read before anything hides it.
+   * - On the button's own click as well as the modal's `ui-approving`, so the fields are read before anything hides it.
    */
   function save() {
     const field = (selector: string) => modal!.querySelector<HTMLElement & { value: string }>(selector)?.value ?? ""

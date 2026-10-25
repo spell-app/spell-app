@@ -104,7 +104,7 @@ export const spellViewerVocabulary = {
   ],
   events: [
     {
-      name: "spell-open",
+      name: "spell-exploring",
       detail: "{ href: string }",
       description:
         "A Template Explorer link was clicked:  `href` is the spell source it points at, e.g. " +
