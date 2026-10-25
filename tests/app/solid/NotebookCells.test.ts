@@ -46,6 +46,37 @@ describe("NotebookCells.of()", () => {
     )
   })
 
+  test("a template's cell is its head alone;  its members' ids name it", () => {
+    const cells = NotebookCells.of(CARD, "/Card.spellx")
+    expect(chunk(CARD, "card").code).toBe(`<spell-view "card">`)
+    expect(chunk(CARD, "suit").id).toBe("view:card/property:suit")
+    expect(NotebookCells.membersOf(cells, undefined).map((cell) => cell.id)).toEqual(["view:card"])
+    expect(NotebookCells.membersOf(cells, "view:card")).toHaveLength(5)
+  })
+
+  test("a property's body, its indent taken off, edited in place", () => {
+    const body = chunk(CARD, "color").property!.body!
+    expect(body.code).toBe("red if it is a heart\nblack otherwise")
+    expect(chunk(CARD, "suit").property!.body).toBeUndefined()
+    const text = NotebookCells.withCode(CARD, body, "red if it is a heart or a diamond\nblack otherwise")
+    expect(text).toBe(CARD.replace("red if it is a heart", "red if it is a heart or a diamond"))
+  })
+
+  test("prose:  comment lines lose their `//` and stay lines;  headings fall under the file's first", () => {
+    const text = [
+      `## A card`,
+      `// It has a suit.`,
+      `// - SEE:  the deck`,
+      `<spell-view "card">`,
+      `\t# card rank`,
+      `\t<property "rank" />`,
+      `</spell-view>`,
+      ``
+    ].join("\n")
+    const prose = NotebookCells.of(text, "/Card.spellx").flatMap((cell) => (cell.kind === "prose" ? [cell.text] : []))
+    expect(prose).toEqual([`# A card\n\nIt has a suit.\n- SEE:  the deck`, `## card rank`])
+  })
+
   test("a property's form fields", () => {
     expect(chunk(CARD, "suit").property).toMatchObject({
       name: "suit",

@@ -82,7 +82,7 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
       >
         <span slot="trigger" class="ProjectDropdownTrigger">
           <ui-icon name={root().icon ?? PROJECT_ICON} />
-          {selectedName()}
+          <span class="ProjectName">{selectedName()}</span>
         </span>
         <Show when={ready()}>
           <For each={root().projects}>

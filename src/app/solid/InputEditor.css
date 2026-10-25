@@ -13,7 +13,20 @@
   overflow: hidden;
 }
 
-/* the Text | Notebook switch, for a `.spellx` file */
-.InputViewSwitch {
-  margin-inline-end: 8px;
+/* the Text | Notebook switch, for a `.spellx` file:  its look is the pane tabs' (`chrome.css`);
+   the header's height, not a menu's room above and below it;  as far from the upload icon as the icons are apart */
+ui-menu.InputViewSwitch::part(menu) {
+  margin: 0 10px 0 0;
+  align-self: center;
+}
+/* each icon a pill the size of the Inspector's tabs:  the bar's short-menu rule took the items' block padding */
+ui-menu.InputViewSwitch ui-item::part(item) {
+  padding: 0.3em 0.7em;
+}
+
+/* the toolbar's tools keep the room they need, and the file picker takes what's left:
+   sharing the width equally (`<Submenu>`'s sides) pushed New File and "..." out of a narrow pane */
+ui-menu.InputTools.third.side::part(menu) {
+  flex: 0 0 auto;
+  min-width: 0;
 }

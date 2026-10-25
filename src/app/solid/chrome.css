@@ -4,6 +4,9 @@
  *   `::part(item)`.  A page's `::part()` rule beats the element's own sheet (outer tree wins), layers or not.
  */
 
+/* Spell UI's breakpoints (`@custom-media`), inlined at build time */
+@import "spell-ui/styles/media.css";
+
 /* `<PanelMenu>`:  over the panel below it */
 ui-menu.PanelMenu::part(menu) {
   z-index: 10;
@@ -107,6 +110,12 @@ ui-item.ThemeMenu ui-docs-themes {
   --ui-hover-delay: 2s;
   --ui-popup-inverted-background: var(--spell-tooltip-background);
   --ui-popup-inverted-color: white;
+}
+
+/* Scrollbars:  a grey thumb on no track of its own, so a pane's fill runs to its edge
+   (Owen:  "Can we NOT make scroll channel darker?  Thumb looks fine") */
+#app-root {
+  scrollbar-color: light-dark(rgb(0 0 0 / 0.28), rgb(255 255 255 / 0.28)) transparent;
 }
 
 /* `Actions.you`:  the person's avatar, a round button */
@@ -216,6 +225,12 @@ ui-menu.ModeTabs ui-item::part(item) {
   padding-block: 0.45em;
 }
 
+/* the palette menu's "Edit theme..." row:  its icon the width of a theme row's check, so their words line up */
+.EditThemeEntry > ui-icon {
+  --ui-icon-width: 1.125em;
+  --ui-icon-distance: 0;
+}
+
 /* `<ThemeMenu>`:  the palette a bare icon, a little bigger (its spacing:  the bar's rule, above) */
 /* its glyph centred on the bar, as the other icons:  its inline controls left a line's descent under it, 1px high */
 ui-item.ThemeMenu ui-docs-themes {
@@ -240,7 +255,7 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
 }
 
 /*
- * Tab bars (the Program panel's, the Inspector's Views | Things | Templates):  a header like every other pane's
+ * Tab bars (the Program panel's, the Inspector's Views | Things | Templates, the code pane's Text | Notebook):  a header like every other pane's
  * (40px, see-through, a hairline under it), its tabs a slim track in it, as the docs site's tabs
  * (Owen:  "doesn't match ... too tall, colors don't match, font size difference"):
  * - the track:  the tabs sharing the header's width evenly, the chosen one a raised white pill (Owen:  "still want
@@ -250,7 +265,7 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
 :root {
   --spell-tabs-track: light-dark(rgb(40 20 90 / 0.06), rgb(255 255 255 / 0.06));
 }
-:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs) {
+:is(ui-toolbar.RunnerPaneToolbar, ui-menu.InspectorViewTabs, ui-menu.InputViewSwitch) {
   --ui-menu-segmented-background: var(--spell-tabs-track);
   --ui-menu-segmented-border: 0 solid transparent;
   --ui-menu-segmented-radius: 9999px;
@@ -265,4 +280,34 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
   flex: 1 1 0;
   min-width: max-content;
   justify-content: center;
+}
+
+/*
+ * Phones (Owen:  "Fix it now"):  the top bar fits its width
+ * - the hat without its name, the project its icon (its name is the App pane's title), the modes their icons alone:
+ *   all still read out
+ * - each section its content's width:  too wide still, the bar scrolls sideways (above), never overlaps
+ */
+@media (--ui-mobile) {
+  ui-menu.AppMenu :is(.AppName, .ProjectName),
+  ui-menu.ModeTabs .ModeText {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  ui-menu.AppMenu > ui-menu.third::part(menu) {
+    flex: 0 0 auto;
+  }
+  /* the modes' icons alone:  no room kept for words after them */
+  ui-menu.ModeTabs ui-item::part(item) {
+    gap: 0;
+  }
+  /* the springs between the sections:  only the room left over, none of their own */
+  ui-menu.AppMenu ui-item.spring::part(item) {
+    min-width: 0;
+    padding-inline: 0;
+  }
 }

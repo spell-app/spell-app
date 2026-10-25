@@ -17,6 +17,7 @@ import "./SplitPanel.css"
  *   - a number, or `px` / `em` / `rem`:  a fixed size
  *   - `%`:  that share of the space the fixed panes leave
  *   - `*`, or missing:  an equal share of the percent left
+ *   - `auto`:  as big as its content, shrinking when there's no room;  a drag fixes it, in px
  *     - e.g. `"80%"` ~== `"80%,20%"` for two panes, `"*,*,200px"` ~== `"50%,50%,200px"`
  * - A child that draws nothing (a `<Show>` that's off) is no pane:  e.g. the run page's console, while hidden.
  * - Each child becomes a pane:
@@ -119,7 +120,13 @@ export function SplitPanel(props: SplitPanelProps) {
     paneElements().forEach((pane, index) => {
       const size = sizes[index]
       if (!size) return
-      pane.style.flex = size.units === "%" ? `${size.value} ${size.value} 0` : `0 0 ${size.value}${size.units}`
+      pane.style.flex =
+        size.units === "%"
+          ? `${size.value} ${size.value} 0`
+          : size.units === AUTO
+            ? "0 1 auto"
+            : `0 0 ${size.value}${size.units}`
+      pane.classList.toggle(FIT_CLASS, size.units === AUTO)
     })
   }
 
@@ -178,9 +185,11 @@ export function SplitPanel(props: SplitPanelProps) {
 
   /** `mouseup`, or unmounted:  stop following the mouse. */
   function stopDragging() {
+    const wasDragging = !!dragging
     dragging = undefined
     document.removeEventListener("mousemove", drag)
     document.removeEventListener("mouseup", stopDragging)
+    if (wasDragging) props.onDragged?.(paneElements())
   }
 
   /** Smallest share a pane may have, in percent. */
@@ -203,6 +212,8 @@ export type SplitPanelProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "children
   spaced?: boolean | "tightly" | "loosely"
   /** Bars to drag between the panes;  sizes remembered under `id`. */
   resizable?: boolean
+  /** A drag between two panes ended:  the panes, in order, at their new sizes. */
+  onDragged?: (panes: HTMLElement[]) => void
   /** Smallest share a pane may be dragged to, in percent.  Default:  `5`. */
   minSize?: number
   /** Wrapped panes are bordered. */
@@ -302,9 +313,14 @@ export type PanelSizeSpec = boolean | string | Array<string | number>
 export type PanelSize = {
   /** How much, in `units`. */
   value: number
-  /** `px`, `em`, `rem` or `%`. */
+  /** `px`, `em`, `rem`, `%` or `auto` (its `value` unused). */
   units: string
 }
+
+/** A pane as big as its content:  the units of its `PanelSize`, and how a spec says it. */
+const AUTO = "auto"
+/** Class of an `auto` pane:  its child laid out in it, not over it (`SplitPanel.css`), so it has a height to fit. */
+const FIT_CLASS = "fit"
 
 /** One size in a spec:  a number with optional units, e.g. `20`, `20px`, `20%`. */
 const NUM_WITH_UNITS = /^([0-9]*\.?[0-9]+)(px|em|rem|%)?$/
@@ -326,6 +342,7 @@ export function normalizeSizes(spec: unknown, count: number): PanelSize[] {
   let percents = 0
   const sizes = raw.map((size): { value: number | "*"; units: string } => {
     if (typeof size === "number") return { value: size, units: "px" }
+    if (size.trim() === AUTO) return { value: 0, units: AUTO }
     if (size !== "*") {
       const match = NUM_WITH_UNITS.exec(size.trim())
       if (match) {
@@ -345,7 +362,7 @@ export function normalizeSizes(spec: unknown, count: number): PanelSize[] {
 
 /** `sizes` as a spec string, e.g. `"60%,40%"`:  how a preference stores them. */
 function sizeString(sizes: PanelSize[]): string {
-  return sizes.map(({ value, units }) => `${value}${units}`).join(",")
+  return sizes.map(({ value, units }) => (units === AUTO ? AUTO : `${value}${units}`)).join(",")
 }
 
 /** Is `node` a pane of a `<SplitPanel>` as it is:  a `<SplitPane>`, or a nested `<SplitPanel>`? */

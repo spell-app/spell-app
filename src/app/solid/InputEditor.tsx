@@ -1,4 +1,4 @@
-import { Loading, Show, createEffect, createMemo, createSignal } from "solid-js"
+import { For, Loading, Show, createEffect, createMemo, createSignal } from "solid-js"
 
 import { editor } from "spell-app/app/editor"
 import { editorPrefs } from "spell-app/app/editorPrefs"
@@ -76,19 +76,34 @@ export function InputToolbar() {
 /****************
  * ### `<InputViewSwitch>`
  * Text | Notebook, for a `.spellx` file (epic `elemental-spell` P11):  how `<InputRoot>` shows it.
+ * - Two icons in the pane headers' segmented track (the Inspector's tabs' look, `chrome.css`), each with its `title`:
+ *   words would crowd New File and the "..." menu out of a narrow pane.
  ****************/
 function InputViewSwitch() {
   return (
-    <ui-buttons size="mini" basic="" class="InputViewSwitch" title={appTexts.text("inputViewHint")}>
-      <ui-button icon="align left" active={!InputView.isNotebook} onClick={() => InputView.show("text")}>
-        {appTexts.text("inputViewText")}
-      </ui-button>
-      <ui-button icon="th list" active={InputView.isNotebook} onClick={() => InputView.show("notebook")}>
-        {appTexts.text("inputViewNotebook")}
-      </ui-button>
-    </ui-buttons>
+    <ui-menu appearance="segmented" class="InputViewSwitch">
+      <For each={INPUT_VIEWS}>
+        {(name) => (
+          <ui-item
+            link=""
+            selected={InputView.isNotebook === (name === "notebook")}
+            title={appTexts.text(INPUT_VIEW_LOOKS[name].text)}
+            aria-label={appTexts.text(INPUT_VIEW_LOOKS[name].text)}
+            onClick={() => InputView.show(name)}
+          >
+            <ui-icon name={INPUT_VIEW_LOOKS[name].icon} />
+          </ui-item>
+        )}
+      </For>
+    </ui-menu>
   )
 }
+
+/** Each way to show a `.spellx` file:  its switch's icon, and its tooltip. */
+const INPUT_VIEW_LOOKS = {
+  text: { icon: "align left", text: "inputViewText" },
+  notebook: { icon: "th list", text: "inputViewNotebook" }
+} as const
 
 /****************
  * ### `InputView`

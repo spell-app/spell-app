@@ -14,6 +14,8 @@ import "./FileDropdown.css"
  * - Choosing a file shows it in `<SpellEditor>`, or in Run with `useRunner`.
  * - Its trigger shows the file icon before the file's name (the `trigger` slot), as each item does.
  * - Loading (spinning caret, no items) until the project's loaded and has a file.
+ * - A file the project doesn't import (a `.spellx` beside its `.spell`) is listed after its imports, by its name,
+ *   so the trigger still names it.
  * - The dropdown's value is ALWAYS `editor.file`'s path (see `choose()`):
  *   choosing sets it back during the event, and shows the file chosen, which then becomes `editor.file`.
  * - `showActions`:  `Actions.FILE_DROPDOWN_ACTIONS` after a divider, as dropdown items;
@@ -26,11 +28,11 @@ export function FileDropdown(props: FileDropdownProps) {
   const state = tracked(() => {
     const { project, file } = editor
     const ready = !!project?.isLoaded && !!file
-    return {
-      ready,
-      path: file?.path ?? "",
-      files: ready ? project.imports.map(({ path, location }) => ({ path, name: location.file })) : []
-    }
+    const files = ready ? project.imports.map(({ path, location }) => ({ path, name: location.file })) : []
+    // a file the project doesn't import (a `.spellx` beside its `.spell`) is listed too, by its file name
+    if (ready && !files.some((each) => each.path === file.path))
+      files.push({ path: file.path, name: file.path.split("/").at(-1) ?? file.path })
+    return { ready, path: file?.path ?? "", files }
   })
 
   const selectedName = () => state().files.find((file) => file.path === state().path)?.name
