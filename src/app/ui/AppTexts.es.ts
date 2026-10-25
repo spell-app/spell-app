@@ -71,6 +71,8 @@ const APP_TEXTS_ES: AppTextPack = {
   inspectorClose: "Cerrar el inspector",
   inspectorTip: "Elige una parte de la app con la mira, para ver qué es y cambiarla.",
   inspectorPicking: "Haz clic en una parte de la app;  Alt y clic, en cualquier parte de dentro.  Esc deja de elegir.",
+  inspectorText: "Texto",
+  inspectorMore: "Más",
   closeProgram: "Cerrar el panel del programa",
   thingsTab: "Cosas",
   typesTab: "Plantillas",

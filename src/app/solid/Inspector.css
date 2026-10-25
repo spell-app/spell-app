@@ -15,8 +15,10 @@
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  /* the panel IS the column, as the Theme Creator's:  its bands run edge to edge, no card inside a card */
+  gap: 0;
+  padding: 0;
+  overflow-x: hidden;
   background: var(--ui-background);
   color: var(--ui-text-color);
   font-family: var(--ui-font-family);
@@ -26,14 +28,76 @@
 
   /* compact, as the Theme Creator's inspector:  15px type, fields 12px apart, the control 4px under its label */
   & ui-property-editor {
-    font-size: 15px;
-    --ui-form-row-distance: 12px;
+    font-size: 14px;
+    --ui-form-row-distance: 10px;
+    /* controls about 30px tall, as the Theme Creator's (Owen:  "make fields in the inspector more compact") */
+    --ui-input-padding-block: 0.4em;
+    --ui-input-padding-inline: 0.7em;
+    --ui-select-padding-block: 0.4em;
+    --ui-select-padding-inline: 0.7em;
   }
   & :is(ui-field, ui-property) {
     --ui-form-label-distance: 4px;
   }
   & ui-panel {
-    --ui-panel-gap: 16px;
+    --ui-panel-gap: 12px;
+    --ui-panel-radius: 0;
+    --ui-panel-border-color: transparent;
+    --ui-panel-shadow: none;
+    --ui-panel-padding: 14px;
+  }
+  /*
+   * the fields:  two to a row where a field is only a yes or no (`inline`), else the row's full width
+   * (Owen:  "fit a ton of stuff on the screen without being too busy")
+   */
+  & ui-property-editor::part(editor) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: var(--ui-form-row-distance);
+  }
+  /* a field's own box is its `field` part (its element draws none) */
+  & :is(ui-property-editor, ui-property-group) > ui-property::part(field) {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  & :is(ui-property-editor, ui-property-group) > ui-property[inline]::part(field) {
+    grid-column: auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+  & ui-property[inline]::part(row) {
+    flex: 0 1 auto;
+    width: auto;
+    margin: 0;
+  }
+  /* the box, then its label:  "[x] Basic" */
+  & ui-property[inline]::part(control) {
+    order: -1;
+    flex: 0 0 auto;
+    width: auto;
+  }
+  /* "More":  a full row, its fields on the same two-column grid, its title a small band, not a heading */
+  & ui-property-editor > ui-property-group {
+    grid-column: 1 / -1;
+  }
+  & ui-property-group::part(section) {
+    grid-column: 1 / -1;
+    margin: 4px 0 0;
+  }
+  & ui-property-group::part(content) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: var(--ui-form-row-distance);
+  }
+  & ui-property-group {
+    --ui-section-h2: 0.8125;
+    --ui-section-h3: 0.8125;
+    --ui-section-title-padding: 4px 0;
   }
   /* segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */
   & ui-menu[appearance="segmented"] {
@@ -47,6 +111,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 8px 10px 8px 14px;
 
   & > .InspectorTitle {
     flex: 1 1 auto;
@@ -55,17 +120,34 @@
     text-transform: uppercase;
     color: var(--spell-text-accent, var(--ui-text-muted));
   }
+  /* its icons in round wells, so one that's on can sit pressed in without moving */
   & > ui-icon.IconAction {
+    box-sizing: border-box;
+    width: 30px;
+    height: 30px;
+    justify-content: center;
+    align-items: center;
     margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    transition:
+      background-color var(--ui-duration-fast, 150ms) var(--ui-ease, ease),
+      box-shadow var(--ui-duration-fast, 150ms) var(--ui-ease, ease);
   }
+  /* on (picking):  pressed in, a round dip tinted with the primary colour (Owen:  "circular depressed") */
   & > ui-icon.IconAction.active {
     color: var(--ui-primary);
+    background: color-mix(in oklab, var(--ui-primary) 16%, transparent);
+    box-shadow:
+      inset 0 2px 5px rgb(0 0 0 / 0.35),
+      inset 0 0 0 1px color-mix(in oklab, var(--ui-primary) 30%, transparent);
   }
 }
 
 /* the tip, while nothing's picked:  the Theme Creator's 14px tips */
 .InspectorTip {
   margin: 0;
+  padding: 0 14px;
   font-size: 14px;
   line-height: 1.35;
   color: var(--ui-text-muted);
