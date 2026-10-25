@@ -14,12 +14,12 @@ import { CodeViewSwitch } from "./NotebookCell"
  * - Lock it (whoever can write the file) and Try as a visitor;  then what happens to edits:
  *   "Your changes are saved", or "Trying it out:  changes aren't saved".
  ****************/
-export function NotebookToolbar(props: { controller: NotebookController }) {
+export function NotebookToolbar(props: { controller: NotebookController; ref?: (toolbar: HTMLDivElement) => void }) {
   const { controller } = props
   const hasSelection = () => !!controller.selected()
   const locked = () => !!controller.model()?.locked
   return (
-    <div class="NotebookToolbar" role="toolbar" aria-label={controller.model()?.name}>
+    <div class="NotebookToolbar" role="toolbar" aria-label={controller.model()?.name} ref={(div) => props.ref?.(div)}>
       <div class="NotebookToolbarGroup">
         <ui-button
           size="small"
@@ -83,7 +83,7 @@ export function NotebookToolbar(props: { controller: NotebookController }) {
     </div>
   )
 
-  /** A toolbar button:  an icon, its text the tooltip and its label;  greyed out while `disabled`. */
+  /** A toolbar button:  a plain icon, its text the tooltip and its name;  greyed out while `disabled`. */
   function tool(icon: string, text: AppTextKey, run: () => unknown, disabled = false) {
     return (
       <ui-button
@@ -92,7 +92,7 @@ export function NotebookToolbar(props: { controller: NotebookController }) {
         icon={icon}
         disabled={disabled ? "" : undefined}
         title={appTexts.text(text)}
-        label={appTexts.text(text)}
+        aria-label={appTexts.text(text)}
         onClick={() => void run()}
       />
     )

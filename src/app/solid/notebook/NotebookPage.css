@@ -6,7 +6,9 @@
 .NotebookPage {
   --notebook-gutter: 16px;
   --notebook-width: 46rem;
-  --notebook-ring: rgb(150 80 255 / 0.55);
+  --notebook-ring: rgb(150 80 255 / 0.4);
+  /* its own width decides its layout, not the window's:  it shares the window with the code */
+  container-type: inline-size;
   position: relative;
   height: 100%;
   overflow: auto;
@@ -16,22 +18,24 @@
 
 /* ## The toolbar:  stuck to the top, groups wrapping on a narrow pane */
 
+/* over the sections' stuck titles, which stick just under it (`offset`) */
 .NotebookToolbar {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 20;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 24px;
   padding: 8px var(--notebook-gutter);
-  background: color-mix(in oklab, var(--ui-surface, white) 92%, transparent);
-  backdrop-filter: blur(8px);
+  background: var(--ui-surface);
   border-bottom: 1px solid var(--ui-border-color, rgb(34 36 38 / 0.15));
 }
 
 .NotebookToolbarGroup {
   display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
   align-items: center;
   gap: 8px;
 }
@@ -42,6 +46,7 @@
 
 .NotebookToolbarLabel,
 .NotebookStatus {
+  white-space: nowrap;
   font-size: 0.85em;
   color: var(--ui-text-muted);
 }
@@ -86,7 +91,7 @@
 }
 
 /* the contents column goes on a narrow pane:  the page alone, full width */
-@media (max-width: 760px) {
+@container (max-width: 760px) {
   .NotebookColumns {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -107,8 +112,15 @@
   color: var(--ui-text-muted);
 }
 
+/* a section's title a step under the page's */
 .NotebookSection {
   margin-top: 24px;
+  --ui-section-h2: 1.35;
+}
+
+/* an untitled section in what a notebook draws (`<section>`):  no rule */
+.NotebookResult ui-section:not([label]) {
+  --ui-section-dividing-border: none;
 }
 
 /* ## Cells */
@@ -120,9 +132,11 @@
 }
 
 /* in edit mode, the selected cell:  a focus ring a little out from its edges */
-.NotebookCell.selected {
+.NotebookCell.selected,
+.NotebookMasthead.selected {
   outline: 2px solid var(--notebook-ring);
-  outline-offset: 6px;
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 .NotebookCellLabel {
@@ -153,8 +167,10 @@
   display: block;
 }
 
+/* its switch floats over its code's top right */
 .NotebookExampleCode {
   display: block;
+  position: relative;
 }
 
 /* an example's code lines up with its title and result, 16px in:  Monaco's own 10px, then 6px */
@@ -165,9 +181,10 @@
 }
 
 .NotebookExampleBar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 8px 16px 0;
+  position: absolute;
+  top: 6px;
+  right: 16px;
+  z-index: 1;
 }
 
 .NotebookErrors {

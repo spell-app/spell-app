@@ -150,14 +150,14 @@ export function ExampleCode(props: { controller: NotebookController; key: string
 /** The switch between the code views, spellx / spell / html:  one for the whole page. */
 export function CodeViewSwitch(props: { controller: NotebookController }) {
   return (
-    <ui-buttons size="mini" basic="" class="NotebookViewSwitch" label={appTexts.text("notebookPageCodeAs")}>
+    <ui-buttons size="small" basic="" class="NotebookViewSwitch" aria-label={appTexts.text("notebookPageCodeAs")}>
       <For each={VIEWS}>
         {(view) => (
           <ui-button
             compact=""
             active={props.controller.codeView() === view}
             primary={props.controller.codeView() === view ? "" : undefined}
-            title={appTexts.text("notebookPageCodeAs")}
+            title={`${appTexts.text("notebookPageCodeAs")} ${view}`}
             onClick={(event: MouseEvent) => {
               event.stopPropagation()
               props.controller.setCodeView(view)
@@ -253,6 +253,8 @@ const CODE_OPTIONS = {
   scrollBeyondLastLine: false,
   folding: false,
   automaticLayout: true,
+  // a long line wraps, rather than run off the cell's edge with nothing to say so
+  wordWrap: "on",
   renderLineHighlight: "none",
   overviewRulerLanes: 0,
   scrollbar: { alwaysConsumeMouseWheel: false }

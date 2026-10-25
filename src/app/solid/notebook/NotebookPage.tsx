@@ -1,4 +1,4 @@
-import { For, Show, createEffect, getOwner, onCleanup, onSettled, runWithOwner } from "solid-js"
+import { For, Show, createEffect, createSignal, getOwner, onCleanup, onSettled, runWithOwner } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { setDebugGlobal } from "spell/util"
@@ -7,7 +7,7 @@ import type { SP } from "spell-parser/spell"
 import { tracked } from "spell-app/app/solid/tracked"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { NotebookController, type KeyedCell } from "./NotebookController"
-import { ExampleCode, NotebookCell } from "./NotebookCell"
+import { CellEditor, ExampleCode, NotebookCell } from "./NotebookCell"
 import { NotebookToolbar } from "./NotebookToolbar"
 import { SpellExample } from "./SpellExample"
 
@@ -62,10 +62,18 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
     })
   )
 
+  // the toolbar's height, which wraps on a narrow pane:  where a section's title sticks, just under it
+  const [toolbarHeight, setToolbarHeight] = createSignal(0)
+  const followToolbar = (toolbar: HTMLElement) => {
+    const observer = new ResizeObserver(() => setToolbarHeight(Math.round(toolbar.getBoundingClientRect().height)))
+    observer.observe(toolbar)
+    onCleanup(() => observer.disconnect())
+  }
+
   const sections = () => sectionsOf(controller.cells())
   return (
     <div class="NotebookPage" ref={(div) => (page = div)}>
-      <NotebookToolbar controller={controller} />
+      <NotebookToolbar controller={controller} ref={followToolbar} />
       <div class="NotebookColumns">
         <main class="NotebookMain">
           <For each={sections()} keyed={(section) => section.key}>
@@ -78,6 +86,8 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
                   id={slugOf(section().heading!)}
                   label={section().heading}
                   sticky=""
+                  offset={toolbarHeight()}
+                  level="2"
                   collapsible=""
                   dividing=""
                   class="NotebookSection"
@@ -109,7 +119,7 @@ function Cells(props: { controller: NotebookController; cells: KeyedCell[]; mast
     <For each={props.cells} keyed={(each) => each.key}>
       {(each, index) => (
         <Show
-          when={props.masthead && index() === 0 && each().cell.title && !props.controller.editing()}
+          when={props.masthead && index() === 0 && each().cell.title}
           fallback={
             <NotebookCell
               controller={props.controller}
@@ -119,7 +129,21 @@ function Cells(props: { controller: NotebookController; cells: KeyedCell[]; mast
             />
           }
         >
-          <header class="NotebookMasthead" onClick={() => props.controller.select(each().key)}>
+          <Show when={props.controller.editing() && props.controller.selected() === each().key}>
+            <CellEditor
+              code={each().cell.code}
+              language="markdown"
+              readOnly={false}
+              onChange={(code) => props.controller.editCell(each().key, code)}
+            />
+          </Show>
+          <header
+            class={[
+              "NotebookMasthead",
+              { selected: props.controller.editing() && props.controller.selected() === each().key }
+            ]}
+            onClick={() => props.controller.select(each().key)}
+          >
             <h1>{each().cell.title}</h1>
             <Show when={each().cell.code.split("\n").slice(1).join("\n").trim()}>
               {(rest) => <ui-markdown class="NotebookLead">{rest()}</ui-markdown>}
