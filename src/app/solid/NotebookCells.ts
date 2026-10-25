@@ -5,6 +5,8 @@ import { SX } from "spell-parser/spellx"
  * - The cells come from `SX.SpellxView`, the file's chunk tree with exact spans:  each template is a cell,
  *   then its own cells in order:  PROSE (markdown) and CHUNKS (a property, alias, action, drawing, event, test,
  *   handler or note), each the text of its span.
+ * - A template's cell is only its head (`<spell-view "card">`):  its members are cells of their own,
+ *   which the notebook draws inside it (`parentId`).
  * - Every edit returns the file's NEW TEXT, changing only the span it's about:  the rest of the file stays byte for
  *   byte.  The notebook hands it to the editor as typed text (`editor.onInputChanged()`), so the parse, the running
  *   program and the Text view follow.
@@ -18,24 +20,32 @@ export class NotebookCells {
   static of(text: string, path?: string): NotebookCell[] {
     const file = SX.SpellxView.read(text, { path })
     const cells: NotebookCell[] = []
+    const headings = new HeadingLevels()
     for (const node of file.nodes) {
       if (node.kind === "template") {
-        cells.push(NotebookCells.chunkFor(text, node, file, undefined, cells.length))
+        const template = NotebookCells.chunkFor(text, node, file, undefined, cells.length)
+        cells.push(template)
         for (const child of node.children) {
-          if (child.kind === "prose") cells.push(NotebookCells.proseFor(child, node, cells.length))
+          if (child.kind === "prose") cells.push(NotebookCells.proseFor(child, template.id, cells.length, headings))
           else if (child.kind === "declaration" || child.kind === "handler" || child.kind === "note")
-            cells.push(NotebookCells.chunkFor(text, child, file, node, cells.length))
+            cells.push(NotebookCells.chunkFor(text, child, file, template.id, cells.length))
         }
-      } else if (node.kind === "prose") cells.push(NotebookCells.proseFor(node, undefined, cells.length))
+      } else if (node.kind === "prose") cells.push(NotebookCells.proseFor(node, undefined, cells.length, headings))
     }
     return cells
+  }
+
+  /** The cells inside template `templateId`, in order;  `undefined`:  the cells outside every template. */
+  static membersOf(cells: NotebookCell[], templateId: string | undefined): NotebookCell[] {
+    return cells.filter((each) => each.parentId === templateId)
   }
 
   /**
    * `text` with `cell`'s code changed to `code`, as the cell's editor shows it (its indent taken off):
    * the indent goes back on every line but the first.
+   * - `cell`:  a chunk, or a property's body (`cell.property.body`).
    */
-  static withCode(text: string, cell: ChunkCell, code: string): string {
+  static withCode(text: string, cell: CodeSpan, code: string): string {
     return replaceSpan(text, cell.span, indented(code, cell.indent))
   }
 
@@ -81,33 +91,43 @@ export class NotebookCells {
   // ## Making cells
   ////////////////
 
-  /** The prose cell for `node`, in template `parent` (if any). */
-  private static proseFor(node: SX.SpellxProse, parent: SX.SpellxTemplate | undefined, index: number): ProseCell {
-    return { kind: "prose", id: `prose-${index}`, text: node.text, span: node.span, parentId: parent && idOf(parent) }
+  /** The prose cell for `node`, in template `parentId` (if any). */
+  private static proseFor(
+    node: SX.SpellxProse,
+    parentId: string | undefined,
+    index: number,
+    headings: HeadingLevels
+  ): ProseCell {
+    return { kind: "prose", id: `prose-${index}`, text: proseMarkdown(node.text, headings), span: node.span, parentId }
   }
 
-  /** The chunk cell for `node`, in template `parent` (if any). */
+  /**
+   * The chunk cell for `node`, in template `parentId` (if any).
+   * - A template's span is its head alone:  its members are cells of their own.
+   */
   private static chunkFor(
     text: string,
     node: SX.SpellxTemplate | SX.SpellxDeclaration | SX.SpellxHandler | SX.SpellxNote,
     file: SX.SpellxFile,
-    parent: SX.SpellxTemplate | undefined,
+    parentId: string | undefined,
     index: number
   ): ChunkCell {
-    const lineStart = text.lastIndexOf("\n", node.span.start - 1) + 1
-    const indent = text.slice(lineStart, node.span.start)
-    const code = dedented(text.slice(node.span.start, node.span.end), indent)
+    const span = node.kind === "template" ? node.headSpan : node.span
+    const indent = indentAt(text, span.start)
+    const code = dedented(text.slice(span.start, span.end), indent)
     const words = file.language.words.spellx?.attributes ?? {}
+    const ownId = idOf(node, index)
     return {
       kind: "chunk",
-      id: idOf(node, index),
+      // a member's id names its template:  two templates may both have a `color`
+      id: parentId ? `${parentId}/${ownId}` : ownId,
       type: node.type,
       word: node.word,
       title: titleOf(node),
       code,
       indent,
-      span: node.span,
-      parentId: parent && idOf(parent),
+      span,
+      parentId,
       property:
         node.kind === "declaration" && node.type === "property"
           ? {
@@ -117,6 +137,7 @@ export class NotebookCells {
               attributes: node.attributes,
               selfClosing: node.selfClosing,
               headSpan: node.headSpan,
+              body: bodyOf(text, node),
               words: { oneOf: wordFor(words, "one-of"), alias: wordFor(words, "alias") }
             }
           : undefined
@@ -136,7 +157,12 @@ export type ProseCell = {
   kind: "prose"
   /** stable for the file's life while its place doesn't change, e.g. `prose-3` */
   id: string
-  /** its markdown, its shared indent taken off */
+  /**
+   * its markdown, as the notebook draws it:
+   * - its shared indent taken off
+   * - its `//` comment lines as plain lines, each kept on its own
+   * - its headings one level under the file's first heading (`proseMarkdown()`)
+   */
   text: string
   /** where it is in the file */
   span: SX.SpellxSpan
@@ -145,9 +171,9 @@ export type ProseCell = {
 }
 
 /** A template or one of its members:  a card in the notebook. */
-export type ChunkCell = {
+export type ChunkCell = CodeSpan & {
   kind: "chunk"
-  /** its kind and name, e.g. `property:suit`:  what remembers its fold */
+  /** its kind and name, after its template's, e.g. `view:card/property:suit`:  what remembers its fold */
   id: string
   /** what it is, in English:  `view`, `property`, `action`, `on` ... */
   type: string
@@ -155,16 +181,23 @@ export type ChunkCell = {
   word: string
   /** its title for people:  its name, or its phrase */
   title: string
-  /** its text, its indent taken off every line */
-  code: string
-  /** the indent its first line sits at, put back on an edit */
-  indent: string
-  /** where it is in the file */
-  span: SX.SpellxSpan
   /** the template it's in, by its id;  none for a template */
   parentId: string | undefined
   /** a property's fields, for its form */
   property: PropertyFields | undefined
+}
+
+/**
+ * A span of code a card's editor edits:  a chunk (a template's head), or a property's body.
+ * - The editor shows `code`;  `NotebookCells.withCode()` writes it back into `span`.
+ */
+export type CodeSpan = {
+  /** its text, `indent` taken off every line after the first */
+  code: string
+  /** the indent its first line sits at, put back on an edit */
+  indent: string
+  /** where it is in the file:  a template's, its head alone */
+  span: SX.SpellxSpan
 }
 
 /** A property chunk's fields, as its form shows them. */
@@ -175,6 +208,8 @@ export type PropertyFields = PropertyForm & {
   selfClosing: boolean
   /** its head's span, which an edit replaces */
   headSpan: SX.SpellxSpan
+  /** its body (`red if ...`), which the form shows below it as code;  none:  `/>`, or nothing inside */
+  body: CodeSpan | undefined
   /** the file's language's words for the two attributes the form writes */
   words: { oneOf: string; alias: string }
 }
@@ -196,6 +231,63 @@ export type PropertyForm = {
 /** `text` with `span` replaced by `replacement`. */
 function replaceSpan(text: string, span: SX.SpellxSpan, replacement: string): string {
   return text.slice(0, span.start) + replacement + text.slice(span.end)
+}
+
+/** The whitespace `offset`'s line starts with, up to `offset`. */
+function indentAt(text: string, offset: number): string {
+  const lineStart = text.lastIndexOf("\n", offset - 1) + 1
+  return /^[ \t]*/.exec(text.slice(lineStart, offset))![0]
+}
+
+/** Declaration `node`'s body, from its first child to its last;  none when it has none. */
+function bodyOf(text: string, node: SX.SpellxDeclaration): CodeSpan | undefined {
+  const first = node.children[0]
+  const last = node.children.at(-1)
+  if (!first || !last) return undefined
+  const span = { start: first.span.start, end: last.span.end }
+  const indent = indentAt(text, span.start)
+  return { code: dedented(text.slice(span.start, span.end), indent), indent, span }
+}
+
+/**
+ * Prose `text` as the notebook draws it.
+ * - A `//` comment line loses its `//` and stays a line of its own (markdown would run it into the one above);
+ *   a `- ` line after it stays in its list.
+ * - Headings move under the file's first heading (`HeadingLevels`).
+ */
+function proseMarkdown(text: string, headings: HeadingLevels): string {
+  const lines = text.split("\n").map((line) => {
+    const heading = /^(#{1,6})(\s.*)$/.exec(line)
+    if (heading) return "#".repeat(headings.levelFor(heading[1]!.length)) + heading[2]
+    return line
+  })
+  let out = ""
+  for (const [i, line] of lines.entries()) {
+    const comment = /^\/\/\s?(.*)$/.exec(line)
+    const shown = comment ? comment[1]! : line
+    if (i === 0) out = shown
+    // a comment line is a paragraph of its own;  a list item stays with the one before it
+    else out += comment && !/^[-*] /.test(shown) ? "\n\n" + shown : "\n" + shown
+  }
+  return out
+}
+
+/**
+ * The heading levels a notebook draws:  the file's first heading at the top level, every other one under it.
+ * - So a template's `# card rank` doesn't outrank the file's own `## A playing card` title.
+ */
+class HeadingLevels {
+  /** the level the file's first heading was written at;  none seen yet */
+  private first: number | undefined
+
+  /** The level to draw a heading written at `level`. */
+  levelFor(level: number): number {
+    if (this.first === undefined) {
+      this.first = level
+      return 1
+    }
+    return Math.min(6, Math.max(2, level - this.first + 2))
+  }
 }
 
 /** `code` with `indent` taken off every line after the first that starts with it. */

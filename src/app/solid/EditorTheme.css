@@ -47,6 +47,9 @@
   --spell-pane-border-color: var(--fruity-edge);
   --spell-pane-radius: 14px;
   --spell-pane-filter: var(--fruity-blur);
+  /* a panel's header a wash of the theme's purple:  the frosted glass draws its top edge whiter than the rest
+     (the blur reaches past the panel), so a see-through header stood out near-white (Owen, epic `elemental-spell` C39) */
+  --spell-header-background: color-mix(in oklab, var(--fruity-accent-wash) 50%, transparent);
 }
 
 /* ... and the code editors see-through, the frosted panel behind the code:  Purple's near-white page and lavender
