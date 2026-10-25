@@ -2119,7 +2119,7 @@
         "editors"
       ],
       "aka": [],
-      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`); or, with `target=\"spell\"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins.",
+      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`); or, with `target=\"spell\"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins; or, with `target=\"spellx\"`, `editor.file` as spellx:  a `.spell` file's, written by `SX.SpellxWriter`.",
       "noun": "OutputEditor",
       "attributes": [],
       "slots": [],
