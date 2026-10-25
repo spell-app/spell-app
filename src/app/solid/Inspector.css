@@ -6,12 +6,11 @@
  *   this sheet reads only tokens.
  */
 
-/* the column:  filling its pane, which draws the card (the same as the app's, `<SplitPanel rounded>`) */
+/* a card's inside, in the brand's theme:  filling its card */
 .Inspector {
   flex: 1 1 auto;
   box-sizing: border-box;
   min-height: 0;
-  /* its two halves scroll, each by itself (`.InspectorSplit`, below) */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -117,11 +116,26 @@
   }
 }
 
-/* the whole column:  its header (the App pane's, `.AppPaneHeader`, in the editor's theme), then the Inspector */
+/* the whole column:  three cards, one above the other (`.InspectorSplit`, below), and nothing of its own:
+   its pane draws no card, so the page shows in the seams between them */
 .InspectorColumn {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+.SpellPage .InspectorPane.SplitPanel > .SplitPanelPane:has(> .InspectorColumn) {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* the first card:  the column's header (the App pane's, `.AppPaneHeader`, in the editor's theme), then what's
+   picked */
+.InspectorCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--spell-pane-background);
 }
 
 /* its header's crosshairs, between the title and Close */
@@ -147,7 +161,7 @@
 /* the tip, while nothing's picked:  the Theme Creator's 14px tips */
 .InspectorTip {
   margin: 0;
-  padding: 0 14px;
+  padding: 10px 14px;
   font-size: 14px;
   line-height: 1.35;
   color: var(--ui-text-muted);
@@ -176,25 +190,19 @@
 }
 
 /*
- * Under its header, split in three (`<SplitPanel rows resizable>`):  what's picked, its events, the app's views.
- * - Each pane scrolls by itself;  the bars between them drag.
- * - One surface, the panels' own tint (Owen:  "lose background color between panels and white border around
- *   panels"):  the look's pane box (edge, radius, shadow) is taken off, and the gaps show the same tint.
+ * The three cards (`<SplitPanel rows resizable>`):  what's picked, its events, the app's views.
+ * - Each a card as the editor's panes are (the look's), the page in the seams;  each scrolls by itself, and the
+ *   bars between them drag.
+ * - No white edge (Owen:  "lose the white border around panels").
  */
 .InspectorSplit {
   flex: 1 1 auto;
   min-height: 0;
-  background: color-mix(in oklab, var(--ui-primary-background) 35%, var(--ui-surface));
 }
-.Inspector > .SplitPanel.InspectorSplit > .SplitPanelPane {
-  background: none;
+.SpellPage .InspectorColumn > .SplitPanel.InspectorSplit > .SplitPanelPane {
   border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
 }
-/* a pane of the split:  its last panel's tint running to its bottom (Owen:  "all the way to the bottom of the panel") */
+/* a card's scrolling inside:  its last panel's tint running to its bottom (Owen:  "all the way to the bottom of the panel") */
 .InspectorSection {
   display: flex;
   flex-direction: column;
@@ -238,7 +246,8 @@ ui-dropdown.InspectorAddEvent [slot="trigger"] {
   gap: 6px;
 }
 
-/* the views tree:  a row a part, indented by its depth */
+/* the views tree:  a row a part, indented by its depth, tight (Owen:  "tighten up spacing ... line to line and icon
+   to label");  a part with parts inside, its caret first */
 .InspectorTree {
   & ul {
     /* rows run the panel's width:  its padding taken back, then given to each row */
@@ -249,9 +258,9 @@ ui-dropdown.InspectorAddEvent [slot="trigger"] {
   & li {
     display: flex;
     align-items: center;
-    gap: 6px;
-    min-height: 26px;
-    padding-inline: calc(14px + var(--depth, 0) * 14px) 14px;
+    gap: 4px;
+    min-height: 22px;
+    padding-inline: calc(8px + var(--depth, 0) * 12px) 14px;
     font-size: 13px;
     white-space: nowrap;
     cursor: pointer;
@@ -266,6 +275,20 @@ ui-dropdown.InspectorAddEvent [slot="trigger"] {
     & > span {
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    & > ui-icon {
+      margin: 0;
+      /* the glyph's own width, not the usual 1.18em box:  the label close by */
+      --ui-icon-width: 1em;
+      --ui-icon-distance: 0;
+    }
+    /* the caret, or the room for one */
+    & > .InspectorFold {
+      flex: 0 0 12px;
+      display: inline-flex;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--ui-text-muted);
     }
   }
 }

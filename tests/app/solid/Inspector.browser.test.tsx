@@ -26,7 +26,7 @@ describe("Inspector.partFor()", () => {
     expect(part && { value: part.value.constructor.name, schema: part.schema, label: part.label }).toEqual({
       value: button.querySelector("ui-button")!.constructor.name,
       schema: "ui-button",
-      label: "<ui-button>"
+      label: "<ui-button> · Go"
     })
   })
 
@@ -48,7 +48,7 @@ describe("picking", () => {
 
     area.querySelector("ui-button")!.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }))
     flush()
-    expect(Inspector.picked?.label).toBe("<ui-button>")
+    expect(Inspector.picked?.label).toBe("<ui-button> · Go")
     expect(pressed).toBe(0)
     // picked:  the app has its clicks back
     expect(Inspector.isPicking).toBe(false)
@@ -80,10 +80,27 @@ describe("the parts tree and events", () => {
     flush()
     await ElementFixture.settle(host)
     const rows = [...host.querySelectorAll<HTMLElement>(".InspectorTree li")]
-    expect(rows.map((row) => row.textContent)).toEqual(["<ui-segment>", "<ui-button>"])
+    expect(rows.map((row) => row.textContent)).toEqual(["<ui-segment>", "<ui-button> · Go"])
     rows[1]!.click()
     flush()
     expect(Inspector.picked?.element).toBe(area.querySelector("ui-button"))
+  })
+
+  test("a part with parts inside folds and unfolds;  a Spell UI element says which it is", async () => {
+    const area = await inArea(`<ui-segment><ui-button name="go">Go</ui-button></ui-segment><ui-button>Stop</ui-button>`)
+    cleanups.push(Inspector.watch(area))
+    const host = await mount(() => <InspectorColumn />)
+    Inspector.toggle()
+    flush()
+    await ElementFixture.settle(host)
+    const labels = () => [...host.querySelectorAll(".InspectorTree li")].map((row) => row.textContent)
+    expect(labels()).toEqual(["<ui-segment>", "<ui-button> · go", "<ui-button> · Stop"])
+    host.querySelector<HTMLElement>(".InspectorTree li ui-icon.InspectorFold")!.click()
+    flush()
+    expect(labels()).toEqual(["<ui-segment>", "<ui-button> · Stop"])
+    host.querySelector<HTMLElement>(".InspectorTree li ui-icon.InspectorFold")!.click()
+    flush()
+    expect(labels()).toHaveLength(3)
   })
 
   test("what's picked is picked again once the app is drawn afresh", async () => {
