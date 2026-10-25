@@ -41,16 +41,22 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - TypeScript, found by vitest (the root's `vitest.config.ts`, its `spaces` project):
     - [api.ts](server/node/routes/api.ts) => [api.test.ts](../../tests/spaces/server/node/routes/api.test.ts)
   - Python:  [the Python server's tests](../../tests/spaces/server/py/tests/), found by its pytest (`testpaths`)
-  - The frozen test projects themselves are beside the built-ins, `spaces/@spell/test/` (see "Projects" below);
-    the tests that compile them whole are the repo's `tests/spell/` (the `spell` project), not ours.
-    - Among them `counter`, a frozen counter library:  `counter-app` imports it, for the tests of one project
-      importing another (the runner's, `spell compile`'s, `spell explain --in`, the core contract).
+  - The frozen test projects themselves are beside the built-ins, in `spaces/@spell/test/` (see "Projects" below).
+    The tests that compile them whole are the repo's `tests/spell/`, its `spell` project, not ours.
+    - Among them `counter`, a frozen counter library, which `counter-app` imports:
+      for the tests of one project importing another.
+      - Those of the runner, the core contract, `spell compile` and `spell explain --in`.
     - The built-in examples are tested as they are, not as frozen copies (`EXAMPLE_FIXTURES`):
       their snapshots are in `tests/spell/__examples__/<Project>/`, re-blessed when an example changes.
-    - So is every guide, `@spell/guides` (epic `debut` P10):  its snapshots in `tests/spell/__guides__/<Project>/`.
+    - So is every guide, `@spell/guides`, since epic `debut` P10.
+      Its snapshots are in `tests/spell/__guides__/<Project>/`.
 - [test/](test/index.ts), node only:
   the test helpers for the frozen test projects and the tested examples and guides, `spell-app/spaces/test`
-  - `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`, `compiledFixture()` ...
+  - among them:
+    - `loadFixtureProject()`
+    - `fixturePath()`
+    - `fixtureProjectId()`
+    - `compiledFixture()` ...
   - Imported by tests only, by name, never from the barrel.
   - Inline projects are spell-parser's helpers', `spell-parser/spell/test` (`parseSpellProject()`).
 - The repo's checks (its root `package.json`'s scripts) cover both:
@@ -79,8 +85,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`:  who this machine's person is, until a machine can have more than one person.
-  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39) --
-    or as titled, as `Solitaire` and `Solitaire`'s Spanish twin `Solitario` are (Owen, epic `spanish` P11).
+    - `SPACES.HOME_ORG` is their org for now, spell:  so their space is `@spell/owen@/`.
+  - A project's address:  its group's address, a slash and its folder's name, lower-kebab (P4, decision Q39).
+    - Or as titled, as Solitaire's is, and its Spanish twin's:  `Solitaire`, `Solitario`.
+      Owen's call, in epic `spanish` P11.
     - e.g. `@spell/examples/Solitaire`
     - a file in it:  its name, which has a dot (Q41), e.g. `@spell/examples/Solitaire/Solitaire.spell`
   - A `@local/<folder>` group, added at runtime for a folder an editor opened, says its own folder (`serverPath`).
@@ -158,13 +166,15 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## Preferences
 
 - Each person's preferences, kept in their space (epic `prefs-and-undo` P2):  [SpacePrefs.ts](server/node/prefs/SpacePrefs.ts).
-  - One JSON5 file per store, in the person's `__prefs/`:  `@spell/owen@/__prefs/spellEditor.json5`;
-    a store named like a project is a folder and a file (`__prefs/@owen/solitaire.json5`).
+  - One JSON5 file per store, in the person's `__prefs/` folder:
+    - the editor's:  `@spell/owen@/__prefs/spellEditor.json5`
+    - a store named like a project is a folder and a file:  `__prefs/@owen/solitaire.json5`
   - Through `SpaceStorage` and spaces' JSON5 writer:  a person's comments stay.
   - One change at a time to each file.
   - A store name that would reach outside `__prefs/`, or a key that can't be one:  `SRV.HttpError(400)`.
 - Its routes ([prefsRoutes.ts](server/node/prefs/prefsRoutes.ts)), what the kit's `ServerPlace` asks:
-  - `GET /api/prefs/load`, `POST /api/prefs/save`, `GET /api/prefs/keys`, `POST /api/prefs/forget`
+  - load and save a key:  `GET /api/prefs/load`, `POST /api/prefs/save`
+  - list and forget the keys under a prefix:  `GET /api/prefs/keys`, `POST /api/prefs/forget`
   - the protocol's types are the kit's (`spell/util`'s `PrefLoadAnswer` ...):  the client is generic
   - whose:  `prefsPersonFor()`, this machine's person until sign-in, the ONE function sign-in replaces
 - `respondWithJSON()` answers a thrown `SRV.HttpError` with its status, anything else with 500.

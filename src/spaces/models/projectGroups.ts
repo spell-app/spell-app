@@ -3,17 +3,17 @@ import type { SP } from "spell-parser/spell"
 import { SpellSetup } from "spell-parser/spell/SpellSetup"
 
 /**
- * The person whose space this machine's own projects are in:  `owen@spell`, so a project of theirs, `my-app`, is
- * `owen@spell/my-app`, in spell-spaces' `@spell/owen@/my-app/`.
- * - Their own file is `@spell/owen@/__me.json5`, which the people store reads and the app's "You" panel changes
- *   (epic `people-and-orgs` P9).
+ * The person whose space this machine's own projects are in:  `owen@spell`.
+ * - So a project of theirs, `my-app`, is `owen@spell/my-app`, in spell-spaces' `@spell/owen@/my-app/`.
+ * - Their own file is `@spell/owen@/__me.json5`:
+ *   the people store reads it, and the app's "You" panel changes it (epic `people-and-orgs` P9).
  * - WHO they are is still this name, until a machine can have more than one person.
  */
 export const LOCAL_PERSON = "owen"
 
 /**
- * The org every person on this machine is in, for now:  `owen@spell` is `Person#owen@spell`, their space
- * `@spell/owen@/`.
+ * The org every person on this machine is in, for now:
+ * `owen@spell` is `Person#owen@spell`, their space `@spell/owen@/`.
  * - The people store files them there;  their preferences are kept there too (`SpacePrefs`).
  */
 export const HOME_ORG = "spell"

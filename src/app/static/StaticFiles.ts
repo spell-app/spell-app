@@ -17,8 +17,8 @@ import { STATIC_BUILD_CLASS } from "./staticBuild"
 import "./static.css"
 
 /**
- * The editor's files in its STATIC build (`isStaticBuild`):  how every project, list and file is read and saved
- * with no server behind the page.
+ * The editor's files in its STATIC build (`isStaticBuild`):
+ * how every project, list and file is read and saved with no server behind the page.
  * - It answers the URLs spell uses (`SP.SpellUrls`) in place of the page server, as `LoadableFile.fetch`:
  *   - a group's projects, `/api/projects/list/<group>`:  `<that>.json`, written at build time
  *   - a project's index, `/api/projects/index/<project>`:  `<that>.json`, written at build time,
@@ -27,15 +27,16 @@ import "./static.css"
  *   - saving a file, `/api/projects/file/<project>/<file>`:  kept in the browser (below)
  *   - anything else (create, rename, delete, settings):  a `UIError`, as the build hides those
  * - What's kept, and where:
- *   - a file of the project's own, one its index lists (`Solitaire.spell`):
- *     the browser's database (`DatabasePlace`, the store `spell-static`), so an edit stays after a reload,
- *     until "Reset Example" (`reset()`);  and this page's memory, so a refused save still holds for the visit
+ *   - a file of the project's own, one its index lists (`Solitaire.spell`), in two places:
+ *     - the browser's database (`DatabasePlace`, the store `spell-static`):
+ *       so an edit stays after a reload, until "Reset Example" (`reset()`)
+ *     - this page's memory:  so a save the database refuses still holds for the visit
  *   - what spell builds from them (`Solitaire.spell.js`, its words and declarations):
  *     this page's memory only, as each visit compiles afresh
- *   - edits kept in `localStorage` before epic `prefs-and-undo` P3 (`spell-static:<address>`):  moved into the
- *     database on first use, once
- * - The page's own `fetch()`es of compiled files (`fetchCompiled()`, the runners' `fetchText()`) read the build's
- *   copies:  they load OTHER projects, which a visitor can't edit.
+ *   - edits kept in `localStorage` before epic `prefs-and-undo` P3 (`spell-static:<address>`):
+ *     moved into the database once, on first use;  every read and save waits for that (`ready()`)
+ * - The page's own `fetch()`es of compiled files read the build's copies:
+ *   they load OTHER projects, which a visitor can't edit (`fetchCompiled()`, the runners' `fetchText()`).
  * - Browser code;  imports only `spell/util` and spell's barrel.
  */
 export class StaticFiles {
@@ -125,7 +126,8 @@ export class StaticFiles {
   }
 
   /**
-   * Save file at `url`:  in this page's memory, and a project's own file in the browser's database too -- see the class.
+   * Save file at `url`:  in this page's memory, and a project's own file in the browser's database too.
+   * - Where each is kept, and why:  see the class.
    * - Its text as the page server gets it:  a string as is, anything else as JSON.
    * - Returns `true`, as the server does;  a refused save (the database full) is logged, and holds for this visit.
    */
@@ -161,7 +163,8 @@ export class StaticFiles {
   private moving: Promise<void> | undefined
 
   /**
-   * Move the edits `localStorage` kept before (`spell-static:<address>`) into the database, and forget them there.
+   * Move the edits kept in `localStorage` before (`spell-static:<address>`) into the database.
+   * - Each is removed from `localStorage` as it moves.
    * - Read raw:  a file's text is kept as it is, never read as JSON.
    * - NEVER throws:  storage blocked, there's nothing to move.
    * - TODO:  drop once every browser has opened the static build since epic `prefs-and-undo` P3

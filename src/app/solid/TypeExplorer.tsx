@@ -28,8 +28,9 @@ import "./TypeExplorer.css"
  * - Details sections are closed to start, and open or closed alike for every node.
  * - Lists things in document order, with a marker for each heading they're under, or alphabetically:
  *   the buttons left of Refresh switch.  See `UI.ScopeOrder`.
- * - Remembers all that as a `UI.TypeExplorerState` through `state` + `onStateChange`, e.g. in the VS Code runner's
- *   `settings.json5` -- else in `localStorage`.
+ * - Remembers all that as a `UI.TypeExplorerState`:
+ *   through `state` + `onStateChange` (e.g. in the VS Code runner's `settings.json5`),
+ *   else as the editor's preference `spellEditor:typeExplorer`, in the browser.
  *   - `state` is read ONCE, as it mounts:  after that, ours is the truth, and `onStateChange` hears each change.
  *     So a caller echoing `onStateChange` back into `state` is fine.
  * - A node's details are asked for with `loadDetails()` when first shown, and kept until a new `tree` comes.
@@ -213,9 +214,9 @@ export type TypeExplorerProps = {
   loadDetails: (path: string) => Promise<ScopeDetails | null>
   /** Ask for a fresh `tree` -- shows a Refresh button when given.  A new tree's details are fetched afresh too. */
   onRefresh?: () => void
-  /** What to start with, as last remembered -- read once, as it mounts.  Default:  as saved in `localStorage`. */
+  /** What to start with, as last remembered -- read once, as it mounts.  Default:  the editor's preference. */
   state?: TypeExplorerState
-  /** Something changed:  remember `state` -- instead of in `localStorage`. */
+  /** Something changed:  remember `state` -- instead of in the editor's preference. */
   onStateChange?: (state: TypeExplorerState) => void
 }
 
@@ -447,7 +448,7 @@ function defaultOpen(tree: ScopeNode): string[] {
 /** The editor's pref for a `<TypeExplorer>`'s state, when nobody else remembers it:  `spellEditor:typeExplorer`. */
 const STATE_PREF = "typeExplorer"
 
-/** Its `localStorage` key before epic `prefs-and-undo` P3, React's, with no store:  moved to `STATE_PREF` once. */
+/** Its `localStorage` key before epic `prefs-and-undo` P3, in no store (React's explorer wrote it):  moved once. */
 const OLD_STATE_KEY = "spell.typeExplorer"
 
 /**

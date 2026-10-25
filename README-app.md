@@ -218,18 +218,26 @@ A program isn't a component, and it doesn't run in an iframe.
 It's an ES module, and `runCompiled()` ([runCompiled.ts](src/app/runner/runCompiled.ts)) runs it in the page itself:
 
 1. It takes down the app the last run started, and resets the runtime.
-2. It points the program's imports at real addresses:
+2. It reads back what the program remembered last time:  its props declared `remembered` (`core.remember()`),
+   kept in the browser under its project's address.
+3. It points the program's imports at real addresses:
    - `@spell/core` at the runtime copy this host loaded
    - each other project it imports, `@spell/project/<address>`, at a `blob:` URL of that project's compiled file:
      fetched afresh once per run, deepest first, so a recompiled library shows at once
-3. It imports the program from a NEW `blob:` URL every time.
+4. It imports the program from a NEW `blob:` URL every time.
    The browser caches a module by its address:  the same one twice would hand back the old program, unrun.
-4. It hands the program's top-level things to `core.things`, for the Thing Explorer.
-5. It answers the error message if the program threw, else `undefined`;  the stack goes to devtools too.
+5. It hands the program's top-level things to `core.things`, for the Thing Explorer.
+6. It answers the error message if the program threw, else `undefined`;  the stack goes to devtools too.
 
 No import map:  a page has only one, and each `<spell-viewer>` needs its own `@spell/core`.
 
 The edges:
+- A program remembers only when its host names its project, as the editor and `<spell-viewer project>` do.
+  - Each prop is kept under the project's address and its own name:  `owen@spell/hello:theme`, say.
+  - It comes back on every run, Restart's too.
+  - A `<spell-viewer src>` names none, so it remembers nothing.
+  - **Not yet:**  VS Code's runner names none either.
+  - Tests never remember:  a test mustn't change what your own runs remember.
 - Two projects that import each other stop the run:  `Projects import each other: ...`, naming the loop.
 - VS Code's runner asks its extension for each project the program imports, which asks the language server
   (`spell/compiledImport`):  that project's compiled file, compiled first if it has none yet.
@@ -338,6 +346,9 @@ the card's members, its types and its JSX declaration left out._
   Each property is an attribute and a property, kept the same on the element and its thing, both ways;
   each of the template's methods is a method of the element, so a page's script can ask `card.isARank("ace")`.
 - A property holding a thing shows as that thing's reference:  `<solitaire-card pile="Tableau#T1">`.
+- A property never set shows no attribute, as an HTML element's doesn't, though it reads as its default:
+  a card with no direction reads `up`, its first choice, and the inspector shows no `direction`.
+  A property its template always gives, like a tableau's layout, shows whatever it is.
 - Each drawn thing is its own error boundary:  one that fails shows a stand-in and sends `ui-error`,
   and the rest keeps drawing.
 - There's ONE tag per type per page, shared by every runtime copy on it.
@@ -540,6 +551,11 @@ The editor's keys, with Command on a Mac or Control elsewhere (either works on b
 | `Mod+N` | a new file |
 
 - Inside Monaco, its own commands run the same keys;  outside it, one listener on the page does.
+- `Mod+Z` and `Mod+Shift+Z` belong to whatever has the focus:
+  - in the code, Monaco's undo and redo
+  - in the running app, the program's:  what it did, one action at a time
+    ([spell-parser's core](https://github.com/spell-app/spell-parser/blob/main/README-core.md));
+    a text field in it keeps its own
 
 </details>
 
@@ -635,7 +651,9 @@ How a page with no server reads and saves files:
   In the preview, [StaticFiles](src/app/static/StaticFiles.ts) answers it in place of the page server:
   - a group's list and a project's index:  JSON files the build wrote, at the URLs the server would answer
   - a file:  the visitor's edit if there is one, else the build's copy
-  - a save:  kept in the browser's `localStorage` as the visitor types, until "Reset Example" asks and forgets it
+  - a save:  kept in the browser's database (IndexedDB) as the visitor types, until "Reset Example" asks and forgets it
+    - a save the browser refuses, its storage full, still holds until the page closes
+    - edits an older preview kept in `localStorage` move into the database once, before the first read or save
   - creating, renaming or deleting anything:  refused, with an error that says why
 - ONE flag hides what needs a server:  `isStaticBuild` in code, `:root.spell-static` in CSS
   ([staticBuild.ts](src/app/static/staticBuild.ts)).
