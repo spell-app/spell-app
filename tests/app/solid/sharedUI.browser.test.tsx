@@ -58,7 +58,7 @@ describe("chrome + Actions", () => {
     ))
     const menu = host.querySelector("ui-menu.PanelMenu")!
     expect(menu.getAttribute("color")).toBe("purple")
-    expect(menu.getAttribute("attached")).toBe("top")
+    expect(menu.getAttribute("attach")).toBe("top")
     const [left, right] = menu.querySelectorAll(":scope > ui-menu")
     expect(left.getAttribute("position")).toBe("left")
     expect(left.classList.contains("third")).toBe(true)

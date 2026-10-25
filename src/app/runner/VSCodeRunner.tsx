@@ -342,7 +342,7 @@ export type VSCodeRunnerProps = {
  ****************/
 function VSCodeRunnerToolbar(props: VSCodeRunnerToolbarProps) {
   return (
-    <ui-menu attached="top" size="small" class="VSCodeRunnerToolbar">
+    <ui-menu attach="top" size="small" class="VSCodeRunnerToolbar">
       <ui-item link="" class="restart" onClick={() => props.onRestart()}>
         <ui-icon name="redo" />
         {appTexts.text("restart")}
