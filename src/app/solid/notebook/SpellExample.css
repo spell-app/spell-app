@@ -16,17 +16,18 @@
   overflow: hidden;
 }
 
+/* its title, result and code all start 16px in */
 .title {
-  padding: 0.6em 1em 0;
+  padding: 10px 16px 0;
   font-weight: 600;
-  color: var(--ui-text-color-muted, rgb(0 0 0 / 0.6));
+  color: var(--ui-text-muted);
   font-size: 0.85em;
   text-transform: lowercase;
   letter-spacing: 0.02em;
 }
 
 .result {
-  padding: 1em;
+  padding: 16px;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75em;
