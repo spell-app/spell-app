@@ -4,17 +4,10 @@
  * - Layout only:  each tab's look is its pane's own.
  */
 
-/* the editor's and the run page's body:  the panels, then the Inspector's column while it's open */
-.EditorBody {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  gap: var(--spell-gap, 8px);
-
-  & > .SplitPanel {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
+/* the Inspector's pane:  never narrower than 300px, whatever a drag asks (Owen) */
+.SplitPanelPane:has(> .InspectorPane),
+.InspectorPane {
+  min-width: 300px;
 }
 
 /* `<AppPane>`:  its header, then the program, filling the rest */

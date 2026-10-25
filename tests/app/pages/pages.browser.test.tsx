@@ -45,14 +45,16 @@ describe("routes", () => {
     ["/edit/owen@spell/my%20things/a%20b.spell", "SpellEditor", "owen@spell/my things/a b.spell"],
     // decoded ONCE:  an encoded `%` stays a `%25` in the name
     ["/edit/owen@spell/a%2525b.spell", "SpellEditor", "owen@spell/a%25b.spell"],
-    ["/run/@spell/examples", "SpellRunner", "@spell/examples"],
-    ["/run/@spell/examples/TaskList", "SpellRunner", "@spell/examples/TaskList"],
+    // Run is the same page, without its code column
+    ["/run/@spell/examples", "SpellEditor", "@spell/examples"],
+    ["/run/@spell/examples/TaskList", "SpellEditor", "@spell/examples/TaskList"],
     // a page of the running app:  its app, until apps have pages
-    ["/run/@spell/examples/TaskList/rules", "SpellRunner", "@spell/examples/TaskList"],
-    ["/run/@spell/examples/TaskList/sub/Todo.spell", "SpellRunner", "@spell/examples/TaskList/sub/Todo.spell"]
+    ["/run/@spell/examples/TaskList/rules", "SpellEditor", "@spell/examples/TaskList"],
+    ["/run/@spell/examples/TaskList/sub/Todo.spell", "SpellEditor", "@spell/examples/TaskList/sub/Todo.spell"]
   ])("%s draws #%s and selects %s", async (url, pageId, path) => {
     const selectPath = spyOnEditor("selectPath", () => Promise.resolve())
-    setEditor("projectPage", pageId === "SpellRunner" ? "editor" : "runner")
+    const isRun = url.startsWith("/run/")
+    setEditor("projectPage", isRun ? "editor" : "runner")
     const { host } = await mountAt(url)
     expect(host.querySelector(".SpellPage")?.id).toBe(pageId)
     if (path === undefined) {
@@ -60,7 +62,9 @@ describe("routes", () => {
       return
     }
     expect(selectPath).toHaveBeenCalledWith(path)
-    expect(editor.projectPage).toBe(pageId === "SpellEditor" ? "editor" : "runner")
+    expect(editor.projectPage).toBe(isRun ? "runner" : "editor")
+    // Run shows no code
+    expect(!!host.querySelector(".InputRoot")).toBe(!isRun)
   })
 
   test("`navigate()` (what `editor` calls) moves the router;  another URL of the same page keeps it", async () => {
@@ -75,10 +79,11 @@ describe("routes", () => {
     // another of the route's paths:  the page stays as it is
     expect(host.querySelector("#SpellEditor")).toBe(page)
 
+    // Run:  the same page, the code column gone
     navigate("/run/@spell/examples/TaskList", { replace: true })
     await settle(host)
-    expect(host.querySelector("#SpellEditor")).toBeNull()
-    expect(host.querySelector("#SpellRunner")).not.toBeNull()
+    expect(host.querySelector("#SpellEditor")).toBe(page)
+    expect(host.querySelector(".InputRoot")).toBeNull()
     expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/TaskList")
 
     // `replace` took the editor's entry's place:  back is the first page
@@ -87,7 +92,7 @@ describe("routes", () => {
     expect(history.get()).toBe("/edit/@spell/examples/TaskList")
   })
 
-  test("a page's `<AppRoot>` is where programs draw, until another takes over", async () => {
+  test("switching to Run keeps the program where it draws:  the same `<AppRoot>`, never released", async () => {
     spyOnEditor("selectPath", () => Promise.resolve())
     const setAppRoot = vi.spyOn(editor, "setAppRoot")
     const releaseAppRoot = vi.spyOn(editor, "releaseAppRoot")
@@ -102,11 +107,8 @@ describe("routes", () => {
 
     navigate("/run/@spell/examples/TaskList")
     await settle(host)
-    const runnerRoot = host.querySelector("#SpellRunner #spell-app-root")!
-    expect(runnerRoot).not.toBe(editorRoot)
-    expect(setAppRoot.mock.lastCall?.[0]).toBe(runnerRoot)
-    expect(releaseAppRoot.mock.calls.map(([element]) => element)).toEqual([editorRoot])
-    expect(releaseAppRoot.mock.calls[0][0]).toBe(editorRoot)
+    expect(host.querySelector("#SpellEditor #spell-app-root")).toBe(editorRoot)
+    expect(releaseAppRoot).not.toHaveBeenCalled()
   })
 })
 

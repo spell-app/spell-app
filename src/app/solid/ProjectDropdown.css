@@ -15,3 +15,16 @@ ui-menu.ProjectMenu[vertical] > ui-item::part(item) {
   width: 100%;
   text-align: start;
 }
+
+/*
+ * The New item's stacked icon (the group's, a pencil on its corner):  in the other items' icon column, as wide as
+ * their icons (1.18em) and as far in, the text after it where theirs starts.  It's the item's own content (a rich
+ * item), not the column the dropdown draws for an `icon`.
+ */
+ui-dropdown.ProjectDropdown > ui-item > ui-icons {
+  display: inline-flex;
+  width: 1.18em;
+  /* measured:  its glyph's centre on theirs, its text where theirs starts */
+  margin-inline: 0 11px;
+  vertical-align: middle;
+}

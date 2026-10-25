@@ -478,7 +478,7 @@ The top bar's Run | Edit | Debug buttons pick how much of the editor shows:
 
 | Mode | What shows |
 | --- | --- |
-| Run | the app alone, the whole window:  the run page, `/run/<address>` |
+| Run | the app alone, the whole window:  the same page without its code column, `/run/<address>` |
 | Edit | the code on the left, the app on the right |
 | Debug | Edit, plus the Program panel under the code |
 

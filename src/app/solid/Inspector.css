@@ -6,9 +6,9 @@
  *   this sheet reads only tokens.
  */
 
-/* the column:  a card of its own, beside the editor's panels, the page's full height */
+/* the column:  filling its pane, which draws the card (the same as the app's, `<SplitPanel rounded>`) */
 .Inspector {
-  flex: 0 0 380px;
+  flex: 1 1 auto;
   box-sizing: border-box;
   min-height: 0;
   overflow-y: auto;
@@ -22,19 +22,20 @@
   background: var(--ui-background);
   color: var(--ui-text-color);
   font-family: var(--ui-font-family);
-  border: 1px solid var(--ui-border-color);
-  border-radius: var(--spell-pane-radius, var(--ui-radius-l));
-  box-shadow: var(--ui-shadow-raised);
 
   /* compact, as the Theme Creator's inspector:  15px type, fields 12px apart, the control 4px under its label */
   & ui-property-editor {
     font-size: 14px;
+    /* the controls it makes size their text from the theme's, 16px:  14px, as the rest */
+    --ui-font-size: 14px;
     --ui-form-row-distance: 10px;
     /* controls about 30px tall, as the Theme Creator's (Owen:  "make fields in the inspector more compact") */
     --ui-input-padding-block: 0.4em;
     --ui-input-padding-inline: 0.7em;
     --ui-select-padding-block: 0.4em;
     --ui-select-padding-inline: 0.7em;
+    /* a select with nothing chosen reads "none", in italics (Owen) */
+    --ui-select-placeholder-style: italic;
   }
   & :is(ui-field, ui-property) {
     --ui-form-label-distance: 4px;
@@ -60,6 +61,10 @@
   & :is(ui-property-editor, ui-property-group) > ui-property::part(field) {
     grid-column: 1 / -1;
     margin: 0;
+  }
+  /* a size or a colour:  half a row, so the two share one */
+  & :is(ui-property-editor, ui-property-group) > ui-property.half::part(field) {
+    grid-column: auto;
   }
   & :is(ui-property-editor, ui-property-group) > ui-property[inline]::part(field) {
     grid-column: auto;
@@ -99,8 +104,8 @@
     row-gap: var(--ui-form-row-distance);
   }
   & ui-property-group {
-    --ui-section-h2: 0.8125;
-    --ui-section-h3: 0.8125;
+    --ui-section-h2: 1;
+    --ui-section-h3: 1;
     --ui-section-title-padding: 4px 0;
   }
   /* segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */

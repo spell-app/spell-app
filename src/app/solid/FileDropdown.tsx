@@ -11,7 +11,7 @@ import "./FileDropdown.css"
  * Menu of all available files for the selected project (`editor.project`):
  * a `<ui-dropdown>` of `<ui-item>`s, showing `editor.file`.
  * Same props as React's `UI.FileDropdown` had.
- * - Choosing a file shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
+ * - Choosing a file shows it in `<SpellEditor>`, or in Run with `useRunner`.
  * - Its trigger shows the file icon before the file's name (the `trigger` slot), as each item does.
  * - Loading (spinning caret, no items) until the project's loaded and has a file.
  * - The dropdown's value is ALWAYS `editor.file`'s path (see `choose()`):
@@ -72,7 +72,7 @@ export function FileDropdown(props: FileDropdownProps) {
 
 /** Props for `<FileDropdown>`. */
 export type FileDropdownProps = {
-  /** Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked. */
+  /** Open the file in Run, not Edit, when an item is clicked. */
   useRunner?: boolean
   /** Append `Actions.FILE_DROPDOWN_ACTIONS` after a divider -- never in the static build, which has none. */
   showActions?: boolean

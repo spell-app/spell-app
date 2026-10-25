@@ -215,7 +215,7 @@ function hueFor(path: string): string {
 export function ChooserToolbar() {
   return (
     <AppMenu>
-      <Submenu left spring />
+      <Submenu left spring mark />
       <Submenu right spring>
         <Actions.showProjectChooser iconOnly active />
         <ThemeMenu />

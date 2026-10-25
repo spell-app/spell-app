@@ -4,25 +4,22 @@ import { createRouter, defineRoutes, useNavigate, type RouterHistory, type Route
 
 import { setNavigator } from "./navigation"
 import { ProjectChooser } from "./ProjectChooser"
-import { SpellEditorRoute } from "./SpellEditor"
-import { SpellRunnerRoute } from "./SpellRunner"
+import { ProjectPageRoute } from "./SpellEditor"
 
 /**
  * The app's routes (`@solidjs/router`):  `/edit/` or `/run/`, then an address (decision Q40, epic `people-and-orgs` P4).
- * - `/edit/<address>`:  `<SpellEditor>`, e.g. `/edit/@spell/examples/Solitaire/Solitaire.spell`
- * - `/run/<address>`:  `<SpellRunner>`, e.g. `/run/owen@spell/errors`
+ * - `/edit/<address>`:  `<SpellEditor>` in Edit or Debug, e.g. `/edit/@spell/examples/Solitaire/Solitaire.spell`
+ * - `/run/<address>`:  the same page in Run, e.g. `/run/owen@spell/errors`
+ * - ONE route for both (`ProjectPageRoute`), so switching between them keeps the page.
  * - anything else:  `<ProjectChooser>`
  * - Each page is ONE route:  it stays mounted while only its address changes, e.g.
  *   moving between files, and follows them (`followRoute()`).
  */
 export const ROUTES = defineRoutes([
   {
-    path: "/edit/*address",
-    component: SpellEditorRoute
-  },
-  {
-    path: "/run/*address",
-    component: SpellRunnerRoute
+    path: "/:page/*address",
+    matchFilters: { page: ["edit", "run"] },
+    component: ProjectPageRoute
   },
   { path: "*", component: ProjectChooser }
 ])

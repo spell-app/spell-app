@@ -81,10 +81,8 @@
                   ><script type="text/plain">
                     <AppMenu>
                       <Submenu left spring>
-                        <ProjectDropdown useRunner={props.mode === "run"} />
-                        <ModeButtons current={props.mode} />
-                        <Actions.showProjectSettings iconOnly />
-                        <ProjectActionsDropdown />
+                        <ProjectDropdown useRunner={props.mode === "run"} showActions />
+                        <Actions.resetApp />
                       </Submenu>
                     </AppMenu>
                   </script></ui-code
@@ -129,7 +127,7 @@
                 icon, the same everywhere: a folder for projects, a lightbulb for examples, an open book for guides, a
                 puzzle piece for libraries, a flask for tests.
               </li>
-              <li>On the run page (Run mode), choosing a project opens it there (<code>useRunner</code>).</li>
+              <li>In Run, choosing a project opens it in Run (<code>useRunner</code>).</li>
               <li>The menu passes every other prop to its <code>&lt;ui-menu&gt;</code>, e.g. <code>vertical</code>.</li>
             </ul>
           </ui-section>
