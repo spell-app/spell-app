@@ -177,6 +177,10 @@ What a click or a drag does:  the card's own moves, and each pile's, as the game
 		if the pile of the card is the discards of the solitaire return 5
 		return 0
 
+	a card:
+		// a click plays it
+		- on click: play it
+
 	a pile:
 		// while a card it would take is over it, the score shows what the move would add -- gone as the card leaves
 		- while a card is dragged over it:
@@ -198,9 +202,12 @@ While one's empty, it shows its placeholder, if it has one.
 		- it can never take a card
 		- it can never let go of a card
 	</spell>
-	<draw "placeholder" description="A light grey card, face down:  a click turns the discards back over">
-		<text part="placeholder" onClick={play from the stock}>🂠</text>
+	<draw "placeholder" description="A light grey card, face down">
+		<text part="placeholder">🂠</text>
 	</draw>
+	<on click description="Empty:  a click turns the discards back over;  a click on one of its cards is the card's">
+		play from the stock
+	</on>
 </spell-view>
 
 <spell-view "discard pile" template="pile" description="Where the stock's cards go as they're turned over">

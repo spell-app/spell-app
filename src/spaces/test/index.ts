@@ -6,6 +6,8 @@
 
 export {
   loadFixtureProject,
+  loadCodeSpellTwin,
+  CODE_SPELL_TWINS_DIR,
   copyFixtureProject,
   lineOf,
   fixturePath,

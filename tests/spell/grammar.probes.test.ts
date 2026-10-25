@@ -2,7 +2,7 @@ import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "spell-parser/parser"
 import { parseSpellProject } from "spell-parser/spell/test"
-import { loadFixtureProject } from "spell-app/spaces/test"
+import { loadCodeSpellTwin } from "spell-app/spaces/test"
 
 /**
  * LEDGER of what spell's grammar does with a fixed set of phrasings -- one inline snapshot per probe.
@@ -868,9 +868,10 @@ describe("datatypes", () => {
 /**
  * The Solitaire example's card files, `Card`, `Deck`, `Pile`, parsed as the probe project's own:
  * not its game, `Solitaire.spell`, which starts an app.
+ * - As code spell, their twins:  the example is written in spellx (`loadCodeSpellTwin()`).
  * - NOT frozen:  a change to the example's cards may change a probe's snapshot (epic `spanish` P11, J105).
  */
-const CARDS = loadFixtureProject("Solitaire").filter(({ path }) => path !== "/Solitaire.spell")
+const CARDS = loadCodeSpellTwin("Solitaire").filter(({ path }) => path !== "/Solitaire.spell")
 
 /**
  * Types the probes use beside Solitaire's cards, in a file of their own before the probe's.

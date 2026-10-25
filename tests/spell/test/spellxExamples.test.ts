@@ -8,6 +8,7 @@ import { parseSpellProject, type SpellSourceFile } from "spell-parser/spell/test
 import { SX } from "spell-parser/spellx"
 import { projectFileFor } from "spell-parser/spell/node/projectFile"
 import environment from "spell-app/spaces/server/node/environment"
+import { CODE_SPELL_TWINS_DIR } from "spell-app/spaces/test"
 
 // Spell UI's pack:  a spellx drawing names its components bare (`<button>`)
 import "spell-app/spaces"
@@ -34,7 +35,7 @@ const EXAMPLES_DIR = resolve(environment.systemFilesRoot, "examples")
  * - NOT in the examples:  a template lives in ONE file, `.spell` or `.spellx`, never both.
  */
 const SPELLX_FIXTURES_DIR = resolve(environment.repoDir, "tests", "spell", "__spellx__")
-const SPELL_FIXTURES_DIR = resolve(environment.repoDir, "tests", "spell", "__spell__")
+const SPELL_FIXTURES_DIR = CODE_SPELL_TWINS_DIR
 
 /**
  * The examples that don't convert to the same program yet, and why:  each an item on the epic page.

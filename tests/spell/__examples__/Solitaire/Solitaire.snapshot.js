@@ -74,11 +74,6 @@ export class Card extends TwoSidedView {
     return rank + this.symbol + direction
   }
 
-  /** A click plays it:  the game says where it goes */
-  onClick(event) {
-    return this.play()
-  }
-
   /** Its face:  https://www.compart.com/en/unicode/block/U+1F0A0 */
   get picture() {
     let column = this.value
@@ -140,6 +135,11 @@ export class Card extends TwoSidedView {
     return 0
   }
 
+  /** a click plays it */
+  onClick(event) {
+    return this.play()
+  }
+
   static canBeDragged = true
 
   get pile() {
@@ -150,7 +150,7 @@ export class Card extends TwoSidedView {
 
 // What a person, a test or the console calls it
 
-// A click plays it;  a drag puts it where it's dropped, if its pile's rules let it go
+// A drag puts it where it's dropped, if its pile's rules let it go;  what a click does is the game's
 
 // One letter of unicode's Playing Cards, at the size of the text around it:  its pile scales it to fit -- styles.css
 
@@ -349,13 +349,14 @@ export class StockPile extends Pile {
     return false
   }
 
-  // A light grey card, face down:  a click turns the discards back over
+  // A light grey card, face down
   drawItsPlaceholder() {
-    return h("ui-text", {
-      part: "placeholder",
-      onClick: () => solitaire.playFromTheStock(),
-      style: "cursor:pointer;user-select:none"
-    }, "🂠")
+    return h("ui-text", { part: "placeholder" }, "🂠")
+  }
+
+  /** Empty:  a click turns the discards back over;  a click on one of its cards is the card's */
+  onClick(event) {
+    solitaire.playFromTheStock()
   }
 }
 

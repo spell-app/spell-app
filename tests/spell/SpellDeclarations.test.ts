@@ -29,13 +29,16 @@ describe("SpellDeclarations, inline", () => {
     expect(declarations.codeLines).toHaveLength(declarations.statements.length)
     const rank = declarations.statements.findIndex(({ property, of }) => property === "rank" && of === "Card")
     const rankLine = declarations.codeLines![rank]!
-    // its code starts with the spell that made it (epic `people-and-orgs` P19), `// - its "rank" is one of ace ...`
-    expect(lines[rankLine]).toBe(`  // - ${spellOf(declarations.statements[rank]!.defined!)}`)
-    // ...then the ranks it's one of, and the property
-    expect(lines[rankLine + 1]).toMatch(/^ {2}static Ranks = \[/)
-    expect(lines[rankLine + 2]).toMatch(/^ {2}static \{ this\.declareProp\("rank", /)
+    // it was made by the spellx tag there, `<property "rank" one-of="ace ...">`...
+    expect(spellOf(declarations.statements[rank]!.defined!)).toMatch(/^<property "rank" one-of="ace, 2 \.\.\. 10/)
+    // ...and its code starts with the spell it reads as (epic `people-and-orgs` P19), `// - its "rank" is one of ace ...`
+    expect(lines[rankLine]).toBe('  // - its "rank" is one of ace, 2 ... 10, jack, queen, king')
+    // ...then its alias, written under it, then the ranks it's one of, and the property
+    expect(lines[rankLine + 1]).toBe('  //   - it "is a (rank)"')
+    expect(lines[rankLine + 2]).toMatch(/^ {2}static Ranks = \[/)
+    expect(lines[rankLine + 3]).toMatch(/^ {2}static \{ this\.declareProp\("rank", /)
     const card = declarations.statements.findIndex(({ type }) => type === "Card")
-    expect(lines[declarations.codeLines![card]!]).toBe("export class Card extends View {")
+    expect(lines[declarations.codeLines![card]!]).toBe("export class Card extends TwoSidedView {")
   })
 
   test("`fromComments()` still reads a compiled .js from before declarations files", () => {
@@ -54,9 +57,9 @@ describe("SpellDeclarations, inline", () => {
   test("reads a class member's comment, indented in its class's body", () => {
     expect(compiled).toMatch(/\n {2}\/\*! SPELL: DECLARES \{\n {4}property: "rank", [^\n]*of: "Card"/)
     expect(declarations.statements).toContainEqual(expect.objectContaining({ property: "rank", of: "Card" }))
-    // ...and one from another file, `Pile.spell`'s `a card belongs to one pile`, which went in `Card.spell`'s class
+    // ...and one from another file, `Pile.spellx`'s `a card belongs to one pile`, which went in `Card.spellx`'s class
     const pile = declarations.statements.find(({ property, of }) => property === "pile" && of === "Card")
-    expect(pile).toMatchObject({ exclusive: true, defined: expect.stringMatching(/^\/Pile\.spell:/) })
+    expect(pile).toMatchObject({ exclusive: true, defined: expect.stringMatching(/^\/Pile\.spellx:/) })
   })
 
   test("reads the way it's written, e.g. a function", () => {
@@ -95,7 +98,7 @@ describe("SpellDeclarations, inline", () => {
   })
 
   /**
-   * The Solitaire spell a statement's `defined` points to, e.g. `/Card.spell:312-365` => `its "rank" is one of ...`.
+   * The Solitaire spell a statement's `defined` points to, e.g. `/Card.spellx:312-365` => `<property "rank" ...`.
    * - So a test reads the example as it is now, not as it was when the test was written.
    */
   function spellOf(defined: string) {
@@ -106,13 +109,14 @@ describe("SpellDeclarations, inline", () => {
 
 /**
  * `SpellDeclarations.importScope()` -- a project parses against another's declarations, NOT its sources.
- * - Solitaire split in two:  a library (`Card`, `Deck`, `Pile`, the card library's) and an app (`Solitaire.spell`).
+ * - Solitaire split in two:  a library (`Card`, `Deck`, `Pile`, the card library's) and an app (`Solitaire.spellx`).
+ *   - All spellx:  a library written in tags, imported by its declarations as a code-spell one is.
  * - A method with typed parameters:  `PILES`, a library of its own, as the card library has none.
  */
 describe("SpellDeclarations.importScope()", () => {
   const all = loadFixtureProject("Solitaire")
-  const library = all.filter(({ path }) => path !== "/Solitaire.spell")
-  const app = all.filter(({ path }) => path === "/Solitaire.spell")
+  const library = all.filter(({ path }) => path !== "/Solitaire.spellx")
+  const app = all.filter(({ path }) => path === "/Solitaire.spellx")
   // read back out of compiled text, as another project would
   const declarations = compiledSpellProject(library, { version: "1.2.0" }).declarations
   const from = "@spell/library/cards"
@@ -140,7 +144,7 @@ describe("SpellDeclarations.importScope()", () => {
   }
 
   test("the app compiles the same against the library's declarations as against its sources", () => {
-    const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spell")
+    const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spellx")
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
     // The same:  were a member read its type never declares, it'd warn only where the type is the project's own,
     // never an import's -- the importer may give it anything (see `MemberReadExpression.warnIfUndeclared()`).
@@ -152,7 +156,7 @@ describe("SpellDeclarations.importScope()", () => {
   test("records where each name came from", () => {
     const { origins } = importLibrary()
     expect(origins.get("Card")).toBe(from)
-    expect(origins.get("turn_face_up")).toBe(from)
+    expect(origins.get("is_a_face_card")).toBe(from)
   })
 
   describe("records keep what editors need, with no `declaredBy` -- for a library shipped without sources", () => {
@@ -161,25 +165,25 @@ describe("SpellDeclarations.importScope()", () => {
 
     test("a type, its properties and constants:  `declaredAt` -- in the project's own files", () => {
       const card = imports.types.get("Card", "LOCAL_ONLY")!
-      expect(card.declaredAt?.path).toBe(`${projectId}/Card.spell`)
-      expect(sourceAt(card.declaredAt)).toMatch(/^a "card" is a view where:\n/)
-      // its suit, its list of suits and each suit:  all made by one statement
-      const suits = /^its "suit" is one of clubs, diamonds, hearts or spades$/
+      expect(card.declaredAt?.path).toBe(`${projectId}/Card.spellx`)
+      expect(sourceAt(card.declaredAt)).toMatch(/^<spell-view "card" template="two sided view">\n/)
+      // its suit, its list of suits and each suit:  all made by one statement, its tag
+      const suits = /^<property "suit" one-of="clubs, diamonds, hearts or spades" alias="is a \(suit\)"\s*\/?>?$/
       expect(sourceAt(card.variables.get("suit", "LOCAL_ONLY")?.declaredAt)).toMatch(suits)
       expect(sourceAt(card.classVariables.get("Suits", "LOCAL_ONLY")?.declaredAt)).toMatch(suits)
       expect(sourceAt(imports.constants.get("clubs", "LOCAL_ONLY")?.declaredAt)).toMatch(suits)
     })
 
     test("a rule:  its owner, what its statement declared, as `getDeclaration()` said -- and where", () => {
-      const { declared } = imports.rules.get("turn_face_up", "LOCAL_ONLY")!
+      const { declared } = imports.rules.get("is_a_face_card", "LOCAL_ONLY")!
       expect(declared?.owner).toBe("Card")
       expect(declared?.declaration).toEqual({
         kind: "method",
-        name: "turn it face up",
+        name: '"is a face card"',
         of: "Card",
-        detail: "turnFaceUp()"
+        detail: "isAFaceCard()"
       })
-      expect(sourceAt(declared?.declaredAt)).toMatch(/^to turn it face up/)
+      expect(sourceAt(declared?.declaredAt)).toMatch(/^<alias "is a face card">if its rank is jack, queen or king/)
       // a quoted alias's rule says it declared the method it calls
       expect(imports.rules.get("is_a_$suit", "LOCAL_ONLY")?.declared?.declaration).toEqual({
         kind: "method",
@@ -191,12 +195,12 @@ describe("SpellDeclarations.importScope()", () => {
 
     test("renamed, it's still where it was", () => {
       const renamed = importLibrary({ projectId, import: ["Card:Playingcard"] })
-      expect(sourceAt(renamed.types.get("Playingcard", "LOCAL_ONLY")?.declaredAt)).toMatch(/^a "card" is a view/)
-      expect(renamed.rules.get("turn_face_up", "LOCAL_ONLY")?.declared?.owner).toBe("Playingcard")
+      expect(sourceAt(renamed.types.get("Playingcard", "LOCAL_ONLY")?.declaredAt)).toMatch(/^<spell-view "card"/)
+      expect(renamed.rules.get("is_a_face_card", "LOCAL_ONLY")?.declared?.owner).toBe("Playingcard")
     })
 
     test("`declaredAt` defaults to `from`, if the importer doesn't say its project", () => {
-      expect(importLibrary().types.get("Card", "LOCAL_ONLY")?.declaredAt?.path).toBe(`${from}/Card.spell`)
+      expect(importLibrary().types.get("Card", "LOCAL_ONLY")?.declaredAt?.path).toBe(`${from}/Card.spellx`)
     })
 
     /** Library source `at` points to. */

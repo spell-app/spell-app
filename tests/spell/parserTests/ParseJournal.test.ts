@@ -2,11 +2,12 @@ import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
-import { loadFixtureProject } from "spell-app/spaces/test"
+import { loadCodeSpellTwin } from "spell-app/spaces/test"
 
 /**
  * `P.ParseJournal` MUST take back everything parsing changes in shared state, and put it all back again.
- * - Parses the Solitaire files into a journaled project, rewinds to before them, then replays.
+ * - Parses the Solitaire files into a journaled project, rewinds to before them, then replays:
+ *   as code spell, their twins (`loadCodeSpellTwin()`), so each file parses as a plain `FileScope`'s block.
  */
 describe("ParseJournal", () => {
   test("rewind undoes a whole project's parse, replay redoes it", () => {
@@ -19,19 +20,19 @@ describe("ParseJournal", () => {
       parser,
       parentScope: rootScope
     })
-    const fileScopes = loadFixtureProject("Solitaire").map(
+    const fileScopes = loadCodeSpellTwin("Solitaire").map(
       ({ path }) => new P.FileScope({ name: path, path, parentScope: projectScope })
     )
 
     const before = describeState(parser, projectScope, fileScopes)
     const mark = parser.journal.mark()
-    loadFixtureProject("Solitaire").forEach(({ contents }, index) => fileScopes[index]!.parse(contents, "block"))
+    loadCodeSpellTwin("Solitaire").forEach(({ contents }, index) => fileScopes[index]!.parse(contents, "block"))
     const parsed = describeState(parser, projectScope, fileScopes)
     // Make sure there's something to take back.
     expect(parsed.types.length).toBeGreaterThan(before.types.length)
     expect(parsed.rules.length).toBeGreaterThan(before.rules.length)
     // ...and method records and item types
-    expect(parsed.types.find(({ name }) => name === "Card")?.methods).toContain("turn_face_up")
+    expect(parsed.types.find(({ name }) => name === "Card")?.methods).toContain("is_a_face_card")
     expect(parsed.types.find(({ name }) => name === "Deck")?.itemType).toBe("Card")
 
     const undone = parser.journal.rewindTo(mark)
@@ -48,7 +49,7 @@ describe("ParseJournal", () => {
     const projectScope = new P.ProjectScope({ name: "decl", path: "/decl", parser, parentScope: rootScope })
     const fileScope = new P.FileScope({ name: "/Card.spell", path: "/Card.spell", parentScope: projectScope })
     const mark = parser.journal.mark()
-    fileScope.parse(loadFixtureProject("Solitaire")[0]!.contents, "block")
+    fileScope.parse(loadCodeSpellTwin("Solitaire")[0]!.contents, "block")
 
     const card = projectScope.types.get("Card")
     expect(card?.declaredBy?.rule.name).toBe("create_type")

@@ -32,11 +32,10 @@ On the page each card is its own element, `<solitaire-card>`.
 		return rank + its symbol + direction
 	</property>
 
-	<group "playing" description="A click plays it;  a drag puts it where it's dropped, if its pile's rules let it go"/>
+	<group "playing" description="A drag puts it where it's dropped, if its pile's rules let it go;  what a click does is the game's"/>
 	<spell>
 		- it can be dragged
 	</spell>
-	<on click description="A click plays it:  the game says where it goes">play it</on>
 
 	<group "drawing" description="One letter of unicode's Playing Cards, at the size of the text around it:  its pile scales it to fit -- styles.css"/>
 	<property "picture" description="Its face:  https://www.compart.com/en/unicode/block/U+1F0A0">

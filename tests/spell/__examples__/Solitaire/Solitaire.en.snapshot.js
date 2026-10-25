@@ -4,10 +4,12 @@ export const words = {
   types: {
     Card: {
       rank: "rank",
+      isARank: "is a (rank)",
       value: "value",
       isAFaceCard: "is a face card",
       isANumberCard: "is a number card",
       suit: "suit",
+      isASuit: "is a (suit)",
       color: "color",
       symbol: "symbol",
       name: "name",

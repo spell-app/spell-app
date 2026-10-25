@@ -14,7 +14,6 @@ describe("SpellWords", () => {
     const words = SP.SpellWords.read(fixtureWords("Solitaire"))!
     expect(Object.keys(words.types)).toEqual([
       "Card",
-      "Joker",
       "Deck",
       "Pile",
       "StockPile",
@@ -29,9 +28,9 @@ describe("SpellWords", () => {
       autoPlay: "auto play",
       draw: "draw it"
     })
-    // its card, as Card.spell writes it, and as Solitaire.spell teaches it to play
-    expect(words.types.Card).toMatchObject({ turnOver: "turn it over", play: "play a card" })
-    // a kind of pile:  the layout it gives every stock pile (its placeholder's drawing is no member)
+    // its card, as Card.spellx writes it, and as Solitaire.spellx teaches it to play
+    expect(words.types.Card).toMatchObject({ name: "name", play: "play a card" })
+    // a kind of pile:  the layout it gives every stock pile (its placeholder's drawing and its click handler are no members)
     expect(words.types.StockPile).toEqual({ layout: "layout" })
   })
 
@@ -43,12 +42,12 @@ describe("SpellWords", () => {
   test("Solitaire's card:  its own, as written", () => {
     const words = SP.SpellWords.read(fixtureWords("Solitaire"))!
     expect(words.types.Card).toMatchObject({
-      turnOver: "turn it over",
-      isFaceDirection: "is face (direction)",
+      isARank: "is a (rank)",
       isASuit: "is a (suit)",
+      isTheRankOfSuit: "is the (rank) of (suit)",
       symbol: "symbol"
     })
-    // a joker's phrase:  a static method of its own, which any card may be asked
-    expect(words.types.Joker).toMatchObject({ isTheColorJoker: "is the (color) joker" })
+    // what it is as a two sided view, `turn it over`, is the built-in template's words, not its own
+    expect(words.types.Card).not.toHaveProperty("turnOver")
   })
 })

@@ -348,6 +348,26 @@ export function loadFixtureProject(projectName: string): SpellSourceFile[] {
 }
 
 /**
+ * The code-spell twins of the showcase examples' spellx files, kept beside the tests:  `tests/spell/__spell__/<Example>/`.
+ * - Each is the same program as the example's `.spellx` file:  `spellxExamples.test.ts` checks it.
+ */
+export const CODE_SPELL_TWINS_DIR = resolve(environment.repoDir, "tests", "spell", "__spell__")
+
+/**
+ * `loadFixtureProject()`, each `.spellx` file as its code-spell twin (`CODE_SPELL_TWINS_DIR`):  `/Card.spellx` =>
+ * `/Card.spell`, the same program written as code spell.
+ * - For a test of code spell itself (its parse, its journal, its edits) on a whole example written in spellx,
+ *   e.g. `loadCodeSpellTwin("Solitaire")`.
+ */
+export function loadCodeSpellTwin(projectName: string): SpellSourceFile[] {
+  return loadFixtureProject(projectName).map((file) => {
+    if (!file.path.endsWith(".spellx")) return file
+    const path = file.path.slice(0, -1)
+    return { path, contents: readFileSync(resolve(CODE_SPELL_TWINS_DIR, projectName, `.${path}`), "utf8") }
+  })
+}
+
+/**
  * Write test project `projectName` into folder `dir`:  its project file, and each file it lists.
  * - Not its snapshots:  a copy a test may edit, or an editor open, as a person's project.
  * - SIDE EFFECT:  makes `dir`.

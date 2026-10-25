@@ -80,10 +80,6 @@ class Card(TwoSidedView):
         direction = "↑" if self.is_face_direction("up") else "↓"
         return f"{rank}{self.symbol}{direction}"
 
-    async def on_click(self, event: Any) -> Any:
-        """A click plays it:  the game says where it goes"""
-        return await self.play()
-
     @property
     def picture(self) -> str | None:
         """Its face:  https://www.compart.com/en/unicode/block/U+1F0A0"""
@@ -160,6 +156,10 @@ class Card(TwoSidedView):
             return 5
         return 0
 
+    async def on_click(self, event: Any) -> Any:
+        """a click plays it"""
+        return await self.play()
+
     can_be_dragged = True
 
     @property
@@ -171,7 +171,7 @@ class Card(TwoSidedView):
 
 # What a person, a test or the console calls it
 
-# A click plays it;  a drag puts it where it's dropped, if its pile's rules let it go
+# A drag puts it where it's dropped, if its pile's rules let it go;  what a click does is the game's
 
 # One letter of unicode's Playing Cards, at the size of the text around it:  its pile scales it to fit -- styles.css
 
@@ -422,17 +422,14 @@ class StockPile(Pile):
     def can_give_up(self, card: Card) -> bool:
         return False
 
-    # A light grey card, face down:  a click turns the discards back over
+    # A light grey card, face down
 
     def draw_its_placeholder(self) -> Any:
-        async def _each_1(event: Any) -> Any:
-            return await solitaire.play_from_the_stock()
+        return h("ui-text", {"part": "placeholder"}, "🂠")
 
-        return h(
-            "ui-text",
-            {"part": "placeholder", "onClick": _each_1, "style": "cursor:pointer;user-select:none"},
-            "🂠",
-        )
+    async def on_click(self, event: Any) -> None:
+        """Empty:  a click turns the discards back over;  a click on one of its cards is the card's"""
+        await solitaire.play_from_the_stock()
 
 
 class DiscardPile(Pile):

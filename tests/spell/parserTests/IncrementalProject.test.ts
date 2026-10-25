@@ -9,12 +9,12 @@ import {
   type SpellProjectSummary,
   type SpellSourceFile
 } from "spell-parser/spell/test"
-import { loadFixtureProject } from "spell-app/spaces/test"
+import { loadCodeSpellTwin } from "spell-app/spaces/test"
 
 /**
  * `P.IncrementalProject` MUST give exactly what a full parse gives:
  * same compiled output, errors and warnings, for every file, and every token where a fresh tokenize puts it.
- * - Edits every `STEP`th line of each file of Solitaire, the card library's files and its own
+ * - Edits every `STEP`th line of each file of Solitaire's code-spell twin, the card library's files and its own
  *   (one kind of edit per line, in rotation), then puts
  *   it back.
  * - Over projects written inline:  spell-parser's own `IncrementalProject.test.ts`.
@@ -32,7 +32,8 @@ const EDITS: Record<string, (lines: string[], index: number) => void> = {
 }
 
 describe("incremental parsing ~== full parse", () => {
-  const files = loadFixtureProject("Solitaire")
+  // code spell's incremental parse, on the Solitaire example's code-spell twin (the example is spellx)
+  const files = loadCodeSpellTwin("Solitaire")
   const original = summarize(parseSpellProject(files))
 
   test("item-by-item parse ~== full parse", () => {
@@ -71,21 +72,14 @@ describe("incremental parsing ~== full parse", () => {
   }
 
   test("a body can't see names declared after it", () => {
-    // `the solitaire` is declared in Solitaire.spell, AFTER Card.spell -- a full parse doesn't know it yet.
+    // `the solitaire` is declared in Solitaire.spell, AFTER Deck.spell -- a full parse doesn't know it yet.
+    const added = "\t\t\t\tadd a new card with rank = the rank, suit = the suit to the deck\n"
     const edited = files.map((it) =>
-      it.path === "/Card.spell"
-        ? {
-            ...it,
-            contents: it.contents.replace(
-              "\t\tset its direction to up\n",
-              "\t\tset its direction to up\n\t\tprint the solitaire\n"
-            )
-          }
-        : it
+      it.path === "/Deck.spell" ? { ...it, contents: it.contents.replace(added, `${added}\t\tprint the solitaire\n`) } : it
     )
-    expect(edited[0]!.contents).toContain("print the solitaire")
+    expect(edited[1]!.contents).toContain("print the solitaire")
     const project = incrementalSpellProject(files)
-    project.update("/Card.spell", edited[0]!.contents)
+    project.update("/Deck.spell", edited[1]!.contents)
     expect(summarizeIncremental(project)).toEqual(summarize(parseSpellProject(edited)))
   })
 
@@ -130,7 +124,7 @@ describe("incremental parsing ~== full parse", () => {
     // a top-level action:  a type's outline body is ONE item, which declares the type, so it can't be kept
     const game = files.findIndex((it) => it.path === "/Solitaire.spell")
     const gameText = files[game]!.contents
-    // Later lines -- `on card click`'s `play the card` -- call `play ...`.
+    // Later lines -- a card's `on click: play it` -- call `play ...`.
     const broken = gameText.replace("to play a card\n", "to play (a card:\n")
 
     test("without it, the broken declaration breaks later lines too", () => {
@@ -148,7 +142,7 @@ describe("incremental parsing ~== full parse", () => {
       const summary = summarizeIncremental(project)
       const lines = broken.split("\n")
       const brokenLine = lines.findIndex((line) => line.includes("to play (a card")) + 1
-      const nextLine = lines.findIndex((line) => line.startsWith("on card click")) + 1
+      const nextLine = lines.findIndex((line) => line.startsWith("to put a card on a pile")) + 1
       // the broken line, and its own body, which no longer knows `the card`:  nothing after it
       const errorLines = summary[game]!.errors.map((error) => Number(error.split(":")[0]))
       expect(errorLines[0]).toBe(brokenLine)
@@ -179,7 +173,7 @@ describe("incremental parsing ~== full parse", () => {
 
     test("typing through broken states, then back, ends up ~== full parse", () => {
       const project = incrementalSpellProject(files, true)
-      const line = 'a "card" is a view where:'
+      const line = 'a "card" is a two sided view:'
       // delete the line's text one character at a time, then type it back in
       const steps = Array.from({ length: line.length }, (_, index) => line.slice(0, line.length - index - 1))
       expect(cardText).toContain(line)

@@ -102,6 +102,22 @@
       "defined": "/TaskList.spellx:386-548"
     },
     {
+      "syntax": "{operator:is_or_is_not} showing (expression:all|alls|active|actives|done|dones)",
+      "output": "is_showing_$showing",
+      "rule": "quoted_property",
+      "of": "Checklist",
+      "kind": "method",
+      "name": "\"is showing (showing)\"",
+      "values": {
+        "showing": [
+          "all",
+          "active",
+          "done"
+        ]
+      },
+      "defined": "/TaskList.spellx:386-548"
+    },
+    {
       "syntax": "test the filter",
       "output": "test_the_filter",
       "rule": "method_call",
@@ -246,6 +262,7 @@
     68,
     93,
     98,
+    104,
     127,
     141,
     148,

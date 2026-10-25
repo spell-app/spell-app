@@ -1,1 +1,1 @@
-717 reportOptionalMemberAccess "filter" is not a known attribute of "None"
+714 reportOptionalMemberAccess "filter" is not a known attribute of "None"

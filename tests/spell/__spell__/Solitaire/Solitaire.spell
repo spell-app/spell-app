@@ -174,6 +174,10 @@ to count the points for a card on a pile
 	if the pile of the card is the discards of the solitaire return 5
 	return 0
 
+a card:
+	// a click plays it
+	- on click: play it
+
 a pile:
 	// while a card it would take is over it, the score shows what the move would add -- gone as the card leaves
 	- while a card is dragged over it:
@@ -191,9 +195,12 @@ a "stock pile" is a pile:
 	- its "layout" is stacked
 	- it can never take a card
 	- it can never let go of a card
-	// A light grey card, face down:  a click turns the discards back over
+	// A light grey card, face down
 	- to draw its placeholder:
-		<ui-text part="placeholder" onClick={play from the stock}>🂠</ui-text>
+		<ui-text part="placeholder">🂠</ui-text>
+	// Empty:  a click turns the discards back over;  a click on one of its cards is the card's
+	- on click:
+		play from the stock
 
 // Where the stock's cards go as they're turned over
 a "discard pile" is a pile:

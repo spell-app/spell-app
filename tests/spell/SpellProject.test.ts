@@ -5,7 +5,7 @@ import { parseSpellProject, summarize } from "spell-parser/spell/test"
 import { loadFixtureProject } from "spell-app/spaces/test"
 
 /**
- * Whole-project parse of the frozen Solitaire, `@spell/examples/Solitaire`.
+ * Whole-project parse of the Solitaire example, `@spell/examples/Solitaire`, written in spellx.
  * - Snapshot pins compiled output + errors (and warnings), so parser changes that alter output show up in review.
  * - Benchmark only runs with `BENCH=1`:
  *   `BENCH=1 yarn vp test run tests/spell/SpellProject.test.ts --reporter=verbose --silent=false`
@@ -14,7 +14,7 @@ describe("Solitaire project", () => {
   const files = loadFixtureProject("Solitaire")
 
   test("loads files in import order", () => {
-    expect(files.map(({ path }) => path)).toEqual(["/Card.spell", "/Deck.spell", "/Pile.spell", "/Solitaire.spell"])
+    expect(files.map(({ path }) => path)).toEqual(["/Card.spellx", "/Deck.spellx", "/Pile.spellx", "/Solitaire.spellx"])
   })
 
   test("parses the same way every time", () => {

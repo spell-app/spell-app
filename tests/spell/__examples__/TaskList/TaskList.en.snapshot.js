@@ -13,7 +13,8 @@ export const words = {
       checklist: "checklist"
     },
     Checklist: {
-      showing: "showing"
+      showing: "showing",
+      isShowingShowing: "is showing (showing)"
     },
     TaskList: {
       checklist: "checklist",

@@ -34,11 +34,9 @@ a "card" is a two sided view:
 		direction is "↑" if it is face up otherwise "↓"
 		return rank + its symbol + direction
 
-	// A click plays it;  a drag puts it where it's dropped, if its pile's rules let it go
+	// A drag puts it where it's dropped, if its pile's rules let it go;  what a click does is the game's
 	- group "playing"
 	- it can be dragged
-	// A click plays it:  the game says where it goes
-	- on click: play it
 
 	// One letter of unicode's Playing Cards, at the size of the text around it:  its pile scales it to fit -- styles.css
 	- group "drawing"

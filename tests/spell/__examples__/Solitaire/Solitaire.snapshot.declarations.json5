@@ -18,7 +18,7 @@
     {
       "type": "Card",
       "superType": "TwoSidedView",
-      "defined": "/Card.spellx:264-3420"
+      "defined": "/Card.spellx:264-3350"
     },
     {
       "property": "rank",
@@ -39,6 +39,32 @@
         "queen",
         "king"
       ],
+      "defined": "/Card.spellx:377-455"
+    },
+    {
+      "syntax": "{operator:is_or_is_not_a} (expression:ace|aces|2|3|4|5|6|7|8|9|10|jack|jacks|queen|queens|king|kings)",
+      "output": "is_a_$rank",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a (rank)\"",
+      "values": {
+        "rank": [
+          "ace",
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          "jack",
+          "queen",
+          "king"
+        ]
+      },
       "defined": "/Card.spellx:377-455"
     },
     {
@@ -77,6 +103,23 @@
         "hearts",
         "spades"
       ],
+      "defined": "/Card.spellx:642-721"
+    },
+    {
+      "syntax": "{operator:is_or_is_not_a} (expression:clubs|club|diamonds|diamond|hearts|heart|spades|spade)",
+      "output": "is_a_$suit",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a (suit)\"",
+      "values": {
+        "suit": [
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
+        ]
+      },
       "defined": "/Card.spellx:642-721"
     },
     {
@@ -143,7 +186,7 @@
       "property": "picture",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spellx:1793-2386"
+      "defined": "/Card.spellx:1723-2316"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -206,7 +249,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spellx:2529-3411"
+      "defined": "/Card.spellx:2459-3341"
     },
     {
       "type": "Deck",
@@ -302,48 +345,48 @@
     {
       "type": "StockPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spellx:7820-8270"
+      "defined": "/Solitaire.spellx:7874-8399"
     },
     {
       "property": "layout",
       "of": "StockPile",
-      "defined": "/Solitaire.spellx:7979-8005"
+      "defined": "/Solitaire.spellx:8033-8059"
     },
     {
       "type": "DiscardPile",
       "superType": "Pile",
-      "defined": "/Solitaire.spellx:8286-8528"
+      "defined": "/Solitaire.spellx:8415-8657"
     },
     {
       "property": "layout",
       "of": "DiscardPile",
-      "defined": "/Solitaire.spellx:8395-8421"
+      "defined": "/Solitaire.spellx:8524-8550"
     },
     {
       "type": "Foundation",
       "superType": "Pile",
-      "defined": "/Solitaire.spellx:8544-9141"
+      "defined": "/Solitaire.spellx:8673-9270"
     },
     {
       "property": "layout",
       "of": "Foundation",
-      "defined": "/Solitaire.spellx:8659-8685"
+      "defined": "/Solitaire.spellx:8788-8814"
     },
     {
       "property": "suit",
       "of": "Foundation",
       "datatype": "CardSuit",
-      "defined": "/Solitaire.spellx:8690-8718"
+      "defined": "/Solitaire.spellx:8819-8847"
     },
     {
       "type": "Tableau",
       "superType": "Pile",
-      "defined": "/Solitaire.spellx:9157-11056"
+      "defined": "/Solitaire.spellx:9286-11185"
     },
     {
       "property": "layout",
       "of": "Tableau",
-      "defined": "/Solitaire.spellx:9272-9299"
+      "defined": "/Solitaire.spellx:9401-9428"
     },
     {
       "type": "Solitaire",
@@ -562,25 +605,27 @@
       "alias": "statement",
       "kind": "function",
       "name": "the moves",
-      "defined": "/Solitaire.spellx:9541-11047"
+      "defined": "/Solitaire.spellx:9670-11176"
     }
   ],
   "codeLines": [
     10,
     13,
+    19,
     23,
     27,
     31,
     35,
+    41,
     45,
     54,
     61,
     65,
     70,
-    82,
-    107,
-    121,
-    136,
+    77,
+    102,
+    116,
+    131,
     156,
     199,
     203,
@@ -596,38 +641,38 @@
     326,
     336,
     339,
-    362,
-    365,
-    379,
-    382,
-    386,
-    407,
-    410,
-    424,
-    427,
-    433,
-    438,
-    443,
-    448,
-    453,
-    458,
-    463,
-    468,
-    473,
-    478,
-    483,
-    488,
-    493,
-    498,
-    503,
-    509,
-    514,
-    524,
-    540,
-    568,
-    670,
-    673,
-    676,
-    690
+    363,
+    366,
+    380,
+    383,
+    387,
+    408,
+    411,
+    425,
+    428,
+    434,
+    439,
+    444,
+    449,
+    454,
+    459,
+    464,
+    469,
+    474,
+    479,
+    484,
+    489,
+    494,
+    499,
+    504,
+    510,
+    515,
+    525,
+    541,
+    569,
+    671,
+    674,
+    677,
+    691
   ]
 }
