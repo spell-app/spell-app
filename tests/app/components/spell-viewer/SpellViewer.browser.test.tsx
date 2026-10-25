@@ -242,6 +242,16 @@ describe("<spell-viewer>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)"
     expect(LayoutSpell.eventOfAttribute("one-click")).toBeUndefined()
   })
 
+  test("a <spell> block's handlers are read by spell's own `on` rule:  Spanish's `al` and `cuando` too", async () => {
+    const { LayoutSpell } = await import("spell-app/app/runner/LayoutSpell")
+    expect(LayoutSpell.handlersIn("al carta elegida: imprimir 1\ncuando clic en carta\n  imprimir 2")).toEqual([
+      { event: "carta-elegida", body: "imprimir 1" },
+      { event: "clic-en-carta", body: "imprimir 2" }
+    ])
+    expect(LayoutSpell.handlersIn("When Clicked: play")).toEqual([{ event: "clicked", body: "play" }])
+    expect(LayoutSpell.handlersIn("play a song")[0]!.error).toBeDefined()
+  })
+
   test("a tag written by hand says which named place it goes in with `in=`, as in a drawing (Q21 B, J35)", async () => {
     const PILES = [
       "a tile is a view",

@@ -73,11 +73,7 @@ export class SpellLanguageService {
 
   /** Offset of `position` in `file`, clamped to the end of its line. */
   offsetAt(file: SP.SpellFile, { line, character }: Position): number {
-    const lineStarts = this.lineStarts(file)
-    const { length } = file.parseText
-    if (line >= lineStarts.length) return length
-    const lineEnd = line + 1 < lineStarts.length ? lineStarts[line + 1]! - 1 : length
-    return Math.min(lineStarts[line]! + character, lineEnd)
+    return P.offsetForPosition(this.lineStarts(file), { line, ch: character }, file.parseText.length)
   }
 
   /** Range of `match`'s text in `file` -- up to its last character, NOT its trailing whitespace. */
@@ -1662,7 +1658,7 @@ export class SpellLanguageService {
     const items: Array<[number, CompletionItem]> = []
     const tail = sequence && index !== undefined ? this.methodTail(file.project, parser, sequence, index) : undefined
     if (tail) items.push([0, tail])
-    for (const kind of SpellLanguageService.firstKinds(rule, parser, new Set())) {
+    for (const kind of SpellLanguageService.firstKinds(rule, parser)) {
       const names =
         kind === "type"
           ? this.typeItems(file, scope, offset)
@@ -1676,7 +1672,7 @@ export class SpellLanguageService {
       for (const name of names) items.push([1, name])
     }
     // Words from categories too, e.g. `{expression}` => `the`, `a`, `its`... -- NOT `Card` when there's `card`
-    const words = new Set(SpellLanguageService.firstWords(rule, parser, new Set(), true))
+    const words = new Set(SpellLanguageService.firstWords(rule, { parser, followGroups: true }))
     const lowerCase = [...words].filter((word) => word === word.toLowerCase() || !words.has(word.toLowerCase()))
     const next = LSP.LspTexts.for(file.language).text("next")
     for (const item of this.keywordItems(file, lowerCase, next)) items.push([2, item])
@@ -1710,7 +1706,7 @@ export class SpellLanguageService {
         label.push(`(${name})`)
         snippet.push(`\${${++placeholder}:${name}}`)
       } else {
-        const word = SpellLanguageService.firstWords(rule, parser, new Set())[0] ?? rule.toRulexSyntax()
+        const word = SpellLanguageService.firstWords(rule, { parser })[0] ?? rule.toRulexSyntax()
         label.push(word)
         snippet.push(word.replace(/[$}\\]/g, "\\$&"))
       }
@@ -2051,7 +2047,7 @@ export class SpellLanguageService {
     const words = new Set<string>()
     for (const rule of rules) {
       if (generated.has(rule)) continue
-      for (const word of SpellLanguageService.firstWords(rule, parser, new Set())) words.add(word)
+      for (const word of SpellLanguageService.firstWords(rule, { parser })) words.add(word)
     }
     return [...words].sort()
   }
@@ -2462,35 +2458,21 @@ export class SpellLanguageService {
   }
 
   /**
-   * Words `rule` can start with:  its leading literals, through sequences, choices and repeats.
+   * Words `rule` can start with:  its leading literals, through sequences, choices and repeats -- `P.leadingRules()`.
    * - Follows a `{subrule}` only to a single rule, NOT a category like `{expression}`, which could start with
-   *   anything -- unless `followGroups`, e.g. for operators, filtered by what's being typed.
+   *   anything -- unless `options.followGroups`, e.g. for operators, filtered by what's being typed.
    */
-  static firstWords(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>, followGroups = false): string[] {
-    if (visited.has(rule)) return []
-    visited.add(rule)
-    let words: string[] = []
-    if (rule instanceof P.Literal) words = [rule.literal].flat()
-    else if (rule instanceof P.Literals) {
-      for (const { literal, optional } of rule.literals) {
-        words.push(...[literal].flat())
+  static firstWords(rule: P.Rule, options: P.LeadingRulesOptions): string[] {
+    const words = P.leadingRules(rule, options).flatMap((leading) => {
+      if (leading instanceof P.Literal) return [leading.literal].flat()
+      if (!(leading instanceof P.Literals)) return []
+      const leadingWords: string[] = []
+      for (const { literal, optional } of leading.literals) {
+        leadingWords.push(...[literal].flat())
         if (!optional) break
       }
-    } else if (rule instanceof P.Sequence) {
-      for (const child of rule.rules) {
-        words.push(...SpellLanguageService.firstWords(child, parser, visited, followGroups))
-        if (!child.optional) break
-      }
-    } else if (rule instanceof P.Choice) {
-      words = rule.rules.flatMap((child) => SpellLanguageService.firstWords(child, parser, visited, followGroups))
-    } else if (rule instanceof P.Repeat) {
-      words = SpellLanguageService.firstWords(rule.rule, parser, visited, followGroups)
-    } else if (rule instanceof P.Subrule) {
-      const target = parser.rules[rule.rule]
-      if (target && (followGroups || !(target instanceof P.Group))) {
-        words = SpellLanguageService.firstWords(target, parser, visited, followGroups)
-      }
-    }
+      return leadingWords
+    })
     return words.filter((word) => P.ALPHANUMERIC_WORD_WITH_DASHES.test(word))
   }
 
@@ -2500,24 +2482,12 @@ export class SpellLanguageService {
   /**
    * Kinds of name `rule` can start with, e.g. `{type}` => `type`, `{expression}` => `variable`, `enumMember`...
    * - By the `highlightAs` of the rules it can start with -- NOT by rule names --
-   *   through sequences, choices, repeats and subrules, categories too.
+   *   through sequences, choices, repeats and subrules, categories too (`P.leadingRules()`).
    */
-  static firstKinds(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>, kinds = new Set<P.HighlightKind>()) {
-    if (visited.has(rule)) return kinds
-    visited.add(rule)
-    if (rule.highlightAs && SpellLanguageService.NAME_KINDS.includes(rule.highlightAs)) kinds.add(rule.highlightAs)
-    if (rule instanceof P.Sequence) {
-      for (const child of rule.rules) {
-        SpellLanguageService.firstKinds(child, parser, visited, kinds)
-        if (!child.optional) break
-      }
-    } else if (rule instanceof P.Choice) {
-      for (const child of rule.rules) SpellLanguageService.firstKinds(child, parser, visited, kinds)
-    } else if (rule instanceof P.Repeat) {
-      SpellLanguageService.firstKinds(rule.rule, parser, visited, kinds)
-    } else if (rule instanceof P.Subrule) {
-      const target = parser.rules[rule.rule]
-      if (target) SpellLanguageService.firstKinds(target, parser, visited, kinds)
+  static firstKinds(rule: P.Rule, parser: P.Parser): Set<P.HighlightKind> {
+    const kinds = new Set<P.HighlightKind>()
+    for (const { highlightAs } of P.leadingRules(rule, { parser, followGroups: true })) {
+      if (highlightAs && SpellLanguageService.NAME_KINDS.includes(highlightAs)) kinds.add(highlightAs)
     }
     return kinds
   }

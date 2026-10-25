@@ -275,7 +275,9 @@ export class LayoutSpell {
   /**
    * The handlers in a `<spell>` block's `text`:  `when <event>` lines, each with the lines indented under it.
    * - Or on one line:  `when clicked: play a song`, the statement after the colon.
-   * - `on <event>` as well as `when <event>`:  `on drag:` is `when dragged:`.
+   * - Each first line is read by spell's own `on` rule, in any language spell reads -- see `eventOfHandler()`:
+   *   - `on <event>` as well as `when <event>`:  `on drag:` is `when dragged:`
+   *   - Spanish's `al <event>` and `cuando <event>`:  `al carta elegida:`
    * - An event may be several words, joined with dashes:  `when double clicked` is `double-clicked`.
    * - Indents are tabs to spell:  each run of the first indent's spaces is a tab.
    */
@@ -287,8 +289,9 @@ export class LayoutSpell {
     const handlers: Array<{ event: string; body: string; error?: string }> = []
     for (const line of outdented) {
       if (!/^\s/.test(line)) {
-        const [, , words, inline] = WHEN.exec(line) ?? []
-        if (words) handlers.push({ event: LayoutSpell.eventOf(words), body: inline?.trim() ?? "" })
+        const [head, ...inline] = line.split(":")
+        const event = LayoutSpell.eventOfHandler(head!)
+        if (event) handlers.push({ event, body: inline.join(":").trim() })
         else handlers.push({ event: "", body: "", error: `a <spell> block holds "when <event>" handlers:  "${line}"` })
         continue
       }
@@ -300,6 +303,24 @@ export class LayoutSpell {
       handler.body += `${handler.body ? "\n" : ""}${body}`
     }
     return handlers
+  }
+
+  /**
+   * The event a handler's first line hears, e.g. `double-clicked` for `when double clicked`, its statement left out:
+   * read by spell's `on` rule, in each language spell reads, the default first.
+   * - `undefined` for a line that isn't a handler's.
+   * - Any case:  `When Clicked` is `clicked`.
+   */
+  static eventOfHandler(head: string): string | undefined {
+    const languages = new Set([SP.Language.default, ...SP.Language.all.values()])
+    for (const { parser, rootScope } of languages) {
+      const scope = new P.BlockScope({ name: "handler", parentScope: rootScope, parser })
+      const match = parser.parse(head.trim().toLowerCase(), ON_RULE, scope)
+      // the event it declares, by what the rule says it declares:  never by its rule's name
+      const declared = match?.rule.getDeclaration(match)
+      if (declared?.kind === "event") return LayoutSpell.eventOf(String(declared.nameMatch.raw))
+    }
+    return undefined
   }
 
   /** An event written in `words`, as we look it up:  lower case, joined with dashes -- `Double Clicked` => `double-clicked`. */
@@ -467,11 +488,8 @@ const IT = "it"
 /** Each hole in text, its spell captured -- for `split()`. */
 const HOLES = /\{([^{}]+)\}/
 
-/**
- * A handler's first line:  `when` or `on`, its event's words, then any statement after a colon.
- * - e.g. `when clicked: play`
- */
-const WHEN = /^(when|on)\s+([a-z][\w-]*(?:\s+[a-z][\w-]*)*)\s*(?::\s*(.*))?$/i
+/** Spell's rule for a handler's first line, `when clicked`, `al carta elegida` -- see `eventOfHandler()`. */
+const ON_RULE = "on"
 
 /** An attribute that handles an event, the event captured:  `on-click`, `when-double-clicked`. */
 const EVENT_ATTRIBUTE = /^(?:on|when)-([a-z][\w-]*)$/
