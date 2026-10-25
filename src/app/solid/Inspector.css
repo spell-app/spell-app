@@ -18,7 +18,9 @@
   gap: 0;
   padding: 0;
   overflow-x: hidden;
-  background: var(--ui-background);
+  /* not quite opaque:  no fill of its own, so the page shows faintly through the card's (Owen:  "not quite so
+     opaque") */
+  background: none;
   color: var(--ui-text-color);
   font-family: var(--ui-font-family);
 
@@ -35,6 +37,9 @@
     --ui-input-padding-inline: 0.7em;
     --ui-select-padding-block: 0.4em;
     --ui-select-padding-inline: 0.7em;
+    /* less round than the brand's pills (Owen) */
+    --ui-input-radius: 6px;
+    --ui-select-radius: 6px;
     /* a select with nothing chosen reads "none", in italics (Owen) */
     --ui-select-placeholder-style: italic;
   }
@@ -125,21 +130,16 @@
   .InspectorCard.folded > & {
     border-bottom: 0;
   }
-  /* the bullseye:  the theme's own round button (Owen:  "doesn't match the theme"), pressed while picking */
-  & > ui-button.InspectorPick {
-    --ui-button-margin-inline: 0 calc(var(--spell-bar-icon-gap) / 2);
-  }
-  /* a true circle, the glyph in its middle:  `circular` alone drew a pill the icon's width */
-  & > ui-button.InspectorPick::part(button) {
-    box-sizing: border-box;
-    width: 30px;
-    min-width: 30px;
-    max-width: 30px;
-    height: 30px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  /* what's picked, as its title:  a blue pill (Owen) */
+  & .InspectorPartTag {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--ui-blue) 14%, transparent);
+    color: color-mix(in oklab, var(--ui-blue) 80%, var(--ui-text-color));
+    font-size: 0.9em;
   }
   /* Events' "+":  a bare icon and its caret, the header's grey, spaced as the header's icons */
   & > ui-dropdown.InspectorAddEvent {
@@ -210,6 +210,18 @@
   padding: 12px 14px;
   overflow-y: auto;
   overscroll-behavior: contain;
+
+  /* more below:  the card's colour fading up over its last 8px, not a hard edge (Owen) */
+  &::after {
+    content: "";
+    position: sticky;
+    inset-block-end: -12px;
+    flex: none;
+    height: 8px;
+    margin-block-start: -8px;
+    pointer-events: none;
+    background: linear-gradient(to top, var(--spell-pane-background, var(--ui-background)), transparent);
+  }
 }
 /* its events:  each a heading, then its code, in a box that grows with it */
 .InspectorEvent {
@@ -317,4 +329,11 @@ ui-dropdown.InspectorAddEvent > ui-icon[slot="trigger"] {
   /* no room after it:  a dropdown keeps that for the text it shows, and this one shows none */
   display: inline-flex;
   margin: 0;
+}
+
+/* the crosshairs (`<InspectorPick>`), pressed while picking:  a round dip behind the glyph, its size not counted */
+ui-icon.InspectorPick.picking {
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--ui-text-color) 12%, transparent);
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--ui-text-color) 12%, transparent);
 }

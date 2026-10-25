@@ -636,10 +636,10 @@ const FOLDED_CARD_HEIGHT = 40
 
 /****************
  * ### `<PropertiesCard>`
- * What's picked:  its title in the card's header (`<ui-button "20%" />`), then a `<ui-property-editor>` of
- * every property it has, those it sets first (Owen:  "lose that [More]. Show all of the properties").
- * - The header's buttons:  the bullseye (pick again;  a round button of the theme's, pressed while picking),
- *   then Close.
+ * What's picked:  its title in the card's header, a blue pill (`<ui-button "20%" />`), then a
+ * `<ui-property-editor>` of every property it has, those it sets first
+ * (Owen:  "lose that [More]. Show all of the properties").
+ * - Picking again is the App pane's crosshairs (`<InspectorPick>`), beside the Inspector's button.
  * - Nothing picked:  the card is titled "Inspector", and says how to pick.
  ****************/
 function PropertiesCard(): JSX.Element {
@@ -647,23 +647,10 @@ function PropertiesCard(): JSX.Element {
     <InspectorCard
       panel="properties"
       class="InspectorMain"
-      icon={Inspector.picked ? Inspector.iconFor(Inspector.picked.element) : INSPECTOR_ICON}
-      title={Inspector.picked?.label ?? appTexts.text("inspector")}
-      actions={
-        <ui-button
-          icon="bullseye"
-          circular=""
-          basic={Inspector.isPicking ? undefined : ""}
-          active={Inspector.isPicking}
-          size="small"
-          class="InspectorPick"
-          aria-label={appTexts.text("inspectorPick")}
-          aria-pressed={Inspector.isPicking ? "true" : "false"}
-          data-tooltip={appTexts.text("inspectorPick")}
-          data-position="bottom right"
-          data-inverted=""
-          onClick={() => (Inspector.isPicking ? Inspector.stopPicking() : Inspector.startPicking())}
-        />
+      title={
+        <Show when={Inspector.picked} fallback={appTexts.text("inspector")}>
+          {(part) => <span class="InspectorPartTag">{part().label}</span>}
+        </Show>
       }
     >
       <Show
@@ -831,6 +818,32 @@ export function InspectorToggle(): JSX.Element {
         </ui-menu>
       </Show>
     </span>
+  )
+}
+
+/****************
+ * ### `<InspectorPick>`
+ * The crosshairs, in the App pane's header beside the Inspector's button:  pick a part of the app.
+ * - A click starts picking, or stops it;  pressed (a round dip behind it) while picking.
+ * - With the Inspector closed, it opens it, which starts picking.
+ ****************/
+export function InspectorPick(): JSX.Element {
+  return (
+    <ui-icon
+      name="crosshairs"
+      link=""
+      class={["IconAction", "InspectorPick", { picking: Inspector.isPicking }]}
+      label={appTexts.text("inspectorPick")}
+      aria-pressed={Inspector.isPicking ? "true" : "false"}
+      data-tooltip={appTexts.text("inspectorPick")}
+      data-position="bottom right"
+      data-inverted=""
+      onClick={() => {
+        if (!Inspector.isOpen) Inspector.toggle()
+        else if (Inspector.isPicking) Inspector.stopPicking()
+        else Inspector.startPicking()
+      }}
+    />
   )
 }
 
