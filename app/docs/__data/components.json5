@@ -3057,6 +3057,10 @@
       ],
       "usedIn": [
         {
+          "name": "InspectorViews",
+          "file": "src/app/solid/InspectorParts.tsx"
+        },
+        {
           "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"
         },
@@ -3317,6 +3321,10 @@
         }
       ],
       "usedIn": [
+        {
+          "name": "InspectorViews",
+          "file": "src/app/solid/InspectorParts.tsx"
+        },
         {
           "name": "ProgramPanel",
           "file": "src/app/pages/SpellEditor.tsx"

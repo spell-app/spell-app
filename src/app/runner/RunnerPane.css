@@ -14,10 +14,11 @@
     /* tabs close together (Owen:  "move these closer together"):  the segmented look's own room is for a page's tabs */
     --ui-menu-segmented-item-padding: 0.45em 0.8em;
   }
+  /* the bar is the tabs' track (`--spell-tabs-track`, the editor's chrome), its tools on it:  4px round the tabs */
   & > .RunnerPaneToolbar::part(toolbar) {
     gap: 0.5em;
-    padding: 6px 8px 6px 10px;
-    border-bottom: 1px solid var(--ui-border-color);
+    padding: 4px 10px 4px 4px;
+    background: var(--spell-tabs-track, transparent);
   }
   /* the tools at the right:  close together */
   & .RunnerPaneTools {

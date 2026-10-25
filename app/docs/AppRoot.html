@@ -79,7 +79,7 @@
               (<code>&lt;AppPane&gt;</code>); in Run, the page keeps that same pane, and only the code column goes:
             </p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>SpellEditor.tsx · the editor's right-hand column, AppPane · 9 lines</ui-title>
+              <ui-title>SpellEditor.tsx · the editor's right-hand column, AppPane · 12 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
@@ -89,6 +89,9 @@
                           <ui-icon name={root().icon ?? PROJECT_ICON} />
                           {title()}
                         </h2>
+                        <Actions.restartApp iconOnly />
+                        <InspectorToggle />
+                        <Actions.showProjectSettings iconOnly />
                       </header>
                       <AppRoot showToolbar={false} />
                     </div>
@@ -109,8 +112,8 @@
               <li>
                 <code>&lt;AppToolbar&gt;</code>, above it: an "App" header, then Restart (one of the app's
                 <a href="Actions.html" target="src-packages-app-docs-actions-html">Actions</a>), as an icon. The
-                editor's pages hide it, and draw their own header: the project's group icon and title. Restart is in
-                their top bar.
+                editor's pages hide it, and draw their own header: the project's group icon and title, then Restart, the
+                Inspector's button and Settings.
               </li>
               <li>The program's box scrolls and is padded, unless told not to.</li>
               <li>
