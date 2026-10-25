@@ -3,6 +3,7 @@ import { sep } from "path"
 import type { TextEdit } from "vscode-languageserver"
 
 import environment from "spell-app/spaces/server/node/environment"
+import { P } from "spell-parser/parser"
 import { SP } from "spell-parser/spell"
 import { CLI } from "spell-app/cli"
 
@@ -67,10 +68,9 @@ export function isTestProject(path: string): boolean {
 
 /** `text` with `edits` made -- as an editor would, each against the ORIGINAL text. */
 export function applyEdits(text: string, edits: TextEdit[]): string {
-  const lineStarts = [0]
-  for (let index = text.indexOf("\n"); index !== -1; index = text.indexOf("\n", index + 1)) lineStarts.push(index + 1)
+  const lineStarts = P.getLineStarts(text)
   const offset = ({ line, character }: TextEdit["range"]["start"]) =>
-    Math.min((lineStarts[line] ?? text.length) + character, text.length)
+    P.offsetForPosition(lineStarts, { line, ch: character }, text.length)
   const ordered = edits
     .map((edit) => ({ start: offset(edit.range.start), end: offset(edit.range.end), newText: edit.newText }))
     .sort((a, b) => b.start - a.start)

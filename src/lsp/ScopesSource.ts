@@ -20,6 +20,8 @@ import {
 } from "spell-app/lsp/lsp.types"
 // Import directly:  spell's light URL helper, and spaces' groups, which it splits an address by -- no parser, no barrel
 import { SpellUrls } from "spell-parser/spell/SpellUrls"
+// Import directly:  the parser's text positions alone, value-free of the rest of the parser
+import { getLineStarts, offsetForPosition } from "spell-parser/parser/tokenizer/tokenizer.types"
 import "spell-app/spaces/models/projectGroups"
 
 /** What a Type Explorer shows:  a tree, and the details of what's in it, by `path`. */
@@ -204,10 +206,10 @@ function compiledMarkers(compiled: string): CompiledMarker[] {
  * - Up to the next statement at its indent or less, or the end of its file.
  */
 function declaredCode(compiled: string, { statements, codeLines = [] }: CompiledDeclarations): CompiledMarker[] {
-  const lineStarts = [0]
-  for (let at = compiled.indexOf("\n"); at >= 0; at = compiled.indexOf("\n", at + 1)) lineStarts.push(at + 1)
+  const lineStarts = getLineStarts(compiled)
   const found = statements.map((declaration, index) => {
-    const from = lineStarts[codeLines[index] ?? -1] ?? compiled.length
+    const line = codeLines[index] ?? lineStarts.length
+    const from = offsetForPosition(lineStarts, { line, ch: 0 }, compiled.length)
     return { declaration, from, indent: indentAt(compiled, from + /^[ \t]*/.exec(compiled.slice(from))![0].length) }
   })
   return found.flatMap(({ declaration, from, indent }, index) => {

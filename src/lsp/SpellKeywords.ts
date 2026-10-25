@@ -187,12 +187,16 @@ export class SpellKeywords {
     return ARTICLE_RULES.flatMap((name) => this.leadingPhrasesOf(name))
   }
 
-  /** Phrases the rules named `name` start with, a category's too:  each one's leading keywords, e.g. `else`'s. */
+  /**
+   * Phrases the rules named `name` start with, a category's too:  each one's leading keywords, e.g. `else`'s.
+   * - Through sequences, choices and repeats (`P.leadingRules()`), and a `{subrule}` to a single rule,
+   *   NOT a category like `{expression}`, which could start with anything.
+   */
   leadingPhrasesOf(name: string): string[] {
     const { parser } = this.language
     const rule = parser.rules[name]
     const rules = rule instanceof P.Choice ? rule.rules : rule ? [rule] : []
-    const phrases = new Set(rules.flatMap((it) => leadingPhrases(it, parser, new Set())))
+    const phrases = new Set(rules.flatMap((it) => P.leadingRules(it, { parser }).flatMap(phrasesOf)))
     return [...phrases].filter((phrase) => PHRASE.test(phrase))
   }
 
@@ -228,14 +232,13 @@ export class SpellKeywords {
   // ## Helpers
   ////////////////
 
-  /** Every rule of the pack, nested ones too -- each once. */
+  /** Every rule of the pack, nested ones too, a repeat's separator too -- each once. */
   private allRules(): P.Rule[] {
     const found = new Set<P.Rule>()
-    const visit = (rule: P.Rule | undefined) => {
-      if (!rule || found.has(rule)) return
+    const visit = (rule: P.Rule) => {
+      if (found.has(rule)) return
       found.add(rule)
-      if (rule instanceof P.Choice || rule instanceof P.Sequence) rule.rules.forEach(visit)
-      else if (rule instanceof P.Repeat) visit(rule.rule)
+      rule.childRules.forEach(visit)
     }
     Object.values(this.language.parser.rules).forEach(visit)
     return [...found]
@@ -289,39 +292,21 @@ function addFix(fixes: Map<P.Rule, Map<string, string>>, rule: P.Rule, word: str
 }
 
 /**
- * Keyword phrases `rule` can start with:  its leading keywords, through sequences, choices and repeats.
+ * The phrases keyword `rule` says, `[]` for any other rule -- `leadingPhrasesOf()` reads it over `P.leadingRules()`.
  * - A phrase's optional words are left out, its alternatives each make a phrase:
  *   `(si no|sino) :?` => `si no`, `sino`.
- * - Follows a `{subrule}` only to a single rule, NOT a category like `{expression}`, which could start with anything.
+ * - At most `MAX_PHRASES`.
  */
-function leadingPhrases(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>): string[] {
-  if (visited.has(rule)) return []
-  visited.add(rule)
-  if (rule instanceof P.Keyword || rule instanceof P.Keywords) {
-    const places = rule instanceof P.Keywords ? rule.literals.filter((it) => !it.optional) : undefined
-    const alternatives = places ? places.map(({ literal }) => [literal].flat().map(String)) : placesOf(rule)
-    let phrases = [""]
-    for (const words of alternatives) {
-      phrases = phrases.flatMap((phrase) => words.map((word) => (phrase ? `${phrase} ${word}` : word)))
-      if (phrases.length > MAX_PHRASES) break
-    }
-    return phrases.slice(0, MAX_PHRASES)
+function phrasesOf(rule: P.Rule): string[] {
+  if (!(rule instanceof P.Keyword || rule instanceof P.Keywords)) return []
+  const places = rule instanceof P.Keywords ? rule.literals.filter((it) => !it.optional) : undefined
+  const alternatives = places ? places.map(({ literal }) => [literal].flat().map(String)) : placesOf(rule)
+  let phrases = [""]
+  for (const words of alternatives) {
+    phrases = phrases.flatMap((phrase) => words.map((word) => (phrase ? `${phrase} ${word}` : word)))
+    if (phrases.length > MAX_PHRASES) break
   }
-  if (rule instanceof P.Sequence) {
-    const phrases: string[] = []
-    for (const child of rule.rules) {
-      phrases.push(...leadingPhrases(child, parser, visited))
-      if (!child.optional) break
-    }
-    return phrases
-  }
-  if (rule instanceof P.Choice) return rule.rules.flatMap((child) => leadingPhrases(child, parser, visited))
-  if (rule instanceof P.Repeat) return leadingPhrases(rule.rule, parser, visited)
-  if (rule instanceof P.Subrule) {
-    const target = parser.rules[rule.rule]
-    if (target && !(target instanceof P.Group)) return leadingPhrases(target, parser, visited)
-  }
-  return []
+  return phrases.slice(0, MAX_PHRASES)
 }
 
 /** `phrases`, each once, longest first:  so a pattern tries `is not` before `is`. */
