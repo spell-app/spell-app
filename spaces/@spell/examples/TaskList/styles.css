@@ -37,7 +37,7 @@ task-list-checklist::part(placeholder) {
 }
 
 /****************
- * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal
+ * A task:  its checkbox, its title, and its priority -- its drawing shows that only when it isn't normal
  ****************/
 
 task-list-task {
@@ -65,11 +65,6 @@ task-list-task::part(title) {
 
 task-list-task::part(priority) {
   flex: none;
-}
-
-task-list-task[priority="normal"]::part(priority),
-task-list-task:not([priority])::part(priority) {
-  display: none;
 }
 
 /* selected:  a soft purple band, in place of the outline every selected thing has */

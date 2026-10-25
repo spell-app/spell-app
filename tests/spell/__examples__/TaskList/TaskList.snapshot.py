@@ -39,7 +39,7 @@ class Task(View):
         return not self.is_done
 
     def draw(self) -> Any:
-        """A form of its own, bound to it:  checking the box, or typing a title, changes the task"""
+        """A form of its own, bound to it:  checking the box, or typing a title, changes the task;  its priority shows only when it isn't normal"""
         return h(
             "ui-form",
             {"value": self},
@@ -58,6 +58,7 @@ class Task(View):
                         "part": "priority",
                         "size": "tiny",
                         "color": "red" if self.priority == "high" else "grey",
+                        "hidden": None if self.priority != "normal" else True,
                     },
                     self.priority,
                 ),
@@ -200,7 +201,17 @@ class TaskList(App):
                 "ui-toolbar",
                 {"menu": "tasks menu", "aria-label": "Tasks"},
                 h("ui-text", {"slot": "title", "size": "large"}, "Task List"),
-                h("ui-text", {"slot": "right"}, self.active_count, " to do"),
+                h(
+                    "ui-text",
+                    {"slot": "right"},
+                    h("span", {"hidden": None if self.active_count == 0 else "until-found"}, "All done"),
+                    h(
+                        "span",
+                        {"hidden": None if not self.active_count == 0 else "until-found"},
+                        self.active_count,
+                        " to do",
+                    ),
+                ),
             ),
             h(
                 "ui-form",
@@ -326,7 +337,7 @@ task-list-checklist::part(placeholder) {
 }
 
 /****************
- * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal
+ * A task:  its checkbox, its title, and its priority -- its drawing shows that only when it isn't normal
  ****************/
 
 task-list-task {
@@ -354,11 +365,6 @@ task-list-task::part(title) {
 
 task-list-task::part(priority) {
   flex: none;
-}
-
-task-list-task[priority="normal"]::part(priority),
-task-list-task:not([priority])::part(priority) {
-  display: none;
 }
 
 /* selected:  a soft purple band, in place of the outline every selected thing has */

@@ -40,7 +40,7 @@ export class Task extends View {
     return !this.isDone
   }
 
-  /** A form of its own, bound to it:  checking the box, or typing a title, changes the task */
+  /** A form of its own, bound to it:  checking the box, or typing a title, changes the task;  its priority shows only when it isn't normal */
   @drawn draw() {
     return (
       <ui-form value={this}>
@@ -48,7 +48,7 @@ export class Task extends View {
           <ui-icon part="grip" name="grip vertical" aria-label="Drag" />
           <ui-checkbox name="done" aria-label="Done" />
           <ui-input part="title" name="title" aria-label="Task" appearance="transparent" />
-          <ui-label part="priority" size="tiny" color={this.priority === "high" ? "red" : "grey"}>
+          <ui-label part="priority" size="tiny" color={this.priority === "high" ? "red" : "grey"} hidden={this.priority !== "normal" ? undefined : true}>
             {this.priority}
           </ui-label>
         </div>
@@ -231,7 +231,10 @@ export class TaskList extends App {
       <ui-container class="TaskList">
         <ui-toolbar menu="tasks menu" aria-label="Tasks">
           <ui-text slot="title" size="large">Task List</ui-text>
-          <ui-text slot="right">{this.activeCount} to do</ui-text>
+          <ui-text slot="right">
+            <span hidden={this.activeCount === 0 ? undefined : "until-found"}>All done</span>
+            <span hidden={!(this.activeCount === 0) ? undefined : "until-found"}>{this.activeCount} to do</span>
+          </ui-text>
         </ui-toolbar>
         <ui-form value={this}>
           <ui-input name="draft" placeholder="Something to do" aria-label="New task" fluid={true} action={true}>
@@ -331,7 +334,7 @@ core.describeMenu(TaskList, "tasksMenu", { items: ["showAll", "showToDo", "showD
 
 if (!core.isCarryingOver) taskList.start()
 // -----------
-core.installStyles(undefined, `/* File styles.css:  how the task list looks.¬   - The list and each task are elements of their own, so these rules reach them all:¬     - the list, <task-list-checklist>, and its tasks inside it, each a <task-list-task>¬     - inside a task, by its parts:  its row, ::part(row);  its grip, ::part(grip);  its title, ::part(title);¬       its priority label, ::part(priority)¬     - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */¬¬/****************¬ * The app:  its toolbar, the new task's field, then the list beside the property editor¬ ****************/¬¬.TaskList {¬  padding-block: 1em;¬}¬¬/* the new task's field, between the toolbar and the list */¬.TaskList > ui-form {¬  display: block;¬  margin-block: 1em;¬}¬¬/****************¬ * The list:  one task a line¬ ****************/¬¬task-list-checklist {¬  display: flex;¬  flex-direction: column;¬  gap: 0.25em;¬}¬¬task-list-checklist::part(placeholder) {¬  display: block;¬  padding: 1em;¬  color: grey;¬  text-align: center;¬}¬¬/****************¬ * A task:  its checkbox, its title, and its priority -- shown only when it isn't normal¬ ****************/¬¬task-list-task {¬  display: block;¬  padding: 0.25em 0.5em;¬  border-radius: 0.3em;¬}¬¬/* its checkbox, its title filling the line, then its priority */¬task-list-task::part(row) {¬  display: flex;¬  align-items: center;¬  gap: 0.5em;¬}¬¬/* its grip:  what a drag starts from */¬task-list-task::part(grip) {¬  flex: none;¬  color: grey;¬}¬¬task-list-task::part(title) {¬  flex: 1;¬}¬¬task-list-task::part(priority) {¬  flex: none;¬}¬¬task-list-task[priority="normal"]::part(priority),¬task-list-task:not([priority])::part(priority) {¬  display: none;¬}¬¬/* selected:  a soft purple band, in place of the outline every selected thing has */¬task-list-task:state(selected) {¬  --spell-selected-outline: none;¬  background: rgb(150 80 255 / 0.12);¬}¬¬/* done:  its title fades */¬task-list-task[done] {¬  opacity: 0.6;¬}¬`)
+core.installStyles(undefined, `/* File styles.css:  how the task list looks.¬   - The list and each task are elements of their own, so these rules reach them all:¬     - the list, <task-list-checklist>, and its tasks inside it, each a <task-list-task>¬     - inside a task, by its parts:  its row, ::part(row);  its grip, ::part(grip);  its title, ::part(title);¬       its priority label, ::part(priority)¬     - an empty list's placeholder, which it draws itself, by its part:  ::part(placeholder) */¬¬/****************¬ * The app:  its toolbar, the new task's field, then the list beside the property editor¬ ****************/¬¬.TaskList {¬  padding-block: 1em;¬}¬¬/* the new task's field, between the toolbar and the list */¬.TaskList > ui-form {¬  display: block;¬  margin-block: 1em;¬}¬¬/****************¬ * The list:  one task a line¬ ****************/¬¬task-list-checklist {¬  display: flex;¬  flex-direction: column;¬  gap: 0.25em;¬}¬¬task-list-checklist::part(placeholder) {¬  display: block;¬  padding: 1em;¬  color: grey;¬  text-align: center;¬}¬¬/****************¬ * A task:  its checkbox, its title, and its priority -- its drawing shows that only when it isn't normal¬ ****************/¬¬task-list-task {¬  display: block;¬  padding: 0.25em 0.5em;¬  border-radius: 0.3em;¬}¬¬/* its checkbox, its title filling the line, then its priority */¬task-list-task::part(row) {¬  display: flex;¬  align-items: center;¬  gap: 0.5em;¬}¬¬/* its grip:  what a drag starts from */¬task-list-task::part(grip) {¬  flex: none;¬  color: grey;¬}¬¬task-list-task::part(title) {¬  flex: 1;¬}¬¬task-list-task::part(priority) {¬  flex: none;¬}¬¬/* selected:  a soft purple band, in place of the outline every selected thing has */¬task-list-task:state(selected) {¬  --spell-selected-outline: none;¬  background: rgb(150 80 255 / 0.12);¬}¬¬/* done:  its title fades */¬task-list-task[done] {¬  opacity: 0.6;¬}¬`)
 // -----------
 if (!core.isCarryingOver) testCheckingOneOff()
 if (!core.isCarryingOver) testTheFilter()

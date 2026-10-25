@@ -18,14 +18,16 @@ Each task is its own element on the page, `<task-list-task>`.
 		- it can be dragged
 	</spell>
 
-	<draw description="A form of its own, bound to it:  checking the box, or typing a title, changes the task">
+	<draw description="A form of its own, bound to it:  checking the box, or typing a title, changes the task;  its priority shows only when it isn't normal">
 		<html>
 			<ui-form value={it}>
 				<div part="row">
 					<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
 					<ui-checkbox name="done" aria-label="Done"/>
 					<ui-input part="title" name="title" aria-label="Task" appearance="transparent"/>
-					<ui-label part="priority" size="tiny" color={"red" if its priority is high otherwise "grey"}>{its priority}</ui-label>
+					<if its priority is not normal>
+						<ui-label part="priority" size="tiny" color={"red" if its priority is high otherwise "grey"}>{its priority}</ui-label>
+					</>
 				</div>
 			</ui-form>
 		</html>

@@ -11,7 +11,7 @@
     {
       "type": "Task",
       "superType": "View",
-      "defined": "/Task.spellx:138-1402"
+      "defined": "/Task.spellx:138-1496"
     },
     {
       "property": "title",
@@ -73,7 +73,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/Task.spellx:671-1194"
+      "defined": "/Task.spellx:671-1288"
     },
     {
       "syntax": "test checking one off",
@@ -82,7 +82,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "checking one off",
-      "defined": "/Task.spellx:1206-1393"
+      "defined": "/Task.spellx:1300-1487"
     },
     {
       "type": "Checklist",
@@ -136,7 +136,7 @@
     {
       "type": "TaskList",
       "superType": "App",
-      "defined": "/TaskList.spellx:1514-4242"
+      "defined": "/TaskList.spellx:1514-4301"
     },
     {
       "property": "checklist",
@@ -195,7 +195,7 @@
       ],
       "kind": "method",
       "name": "draw it",
-      "defined": "/TaskList.spellx:3318-4233"
+      "defined": "/TaskList.spellx:3318-4292"
     },
     {
       "syntax": "show all (of {thisArg:expression})?",
@@ -259,22 +259,22 @@
     35,
     39,
     44,
-    68,
-    93,
-    98,
-    104,
-    127,
-    141,
-    148,
+    71,
+    96,
+    101,
+    107,
+    130,
+    144,
     151,
-    157,
-    162,
-    167,
-    180,
-    187,
-    247,
-    248,
-    249,
-    250
+    154,
+    160,
+    165,
+    170,
+    183,
+    190,
+    256,
+    257,
+    258,
+    259
   ]
 }

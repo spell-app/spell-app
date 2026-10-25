@@ -75,7 +75,9 @@ Its toolbar, the new task's field, then the list beside the property editor.
 		<container class="TaskList">
 			<toolbar menu="tasks menu" aria-label="Tasks">
 				<text slot="title" size="large">Task List</text>
-				<text slot="right">{its active count} to do</text>
+				<text slot="right">
+					<if its active count is 0>All done<otherwise>{its active count} to do</>
+				</text>
 			</toolbar>
 			<form value={it}>
 				<input name="draft" placeholder="Something to do" aria-label="New task" fluid action>

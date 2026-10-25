@@ -76,7 +76,9 @@ task list is an app:
 		<ui-container class="TaskList">
 			<ui-toolbar menu="tasks menu" aria-label="Tasks">
 				<ui-text slot="title" size="large">Task List</ui-text>
-				<ui-text slot="right">{its active count} to do</ui-text>
+				<ui-text slot="right">
+					<if its active count is 0>All done<otherwise>{its active count} to do</otherwise>
+				</ui-text>
 			</ui-toolbar>
 			<ui-form value={it}>
 				<ui-input name="draft" placeholder="Something to do" aria-label="New task" fluid action>
