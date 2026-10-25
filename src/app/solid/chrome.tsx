@@ -1,8 +1,7 @@
 import { Show, omit } from "solid-js"
-import type { JSX } from "@solidjs/web"
 
 import type { UIDropdownJSXAttributes, UIItemJSXAttributes, UIMenuJSXAttributes } from "spell-ui/jsx"
-import { Actions, AppMark, EditorTheme, on } from "spell-app/app/solid"
+import { AppMark, EditorTheme, on } from "spell-app/app/solid"
 
 import "./chrome.css"
 
@@ -18,7 +17,7 @@ import "./chrome.css"
  * ### `<AppMenu>`
  * Top-level app menu, attached to the top of the page.
  * - In one of the editor's looks (`EditorTheme.look`):  a plain menu, which the look shapes (`EditorTheme.css`),
- *   with Spell's hat first (`<AppMark>`).  Else the violet bar it always was.
+ *   its left section starting with Spell's hat (`<Submenu left mark>`).  Else the violet bar it always was.
  * - SEE:  its App UI components page, `app/docs/chrome.html` (`/components/app/chrome.html`).
  ****************/
 export function AppMenu(props: MenuProps) {
@@ -30,9 +29,6 @@ export function AppMenu(props: MenuProps) {
       {...omit(props, "class", "children")}
       class={["AppMenu", "medium-short", "tight", props.class]}
     >
-      <Show when={EditorTheme.look}>
-        <AppMark />
-      </Show>
       {props.children}
     </ui-menu>
   )
@@ -69,11 +65,17 @@ export function Submenu(props: SubmenuProps) {
   return (
     <ui-menu
       position={props.right ? "right" : "left"}
-      {...omit(props, "left", "center", "right", "spring", "class", "children")}
-      class={[props.class, { third: !!(props.left || props.center || props.right) }]}
+      {...omit(props, "left", "center", "right", "spring", "mark", "class", "children")}
+      class={[
+        props.class,
+        { third: !!(props.left || props.center || props.right), side: !!(props.left || props.right) }
+      ]}
     >
       <Show when={props.spring && (props.center || props.right)}>
         <Spring />
+      </Show>
+      <Show when={props.mark && EditorTheme.look}>
+        <AppMark />
       </Show>
       {props.children}
       <Show when={props.spring && (props.center || props.left)}>
@@ -93,6 +95,11 @@ export type SubmenuProps = UIMenuJSXAttributes & {
   right?: boolean
   /** Add a `<Spring>` between this section and its neighbor(s). */
   spring?: boolean
+  /**
+   * Spell's hat first (`<AppMark>`), in one of the editor's looks:  an app bar's left section.
+   * - Inside the section, so it counts in that third, and the centre one stays on the bar's middle.
+   */
+  mark?: boolean
 }
 
 /****************
@@ -196,18 +203,6 @@ export const ARROW_EXPANDED_ICON = "caret down"
 
 /** Icon name used for projects, e.g. by a project dropdown. */
 export const PROJECT_ICON = "app store ios"
-
-/****************
- * ### `<ProjectActionsDropdown>`
- * `<MoreMenu>` of `Actions.PROJECT_DROPDOWN_ACTIONS`.
- ****************/
-export function ProjectActionsDropdown(props: MoreMenuProps): JSX.Element {
-  return (
-    <MoreMenu {...props}>
-      <Actions.PROJECT_DROPDOWN_ACTIONS />
-    </MoreMenu>
-  )
-}
 
 ////////////////
 // ## File UI

@@ -38,6 +38,10 @@ ui-menu.tight ui-item::part(item) {
 ui-menu.third::part(menu) {
   min-width: 33.3%;
 }
+/* the two sides share what's left equally, so the centre one sits on the bar's middle */
+ui-menu.third.side::part(menu) {
+  flex: 1 1 0;
+}
 
 /* an item without its divider line */
 ui-item.no-border::part(item)::before {
@@ -98,8 +102,9 @@ ui-icon.IconAction {
 /*
  * The top bar's SPACING, one rule for every item in it (Owen, 2026-10-24:  "Make a rule to keep this spacing
  * consistent"):
- * - GROUPS (the project's name;  Run | Edit | Debug;  the project's icons) stand `--spell-bar-group-gap` apart
- * - ICONS within a group (Settings and "...";  Home, the palette and the avatar) stand `--spell-bar-icon-gap` apart:
+ * - GROUPS stand `--spell-bar-group-gap` apart, at least:  the project on the left, Run | Edit | Debug in the middle,
+ *   the icons on the right
+ * - ICONS within a group (Settings, the palette, Home and the avatar) stand `--spell-bar-icon-gap` apart:
  *   each takes half of it on either side, and no margin of its own
  */
 ui-menu.AppMenu {
@@ -123,11 +128,9 @@ ui-menu.AppMenu ui-item:is(.more-menu, .ThemeMenu)::part(item) {
   padding-inline: calc(var(--spell-bar-icon-gap) / 2);
 }
 
-/* `<ModeButtons>`:  Run | Edit | Debug, a group of its own:  the group gap on either side */
+/* `<ModeButtons>`:  Run | Edit | Debug, in the bar's middle:  its own section, so no room of its own either side */
 ui-menu.AppMenu ui-item.ModeButtons::part(item) {
-  /* less what its neighbours bring:  the project dropdown's item padding (a tight menu's 8px), Settings' half gap */
-  padding-inline: calc(var(--spell-bar-group-gap) - 8px)
-    calc(var(--spell-bar-group-gap) - var(--spell-bar-icon-gap) / 2);
+  padding-inline: 0;
 }
 /*
  * ... a segmented menu (the theme's segmented tabs), its thumb sliding to the mode chosen, drawn as the docs
@@ -150,6 +153,11 @@ ui-menu.ModeTabs ui-item::part(item) {
 }
 
 /* `<ThemeMenu>`:  the palette a bare icon, a little bigger (its spacing:  the bar's rule, above) */
+/* its glyph centred on the bar, as the other icons:  its inline controls left a line's descent under it, 1px high */
+ui-item.ThemeMenu ui-docs-themes {
+  display: flex;
+  align-items: center;
+}
 ui-item.ThemeMenu ui-docs-themes::part(palette) {
   width: auto;
   min-width: 0;

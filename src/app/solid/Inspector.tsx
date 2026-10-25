@@ -2,6 +2,7 @@ import { For, Show, createSignal, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { editorPrefs } from "spell-app/app/editorPrefs"
+import { ValueSets } from "spell-ui/vocabulary"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { ClassSchemas } from "spell-app/app/ui/ClassSchemas"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
@@ -106,9 +107,8 @@ export class Inspector {
     }
     if (element.localName.startsWith(UI_PREFIX)) {
       // its attributes as its vocabulary lists them:  those it sets first, the rest under "More"
-      const component = (element as Element & { component?: { vocabulary?: { attributes?: { name: string }[] } } })
-        .component
-      const names = component?.vocabulary?.attributes?.map((attribute) => attribute.name) ?? []
+      const component = (element as Element & { component?: { vocabulary?: { attributes?: FieldSpec[] } } }).component
+      const fields = component?.vocabulary?.attributes ?? []
       return {
         element,
         value: element,
@@ -117,8 +117,10 @@ export class Inspector {
         layout: {
           // its text, when it holds only text:  a button's words aren't an attribute
           hasText: element.childElementCount === 0 && !!element.textContent?.trim(),
-          set: names.filter((name) => element.hasAttribute(name)),
-          more: names.filter((name) => !element.hasAttribute(name))
+          ...withPositionsBesideTheirs(
+            fields.filter((field) => element.hasAttribute(field.name)),
+            fields.filter((field) => !element.hasAttribute(field.name))
+          )
         }
       }
     }
@@ -144,11 +146,30 @@ export type Picked = {
     /** It holds only text, its words:  a field for them first, its `textContent`. */
     hasText: boolean
     /** The attributes it sets, in its vocabulary's order. */
-    set: string[]
+    set: FieldSpec[]
     /** The rest. */
-    more: string[]
+    more: FieldSpec[]
   }
 }
+
+/**
+ * An attribute that places another (`icon-position`) goes beside it, so the two share a row.
+ * - set:  `icon` set and its position not, the position comes up from "More" to sit after it
+ */
+function withPositionsBesideTheirs(set: FieldSpec[], more: FieldSpec[]): { set: FieldSpec[]; more: FieldSpec[] } {
+  const moved = more.filter((field) => set.some((other) => field.name === `${other.name}${POSITION_SUFFIX}`))
+  const ordered = set.flatMap((field) => [
+    field,
+    ...moved.filter((other) => other.name === `${field.name}${POSITION_SUFFIX}`)
+  ])
+  return { set: ordered, more: more.filter((field) => !moved.includes(field)) }
+}
+
+/** The name ending of an attribute that places another:  `icon-position` places `icon`. */
+const POSITION_SUFFIX = "-position"
+
+/** What the Inspector reads of a Spell UI attribute:  its name and kind (`size`, `color` ...). */
+export type FieldSpec = { name: string; kind?: string }
 
 /** The preference that remembers whether the Inspector is open. */
 const OPEN_PREF = "inspector"
@@ -365,7 +386,6 @@ export function InspectorColumn(): JSX.Element {
           {(part) => (
             <ui-panel label={part.label} class="InspectorPanel">
               <ui-property-editor
-                size="small"
                 schema={part.schema}
                 value={part.value}
                 ref={(propertyEditor) => onCleanup(Compact.keep(propertyEditor))}
@@ -376,10 +396,10 @@ export function InspectorColumn(): JSX.Element {
                       <Show when={layout().hasText}>
                         <ui-property name="textContent" label={appTexts.text("inspectorText")} />
                       </Show>
-                      <For each={layout().set}>{(name) => <ui-property name={name} />}</For>
+                      <For each={layout().set}>{(field) => <Field field={field} fields={layout().set} />}</For>
                       <Show when={layout().more.length}>
                         <ui-property-group label={appTexts.text("inspectorMore")} collapsible="" collapsed="">
-                          <For each={layout().more}>{(name) => <ui-property name={name} />}</For>
+                          <For each={layout().more}>{(field) => <Field field={field} fields={layout().more} />}</For>
                         </ui-property-group>
                       </Show>
                     </>
@@ -392,6 +412,67 @@ export function InspectorColumn(): JSX.Element {
       </aside>
     </Show>
   )
+}
+
+/****************
+ * ### `<Field>`
+ * One of a Spell UI element's attributes, as the Inspector lays it out.
+ * - A size or a colour is half a row (`.half`), so the two share one:  each is a short choice.
+ * - So is an attribute and the one that places it, side by side:  `icon` and `icon-position`.
+ * - A colour's choices are chips (`<HueSelect>`), not words alone.
+ ****************/
+function Field(props: { field: FieldSpec; fields: FieldSpec[] }): JSX.Element {
+  const isHalf = HALF_KINDS.has(props.field.kind ?? "") || isPositionPair(props.field, props.fields)
+  return (
+    <ui-property name={props.field.name} class={{ half: isHalf }}>
+      <Show when={props.field.kind === "color"}>
+        <HueSelect name={props.field.name} />
+      </Show>
+    </ui-property>
+  )
+}
+
+/** It places the field beside it, or the one beside it places it:  `icon` and `icon-position`. */
+function isPositionPair(field: FieldSpec, fields: FieldSpec[]): boolean {
+  const index = fields.indexOf(field)
+  const [before, after] = [fields[index - 1], fields[index + 1]]
+  return (
+    (!!before && field.name === `${before.name}${POSITION_SUFFIX}`) ||
+    (!!after && after.name === `${field.name}${POSITION_SUFFIX}`)
+  )
+}
+
+/** Attribute kinds whose field is half a row. */
+const HALF_KINDS = new Set(["size", "color"])
+
+/****************
+ * ### `<HueSelect>`
+ * A colour's select:  each hue a round chip of its colour, then its name.
+ * - The chip is the option's `image` (a select draws it round, as an avatar):  a circle of the hue's colour,
+ *   as the Inspector's theme paints it, worked out on a probe inside the column.
+ ****************/
+function HueSelect(props: { name: string }): JSX.Element {
+  return (
+    <ui-select name={props.name} fluid="" placeholder={appTexts.text("inspectorNone")}>
+      <For each={ValueSets.get("hues")}>
+        {(hue) => (
+          <ui-item value={hue} image={chipFor(hue)}>
+            {hue}
+          </ui-item>
+        )}
+      </For>
+    </ui-select>
+  )
+}
+
+/** A round chip of `hue`'s colour, as an SVG `data:` URL;  grey where the colour can't be read. */
+function chipFor(hue: string): string {
+  const probe = (document.querySelector(".Inspector") ?? document.body).appendChild(document.createElement("span"))
+  probe.style.color = `var(--ui-${hue}, gray)`
+  const color = getComputedStyle(probe).color
+  probe.remove()
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="${color}"/></svg>`
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`
 }
 
 /****************

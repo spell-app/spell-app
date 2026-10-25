@@ -85,7 +85,7 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Show `<SpellRunner>` for `path` (default:  current file), and compile.
+   * Show `<SpellEditor>` in Run for `path` (default:  current file), and compile.
    * - Updates the URL, whose route calls `selectPath()`.
    */
   async showRunner(path?: string): Promise<void> {
@@ -132,13 +132,13 @@ export class EditorStore extends Observable {
 
   /**
    * Last project page shown:  `"editor"` or `"runner"`.
-   * - Set by `<SpellEditor>` or `<SpellRunner>`.
+   * - Set by `<SpellEditor>`'s route:  `runner` for `/run/`.
    */
   @prop({ type: "text", default: "editor" })
   accessor projectPage!: "editor" | "runner"
 
   /**
-   * Select a `path` to show in the `<SpellEditor/>` or `<SpellRunner>`.
+   * Select a `path` to show in `<SpellEditor>`, in Edit or Run.
    * - Pass `selection` (its `anchor` and `head`) to set the cursor in the file.
    */
   async selectPath(path: string, selection?: UIT.EditorSelection): Promise<void> {

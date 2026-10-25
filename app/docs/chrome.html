@@ -84,21 +84,22 @@
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>The editor page's top bar, above: an AppMenu of three Submenus:</p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>SpellEditor.tsx · the editor page's top bar · 18 lines</ui-title>
+              <ui-title>SpellEditor.tsx · the editor page's top bar · 15 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
                     <AppMenu>
                       <Submenu left spring>
-                        <ProjectDropdown useRunner={props.mode === "run"} />
-                        <ModeButtons current={props.mode} />
-                        <Actions.showProjectSettings iconOnly />
+                        <ProjectDropdown useRunner={props.mode === "run"} showActions />
                         <Actions.resetApp />
-                        <ProjectActionsDropdown />
+                      </Submenu>
+                      <Submenu center spring>
+                        <ModeButtons current={props.mode} />
                       </Submenu>
                       <Submenu right spring>
-                        <Actions.showProjectChooser iconOnly />
+                        <Actions.showProjectSettings iconOnly />
                         <ThemeMenu />
+                        <Actions.showProjectChooser iconOnly />
                         <Actions.you />
                       </Submenu>
                     </AppMenu>
@@ -143,8 +144,8 @@
                 </ul>
               </li>
               <li>
-                <code>&lt;ProjectActionsDropdown&gt;</code>: a MoreMenu of the project's actions (create, duplicate,
-                rename, delete). The code's toolbar has a MoreMenu of its own: the file's actions, then "Show line
+                The project's actions are at the foot of its dropdown (<code>showActions</code>): Rename, Duplicate,
+                Delete, then New. The code's toolbar has a MoreMenu of its own: the file's actions, then "Show line
                 numbers".
               </li>
               <li>

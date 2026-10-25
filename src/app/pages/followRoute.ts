@@ -5,7 +5,7 @@ import { editor } from "spell-app/app/editor"
 import type { EditorPage, SpellRouteParams } from "./pages.types"
 
 /**
- * Show what the route's `params` name in `page`, now and whenever they change.
+ * Show what the route's `params` name in `page`, now and whenever either changes.
  * - It calls `editor.selectPath()` on the address they spell.
  * - Call in a route component's body:  the effect goes with it.
  * - The route stays mounted while only its params change (`routes.tsx`),
@@ -15,10 +15,10 @@ import type { EditorPage, SpellRouteParams } from "./pages.types"
  * - A page of a running app, `/run/owen@spell/solitaire/rules`, runs its app:  `rules` is left for the app's own
  *   pages, which don't exist yet (`SP.SpellUrls.withoutPage()`).
  */
-export function followRoute(params: () => Partial<SpellRouteParams>, page: EditorPage): void {
+export function followRoute(params: () => Partial<SpellRouteParams>, page: () => EditorPage): void {
   createEffect(
-    () => params().address ?? "",
-    (tail) => {
+    () => [params().address ?? "", page()] as const,
+    ([tail, page]) => {
       let path: string
       try {
         path = SP.SpellUrls.withoutPage(tail)

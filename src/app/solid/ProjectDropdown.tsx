@@ -5,14 +5,15 @@ import type { UIMenuJSXAttributes } from "spell-ui/jsx"
 import { SPACES } from "spell-app/spaces"
 import { editor } from "spell-app/app/editor"
 import { appTexts, type GroupWords } from "spell-app/app/ui/AppTexts"
-import { PROJECT_ICON, on, tracked } from "spell-app/app/solid"
+import { Actions, PROJECT_ICON, on, tracked } from "spell-app/app/solid"
+import { isStaticBuild } from "spell-app/app/static/staticBuild"
 
 import "./ProjectDropdown.css"
 
 /****************
  * ### `<ProjectMenu>`
  * Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-menu>` of links;
- * choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
+ * choosing one shows it in `<SpellEditor>`, or in Run with `useRunner`.
  * - SIDE EFFECT:  loads `projectRoot` if it isn't yet, showing "Loading..." until it is (or "Couldn't load"), in the page's language.
  * - Every other prop goes to the `<ui-menu>`, e.g. `vertical=""`, `fluid=""`.
  ****************/
@@ -46,14 +47,14 @@ export function ProjectMenu(props: ProjectMenuProps) {
 export type ProjectMenuProps = UIMenuJSXAttributes & {
   /** Root whose projects to list.  Default:  `editor.projectRoot`. */
   projectRoot?: SPACES.SpellProjectRoot
-  /** Open `<SpellRunner>` instead of `<SpellEditor>`. */
+  /** Open it in Run, not Edit. */
   useRunner?: boolean
 }
 
 /****************
  * ### `<ProjectDropdown>`
  * Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-dropdown>` showing `editor.project`;
- * choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
+ * choosing one shows it in `<SpellEditor>`, or in Run with `useRunner`.
  * Built as `<FileDropdown>` is.
  * - SIDE EFFECT:  loads `projectRoot` if it isn't yet;
  *   loading (spinning caret, no items) until it is and a project is selected.
@@ -61,6 +62,7 @@ export type ProjectMenuProps = UIMenuJSXAttributes & {
  *   choosing sets it back during the event, and shows the project chosen, which then becomes `editor.project`.
  * - Its trigger shows the project's group icon before its name (a book for a guide ...):  the `trigger` slot.
  *   So does each item.
+ * - `showActions`:  the project's actions at its foot (Rename, Duplicate, Delete;  New), in place of a "..." menu.
  * - Sits in a menu:  wrapped in a `<ui-item class="ProjectDropdown">`.  Look:  `ProjectDropdown.css`.
  * - SEE:  its App UI components page, `app/docs/ProjectDropdown.html` (`/components/app/ProjectDropdown.html`).
  ****************/
@@ -94,6 +96,19 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
               </ui-item>
             )}
           </For>
+          <Show when={props.showActions && !isStaticBuild}>
+            <ui-item type="divider" />
+            <Actions.PROJECT_DROPDOWN_ACTIONS />
+            <ui-item type="divider" />
+            {/* New:  the group's icon with a pencil on its corner, as a rich item */}
+            <ui-item value={NEW_PROJECT} onClick={() => void editor.createApp()}>
+              <ui-icons>
+                <ui-icon name={root().icon ?? PROJECT_ICON} />
+                <ui-icon corner="" name="pencil" />
+              </ui-icons>
+              {appTexts.text("createApp", root().words)}
+            </ui-item>
+          </Show>
         </Show>
       </ui-dropdown>
     </ui-item>
@@ -104,9 +119,17 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
 export type ProjectDropdownProps = {
   /** Root whose projects to list.  Default:  `editor.projectRoot`. */
   projectRoot?: SPACES.SpellProjectRoot
-  /** Open `<SpellRunner>` instead of `<SpellEditor>`. */
+  /** Open it in Run, not Edit. */
   useRunner?: boolean
+  /**
+   * At its foot, the project's actions:  Rename, Duplicate, Delete, then New, each after a divider
+   * (choosing one does it, as a file dropdown's do) -- never in the static build, which has none.
+   */
+  showActions?: boolean
 }
+
+/** The New item's value:  what `choose()` finds it by. */
+const NEW_PROJECT = "new-project"
 
 /** What `<ProjectMenu>` / `<ProjectDropdown>` / the landing page's cards show of a project root. */
 export type ProjectRootState = {
@@ -180,8 +203,10 @@ export function openProject(path: string, useRunner?: boolean) {
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }
   dropdown.value = editor.project?.path ?? ""
+  // an action's item has no value:  found by its text, as a file dropdown's
   const item = [...dropdown.children].find(
-    (child) => child.localName === "ui-item" && child.getAttribute("value") === event.detail.value
+    (child) =>
+      child.localName === "ui-item" && (child.getAttribute("value") ?? child.textContent?.trim()) === event.detail.value
   )
   ;(item as HTMLElement | undefined)?.click()
 }

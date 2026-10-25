@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import h from "@solidjs/h"
 
+import { peekProp } from "spell/util"
 import { core, App, View, ViewableList, Thing } from "spell-parser/core"
 import { P } from "spell-parser/parser"
 import { E } from "spell-ui/core"
@@ -1080,7 +1081,9 @@ describe("SpellElement", () => {
       settle()
       expect(card.getAttribute("suit")).toBe("hearts")
       card.removeAttribute("suit")
-      expect(thing.suit).toBeUndefined()
+      // unset again:  it reads as text's default (epic `prefs-and-undo` P7)
+      expect(peekProp(thing, "suit")).toBeUndefined()
+      expect(thing.suit).toBe("")
     })
 
     test("a card the program draws shows its thing's values as attributes, and they follow it", async () => {
@@ -1105,7 +1108,7 @@ describe("SpellElement", () => {
       expect(second!.getAttribute("rank")).toBe("ace")
       expect(second!.hasAttribute("suit")).toBe(false)
       // the element's empty values were never written to the thing it was handed
-      expect(felt.cards[1]!.marked).toBeUndefined()
+      expect(peekProp(felt.cards[1], "marked")).toBeUndefined()
 
       felt.cards[0]!.turn_over()
       settle()
@@ -1283,7 +1286,8 @@ describe("SpellElement", () => {
         this.setProp("suit", value)
       }
       get name() {
-        return this.rank === undefined ? undefined : `${this.rank}-of-${this.suit}`
+        // unset, a rank reads as "" (epic `prefs-and-undo` P7):  no rank, no name
+        return this.rank ? `${this.rank}-of-${this.suit}` : undefined
       }
       draw(): ReturnType<View["draw"]> {
         return (h("i", {}, () => `${this.name ?? "blank"}`) as unknown as () => ReturnType<View["draw"]>)()
