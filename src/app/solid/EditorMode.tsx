@@ -11,7 +11,7 @@ import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
  * - Run:  the program alone, the whole window (the run page, `editor.showRunner()`).
  * - Edit:  the code beside the program (the editor page).
  * - Debug:  Edit, plus the Program panel under the code:  its output, things, types and compiled code.
- * - Edit or Debug is remembered in the browser (`MODE_PREF`), so the editor page opens the way it was left.
+ * - Edit or Debug is remembered in the browser (`spellEditor:mode`), so the editor page opens the way it was left.
  *   Run isn't:  it's a page of its own, with its own address.
  ****************/
 export class EditorMode {
@@ -62,8 +62,9 @@ const [editingMode, setEditingMode] = createSignal(editorPrefs.get(MODE_PREF) as
  * ### `<ModeButtons>`
  * Run | Edit | Debug in the top bar, as the theme's segmented tabs:  the one showing is chosen.
  * - `current`:  the mode the page is in, e.g. `"run"` on the run page.
- * - Plain buttons in the theme's segmented colours (`--ui-menu-segmented-*`, `chrome.css`), not a
- *   `<ui-menu appearance="segmented">`:  inside the bar's menu, a menu is its sub-menu, and loses that look.
+ * - A segmented menu (`<ui-menu appearance="segmented">`), inside the bar's own:
+ *   its thumb slides to the mode chosen.
+ * - Its look is set in `chrome.css`, through the theme's `--ui-menu-segmented-*` settings.
  ****************/
 export function ModeButtons(props: { current: Mode }): JSX.Element {
   return (

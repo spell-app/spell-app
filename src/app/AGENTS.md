@@ -81,8 +81,12 @@ and in the app's build folder, `app/` at the repo's root.
       ([PreviewSite.ts](../cli/PreviewSite.ts));  `spell app preview serve` shows it as a host would
     - ONE flag hides what needs a server:  `isStaticBuild` in code, `:root.spell-static` in CSS
       ([static/](static/));  the actions it leaves out are `HIDDEN_IN_STATIC_BUILD` (`Actions.tsx`)
-    - Files load through `LoadableFile.fetch`, answered by `StaticFiles`:  the build's copies,
-      a visitor's edits kept in their browser's `localStorage`, "Reset Example" forgets them
+    - Files load through `LoadableFile.fetch`, answered by `StaticFiles`:
+      - the build's copies
+      - a visitor's edits, kept in their browser's database (`DatabasePlace`, the store `spell-static`):
+        "Reset Example" forgets them
+        - edits kept in `localStorage` before epic `prefs-and-undo` P3 move over once;  every read waits for that
+      - what spell builds from them:  the page's memory only
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
       - `spell-solid.js`:  Solid itself, plus

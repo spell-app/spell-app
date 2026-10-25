@@ -131,8 +131,9 @@ export type RunCompiledOptions = {
   /** Compiled javascript of project `projectId`, which the program imports. */
   loadImport?: (projectId: string) => Promise<string>
   /**
-   * The program's project, e.g. `@spell/examples/solitaire`:  what its remembered props are kept under, in the
-   * browser's storage, from run to run (epic `prefs-and-undo` P8).
+   * The program's project, e.g. `@spell/examples/solitaire`:  what its remembered props are kept under.
+   * - Kept in the browser's storage, from run to run (`core.remember()`, epic `prefs-and-undo` P8):
+   *   its app's `theme` at `@spell/examples/solitaire:theme`.
    * - None:  nothing's remembered.
    */
   projectId?: string
