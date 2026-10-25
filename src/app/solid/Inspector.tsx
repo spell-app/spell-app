@@ -10,6 +10,7 @@ import { ClassSchemas } from "spell-app/app/ui/ClassSchemas"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
 import { SpellElement } from "spell-app/app/runner/SpellElement"
 import { InspectorCard, InspectorEvents, InspectorViews, appParts } from "./InspectorParts"
+import { handlersInSource } from "./InspectorSource"
 import { on } from "./on"
 import { SplitPanel } from "./SplitPanel"
 
@@ -229,16 +230,31 @@ export class Inspector {
    * here (`addEvent()`), each once (reactive, for the added ones).
    * - The added ones are remembered by the part's place, a project's each:  a reload keeps them.
    * - A drawn thing's drawing is in its shadow root:  its handlers count as the thing's.
-   * - NOT what's listened for with `addEventListener()`:  nothing on the element says so.
+   * - And those its tag was written with in the program (`writtenHandlersOf()`), whatever listens for them.
    */
   static eventsOf(element: Element): string[] {
     const handled = [element, ...(element.shadowRoot?.querySelectorAll("*") ?? [])].flatMap((at) =>
       Object.keys(at).flatMap((key) => SOLID_HANDLER.exec(key)?.[1] ?? [])
     )
+    handled.push(...Object.keys(Inspector.writtenHandlersOf(element)))
     eventsAdded()
     const address = Inspector.addressOf(element)
     const added = address ? (Inspector.addedEvents[addressKey(address)] ?? []) : []
     return [...new Set([...handled, ...added])]
+  }
+
+  /**
+   * The code `element` was written with for each event, from the program's spell (`handlersInSource()`):
+   * `{ click: "add someone" }`.
+   * - A drawn thing's handlers are on what its drawing holds:  the thing's, merged.
+   * - Not found:  `{}`.
+   */
+  static writtenHandlersOf(element: Element): Record<string, string> {
+    const sources = editor.project?.spellFiles.map((file) => file.contents ?? "") ?? []
+    const handling = [...(element.shadowRoot?.querySelectorAll("*") ?? [])].filter((at) =>
+      Object.keys(at).some((key) => SOLID_HANDLER.test(key))
+    )
+    return Object.assign({}, ...[element, ...handling].map((at) => handlersInSource(at, sources)))
   }
 
   /**

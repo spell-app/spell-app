@@ -22,7 +22,7 @@ import "./RunnerPane.css"
 export function RunnerPane<Id extends string>(props: RunnerPaneProps<Id>) {
   return (
     <div class={["RunnerPane", props.class]}>
-      <ui-toolbar appearance="segmented" size="mini" class="RunnerPaneToolbar">
+      <ui-toolbar appearance="segmented" class="RunnerPaneToolbar">
         <For each={props.tabs}>
           {(tab) => (
             <ui-item
