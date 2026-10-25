@@ -21,7 +21,7 @@ export const HOME_ORG = "spell"
 /**
  * Spell's project GROUPS:  where projects live, each a list the editor shows (`SpellProjectRoot`).
  * - Each one's `path` is its address;  its folder comes from that (`SP.SpellUrls.folderFor()`):
- *   - `@spell/examples`, `@spell/guides`, `@spell/library`:
+ *   - `@spell/examples`, `@spell/guides`, `@spell/notebooks`, `@spell/library`:
  *     the `@spell` space's built-ins, `spaces/@spell/<group>/`, committed
  *   - `@spell/test`:  the test projects, beside them in `spaces/@spell/test/`, committed and frozen
  *   - `owen@spell`:  this machine's person's own, `<spell-spaces>/@spell/<person>@/`, outside git
@@ -29,7 +29,8 @@ export const HOME_ORG = "spell"
  *   Built-in projects' names are lower-kebab (decision Q39).
  * - Each group's `icon` is its projects' icon everywhere the editor shows one:
  *   the project dropdown and its trigger, the program's header, the landing page's cards.
- *   - folder:  your projects;  lightbulb:  examples;  open book:  guides;  puzzle piece:  libraries;  flask:  tests
+ *   - folder:  your projects;  lightbulb:  examples;  open book:  guides;  sticky note:  notebooks;
+ *     puzzle piece:  libraries;  flask:  tests
  * - SIDE EFFECT:  loading this file registers them with spell (`SpellSetup.addProjectRoot()`).
  *   - Every program that reads a spell address loads it first:  through `spell-app/spaces`, spaces' disk reader,
  *     or this file alone.
@@ -64,6 +65,16 @@ export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
     type: "guide",
     description: "Usage guides",
     icon: "book open"
+  },
+  {
+    path: "@spell/notebooks",
+    space: "@spell",
+    domain: "notebooks",
+    title: "Notebooks",
+    Type: "Notebook",
+    type: "notebook",
+    description: "Pages of prose and live examples you can edit, each a `.spellx` notebook",
+    icon: "sticky note"
   },
   {
     path: "@spell/library",

@@ -121,6 +121,7 @@ async function fixRetiredWords(
  * and write each changed file back (epic `elemental-spell` P8):
  * a component written by its tag, where spellx names it bare, `<ui-button>Go</ui-button>` => `<button>Go</button>`.
  * - Only a tag the file's packs give that bare name (`SP.ComponentPacks`):  `<solitaire-card>` stays.
+ * - Not in a `<spell>` chunk:  code spell, where `<button>` is the web's (`SP.isCodeSpell()`, J83).
  * - A named closer is renamed with its tag;  a `</>` is left alone.
  * - Not a test project's files:  they stay frozen.
  * - SIDE EFFECT:  parses `project`, then hands it each file's new text.
@@ -139,6 +140,8 @@ async function fixHtmlHabits(
     const edits: TextEdit[] = []
     P.Tokenizer.forEachToken(spellFile.match.tokens, (token) => {
       if (!(token instanceof P.JSXElementToken) || !token.tagName.includes("-")) return
+      // a `<spell>` chunk is code spell, where a bare tag is the web's:  `<ui-button>` stays (J83)
+      if (SP.isCodeSpell(token)) return
       const { tagName } = token
       const bare = tagName.slice(tagName.indexOf("-") + 1)
       if (SP.ComponentPacks.tagFor(bare, lang) !== tagName) return

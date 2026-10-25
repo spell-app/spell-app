@@ -37,24 +37,16 @@ describe("projectChoices()", () => {
     expect(await values("@spell/test/li")).toEqual(["@spell/test/lists-from-zero/"])
   })
 
-  // Solitaire keeps each file in both forms (epic `elemental-spell` P13):  its `.spellx` twins are choices too
   test("a project:  the entire project first, then its spell files", async () => {
     const choices = await CLI.projectChoices("@spell/examples/Solitaire/")
     expect(choices[0]).toEqual({ value: "@spell/examples/Solitaire", label: "entire project", isFinal: true })
     expect(choices.slice(1).map((it) => it.value)).toEqual([
       "@spell/examples/Solitaire/Card.spell",
-      "@spell/examples/Solitaire/Card.spellx",
       "@spell/examples/Solitaire/Deck.spell",
-      "@spell/examples/Solitaire/Deck.spellx",
       "@spell/examples/Solitaire/Pile.spell",
-      "@spell/examples/Solitaire/Pile.spellx",
-      "@spell/examples/Solitaire/Solitaire.spell",
-      "@spell/examples/Solitaire/Solitaire.spellx"
+      "@spell/examples/Solitaire/Solitaire.spell"
     ])
-    expect(await values("@spell/examples/Solitaire/s")).toEqual([
-      "@spell/examples/Solitaire/Solitaire.spell",
-      "@spell/examples/Solitaire/Solitaire.spellx"
-    ])
+    expect(await values("@spell/examples/Solitaire/s")).toEqual(["@spell/examples/Solitaire/Solitaire.spell"])
     expect(await values("@spell/examples/Solitaire/x")).toEqual([])
   })
 

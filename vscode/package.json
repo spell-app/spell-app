@@ -61,6 +61,13 @@
         "enablement": "editorLangId == spellx"
       },
       {
+        "command": "spell.showSpellx",
+        "title": "Show as Spellx",
+        "category": "Spell",
+        "icon": "$(symbol-text)",
+        "enablement": "editorLangId == spell"
+      },
+      {
         "command": "spell.showLineTree",
         "title": "Show Tree for This Line",
         "category": "Spell",
@@ -181,6 +188,11 @@
         {
           "command": "spell.showCodeSpell",
           "when": "editorLangId == spellx",
+          "group": "navigation@0"
+        },
+        {
+          "command": "spell.showSpellx",
+          "when": "editorLangId == spell",
           "group": "navigation@0"
         },
         {

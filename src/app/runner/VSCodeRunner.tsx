@@ -342,12 +342,12 @@ export type VSCodeRunnerProps = {
  ****************/
 function VSCodeRunnerToolbar(props: VSCodeRunnerToolbarProps) {
   return (
-    <ui-menu attached="top" size="small" class="VSCodeRunnerToolbar">
-      <ui-item link="" class="restart" onClick={() => props.onRestart()}>
+    <ui-menu attach="top" size="small" class="VSCodeRunnerToolbar">
+      <ui-item appearance="link" class="restart" onClick={() => props.onRestart()}>
         <ui-icon name="redo" />
         {appTexts.text("restart")}
       </ui-item>
-      <ui-item link="" class="run-tests" onClick={() => props.onRunTests()}>
+      <ui-item appearance="link" class="run-tests" onClick={() => props.onRunTests()}>
         <ui-icon name="flask" />
         {appTexts.text("runTests")}
       </ui-item>
@@ -359,7 +359,7 @@ function VSCodeRunnerToolbar(props: VSCodeRunnerToolbarProps) {
       </Show>
       <Show when={props.showConsole !== undefined}>
         <ui-menu position="right">
-          <ui-item link="" class="console" selected={!!props.showConsole} onClick={() => props.onToggleConsole()}>
+          <ui-item appearance="link" class="console" selected={!!props.showConsole} onClick={() => props.onToggleConsole()}>
             <ui-icon name="terminal" />
             {appTexts.text(props.showConsole ? "hideConsole" : "showConsole")}
           </ui-item>

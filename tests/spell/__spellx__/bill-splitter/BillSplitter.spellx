@@ -1,0 +1,122 @@
+## Bill Splitter
+// Who owes what after a meal:  each person pays for what they ordered, and their share of the tip.
+// Change a name, an amount or the tip, and every sum follows.
+// What's where, top to bottom:
+//   money:  an amount written as dollars and cents
+//   the bill splitter:  its diners, the tip, the sums, and its drawing
+//   a diner:  their name, what they ordered, and what they owe
+//   start
+//   tests
+
+
+## Money:  an amount as dollars and cents, e.g. 12.5 => "$12.50"
+<spell>
+	to write (amount as a number) as money:
+		set cents to round (amount * 100)
+		set dollars to (cents / 100) as an integer
+		set left over to cents - dollars * 100
+		if left over < 10 return "$" + dollars + ".0" + left over
+		return "$" + dollars + "." + left over
+</spell>
+
+
+## The bill splitter
+<spell-app "bill splitter">
+	<property "diners">a new table</>
+	<property "percent" description="the tip, as a percent of what was ordered, e.g. 18">a number</>
+
+	<property "subtotal" description="what everyone ordered, added up">
+		set added up to 0
+		for each diner in its diners
+			set added up to added up + the amount of the diner
+		return added up
+	</property>
+	<property "tip">its subtotal * its percent / 100</>
+	<property "total">its subtotal + its tip</>
+
+	<action "add someone" description="an empty row, for the next person">
+		add (a new diner with name = "", amount = 0) to its diners
+	</action>
+
+	// the tip, the diners, then the sums
+	<spell>
+		- to draw it:
+			return <div class="BillSplitter">
+				<h2>Bill Splitter</h2>
+				<ui-form value={it}>
+					<div class="Tip">
+						<label>Tip</label>
+						<ui-input name="percent" type="number" min="0" step="1" aria-label="Tip percent" label="%" labeled="right"/>
+						<ui-buttons size="small" basic>
+							<ui-button onClick={set its percent to 15}>15%</ui-button>
+							<ui-button onClick={set its percent to 18}>18%</ui-button>
+							<ui-button onClick={set its percent to 20}>20%</ui-button>
+						</ui-buttons>
+					</div>
+				</ui-form>
+				{draw its diners}
+				<ui-button basic icon="plus" onClick={add someone}>Add someone</ui-button>
+				<ui-segment>
+					<div class="Sums">
+						<div>Ordered</div><div>{write its subtotal as money}</div>
+						<div>Tip</div><div>{write its tip as money}</div>
+						<div class="Total">Total</div><div class="Total">{write its total as money}</div>
+					</div>
+				</ui-segment>
+			</div>
+	</spell>
+</spell-app>
+
+
+## A diner:  their name, what they ordered, and what they owe
+<spell-view "diner">
+	<property "name">text</>
+	<property "amount" description="what they ordered, before the tip">a number</>
+	<property "tip" description="their share of the tip:  the same part of it as their part of the bill">its amount * the percent of bill splitter / 100</>
+	<property "share">its amount + its tip</>
+
+	// a form of its own, bound to it:  typing a name or an amount changes the diner
+	<spell>
+		- to draw it:
+			return <ui-form value={it}>
+				<div part="row">
+					<ui-input part="name" name="name" placeholder="Name" aria-label="Name" fluid/>
+					<ui-input part="amount" name="amount" type="number" min="0" step="0.01" aria-label="Amount" label="$" fluid/>
+					<div part="share">{write its share as money}</div>
+					<ui-button part="remove" icon="close" basic aria-label="Remove" onClick={remove it}/>
+				</div>
+			</ui-form>
+	</spell>
+</spell-view>
+
+## The table:  the diners, one a row
+<spell-thing "table" template="viewable list of diners">
+	<spell>
+		- to draw its placeholder:
+			return <div part="placeholder">Nobody yet:  add someone</div>
+	</spell>
+</spell-thing>
+
+// a diner sits at one table
+<spell>
+	a diner belongs to one table
+
+	// takes them off the bill
+	to remove (a diner):
+		remove the diner from the diners of bill splitter
+
+
+	## Start
+	set the percent of bill splitter to 18
+	add (a new diner with name = "Ana", amount = 24) to the diners of bill splitter
+	add (a new diner with name = "Ben", amount = 18.5) to the diners of bill splitter
+	add (a new diner with name = "Cleo", amount = 31.25) to the diners of bill splitter
+	start bill splitter
+
+
+	## Tests
+	to test money
+		write 12.5 as money should be "$12.50"
+		write 3.07 as money should be "$3.07"
+		write 0 as money should be "$0.00"
+</spell>

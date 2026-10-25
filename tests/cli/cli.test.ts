@@ -924,6 +924,23 @@ describe("spell spellx convert", () => {
   })
 })
 
+// epic `elemental-spell` J95, Owen 2026-10-25:  "one file" -- a template is a `.spell` file OR a `.spellx` file
+describe("a project of a .spellx file alone, no .spell copy", () => {
+  const SOURCE =
+    '<spell-thing "card">\n\t<property "rank">7</>\n\t<action "show it">\n\t\tprint its rank\n\t</>\n</spell-thing>\n\n' +
+    "<spell>\n\tshow a new card\n</spell>\n"
+
+  test("loads, parses, compiles and runs", () => {
+    const folder = tempProject("Hand", SOURCE, SP.SPELLX_SUFFIX)
+    const compiled = spell(["compile", ".", "--stdout"], folder)
+    expect(compiled.status).toBe(0)
+    expect(compiled.stdout).toContain("export class Card extends Thing {")
+    const ran = spell(["run", "."], folder)
+    expect(ran.stdout).toBe("7\n")
+    expect(ran.status).toBe(0)
+  })
+})
+
 describe("spell speedtest", () => {
   test("times one module's rules:  a table and the pass count", () => {
     const { status, stdout } = spell(["speedtest", "if", "--runs", "1"])

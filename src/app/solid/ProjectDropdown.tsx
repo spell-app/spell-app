@@ -32,7 +32,7 @@ export function ProjectMenu(props: ProjectMenuProps) {
         <For each={root().projects} fallback={<ui-item>{appTexts.text("nothingInGroup", root().words)}</ui-item>}>
           {(project) => (
             // HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>`
-            <ui-item link="" value={project.path} onClick={() => openProject(project.path, props.useRunner)}>
+            <ui-item appearance="link" value={project.path} onClick={() => openProject(project.path, props.useRunner)}>
               <ui-icon name={root().icon} />
               {project.name}
             </ui-item>
@@ -97,9 +97,9 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
             )}
           </For>
           <Show when={props.showActions && !isStaticBuild}>
-            <ui-item type="divider" />
+            <ui-item kind="divider" />
             <Actions.PROJECT_DROPDOWN_ACTIONS />
-            <ui-item type="divider" />
+            <ui-item kind="divider" />
             {/* New:  the group's icon with a pencil on its corner, as a rich item */}
             <ui-item value={NEW_PROJECT} onClick={() => void editor.createApp()}>
               <ui-icons>

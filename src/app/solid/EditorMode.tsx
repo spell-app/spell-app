@@ -73,7 +73,7 @@ export function ModeButtons(props: { current: Mode }): JSX.Element {
       <ui-menu appearance="segmented" size="small" class="ModeTabs" aria-label={appTexts.text("modes")}>
         <For each={MODES}>
           {(mode) => (
-            <ui-item link="" selected={props.current === mode} onClick={() => EditorMode.show(mode)}>
+            <ui-item appearance="link" selected={props.current === mode} onClick={() => EditorMode.show(mode)}>
               <ui-icon name={MODE_LOOKS[mode].icon} />
               <span class="ModeText">{appTexts.text(MODE_LOOKS[mode].text)}</span>
             </ui-item>

@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="FileEditor">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/monaco/FileEditor.tsx"
+              link="../../src/app/solid/monaco/FileEditor.tsx"
               icon="code"
               aria-label="Its code, FileEditor.tsx"
               title="Its code, FileEditor.tsx"
@@ -63,8 +63,7 @@
             <ui-image
               src="_images/InputEditor.png"
               alt="The input pane: a File dropdown and actions above a Monaco editor showing Card.spell, coloured as spell"
-              bordered
-              rounded
+              appearance="bordered rounded"
             >
             </ui-image>
             <p class="meta">
@@ -80,7 +79,7 @@
               The <a href="InputEditor.html" target="src-packages-app-docs-inputeditor-html">InputEditor</a> draws a new
               one for each file, once Monaco has loaded:
             </p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>InputEditor.tsx · a fresh editor per file · 5 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

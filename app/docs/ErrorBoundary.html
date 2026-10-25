@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="ErrorBoundary">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/solid/ErrorBoundary.tsx"
+              link="../../src/app/solid/ErrorBoundary.tsx"
               icon="code"
               aria-label="Its code, ErrorBoundary.tsx"
               title="Its code, ErrorBoundary.tsx"
@@ -66,8 +66,7 @@
             <ui-image
               src="_images/ErrorNotice.png"
               alt="A red error message with a header, Error, and the error's text"
-              bordered
-              rounded
+              appearance="bordered rounded"
             ></ui-image>
             <p class="meta">
               A picture, taken by <code>yarn site:pictures</code> in
@@ -82,7 +81,7 @@
               Each viewer wraps what it draws in one. The input editor falls back to a plain-text editor, and tells the
               editor of the error:
             </p>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>InputEditor.tsx · the code editor, guarded · 7 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"

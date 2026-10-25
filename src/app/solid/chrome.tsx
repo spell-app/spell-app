@@ -25,7 +25,7 @@ export function AppMenu(props: MenuProps) {
     <ui-menu
       inverted={EditorTheme.look ? undefined : ""}
       color={EditorTheme.look ? undefined : "violet"}
-      attached=""
+      attach="both"
       {...omit(props, "class", "children")}
       class={["AppMenu", "medium-short", "tight", props.class]}
     >
@@ -44,7 +44,7 @@ export function PanelMenu(props: MenuProps) {
     <ui-menu
       inverted={EditorTheme.look ? undefined : ""}
       color={EditorTheme.look ? undefined : "purple"}
-      attached="top"
+      attach="top"
       {...omit(props, "class", "children")}
       class={["PanelMenu", "short", "tight", props.class]}
     >
@@ -108,7 +108,7 @@ export type SubmenuProps = UIMenuJSXAttributes & {
  ****************/
 export function MenuHeader(props: UIItemJSXAttributes) {
   return (
-    <ui-item type="header" {...omit(props, "children")}>
+    <ui-item kind="header" {...omit(props, "children")}>
       {props.children}
     </ui-item>
   )
@@ -138,8 +138,8 @@ export function MoreMenu(props: MoreMenuProps) {
     <Show
       when={!props.stub}
       fallback={
-        // HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>`
-        <ui-item disabled="" {...rest}>
+        // HACK: a slotted `<ui-icon>`, not `icon`:  see `<Action>`;  a dropdown's `padding` (`compact`) is no item's
+        <ui-item disabled="" {...omit(rest, "padding", "prop:padding")}>
           <ui-icon name={icon()} />
         </ui-item>
       }

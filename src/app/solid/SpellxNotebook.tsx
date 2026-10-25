@@ -71,7 +71,7 @@ export function SpellxNotebook(props: SpellxNotebookProps) {
             label={appTexts.text(isOpen(chunk().id) ? "notebookFold" : "notebookUnfold")}
           />
           <span class="NotebookCardWord">
-            <ui-label size="mini" basic="">
+            <ui-label size="mini" appearance="basic">
               {chunk().word}
             </ui-label>
           </span>

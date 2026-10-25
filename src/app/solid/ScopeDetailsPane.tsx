@@ -409,7 +409,7 @@ function Description(props: DescriptionProps) {
             onInput={(event) => setEditing(event.currentTarget.value)}
             onKeyDown={onKeyDown}
           />
-          <ui-button size="mini" primary="" onClick={save}>
+          <ui-button size="mini" color="primary" onClick={save}>
             {appTexts.text("save")}
           </ui-button>
           <ui-button size="mini" onClick={() => setEditing(undefined)}>

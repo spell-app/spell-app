@@ -58,7 +58,7 @@ describe("chrome + Actions", () => {
     ))
     const menu = host.querySelector("ui-menu.PanelMenu")!
     expect(menu.getAttribute("color")).toBe("purple")
-    expect(menu.getAttribute("attached")).toBe("top")
+    expect(menu.getAttribute("attach")).toBe("top")
     const [left, right] = menu.querySelectorAll(":scope > ui-menu")
     expect(left.getAttribute("position")).toBe("left")
     expect(left.classList.contains("third")).toBe(true)
@@ -195,7 +195,7 @@ describe("<ErrorBoundary>", () => {
     ))
     const message = host.querySelector("ui-message")!
     expect(message.getAttribute("state")).toBe("error")
-    expect(message.getAttribute("header")).toBe("Error")
+    expect(message.getAttribute("heading")).toBe("Error")
     expect(text(message)).toBe("Broken on purpose")
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "Broken on purpose" }))
   })
@@ -229,7 +229,7 @@ describe("<Notice>", () => {
     editor.notice = "Saved"
     flush()
     const message = host.querySelector("ui-message")!
-    expect(message.getAttribute("header")).toBe("Saved")
+    expect(message.getAttribute("heading")).toBe("Saved")
     await ElementFixture.settle(host)
     message.shadowRoot!.querySelector<HTMLElement>("[part=close]")!.click()
     flush()

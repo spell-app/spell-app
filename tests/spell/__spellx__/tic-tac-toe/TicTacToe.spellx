@@ -13,9 +13,11 @@
 	<property "mark">text</>
 	<alias "is empty">if its mark is ""</>
 
-	<draw description="a click plays it:  the game says whether it can">
-		return <button part="mark" onClick={play it}>{its mark}</button>
-	</draw>
+	// a click plays it:  the game says whether it can
+	<spell>
+		- to draw it:
+			return <button part="mark" onClick={play it}>{its mark}</button>
+	</spell>
 </spell-view>
 
 ## The board:  nine squares, three a row -- styles.css lays them out
@@ -75,13 +77,15 @@
 			set its winner to "nobody"
 	</action>
 
-	<draw description="the message, the board, then a button for a new game">
-		return <div class="TicTacToe">
-			<h2 class="Message">{its message}</h2>
-			{draw its board}
-			<ui-button primary onClick={start a new game}>New game</ui-button>
-		</div>
-	</draw>
+	// the message, the board, then a button for a new game
+	<spell>
+		- to draw it:
+			return <div class="TicTacToe">
+				<h2 class="Message">{its message}</h2>
+				{draw its board}
+				<ui-button primary onClick={start a new game}>New game</ui-button>
+			</div>
+	</spell>
 </spell-app>
 
 

@@ -58,7 +58,7 @@ export function FileDropdown(props: FileDropdownProps) {
           )}
         </For>
         <Show when={props.showActions && state().ready && !isStaticBuild}>
-          <ui-item type="divider" />
+          <ui-item kind="divider" />
           <Actions.FILE_DROPDOWN_ACTIONS />
         </Show>
       </ui-dropdown>

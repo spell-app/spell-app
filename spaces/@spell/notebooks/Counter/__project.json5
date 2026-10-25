@@ -1,0 +1,10 @@
+{
+  "title": "Counter",
+  "description": "A notebook:  a counter template, and examples of it you can try and edit, live (epic `elemental-spell` P16)",
+  "imports": [
+    {
+      "path": "/Counter.spellx",
+      "active": true
+    }
+  ]
+}

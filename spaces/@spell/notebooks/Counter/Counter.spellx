@@ -1,0 +1,26 @@
+<spell-notebook "counter notebook">
+	# A counter
+	A button that counts its clicks.
+
+	<spell-view "counter">
+		<property "count">a number</>
+		<action "create it">set its count to 0</>
+		<action "count up">set its count to its count + 1</>
+		<draw><button onClick={count up}>Clicked {its count} times</button></draw>
+	</spell-view>
+
+	## Try it
+	<example "one counter">
+		<counter/>
+	</example>
+
+	## Two of them
+	Each counts on its own:
+	<section>
+		<example "two counters">
+			<counter/>
+			<counter/>
+		</example>
+		<text color="grey">Click either one.</text>
+	</section>
+</spell-notebook>

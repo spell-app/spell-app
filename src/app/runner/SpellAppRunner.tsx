@@ -374,9 +374,9 @@ export type DebugPane = "explorer" | "things" | "console"
  ****************/
 function SpellAppToolbar(props: SpellAppToolbarProps) {
   return (
-    <ui-menu attached="top" size="small" class="SpellAppToolbar">
-      <ui-item type="header">{props.name}</ui-item>
-      <ui-item link="" class="restart" onClick={() => props.onRestart()}>
+    <ui-menu attach="top" size="small" class="SpellAppToolbar">
+      <ui-item kind="header">{props.name}</ui-item>
+      <ui-item appearance="link" class="restart" onClick={() => props.onRestart()}>
         <ui-icon name="redo" />
         {appTexts.text("restart")}
       </ui-item>
@@ -387,7 +387,7 @@ function SpellAppToolbar(props: SpellAppToolbarProps) {
         </ui-item>
       </Show>
       <ui-menu position="right">
-        <ui-item link="" class="debug" selected={props.debugOpen} onClick={() => props.onToggleDebug()}>
+        <ui-item appearance="link" class="debug" selected={props.debugOpen} onClick={() => props.onToggleDebug()}>
           <ui-icon name="bug" />
           {appTexts.text("debug")}
         </ui-item>

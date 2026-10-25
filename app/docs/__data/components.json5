@@ -876,7 +876,7 @@
         "menus and dialogs"
       ],
       "aka": [],
-      "description": "One action as a menu item (`<ui-item link>`, the default) or a button (`<ui-button>`, with `button`).",
+      "description": "One action as a menu item (`<ui-item appearance=\"link\">`, the default) or a button (`<ui-button>`, with `button`).",
       "noun": "Action",
       "attributes": [],
       "slots": [],
@@ -908,7 +908,7 @@
         {
           "name": "active",
           "type": "boolean",
-          "description": "Highlighted:  the item's `selected`, the button's `active`."
+          "description": "Highlighted:  the item's `selected`, the button's `selected`."
         },
         {
           "name": "color",
@@ -2011,6 +2011,10 @@
           "file": "src/app/solid/SpellxNotebook.tsx"
         },
         {
+          "name": "CellEditor",
+          "file": "src/app/solid/notebook/NotebookCell.tsx"
+        },
+        {
           "name": "FallbackEditor",
           "file": "src/app/solid/InputEditor.tsx"
         },
@@ -2119,7 +2123,7 @@
         "editors"
       ],
       "aka": [],
-      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`); or, with `target=\"spell\"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins.",
+      "description": "Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`; or, with `target`, the whole project's code for that target, written after each compile (`project.codeFor()`); or, with `target=\"spell\"`, the code spell `editor.file` means:  a `.spellx` file's, written from its tags' twins; or, with `target=\"spellx\"`, `editor.file` as spellx:  a `.spell` file's, written by `SX.SpellxWriter`.",
       "noun": "OutputEditor",
       "attributes": [],
       "slots": [],

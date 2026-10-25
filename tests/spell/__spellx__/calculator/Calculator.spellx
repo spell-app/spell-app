@@ -1,0 +1,117 @@
+## Calculator
+// A pocket calculator:  a number, an operator, another number, and the total as you type.
+// What's where, top to bottom:
+//   what it keeps:  the two numbers, the operator and the total
+//   what its keys do:  clear, a digit, an operator, equals
+//   how it draws:  the display, then the keypad
+//   start
+
+
+## What it keeps
+<spell-app-template "calculator" />
+<spell>
+	a calculator has an input as text
+	a calculator has an output as text
+	a calculator has a left as text
+	a calculator has a right as text
+	a calculator has a total as a number
+	a calculator has an operator as text
+
+
+	## What its keys do
+	to clear (a calculator):
+		set its input to ""
+		set its output to ""
+		set its left to ""
+		set its operator to ""
+		set its right to ""
+		set its total to 0
+
+	to update the total of (a calculator):
+		if its right is empty:
+			set its output to ""
+		otherwise
+			set lhs to its left as a number
+			set rhs to its right as a number
+			if its operator is "+"
+				set its total to lhs + rhs
+			else if its operator is "–"
+				set its total to lhs - rhs
+			else if its operator is "×"
+				set its total to lhs times rhs
+			else
+				set its total to lhs divided by rhs
+			set its output to "= " + its total
+
+	// a digit, or the decimal point:  onto the number being typed, the left one until there's an operator
+	to append (digit as text) to (a calculator):
+		if the digit is "."
+			if its input is empty
+				set its input to "0."
+			otherwise if its input does not contain "."
+				set its input to its input + "."
+		otherwise
+			set its input to its input + the digit
+		if its operator is empty
+			set its left to its input
+		else
+			set its right to its input
+		update the total of the calculator
+
+	// an operator:  after a whole sum, its total carries on as the next sum's left number
+	to apply (op as text) to (a calculator):
+		if its right is not empty
+			finish the calculator
+		set its operator to the op
+		set its input to ""
+
+	// equals:  the total becomes the left number, ready for the next operator
+	to finish (a calculator):
+		if its right is empty return
+		set its left to its total as text
+		set its operator to ""
+		set its right to ""
+		set its input to ""
+		set its output to ""
+
+
+	## How it draws:  the display, then the keypad, four keys a row
+	to draw (a calculator)
+		return <div class="Calculator">
+			<ui-segment raised>
+				<div class="Display">
+					<div class="Sum">{"0" if its left is empty otherwise its left}{" "}{its operator}{" "}{its right}</div>
+					<div class="Total">{its output}</div>
+				</div>
+				<div class="Keypad">
+					<ui-button class="Wide" fluid negative onClick={clear it}>C</ui-button>
+					<ui-button fluid secondary onClick={finish it}>=</ui-button>
+					<ui-button fluid primary onClick={apply "÷" to it}>÷</ui-button>
+
+					<ui-button fluid onClick={append "7" to it}>7</ui-button>
+					<ui-button fluid onClick={append "8" to it}>8</ui-button>
+					<ui-button fluid onClick={append "9" to it}>9</ui-button>
+					<ui-button fluid primary onClick={apply "×" to it}>×</ui-button>
+
+					<ui-button fluid onClick={append "4" to it}>4</ui-button>
+					<ui-button fluid onClick={append "5" to it}>5</ui-button>
+					<ui-button fluid onClick={append "6" to it}>6</ui-button>
+					<ui-button fluid primary onClick={apply "–" to it}>–</ui-button>
+
+					<ui-button fluid onClick={append "1" to it}>1</ui-button>
+					<ui-button fluid onClick={append "2" to it}>2</ui-button>
+					<ui-button fluid onClick={append "3" to it}>3</ui-button>
+					<ui-button fluid primary onClick={apply "+" to it}>+</ui-button>
+
+					<ui-button class="Wide" fluid onClick={append "0" to it}>0</ui-button>
+					<ui-button fluid onClick={append "." to it}>.</ui-button>
+				</div>
+			</ui-segment>
+		</div>
+
+
+	## Start
+	set calculator to a new calculator
+	clear the calculator
+	start the calculator
+</spell>

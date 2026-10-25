@@ -69,7 +69,7 @@ export function Chooser(props: ChooserProps) {
       </ui-content>
       <ui-actions>
         <ui-button class="cancel">{props.cancel ?? SpellUI.i18n.t("cancel")}</ui-button>
-        <ui-button class="approve" primary="">
+        <ui-button class="approve" color="primary">
           {props.ok ?? SpellUI.i18n.t("ok")}
         </ui-button>
       </ui-actions>

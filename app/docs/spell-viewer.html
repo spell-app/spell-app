@@ -25,11 +25,11 @@
   </head>
   <body class="ui-typography">
     <main id="main" class="site-main" data-toc-header="&lt;spell-viewer&gt;">
-      <ui-segment vertical class="site-masthead">
+      <ui-segment appearance="vertical" class="site-masthead">
         <ui-container>
           <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
             <ui-item
-              href="../../src/app/components/spell-viewer/SpellViewer.tsx"
+              link="../../src/app/components/spell-viewer/SpellViewer.tsx"
               icon="code"
               aria-label="Its code, SpellViewer.tsx"
               title="Its code, SpellViewer.tsx"
@@ -90,14 +90,14 @@
                 pack, which shares the page's Solid and Spell UI
               </li>
             </ul>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>By itself · 2 lines</ui-title>
               <ui-content>
                 <!-- from a file:  in a `<script type="text/plain">`, the `</script>` it shows would close that one -->
                 <ui-code language="html" source="_examples/spell-viewer-alone.html"></ui-code>
               </ui-content>
             </ui-accordion>
-            <ui-accordion class="spell-code" styled>
+            <ui-accordion class="spell-code" appearance="styled">
               <ui-title>Under a root, by the element pack · 4 lines</ui-title>
               <ui-content>
                 <ui-code language="html"

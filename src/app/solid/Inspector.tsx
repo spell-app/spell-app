@@ -1011,7 +1011,7 @@ function ThingLink(props: { thing: object; step: string; label?: string }): JSX.
     <div class={["InspectorThingLink", { item: !props.label }]}>
       <Show when={props.label}>{(label) => <span class="InspectorThingLabel">{label()}</span>}</Show>
       <ui-button
-        basic=""
+        appearance="basic"
         size="small"
         icon="angle right"
         icon-position="right"
