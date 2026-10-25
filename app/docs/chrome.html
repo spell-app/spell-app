@@ -59,8 +59,9 @@
           <ui-section id="1-what-it-looks-like" label="1. What it looks like" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="image"></ui-icon>
             <p>
-              The editor page's AppMenu, in three sections: the project, Run | Edit | Debug, Settings and the project's
-              "..." menu on the left; Home, the theme menu and your avatar on the right.
+              The editor page's AppMenu, in three sections: Spell's hat and the project (its actions at the foot of its
+              menu) on the left; Run | Edit | Debug in the middle; on the right, Restart, the Inspector, Settings, the
+              theme menu, Home and your avatar, their glyphs 12px apart.
             </p>
             <ui-image
               src="_images/chrome.png"
@@ -84,12 +85,12 @@
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>The editor page's top bar, above: an AppMenu of three Submenus:</p>
             <ui-accordion class="spell-code" styled>
-              <ui-title>SpellEditor.tsx · the editor page's top bar · 15 lines</ui-title>
+              <ui-title>SpellEditor.tsx · the editor page's top bar · 17 lines</ui-title>
               <ui-content>
                 <ui-code language="typescript"
                   ><script type="text/plain">
                     <AppMenu>
-                      <Submenu left spring>
+                      <Submenu left spring mark>
                         <ProjectDropdown useRunner={props.mode === "run"} showActions />
                         <Actions.resetApp />
                       </Submenu>
@@ -97,6 +98,8 @@
                         <ModeButtons current={props.mode} />
                       </Submenu>
                       <Submenu right spring>
+                        <Actions.restartApp iconOnly />
+                        <InspectorToggle />
                         <Actions.showProjectSettings iconOnly />
                         <ThemeMenu />
                         <Actions.showProjectChooser iconOnly />

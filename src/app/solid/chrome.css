@@ -104,12 +104,23 @@ ui-icon.IconAction {
  * consistent"):
  * - GROUPS stand `--spell-bar-group-gap` apart, at least:  the project on the left, Run | Edit | Debug in the middle,
  *   the icons on the right
- * - ICONS within a group (Settings, the palette, Home and the avatar) stand `--spell-bar-icon-gap` apart:
- *   each takes half of it on either side, and no margin of its own
+ * - ICONS within a group (Restart, the Inspector, Settings, the palette, Home and the avatar) stand
+ *   `--spell-bar-icon-gap` apart, glyph to glyph:  each takes half of it on either side, and no margin of its own;
+ *   an icon's box is its glyph's width (`--ui-icon-width: 1em`), not the usual 1.18em, with no room after it for a
+ *   label (`--ui-icon-distance`):  both stood them further apart
+ * - every icon the bar's text colour, at full strength (Owen:  "inconsistent colors in icons"):
+ *   a link icon is drawn at 80% by default, the palette at 100%
  */
 ui-menu.AppMenu {
   --spell-bar-group-gap: 60px;
   --spell-bar-icon-gap: 12px;
+}
+ui-menu.AppMenu ui-icon.IconAction,
+.AppPaneHeader > ui-icon.IconAction {
+  --ui-icon-width: 1em;
+  --ui-icon-distance: 0;
+  --ui-icon-link-opacity: 1;
+  color: var(--ui-text-color);
 }
 ui-menu.AppMenu ui-icon.IconAction,
 ui-menu.AppMenu .YouAvatar,
