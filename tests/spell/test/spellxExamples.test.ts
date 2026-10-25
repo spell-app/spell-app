@@ -19,8 +19,8 @@ import "spell-app/spaces"
  *   `.spellx` files in their places:  each file's code must match, with no errors.
  * - Read where the examples are, never a frozen copy;  NOTHING is written:  the `.spellx` text lives in the test.
  * - Compared without comments and the `DECLARES` header, which carry line numbers.
- * - Plain HTML is the one error allowed:  spellx has none, so a converted `<div>` is an error, written as it was
- *   (epic `elemental-spell` J83).
+ * - Plain HTML is the one error allowed (epic `elemental-spell` J83):
+ *   spellx has none, so a converted `<div>` is an error, written as it was.
  */
 const EXAMPLES_DIR = resolve(environment.systemFilesRoot, "examples")
 

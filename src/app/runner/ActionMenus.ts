@@ -55,8 +55,8 @@ export class ActionMenus {
   /**
    * Show the menu named by the nearest `context-menu=` on `event`'s path, from `thing` up its chain, where the
    * person right-clicked:  true if there was one.
-   * - SIDE EFFECT:  the browser's own menu doesn't show;  the menu goes when an action runs, at Escape, or at a
-   *   press anywhere else.
+   * - SIDE EFFECT:  the browser's own menu doesn't show;
+   *   the menu goes when an action runs, at Escape, or at a press anywhere else.
    */
   static showContextMenu(event: MouseEvent, stopAt: Element, thing: object | undefined, core: Core): boolean {
     const name = ActionMenus.contextMenuName(event, stopAt)

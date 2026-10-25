@@ -727,8 +727,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   ////////////////
 
   /**
-   * One of our element's mouse events, sent to our thing (epic `elemental-spell` P9):  `click` is `click`,
-   * `mousedown` is `mouse down` -- see `THING_EVENTS`.
+   * One of our element's mouse events, sent to our thing (epic `elemental-spell` P9):
+   * `click` is `click`, `mousedown` is `mouse down` -- see `THING_EVENTS`.
    * - Through the program's core, `core.send()`:  our thing's handler takes it (`- on mouse down:` is
    *   `onMouseDown()`), or hands it up with `pass event` -- the list holding it, then the app.
    * - Sent once, by the INNERMOST thing's element:  an element around us doesn't send it again.
@@ -755,9 +755,10 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Our thing's `while` handler for this moment, if it has one (Q51, Q52 A):  `- while the mouse is down:`
-   * starts as the mouse goes down on us and is put back as it goes up anywhere;  `- while the mouse is over it:`
-   * as it comes and goes.  Through core's `startWhile()` / `endWhile()`, as a drag's `while` is.
+   * Our thing's `while` handler for this moment, if it has one (Q51, Q52 A).
+   * - `- while the mouse is down:` starts as the mouse goes down on us, and is put back as it goes up anywhere.
+   * - `- while the mouse is over it:` as it comes and goes.
+   * - Through core's `startWhile()` / `endWhile()`, as a drag's `while` is.
    */
   private runWhile(event: Event, thing: Record<string, unknown>) {
     const { core } = this.entry!

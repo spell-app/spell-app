@@ -623,8 +623,8 @@ export class SpellLanguageService {
    * - a tag's `<word`, and its `>` or `/>`:  `keyword`
    * - its attributes' names:  `property`  (their values, a quoted name and a phrase are the twin's, coloured by the parse)
    * - a closer, `</>` or `</property>`:  `keyword`
-   * - a prose line's or a note's text:  a comment, its markdown styled as a docstring's;  a note's tag and closer on its
-   *   line:  `keyword`
+   * - a prose line's or a note's text:  a comment, its markdown styled as a docstring's
+   * - a note's tag and closer on its line:  `keyword`
    * - `prose`:  gets where each prose line starts, where the twin's own comments stand too
    */
   private spellxSpans(file: SP.SpellFile, prose: Set<number>): LSP.HighlightSpan[] {

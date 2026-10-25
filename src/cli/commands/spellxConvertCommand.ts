@@ -8,7 +8,10 @@ import { CLI } from "spell-app/cli"
  * `spell spellx convert [projects...]`:  write each `.spell` file as SPELLX, the same program in tags
  * (epic `elemental-spell` P12) -- `SX.SpellxWriter`.
  * - `Card.spell` => `Card.spellx` beside it;  `Carta.es.spell` => `Carta.es.spellx`, in Spanish spellx.
- * - A project:  each of its `.spell` files.  A `.spell` file:  just that one.  A `.spellx` file is left alone.
+ * - What it converts:
+ *   - a project:  each of its `.spell` files
+ *   - a `.spell` file:  just that one
+ *   - a `.spellx` file is left alone
  * - Lists each file it wrote, then a count on stderr.
  *   - `--dry-run`:  writes nothing, and prints each `.spellx` file instead, under a `// <path>` line.
  * - An existing `.spellx` beside it is written over.
