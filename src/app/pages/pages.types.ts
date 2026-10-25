@@ -4,6 +4,9 @@ import type { EditorStore } from "spell-app/app/editor"
 
 // ## Routing
 
+/** The theme editor's address (`<ThemeEditorPage>`):  `editor.showThemeEditor()` goes there. */
+export const THEME_PAGE = "/theme"
+
 /** Params parsed out of the `/:page/*address` route:  `/edit/...`, `/run/...`. */
 export type SpellRouteParams = {
   /** Which page:  `edit` or `run`. */

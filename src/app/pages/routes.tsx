@@ -5,11 +5,14 @@ import { createRouter, defineRoutes, useNavigate, type RouterHistory, type Route
 import { setNavigator } from "./navigation"
 import { ProjectChooser } from "./ProjectChooser"
 import { ProjectPageRoute } from "./SpellEditor"
+import { ThemeEditorPage } from "./ThemeEditorPage"
+import { THEME_PAGE } from "./pages.types"
 
 /**
  * The app's routes (`@solidjs/router`):  `/edit/` or `/run/`, then an address (decision Q40, epic `people-and-orgs` P4).
  * - `/edit/<address>`:  `<SpellEditor>` in Edit or Debug, e.g. `/edit/@spell/examples/Solitaire/Solitaire.spell`
  * - `/run/<address>`:  the same page in Run, e.g. `/run/owen@spell/errors`
+ * - `/theme`:  the theme editor (`<ThemeEditorPage>`)
  * - ONE route for both (`ProjectPageRoute`), so switching between them keeps the page.
  * - anything else:  `<ProjectChooser>`
  * - Each page is ONE route:  it stays mounted while only its address changes, e.g.
@@ -21,6 +24,7 @@ export const ROUTES = defineRoutes([
     matchFilters: { page: ["edit", "run"] },
     component: ProjectPageRoute
   },
+  { path: THEME_PAGE, component: ThemeEditorPage },
   { path: "*", component: ProjectChooser }
 ])
 

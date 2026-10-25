@@ -69,6 +69,26 @@ export class EditorTheme {
     }
   }
 
+  /**
+   * Wear the theme the theme editor kept (Use this theme):  its base chosen, as the menu would, and its sheet over it;
+   * none kept (Stop using):  take its sheet off.
+   * - NEVER throws:  a failure says so on the console.
+   */
+  static async wearKept(): Promise<void> {
+    try {
+      const [{ ThemePreference }, { SavedTheme }] = await Promise.all([
+        import("spell-ui/docs-components"),
+        import("spell-ui/components/ui-theme-editor/SavedTheme")
+      ])
+      const base = SavedTheme.choices?.base
+      // a new base:  choosing it puts the kept sheet on too (`follow()`);  the same one:  the sheet changed
+      if (base && base !== ThemePreference.look.theme) await ThemePreference.setTheme(base)
+      else await SavedTheme.follow(ThemePreference.look.theme)
+    } catch (error) {
+      console.error("EditorTheme.wearKept():  couldn't wear the kept theme", error)
+    }
+  }
+
   /** Theme `theme` is chosen:  note it, mark `<html>` with its look, and wear the kept theme on it, if any. */
   private static follow(theme: string | undefined): void {
     setChosenTheme(theme)

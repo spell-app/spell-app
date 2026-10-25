@@ -211,13 +211,14 @@ function hueFor(path: string): string {
 /****************
  * ### `<ChooserToolbar>`
  * Top menu of `<ProjectChooser>`:  Home (lit:  this is it), the theme menu and the person.
+ * - Also the theme editor's (`<ThemeEditorPage>`), with Home unlit (`isHome={false}`).
  ****************/
-export function ChooserToolbar() {
+export function ChooserToolbar(props: { isHome?: boolean }) {
   return (
     <AppMenu>
       <Submenu left spring mark />
       <Submenu right spring>
-        <Actions.showProjectChooser iconOnly active />
+        <Actions.showProjectChooser iconOnly active={props.isHome ?? true} />
         <ThemeMenu />
         <Actions.you />
       </Submenu>
