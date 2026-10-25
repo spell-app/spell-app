@@ -1,13 +1,13 @@
 /**
  * Fetching what a runner shows, afresh every time (`cache: "no-cache"`):  a project's compiled code, scope pack and
  * declarations change whenever it's recompiled, and a runner must never run a stale copy.
+ * - Through the kit's `$fetch()`, so a failure is its typed error (`MissingResourceError` ...).
  */
+import { $fetch } from "spell/util"
 
-/** Text at `url` -- throwing if it's not there. */
+/** Text at `url` -- throws `$fetch()`'s error if it's not there. */
 export async function fetchText(url: string): Promise<string> {
-  const response = await fetch(url, { cache: "no-cache" })
-  if (!response.ok) throw new Error(`Couldn't load ${url}:  ${response.status} ${response.statusText}`)
-  return response.text()
+  return $fetch<string>({ url, cache: "no-cache" })
 }
 
 /**
@@ -17,8 +17,7 @@ export async function fetchText(url: string): Promise<string> {
 export async function fetchJSON<T>(url: string | undefined): Promise<T | undefined> {
   if (!url) return undefined
   try {
-    const response = await fetch(url, { cache: "no-cache" })
-    return response.ok ? ((await response.json()) as T) : undefined
+    return await $fetch<T>({ url, cache: "no-cache", format: "json" })
   } catch {
     return undefined
   }
