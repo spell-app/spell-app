@@ -116,10 +116,10 @@
     width: 0;
   }
 
-  /* a panel:  a rounded box with its own edge and shadow */
+  /* a panel:  a rounded box with its own shadow;  no white edge (Owen:  "remove white border in splitpanel") */
   & .SplitPanel > .SplitPanelPane {
     background: var(--spell-pane-background);
-    border: 1px solid var(--spell-pane-border-color);
+    border: 0;
     border-radius: var(--spell-pane-radius);
     box-shadow: var(--spell-pane-shadow);
     -webkit-backdrop-filter: var(--spell-pane-filter);
