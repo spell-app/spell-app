@@ -6,6 +6,8 @@
  *   which a `blob:` URL can't resolve:  so they're made absolute first.
  *   Every copy then shares those chunks.
  */
+import { $fetch } from "spell/util"
+
 import type * as SpellRuntimeModule from "./spellRuntime"
 
 /**
@@ -50,9 +52,7 @@ const RELATIVE_IMPORT = /(\bfrom\s*|\bimport\s*\(?\s*)(["'])(\.{1,2}\/[^"']+)\2/
 /** Text of each runtime fetched, by URL -- fetched once per page. */
 const sources = new Map<string, Promise<string>>()
 
-/** Text of the runtime at `url`, its imports made absolute. */
+/** Text of the runtime at `url`, its imports made absolute;  throws `$fetch()`'s error when it can't load. */
 async function fetchRuntime(url: string): Promise<string> {
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`Couldn't load the spell runtime from ${url}:  ${response.status}`)
-  return absoluteImports(await response.text(), url)
+  return absoluteImports(await $fetch<string>({ url }), url)
 }
