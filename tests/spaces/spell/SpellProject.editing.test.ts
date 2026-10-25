@@ -14,7 +14,7 @@ import { fixtureProjectId } from "spell-app/spaces/test"
 describe("SpellProject editing", () => {
   const solitaire = fixtureProjectId("Solitaire")
   const project = new SP.SpellProject(solitaire)
-  const game = new SP.SpellFile(`${solitaire}/Solitaire.spell`)
+  const game = new SP.SpellFile(`${solitaire}/Solitaire.spellx`)
   let gameText: string
 
   beforeAll(async () => {
@@ -28,13 +28,13 @@ describe("SpellProject editing", () => {
     await project.updateText(game, gameText)
   })
 
-  test("`spellFiles` are its active `.spell` imports, in order -- and each `isActive`", () => {
+  test("`spellFiles` are its active spell imports (`.spell` or `.spellx`), in order -- and each `isActive`", () => {
     // its cards, deck and piles, then its game
     expect(project.spellFiles.map((file) => file.filePath)).toEqual([
-      "/Card.spell",
-      "/Deck.spell",
-      "/Pile.spell",
-      "/Solitaire.spell"
+      "/Card.spellx",
+      "/Deck.spellx",
+      "/Pile.spellx",
+      "/Solitaire.spellx"
     ])
     expect(project.spellFiles.every((file) => file.isActive)).toBe(true)
     expect(new SP.SpellFile(`${solitaire}/NotImported.spell`).isActive).toBe(false)

@@ -48,7 +48,7 @@ const REPO_ROOT = resolve(import.meta.dirname, "..", "..")
 /** The page server's root, where its pid file is:  the kit around this repo (epic `repo-split` P16). */
 const SERVER_ROOT = pageServerRoot(REPO_ROOT)
 
-/** The Solitaire example's folder:  its files are spell files a test can name, `Card.spell`. */
+/** The Solitaire example's folder:  its files are spell files a test can name, `Card.spellx`. */
 const SOLITAIRE = fixtureFolder("Solitaire")
 
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
@@ -219,7 +219,7 @@ describe("spell app serve", () => {
       const projects = await (await fetch(`${editor}/api/projects/list/@spell/examples`)).text()
       expect(projects).toContain("@spell/examples/Solitaire")
       // a file by its URL, `/spaces/<address>`, through vite's proxy
-      const file = await fetch(`${editor}/spaces/@spell/examples/Solitaire/Solitaire.spell`)
+      const file = await fetch(`${editor}/spaces/@spell/examples/Solitaire/Solitaire.spellx`)
       expect(file.status).toBe(200)
 
       child.kill("SIGINT")
@@ -276,10 +276,10 @@ describe("spell compile", () => {
 
   test("a spell file prints its javascript", () => {
     // Solitaire's card
-    const { status, stdout } = spell(["compile", "Card.spell"], SOLITAIRE)
+    const { status, stdout } = spell(["compile", "Card.spellx"], SOLITAIRE)
     expect(status).toBe(0)
     // after the file's heading and docstring;  just code:  declarations go in the project's declarations file
-    expect(stdout).toMatch(/^core\.heading\([^]*\nexport class Card extends View \{/)
+    expect(stdout).toMatch(/^core\.heading\([^]*\nexport class Card extends TwoSidedView \{/)
     expect(stdout).not.toContain("SPELL:")
   })
 
@@ -512,15 +512,15 @@ const CARD_PAGE = `<ui-property-editor schema="Card" label="Card">
 
 describe("spell describe", () => {
   test("a file:  what it declares", () => {
-    const { status, stdout } = spell(["describe", "Card.spell"], SOLITAIRE)
+    const { status, stdout } = spell(["describe", "Card.spellx"], SOLITAIRE)
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Card\.spell\n {2}template Card {2}is a View\n/)
+    expect(stdout).toMatch(/^Card\.spellx\n {2}A playing card\n {2}template Card {2}is a TwoSidedView\n/)
   })
 
   test("one thing, by name -- ignoring case, and spaces ~== `_`", () => {
     const { status, stdout } = spell(["describe", ".", "STOCK pile"], fixtureFolder("Solitaire"))
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^template StockPile is a Pile\nSolitaire\.spell:\d+\n/)
+    expect(stdout).toMatch(/^template StockPile is a Pile\nSolitaire\.spellx:\d+\n/)
   })
 
   test("a member of a thing", () => {
@@ -602,9 +602,9 @@ describe("spell run", () => {
 describe("spell test", () => {
   test("reports each test -- its cards', deck's and piles', then its game's", () => {
     const { status, stdout } = spell(["test", "@spell/examples/Solitaire"])
-    const tests = ["card setup", "jokers", "deck creation", "deck with jokers", "piles", "the moves"]
+    const tests = ["card setup", "a new deck", "piles", "the moves"]
     expect(stdout).toBe(
-      `${tests.map((name) => `✓ test ${name}  (${stdout.match(new RegExp(`test ${name}  \\((\\d+) checks`))?.[1]} checks)\n`).join("")}\n6 passed\n`
+      `${tests.map((name) => `✓ test ${name}  (${stdout.match(new RegExp(`test ${name}  \\((\\d+) checks`))?.[1]} checks)\n`).join("")}\n4 passed\n`
     )
     expect(status).toBe(0)
   })
@@ -752,9 +752,7 @@ describe("spell test --name", () => {
   test("only tests whose names contain it", () => {
     const { status, stdout } = spell(["test", "@spell/examples/Solitaire", "--name", "deck"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(
-      /^✓ test deck creation {2}\(\d+ checks\)\n✓ test deck with jokers {2}\(\d+ checks\)\n\n2 passed\n$/
-    )
+    expect(stdout).toMatch(/^✓ test a new deck {2}\(\d+ checks\)\n\n1 passed\n$/)
   })
 })
 
@@ -1009,7 +1007,7 @@ describe("spell explain", () => {
   test("--in a project:  what it declares, as the editor's hover shows it", () => {
     const { status, stdout } = spell(["explain", "tableau", "--in", "@spell/examples/Solitaire"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/Solitaire\.spell:\d+\ntemplate Tableau is a Pile\n/)
+    expect(stdout).toMatch(/Solitaire\.spellx:\d+\ntemplate Tableau is a Pile\n/)
   })
 
   test("--in a project:  what the projects it imports declare, too", () => {

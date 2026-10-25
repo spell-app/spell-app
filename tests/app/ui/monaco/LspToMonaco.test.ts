@@ -124,13 +124,13 @@ describe("LspToMonaco", () => {
     })
   })
 
-  describe("on real answers, for the Solitaire example's deck", () => {
-    const deckPath = resolve(environment.systemFilesRoot, "examples", "Solitaire", "Deck.spell")
+  describe("on real answers, for the Solitaire example's deck, in spellx", () => {
+    const deckPath = resolve(environment.systemFilesRoot, "examples", "Solitaire", "Deck.spellx")
     const deckUri = pathToFileURL(deckPath).href
     const deckText = readFileSync(deckPath, "utf8")
     const workspace = new SpellDiskWorkspace()
     const service = new LSP.SpellLanguageService(workspace)
-    /** LSP position of `needle` in Deck.spell, plus `delta` characters. */
+    /** LSP position of `needle` in Deck.spellx, plus `delta` characters. */
     const at = (needle: string, delta = 0) => {
       const before = deckText.slice(0, deckText.indexOf(needle) + delta).split("\n")
       return { line: before.length - 1, character: before.at(-1)!.length }
@@ -141,14 +141,14 @@ describe("LspToMonaco", () => {
     })
 
     test("hover => markdown", () => {
-      const hover = LspToMonaco.hover(service.hover(workspace.fileFor(deckUri)!, at("a list of cards", 12))!)
+      const hover = LspToMonaco.hover(service.hover(workspace.fileFor(deckUri)!, at("a new card with rank", 6))!)
       expect(hover.contents[0]!.value).toContain("Card")
       expect(hover.range).toBeDefined()
     })
 
     test("rename => one edit per use, by file", () => {
       const file = workspace.fileFor(deckUri)!
-      const edit = service.rename(file, at("color = red", 8), "crimson")
+      const edit = service.rename(file, at("the rank, suit", 4), "level")
       const edits = LspToMonaco.workspaceEdit(edit!).edits as Array<{ resource: { scheme: string } }>
       expect(edits.length).toBeGreaterThan(1)
       expect(new Set(edits.map((it) => it.resource.scheme))).toEqual(new Set(["file"]))

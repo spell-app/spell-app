@@ -1,13 +1,14 @@
 /**
- * Turns a command-line argument into what it names:  a project, a `.spell` file, or a whole project root.
+ * Turns a command-line argument into what it names:  a project, a spell file (`.spell` or `.spellx`), or a whole
+ * project root.
  * - Spell addresses (`SP.SpellLocation.isAddress()`, epic `people-and-orgs` P4):
  *   - `@spell/examples/Solitaire`, `owen@spell/errors`:  a project
- *   - `@spell/examples/Solitaire/Card.spell`:  a file in one
+ *   - `@spell/examples/Solitaire/Card.spellx`:  a file in one
  *   - `@spell/examples`, `owen@spell`:  a whole group;  `@spell`:  every group in that space
  * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:
  *   the command line's own word, not an address.
  * - Anything else is a path on disk, from the current folder:
- *   - a `.spell` file, or a project's file (`__project.json5`)
+ *   - a `.spell` or `.spellx` file, or a project's file (`__project.json5`)
  *   - a folder:  the project it's in, or a known root's folder, e.g. `spaces/@spell/examples`
  * - NEVER a folder that isn't inside a project:  it has no project file, so it isn't one.
  *   - Loading it would no longer write one there (the disk reader saves only into a project file that exists),
@@ -15,7 +16,7 @@
  * - Throws `CLI.CliError` for anything it can't place.
  */
 import { existsSync, statSync } from "fs"
-import { basename, dirname, extname, resolve } from "path"
+import { basename, dirname, resolve } from "path"
 
 import { SP } from "spell-parser/spell"
 import { hasProjectFile } from "spell-parser/spell/node/projectFile"
@@ -91,7 +92,7 @@ async function resolveSpellPath(arg: string): Promise<CLI.CliProject> {
   return resolveLocation(arg, arg)
 }
 
-/** What full spell path `path` names:  a project, or a `.spell` file in one. */
+/** What full spell path `path` names:  a project, or a spell file in one. */
 async function resolveLocation(arg: string, path: string): Promise<CLI.CliProject> {
   let location: SP.SpellLocation
   try {
@@ -126,8 +127,8 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProjec
   if (!existsSync(path)) throw new CLI.CliError(`No such file or folder:  ${arg}`)
   const isFolder = statSync(path).isDirectory()
   const isManifest = SP.isProjectFile(basename(path))
-  if (!isFolder && !isManifest && extname(path) !== ".spell") {
-    throw new CLI.CliError(`'${arg}' isn't a .spell file, a project's ${SP.PROJECT_FILE} or a folder`)
+  if (!isFolder && !isManifest && !SP.isSpellSourceName(path)) {
+    throw new CLI.CliError(`'${arg}' isn't a .spell or .spellx file, a project's ${SP.PROJECT_FILE} or a folder`)
   }
 
   if (isFolder) {

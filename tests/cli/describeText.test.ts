@@ -38,7 +38,7 @@ async function describedProject(projectId: string): Promise<Described> {
   return { tree, options }
 }
 
-/** Node or member named `path` of `described`'s own project node, e.g. `["Card.spell", "Card"]`. */
+/** Node or member named `path` of `described`'s own project node, e.g. `["Card.spellx", "Card"]`. */
 function find({ tree }: Described, ...path: string[]): LSP.ScopeNode | LSP.ScopeMember {
   let node: LSP.ScopeNode | LSP.ScopeMember = tree.children.at(-1)!
   for (const name of path) {
@@ -52,31 +52,35 @@ function find({ tree }: Described, ...path: string[]): LSP.ScopeNode | LSP.Scope
 describe("describeOverview()", () => {
   test("a file:  each thing it declares, a type's members grouped", () => {
     expect(
-      CLI.describeOverview(find(solitaire, "Card.spell") as LSP.ScopeNode, solitaire.options).join("\n")
+      CLI.describeOverview(find(solitaire, "Card.spellx") as LSP.ScopeNode, solitaire.options).join("\n")
     ).toMatchSnapshot()
   })
 
   test("an enumeration gathers only the constants its own statement made", () => {
-    const text = CLI.describeOverview(find(solitaire, "Card.spell") as LSP.ScopeNode, solitaire.options).join("\n")
+    const text = CLI.describeOverview(find(solitaire, "Card.spellx") as LSP.ScopeNode, solitaire.options).join("\n")
     expect(text).toContain("Suits (clubs, diamonds, hearts, spades)")
   })
 
   test("wraps member lists to `width`, never mid-item", () => {
-    const lines = CLI.describeOverview(find(solitaire, "Card.spell") as LSP.ScopeNode, {
+    const lines = CLI.describeOverview(find(solitaire, "Card.spellx") as LSP.ScopeNode, {
       ...solitaire.options,
       width: 60
     })
     // descriptions aren't wrapped:  just lists, each under its heading, e.g. `Actions`, then indented to it
     const listLines = lines.filter((line) => /^ {4}(Properties|Actions|Constants) |^ {16}\S/.test(line))
     expect(Math.max(...listLines.map((line) => line.length))).toBeLessThanOrEqual(60)
-    for (const item of ["turn it face down", "is the (rank) of (suit)", "Suits (clubs, diamonds, hearts, spades)"]) {
+    for (const item of [
+      "count the points for a card on a pile",
+      "is the (rank) of (suit)",
+      "Suits (clubs, diamonds, hearts, spades)"
+    ]) {
       expect(listLines.some((line) => line.includes(item))).toBe(true)
     }
   })
 
   test("inherited members only when asked, with where from", () => {
-    const tableau = find(solitaire, "Solitaire.spell", "Tableau") as LSP.ScopeNode
-    const file = { ...(find(solitaire, "Solitaire.spell") as LSP.ScopeNode), children: [tableau] }
+    const tableau = find(solitaire, "Solitaire.spellx", "Tableau") as LSP.ScopeNode
+    const file = { ...(find(solitaire, "Solitaire.spellx") as LSP.ScopeNode), children: [tableau] }
     expect(CLI.describeOverview(file, solitaire.options).join("\n")).not.toContain("(Pile)")
     expect(CLI.describeOverview(file, { ...solitaire.options, inherited: true }).join("\n")).toContain("color (Pile)")
   })
@@ -84,17 +88,17 @@ describe("describeOverview()", () => {
 
 describe("describeThing()", () => {
   test("a type", () => {
-    expect(CLI.describeThing(find(solitaire, "Card.spell", "Card"), solitaire.options).join("\n")).toMatchSnapshot()
+    expect(CLI.describeThing(find(solitaire, "Card.spellx", "Card"), solitaire.options).join("\n")).toMatchSnapshot()
   })
 
   test("a property, with its compiled javascript", () => {
-    const color = find(solitaire, "Card.spell", "Card", "color")
+    const color = find(solitaire, "Card.spellx", "Card", "color")
     const text = CLI.describeThing(color, { ...solitaire.options, compiled: true }).join("\n")
     expect(text).toMatchSnapshot()
   })
 
   test("a method lists the rule for calling it", () => {
-    const text = CLI.describeThing(find(solitaire, "Card.spell", "Card", "draw it"), solitaire.options).join("\n")
-    expect(text).toContain("Rules\n  draw  draw {thisArg:expression}")
+    const text = CLI.describeThing(find(solitaire, "Card.spellx", "Card", "play a card"), solitaire.options).join("\n")
+    expect(text).toContain("Rules\n  play  play {thisArg:expression}")
   })
 })

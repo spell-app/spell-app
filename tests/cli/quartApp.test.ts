@@ -127,10 +127,10 @@ describe("a Python spell app, in a real browser", () => {
     const turned = patches[0]![0]!
     expect(patches[0]).toEqual([expect.objectContaining({ $type: "Card", direction: "up" })])
     const cardId = turned["$id"] as string
-    // what the page sent:  the click, naming the card by reference, its name (epic `python-target` P27):
-    // the card's `its "name" is its rank + " of " + its suit`
+    // what the page sent:  a call of the card's own click handler, `<on click>`, by its Python name (epic item J69),
+    // naming the card by reference, its name (epic `python-target` P27):  the card's `its rank + " of " + its suit`
     const reference = `Card#${turned.rank} of ${turned.suit}`
-    expect(page.sent).toEqual([{ trigger: "card-click", target: reference, details: {} }])
+    expect(page.sent).toEqual([{ call: "on_click", on: reference, args: [{ type: "click" }] }])
     // then its move:  the pile it joined, and the pile it left
     expect(patches[1]!.map((thing) => thing["$type"])).toEqual(["DiscardPile", "StockPile"])
     const [joined] = patches[1]!
@@ -139,7 +139,7 @@ describe("a Python spell app, in a real browser", () => {
     // the console shows each frame, both ways, its badge first:  the state, the click up, the two patches down
     const frames = page.logged.filter((line) => /^%c(SENDING  >|RECEIVED <)%c/.test(line))
     expect(frames[0]).toMatch(/^%cRECEIVED <%c {2}state: {2}solitaire/)
-    expect(frames).toContainEqual(expect.stringMatching(`^%cSENDING  >%c  event card-click \\(${reference}\\)`))
+    expect(frames).toContainEqual(expect.stringMatching(`^%cSENDING  >%c  call on_click\\(\\) on ${reference}`))
     expect(frames).toContainEqual(expect.stringMatching(`^%cRECEIVED <%c  patch:  DiscardPile #\\d+, StockPile #`))
 
     // each patch a small part of the whole state

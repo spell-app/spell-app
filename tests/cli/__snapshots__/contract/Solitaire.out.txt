@@ -1,86 +1,40 @@
 ✅ test card setup
   ▶️ Executing   `get a new card whose rank is queen, suit is spades and direction is down`
-  testing the queen of spades
-  ✅ As expected `its rank` is `queen`
-  ✅ As expected `its suit` is `spades`
   ✅ As expected `its name` is `"queen of spades"`
   ✅ As expected `its color` is `black`
   ✅ As expected `its value` is `12`
   ✅ As expected `its state` is `"Q♠↓"`
-  ✅ As expected `it is face down` is `yes`
-  ✅ As expected `its picture` is `"🂠"`
-  ▶️ Executing   `turn it face up`
-  ✅ As expected `it is face up` is `yes`
-  ✅ As expected `its picture` is `"🂭"`
   ✅ As expected `it is a face card` is `yes`
-  ✅ As expected `it is not a number card` is `yes`
   ✅ As expected `it is a spade` is `yes`
   ✅ As expected `it is a club` is `no`
   ✅ As expected `it is a queen` is `yes`
-  ✅ As expected `it is an ace` is `no`
   ✅ As expected `it is a 2` is `no`
   ✅ As expected `it is the queen of spades` is `yes`
   ✅ As expected `it is the queen of clubs` is `no`
-  ✅ As expected `it is the 2 of clubs` is `no`
-  testing the 7 of hearts
+  ✅ As expected `its picture` is `"🂭"`
+  ▶️ Executing   `turn it over`
+  ✅ As expected `it is face up` is `yes`
+  ✅ As expected `its state` is `"Q♠↑"`
+  ▶️ Executing   `set seven to a new card whose rank is 7 and suit is hearts`
   ✅ As expected `seven is a number card` is `yes`
-  ✅ As expected `the color of the seven` is `red`
-  ✅ As expected `the picture of the seven` is `"🂷"`
+  ✅ As expected `the color of seven` is `red`
+  ✅ As expected `the picture of seven` is `"🂷"`
   ✅ As expected `the picture of a new card whose rank is ace and suit is clubs` is `"🃑"`
   ✅ As expected `the picture of a new card whose rank is king and suit is diamonds` is `"🃎"`
-✅ test jokers
-  ▶️ Executing   `get a new joker whose color is red and direction is up`
-  ✅ As expected `it is a card` is `yes`
-  ✅ As expected `it is a joker` is `yes`
-  ✅ As expected `its color` is `red`
-  ✅ As expected `its name` is `"red joker"`
-  ✅ As expected `its state` is `"*R↑"`
-  ✅ As expected `its picture` is `"🃟"`
-  ✅ As expected `it is the red joker` is `yes`
-  ✅ As expected `it is the black joker` is `no`
-  ✅ As expected `it is not the black joker` is `yes`
-  ✅ As expected `it is face up` is `yes`
-  ▶️ Executing   `turn it over`
-  ✅ As expected `it is face down` is `yes`
-  ▶️ Executing   `set black joker to a new joker whose color is black`
-  ✅ As expected `the picture of black joker` is `"🃟"`
-  ▶️ Executing   `set the card to a new card whose rank is queen and suit is spades`
-  ✅ As expected `the card is a joker` is `no`
-  ✅ As expected `the card is not a joker` is `yes`
-  ✅ As expected `the card is the red joker` is `no`
-✅ test deck creation
+✅ test a new deck
   ▶️ Executing   `the deck is a new deck`
   ✅ As expected `the number of cards in the deck` is `52`
-  ▶️ Executing   `set the queens to the cards in the deck where the rank of the card is queen`
-  ✅ As expected `the number of cards in the queens` is `4`
-  ✅ As expected `the name of the top card of the deck` is `"ace of clubs"`
-  ✅ As expected `the state of the top card of the deck` is `"A♣↓"`
-  ✅ As expected `the direction of the top card of the deck` is `down`
-  ✅ As expected `the first card of the deck is the ace of clubs` is `yes`
-  ✅ As expected `the name of the bottom card of the deck` is `"king of spades"`
-  ✅ As expected `a random card of the deck is a joker` is `no`
-  ✅ As expected `a random card of the deck is the red joker` is `no`
-  the deck before shuffling:
-  deck: A♣↓, A♦↓, A♥↓, A♠↓, 2♣↓, 2♦↓, 2♥↓, 2♠↓, 3♣↓, 3♦↓, 3♥↓, 3♠↓, 4♣↓, 4♦↓, 4♥↓, 4♠↓, 5♣↓, 5♦↓, 5♥↓, 5♠↓, 6♣↓, 6♦↓, 6♥↓, 6♠↓, 7♣↓, 7♦↓, 7♥↓, 7♠↓, 8♣↓, 8♦↓, 8♥↓, 8♠↓, 9♣↓, 9♦↓, 9♥↓, 9♠↓, 10♣↓, 10♦↓, 10♥↓, 10♠↓, J♣↓, J♦↓, J♥↓, J♠↓, Q♣↓, Q♦↓, Q♥↓, Q♠↓, K♣↓, K♦↓, K♥↓, K♠↓
+  ✅ As expected `the number of (cards in the deck where it is a queen)` is `4`
+  ✅ As expected `the state of the first card of the deck` is `"A♣↓"`
+  ✅ As expected `the name of the last card of the deck` is `"king of spades"`
   ▶️ Executing   `shuffle the deck`
   ✅ As expected `the number of cards in the deck` is `52`
-  the deck after shuffling:
-  deck: 5♥↓, 3♦↓, 7♥↓, Q♥↓, Q♠↓, 2♠↓, 2♣↓, 8♦↓, 8♥↓, 6♥↓, K♠↓, 8♠↓, A♦↓, 5♣↓, K♥↓, 5♦↓, 9♥↓, 3♣↓, 7♠↓, K♦↓, 10♣↓, 9♠↓, 4♥↓, 7♣↓, Q♦↓, 6♠↓, 2♥↓, 4♠↓, 8♣↓, Q♣↓, 5♠↓, 2♦↓, A♠↓, 9♣↓, 3♥↓, 4♣↓, 10♠↓, J♦↓, J♥↓, 7♦↓, A♥↓, 6♦↓, 9♦↓, 10♦↓, 10♥↓, J♣↓, A♣↓, 3♠↓, 6♣↓, K♣↓, J♠↓, 4♦↓
-✅ test deck with jokers
-  ▶️ Executing   `the deck is a new deck with jokers`
-  ✅ As expected `the number of cards in the deck` is `54`
-  ▶️ Executing   `set wild cards to the cards in the deck where it is a joker`
-  ✅ As expected `the number of cards in wild cards` is `2`
-  ✅ As expected `the first card of the deck is the ace of clubs` is `yes`
-  ✅ As expected `the last card of the deck is the black joker` is `yes`
-  ✅ As expected `the name of the bottom card of the deck` is `"black joker"`
 ✅ test piles
   ▶️ Executing   `set the stock to a new pile with name = "stock"`
   ✅ As expected `the color of the stock` is `"none"`
   ✅ As expected `the value of the stock` is `0`
   ▶️ Executing   `add (a new card whose rank is queen, suit is spades and direction is up) to the stock`
   ▶️ Executing   `add (a new card whose rank is 7, suit is hearts and direction is down) to the stock`
-  stock: Q♠↑ 7♥↓
   ✅ As expected `the color of the stock` is `red`
   ✅ As expected `the value of the stock` is `7`
   ✅ As expected `the state of the stock` is `"stock: Q♠↑ 7♥↓"`
@@ -88,7 +42,6 @@
   ▶️ Executing   `add it to the discards`
   ✅ As expected `its pile is the discards` is `yes`
   ✅ As expected `the number of cards in the stock` is `1`
-  ✅ As expected `the number of cards in the discards` is `1`
   ✅ As expected `the state of the discards` is `"discards: 7♥↓"`
 ✅ test the moves
   ▶️ Executing   `set the column to a new tableau with name = "T1"`
@@ -117,4 +70,4 @@
   ▶️ Executing   `add the queen to the column`
   ✅ As expected `the foundation can take the queen` is `no`
 
-<div id="spell-app-root"><test-project-app><ui-container><ui-menu><ui-item type="header">Klondike Solitaire</ui-item><ui-item>Score: 0</ui-item><ui-menu position="right"><ui-item aria-label="Auto play" style="cursor:pointer;user-select:none"><ui-icon name="fast forward"></ui-icon><ui-popup content="Auto play" inverted="" size="small"></ui-popup></ui-item><ui-item aria-label="Cheat" style="cursor:pointer;user-select:none"><ui-icon name="eye"></ui-icon><ui-popup content="Cheat" inverted="" size="small"></ui-popup></ui-item><ui-item aria-label="Restart" style="cursor:pointer;user-select:none"><ui-icon name="redo"></ui-icon><ui-popup content="Restart" inverted="" size="small"></ui-popup></ui-item></ui-menu></ui-menu><ui-grid class="Board" columns="7"><test-project-stock-pile><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card></test-project-stock-pile><test-project-discard-pile><test-project-card><ui-text color="red" part="picture" style="cursor:pointer;user-select:none">🃃</ui-text></test-project-card></test-project-discard-pile><div></div><test-project-foundation><div part="placeholder">🃑</div></test-project-foundation><test-project-foundation><div part="placeholder">🃁</div></test-project-foundation><test-project-foundation><div part="placeholder">🂱</div></test-project-foundation><test-project-foundation><div part="placeholder">🂡</div></test-project-foundation><test-project-tableau><test-project-card><ui-text color="black" part="picture" style="cursor:pointer;user-select:none">🂣</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="picture" style="cursor:pointer;user-select:none">🂡</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="picture" style="cursor:pointer;user-select:none">🂮</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="picture" style="cursor:pointer;user-select:none">🃖</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="picture" style="cursor:pointer;user-select:none">🃔</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="picture" style="cursor:pointer;user-select:none">🃘</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="picture" style="cursor:pointer;user-select:none">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="picture" style="cursor:pointer;user-select:none">🂭</ui-text></test-project-card></test-project-tableau></ui-grid></ui-container></test-project-app></div>
+<div id="spell-app-root"><test-project-app><ui-container><ui-menu><ui-item kind="header">Klondike Solitaire</ui-item><ui-item>Score: 0</ui-item><ui-menu position="right"><ui-item aria-label="Auto play" style="cursor:pointer;user-select:none" title="Auto play"><ui-icon name="fast forward"></ui-icon></ui-item><ui-item aria-label="Cheat" style="cursor:pointer;user-select:none" title="Cheat"><ui-icon name="eye"></ui-icon></ui-item><ui-item aria-label="Restart" style="cursor:pointer;user-select:none" title="Restart"><ui-icon name="redo"></ui-icon></ui-item></ui-menu></ui-menu><ui-grid class="Board" columns="7" context-menu="game menu"><test-project-stock-pile><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card></test-project-stock-pile><test-project-discard-pile><test-project-card><ui-text color="red" part="front">🃃</ui-text></test-project-card></test-project-discard-pile><ui-column></ui-column><test-project-foundation><ui-text part="placeholder">🃑</ui-text></test-project-foundation><test-project-foundation><ui-text part="placeholder">🃁</ui-text></test-project-foundation><test-project-foundation><ui-text part="placeholder">🂱</ui-text></test-project-foundation><test-project-foundation><ui-text part="placeholder">🂡</ui-text></test-project-foundation><test-project-tableau><test-project-card><ui-text color="black" part="front">🂣</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="front">🂡</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="front">🂮</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="front">🃖</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="front">🃔</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="front">🃘</ui-text></test-project-card></test-project-tableau><test-project-tableau><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="blue" part="back">🂠</ui-text></test-project-card><test-project-card><ui-text color="black" part="front">🂭</ui-text></test-project-card></test-project-tableau></ui-grid></ui-container></test-project-app></div>

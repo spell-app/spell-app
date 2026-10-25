@@ -25,7 +25,7 @@ async function named(arg: string, cwd?: string) {
 
 const FIZZBUZZ = fixtureProjectId("fizzbuzz")
 const SOLITAIRE = fixtureProjectId("Solitaire")
-const GAME = `${SOLITAIRE}/Solitaire.spell`
+const GAME = `${SOLITAIRE}/Solitaire.spellx`
 // the frozen ones, `@spell/test`'s, in the order a group lists its projects:  by name
 const ALL_FIXTURES = fixtureProjectNames()
   .filter((name) => !EXAMPLE_FIXTURES.has(name) && !GUIDE_FIXTURES.has(name))
@@ -41,7 +41,7 @@ describe("resolveProject()", () => {
       expect(await named(SOLITAIRE)).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file", async () => {
-      expect(await named("@spell/examples/Solitaire/Solitaire.spell")).toEqual({ kind: "file", id: GAME })
+      expect(await named("@spell/examples/Solitaire/Solitaire.spellx")).toEqual({ kind: "file", id: GAME })
     })
     test("a group, by its address, holds only folders with a project.json", async () => {
       expect(await named("@spell/test")).toEqual({ kind: "root", ids: ALL_FIXTURES })
@@ -56,14 +56,14 @@ describe("resolveProject()", () => {
       expect(await named(fixtureFolder("Solitaire", SP.PROJECT_FILE))).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file, relative to cwd", async () => {
-      expect(await named("Solitaire.spell", fixtureFolder("Solitaire"))).toEqual({ kind: "file", id: GAME })
+      expect(await named("Solitaire.spellx", fixtureFolder("Solitaire"))).toEqual({ kind: "file", id: GAME })
     })
     test("a known root's folder", async () => {
       expect(await named(FIXTURES_DIR)).toEqual({ kind: "root", ids: ALL_FIXTURES })
     })
     test("`@here` is the current folder", async () => {
       expect(await named("@here", fixtureFolder("Solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
-      expect(await named("@here/Solitaire.spell", fixtureFolder("Solitaire"))).toEqual({ kind: "file", id: GAME })
+      expect(await named("@here/Solitaire.spellx", fixtureFolder("Solitaire"))).toEqual({ kind: "file", id: GAME })
     })
   })
 
@@ -71,7 +71,7 @@ describe("resolveProject()", () => {
     test.each([
       "@nope",
       "@spell/test/nope",
-      "@spell/examples/Solitaire/Nope.spell",
+      "@spell/examples/Solitaire/Nope.spellx",
       "@spell/examples/Solitaire/project.json",
       "./no/such/thing"
     ])("%s", async (arg) => {

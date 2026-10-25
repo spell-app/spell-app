@@ -495,7 +495,8 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => discards() === 1)
     const played = stock.lastElementChild as HTMLElement
     expect(played.getAttribute("direction")).toBe("down")
-    played.shadowRoot!.querySelector<HTMLElement>("[part=picture]")!.click()
+    // a click on the card, face down:  its back, which the card's own click handler plays
+    played.shadowRoot!.querySelector<HTMLElement>("[part=back]")!.click()
     await waitFor(() => discards() > 1)
     // ... and they follow as the game plays:  the card played from the stock is face up, on the discards
     await waitFor(() => played.getAttribute("direction") === "up")
@@ -591,9 +592,10 @@ describe("compiled spell draws with Solid", () => {
     const tableaus = () => [...host.querySelectorAll<Element>("test-project-tableau")]
     const stock = () => host.querySelector<Element>("test-project-stock-pile")!
     const discards = () => host.querySelector<Element>("test-project-discard-pile")!
-    await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
+    // dealt, and the deal's own play from the stock done:  it's an animation, which ignores a click while it runs
+    await waitFor(() => tableaus()[6]?.children.length === 7 && discards().children.length === 1, 10_000)
     await ElementFixture.settle(host)
-    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>("[part=picture]")!.click()
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>("[part=back]")!.click()
     await waitFor(() => discards().children.length === 2)
     expect(consoleText()).toContain("test the moves")
 
@@ -981,9 +983,9 @@ async function rawText(path: string): Promise<string> {
 }
 
 /** What an empty foundation shows, in Solitaire's compiled javascript, and an edit of it. */
-const PLACEHOLDER = 'return h("div", { part: "placeholder" },'
+const PLACEHOLDER = 'return h("ui-text", { part: "placeholder" },'
 /** `PLACEHOLDER`, edited:  another part name. */
-const EDITED_PLACEHOLDER = 'return h("div", { part: "edited" },'
+const EDITED_PLACEHOLDER = 'return h("ui-text", { part: "edited" },'
 
 /** What to run:  `program`, in memory. */
 function source(program: string, name = "Counter"): SpellAppSource {

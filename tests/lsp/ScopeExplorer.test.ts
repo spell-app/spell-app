@@ -14,14 +14,16 @@ import { scopesFromPacks } from "spell-app/lsp/ScopesSource"
 import { compiledSpellProject } from "spell-parser/spell/test"
 import { copyFixtureProject, fixtureFolder, lineOf, loadFixtureProject } from "spell-app/spaces/test"
 
-/** The Solitaire example's Card.spell:  the tests name its lines by what they say (`lineOf()`), as it changes. */
-const CARD_TEXT = readFileSync(fixtureFolder("Solitaire", "Card.spell"), "utf8")
+/** The Solitaire example's Card.spellx:  the tests name its lines by what they say (`lineOf()`), as it changes. */
+const CARD_TEXT = readFileSync(fixtureFolder("Solitaire", "Card.spellx"), "utf8")
 /** Its line declaring the card's type. */
-const CARD_TYPE = 'a "card" is'
+const CARD_TYPE = '<spell-view "card"'
 /** Its line declaring the card's suit, whose node is `suit`. */
-const SUIT = '- its "suit" is one of'
-/** The `##` heading the card's suit is under:  its section, and its docstring. */
-const SUIT_HEADING = "card suit"
+const SUIT = '<property "suit" one-of'
+/** The card's short name, whose `description=` is its docstring. */
+const STATE_DESCRIPTION = "Its short name:  Q♠↓ is the queen of spades, face down"
+/** The `##` heading in the game's file that the card's moves are under, e.g. `play a card`:  their section. */
+const PLAYING_HEADING = "Playing a card"
 
 /**
  * The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it:
@@ -30,7 +32,7 @@ const SUIT_HEADING = "card suit"
 describe("ScopeExplorer", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scopes-"))
   copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
-  const cardPath = resolve(dir, "Solitaire/Card.spell")
+  const cardPath = resolve(dir, "Solitaire/Card.spellx")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
   const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(workspace))
@@ -54,8 +56,8 @@ describe("ScopeExplorer", () => {
 
   test("a type's members:  in document order, by file then line -- each with its line", () => {
     const card = find(tree, "Card")
-    expect(card.detail).toBe("is a View")
-    expect(card.super).toBe("type:View")
+    expect(card.detail).toBe("is a TwoSidedView")
+    expect(card.super).toBe("type:TwoSidedView")
     // its first line, to the last of its outline
     const declared = lineOf(CARD_TEXT, CARD_TYPE)
     expect(details(card).line).toEqual([declared, outlineEnd(CARD_TEXT, declared)])
@@ -69,11 +71,13 @@ describe("ScopeExplorer", () => {
 
   test("each member's section:  the heading it's under, in the file it's declared in", () => {
     const card = find(tree, "Card")
-    const sectionOf = (name: string) => card.members.find((member) => member.name === name)!.section
-    expect(sectionOf("suit")).toBe(SUIT_HEADING)
-    expect(sectionOf("name")).toBe("specific cards")
-    expect(sectionOf("turn it over")).toBe("turning the card over")
-    expect(find(tree, "suit").section).toBe(SUIT_HEADING)
+    const member = (name: string) => card.members.find((it) => it.name === name)!
+    // the card's moves are declared in the game's file, under its `## Playing a card`
+    expect(member("play a card").section).toBe(PLAYING_HEADING)
+    expect(details(member("play a card")).uri).toMatch(/\/Solitaire\.spellx$/)
+    expect(member("count the points for a card on a pile").section).toBe(PLAYING_HEADING)
+    // the card's own file has no `##` heading
+    expect(member("suit").section).toBeUndefined()
   })
 
   test("a sub-type shows what it inherits, and from where", () => {
@@ -96,10 +100,10 @@ describe("ScopeExplorer", () => {
   })
 
   test("a declaration's details:  its docstring, spell source and compiled javascript", () => {
-    expect(find(tree, "suit").path).toBe("project:Solitaire/file:Card.spell/type:Card/property:suit")
+    expect(find(tree, "suit").path).toBe("project:Solitaire/file:Card.spellx/type:Card/property:suit")
+    // its `description=`:  its docstring
+    expect(details("state").description).toBe(STATE_DESCRIPTION)
     const suit = details("suit")
-    // the heading above it:  its docstring, as a comment there would be
-    expect(suit.description).toBe(`## ${SUIT_HEADING}`)
     const line = lineOf(CARD_TEXT, SUIT)
     expect(suit.spell).toBe(CARD_TEXT.split("\n")[line - 1])
     expect(suit.compiled).toContain('declareProp("suit"')
@@ -126,71 +130,104 @@ describe("ScopeExplorer", () => {
   test("constants show on the type whose statement declared them, NOT the project", () => {
     const project = [...all(tree)].find((node) => node.path === "project:Solitaire")!
     expect(project.members.map((member) => member.name)).not.toContain("ace")
-    expect(find(tree, "ace").path).toBe("project:Solitaire/file:Card.spell/type:Card/constant:ace")
+    expect(find(tree, "ace").path).toBe("project:Solitaire/file:Card.spellx/type:Card/constant:ace")
   })
 
   test("a node lists the rules its statement made", () => {
     expect({
       "is a (suit)": details("is a (suit)").rules,
-      "turn it over": details("turn it over").rules
+      "play a card": details("play a card").rules
     }).toMatchSnapshot()
   })
+})
 
-  describe("`descriptionEdits()`", () => {
-    const service = () => explorer.service
-    const card = () => workspace.fileFor(cardUri)!
-    const deckUri = cardUri.replace(/Card\.spell$/, "Deck.spell")
-    const deck = () => workspace.fileFor(deckUri)!
-    /** The 1-based `line` of a file, as an edit's range covers it:  start to the next line's start. */
-    const wholeLine = (line: number) => ({
-      start: { line: line - 1, character: 0 },
-      end: { line, character: 0 }
-    })
-    /** The deck's one comment line above `- its "jokers" is ...`. */
-    const jokersComment = () => wholeLine(lineOf(deck().parseText, "// no jokers"))
+/**
+ * `descriptionEdits()`, which rewrites a declaration's docstring:  the comment lines above it, in CODE spell.
+ * - On a small project of its own, written here:  the examples are spellx, whose docstrings are `description=`.
+ */
+describe("ScopeExplorer `descriptionEdits()`", () => {
+  /** Its one file:  a heading docstring on the suit, a comment docstring on the jokers, and no `#` file heading. */
+  const CARDS_TEXT = [
+    'a "card" is a thing where:',
+    "\t## card suit",
+    '\t- its "suit" is one of clubs, diamonds, hearts or spades',
+    "",
+    "\t// no jokers",
+    '\t- its "jokers" is a number',
+    ""
+  ].join("\n")
+  const dir = mkdtempSync(resolve(tmpdir(), "spell-descriptions-"))
+  mkdirSync(resolve(dir, "Cards"))
+  writeFileSync(resolve(dir, "Cards", "Cards.spell"), CARDS_TEXT)
+  writeFileSync(
+    resolve(dir, "Cards", SP.PROJECT_FILE),
+    JSON.stringify({ imports: [{ path: "/Cards.spell", active: true }] })
+  )
+  const cardsUri = pathToFileURL(resolve(dir, "Cards", "Cards.spell")).href
+  const workspace = new SpellDiskWorkspace()
+  const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(workspace))
+  const service = () => explorer.service
+  const cards = () => workspace.fileFor(cardsUri)!
+  let project: SP.SpellProject
+  let tree: LSP.ScopeNode
 
-    test("replaces the comment lines above it, one `//` line per line -- indented as it is", () => {
-      const line = LSP.firstLine(details("jokers").line!)
-      expect(service().descriptionEdits(deck(), line, "the jokers\nof a deck")).toEqual([
-        { newText: "\t// the jokers\n\t// of a deck\n", range: jokersComment() }
-      ])
-    })
+  beforeAll(async () => {
+    await workspace.update(cardsUri, CARDS_TEXT)
+    project = cards().project as SP.SpellProject
+    tree = explorer.tree(project)
+  })
 
-    test("empty text removes them", () => {
-      const line = LSP.firstLine(details("jokers").line!)
-      expect(service().descriptionEdits(deck(), line, "  ")).toEqual([{ newText: "", range: jokersComment() }])
-    })
+  /** Details of the node named `name`. */
+  function details(name: string) {
+    return explorer.details(project, find(tree, name).path)!
+  }
+  /** The 1-based `line` of a file, as an edit's range covers it:  start to the next line's start. */
+  const wholeLine = (line: number) => ({
+    start: { line: line - 1, character: 0 },
+    end: { line, character: 0 }
+  })
+  /** The one comment line above `- its "jokers" is ...`. */
+  const jokersComment = () => wholeLine(lineOf(CARDS_TEXT, "// no jokers"))
 
-    test("a `##` heading docstring:  shown as markdown, and replaced keeping its level", () => {
-      const suit = details("suit")
-      expect(suit.description).toBe(`## ${SUIT_HEADING}`)
-      const line = LSP.firstLine(suit.line!)
-      expect(line).toBe(lineOf(CARD_TEXT, SUIT))
-      const heading = wholeLine(lineOf(CARD_TEXT, `## ${SUIT_HEADING}`))
-      expect(service().descriptionEdits(card(), line, "## the suit\nand the rank")).toEqual([
-        { newText: "\t## the suit\n\t// and the rank\n", range: heading }
-      ])
-      // without its `##`, it's just a comment
-      expect(service().descriptionEdits(card(), line, "the suit")).toEqual([
-        { newText: "\t// the suit\n", range: heading }
-      ])
-    })
+  test("replaces the comment lines above it, one `//` line per line -- indented as it is", () => {
+    const line = LSP.firstLine(details("jokers").line!)
+    expect(service().descriptionEdits(cards(), line, "the jokers\nof a deck")).toEqual([
+      { newText: "\t// the jokers\n\t// of a deck\n", range: jokersComment() }
+    ])
+  })
 
-    test("a file's docstring:  `#` heading comments at its top -- added as a `#` heading", () => {
-      expect(details("Card.spell").description).toBeUndefined()
-      expect(find(tree, "Card.spell").uri).toBe(cardUri)
-      const top = { line: 0, character: 0 }
-      expect(service().fileDescriptionEdits(card(), "Cards\nfor solitaire")).toEqual([
-        { range: { start: top, end: top }, newText: "# Cards\n// for solitaire\n" }
-      ])
-    })
+  test("empty text removes them", () => {
+    const line = LSP.firstLine(details("jokers").line!)
+    expect(service().descriptionEdits(cards(), line, "  ")).toEqual([{ newText: "", range: jokersComment() }])
+  })
 
-    test("`null` where no declaration starts", () => {
-      // the first blank line in the card's outline, 1-based
-      const declared = lineOf(CARD_TEXT, CARD_TYPE)
-      const blank = CARD_TEXT.split("\n").findIndex((text, index) => index >= declared && !text.trim()) + 1
-      expect(service().descriptionEdits(card(), blank, "x")).toBeNull()
-    })
+  test("a `##` heading docstring:  shown as markdown, and replaced keeping its level", () => {
+    const suit = details("suit")
+    expect(suit.description).toBe("## card suit")
+    const line = LSP.firstLine(suit.line!)
+    expect(line).toBe(lineOf(CARDS_TEXT, '- its "suit" is one of'))
+    const heading = wholeLine(lineOf(CARDS_TEXT, "## card suit"))
+    expect(service().descriptionEdits(cards(), line, "## the suit\nand the rank")).toEqual([
+      { newText: "\t## the suit\n\t// and the rank\n", range: heading }
+    ])
+    // without its `##`, it's just a comment
+    expect(service().descriptionEdits(cards(), line, "the suit")).toEqual([
+      { newText: "\t// the suit\n", range: heading }
+    ])
+  })
+
+  test("a file's docstring:  `#` heading comments at its top -- added as a `#` heading", () => {
+    expect(details("Cards.spell").description).toBeUndefined()
+    expect(find(tree, "Cards.spell").uri).toBe(cardsUri)
+    const top = { line: 0, character: 0 }
+    expect(service().fileDescriptionEdits(cards(), "Cards\nfor solitaire")).toEqual([
+      { range: { start: top, end: top }, newText: "# Cards\n// for solitaire\n" }
+    ])
+  })
+
+  test("`null` where no declaration starts", () => {
+    // the blank line in the card's outline, 1-based
+    expect(service().descriptionEdits(cards(), CARDS_TEXT.split("\n").indexOf("") + 1, "x")).toBeNull()
   })
 })
 
@@ -210,9 +247,9 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
 
   beforeAll(async () => {
     installDiskFetch()
-    lib = makeProject("lib", ["Card.spell", "Deck.spell", "Pile.spell"])
+    lib = makeProject("lib", ["Card.spellx", "Deck.spellx", "Pile.spellx"])
     await lib.compile()
-    app = makeProject("app", ["Solitaire.spell"], [{ path: lib.projectId, active: true }])
+    app = makeProject("app", ["Solitaire.spellx"], [{ path: lib.projectId, active: true }])
     await app.parse()
     // as the server does, before asking for the tree
     for (const imported of LSP.ScopeExplorer.importedProjects(app)) await imported.parse()
@@ -225,7 +262,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
 
   test("its types are from its sources:  docs and locations", () => {
     const suit = find(tree, "Card").members.find((member) => member.name === "suit")!
-    expect(find(tree, "suit").uri).toMatch(/\/lib\/Card\.spell$/)
+    expect(find(tree, "suit").uri).toMatch(/\/lib\/Card\.spellx$/)
     expect(explorer.details(app, suit.path)?.line).toBe(lineOf(CARD_TEXT, SUIT))
   })
 
@@ -234,22 +271,22 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     const fromPile = tableau.members.filter((member) => member.inheritedFrom === "Pile")
     expect(fromPile.length).toBeGreaterThan(0)
     // pointing at the members of its OWN Pile, in the imported project -- NOT the declarations-only one
-    for (const member of fromPile) expect(member.path).toMatch(/^project:lib\/file:Pile\.spell\/type:Pile\//)
-    expect(find(tree, "Tableau").super).toBe("project:lib/file:Pile.spell/type:Pile")
+    for (const member of fromPile) expect(member.path).toMatch(/^project:lib\/file:Pile\.spellx\/type:Pile\//)
+    expect(find(tree, "Tableau").super).toBe("project:lib/file:Pile.spellx/type:Pile")
     expect(explorer.details(app, fromPile[0]!.path)?.line).toBeDefined()
   })
 
   test("once tracked, the imported project's files changing on disk show next time -- as the server does", async () => {
     await disk.track(lib)
-    const cardPath = resolve(workspace, "lib", "Card.spell")
-    writeFileSync(cardPath, `${readFileSync(cardPath, "utf8")}\ncards have a weight as a number\n`)
+    const cardPath = resolve(workspace, "lib", "Card.spellx")
+    writeFileSync(cardPath, `${readFileSync(cardPath, "utf8")}\n<spell>\n\tcards have a weight as a number\n</spell>\n`)
     await disk.diskChanged(pathToFileURL(cardPath).href, "changed")
     const card = find(explorer.tree(app), "Card")
     expect(card.members.map((member) => member.name)).toContain("weight")
   })
 
   test("a compiled-only import -- no sources:  our types inherit its methods from its declarations", async () => {
-    const cards = makeProject("cards", ["Card.spell", "Deck.spell", "Pile.spell"])
+    const cards = makeProject("cards", ["Card.spellx", "Deck.spellx", "Pile.spellx"])
     await cards.compile()
     const game = makeProject("game", [], [{ path: cards.projectId, active: true }], {
       "Wildcard.spell": "a wildcard is a card\n"
@@ -261,7 +298,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     const wildcard = find(gameTree, "Wildcard")
     const fromCard = wildcard.members.filter((member) => member.inheritedFrom === "Card")
     expect(fromCard.map((member) => member.kind)).toContain("method")
-    expect(fromCard.map((member) => member.name)).toContain("turn it over")
+    expect(fromCard.map((member) => member.name)).toContain("is a face card")
     // its imported types show below the project importing them, with paths of their own -- NOT the Wildcard's
     expect(wildcard.super).toBe("project:game/type:Card")
     expect(find(gameTree, "game").children.map((child) => `${child.kind} ${child.name}`)).toContain("type Card")
@@ -276,7 +313,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     expect(projects.map((entry) => entry.path)).toEqual(["project:lib", "project:app"])
     const json = JSON.stringify(pack)
     expect(json).not.toContain("file://")
-    expect(json).toContain(`spell:/${encodeURI(lib.projectId)}/Card.spell`)
+    expect(json).toContain(`spell:/${encodeURI(lib.projectId)}/Card.spellx`)
   })
 
   /**
@@ -306,7 +343,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
 describe("ScopeExplorer scope packs", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-packs-"))
   copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
-  const cardPath = resolve(dir, "Solitaire/Card.spell")
+  const cardPath = resolve(dir, "Solitaire/Card.spellx")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
   const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(workspace))
@@ -333,7 +370,9 @@ describe("ScopeExplorer scope packs", () => {
     expect(pack.entries[0]).toEqual({ path: "project:Solitaire" })
     expect(pack.entries.every((entry) => !("children" in entry) && !("members" in entry))).toBe(true)
     const suit = pack.entries.find((entry) => entry.path.endsWith("/property:suit"))!
-    expect(suit).toMatchObject({ line: lineOf(CARD_TEXT, SUIT), description: `## ${SUIT_HEADING}` })
+    expect(suit).toMatchObject({ line: lineOf(CARD_TEXT, SUIT) })
+    const state = pack.entries.find((entry) => entry.path.endsWith("/type:Card/property:state"))!
+    expect(state.description).toBe(STATE_DESCRIPTION)
     // shown from its file and the compiled output, NOT kept in the pack
     expect(suit).not.toHaveProperty("spell")
     expect(suit).not.toHaveProperty("compiled")
@@ -342,7 +381,7 @@ describe("ScopeExplorer scope packs", () => {
   test("no `file://` URIs -- a file's own is `spell:/<file.path>`, and what's in it has none", () => {
     expect(JSON.stringify(pack)).not.toContain("file://")
     const card = workspace.fileFor(cardUri)!
-    const file = pack.entries.find((entry) => entry.path === "project:Solitaire/file:Card.spell")!
+    const file = pack.entries.find((entry) => entry.path === "project:Solitaire/file:Card.spellx")!
     expect(file.uri).toBe(`spell:/${encodeURI(card.path)}`)
     expect(pack.entries.find((entry) => entry.path.endsWith("/property:suit"))!.uri).toBeUndefined()
   })
@@ -353,7 +392,7 @@ describe("ScopeExplorer scope packs", () => {
     )
     const { tree: built, details } = LSP.scopeTreeFromPacks([builtIns, pack])
     expect(withoutUris(built)).toEqual(withoutUris(tree))
-    expect(details.get(find(tree, "Card").path)?.description).toMatch(/^The card says what its suits/)
+    expect(details.get(find(tree, "Tableau").path)?.description).toMatch(/^A column, built down from king to ace/)
   })
 
   test("a page with NO sources finds each entry's compiled code by its declarations -- all but variables", async () => {
@@ -420,7 +459,7 @@ describe("ScopeExplorer scope packs", () => {
 describe("ScopeExplorer built-in types", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-built-ins-"))
   copyFixtureProject("Solitaire", resolve(dir, "Solitaire"))
-  const cardPath = resolve(dir, "Solitaire/Card.spell")
+  const cardPath = resolve(dir, "Solitaire/Card.spellx")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
   const service = new LSP.SpellLanguageService(workspace)

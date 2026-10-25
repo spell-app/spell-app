@@ -8,10 +8,10 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
       "syntax": "{operator:is_or_is_not_a} (expression:clubs|club|diamonds|diamond|hearts|heart|spades|spade)",
     },
   ],
-  "turn it over": [
+  "play a card": [
     {
-      "name": "turn_over",
-      "syntax": "turn {thisArg:expression} over",
+      "name": "play",
+      "syntax": "play {thisArg:expression}",
     },
   ],
 }
@@ -20,41 +20,37 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
 exports[`ScopeExplorer > a type's members:  in document order, by file then line -- each with its line 1`] = `
 [
   "property rank",
+  "method is a (rank)",
   "enumeration Ranks",
   "constant ace",
   "constant jack",
   "constant queen",
   "constant king",
   "property value",
-  "method is a (rank)",
   "method is a face card",
   "method is a number card",
   "property suit",
+  "method is a (suit)",
   "enumeration Suits",
   "constant clubs",
   "constant diamonds",
   "constant hearts",
   "constant spades",
-  "method is a (suit)",
   "property color",
+  "enumeration Colors",
+  "constant red",
+  "constant black",
+  "property symbol",
   "property name",
   "method is the (rank) of (suit)",
-  "property direction",
-  "enumeration Directions",
-  "constant up",
-  "constant down",
-  "method is face (direction)",
-  "method turn it face up",
-  "method turn it face down",
-  "method turn it over",
-  "property picture",
-  "method draw it",
-  "property symbol",
   "property state",
+  "property picture",
   "property pile",
   "method play a card",
   "method put a card on a pile",
   "method count the points for a card on a pile",
+  "property direction",
+  "enumeration Directions",
   "property id",
   "method (a thing) belongs to one (list)",
   "method draw (a thing)",
@@ -115,28 +111,23 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
     property lock
     enumeration Locks
   project Solitaire
-    file Card.spell
-      type Card (is a View)
+    file Card.spellx
+      type Card (is a TwoSidedView)
       function test card setup
-      type Joker (is a Card)
-      function test jokers
-    file Deck.spell
+    file Deck.spellx
       type Deck (is a List)
-      function test deck creation
-      function test deck with jokers
-    file Pile.spell
+      function test a new deck
+    file Pile.spellx
       type Pile (is a ViewableList)
       function test piles
-    file Solitaire.spell
+    file Solitaire.spellx
       type Solitaire (is a App)
       variable solitaire (Solitaire)
       type StockPile (is a Pile)
       type DiscardPile (is a Pile)
       type Foundation (is a Pile)
       type Tableau (is a Pile)
-      function test the moves
-    constant red
-    constant black"
+      function test the moves"
 `;
 
 exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
@@ -193,22 +184,17 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
     property lock
     enumeration Locks
   project lib (imported)
-    file Card.spell
-      type Card (is a View)
+    file Card.spellx
+      type Card (is a TwoSidedView)
       function test card setup
-      type Joker (is a Card)
-      function test jokers
-    file Deck.spell
+    file Deck.spellx
       type Deck (is a List)
-      function test deck creation
-      function test deck with jokers
-    file Pile.spell
+      function test a new deck
+    file Pile.spellx
       type Pile (is a ViewableList)
       function test piles
-    constant red
-    constant black
   project app
-    file Solitaire.spell
+    file Solitaire.spellx
       type Solitaire (is a App)
       variable solitaire (Solitaire)
       type StockPile (is a Pile)

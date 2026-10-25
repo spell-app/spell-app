@@ -221,7 +221,7 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
   }, 60_000)
 })
 
-/** The fixtures that are games:  a `deck` of cards, and a `card-click` handler. */
+/** The fixtures that are games:  a `deck` of cards, each with its own click handler, `on_click`. */
 const GAMES = ["Solitaire"]
 
 /**
