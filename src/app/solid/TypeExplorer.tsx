@@ -1,6 +1,7 @@
 import { For, Show, createEffect, createMemo, createSignal, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
+import { PrefStore } from "spell/util"
 // Import directly, NOT through the `spell-app/lsp` barrel, which would pull the language service into the bundle.
 import { SCOPE_MEMBER_GROUPS, type ScopeDetails, type ScopeMember, type ScopeNode } from "spell-app/lsp/lsp.types"
 import type { ScopeOrder, TypeExplorerState } from "spell-app/app/ui/ui.types"
@@ -456,7 +457,8 @@ const OLD_STATE_KEY = "spell.typeExplorer"
  *   the runner passes `state` instead, from the project's `settings.json5`.
  */
 function loadState(): TypeExplorerState {
-  moveOldState()
+  // TODO:  drop the move once every browser has opened the editor since epic `prefs-and-undo` P3
+  PrefStore.moveOldKey(OLD_STATE_KEY, `${editorPrefs.name}:${STATE_PREF}`)
   const state = editorPrefs.get(STATE_PREF)
   return state && typeof state === "object" ? (state as TypeExplorerState) : {}
 }
@@ -464,22 +466,6 @@ function loadState(): TypeExplorerState {
 /** Remember `state` -- see `loadState()`. */
 function saveState(state: TypeExplorerState): void {
   editorPrefs.set(STATE_PREF, state)
-}
-
-/**
- * Move the state from its old key (`OLD_STATE_KEY`) to `STATE_PREF`, once:  read raw, as React wrote it.
- * - NEVER throws:  blocked storage, or a state it can't read, starts afresh.
- * - TODO:  drop once every browser has opened the editor since epic `prefs-and-undo` P3
- */
-function moveOldState(): void {
-  try {
-    const old = localStorage.getItem(OLD_STATE_KEY)
-    if (old === null) return
-    localStorage.removeItem(OLD_STATE_KEY)
-    if (!editorPrefs.has(STATE_PREF)) editorPrefs.set(STATE_PREF, JSON.parse(old))
-  } catch {
-    // blocked storage, or an unreadable state:  start afresh
-  }
 }
 
 /** `items` as a list, with `item` added if it wasn't there, else removed. */
