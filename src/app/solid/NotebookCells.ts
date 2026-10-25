@@ -228,13 +228,13 @@ export type PropertyForm = {
 // ## Helpers
 ////////////////
 
-/** `text` with `span` replaced by `replacement`. */
-function replaceSpan(text: string, span: SX.SpellxSpan, replacement: string): string {
+/** `text` with `span` replaced by `replacement`.  Shared with the notebook page's cells (`NotebookPageCells`). */
+export function replaceSpan(text: string, span: SX.SpellxSpan, replacement: string): string {
   return text.slice(0, span.start) + replacement + text.slice(span.end)
 }
 
 /** The whitespace `offset`'s line starts with, up to `offset`. */
-function indentAt(text: string, offset: number): string {
+export function indentAt(text: string, offset: number): string {
   const lineStart = text.lastIndexOf("\n", offset - 1) + 1
   return /^[ \t]*/.exec(text.slice(lineStart, offset))![0]
 }
@@ -291,7 +291,7 @@ class HeadingLevels {
 }
 
 /** `code` with `indent` taken off every line after the first that starts with it. */
-function dedented(code: string, indent: string): string {
+export function dedented(code: string, indent: string): string {
   if (!indent) return code
   return code
     .split("\n")
@@ -300,7 +300,7 @@ function dedented(code: string, indent: string): string {
 }
 
 /** `code` with `indent` put on every non-empty line after the first. */
-function indented(code: string, indent: string): string {
+export function indented(code: string, indent: string): string {
   if (!indent) return code
   return code
     .split("\n")

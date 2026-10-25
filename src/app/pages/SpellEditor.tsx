@@ -32,6 +32,7 @@ import { editorPrefs } from "spell-app/app/editorPrefs"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
 import { RunnerPane, type RunnerTab } from "spell-app/app/runner/RunnerPane"
+import { NotebookPage } from "spell-app/app/solid/notebook/NotebookPage"
 import { editorHotkeys } from "./editorHotkeys"
 import { followRoute } from "./followRoute"
 import type { EditorPage } from "./pages.types"
@@ -90,10 +91,14 @@ export function SpellEditor(props: { mode: Mode }) {
  * - The program's mount point (`<AppRoot>`) is drawn once, and never redrawn.
  * - Its body is the area the Inspector picks parts in (`Inspector.watch()`).
  * - Shown in every mode, Run's too:  the page keeps it as the code column comes and goes.
+ * - A NOTEBOOK's project (a `.spellx` file holding a `<spell-notebook>`, epic `elemental-spell` P16) shows its page
+ *   instead, editable in place (`<NotebookPage>`):  the program still runs in its mount point, out of sight, its
+ *   classes and its notebook what the page's cells draw with.
  ****************/
 export function AppPane() {
   const root = trackProjectRoot(() => undefined)
   const title = tracked(() => (editor.project ? new SP.SpellProject(editor.project.path).title : ""))
+  const notebook = tracked(() => notebookOf(editor.project))
   return (
     <div class="AppPane">
       <header class="AppPaneHeader">
@@ -107,7 +112,12 @@ export function AppPane() {
         <Actions.showProjectSettings iconOnly />
       </header>
       <div class="AppPaneBody" ref={(area) => onCleanup(Inspector.watch(area))}>
-        <AppRoot showToolbar={false} />
+        <div class={["AppPaneProgram", { hidden: !!notebook() }]}>
+          <AppRoot showToolbar={false} />
+        </div>
+        <Show when={notebook()} keyed>
+          {(file) => <NotebookPage file={file} project={editor.project!} />}
+        </Show>
       </div>
     </div>
   )
@@ -188,6 +198,18 @@ export function ProgramPanel(props: { onClose: () => void }) {
     editorPrefs.set(TAB_PREF, id)
   }
 }
+
+/**
+ * `project`'s notebook, if it's one:  its first `.spellx` file holding a `<spell-notebook>` (`<encanto-cuaderno>`).
+ * - Read from the files' text, so the page shows as soon as the project's loaded.
+ */
+function notebookOf(project: SP.SpellProject | undefined): SP.SpellFile | undefined {
+  if (!project?.isLoaded) return undefined
+  return project.spellFiles.find((file) => file.form === "spellx" && NOTEBOOK_TAG.test(file.contents ?? ""))
+}
+
+/** A notebook's tag, at a line's start:  `<spell-notebook`, Spanish's `<encanto-cuaderno`. */
+const NOTEBOOK_TAG = /^[ \t]*<(?:spell-notebook|encanto-cuaderno)\b/m
 
 /**
  * The page's columns and the preference that remembers their sizes, for each set of panes:

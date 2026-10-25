@@ -23,7 +23,21 @@
     display: flex;
     flex-direction: column;
   }
-  & > .AppPaneBody > .AppRoot {
+  & > .AppPaneBody > .AppPaneProgram {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  /* a notebook's program runs out of sight:  its page shows instead (`<NotebookPage>`) */
+  & > .AppPaneBody > .AppPaneProgram.hidden {
+    display: none;
+  }
+  & > .AppPaneBody > .AppPaneProgram > .AppRoot {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  & > .AppPaneBody > .NotebookPage {
     flex: 1 1 auto;
     min-height: 0;
   }

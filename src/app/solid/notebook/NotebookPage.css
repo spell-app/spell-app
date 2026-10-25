@@ -1,0 +1,178 @@
+/*
+ * A notebook's page (`<NotebookPage>`, epic `elemental-spell` P16):  a sticky toolbar, then the page and its
+ * "On this page" column.  The page scrolls inside its pane;  the toolbar stays at its top.
+ */
+
+.NotebookPage {
+  --notebook-gutter: 16px;
+  --notebook-width: 46rem;
+  --notebook-ring: rgb(150 80 255 / 0.55);
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  background: var(--ui-page-background, var(--ui-surface, white));
+  color: var(--ui-text-color, inherit);
+}
+
+/* ## The toolbar:  stuck to the top, groups wrapping on a narrow pane */
+
+.NotebookToolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 8px var(--notebook-gutter);
+  background: color-mix(in oklab, var(--ui-surface, white) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--ui-border-color, rgb(34 36 38 / 0.15));
+}
+
+.NotebookToolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.NotebookToolbarGroup.end {
+  margin-inline-start: auto;
+}
+
+.NotebookToolbarLabel,
+.NotebookStatus {
+  font-size: 0.85em;
+  color: var(--ui-text-color-muted, rgb(0 0 0 / 0.6));
+}
+
+.NotebookStatus.tryout {
+  color: var(--ui-orange, #f2711c);
+}
+
+/* ## The page and its contents */
+
+.NotebookColumns {
+  display: grid;
+  grid-template-columns: minmax(0, var(--notebook-width)) 12rem;
+  justify-content: center;
+  gap: 32px;
+  padding: 24px var(--notebook-gutter) 64px;
+}
+
+.NotebookMain {
+  min-width: 0;
+}
+
+.NotebookToc {
+  position: sticky;
+  top: 72px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9em;
+}
+
+.NotebookTocTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.NotebookTocLink {
+  color: var(--ui-link-color, #4183c4);
+  text-decoration: none;
+}
+
+/* the contents column goes on a narrow pane:  the page alone, full width */
+@media (max-width: 760px) {
+  .NotebookColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .NotebookToc {
+    display: none;
+  }
+}
+
+.NotebookMasthead h1 {
+  margin: 0 0 8px;
+  font-size: 2em;
+  line-height: 1.2;
+}
+
+.NotebookLead {
+  font-size: 1.15em;
+  color: var(--ui-text-color-muted, rgb(0 0 0 / 0.7));
+}
+
+.NotebookSection {
+  margin-top: 24px;
+}
+
+/* ## Cells */
+
+.NotebookCell {
+  position: relative;
+  margin: 12px 0;
+  border-radius: var(--ui-radius-m, 0.5em);
+}
+
+/* in edit mode, the selected cell:  a focus ring a little out from its edges */
+.NotebookCell.selected {
+  outline: 2px solid var(--notebook-ring);
+  outline-offset: 6px;
+}
+
+.NotebookCellLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--ui-text-color-muted, rgb(0 0 0 / 0.6));
+}
+
+.NotebookCode {
+  border: 1px solid var(--ui-border-color, rgb(34 36 38 / 0.15));
+  border-radius: var(--ui-radius-m, 0.5em);
+  overflow: hidden;
+  padding: 6px 0;
+}
+
+.NotebookCodeLoading {
+  margin: 0;
+  padding: 0 12px;
+  font: 13px / 20px var(--ui-font-mono, monospace);
+  white-space: pre;
+}
+
+.NotebookResult {
+  display: block;
+}
+
+.NotebookExampleCode {
+  display: block;
+}
+
+.NotebookExampleCode .NotebookCode {
+  border: 0;
+  border-radius: 0;
+}
+
+.NotebookExampleBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 8px 0;
+}
+
+.NotebookErrors {
+  margin: 6px 0 0;
+  padding: 6px 12px;
+  list-style: none;
+  border-radius: var(--ui-radius-m, 0.5em);
+  background: color-mix(in oklab, var(--ui-red, #db2828) 10%, transparent);
+  color: var(--ui-red, #db2828);
+  font: 12px / 18px var(--ui-font-mono, monospace);
+}

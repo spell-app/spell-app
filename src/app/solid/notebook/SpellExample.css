@@ -1,0 +1,39 @@
+/*
+ * The style sheet of `<spell-example>`:  a notebook's example, framed as a component page's examples are.
+ * - Its shadow DOM:  `<section class="SpellExample" part="example">` holding its title, the result box round the
+ *   default slot, then the `code` slot.
+ */
+
+:host {
+  display: block;
+  margin: 1em 0;
+}
+
+.SpellExample {
+  border: var(--ui-border-width, 1px) solid var(--ui-border-color, rgb(34 36 38 / 0.15));
+  border-radius: var(--ui-radius-l, 0.75em);
+  background: color-mix(in oklab, var(--ui-surface, white) 45%, transparent);
+  overflow: hidden;
+}
+
+.title {
+  padding: 0.6em 1em 0;
+  font-weight: 600;
+  color: var(--ui-text-color-muted, rgb(0 0 0 / 0.6));
+  font-size: 0.85em;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.result {
+  padding: 1em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75em;
+  align-items: center;
+}
+
+::slotted([slot="code"]) {
+  display: block;
+  border-top: var(--ui-border-width, 1px) solid var(--ui-border-color, rgb(34 36 38 / 0.15));
+}

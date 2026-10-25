@@ -19,11 +19,12 @@ const ENTRIES: Record<string, () => Promise<unknown>> = {
 }
 
 describe("spell's project groups", () => {
-  test("are the five groups, each an address in its space", () => {
+  test("are the six groups, each an address in its space", () => {
     expect(SPACES.PROJECT_GROUPS.map(({ path, space }) => [path, space])).toEqual([
       ["owen@spell", "owen@spell"],
       ["@spell/examples", "@spell"],
       ["@spell/guides", "@spell"],
+      ["@spell/notebooks", "@spell"],
       ["@spell/library", "@spell"],
       ["@spell/test", "@spell"]
     ])
