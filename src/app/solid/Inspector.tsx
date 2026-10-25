@@ -928,7 +928,7 @@ function PropertiesCard(): JSX.Element {
                       label={appTexts.text(`inspectorGroup.${section.group}` as AppTextKey)}
                       collapsible=""
                       // `"false"` folds it;  a bare `false` is written as no attribute, which is open (the default)
-                      open={(Inspector.isGroupFolded(section.group) ? "false" : undefined) as unknown as boolean}
+                      open={Inspector.isGroupFolded(section.group) ? "false" : undefined}
                       ref={(group) => {
                         on("ui-closing", () => Inspector.setGroupFolded(section.group, true))(group)
                         on("ui-opening", () => Inspector.setGroupFolded(section.group, false))(group)
