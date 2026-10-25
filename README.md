@@ -5,28 +5,28 @@
 _Task List in the Spell editor:  the program on the left, the app it makes on the right, running._
 
 The left half of that picture is the program.
-Here is what a task is, the seven lines at the top of its file, their comments left out:
+Here is what a task is, the seven lines at the top of its file, their descriptions left out:
 
-```spell
-a "task" is a view where:
-	- its "title" is text
-	- its "notes" is text
-	- its "priority" is one of low, normal or high
-	- its "done" is yes or no
-	- it "is done" if its done is yes
-	- it "is active" if its done is no
+```html
+<spell-view "task">
+	<property "title">text</>
+	<property "notes">text</>
+	<property "priority" one-of="low, normal or high" />
+	<property "done">yes or no</>
+	<alias "is done">if its done is yes</>
+	<alias "is active">if it is not done</>
 ```
 
 Read them once, and you know what a task is in this app:
 it has a title, notes and a priority, it's done or it isn't, and "done" and "active" are two ways of saying which.
-Change a sentence, and two seconds after you stop typing the app on the right follows,
+Change a line, and two seconds after you stop typing the app on the right follows,
 with the same tasks in it, ticked or not, drawn by the new version.
 
 Spell's editor is a place to make real software for people who don't call themselves programmers.
 You write a program in plain English, or ask an AI to write it, and it runs beside the text as you type.
 
 What the AI made isn't a black box.
-It's sentences like those seven, on the left, beside the app they make on the right:
+It's lines like those seven, on the left, beside the app they make on the right:
 read one and you know what the app does;  change one and watch the app change.
 
 <details>
@@ -36,6 +36,7 @@ read one and you know what the app does;  change one and watch the app change.
 export class Task extends View {
   static elementTag = core.defineElement(this, "TaskList")
 
+  /** What to do */
   // - its "title" is text
   static { this.declareProp("title", { type: "text" }) }
   get title() { return this.getProp("title") }
@@ -54,21 +55,19 @@ export class Task extends View {
   get done() { return this.getProp("done") }
   set done(value) { this.setProp("done", value) }
 
-  /** "task is done" */
   get isDone() {
     return this.done
   }
 
-  /** "task is active" */
   get isActive() {
-    return !this.done
+    return !this.isDone
   }
 }
 ```
 
 - Real output:  `spell compile @spell/examples/TaskList --stdout`, trimmed to those seven lines.
 - `view` makes each task an element of its own on the page, `<task-list-task>`:  that's `elementTag`.
-- The whole Task List is 144 lines of Spell in two files, and about 270 of JavaScript, its styles among them.
+- The whole Task List is 141 lines of Spell in two files, and about 260 of JavaScript, its styles among them.
 - The editor shows it too, under the app, and you never have to read it.
 
 </details>
@@ -95,7 +94,7 @@ in the editor's address bar, on the command line, or inside another project that
 | Address | What it names |
 | --- | --- |
 | `@spell/examples/TaskList` | Task List above, in Spell's own space |
-| `@spell/examples/TaskList/TaskList.spell` | one file of it |
+| `@spell/examples/TaskList/TaskList.spellx` | one file of it |
 | `@spell/library/people` | a library:  a project other projects use, here people |
 | `owen@spell/errors` | a project in a person's own space |
 
@@ -183,8 +182,9 @@ Each step in detail, with the code behind it:  [the editor's page](README-app.md
 
 All of this runs now, on your own machine.
 
-- **Write in sentences, or in outlines.**  The Calculator is sentences;  Task List and the person above are outlines.
-  [Solitaire](spaces/@spell/examples/Solitaire/) is a whole card game written that way, its cards, deck and piles too.
+- **Write in sentences, in outlines, or in tags.**  The Calculator is sentences;  the person above is an outline;
+  Task List is spellx, Spell in tags, and so is [Solitaire](spaces/@spell/examples/Solitaire/),
+  a whole card game, its cards, deck and piles too.
 - **See mistakes as you type.**  On a line Spell can't read at all, it offers to teach Spell the phrase:
   "Define `to <phrase>`".
   The same checker runs in VS Code and on the command line ([the language server](README-lsp.md)).
@@ -292,7 +292,7 @@ Bill Splitter, a form whose sums follow every keystroke;
 Flash Cards, a deck of Spanish words to quiz yourself on;
 Habit Tracker, a week of checkboxes for each habit;
 Task List, at the top of this page, and Lista de tareas, the same list in Spanish;
-and Klondike solitaire, written in outlines, every card a piece of the page of its own;
+and Klondike solitaire, written in spellx, every card a piece of the page of its own;
 and Solitario, the same game in Spanish.
 A library comes with them, of people, for your own projects to build on.
 

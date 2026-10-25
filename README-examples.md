@@ -1,13 +1,15 @@
 # The example apps, and ideas for yours
 
-```spell
-// a tableau:  a column, built down from king to ace, red and black in turn
-a "tableau" is a pile where:
-	- it can give up a card if: the card is face up
-	- it can take a card if:
-		if it is empty
-			return the card is a king
-		return its color is not the color of the card and its value is the value of the card + 1
+```html
+<spell-view "tableau" template="pile" description="A column, built down from king to ace, red and black in turn">
+	<property "layout">vertical</>
+	<spell>
+		- it can give up a card if: the card is face up
+		- it can take a card if:
+			if it is empty
+				return the card is a king
+			return its color is not the color of the card and its value is the value of the card + 1
+	</spell>
 ```
 
 _Real Spell, from the Solitaire example:  the rule for one column of Klondike._
@@ -40,9 +42,9 @@ its program on the left, the app it makes on the right, and the JavaScript it co
 | Bill Splitter | [`@spell/examples/bill-splitter`](spaces/@spell/examples/bill-splitter/) | Who owes what after a meal:  a form of people and what each ordered, a tip shared out the same way, and sums that follow every keystroke | <a href="docs/images/examples/bill-splitter.png"><img src="docs/images/examples/bill-splitter.png" width="360" alt="Bill Splitter open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Flash Cards | [`@spell/examples/flash-cards`](spaces/@spell/examples/flash-cards/) | A deck of Spanish words to quiz yourself on:  a card turns over on a click, you say whether you knew it, and a score keeps count | <a href="docs/images/examples/flash-cards.png"><img src="docs/images/examples/flash-cards.png" width="360" alt="Flash Cards open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Habit Tracker | [`@spell/examples/habit-tracker`](spaces/@spell/examples/habit-tracker/) | A week of checkboxes per habit:  each habit its own element with a form of its own, its days done and its longest streak worked out as you tick | <a href="docs/images/examples/habit-tracker.png"><img src="docs/images/examples/habit-tracker.png" width="360" alt="Habit Tracker open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
-| Task List | [`@spell/examples/TaskList`](spaces/@spell/examples/TaskList/) | A to-do list in the outline style:  each task its own element, with Spell UI's controls;  `where` filters it, and a click selects tasks (shift and command for more) for a property editor that changes them all at once | <a href="docs/images/examples/TaskList.png"><img src="docs/images/examples/TaskList.png" width="360" alt="Task List open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Task List | [`@spell/examples/TaskList`](spaces/@spell/examples/TaskList/) | A to-do list in spellx, Spell in tags:  each task its own element, with Spell UI's controls;  a toolbar of actions filters it, ticking the one it shows, and a click selects tasks (shift and command for more) for a property editor that changes them all at once | <a href="docs/images/examples/TaskList.png"><img src="docs/images/examples/TaskList.png" width="360" alt="Task List open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Lista de tareas | [`@spell/examples/ListaDeTareas`](spaces/@spell/examples/ListaDeTareas/) | Task List's Spanish twin:  a to-do list in the outline style, in Spanish, each task its own element with Spell UI's controls, a click selecting tasks for a property editor that changes them all at once | <a href="docs/images/examples/ListaDeTareas.png"><img src="docs/images/examples/ListaDeTareas.png" width="360" alt="Lista de tareas open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
-| Solitaire | [`@spell/examples/Solitaire`](spaces/@spell/examples/Solitaire/) | Klondike solitaire in the outline style:  its own cards, deck and piles (`Card`, `Deck`, `Pile`), then the game, its kinds of piles (`a "tableau" is a pile where:`), their moves, layout and CSS;  `pause for` animates the deal | <a href="docs/images/examples/Solitaire.png"><img src="docs/images/examples/Solitaire.png" width="360" alt="Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
+| Solitaire | [`@spell/examples/Solitaire`](spaces/@spell/examples/Solitaire/) | Klondike solitaire in spellx, Spell in tags:  its own cards, deck and piles, each its own element;  the card a two sided view, the game's moves its actions, with keys and a right-click menu;  `pause for` animates the deal | <a href="docs/images/examples/Solitaire.png"><img src="docs/images/examples/Solitaire.png" width="360" alt="Solitaire open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | Solitario | [`@spell/examples/Solitario`](spaces/@spell/examples/Solitario/) | Solitaire's Spanish twin:  Klondike in the outline style, in Spanish, with its own cards, deck and piles (`Carta`, `Mazo`, `Pila`), as Solitaire has | <a href="docs/images/examples/Solitario.png"><img src="docs/images/examples/Solitario.png" width="360" alt="Solitario open in the Spell editor:  its Spell on the left, the app running on the right"></a> |
 | People | [`@spell/library/people`](spaces/@spell/library/people/) | People, orgs, notes and relationships, each saved in a readable JSON5 file;  compiled to TypeScript for the app's "You" panel and the people store | a library:  no app of its own |
 
@@ -76,7 +78,7 @@ spell app serve @spell/examples/calculator
 The table and its pictures come from the example projects, so a new example shows up by running one command.
 Everything else on this page is written by hand.
 
-1. Make the project in `spaces/@spell/examples/<name>/`:  a `__project.json5` and its `.spell` files.
+1. Make the project in `spaces/@spell/examples/<name>/`:  a `__project.json5` and its `.spell` or `.spellx` files.
    `spell app create <name> --in spaces/@spell/examples` writes a first one.
 2. Give its project file a `"description"`:  one line of what it shows.
    - Without one, the table takes the first comment of its first Spell file.
@@ -292,50 +294,62 @@ _From Tic-Tac-Toe:  a phrase with three blanks, which the game says eight times,
 ## Task List:  things that draw themselves, a list, and a property editor
 
 Every framework has its to-do list, and this is Spell's:
-[Task List](spaces/@spell/examples/TaskList/), 147 lines of Spell in two files, and a style sheet.
-- [Task.spell](spaces/@spell/examples/TaskList/Task.spell):  what a task is, and how it draws.
-- [TaskList.spell](spaces/@spell/examples/TaskList/TaskList.spell):  the list of tasks, then the app around it.
+[Task List](spaces/@spell/examples/TaskList/), 141 lines of Spell in two files, and a style sheet.
+- [Task.spellx](spaces/@spell/examples/TaskList/Task.spellx):  what a task is, and how it draws.
+- [TaskList.spellx](spaces/@spell/examples/TaskList/TaskList.spellx):  the list of tasks, then the app around it.
 
-It's written in the OUTLINE style:  a heading line, then what's true of it, as bullets.
+It's written in spellx, Spell in tags:  a tag for each template, and inside it a tag for each property, alias and drawing,
+with Markdown around them for a person to read
+([the spellx page](https://github.com/spell-app/spell-parser/blob/main/README-spellx.md)).
 First, what a task IS:
 
-```spell
-a "task" is a view where:
-	- its "title" is text
-	- its "notes" is text
-	- its "priority" is one of low, normal or high
-	- its "done" is yes or no
-	- it "is done" if its done is yes
-	- it "is active" if its done is no
-	- its "priority color" is:
-		red if its priority is high
-		grey otherwise
-	- it can be selected
-	- it can be dragged
+```html
+<spell-view "task">
+	<property "title" description="What to do">text</>
+	<property "notes" description="Anything else about it">text</>
+	<property "priority" one-of="low, normal or high" />
+	<property "done">yes or no</>
+	<alias "is done">if its done is yes</>
+	<alias "is active">if it is not done</>
+
+	## On the page
+	A click selects it;  shift and command (ctrl) select more,
+	so the property editor beside the list changes them all at once.
+	Its grip drags it to another place in its list, the selected ones with it.
+	<spell>
+		- it can be selected
+		- it can be dragged
+	</spell>
 ```
 
-- `a "task" is a view` declares a new template;  each `its` line gives it a property, with its kind.
-- `one of low, normal or high` is a choice of three values.
+- `<spell-view "task">` declares a new template;  each `<property>` gives it a property, with its kind.
+- `one-of="low, normal or high"` is a choice of three values.
 - The aliases are new ways to talk about a task:  later lines can say `where it is active`.
-- `view` makes each task an element of its own on the page, `<task-list-task>`.
-- `it can be selected`:  a click selects a task, and shift or command (ctrl) selects more.
-- `it can be dragged`:  by its grip, to another place in its list (below).
+- A view makes each task an element of its own on the page, `<task-list-task>`.
+- A `<spell>` block holds plain Spell, here two outline bullets:
+  - `it can be selected`:  a click selects a task, and shift or command (ctrl) selects more.
+  - `it can be dragged`:  by its grip, to another place in its list (below).
 
 Then how a task draws, with [Spell UI](https://github.com/spell-app/spell-ui/blob/main/README.md)'s elements:
 a form of its own, bound to the task.
 
-```spell
-- to draw it:
-	return <ui-form value={it}>
-		<div part="row">
-			<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
-			<ui-checkbox name="done" aria-label="Done"/>
-			<ui-input part="title" name="title" aria-label="Task" transparent/>
-			<ui-label part="priority" size="tiny" color={its priority color}>{its priority}</ui-label>
-		</div>
-	</ui-form>
+```html
+<draw description="A form of its own, bound to it:  checking the box, or typing a title, changes the task">
+	<html>
+		<ui-form value={it}>
+			<div part="row">
+				<ui-icon part="grip" name="grip vertical" aria-label="Drag"/>
+				<ui-checkbox name="done" aria-label="Done"/>
+				<ui-input part="title" name="title" aria-label="Task" appearance="transparent"/>
+				<ui-label part="priority" size="tiny" color={"red" if its priority is high otherwise "grey"}>{its priority}</ui-label>
+			</div>
+		</ui-form>
+	</html>
+</draw>
 ```
 
+- `<html>` draws its markup exactly as written, Spell UI's elements and the web's own `<div>`;
+  Spell goes inside the braces, `{its priority}`.
 - There's no change handler anywhere.
   The form is bound to the task (`value={it}`):
   each named field shows its task's property, and writes it back as you type or tick.
@@ -344,20 +358,30 @@ a form of its own, bound to the task.
 
 Then the list, which decides which tasks to show:
 
-```spell
-a "checklist" is a viewable list of tasks where:
-	- its "showing" is one of all, active or done
-	- its items can be reordered immediately
-	- to draw each item:
-		if its showing is "active" and the task is done return nothing
-		if its showing is "done" and the task is active return nothing
-		return draw the task
-	- to draw its placeholder:
-		return <div part="placeholder">Nothing to do</div>
+```html
+<spell-view "checklist" template="viewable list of tasks">
+	<property "showing" one-of="all, active or done"
+		description="What it shows:  every task, the ones still to do, or the ones done"
+		alias="is showing (showing)"
+	/>
+
+	<spell>
+		// on the page, its tasks can be dragged to another place:  they move as the pointer does, gliding there
+		- its items can be reordered immediately
+		// each task, unless the filter hides it
+		- to draw each item:
+			if it is showing active and the task is done return nothing
+			if it is showing done and the task is active return nothing
+			return draw the task
+	</spell>
+	<draw "placeholder" description="What it shows while it's empty">
+		<text part="placeholder">Nothing to do</text>
+	</draw>
 ```
 
 - A viewable list is an element too, `<task-list-checklist>`, around its tasks' elements.
 - Each task draws itself;  the list only says which to leave out, and what to show when it's empty.
+- `alias="is showing (showing)"` lets a line ask `it is showing active`, one alias for each of its three values.
 - `its items can be reordered immediately`:  drag a task, and it moves as the pointer goes, dimmed, each task gliding
   to its new place.
   - Without `immediately`, it stays put while a blue line shows where it would go:
@@ -374,18 +398,23 @@ export class Checklist extends ViewableList {
   static elementTag = core.defineElement(this, "TaskList")
 
   // ... its showing:  all, active or done
+  isShowingShowing(showing) {
+    return this.showing === showing
+  }
 
   // each task, unless the filter hides it
   drawEachItem(item) {
-    if (this.showing == "active" && item.isDone) return undefined
-    if (this.showing == "done" && item.isActive) return undefined
+    if (this.isShowingShowing("active") && item.isDone) return undefined
+    if (this.isShowingShowing("done") && item.isActive) return undefined
     return core.drawThing(item)
   }
 
-  // empty:  says so
+  // What it shows while it's empty
   drawItsPlaceholder() {
-    return h("div", { part: "placeholder" }, "Nothing to do")
+    return h("ui-text", { part: "placeholder" }, "Nothing to do")
   }
+
+  static reorderItemsAfter = 0
 
   static exclusive = true
 }
@@ -393,27 +422,36 @@ export class Checklist extends ViewableList {
 
 - Trimmed from `spell compile @spell/examples/TaskList --stdout`.
 - The two aliases became getters on the task, `isDone` and `isActive`:  `the task is done` reads `item.isDone`.
+- `is showing (showing)` became one method with the blank as its argument, `isShowingShowing("active")`.
+- `static reorderItemsAfter = 0` is `immediately`:  no wait before a dragged task moves.
 - `static exclusive` is the line `a task belongs to one checklist`:  a task is in one checklist at a time.
 
 </details>
 
-And last, the app:  `task list is an app`, with its tasks, the new task's field, and what its buttons do.
+And last, the app:  `<spell-app "task list">`, with its checklist, the new task's field, and its actions.
 
-```spell
-- to add the draft:
+```html
+<action "add the draft" description="The draft, as a new task at the end of the list;  the field empties">
 	if its draft is "" return
-	add (a new task with title = its draft, priority = normal) to its tasks
+	add (a new task with title = its draft, priority = normal) to its checklist
 	clear its draft
+</action>
 
-- to remove the done tasks:
-	remove tasks in its tasks where it is done
+<group "filter" description="Which tasks the list shows:  the toolbar ticks the one it's showing"/>
+<action "show all" icon="list" selected-when="its checklist is showing all">set the showing of its checklist to all</>
+<action "show to do" icon="square outline" selected-when="its checklist is showing active">set the showing of its checklist to active</>
+<action "show done" icon="check square outline" selected-when="its checklist is showing done">set the showing of its checklist to done</>
+<action "remove the done tasks" icon="trash alternate outline">remove tasks in its checklist where it is done</>
 ```
 
+- An action's body is plain Spell, its steps one a line.
+- `icon` and `selected-when` are how a toolbar shows it:  a button with that icon, ticked while the line is true.
+
 How it draws:
-- a menu across the top:  how many tasks are left to do, then four icon buttons, each with a tooltip:
-  All, To do, Done, and Remove the done tasks
+- a toolbar across the top:  its title, how many tasks are left to do,
+  then the tasks menu's actions as icon buttons, the filter it's showing ticked
 - the new task's field, and its Add button, which stays disabled while the field is empty
-- the list, and beside it a property editor, `<ui-property-editor>`, bound to `the selection of its tasks`
+- the list, and beside it a property editor, `<ui-property-editor>`, bound to `the selection of its checklist`
 
 The property editor edits every selected task at once.
 Select three tasks, set the priority to high, and all three change;
@@ -436,7 +474,7 @@ flowchart LR
 
 _The app keeps a checklist of tasks;  each task draws its own form, and the property editor changes the selected ones._
 
-Its tests are written in Spell, at the bottom of each file:
+Its tests are written in Spell, a `<test>` inside the template each one tests:
 
 ```sh
 spell test @spell/examples/TaskList
@@ -447,10 +485,9 @@ spell test @spell/examples/TaskList
 
 ```text
 ✓ Compiling @spell/examples/TaskList
-✓ test tasks  (2 checks)
 ✓ test the filter  (1 check)
 
-2 passed
+1 passed
 ```
 
 </details>
@@ -464,7 +501,7 @@ _Task List in the editor:  the first task is ticked, because the program makes i
 
 ### Lista de tareas:  the same list, in Spanish
 
-[Lista de tareas](spaces/@spell/examples/ListaDeTareas/) is Task List written in Spanish, line for line,
+[Lista de tareas](spaces/@spell/examples/ListaDeTareas/) is Task List written in Spanish, in the outline style,
 as Solitario is Solitaire (below):  its own `tarea`, in `Tarea.es.spell`.
 
 ```spell
@@ -477,7 +514,7 @@ una "tarea" es una cosa dibujable donde:
 	- "está pendiente" si su hecha es no
 ```
 
-_A task, in Spanish:  the same seven lines, their comments left out._
+_A task, in Spanish:  the seven lines of Task List's task, as an outline, their comments left out._
 
 - Its tests are the same two, in Spanish:  `spell test @spell/examples/ListaDeTareas` runs them.
 - It draws with Spell UI's Spanish tags (`<es-formulario>`, `<es-casilla>`), and its menu says "3 pendientes".
@@ -486,37 +523,43 @@ _A task, in Spanish:  the same seven lines, their comments left out._
 
 _Lista de tareas in the editor:  the same list, its words in Spanish._
 
-## Solitaire:  a game in outlines, and things that draw themselves
+## Solitaire:  a game in spellx, and things that draw themselves
 
-Klondike in four files, written in the outline style, as Task List is.
+Klondike in four files, written in spellx, as Task List is.
 Its cards, its deck and its piles are its own files, before the game, in its project file's order:
 
 ```json5
-[{ "path": "/Card.spell" }, { "path": "/Deck.spell" }, { "path": "/Pile.spell" }, { "path": "/Solitaire.spell" }]
+[{ "path": "/Card.spellx" }, { "path": "/Deck.spellx" }, { "path": "/Pile.spellx" }, { "path": "/Solitaire.spellx" }]
 ```
 
 _From [its project file](spaces/@spell/examples/Solitaire/__project.json5), shortened:  each file sees the ones before it._
 
-So [Solitaire.spell](spaces/@spell/examples/Solitaire/Solitaire.spell) is only the game:
-the solitaire itself, how a click plays a card, and its kinds of pile, each saying what it may take or give up.
+So [Solitaire.spellx](spaces/@spell/examples/Solitaire/Solitaire.spellx) is only the game:
+the solitaire itself, how a click or a drag plays a card, and its kinds of pile, each saying what it may take or give up.
 
-```spell
-solitaire is an app where:
-	- its "score" is a number
-	- its "deck" is a new deck
+```html
+<spell-app "solitaire">
+	<property "score">a number</>
+	<property "hint" description="What the card being dragged would add to the score, e.g. (+10):  shown beside it">text</>
+	<property "deck">a new deck</>
 
-	// one of each pile, made with the solitaire
-	- its "stock" is a new stock pile with name = "stock"
-	- its "discards" is a new discard pile with name = "discards"
-	- its "clubs" is a new foundation with name = "clubs", suit = clubs
+	<group "piles" description="One of each, made with the solitaire"/>
+	<property "stock">a new stock pile with name = "stock"</>
+	<property "discards">a new discard pile with name = "discards"</>
+	<property "clubs">a new foundation with name = "clubs", suit = clubs</>
 ```
 
-- The same sentences as the Calculator's, without "a solitaire" at the start of every line.
-- It isn't a second language:  the bullets are more ways to write the same rules
-  ([the language, sentence by sentence](https://github.com/spell-app/spell-parser/blob/main/README-spell.md)).
-- `##` lines are headings, as in Markdown:  comments a person reads, which the editor shows in bold.
-- [Card.spell](spaces/@spell/examples/Solitaire/Card.spell) says what its suits, ranks and colors are:
-  `suit = clubs` reads one, and a foundation draws its suit's `symbol`, which the card defines.
+- The same sentences as the Calculator's, each in a tag of its own, without "a solitaire" at the start of every line.
+- It isn't a second language:  the tags are more ways to write the same rules
+  ([the language, sentence by sentence](https://github.com/spell-app/spell-parser/blob/main/README-spell.md)),
+  and a `<spell>` block inside one is plain Spell.
+- `<group>` tags and `##` lines are headings:  for a person to read, which the editor shows in bold.
+- [Card.spellx](spaces/@spell/examples/Solitaire/Card.spellx) says what its suits, ranks and colors are:
+  `suit = clubs` reads one, and a foundation draws its suit's ace, by the card's `picture`.
+- The card is a `two sided view` ([Card.spellx](spaces/@spell/examples/Solitaire/Card.spellx)):
+  its direction, face up or down, and `turn it over` come from that built-in template,
+  so the card draws only its `<draw "front">` and its `<draw "back">`.
+- A click on a card is its own handler, `<on click>`:  `play it`, and the game says where it goes.
 
 The deal is a loop with a pause in it, so you watch it happen:
 
@@ -529,34 +572,35 @@ The deal is a loop with a pause in it, so you watch it happen:
 			add the card to the stock of the solitaire
 			pause for 50 msec
 	shuffle its stock
-
 	for row from 1 to 7
 		turn the last card of its stock face up
 		for column from row to 7
 			add the last card of its stock to item column of the tableaus
 			pause for 50 msec
-
 	wait for: play from the stock
 ```
+
+_From a `<spell>` block in Solitaire.spellx:  plain Spell, in the outline style._
 
 - `pause for 50 msec` lets the page draw before the next line runs:  28 cards dealt, 50 ms apart.
 - Written `animation` instead of `to`, an action runs one at a time:
   asking for it again while it runs does nothing, so a second Restart can't deal on top of the first.
-- A card is in one pile at a time, as Card.spell says (`a card belongs to one pile`):
-  adding it to the stock takes it off the pile it was in.
+- A card is in one pile at a time, as [Pile.spellx](spaces/@spell/examples/Solitaire/Pile.spellx) says
+  (`a card belongs to one pile`):  adding it to the stock takes it off the pile it was in.
 
 What you see:
 - Each card is one character, from Unicode's playing cards:  the queen of spades is 🂭, and the card's test checks it.
 - Each card is its own element, `<solitaire-card>`;
   each pile is a viewable list, its own element (`<solitaire-tableau>` and the rest), holding its cards' elements.
-- Each kind of pile styles itself, in the `<css>` block inside its own definition:
+- Each kind of pile lays its cards out by its `layout`, which [styles.css](spaces/@spell/examples/Solitaire/styles.css) draws:
   a tableau shows the top of each card below the one before;  a stacked pile, the stock, the discards and the
   foundations, shows its last card, over a dashed place for its first.
-- AutoPlay, Cheat, Debug and Restart run across the top;  a card onto a foundation scores 10, one from the discards 5.
+- Auto play, Cheat and Restart run across the top, and the board's right click shows them as a menu,
+  each with its key (A, C, N);  a card onto a foundation scores 10, one from the discards 5.
   Cheat turns up a random face-down card:  `set the pile to a random pile in remaining piles`.
 
-Its tests are written in Spell, beside what they test, and run from the command line:
-the tests of its card, deck and piles, then the game's own, of what each pile may take.
+Its tests are written in Spell, a `<test>` inside what each one tests, and run from the command line:
+the tests of its card, deck and piles, then the tableau's own, of what each pile may take.
 
 ```sh
 spell test @spell/examples/Solitaire
@@ -567,14 +611,12 @@ spell test @spell/examples/Solitaire
 
 ```text
 ✓ Compiling @spell/examples/Solitaire
-✓ test card setup  (25 checks)
-✓ test jokers  (15 checks)
-✓ test deck creation  (10 checks)
-✓ test deck with jokers  (5 checks)
-✓ test piles  (9 checks)
+✓ test card setup  (19 checks)
+✓ test a new deck  (5 checks)
+✓ test piles  (8 checks)
 ✓ test the moves  (11 checks)
 
-6 passed
+4 passed
 ```
 
 </details>
@@ -585,9 +627,9 @@ _Solitaire in the editor, dealt:  its Spell on the left, the game on the right._
 
 ### Solitario:  the same game, in Spanish
 
-Spell reads Spanish too, a file at a time, by its name:  `Solitario.es.spell` is Spanish, `Solitaire.spell` English
+Spell reads Spanish too, a file at a time, by its name:  `Solitario.es.spell` is Spanish, a name with no language English
 ([Spell in Spanish](https://github.com/spell-app/spell-parser/blob/main/README-spanish.md)).
-[Solitario](spaces/@spell/examples/Solitario/) is Solitaire written in it, line for line, cards and all:
+[Solitario](spaces/@spell/examples/Solitario/) is Solitaire written in it, in the outline style, cards and all:
 its own `Carta`, `Mazo` and `Pila`, as Solitaire has its `Card`, `Deck` and `Pile`, so all of it reads in Spanish.
 
 ```spell
@@ -602,7 +644,8 @@ una "columna" es una pila donde:
 
 _The tableau's rule, in Spanish:  a column, `columna`._
 
-- Its tests are the same six, in Spanish:  `spell test @spell/examples/Solitario` runs them.
+- Its tests are six, in Spanish, two of them its jokers', which Solitaire has dropped:
+  `spell test @spell/examples/Solitario` runs them.
 - Where the two differ, a Spanish word does:  the queen is `dama`, so its short name is D, and the king's R.
 
 <img src="docs/images/examples/Solitario.png" width="640" alt="Solitario open in the Spell editor:  Carta.es.spell on the left;  on the right, the game running, its menu in Spanish, Puntos, Jugar solo, Trampa, Depurar, and the same Klondike board">
@@ -664,7 +707,7 @@ The last column says where to borrow from;  where a part isn't in the language y
 | Idea | What it is | Borrow from |
 | --- | --- | --- |
 | A recipe scaler | ingredients with amounts, scaled to a number of servings | numbers, derived properties, `to scale (a recipe) to (servings as a number)` |
-| Dice games (Yahtzee, Pig) | a die that draws itself, rolled with an animation, scored by aliases | Solitaire's card:  `a "die" is a view`, Solitaire's piles' `<css>`, `pause for`;  Task List's aliases:  `a roll "is a full house" if ...` |
+| Dice games (Yahtzee, Pig) | a die that draws itself, rolled with an animation, scored by aliases | Solitaire's card:  `a "die" is a view`, Solitaire's piles' `layout` and styles.css, `pause for`;  Task List's aliases:  `a roll "is a full house" if ...` |
 | Memory | cards face up and face down in a grid | Solitaire's `Card`, `Deck` and `Pile`, copied in or imported from it;  a grid that's a view |
 | A collection catalogue | movies, baseball cards:  items with categories, and filter buttons | `one of ...` kinds and Task List's filter;  `it is saved in its own file`, as the people library's person is |
 | A sign-up sheet | people and a list of slots, in a form | `@spell/library/people` and Task List's forms and property editor;  🌱 a natural first program to share, once editing together arrives |

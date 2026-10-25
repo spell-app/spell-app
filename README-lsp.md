@@ -160,7 +160,7 @@ and return the protocol's own shapes (`Hover`, `CompletionItem[]` ...), so any h
 The editor's Monaco calls the service in the page, and converts each answer to Monaco's own shapes
 ([spell-app's README-app.md](README-app.md) has the editor).
 - Its files are the page's, loaded from the page server, at addresses like
-  `spell:/@spell/examples/Solitaire/Solitaire.spell`.
+  `spell:/@spell/examples/Solitaire/Solitaire.spellx`.
 - There's no queue in the page:  an edit re-parses as it lands, so a hover right after it sees the new parse.
 
 ### In VS Code:  the server, from your checkout
@@ -372,7 +372,7 @@ The extension's compiled views and its Run Project panel ask the server for more
 <summary>CSS inside Spell:  a <code>&lt;css&gt;</code> block</summary>
 
 A view's outline can hold its styles,
-as in [Solitaire's piles](spaces/@spell/examples/Solitaire/Solitaire.spell):
+as Solitaire's piles did before [its styles.css](spaces/@spell/examples/Solitaire/styles.css) took their layout over:
 
 ```spell
 a "stacked pile" is a pile where:
@@ -382,7 +382,7 @@ a "stacked pile" is a pile where:
 			position: relative;
 ```
 
-_The first lines of Solitaire's stacked pile;  its block runs 23 lines further, to `</css>`._
+_The first lines of Solitaire's stacked pile, as it was;  its block ran 23 lines further, to `</css>`._
 
 Inside the block, completion, hover and errors are CSS's own,
 from VS Code's CSS service (`vscode-css-languageservice`), the one VS Code's HTML support uses for `<style>`.
@@ -407,19 +407,19 @@ It reads a SCOPE PACK, `<Project>.scopes.js`:  the scope explorer's tree, writte
   entries: [
     { path: "project:Solitaire" },
     {
-      path: "project:Solitaire/file:Card.spell",
-      uri: "spell:/@spell/examples/Solitaire/Card.spell"
+      path: "project:Solitaire/file:Card.spellx",
+      uri: "spell:/@spell/examples/Solitaire/Card.spellx",
+      description: "# A playing card\nA card says what its rank, suit and color are:  a deck, a pile or the game only reads them.\nIt's a two sided view:  face up it shows its picture, face down the back every card shares.\nOn the page each card is its own element, `<solitaire-card>`."
     },
     {
-      path: "project:Solitaire/file:Card.spell/type:Card", line: [4, 87],
-      super: "type:View",
-      section: "A playing card -- in the outline style:  its name, then what's true of it",
-      description: "The card says what its suits, ranks and colors are:  a deck, a pile or a game only reads them.\nA view:  each card is its own element on the page, e.g. `<solitaire-card>`."
+      path: "project:Solitaire/file:Card.spellx/type:Card", line: [6, 84],
+      super: "type:TwoSidedView"
     },
+    { path: "project:Solitaire/file:Card.spellx/type:Card/property:rank", line: 8 },
     // ...
 ```
 
-_The top of Solitaire's pack, 109 entries and 27 KB in all:  one flat entry per declaration,
+_The top of Solitaire's pack, 89 entries and 17 KB in all:  one flat entry per declaration,
 its `path` saying where it sits in the tree._
 
 - The server writes a project's pack after each clean compile;  so do `spell compile` and `spell watch`,

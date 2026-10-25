@@ -133,7 +133,7 @@ Where it stops:
 | `run(compiled)` | runs code pushed to it, a `SpellCompiled`:  `{ projectId, compiled }`, and the scope pack, declarations and words if you have them.  Pushed code wins over `project` and `src`, and works before the element joins the page |
 | `restart()` | runs it again afresh:  the toolbar's Restart |
 | `pushed` | the property holding the code pushed to it last;  dropped when `project`, `src`, `scopes`, `name` or `editor` changes |
-| `spell-open` | the event a Type Explorer link sends:  `detail.href` is the source it points at, `spell:/@spell/examples/Solitaire/Solitaire.spell#L12` |
+| `spell-open` | the event a Type Explorer link sends:  `detail.href` is the source it points at, `spell:/@spell/examples/Solitaire/Solitaire.spellx#L12` |
 
 | `<spell-editor>` | What it does |
 | --- | --- |
@@ -553,7 +553,7 @@ The code's own toolbar:
 
 | Address | Page |
 | --- | --- |
-| `/edit/<address>` | the editor, on a project or one file:  `/edit/@spell/examples/Solitaire/Solitaire.spell` |
+| `/edit/<address>` | the editor, on a project or one file:  `/edit/@spell/examples/Solitaire/Solitaire.spellx` |
 | `/run/<address>` | Run:  the app alone, full size, under its header:  `/run/@spell/examples/calculator` |
 | anything else | the chooser:  your projects, the examples and the guides side by side, each with a Create button;  in dev, the frozen test projects too |
 
@@ -610,7 +610,7 @@ A Spanish browser gets "Guardar" where an English one gets "Save":
   and the rest, from [the language service](README-lsp.md#what-it-answers-request-by-request),
   called in the page itself.
   - That's why the language service must stay safe to run in a browser.
-- Each file is a Monaco model at an address like `spell:/@spell/examples/Solitaire/Solitaire.spell`,
+- Each file is a Monaco model at an address like `spell:/@spell/examples/Solitaire/Solitaire.spellx`,
   a view of its file:  the project's files stay the source of truth, and each edit re-parses as little as it can.
 - A rename saves every file it touched.
 - The editors on it are Solid components, `MonacoEditor` and `FileEditor`.

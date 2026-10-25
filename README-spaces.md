@@ -1,8 +1,8 @@
 # Spaces:  where projects and people live
 
 ```text
-@spell/examples/Solitaire/Solitaire.spell
-└──── group ──┘ └project─┘ └─── file ──┘
+@spell/examples/Solitaire/Solitaire.spellx
+└──── group ──┘ └project─┘ └──── file ──┘
 ```
 
 _A Spell address:  one file of the Solitaire example, named by what it is rather than where it is._
@@ -11,10 +11,10 @@ Every project and every file in Spell has an address like that one, and it's the
 
 | Where | What you write |
 | --- | --- |
-| the editor | `http://localhost:3000/edit/@spell/examples/Solitaire/Solitaire.spell` |
+| the editor | `http://localhost:3000/edit/@spell/examples/Solitaire/Solitaire.spellx` |
 | the command line | `spell run @spell/examples/Solitaire` |
 | another project, importing a library | `{ "path": "@spell/library/people", "import": ["Person"] }` |
-| the server, reading the file | `GET /spaces/@spell/examples/Solitaire/Solitaire.spell` |
+| the server, reading the file | `GET /spaces/@spell/examples/Solitaire/Solitaire.spellx` |
 
 None of them is a path on disk.
 One function turns an address into a folder, [`SpellUrls.folderFor()`](https://github.com/spell-app/spell-parser/blob/main/src/spell/SpellUrls.ts),
@@ -73,7 +73,7 @@ here     = "@here"                       on the command line:  the project in th
 | --- | --- |
 | `@spell/examples` | a group:  the example projects |
 | `@spell/examples/Solitaire` | a project |
-| `@spell/examples/Solitaire/Solitaire.spell` | a file in it |
+| `@spell/examples/Solitaire/Solitaire.spellx` | a file in it |
 | `@spell/examples/Solitaire/assets/` | a folder in it:  the slash at the end says so |
 | `owen@spell/hello` | a project in a person's own group |
 
