@@ -27,7 +27,8 @@ export class NotebookPageCells {
     const cells: PageCell[] = []
     for (const node of notebook.children) {
       if (node.kind === "prose") cells.push(...NotebookPageCells.proseCells(text, node.span))
-      else if (node.kind === "template") cells.push(cellOf(text, "template", node.span, { name: node.name ?? "" }))
+      else if (node.kind === "template")
+        cells.push(cellOf(text, "template", node.span, { name: node.name ?? "", groups: groupsOf(node) }))
       else if (node.kind === "element") cells.push(NotebookPageCells.drawingCell(text, node))
       else if (node.kind === "declaration" && (node.type as string) === "html")
         cells.push(cellOf(text, "html", node.span))
@@ -223,7 +224,12 @@ export type PageCell = CodeSpan & {
   title?: string
   /** a drawing cell's examples, in order */
   examples?: ExampleSpan[]
+  /** a template's groups, each with its members' names:  none when it has none */
+  groups?: CellGroup[]
 }
+
+/** A group of a template's members, as its cell lists it:  its name, its description and its members' names. */
+export type CellGroup = { name: string; description: string | undefined; members: string[] }
 
 /** An example in a drawing cell:  its name, and its body's code. */
 export type ExampleSpan = {
@@ -243,6 +249,24 @@ export type ExampleSpan = {
 function cellOf(text: string, kind: PageCell["kind"], span: SX.SpellxSpan, more: Partial<PageCell> = {}): PageCell {
   const indent = indentAt(text, span.start)
   return { kind, span, indent, code: dedented(text.slice(span.start, span.end), indent), ...more }
+}
+
+/**
+ * Template `node`'s groups (`SX.SpellxFile.groupsOf()`):  each named one, its description, its members' names or
+ * phrases.  `undefined` when it has none.
+ */
+function groupsOf(node: SX.SpellxTemplate): CellGroup[] | undefined {
+  const groups = SX.SpellxFile.groupsOf(node).filter((group) => group.name !== undefined)
+  if (!groups.length) return undefined
+  return groups.map(({ name, group, members }) => ({
+    name: name!,
+    description: group?.attributes.find((attribute) => attribute.name === "description")?.value,
+    members: members.map((member) => {
+      if (member.kind === "handler") return `${member.word} ${member.phrase}`
+      if (member.kind === "declaration") return member.name ?? member.word
+      return member.kind === "note" ? member.word : member.kind
+    })
+  }))
 }
 
 /** Where the text from `start` to `at` ends, less its trailing blank lines. */

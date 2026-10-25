@@ -250,7 +250,7 @@ export class NotebookController {
     const keys = options.keys?.length === cells.length ? options.keys : NotebookKeys.carried(before, oldKeys, cells)
     this.setNow({ text, model, keys })
     this.lastText = text
-    void this.redrawChanged(before, oldKeys, cells, keys, text)
+    this.later(() => this.redrawChanged(before, oldKeys, cells, keys, text))
     if (this.canSave()) this.saveSoon()
   }
 
@@ -267,6 +267,16 @@ export class NotebookController {
   // ## Saving
   ////////////////
 
+  /**
+   * Run `work` after the work before it:  each edit's parse and drawing in turn, so one edit's parse never runs
+   * between another's.
+   * - NEVER throws:  a failure is logged.
+   */
+  private later(work: () => Promise<unknown>) {
+    this.queue = this.queue.then(work).catch((error: unknown) => console.error("NotebookController:", error))
+  }
+  private queue: Promise<unknown> = Promise.resolve()
+
   /** The text last made here or read from the file:  a different one in the file came from outside. */
   private lastText: string
 
@@ -279,9 +289,17 @@ export class NotebookController {
     this.setSaving(true)
     this.pendingSave = after(SAVE_DELAY, () => {
       this.pendingSave = undefined
-      void Promise.resolve(this.file.save(undefined))
-        .catch((error: unknown) => editor.showError(error))
-        .finally(() => this.setSaving(false))
+      // the file holds the latest text first:  its parse, after the edits before it
+      this.later(async () => {
+        try {
+          await this.parsed(this.now.text)
+          await this.file.save(undefined)
+        } catch (error) {
+          editor.showError(error)
+        } finally {
+          this.setSaving(false)
+        }
+      })
     })
     this.pendingSave.catch(() => undefined)
   }
@@ -305,7 +323,7 @@ export class NotebookController {
     void CellRunner.plan(new ChunkTreeAdapter(before, oldKeys), new ChunkTreeAdapter(cells, keys))
     this.lastText = text
     this.setNow({ text, model, keys })
-    void this.redrawChanged(before, oldKeys, cells, keys, text)
+    this.later(() => this.redrawChanged(before, oldKeys, cells, keys, text))
   }
 
   ////////////////
@@ -324,7 +342,7 @@ export class NotebookController {
   /** Cell `key` is drawn in `host`, a place on the page:  draw it there. */
   attach(key: string, host: HTMLElement) {
     this.drawn.set(key, { host })
-    void this.redraw(key)
+    this.later(() => this.redraw(key))
   }
 
   /** Cell `key` left the page:  let go of what it drew, and its examples' panels. */

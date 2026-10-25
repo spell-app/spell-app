@@ -51,6 +51,23 @@ export function NotebookCell(props: {
             <ui-icon name="cube" />
             {props.cell.name}
           </div>
+          <Show when={props.cell.groups}>
+            {(groups) => (
+              <dl class="NotebookGroups">
+                <For each={groups()}>
+                  {(group) => (
+                    <div class="NotebookGroup">
+                      <dt>{group.name}</dt>
+                      <Show when={group.description}>
+                        <dd class="NotebookGroupDescription">{group.description}</dd>
+                      </Show>
+                      <dd>{group.members.join(" · ")}</dd>
+                    </div>
+                  )}
+                </For>
+              </dl>
+            )}
+          </Show>
           <CodeOf controller={controller} key={props.key} cell={props.cell} />
         </Match>
         <Match when={props.cell.kind === "drawing"}>

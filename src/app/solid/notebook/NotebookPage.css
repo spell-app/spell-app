@@ -176,3 +176,24 @@
   color: var(--ui-red, #db2828);
   font: 12px / 18px var(--ui-font-mono, monospace);
 }
+
+/* a template's groups (`<group "...">`):  each one's members together, under its name and description */
+.NotebookGroups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0 0 8px;
+  font-size: 0.9em;
+}
+
+.NotebookGroup dt {
+  font-weight: 600;
+}
+
+.NotebookGroup dd {
+  margin: 0;
+}
+
+.NotebookGroupDescription {
+  color: var(--ui-text-color-muted, rgb(0 0 0 / 0.6));
+}

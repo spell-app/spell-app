@@ -67,6 +67,23 @@ describe("NotebookPageCells", () => {
     expect(NotebookPageCells.withLock(locked, relocked, false)).toBe(COUNTER)
   })
 
+  test("a template's groups:  each one's members together, under its name and description", () => {
+    const text = [
+      '<spell-notebook "cards">',
+      '\t<spell-view "card">',
+      '\t\t<group "direction" description="Face up or face down"/>',
+      '\t\t<property "direction" one-of="up, down"/>',
+      '\t\t<action "turn it over">set its direction to up</>',
+      "\t</spell-view>",
+      "</spell-notebook>",
+      ""
+    ].join("\n")
+    const [template] = NotebookPageCells.of(text, "/Cards.spellx")!.cells
+    expect(template!.groups).toEqual([
+      { name: "direction", description: "Face up or face down", members: ["direction", "turn it over"] }
+    ])
+  })
+
   test("in Spanish, locked is bloqueado", () => {
     const text = '<encanto-cuaderno "cuaderno">\n\t# Hola\n</encanto-cuaderno>\n'
     const spanish = NotebookPageCells.of(text, "/Cuaderno.es.spellx")!
