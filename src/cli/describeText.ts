@@ -22,7 +22,7 @@ const INDENT = "  "
  * template, not type;  action, not method.
  * - The explorer keeps its own names:  its tree's paths are made of them.
  */
-const KIND_WORDS: Partial<Record<LSP.ScopeKind, string>> = { type: "template", method: "action" }
+const KIND_WORDS: Partial<Record<LSP.ScopeNodeKind, string>> = { type: "template", method: "action" }
 /** A member group's label as `spell describe` prints it -- see `KIND_WORDS`. */
 const GROUP_WORDS: Record<string, string> = { Types: "Templates" }
 
@@ -233,6 +233,6 @@ function visibleLength(text: string): number {
 }
 
 /** The word people read for explorer kind `kind`, e.g. `type` => `template` -- see `KIND_WORDS`. */
-function kindWord(kind: LSP.ScopeKind): string {
+function kindWord(kind: LSP.ScopeNodeKind): string {
   return KIND_WORDS[kind] ?? kind
 }
