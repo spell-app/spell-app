@@ -5,6 +5,7 @@ import type { JSX } from "@solidjs/web"
 import { SCOPE_MEMBER_GROUPS, type ScopeDetails, type ScopeMember, type ScopeNode } from "spell-app/lsp/lsp.types"
 import type { ScopeOrder, TypeExplorerState } from "spell-app/app/ui/ui.types"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
+import { editorPrefs } from "spell-app/app/editorPrefs"
 import {
   SCOPE_ICONS,
   ScopeDetailsPane,
@@ -442,29 +443,42 @@ function defaultOpen(tree: ScopeNode): string[] {
   return [lastChild(tree).path]
 }
 
-/** `localStorage` key for a `<TypeExplorer>`'s state, when nobody else remembers it -- the same as React's. */
-const STATE_KEY = "spell.typeExplorer"
+/** The editor's pref for a `<TypeExplorer>`'s state, when nobody else remembers it:  `spellEditor:typeExplorer`. */
+const STATE_PREF = "typeExplorer"
+
+/** Its `localStorage` key before epic `prefs-and-undo` P3, React's, with no store:  moved to `STATE_PREF` once. */
+const OLD_STATE_KEY = "spell.typeExplorer"
 
 /**
- * `<TypeExplorer>` state as last saved in `localStorage` -- empty if nothing's saved, or there's no storage.
+ * `<TypeExplorer>` state as last saved -- empty if nothing's saved, or there's no storage.
  * - Per viewer:  a convenience, so any failure just starts afresh.
  * - NOTE: a VS Code webview's `localStorage` is its own, and may not outlive it:
  *   the runner passes `state` instead, from the project's `settings.json5`.
  */
 function loadState(): TypeExplorerState {
-  try {
-    return JSON.parse(localStorage.getItem(STATE_KEY) ?? "{}") as TypeExplorerState
-  } catch {
-    return {}
-  }
+  moveOldState()
+  const state = editorPrefs.get(STATE_PREF)
+  return state && typeof state === "object" ? (state as TypeExplorerState) : {}
 }
 
-/** Remember `state` in `localStorage` -- see `loadState()`. */
+/** Remember `state` -- see `loadState()`. */
 function saveState(state: TypeExplorerState): void {
+  editorPrefs.set(STATE_PREF, state)
+}
+
+/**
+ * Move the state from its old key (`OLD_STATE_KEY`) to `STATE_PREF`, once:  read raw, as React wrote it.
+ * - NEVER throws:  blocked storage, or a state it can't read, starts afresh.
+ * - TODO:  drop once every browser has opened the editor since epic `prefs-and-undo` P3
+ */
+function moveOldState(): void {
   try {
-    localStorage.setItem(STATE_KEY, JSON.stringify(state))
+    const old = localStorage.getItem(OLD_STATE_KEY)
+    if (old === null) return
+    localStorage.removeItem(OLD_STATE_KEY)
+    if (!editorPrefs.has(STATE_PREF)) editorPrefs.set(STATE_PREF, JSON.parse(old))
   } catch {
-    // e.g. storage blocked:  it just won't be remembered
+    // blocked storage, or an unreadable state:  start afresh
   }
 }
 
