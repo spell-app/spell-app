@@ -203,7 +203,7 @@ export const APP_TEXTS = {
   thingsInOrderMade: "In the order they were made",
   thingsByType: "By template, sub-templates included",
   // the Program panel's tabs (`<ProgramPanel>`)
-  outputTab: "Program Output",
+  outputTab: "Output",
   typescriptTab: "TypeScript",
   pythonTab: "Python",
   inspector: "Inspector",
@@ -253,7 +253,7 @@ export const APP_TEXTS = {
   thingsTab: "Things",
   typesTab: "Templates",
   javascriptTab: "JavaScript",
-  treeTab: "Sentence Tree",
+  treeTab: "Sentence",
 
   ////////////////
   // ## The runners (`SpellAppRunner.tsx`, `VSCodeRunner.tsx`)

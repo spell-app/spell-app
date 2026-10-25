@@ -22,9 +22,9 @@ import "./VSCodeRunner.css"
  * Runs a spell project inside the VS Code extension's "Run Project" webview:
  * a toolbar, then two panes, one above the other, split by a bar you drag.
  * - A program with an `app`:  the app on top, then, if the console's shown, a pane switching between
- *   "Type Explorer", "Thing Explorer" and "Program Output".
+ *   "Type Explorer", "Thing Explorer" and "Output".
  * - One with NO `app` has nothing else to show (see `hasApp`):
- *   "Program Output" on top, the explorers below, and no "Show Console" button.
+ *   "Output" on top, the explorers below, and no "Show Console" button.
  * - One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - Runs whatever the extension sends in a `run` message, on its OWN copy of the spell runtime -- see `loadRuntime()`.
  *   - One sent before that's loaded runs once it is.
@@ -37,7 +37,7 @@ import "./VSCodeRunner.css"
  *   so the game in progress is left alone:
  *   - after a run that started no app and didn't throw, e.g. a project of types and their tests
  *   - on its Run Tests button, and the extension's `runTests` (the Run Tests command)
- *   - How they went shows in "Program Output" (`showTestResults()`), and goes to the extension (`testResults`),
+ *   - How they went shows in "Output" (`showTestResults()`), and goes to the extension (`testResults`),
  *     which shows each failed check in the editor, on its line.
  * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
  * - NEVER imports `spell-parser/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.

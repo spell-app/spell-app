@@ -10,7 +10,7 @@ import type { SpellConsole } from "spell-parser/core/console"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 
 /**
- * Show `results` on `console`, e.g. the runner's Program Output, as `spell test` prints them:
+ * Show `results` on `console`, e.g. the runner's Output, as `spell test` prints them:
  * a group saying how many passed, then `✓` and each test that passed, `✗` and each that failed.
  * - Under a failed one:  each check that failed, and what it said if it threw, as `core` said them:
  *   in the program's language.
