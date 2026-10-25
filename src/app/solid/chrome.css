@@ -84,8 +84,29 @@ ui-icon.IconAction {
   --ui-tooltip-background: var(--spell-tooltip-background);
   --ui-tooltip-color: white;
 }
+/* the bubble and its arrow painted here too:  the editor still loads Semantic UI's sheet, whose unlayered
+   `[data-inverted]` rules paint them its own near-black over Spell UI's layered ones */
+#app-root [data-tooltip][data-inverted]::before,
 #app-root [data-tooltip][data-inverted]::after {
+  background: var(--ui-tooltip-background);
+}
+#app-root [data-tooltip][data-inverted]::after {
+  color: var(--ui-tooltip-color);
   border-radius: 8px;
+}
+/* a field's and a section's info tip the same, inside the brand-themed panes too:  the brand theme sets them its
+   aubergine, white in dark */
+#app-root :is(ui-property, ui-field, ui-section) {
+  --ui-field-tip-background: var(--spell-tooltip-background);
+  --ui-field-tip-color: white;
+  --ui-section-tip-background: var(--spell-tooltip-background);
+  --ui-section-tip-color: white;
+}
+/* the palette's tip, a popup:  the same colours, and the same two seconds' wait (a popup's own is 800ms) */
+ui-item.ThemeMenu ui-docs-themes {
+  --ui-hover-delay: 2s;
+  --ui-popup-inverted-background: var(--spell-tooltip-background);
+  --ui-popup-inverted-color: white;
 }
 
 /* `Actions.you`:  the person's avatar, a round button */
@@ -133,38 +154,41 @@ ui-icon.IconAction {
  */
 ui-menu.AppMenu,
 ui-menu.PanelMenu,
-.AppPaneHeader {
+.AppPaneHeader,
+.RunnerPaneTools {
   --spell-bar-group-gap: 60px;
   --spell-bar-icon-gap: 12px;
   --spell-bar-icon-color: var(--ui-text-muted);
 }
-/* a pane toolbar's icons (the code pane's:  upload, reload, new file, "..."):  the same grey, their spacing their own */
-ui-menu.PanelMenu ui-icon.IconAction,
-ui-menu.PanelMenu ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
-  --ui-icon-link-opacity: 1;
-  color: var(--spell-bar-icon-color);
-}
-ui-menu.AppMenu ui-icon.IconAction,
-.AppPaneHeader ui-icon.IconAction {
+/* every bar's icons:  the top bar's, a pane header's, a pane toolbar's (the code pane's:  upload, reload, new file, "...") */
+:is(ui-menu.AppMenu, ui-menu.PanelMenu, .AppPaneHeader, .RunnerPaneTools) ui-icon.IconAction {
   --ui-icon-width: auto;
   --ui-icon-distance: 0;
   --ui-icon-link-opacity: 1;
+  margin-inline: calc(var(--spell-bar-icon-gap) / 2);
   color: var(--spell-bar-icon-color);
 }
-ui-menu.AppMenu ui-icon.IconAction,
-ui-menu.AppMenu .YouAvatar,
-.AppPaneHeader ui-icon.IconAction {
+ui-menu.AppMenu .YouAvatar {
   margin-inline: calc(var(--spell-bar-icon-gap) / 2);
 }
-/* the "..." menu's icon the size of the bar's other icons:  it drew half as wide again, and stood apart */
-ui-menu.AppMenu ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
+/*
+ * the "..." menu's icon the size of the bar's other icons, and the same grey:  it drew half as wide again, and stood
+ * apart;  its glyph centred on the bar (`display: flex`):  in a line of the menu's smaller text, it hung 1px low
+ */
+:is(ui-menu.AppMenu, ui-menu.PanelMenu) ui-item.more-menu ui-dropdown > ui-icon[slot="icon"] {
+  display: flex;
+  --ui-icon-width: auto;
+  --ui-icon-distance: 0;
+  --ui-icon-link-opacity: 1;
   font-size: 1.15em;
+  color: var(--spell-bar-icon-color);
 }
-ui-menu.AppMenu ui-item.more-menu ui-dropdown {
+:is(ui-menu.AppMenu, ui-menu.PanelMenu) ui-item.more-menu ui-dropdown {
   /* no room before its icon:  a dropdown keeps it for the text it shows, and this one shows none */
   --ui-dropdown-icon-spacing: 0px;
 }
-ui-menu.AppMenu ui-item:is(.more-menu, .ThemeMenu)::part(item) {
+:is(ui-menu.AppMenu, ui-menu.PanelMenu) ui-item.more-menu::part(item),
+ui-menu.AppMenu ui-item.ThemeMenu::part(item) {
   padding-inline: calc(var(--spell-bar-icon-gap) / 2);
 }
 

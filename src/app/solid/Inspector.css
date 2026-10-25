@@ -101,10 +101,18 @@
     column-gap: 12px;
     row-gap: var(--ui-form-row-distance);
   }
+  /*
+   * ... in the cards' titles' type, a step smaller (the brand's serif headings read as another app's), and folding
+   * as a card does:  a caret down while open, right while folded (the brand's chevron points up)
+   */
   & ui-property-group {
-    --ui-section-h2: 0.9;
-    --ui-section-h3: 0.9;
+    --ui-font-family-heading: var(--ui-font-family);
+    --ui-section-h2: 0.93;
+    --ui-section-h3: 0.93;
+    --ui-section-title-weight: var(--ui-font-weight-semibold, 600);
     --ui-section-title-padding: 6px 0 4px;
+    --ui-section-fold-icon-rotate: 0deg;
+    --ui-section-fold-icon-folded-rotate: -90deg;
   }
   /* segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */
   & ui-menu[appearance="segmented"] {
@@ -260,11 +268,15 @@
     padding: 6px 8px;
     resize: none;
     field-sizing: content;
-    border: 1px solid var(--ui-border-color);
-    border-radius: var(--ui-radius-s, 6px);
-    background: var(--ui-surface);
+    /* an input's well, as the fields above it (the theme's), and their corners */
+    border: 1px solid var(--ui-input-border-color, var(--ui-border-color));
+    border-radius: 6px;
+    background: var(--ui-input-background, var(--ui-surface));
     color: var(--ui-text-color);
-    font: 13px / 1.4 var(--ui-font-mono, ui-monospace, monospace);
+    /* the Output tab's type (`ConsoleLines.css`) */
+    font:
+      13px / 1.4 monaco,
+      monospace;
   }
   /* its hint as light as an input's, so it never reads as typed */
   & > .InspectorCode::placeholder {

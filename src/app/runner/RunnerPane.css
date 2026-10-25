@@ -9,10 +9,9 @@
    * the bar:  the toolbar's own box, the panel's header, the tabs' track and the tools in it together
    * (Owen:  "(/) and x buttons closer together, and included in the toolbar bg")
    */
+  /* its tabs the Inspector's size:  one look for every tab bar (`chrome.css`) */
   & > .RunnerPaneToolbar {
     flex: 0 0 auto;
-    /* tabs close together (Owen:  "move these closer together"):  the segmented look's own room is for a page's tabs */
-    --ui-menu-segmented-item-padding: 0.45em 0.8em;
   }
   /* a pane header, as the others:  40px, a hairline under it, the tabs' track and the tools in it */
   & > .RunnerPaneToolbar::part(toolbar) {
@@ -22,15 +21,10 @@
     padding: 0 12px 0 10px;
     border-bottom: 1px solid var(--ui-border-color);
   }
-  /* the tools at the right:  close together */
+  /* the tools at the right:  spaced as every bar's icons (`chrome.css`) */
   & .RunnerPaneTools {
     display: flex;
     align-items: center;
-    gap: 0.6em;
-
-    & > ui-icon {
-      margin-inline: 0;
-    }
   }
 
   & > :not(.RunnerPaneToolbar) {

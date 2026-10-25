@@ -12,7 +12,9 @@
     overflow: auto;
   }
 
+  /* room for a `<ui-grid>`'s pull-out, half its gutter (a rem, by default) each side:  with 12px, its last
+     column's padding stood 2px past, and the pane scrolled sideways (Owen:  "doesn't need it") */
   &.padded {
-    padding: 12px;
+    padding: 16px;
   }
 }
