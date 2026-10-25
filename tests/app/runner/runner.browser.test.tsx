@@ -983,9 +983,9 @@ async function rawText(path: string): Promise<string> {
 }
 
 /** What an empty foundation shows, in Solitaire's compiled javascript, and an edit of it. */
-const PLACEHOLDER = 'return h("ui-text", { part: "placeholder" },'
+const PLACEHOLDER = 'return h("ui-text", { part: "placeholder" }, () => (new Card('
 /** `PLACEHOLDER`, edited:  another part name. */
-const EDITED_PLACEHOLDER = 'return h("ui-text", { part: "edited" },'
+const EDITED_PLACEHOLDER = 'return h("ui-text", { part: "edited" }, () => (new Card('
 
 /** What to run:  `program`, in memory. */
 function source(program: string, name = "Counter"): SpellAppSource {
