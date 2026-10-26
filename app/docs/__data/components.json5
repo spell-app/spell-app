@@ -3224,7 +3224,7 @@
         {
           "name": "mark",
           "type": "boolean",
-          "description": "Spell's hat first (`<AppMark>`), in one of the editor's looks:  an app bar's left section. - Inside the section, so it counts in that third, and the centre one stays on the bar's middle."
+          "description": "Spell's hat first (`<AppMark>`):  an app bar's left section. - Inside the section, so it counts in that third, and the centre one stays on the bar's middle."
         }
       ],
       "usedIn": [

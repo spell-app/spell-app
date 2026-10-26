@@ -1,51 +1,56 @@
 /*
- * Look of the editor's chrome in its three looks (`EditorTheme.tsx`):  Glass, Brand and Studio.
- * - Each is drawn on its Spell UI theme (Glass and Fruity, Spell, Merlot),
- *   as the boards of the "Spell editor facelift" Design canvas show it (epic `debut` P1).
- * - Keyed on `<html data-spell-look>`, which `EditorTheme` sets while one of them is chosen.
- *   Any other theme:  no attribute, and none of this applies.
- * - The shape every look shares (below, "Every look"):  a floating top bar, panels with gaps and rounded corners,
+ * Look of the editor's chrome in every theme of the set (`EditorTheme.tsx`):  Spell, Glass, Fruity and Merlot.
+ * - The shape every theme shares (below, "Every theme"):  a floating top bar, panels with gaps and rounded corners,
  *   each panel's menu a plain header over a hairline.
- * - Each look sets only its values (`--spell-*`), from its boards' light and dark colours;
- *   the colours themselves come from the theme's tokens, so light / dark follow by themselves.
+ * - Its colours, corners, shadows and blur are the THEME's own bar and panel tokens (epic `debut` P17, J89),
+ *   the ones the epic pages' bars and Spell UI's panels read:
+ *   - the top bar:  a bar at rest (`--ui-bar-rest-background`, `--ui-bar-rest-filter`), as nothing scrolls under it;
+ *     else the theme's bar (`--ui-bar-background`, `--ui-bar-filter`);  else its surface
+ *   - a panel:  `--ui-panel-radius`, `--ui-panel-shadow`;  else the theme's large radius and raised shadow
+ *   - a theme with none of them still dresses the chrome, from its plain tokens
+ * - What's the editor's alone is keyed on the theme's name, `<html data-spell-theme>`, which `EditorTheme` sets:
+ *   - Glass and Fruity:  the glass chrome, frosted panels clearer than their headers
+ *   - Spell:  the bar has no box, on the brand's pale page
+ *   - Merlot:  flat panels joined by hairlines, edge to edge
+ * - Each sets only its values (`--spell-*`);  the colours come from tokens, so light / dark follow by themselves.
+ * - Before `EditorTheme` marks the theme (its first paint), none of this applies.
  * - Hosts are `display: contents`:  rules reach the boxes through `::part()`.
  */
 
 /*******************************
-          Each look's values
+        Every theme's values
 *******************************/
 
-:root[data-spell-look] {
+:root[data-spell-theme] {
   /* room round the page, and between the bar and the panels, and between panels */
   --spell-page-padding: 14px;
   --spell-gap: 14px;
-  /* the top bar */
-  --spell-bar-background: var(--ui-surface);
+  /* the top bar:  a bar at rest, as the theme draws one */
+  --spell-bar-background: var(--ui-bar-rest-background, var(--ui-bar-background, var(--ui-surface)));
+  --spell-bar-filter: var(--ui-bar-rest-filter, var(--ui-bar-filter, none));
   --spell-bar-border: 0 solid transparent;
-  --spell-bar-radius: var(--ui-radius-l);
-  --spell-bar-shadow: var(--ui-shadow-raised);
-  --spell-bar-filter: none;
+  --spell-bar-radius: var(--ui-panel-radius, var(--ui-radius-l));
+  /* a theme without panel shadows (Spell, Merlot):  a bar flat on the page */
+  --spell-bar-shadow: var(--ui-panel-shadow, none);
   /* a panel, and its header (a panel's menu) */
-  --spell-pane-radius: var(--ui-radius-l);
-  --spell-pane-shadow: var(--ui-shadow-raised);
+  --spell-pane-radius: var(--ui-panel-radius, var(--ui-radius-l));
+  --spell-pane-shadow: var(--ui-panel-shadow, var(--ui-shadow-raised));
   --spell-pane-filter: none;
   --spell-header-background: transparent;
   /* the views show the panel through them */
   --spell-view-background: transparent;
 }
 
-/* Glass (Glass and Fruity):  frosted panels over the page (Fruity's wallpaper) */
-:root[data-spell-look="glass"] {
-  --spell-bar-background: var(--glass-surface);
-  --spell-bar-border: 0 solid transparent;
-  --spell-bar-radius: 14px;
-  --spell-bar-filter: var(--glass-blur);
+/*******************************
+     Each theme's own, the editor's alone
+*******************************/
+
+/* Glass and Fruity:  frosted panels over the page (Fruity's wallpaper) */
+:root:is([data-spell-theme="glass"], [data-spell-theme="fruity"]) {
   /* a pane's body clearer than its header (Owen:  "The panel bodies used to be less opaque than the header, I liked
      that") */
   --spell-pane-background: var(--glass-surface);
-  --spell-header-background: light-dark(rgb(255 255 255 / 0.4), rgb(255 255 255 / 0.05));
   --spell-pane-border-color: var(--glass-edge);
-  --spell-pane-radius: 14px;
   --spell-pane-filter: var(--glass-blur);
   /* a panel's header a wash of the theme's purple:  the frosted glass draws its top edge whiter than the rest
      (the blur reaches past the panel), so a see-through header stood out near-white (Owen, epic `elemental-spell` C39) */
@@ -54,42 +59,35 @@
 
 /* ... and the code editors see-through, the frosted panel behind the code:  Purple's near-white page and lavender
    margin read as a white box laid in it (Owen:  "white background under `<spell-view "card">` is distracting") */
-:root[data-spell-look="glass"] .monaco-editor {
+:root:is([data-spell-theme="glass"], [data-spell-theme="fruity"]) .monaco-editor {
   --vscode-editor-background: transparent;
   --vscode-editorGutter-background: transparent;
   /* the lines stuck at the top while scrolling keep Purple's own page (`ShadesOfPurple`):  the code scrolls under them */
   --vscode-editorStickyScroll-background: light-dark(#fbfaff, #2d2b55);
 }
 
-/* Brand (Spell):  white cards with soft shadows on the brand's pale page;  the bar has no box */
-:root[data-spell-look="brand"] {
+/* Spell:  white cards with soft shadows on the brand's pale page;  the bar has no box */
+:root[data-spell-theme="spell"] {
   --spell-page-padding: 16px 20px 20px;
   --spell-gap: 16px;
   --spell-bar-background: transparent;
   --spell-bar-border: 1px solid transparent;
-  --spell-bar-shadow: none;
-  --spell-pane-radius: 16px;
-  --spell-pane-shadow:
-    0 1px 2px light-dark(rgb(60 40 140 / 0.06), rgb(0 0 0 / 0.3)),
-    0 2px 8px light-dark(rgb(60 40 140 / 0.06), rgb(0 0 0 / 0.3));
 }
 
-/* Studio (Merlot):  flat panels joined by hairlines, edge to edge */
-:root[data-spell-look="studio"] {
+/* Merlot:  flat panels joined by hairlines, edge to edge */
+:root[data-spell-theme="merlot"] {
   --spell-page-padding: 0;
   --spell-gap: 0;
   --spell-bar-radius: 0;
-  --spell-bar-shadow: none;
-  --spell-bar-border: 0 solid transparent;
   --spell-pane-radius: 0;
   --spell-pane-shadow: none;
 }
 
 /*******************************
-             Every look
+             Every theme
 *******************************/
 
-:root[data-spell-look] {
+:root[data-spell-theme] {
   /* the page:  room round it, a gap under the bar */
   & .SpellPage.fill-window {
     box-sizing: border-box;
@@ -157,8 +155,8 @@
   }
 }
 
-/* Studio's bar:  a panel-coloured strip over a hairline, as its board draws it */
-:root[data-spell-look="studio"] ui-menu.AppMenu::part(menu) {
+/* Merlot's bar:  a panel-coloured strip over a hairline, as Studio's board drew it */
+:root[data-spell-theme="merlot"] ui-menu.AppMenu::part(menu) {
   border-bottom: 1px solid var(--ui-border-color);
 }
 

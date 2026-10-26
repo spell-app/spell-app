@@ -48,8 +48,9 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            The pieces every toolbar in the editor is built from: the violet bar across the top of each page, the purple
-            bar on top of each pane, the left, middle and right sections inside them, and the "..." menus.
+            The pieces every toolbar in the editor is built from: the bar across the top of each page, the header on top
+            of each pane, the left, middle and right sections inside them, and the "..." menus. The theme picked dresses
+            them all, as it does the rest of the editor.
           </p>
           <ui-list class="spell-meta">
             <ui-item icon="user">Written for: anyone adding to, or changing, the spell app's toolbars</ui-item>
@@ -65,7 +66,7 @@
             </p>
             <ui-image
               src="_images/chrome.png"
-              alt="A violet bar: Example Solitaire, Preview, Settings and a dots menu on the left; Open or Create in the middle; About Spell, Docs and a dimmed dots menu on the right"
+              alt="The editor's top bar, in Fruity: Spell's hat and name and the Solitaire project on the left; Run, Edit and Debug in the middle; the theme menu, Home and an avatar on the right"
               appearance="bordered rounded"
             ></ui-image>
             <p class="meta">
@@ -74,7 +75,7 @@
               >.
             </p>
             <p>
-              Each pane's own toolbar is a PanelMenu, the purple bar: the input editor's, on
+              Each pane's own toolbar is a PanelMenu, the pane's header: the input editor's, on
               <a href="Actions.html" target="src-packages-app-docs-actions-html">Actions</a>; the App pane's, on
               <a href="AppRoot.html" target="src-packages-app-docs-approot-html">AppRoot</a>.
             </p>
@@ -122,9 +123,10 @@
             </ui-accordion>
             <ul>
               <li>
-                The bars: <code>&lt;AppMenu&gt;</code>, violet, across the top of a page;
-                <code>&lt;PanelMenu&gt;</code>, purple, on top of a pane. Each is a <code>&lt;ui-menu&gt;</code> holding
-                <code>&lt;ui-item&gt;</code>s.
+                The bars: <code>&lt;AppMenu&gt;</code>, across the top of a page; <code>&lt;PanelMenu&gt;</code>, on top
+                of a pane: plain menus, which the theme shapes (<code title="spell-app/src/app/solid/EditorTheme.css"
+                  >EditorTheme.css</code
+                >). Each is a <code>&lt;ui-menu&gt;</code> holding <code>&lt;ui-item&gt;</code>s.
               </li>
               <li>
                 <code>&lt;Submenu&gt;</code>: a left, middle or right section, each at least a third of the bar, so the
