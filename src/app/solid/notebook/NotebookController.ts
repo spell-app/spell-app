@@ -127,9 +127,10 @@ export class NotebookController {
   }
 
   /**
-   * The description of drawing cell `key`'s first example:  the text of the prose cell just before it, and that
-   * cell's key, as a component page's example reads ("A standard button.", then the button).
-   * - A section's heading cell gives its text under the heading;  the page's `#` title cell gives none.
+   * The description of drawing cell `key`'s first example:  the text of the cell just before it, and that cell's key,
+   * as a component page's example reads ("A standard button.", then the button).
+   * - A prose cell gives its markdown;  a section's heading cell its text under the heading;  the page's title none.
+   * - A `<text>` holding only text gives that text (`PageCell.description`).
    * - `undefined` when there's no such text, or the cell draws no example.
    */
   descriptionFor(key: string): { key: string; text: string } | undefined {
@@ -137,13 +138,15 @@ export class NotebookController {
     const index = cells.findIndex((each) => each.key === key)
     const before = cells[index - 1]
     if (index < 1 || !cells[index]!.cell.examples?.length) return undefined
-    if (before?.cell.kind !== "prose" || before.cell.title) return undefined
+    if (!before || before.cell.title) return undefined
+    if (before.cell.description) return { key: before.key, text: before.cell.description }
+    if (before.cell.kind !== "prose") return undefined
     const lines = before.cell.code.split("\n")
     const text = (before.cell.heading === undefined ? lines : lines.slice(1)).join("\n").trim()
     return text ? { key: before.key, text } : undefined
   }
 
-  /** Is prose cell `key` the description of the example after it (`descriptionFor()`)?  It shows there, then. */
+  /** Is cell `key` the description of the example after it (`descriptionFor()`)?  It shows there, then. */
   isDescription(key: string): boolean {
     const cells = this.cells()
     const after = cells[cells.findIndex((each) => each.key === key) + 1]
@@ -500,7 +503,7 @@ export class NotebookController {
   async redraw(key: string, text = this.now.text) {
     const cell = this.currentCell(key)
     const drawn = this.drawn.get(key)
-    if (!cell || !drawn || cell.kind === "template" || cell.kind === "prose") return
+    if (!cell || !drawn || cell.kind === "template" || cell.kind === "prose" || cell.kind === "heading") return
     try {
       const runtime = await editor.loadRuntime()
       const into = await this.parsed(text)

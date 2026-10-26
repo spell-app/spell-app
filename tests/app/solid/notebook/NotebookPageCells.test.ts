@@ -4,10 +4,35 @@ import { describe, expect, test } from "vite-plus/test"
 import { NotebookPageCells } from "spell-app/app/solid/notebook/NotebookPageCells"
 
 /**
- * The Counter notebook, `@spell/notebooks/Counter`, as committed.
+ * The Counter notebook, written in markdown:  its `#` title, its `##` sections and their text.
  * - Its counter is the Counter example's, which its project imports:  so it has no template cell of its own.
  */
-const COUNTER = readFileSync(
+const COUNTER = [
+  '<spell-notebook "counter notebook">',
+  "\t# Counter",
+  "\tA button that counts its clicks.",
+  "",
+  "\t## Counter",
+  "\tA counter starts at 0, and adds one each time it's clicked.",
+  '\t<example "One counter">',
+  "\t\t<counter/>",
+  "\t</example>",
+  "",
+  "\t## Several counters",
+  "\tEach counter keeps its own count:  clicking one leaves the others alone.",
+  "\t<section>",
+  '\t\t<example "Two counters">',
+  "\t\t\t<counter/>",
+  "\t\t\t<counter/>",
+  "\t\t</example>",
+  '\t\t<text color="grey">Click either one.</text>',
+  "\t</section>",
+  "</spell-notebook>",
+  ""
+].join("\n")
+
+/** The Counter notebook, `@spell/notebooks/Counter`, as committed:  its title and sections written as tags. */
+const TAGGED = readFileSync(
   new URL("../../../../spaces/@spell/notebooks/Counter/Counter.spellx", import.meta.url),
   "utf8"
 )
@@ -81,6 +106,34 @@ describe("NotebookPageCells", () => {
     const relocked = NotebookPageCells.of(locked, "/Counter.spellx")!
     expect(relocked.locked).toBe(true)
     expect(NotebookPageCells.withLock(locked, relocked, false)).toBe(COUNTER)
+  })
+
+  test('written as tags:  the title\'s `<header level="1">`, each `<section label>`, each `<text>` before an example', () => {
+    const tagged = NotebookPageCells.of(TAGGED, "/Counter.spellx")!
+    const cells = tagged.cells.map(({ kind, heading, title, lead, name, description }) =>
+      Object.fromEntries(Object.entries({ kind, heading, title, lead, name, description }).filter(([, v]) => v))
+    )
+    expect(cells).toEqual([
+      { kind: "heading", title: "Counter", lead: "A button that counts its clicks." },
+      { kind: "heading", heading: "Counter" },
+      { kind: "drawing", description: "A counter starts at 0, and adds one each time it's clicked." },
+      { kind: "drawing", name: "One counter" },
+      { kind: "heading", heading: "Several counters" },
+      { kind: "drawing", description: "Each counter keeps its own count:  clicking one leaves the others alone." },
+      { kind: "drawing", name: "Two counters" },
+      { kind: "drawing", description: "Click either one." }
+    ])
+    // a section's cell is its opening tag;  deleting it takes the section whole
+    const several = tagged.cells[4]!
+    expect(several.code).toBe('<section label="Several counters">')
+    const deleted = NotebookPageCells.deleted(TAGGED, several)
+    expect(deleted).not.toContain("Two counters")
+    expect(deleted).toContain("\t</section>\n</spell-notebook>")
+    // no move across a section's opening tag:  the tags would nest wrongly
+    expect(NotebookPageCells.moved(TAGGED, tagged.cells, 2, "up")).toBe(TAGGED)
+    // a cell added after a section's opening tag:  its first, one indent in
+    const { text } = NotebookPageCells.inserted(TAGGED, tagged, several, "<text>Hi</text>")
+    expect(text).toContain('<section label="Several counters">\n\n\t\t<text>Hi</text>\n')
   })
 
   test("a template's groups:  each one's members together, under its name and description", () => {

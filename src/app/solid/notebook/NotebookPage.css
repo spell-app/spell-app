@@ -217,8 +217,12 @@
   margin: 0;
 }
 
-/* ... so the example after it starts right under its section's title, as a component page's first example does */
-.NotebookCell:first-child:empty + .NotebookCell {
+/*
+ * ... so the example after it starts right under its section's title, as a component page's first example does
+ * - after a section written as tags, two:  its opening tag's and its description's `<text>`
+ */
+.NotebookCell:first-child:empty + .NotebookCell,
+.NotebookCell:first-child:empty + .NotebookCell:empty + .NotebookCell {
   margin-top: 0;
 }
 

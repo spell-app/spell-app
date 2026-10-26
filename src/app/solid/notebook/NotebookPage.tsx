@@ -20,8 +20,10 @@ import "./NotebookPage.css"
  * ### `<NotebookPage>`
  * A `.spellx` NOTEBOOK's page (epic `elemental-spell` P16):  the page its `<spell-notebook>` template draws, in the
  * editor app, editable in place.
- * - A sticky toolbar (`<NotebookToolbar>`);  a masthead, the page's `#` title and the first paragraph under it;
- *   each `##` section a `<ui-section sticky collapsible>`, listed in "On this page" at the right.
+ * - A sticky toolbar (`<NotebookToolbar>`);  a masthead, the page's title and the line under it;  each section a
+ *   `<ui-section sticky collapsible>`, listed in "On this page" at the right.
+ *   - written either way (`NotebookPageCells`):  markdown (`# Counter`, `## Several counters`), or tags
+ *     (`<header level="1">`, `<section label="Several counters">`)
  * - Each cell (`<NotebookCell>`) in order:  prose drawn as markdown, templates as code, and what the notebook
  *   draws -- examples, sections, text -- live, each in its own place, drawn by the running program's runtime.
  * - Editing it changes only that cell's span of the file, saves it, and draws only that cell again
@@ -190,7 +192,7 @@ type ContentsFlyout = {
 /** How many contents flyouts there have been:  each page's id its own. */
 let flyouts = 0
 
-/** A section's cells;  the first section's first prose cell with a `#` title is the masthead. */
+/** A section's cells;  the first section's first cell with a title (`#`, or `<header level="1">`) is the masthead. */
 function Cells(props: { controller: NotebookController; cells: KeyedCell[]; masthead?: ContentsFlyout }) {
   return (
     <For each={props.cells} keyed={(each) => each.key}>
@@ -209,7 +211,7 @@ function Cells(props: { controller: NotebookController; cells: KeyedCell[]; mast
           <Show when={props.controller.editing() && props.controller.selected() === each().key}>
             <CellEditor
               code={each().cell.code}
-              language="markdown"
+              language={each().cell.kind === "prose" ? "markdown" : "spellx"}
               readOnly={false}
               onChange={(code) => props.controller.editCell(each().key, code)}
             />
@@ -238,9 +240,7 @@ function Cells(props: { controller: NotebookController; cells: KeyedCell[]; mast
                 </span>
               </Show>
               {each().cell.title}
-              <Show when={each().cell.code.split("\n").slice(1).join("\n").trim()}>
-                {(rest) => <ui-header class="NotebookLead">{rest()}</ui-header>}
-              </Show>
+              <Show when={each().cell.lead}>{(rest) => <ui-header class="NotebookLead">{rest()}</ui-header>}</Show>
             </ui-header>
           </header>
         </Show>
@@ -255,7 +255,7 @@ const NARROW_PANE = 760
 /** A section of the page:  its heading (none for what comes before the first), its key, and its cells. */
 type Section = { key: string; heading: string | undefined; cells: KeyedCell[] }
 
-/** `cells` as the page's sections:  a new one at each prose cell with a `##` heading, keyed by that cell. */
+/** `cells` as the page's sections:  a new one at each cell with a heading (`##`, `<section label>`), keyed by it. */
 function sectionsOf(cells: KeyedCell[]): Section[] {
   const sections: Section[] = [{ key: "intro", heading: undefined, cells: [] }]
   for (const each of cells) {

@@ -12,6 +12,9 @@ import type { PageCell } from "./NotebookPageCells"
  * One cell of a notebook's page (epic `elemental-spell` P16), by its key:  what it shows, by its kind.
  * - `prose`:  its markdown;  in edit mode, selected, its editor over it.
  *   The text just before an example is that example's description, shown in it (`<ExampleDescription>`).
+ * - `heading`:  nothing of its own (the page draws the title, or its section's title);  in edit mode, selected, its
+ *   spellx in an editor.
+ * - A `<text>` that's an example's description draws nothing here:  it shows in its example.
  * - `template`:  its code, in the page's code view (read only but in spellx, in edit mode).
  * - `drawing`:  what it draws, live, in its own place (`NotebookController.attach()`);  its examples' code in each
  *   example's frame (`<ExampleCode>`);  in edit mode, a selected one that isn't a lone example shows its code too.
@@ -59,6 +62,11 @@ export function NotebookCell(props: {
             {(text) => <ui-markdown class="NotebookProse">{text()}</ui-markdown>}
           </Show>
         </Match>
+        <Match when={props.cell.kind === "heading"}>
+          <Show when={isEditing() && isSelected()}>
+            <CodeOf controller={controller} key={props.key} cell={props.cell} />
+          </Show>
+        </Match>
         <Match when={props.cell.kind === "template"}>
           <div class="NotebookCellLabel">
             <ui-icon name="cube" />
@@ -87,13 +95,15 @@ export function NotebookCell(props: {
           <Show when={isEditing() && isSelected() && !isLoneExample(props.cell)}>
             <CodeOf controller={controller} key={props.key} cell={props.cell} />
           </Show>
-          <div
-            class="NotebookResultHost"
-            ref={(host) => {
-              controller.attach(props.key, host)
-              onCleanup(() => controller.detach(props.key))
-            }}
-          />
+          <Show when={!controller.isDescription(props.key)}>
+            <div
+              class="NotebookResultHost"
+              ref={(host) => {
+                controller.attach(props.key, host)
+                onCleanup(() => controller.detach(props.key))
+              }}
+            />
+          </Show>
         </Match>
         <Match when={true}>
           <CodeOf controller={controller} key={props.key} cell={props.cell} />
