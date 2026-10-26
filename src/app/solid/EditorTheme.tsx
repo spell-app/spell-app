@@ -12,7 +12,7 @@ import "./EditorTheme.css"
  * The editor app's look:  a Spell UI theme and light / dark, picked from its menu bar, remembered in the browser.
  * - Spell UI's docs site does the same, and this reuses it:
  *   - the remembering and applying:  its `ThemePreference`
- *   - the menu:  its `<ui-docs-themes>` (`<ThemeMenu>`, below)
+ *   - the menu:  its `<ui-theme-menu>` (`<ThemeMenu>`, below)
  * - The editor starts in Fruity (`DEFAULT_THEME`, epic `debut` Q14), and keeps its own theme key:
  *   a theme picked on the docs site never changes the editor's, nor the other way round.
  *   - Light / dark is ONE choice for every Spell site:  the docs' key.
@@ -54,7 +54,7 @@ export class EditorTheme {
    * Apply the remembered look:  light / dark at once, the theme once its sheet loads.
    * - Call once, from the editor's entry.
    * - SIDE EFFECTS:
-   *   - defines `<ui-docs-themes>`, for `<ThemeMenu>`
+   *   - defines `<ui-theme-menu>`, for `<ThemeMenu>`
    *   - keeps `<html data-spell-look>` in step with the theme chosen
    *   - follows the OS's light / dark, and other tabs' switches, from then on
    * - NEVER throws:  a failure leaves Spell UI's own look, and says so on the console.
@@ -63,10 +63,10 @@ export class EditorTheme {
     if (isServer) return
     try {
       await uiReady
-      const { ThemePreference } = await import("spell-ui/docs-components")
+      const { ThemePreference } = await import("spell-ui/components/ui-theme-menu/ThemePreference")
       ThemePreference.site({ defaultTheme: EditorTheme.DEFAULT_THEME, themeKey: EditorTheme.THEME_KEY })
-      EditorTheme.follow(ThemePreference.look.theme)
-      ThemePreference.subscribe((look) => EditorTheme.follow(look.theme))
+      EditorTheme.follow(ThemePreference.chosen.theme)
+      ThemePreference.subscribe((chosen) => EditorTheme.follow(chosen.theme))
       await Promise.all([ThemePreference.restore(), EditorTheme.defineMenu()])
     } catch (error) {
       console.error("EditorTheme.restore():  couldn't apply the editor's theme", error)
@@ -81,13 +81,13 @@ export class EditorTheme {
   static async wearKept(): Promise<void> {
     try {
       const [{ ThemePreference }, { SavedTheme }] = await Promise.all([
-        import("spell-ui/docs-components"),
+        import("spell-ui/components/ui-theme-menu/ThemePreference"),
         import("spell-ui/components/ui-theme-editor/SavedTheme")
       ])
       const base = SavedTheme.choices?.base
       // a new base:  choosing it puts the kept sheet on too (`follow()`);  the same one:  the sheet changed
-      if (base && base !== ThemePreference.look.theme) await ThemePreference.setTheme(base)
-      else await SavedTheme.follow(ThemePreference.look.theme)
+      if (base && base !== ThemePreference.chosen.theme) await ThemePreference.setTheme(base)
+      else await SavedTheme.follow(ThemePreference.chosen.theme)
     } catch (error) {
       console.error("EditorTheme.wearKept():  couldn't wear the kept theme", error)
     }
@@ -105,9 +105,9 @@ export class EditorTheme {
       .catch((error: unknown) => console.error("EditorTheme:  couldn't wear the theme kept in the browser", error))
   }
 
-  /** Define `<ui-docs-themes>`, then show `<ThemeMenu>`s. */
+  /** Define `<ui-theme-menu>`, then show `<ThemeMenu>`s. */
   private static async defineMenu(): Promise<void> {
-    await import("spell-ui/docs-components/ui-docs-themes")
+    await import("spell-ui/components/ui-theme-menu")
     setMenuDefined(true)
   }
 }
@@ -129,15 +129,16 @@ function lookFor(theme: string | undefined): EditorLook | undefined {
 const [chosenTheme, setChosenTheme] = createSignal<string | undefined>(undefined)
 
 /**
- * `<ui-docs-themes>` is defined:  `<ThemeMenu>` draws it only then.
- * - Before, `<ui-root>` would try to load its family itself, and fail:  its docs-only families aren't the root's.
+ * `<ui-theme-menu>` is defined:  `<ThemeMenu>` draws it only then.
+ * - Until epic `debut` P17 it was a docs-only widget, which `<ui-root>` couldn't load itself;
+ *   a real Spell UI element now, the root could.
  */
 const [isMenuDefined, setMenuDefined] = createSignal(false)
 
 /****************
  * ### `<ThemeMenu>`
  * The editor's theme menu, in a menu bar:  a palette button opening Light | Dark | Auto and every theme.
- * - The palette:  `<ui-docs-themes>`, inverted while the bar is the old violet one (no look).
+ * - The palette:  `<ui-theme-menu>`, inverted while the bar is the old violet one (no look).
  * - Picking applies at once, and the editor remembers it (`EditorTheme`).
  * - At its foot, "Edit theme...":  the theme editor's page (`<ThemeEditorPage>`, epic `debut` P6).
  ****************/
@@ -145,12 +146,12 @@ export function ThemeMenu(): JSX.Element {
   return (
     <Show when={isMenuDefined()}>
       <ui-item class="ThemeMenu">
-        <ui-docs-themes inverted={EditorTheme.look ? undefined : ""} size="small">
+        <ui-theme-menu inverted={EditorTheme.look ? undefined : ""} size="small">
           <button type="button" slot="end" class="EditThemeEntry" onClick={() => editor.showThemeEditor()}>
             <ui-icon name="paint brush" />
             {appTexts.text("editTheme")}
           </button>
-        </ui-docs-themes>
+        </ui-theme-menu>
       </ui-item>
     </Show>
   )
@@ -172,13 +173,4 @@ export function AppMark(): JSX.Element {
       </a>
     </ui-item>
   )
-}
-
-declare module "@solidjs/web/types/jsx.js" {
-  namespace JSX {
-    interface IntrinsicElements {
-      // Spell UI's docs-only theme menu:  not in its generated types, which name the component tags only
-      "ui-docs-themes": JSX.HTMLAttributes<HTMLElement> & { inverted?: string; size?: string; show?: string }
-    }
-  }
 }

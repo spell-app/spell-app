@@ -106,7 +106,7 @@ ui-icon.IconAction {
   --ui-section-tip-color: white;
 }
 /* the palette's tip, a popup:  the same colours, and the same two seconds' wait (a popup's own is 800ms) */
-ui-item.ThemeMenu ui-docs-themes {
+ui-item.ThemeMenu ui-theme-menu {
   --ui-hover-delay: 2s;
   --ui-popup-inverted-background: var(--spell-tooltip-background);
   --ui-popup-inverted-color: white;
@@ -233,11 +233,11 @@ ui-menu.ModeTabs ui-item::part(item) {
 
 /* `<ThemeMenu>`:  the palette a bare icon, a little bigger (its spacing:  the bar's rule, above) */
 /* its glyph centred on the bar, as the other icons:  its inline controls left a line's descent under it, 1px high */
-ui-item.ThemeMenu ui-docs-themes {
+ui-item.ThemeMenu ui-theme-menu {
   display: flex;
   align-items: center;
 }
-ui-item.ThemeMenu ui-docs-themes::part(palette) {
+ui-item.ThemeMenu ui-theme-menu::part(palette) {
   width: auto;
   min-width: 0;
   height: auto;
@@ -249,7 +249,7 @@ ui-item.ThemeMenu ui-docs-themes::part(palette) {
   /* the bar's icon colour, as Home's (above) */
   color: var(--spell-bar-icon-color);
 }
-ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
+ui-item.ThemeMenu ui-theme-menu::part(palette):hover {
   background: transparent;
   color: var(--spell-bar-icon-color);
 }

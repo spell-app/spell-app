@@ -91,7 +91,7 @@ export class AppUIDataBuilder {
    */
   async build(): Promise<AppUIData> {
     const { nav, groups, families: seeds } = this.pages
-    // Spell UI's builder over each vocabulary folder:  their tags;  the first's foundation tokens and themes
+    // Spell UI's builder over each vocabulary folder:  their tags;  the first's foundation tokens
     const vocabularyData: AppUIData[] = []
     for (const folder of VOCABULARY_FOLDERS) vocabularyData.push(await this.spellUIData(folder))
     const vocabularyTags = new Map(vocabularyData.flatMap((data) => data.components.map((tag) => [tag.tag, tag])))
@@ -132,8 +132,7 @@ export class AppUIDataBuilder {
       components: components.sort((a, b) => a.name.localeCompare(b.name) || a.tag.localeCompare(b.tag)),
       docs: [],
       families,
-      foundation: spellUI.foundation,
-      themes: spellUI.themes
+      foundation: spellUI.foundation
     }
     // its groups the topics, each tag in its family's (`topics`), its own links:  a set's data, as the brand's
     return SiteDataBuilder.forSet(data, { groups, nav })
@@ -155,7 +154,7 @@ export class AppUIDataBuilder {
   }
 
   /**
-   * Spell UI's builder over `folder` (from `root`):  its tags, with its version, foundation tokens and themes.
+   * Spell UI's builder over `folder` (from `root`):  its tags, with its version and foundation tokens.
    * - Its page seeds are ours (`pages.json5`'s families);  it never writes.
    */
   private async spellUIData(folder: string): Promise<AppUIData> {
@@ -273,7 +272,7 @@ const APP_ROOT = path.resolve(import.meta.dirname, "../../..")
  * Where the vocabularies are, from spell-app's root:  the web components, and the runner's view element
  * (`src/app/runner/`).
  * - Each a folder of families, `<folder>/<family>/<Family>.en.ts`, as Spell UI's builder reads them.
- * - The web components' first:  their foundation tokens and themes are the set's.
+ * - The web components' first:  their foundation tokens are the set's.
  */
 const VOCABULARY_FOLDERS = [APP_COMPONENTS, APP_SOURCE]
 
