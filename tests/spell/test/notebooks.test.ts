@@ -21,41 +21,53 @@ import "spell-app/spaces"
  *   `<counter/>` is `<counter-counter/>`.
  * - Parsed under the projects it imports, as the editor parses it:  the Counter notebook draws the Counter example's
  *   counter (`@spell/examples/Counter`), so it keeps no template of its own.
+ * - A project of several notebooks (Avatar's Examples, Usage and API, and the tab bar they share;  P18):  every
+ *   `.spellx` file in its folder, parsed together, and their code spell twins together.
  * - Compared without comments and the `DECLARES` header, which carry line numbers.
  */
 const NOTEBOOKS_DIR = resolve(environment.systemFilesRoot, "notebooks")
 
 describe("every notebook means the same in code spell", () => {
   const notebooks = readdirSync(NOTEBOOKS_DIR, { withFileTypes: true }).filter((it) => it.isDirectory())
-  test("there's at least the Counter", () => expect(notebooks.map(({ name }) => name)).toContain("Counter"))
+  test("there's at least the Counter and the Avatar", () =>
+    expect(notebooks.map(({ name }) => name)).toEqual(expect.arrayContaining(["Avatar", "Counter"])))
   for (const { name } of notebooks) test(name, () => meansTheSame(name))
 })
 
-/** Notebook `name`'s `.spellx` file compiles cleanly, and its code spell to the same javascript. */
+/** Notebook project `name`'s `.spellx` files compile cleanly, and their code spell to the same javascript. */
 function meansTheSame(name: string) {
-  const path = `/${name}.spellx`
   const folder = resolve(NOTEBOOKS_DIR, name)
-  const contents = readFileSync(resolve(folder, `${name}.spellx`), "utf8")
-  const parentScope = importScopeIn(folder, [path])
-  const [spellx] = parseSpellProject([{ path, contents }], { parentScope }).files
-  expect(spellx!.errors).toEqual([])
+  const files = readdirSync(folder)
+    .filter((file) => file.endsWith(".spellx"))
+    .map((file) => ({ path: `/${file}`, contents: readFileSync(resolve(folder, file), "utf8") }))
+  const parentScope = importScopeIn(
+    folder,
+    files.map(({ path }) => path)
+  )
+  const parsed = parseSpellProject(files, { parentScope }).files
+  for (const file of parsed) expect({ path: file.path, errors: file.errors }).toEqual({ path: file.path, errors: [] })
 
-  // each element's tag, as the parse chose it, by where it starts
-  const tags = new Map<number, string>()
-  const visit = (match: P.Match) => {
-    const [element] = match.matched
-    const data = match.data as { tagName?: string; children?: unknown[] }
-    if (element instanceof P.JSXElementToken && data.tagName) tags.set(element.start, data.tagName)
-    for (const inner of [...match.matched, ...(data.children ?? [])]) if (inner instanceof P.Match) visit(inner)
-  }
-  visit(spellx!.match!)
-  const written = SX.CodeSpellWriter.write(contents, {
-    path,
-    componentTag: (word, start) => tags.get(start) ?? SP.ComponentPacks.tagFor(word, "en")
+  // each element's tag, as the parse chose it, by where it starts in its file
+  const written = files.map(({ path, contents }, index) => {
+    const tags = new Map<number, string>()
+    const visit = (match: P.Match) => {
+      const [element] = match.matched
+      const data = match.data as { tagName?: string; children?: unknown[] }
+      if (element instanceof P.JSXElementToken && data.tagName) tags.set(element.start, data.tagName)
+      for (const inner of [...match.matched, ...(data.children ?? [])]) if (inner instanceof P.Match) visit(inner)
+    }
+    visit(parsed[index]!.match!)
+    const code = SX.CodeSpellWriter.write(contents, {
+      path,
+      componentTag: (word, start) => tags.get(start) ?? SP.ComponentPacks.tagFor(word, "en")
+    })
+    return { path: path.replace(/\.spellx$/, ".spell"), contents: code }
   })
-  const [spell] = parseSpellProject([{ path: `/${name}.spell`, contents: written }], { parentScope }).files
-  expect(spell!.errors).toEqual([])
-  expect(codeOf(spell!.compiled)).toBe(codeOf(spellx!.compiled))
+  const twins = parseSpellProject(written, { parentScope }).files
+  twins.forEach((spell, index) => {
+    expect({ path: spell.path, errors: spell.errors }).toEqual({ path: spell.path, errors: [] })
+    expect(codeOf(spell.compiled)).toBe(codeOf(parsed[index]!.compiled))
+  })
 }
 
 /** `compiled` without its comments and `DECLARES` headers. */

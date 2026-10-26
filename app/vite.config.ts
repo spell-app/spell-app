@@ -33,7 +33,7 @@ export default defineConfig({
     fs: { allow: [TOP_REPO] },
     port: environment.vitePort,
     host: "0.0.0.0",
-    // the page server's:  the API, a project's files, and the elements' bundles for the demo pages (`appRoutes.ts`)
+    // the page server's:  the API, a project's files, the elements' bundles for the demo pages (`appRoutes.ts`), Spell UI's pages
     proxy: {
       "/api": {
         target: `http://${environment.api_server}:${environment.expressPort}`,
@@ -45,6 +45,12 @@ export default defineConfig({
         changeOrigin: true
       },
       "/element": {
+        target: `http://${environment.api_server}:${environment.expressPort}`,
+        changeOrigin: true
+      },
+      // Spell UI's component pages and their images:  what a notebook links and shows, as the page does
+      // (`@spell/notebooks/Avatar`, epic `elemental-spell` P18)
+      "/components": {
         target: `http://${environment.api_server}:${environment.expressPort}`,
         changeOrigin: true
       }

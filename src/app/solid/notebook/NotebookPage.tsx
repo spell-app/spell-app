@@ -9,6 +9,7 @@ import { PagePatch } from "spell/server/site/PagePatch"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { NotebookController, type KeyedCell } from "./NotebookController"
 import { CellEditor, ExampleCode, ExampleDescription, NotebookCell } from "./NotebookCell"
+import { NotebookDocs } from "./NotebookDocs"
 import { NotebookToolbar } from "./NotebookToolbar"
 import { SpellExample } from "./SpellExample"
 
@@ -35,10 +36,13 @@ import "./NotebookPage.css"
  * - "On this page" shows at the right, unless the toolbar hides it;  where it doesn't show (hidden, or a pane too
  *   narrow for it), an icon at the end of the title's row opens it as a flyout over the page's right edge.
  * - The program still runs as ever, drawn out of sight:  its classes and its notebook are what the cells draw with.
- * - SIDE EFFECT:  defines `<spell-example>`, the example frame the notebook's examples draw as.
+ * - SIDE EFFECT:  defines `<spell-example>`, the example frame the notebook's examples draw as;  and loads
+ *   `<ui-docs-api>`, which an `<html>` block may draw (`NotebookDocs`).
  ****************/
 export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProject }) {
   SpellExample.define()
+  // Spell UI's `<ui-docs-api>`, for an `<html>` block's API tables:  a chunk of its own, loaded once
+  void NotebookDocs.load()
   const controller = new NotebookController(props.file, props.project)
   // DEBUG:  `notebook` at the devtools console
   setDebugGlobal({ notebook: controller })

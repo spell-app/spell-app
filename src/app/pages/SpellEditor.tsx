@@ -98,7 +98,7 @@ export function SpellEditor(props: { mode: Mode }) {
 export function AppPane() {
   const root = trackProjectRoot(() => undefined)
   const title = tracked(() => (editor.project ? new SP.SpellProject(editor.project.path).title : ""))
-  const notebook = tracked(() => notebookOf(editor.project))
+  const notebook = tracked(() => notebookOf(editor.project, editor.file))
   return (
     <div class="AppPane">
       <header class="AppPaneHeader">
@@ -200,12 +200,21 @@ export function ProgramPanel(props: { onClose: () => void }) {
 }
 
 /**
- * `project`'s notebook, if it's one:  its first `.spellx` file holding a `<spell-notebook>` (`<encanto-cuaderno>`).
+ * `project`'s notebook, if it's one:  a `.spellx` file holding a `<spell-notebook>` (`<encanto-cuaderno>`).
+ * - The one open in the editor (`open`), when it's a notebook:  a project of several shows each at its own address,
+ *   `/edit/@spell/notebooks/Avatar/Usage.spellx` (epic `elemental-spell` P18).
+ * - Else its first.
  * - Read from the files' text, so the page shows as soon as the project's loaded.
  */
-function notebookOf(project: SP.SpellProject | undefined): SP.SpellFile | undefined {
+function notebookOf(
+  project: SP.SpellProject | undefined,
+  open: { path?: string } | undefined
+): SP.SpellFile | undefined {
   if (!project?.isLoaded) return undefined
-  return project.spellFiles.find((file) => file.form === "spellx" && NOTEBOOK_TAG.test(file.contents ?? ""))
+  const notebooks = project.spellFiles.filter(
+    (file) => file.form === "spellx" && NOTEBOOK_TAG.test(file.contents ?? "")
+  )
+  return notebooks.find((file) => file.path === open?.path) ?? notebooks[0]
 }
 
 /** A notebook's tag, at a line's start:  `<spell-notebook`, Spanish's `<encanto-cuaderno`. */

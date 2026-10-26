@@ -1,0 +1,31 @@
+<spell-notebook "avatar api">
+	<header level="1">
+		Avatar
+		<header>An avatar is a small picture of a person, beside a comment, an item or a card.</header>
+	</header>
+	<avatar-tab-bar showing="api"/>
+
+	<section label="Attributes">
+		<html>
+			<ui-docs-api tag="ui-avatar" only="attributes"></ui-docs-api>
+		</html>
+	</section>
+
+	<section label="Slots">
+		<html>
+			<ui-docs-api tag="ui-avatar" only="slots"></ui-docs-api>
+		</html>
+	</section>
+
+	<section label="Parts">
+		<html>
+			<ui-docs-api tag="ui-avatar" only="parts"></ui-docs-api>
+		</html>
+	</section>
+
+	<section label="States">
+		<html>
+			<ui-docs-api tag="ui-avatar" only="states"></ui-docs-api>
+		</html>
+	</section>
+</spell-notebook>
