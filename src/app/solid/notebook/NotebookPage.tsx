@@ -1,5 +1,5 @@
 import { For, Show, createSignal, getOwner, onCleanup, onSettled, runWithOwner } from "solid-js"
-import { render } from "@solidjs/web"
+import { render, type JSX } from "@solidjs/web"
 
 import { setDebugGlobal } from "spell/util"
 import { UI } from "spell-ui/core"
@@ -8,10 +8,12 @@ import type { SP } from "spell-parser/spell"
 import { PagePatch } from "spell/server/site/PagePatch"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { NotebookController, type KeyedCell } from "./NotebookController"
-import { CellEditor, ExampleCode, NotebookCell } from "./NotebookCell"
+import { CellEditor, ExampleCode, ExampleDescription, NotebookCell } from "./NotebookCell"
 import { NotebookToolbar } from "./NotebookToolbar"
 import { SpellExample } from "./SpellExample"
 
+// the section titles' look, as a component page draws them
+import "spell-ui/docs-components/docs-sections.css"
 import "./NotebookPage.css"
 
 /****************
@@ -39,15 +41,20 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
   setDebugGlobal({ notebook: controller })
   const owner = getOwner()
   const panelDisposers: Array<() => void> = []
-  controller.panelMaker = (key, index) => {
+  /** A panel for an example's `slot`, drawing `view` (its description, its code). */
+  const panelFor = (slot: string, view: (panel: HTMLElement) => JSX.Element) => {
     const panel = document.createElement("div")
-    panel.slot = "code"
-    const dispose = runWithOwner(owner, () =>
-      render(() => <ExampleCode controller={controller} key={key} index={index} />, panel)
-    )
+    panel.slot = slot
+    const dispose = runWithOwner(owner, () => render(() => view(panel), panel))
     panelDisposers.push(dispose)
     return panel
   }
+  controller.panelMaker = (key, index) => [
+    panelFor("description", (panel) => (
+      <ExampleDescription controller={controller} key={key} index={index} panel={panel} />
+    )),
+    panelFor("source", () => <ExampleCode controller={controller} key={key} index={index} />)
+  ]
   onCleanup(() => panelDisposers.forEach((dispose) => dispose()))
 
   // a change from outside the page:  the file on the server, read every couple of seconds
@@ -79,8 +86,10 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
   }
 
   const sections = () => sectionsOf(controller.cells())
+  // "On this page" is headed by the page's title, as a component page's is
+  const pageTitle = () => controller.cells().find((each) => each.cell.title)?.cell.title
   return (
-    <div class="NotebookPage" ref={(div) => (page = div)}>
+    <div class="NotebookPage ui-docs-sections" ref={(div) => (page = div)}>
       <NotebookToolbar controller={controller} ref={followToolbar} />
       <div class="NotebookColumns">
         <main class="NotebookMain">
@@ -110,7 +119,8 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
           class={["NotebookToc", { hidden: !controller.contentsShown() }]}
           aria-label={appTexts.text("notebookPageContents")}
         >
-          <div class="NotebookTocTitle">{appTexts.text("notebookPageContents")}</div>
+          <div class="NotebookTocTitle">{pageTitle() ?? appTexts.text("notebookPageContents")}</div>
+          <div class="NotebookTocLabel">{appTexts.text("notebookPageContents")}</div>
           <For each={sections().filter((section) => section.heading !== undefined)} keyed={(section) => section.key}>
             {(section) => (
               <a class="NotebookTocLink" href={`#${slugOf(section().heading!)}`} onClick={scrollTo}>
@@ -155,10 +165,12 @@ function Cells(props: { controller: NotebookController; cells: KeyedCell[]; mast
             ]}
             onClick={() => props.controller.select(each().key)}
           >
-            <h1>{each().cell.title}</h1>
-            <Show when={each().cell.code.split("\n").slice(1).join("\n").trim()}>
-              {(rest) => <ui-markdown class="NotebookLead">{rest()}</ui-markdown>}
-            </Show>
+            <ui-header level="1" class="NotebookTitle">
+              {each().cell.title}
+              <Show when={each().cell.code.split("\n").slice(1).join("\n").trim()}>
+                {(rest) => <ui-header class="NotebookLead">{rest()}</ui-header>}
+              </Show>
+            </ui-header>
           </header>
         </Show>
       )}

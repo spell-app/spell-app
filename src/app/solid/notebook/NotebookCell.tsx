@@ -11,6 +11,7 @@ import type { PageCell } from "./NotebookPageCells"
  * ### `<NotebookCell>`
  * One cell of a notebook's page (epic `elemental-spell` P16), by its key:  what it shows, by its kind.
  * - `prose`:  its markdown;  in edit mode, selected, its editor over it.
+ *   The text just before an example is that example's description, shown in it (`<ExampleDescription>`).
  * - `template`:  its code, in the page's code view (read only but in spellx, in edit mode).
  * - `drawing`:  what it draws, live, in its own place (`NotebookController.attach()`);  its examples' code in each
  *   example's frame (`<ExampleCode>`);  in edit mode, a selected one that isn't a lone example shows its code too.
@@ -54,7 +55,7 @@ export function NotebookCell(props: {
               onChange={(code) => controller.editCell(props.key, code)}
             />
           </Show>
-          <Show when={proseShown(props.cell, props.heading)}>
+          <Show when={!controller.isDescription(props.key) && proseShown(props.cell, props.heading)}>
             {(text) => <ui-markdown class="NotebookProse">{text()}</ui-markdown>}
           </Show>
         </Match>
@@ -127,9 +128,45 @@ function CodeOf(props: { controller: NotebookController; key: string; cell: Page
 }
 
 /****************
+ * ### `<ExampleDescription>`
+ * An example's description:  the text of the prose cell before it, shown as its description
+ * (`<spell-example>`'s `description` slot), as a component page's example reads.
+ * - Only the first example of its cell has one (`NotebookController.descriptionFor()`).
+ * - Its panel is slotted only while there's text:  an empty description takes no room.
+ * - A click selects that prose cell:  in edit mode, its editor shows in its place.
+ ****************/
+export function ExampleDescription(props: {
+  controller: NotebookController
+  key: string
+  index: number
+  panel: HTMLElement
+}) {
+  const { controller } = props
+  const description = () => (props.index === 0 ? controller.descriptionFor(props.key) : undefined)
+  createEffect(description, (shown) => {
+    props.panel.slot = shown ? "description" : NO_SLOT
+  })
+  return (
+    <Show when={description()}>
+      {(shown) => (
+        <ui-markdown
+          class="NotebookExampleDescription"
+          onClick={(event: MouseEvent) => {
+            event.stopPropagation()
+            controller.select(shown().key)
+          }}
+        >
+          {shown().text}
+        </ui-markdown>
+      )}
+    </Show>
+  )
+}
+
+/****************
  * ### `<ExampleCode>`
- * An example's code, under its result in its frame (`<spell-example>`'s `code` slot):  the page's code view, and the
- * switch for it.
+ * An example's code, in its code pane (`<spell-example>`'s `source` slot), which its `</>` button rolls open
+ * under its result:  the page's code view, and a small switch for it at the pane's top right.
  * - Flipping the switch here flips the page's:  every example's code, and the toolbar's.
  * - Editable in edit mode, in spellx or html (mapped back to spellx before it's saved);  spell is read only.
  * - Made once per example and MOVED into its example each time it draws again (`NotebookController`):
@@ -143,7 +180,7 @@ export function ExampleCode(props: { controller: NotebookController; key: string
   return (
     <div class="NotebookExampleCode" onClick={(event) => event.stopPropagation()}>
       <div class="NotebookExampleBar">
-        <CodeViewSwitch controller={controller} />
+        <CodeViewSwitch controller={controller} size="tiny" />
       </div>
       <Show when={cell()}>
         {(shown) => (
@@ -151,6 +188,7 @@ export function ExampleCode(props: { controller: NotebookController; key: string
             code={controller.exampleCode(shown(), props.index)}
             language={LANGUAGES[view()]}
             readOnly={!editable()}
+            flush
             onChange={(code) => controller.editExample(props.key, props.index, code)}
           />
         )}
@@ -160,9 +198,14 @@ export function ExampleCode(props: { controller: NotebookController; key: string
 }
 
 /** The switch between the code views, spellx / spell / html:  one for the whole page. */
-export function CodeViewSwitch(props: { controller: NotebookController }) {
+export function CodeViewSwitch(props: { controller: NotebookController; size?: "tiny" | "small" }) {
   return (
-    <ui-buttons size="small" appearance="basic" class="NotebookViewSwitch" aria-label={appTexts.text("notebookPageCodeAs")}>
+    <ui-buttons
+      size={props.size ?? "small"}
+      appearance="basic"
+      class="NotebookViewSwitch"
+      aria-label={appTexts.text("notebookPageCodeAs")}
+    >
       <For each={VIEWS}>
         {(view) => (
           <ui-button
@@ -196,6 +239,8 @@ export function CellEditor(props: {
   language: string
   readOnly: boolean
   onChange: (code: string) => void
+  /** its text flush with its box's left edge, no margin before it:  an example's code, under its demo */
+  flush?: boolean
 }) {
   let instance: monaco.editor.IStandaloneCodeEditor | undefined
   const lines = () => Math.min(MOST_LINES, props.code.split("\n").length)
@@ -211,7 +256,7 @@ export function CellEditor(props: {
         <LazyMonaco.MonacoEditor
           value={props.code}
           language={props.language}
-          options={{ ...CODE_OPTIONS, readOnly: props.readOnly }}
+          options={{ ...CODE_OPTIONS, ...(props.flush ? FLUSH_OPTIONS : {}), readOnly: props.readOnly }}
           onChange={(code) => props.onChange(code)}
           onMount={(editor) => {
             instance = editor
@@ -247,6 +292,9 @@ function isLoneExample(cell: PageCell): boolean {
 /** The views, in the switch's order. */
 const VIEWS: readonly CodeView[] = ["spellx", "spell", "html"]
 
+/** A slot no example has:  an example's panel with nothing to show goes there, out of sight. */
+const NO_SLOT = "none"
+
 /** Monaco's language for each code view. */
 const LANGUAGES: Record<CodeView, string> = { spellx: "spellx", spell: "spell", html: "html" }
 
@@ -255,6 +303,9 @@ const MOST_LINES = 30
 
 /** Height of a line in a cell's editor, px. */
 const LINE_HEIGHT = 20
+
+/** An example's editor:  its text starts where its demo's does, as a component page's example code does. */
+const FLUSH_OPTIONS = { glyphMargin: false, lineDecorationsWidth: 0, lineNumbersMinChars: 0 } as const
 
 /** A cell's editor:  no line numbers, minimap or scrolling past the end;  it follows its box's size. */
 const CODE_OPTIONS = {

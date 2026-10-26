@@ -7,6 +7,12 @@
   --notebook-gutter: 16px;
   --notebook-width: 46rem;
   --notebook-ring: rgb(150 80 255 / 0.4);
+  /*
+   * a section title's bar reaches out past the column, as a component page's does (`docs-sections.css`):
+   * its edge 8px out from the text, half the gutter:  the pane's edge keeps its own 8px
+   */
+  --ui-docs-section-reach-start: calc(12px + var(--notebook-gutter) / 2);
+  --ui-docs-section-reach-end: calc(12px + var(--notebook-gutter) / 2);
   /* its own width decides its layout, not the window's:  it shares the window with the code */
   container-type: inline-size;
   position: relative;
@@ -28,7 +34,8 @@
   align-items: center;
   gap: 8px 24px;
   padding: 8px var(--notebook-gutter);
-  background: var(--ui-surface);
+  /* opaque:  what scrolls under it never shows through (the theme's surface may be see-through glass) */
+  background: linear-gradient(var(--ui-surface), var(--ui-surface)), Canvas;
   border-bottom: 1px solid var(--ui-border-color, rgb(34 36 38 / 0.15));
 }
 
@@ -69,25 +76,46 @@
   min-width: 0;
 }
 
-/* stuck where it starts:  the toolbar's height and the page's top padding, level with the masthead */
+/*
+ * "On this page":  a card, as a component page's is (`<ui-docs-toc>` in its side column), headed by the page's title,
+ * its sections' links under it
+ * - stuck where it starts:  the toolbar's height and the page's top padding, level with the masthead
+ */
 .NotebookToc {
   position: sticky;
   top: 65px;
   align-self: start;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.9em;
+  gap: 2px;
+  padding: 16px 20px 20px;
+  border: var(--ui-border-width, 1px) solid var(--ui-border-color, rgb(34 36 38 / 0.15));
+  border-radius: var(--ui-radius-l, 16px);
+  background: color-mix(in oklab, var(--ui-surface, white) 45%, transparent);
+  box-shadow: var(--ui-shadow-subtle, none);
+  font-size: 15px;
 }
 
 .NotebookTocTitle {
-  font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  font: 400 20px / 1.3 var(--ui-font-family-heading, inherit);
+  color: var(--ui-header-color, var(--ui-text-color));
 }
 
 .NotebookTocLink {
-  color: var(--ui-link);
+  padding: 4px 0;
+  font-weight: 600;
+  color: var(--ui-primary-text, var(--ui-link));
   text-decoration: none;
+}
+
+.NotebookTocLink:hover {
+  text-decoration: underline;
+}
+
+/* its label, for the row it becomes on a narrow pane (below):  the card says the page's title instead */
+.NotebookTocLabel {
+  display: none;
 }
 
 /* hidden from the toolbar:  the page alone */
@@ -103,6 +131,8 @@
 @container (max-width: 760px) {
   .NotebookColumns {
     grid-template-columns: minmax(0, 1fr);
+    row-gap: 16px;
+    padding-top: 16px;
   }
 
   .NotebookToc {
@@ -110,30 +140,55 @@
     order: -1;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 6px 16px;
+    align-items: baseline;
+    gap: 2px 16px;
+    padding: 10px 16px;
+  }
+
+  /* a row says what it is, quietly:  the page's title is right under it */
+  .NotebookTocTitle {
+    display: none;
+  }
+
+  .NotebookTocLabel {
+    display: block;
+    margin-inline-end: 8px;
+    font-size: 0.8em;
+    color: var(--ui-text-muted);
   }
 }
 
-.NotebookMasthead h1 {
-  margin: 0 0 8px;
-  font-size: 2em;
-  line-height: 1.2;
+/* the page's title and the line under it, as a component page's masthead (`<ui-header level="1">` and its sub header) */
+.NotebookMasthead {
+  padding-block: 0 8px;
 }
 
 .NotebookLead {
-  font-size: 1.15em;
-  color: var(--ui-text-muted);
+  margin-top: 0.4em;
 }
 
-/* a section's title a step under the page's */
-.NotebookSection {
-  margin-top: 24px;
-  --ui-section-h2: 1.35;
+.NotebookTitle {
+  --ui-header-margin-top: 0;
+  --ui-header-margin-bottom: 0;
 }
 
-/* an untitled section in what a notebook draws (`<section>`):  no rule */
+/*
+ * an untitled section in what a notebook draws (`<section>`):  no rule
+ * - the rule came from the page's section round it:  its `dividing` look's private token reaches the sections it
+ *   holds (the suspected-bugs log, "ui")
+ */
 .NotebookResult ui-section:not([label]) {
   --ui-section-dividing-border: none;
+}
+.NotebookResult ui-section:not([label])::part(title) {
+  border-bottom: none;
+}
+/* ... nor space of its own round what it holds:  its example sits under the page's section title, as the first */
+.NotebookResult ui-section:not([label])::part(section) {
+  margin-block: 0;
+}
+.NotebookResult ui-section:not([label])::part(content) {
+  padding-block: 0;
 }
 
 /* ## Cells */
@@ -142,6 +197,16 @@
   position: relative;
   margin: 12px 0;
   border-radius: var(--ui-radius-m, 0.5em);
+}
+
+/* a cell with nothing to show (a section's heading cell, its text shown as its example's description):  no room */
+.NotebookCell:empty {
+  margin: 0;
+}
+
+/* ... so the example after it starts right under its section's title, as a component page's first example does */
+.NotebookCell:first-child:empty + .NotebookCell {
+  margin-top: 0;
 }
 
 /* in edit mode, the selected cell:  a focus ring a little out from its edges */
@@ -180,24 +245,42 @@
   display: block;
 }
 
-/* its switch floats over its code's top right */
+/*
+ * an example's code, in its code pane:  its text on the pane's own shade, as the code of a component page's example
+ * - its switch (spellx / spell / html) small, over the pane's top right
+ */
 .NotebookExampleCode {
-  display: block;
-  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
 }
 
-/* an example's code lines up with its title and result, 16px in:  Monaco's own 10px, then 6px */
 .NotebookExampleCode .NotebookCode {
   border: 0;
   border-radius: 0;
-  padding-left: 6px;
+  padding: 0;
+  /* Monaco paints its own ground:  the pane's shows through instead */
+  --vscode-editor-background: transparent;
+  --vscode-editorGutter-background: transparent;
 }
 
+.NotebookExampleCode .monaco-editor,
+.NotebookExampleCode .monaco-editor-background,
+.NotebookExampleCode .monaco-editor .margin {
+  background-color: transparent;
+}
+
+/* beside the code, never over it:  its own column */
 .NotebookExampleBar {
-  position: absolute;
-  top: 6px;
-  right: 16px;
-  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* the text before an example, shown as its description */
+.NotebookExampleDescription {
+  display: block;
+  cursor: text;
 }
 
 .NotebookErrors {

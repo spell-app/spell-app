@@ -166,7 +166,7 @@ async function mount() {
   return { host, file, controller }
 }
 
-/** Each example's result's text, its views' shadow roots and all, in order. */
+/** Each example's result's text, its views' shadow roots and all, in order:  not its description and code panels. */
 function resultsOf(host: HTMLElement): string[] {
   const deep = (node: Node): string =>
     node.nodeType === Node.TEXT_NODE
@@ -174,7 +174,7 @@ function resultsOf(host: HTMLElement): string[] {
       : [...((node as Element).shadowRoot?.childNodes ?? []), ...node.childNodes].map(deep).join("")
   return [...host.querySelectorAll(".NotebookResult spell-example")].map((example) =>
     [...example.childNodes]
-      .filter((node) => (node as Element).slot !== "code")
+      .filter((node) => !(node as Element).slot)
       .map(deep)
       .join(" ")
       .replace(/\s+/g, " ")

@@ -125,6 +125,30 @@ export class NotebookController {
     return this.cells().find((each) => each.key === key)?.cell
   }
 
+  /**
+   * The description of drawing cell `key`'s first example:  the text of the prose cell just before it, and that
+   * cell's key, as a component page's example reads ("A standard button.", then the button).
+   * - A section's heading cell gives its text under the heading;  the page's `#` title cell gives none.
+   * - `undefined` when there's no such text, or the cell draws no example.
+   */
+  descriptionFor(key: string): { key: string; text: string } | undefined {
+    const cells = this.cells()
+    const index = cells.findIndex((each) => each.key === key)
+    const before = cells[index - 1]
+    if (index < 1 || !cells[index]!.cell.examples?.length) return undefined
+    if (before?.cell.kind !== "prose" || before.cell.title) return undefined
+    const lines = before.cell.code.split("\n")
+    const text = (before.cell.heading === undefined ? lines : lines.slice(1)).join("\n").trim()
+    return text ? { key: before.key, text } : undefined
+  }
+
+  /** Is prose cell `key` the description of the example after it (`descriptionFor()`)?  It shows there, then. */
+  isDescription(key: string): boolean {
+    const cells = this.cells()
+    const after = cells[cells.findIndex((each) => each.key === key) + 1]
+    return !!after && this.descriptionFor(after.key)?.key === key
+  }
+
   /** May this person save:  the notebook's unlocked, or they can write its file and aren't trying as a visitor? */
   canSave(): boolean {
     return !this.model()?.locked || this.isAdmin()
@@ -418,11 +442,17 @@ export class NotebookController {
   /** Each drawing cell's place on the page, and what's drawn there now, by key. */
   private readonly drawn = new Map<string, { host: HTMLElement; result?: HTMLElement; dispose?: () => void }>()
 
-  /** Each example's code panel, by its cell's key, in order:  made once, moved into each new drawing. */
-  private readonly panels = new Map<string, HTMLElement[]>()
+  /**
+   * Each example's panels (its description, its code), by its cell's key, in order:
+   * made once, moved into each new drawing.
+   */
+  private readonly panels = new Map<string, HTMLElement[][]>()
 
-  /** Makes example `index` of cell `key`'s code panel:  `<NotebookPage>` hands it in. */
-  panelMaker: ((key: string, index: number) => HTMLElement) | undefined
+  /**
+   * Makes example `index` of cell `key`'s panels, each slotted where it goes (`description`, `source`):
+   * `<NotebookPage>` hands it in.
+   */
+  panelMaker: ((key: string, index: number) => HTMLElement[]) | undefined
 
   /** Cell `key` is drawn in `host`, a place on the page:  draw it there. */
   attach(key: string, host: HTMLElement) {
@@ -463,9 +493,13 @@ export class NotebookController {
       const result = document.createElement("div")
       result.className = "NotebookResult"
       const dispose = runWithOwner(null, () => render(() => drawing as never, result))
+      // the editor being typed in, if it's one of these panels:  moving it lets go of the focus, so it takes it back
+      const typing = this.focusIn(key)
       this.movePanels(key, result)
       if (drawn.result) drawn.result.replaceWith(result)
       else drawn.host.append(result)
+      // once its example has drawn its code pane round it
+      if (typing) void after(0, () => typing.focus({ preventScroll: true })).catch(() => {})
       drawn.dispose?.()
       this.drawn.set(key, { host: drawn.host, result, dispose })
     } catch (error) {
@@ -552,13 +586,27 @@ export class NotebookController {
     return core.things.topLevel().find((each) => each.thing instanceof Notebook)?.thing
   }
 
-  /** Move cell `key`'s examples' code panels into the examples drawn in `result`, making the ones it hasn't got. */
+  /** What has the focus inside cell `key`'s examples' panels (an editor's text), if anything does. */
+  private focusIn(key: string): HTMLElement | undefined {
+    let active = document.activeElement
+    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+    const panels = this.panels.get(key)?.flat() ?? []
+    return active instanceof HTMLElement && panels.some((panel) => panel.contains(active)) ? active : undefined
+  }
+
+  /**
+   * Move cell `key`'s examples' panels into the examples drawn in `result`, making the ones it hasn't got.
+   * - An example whose code was open opens at once in the new drawing (its `code`):  no roll, nothing moves.
+   */
   private movePanels(key: string, result: HTMLElement) {
     const examples = [...result.querySelectorAll(EXAMPLE_TAG)]
     const panels = this.panels.get(key) ?? []
     examples.forEach((example, index) => {
-      panels[index] ??= this.panelMaker?.(key, index) ?? document.createElement("div")
-      example.append(panels[index])
+      panels[index] ??= this.panelMaker?.(key, index) ?? []
+      // its code stays open as it was, while it's typed in:  the example it was in is the old drawing's
+      const was = panels[index][0]?.parentElement
+      if (was?.hasAttribute("code")) example.setAttribute("code", "")
+      example.append(...panels[index])
     })
     this.panels.set(key, panels)
   }

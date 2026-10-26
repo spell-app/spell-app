@@ -1,16 +1,17 @@
 <spell-notebook "counter notebook">
-	# A counter
+	# Counter
 	A button that counts its clicks.
 
-	## Try it
-	<example "one counter">
+	## Counter
+	A counter starts at 0, and adds one each time it's clicked.
+	<example "One counter">
 		<counter/>
 	</example>
 
-	## Two of them
-	Each counts on its own:
+	## Several counters
+	Each counter keeps its own count:  clicking one leaves the others alone.
 	<section>
-		<example "two counters">
+		<example "Two counters">
 			<counter/>
 			<counter/>
 		</example>

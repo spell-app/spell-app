@@ -35,15 +35,15 @@ describe("NotebookPageCells", () => {
     expect(model.name).toBe("counter notebook")
     expect(model.locked).toBe(false)
     expect(model.cells.map(({ kind, heading, title, name }) => ({ kind, heading, title, name }))).toEqual([
-      { kind: "prose", heading: undefined, title: "A counter", name: undefined },
-      { kind: "prose", heading: "Try it", title: undefined, name: undefined },
-      { kind: "drawing", heading: undefined, title: undefined, name: "one counter" },
-      { kind: "prose", heading: "Two of them", title: undefined, name: undefined },
+      { kind: "prose", heading: undefined, title: "Counter", name: undefined },
+      { kind: "prose", heading: "Counter", title: undefined, name: undefined },
+      { kind: "drawing", heading: undefined, title: undefined, name: "One counter" },
+      { kind: "prose", heading: "Several counters", title: undefined, name: undefined },
       { kind: "drawing", heading: undefined, title: undefined, name: "" }
     ])
     // a drawing's examples, however deep:  the section's
     expect(model.cells[4]!.examples!.map((example) => [example.name, example.body.code])).toEqual([
-      ["two counters", "<counter/>\n<counter/>"]
+      ["Two counters", "<counter/>\n<counter/>"]
     ])
   })
 
@@ -54,24 +54,26 @@ describe("NotebookPageCells", () => {
     const example = model.cells[2]!.examples![0]!
     expect(NotebookPageCells.withCode(COUNTER, example.body, "<counter/>\n<counter/>")).toBe(
       COUNTER.replace(
-        '\t<example "one counter">\n\t\t<counter/>\n',
-        '\t<example "one counter">\n\t\t<counter/>\n\t\t<counter/>\n'
+        '\t<example "One counter">\n\t\t<counter/>\n',
+        '\t<example "One counter">\n\t\t<counter/>\n\t\t<counter/>\n'
       )
     )
   })
 
   test("move up, then down:  back as it was;  delete, add and lock", () => {
     const moved = NotebookPageCells.moved(COUNTER, model.cells, 2, "up")
-    expect(moved.indexOf('<example "one counter">')).toBeLessThan(moved.indexOf("## Try it"))
+    expect(moved.indexOf('<example "One counter">')).toBeLessThan(moved.indexOf("## Counter"))
     const back = NotebookPageCells.of(moved, "/Counter.spellx")!
     expect(NotebookPageCells.moved(moved, back.cells, 1, "down")).toBe(COUNTER)
 
     const deleted = NotebookPageCells.deleted(COUNTER, model.cells[2]!)
-    expect(deleted).not.toContain("one counter")
-    expect(deleted).toContain("\t## Try it\n\n\t## Two of them")
+    expect(deleted).not.toContain("One counter")
+    expect(deleted).toContain(
+      "\t## Counter\n\tA counter starts at 0, and adds one each time it's clicked.\n\n\t## Several counters"
+    )
 
     const { text, start } = NotebookPageCells.inserted(COUNTER, model, model.cells[1], "Some text.")
-    expect(text).toContain("\t## Try it\n\n\tSome text.\n")
+    expect(text).toContain("it's clicked.\n\n\tSome text.\n")
     expect(text.slice(start, start + 10)).toBe("Some text.")
 
     const locked = NotebookPageCells.withLock(COUNTER, model, true)
