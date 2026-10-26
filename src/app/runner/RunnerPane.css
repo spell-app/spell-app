@@ -1,4 +1,4 @@
-/* A pane's toolbar, then what it's showing, filling the rest. */
+/* A pane's header (its toolbar of tabs, then its tools), then what it's showing, filling the rest. */
 .RunnerPane {
   flex: 1 1 auto;
   min-height: 0;
@@ -6,29 +6,36 @@
   flex-direction: column;
 
   /*
-   * the bar:  the toolbar's own box, the panel's header, the tabs' track and the tools in it together
+   * the header:  a pane header, as the others:  40px, a hairline under it, the tabs' track and the tools in it
    * (Owen:  "(/) and x buttons closer together, and included in the toolbar bg")
+   * - the track starts past the pane's rounded corner:  a pill tucked 10px into a 16px corner was rounder than the
+   *   corner round it (Owen:  "rounding of outer rings needs to be greater than rounding of inner bits")
    */
-  /* its tabs the Inspector's size:  one look for every tab bar (`chrome.css`) */
-  & > .RunnerPaneToolbar {
+  & > .RunnerPaneHeader {
     flex: 0 0 auto;
-  }
-  /* a pane header, as the others:  40px, a hairline under it, the tabs' track and the tools in it */
-  & > .RunnerPaneToolbar::part(toolbar) {
     box-sizing: border-box;
-    height: 40px;
+    display: flex;
+    align-items: center;
     gap: 0.5em;
-    padding: 0 12px 0 10px;
+    height: 40px;
+    padding-block: 0;
+    padding-inline: max(10px, var(--spell-pane-radius, 0px)) 12px;
     border-bottom: 1px solid var(--ui-border-color);
     background: var(--spell-header-background);
   }
+  /* its tabs the Inspector's size:  one look for every tab bar (`chrome.css`);  the track takes the room left */
+  & .RunnerPaneToolbar {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
   /* the tools at the right:  spaced as every bar's icons (`chrome.css`) */
   & .RunnerPaneTools {
+    flex: none;
     display: flex;
     align-items: center;
   }
 
-  & > :not(.RunnerPaneToolbar) {
+  & > :not(.RunnerPaneHeader) {
     flex: 1 1 auto;
     min-height: 0;
   }

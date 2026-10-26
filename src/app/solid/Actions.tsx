@@ -126,7 +126,11 @@ export const Actions = {
   showHelp: (props: ActionProps) => (
     <Action title={appTexts.text("help")} icon="help circle" onClick={() => editor.showHelp()} {...props} />
   ),
-  /** The person, as their avatar:  a round picture, their name's first letter, the "You" panel on a click. */
+  /**
+   * The person, as their avatar:  their name's first letter in a circle, the "You" panel on a click.
+   * - Drawn by its sheet (`.YouAvatar`, `chrome.css`) in the theme's primary colours, until people have pictures
+   *   of their own:  a picture of the letter kept Spell's violet in every theme.
+   */
   you: () => (
     <button
       type="button"
@@ -137,7 +141,9 @@ export const Actions = {
       data-inverted=""
       onClick={() => editor.showYou()}
     >
-      <ui-avatar src={avatarFor(SPACES.LOCAL_PERSON)} />
+      <span class="YouLetter" aria-hidden="true">
+        {SPACES.LOCAL_PERSON.charAt(0).toUpperCase()}
+      </span>
     </button>
   ),
 
@@ -400,16 +406,6 @@ const HIDDEN_IN_STATIC_BUILD = [
 ] as const satisfies ReadonlyArray<keyof typeof Actions>
 
 if (isStaticBuild) for (const name of HIDDEN_IN_STATIC_BUILD) Object.assign(Actions, { [name]: () => null })
-
-/**
- * A stand-in avatar for person `name`:  their first letter, white on Spell's violet, as an SVG `data:` URL.
- * - Until people have pictures of their own.
- */
-function avatarFor(name: string): string {
-  const letter = name.charAt(0).toUpperCase()
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#6d3fd9"/><text x="16" y="21.5" font-family="Lato,Arial,sans-serif" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">${letter}</text></svg>`
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`
-}
 
 /** Props shared by the dialog actions (`alert`, `confirm`, `prompt`, `promptForNumber`, `choose`). */
 export type DialogActionProps<P> = P & {

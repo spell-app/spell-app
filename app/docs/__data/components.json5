@@ -2412,7 +2412,7 @@
         {
           "name": "tools",
           "type": "JSX.Element",
-          "description": "Plain `<ui-icon link>`s at the toolbar's right, whatever tab shows, e.g. Restart."
+          "description": "Plain `<ui-icon link>`s at the header's right, beside the toolbar, whatever tab shows, e.g. Restart."
         },
         {
           "name": "class",

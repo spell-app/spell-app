@@ -78,8 +78,8 @@
 :root[data-spell-theme="merlot"] {
   --spell-page-padding: 0;
   --spell-gap: 0;
-  --spell-bar-radius: 0;
-  --spell-pane-radius: 0;
+  --spell-bar-radius: 0px;
+  --spell-pane-radius: 0px;
   --spell-pane-shadow: none;
 }
 
@@ -102,6 +102,11 @@
 
   /* the top bar:  a floating box of its own */
   & ui-menu.AppMenu::part(menu) {
+    /* the page's width, no wider:  an attached menu reaches 1px past each side (its border's room), which put Merlot's
+       edge-to-edge bar 1px off the screen and the page 2px too wide (391 x 847 on a 390 x 844 phone) */
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
     min-height: 46px;
     /* its ends as close as its top and bottom:  the hat and the avatar each 11px from its edge (Owen:  "less
        padding start/end of bar");  the end items' own room makes up the rest */
@@ -158,6 +163,20 @@
 /* Merlot's bar:  a panel-coloured strip over a hairline, as Studio's board drew it */
 :root[data-spell-theme="merlot"] ui-menu.AppMenu::part(menu) {
   border-bottom: 1px solid var(--ui-border-color);
+}
+
+/*
+ * Merlot's panels joined by hairlines:  1px of the border colour between every two panes (the bars that drag them),
+ * the Inspector's cards too
+ * - with no gap, nothing told the code from the Program panel or the columns apart, panels and page one colour;
+ *   the Inspector's 6px seams were thick bands of the page's rose between its cards
+ * - the line is the bar that drags:  0px wide before, between the columns
+ * - NOT a wider drag area round it (`::after`, 3px either side):  on a phone the panes stack, and it ran 3px off the
+ *   screen
+ */
+:root[data-spell-theme="merlot"] .SpellPage :is(.SplitPanel, .SplitPanel.InspectorSplit) > .SplitPanelSizer {
+  flex-basis: 1px;
+  background: var(--ui-border-color);
 }
 
 /*******************************
