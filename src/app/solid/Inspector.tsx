@@ -1188,11 +1188,11 @@ async function loadBrandTokens(): Promise<void> {
     await UI.load()
     setBrandTokens(await UI.themes.scopedTokens(BRAND_THEME, ".Inspector"))
   } catch (error) {
-    console.error("InspectorColumn:  couldn't load the Spell Brand theme's tokens", error)
+    console.error("InspectorColumn:  couldn't load the Spell theme's tokens", error)
   }
 }
 
 /** The theme the Inspector wears (Owen:  "in the brand's theme"). */
-const BRAND_THEME = "spell-brand"
+const BRAND_THEME = "spell"
 /** A load of the brand's tokens has started. */
 let loadingBrandTokens = false

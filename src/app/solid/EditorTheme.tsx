@@ -16,8 +16,10 @@ import "./EditorTheme.css"
  * - The editor starts in Fruity (`DEFAULT_THEME`, epic `debut` Q14), and keeps its own theme key:
  *   a theme picked on the docs site never changes the editor's, nor the other way round.
  *   - Light / dark is ONE choice for every Spell site:  the docs' key.
- * - Three of the themes are the editor's LOOKS (`LOOKS`, the facelift boards of epic `debut` P1):
- *   Glass (Fruity), Brand (Spell Brand) and Studio, picked from the theme menu as any other theme is.
+ * - Every theme of Spell UI's set wears one of the editor's three LOOKS
+ *   (`LOOKS`, the facelift boards of epic `debut` P1):
+ *   Glass (Glass and Fruity), Brand (Spell) and Studio (Merlot),
+ *   picked from the theme menu as any other theme is.
  *   - One of them chosen:  `<html data-spell-look="glass">`, and the editor's chrome takes that look's shape
  *     (`EditorTheme.css`):  a floating top bar, panels with gaps and rounded corners.
  *   - Any other theme (GitHub, Classic ...):  no `data-spell-look`, and the chrome as it always was.
@@ -37,8 +39,9 @@ export class EditorTheme {
 
   /** The editor's looks:  each a Spell UI theme. */
   static LOOKS: readonly EditorLook[] = [
-    { id: "brand", theme: "spell-brand" },
-    { id: "studio", theme: "studio" },
+    { id: "brand", theme: "spell" },
+    { id: "studio", theme: "merlot" },
+    { id: "glass", theme: "glass" },
     { id: "glass", theme: "fruity" }
   ]
 

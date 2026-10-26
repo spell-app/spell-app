@@ -1,6 +1,6 @@
 /*
  * Look of the editor's chrome in its three looks (`EditorTheme.tsx`):  Glass, Brand and Studio.
- * - Each is drawn on its Spell UI theme (Fruity, Spell Brand, Studio),
+ * - Each is drawn on its Spell UI theme (Glass and Fruity, Spell, Merlot),
  *   as the boards of the "Spell editor facelift" Design canvas show it (epic `debut` P1).
  * - Keyed on `<html data-spell-look>`, which `EditorTheme` sets while one of them is chosen.
  *   Any other theme:  no attribute, and none of this applies.
@@ -34,22 +34,22 @@
   --spell-view-background: transparent;
 }
 
-/* Glass (Fruity):  frosted panels over the wallpaper */
+/* Glass (Glass and Fruity):  frosted panels over the page (Fruity's wallpaper) */
 :root[data-spell-look="glass"] {
-  --spell-bar-background: var(--fruity-glass);
+  --spell-bar-background: var(--glass-surface);
   --spell-bar-border: 0 solid transparent;
   --spell-bar-radius: 14px;
-  --spell-bar-filter: var(--fruity-blur);
+  --spell-bar-filter: var(--glass-blur);
   /* a pane's body clearer than its header (Owen:  "The panel bodies used to be less opaque than the header, I liked
      that") */
-  --spell-pane-background: var(--fruity-glass);
+  --spell-pane-background: var(--glass-surface);
   --spell-header-background: light-dark(rgb(255 255 255 / 0.4), rgb(255 255 255 / 0.05));
-  --spell-pane-border-color: var(--fruity-edge);
+  --spell-pane-border-color: var(--glass-edge);
   --spell-pane-radius: 14px;
-  --spell-pane-filter: var(--fruity-blur);
+  --spell-pane-filter: var(--glass-blur);
   /* a panel's header a wash of the theme's purple:  the frosted glass draws its top edge whiter than the rest
      (the blur reaches past the panel), so a see-through header stood out near-white (Owen, epic `elemental-spell` C39) */
-  --spell-header-background: color-mix(in oklab, var(--fruity-accent-wash) 50%, transparent);
+  --spell-header-background: color-mix(in oklab, var(--glass-accent-wash) 50%, transparent);
 }
 
 /* ... and the code editors see-through, the frosted panel behind the code:  Purple's near-white page and lavender
@@ -61,7 +61,7 @@
   --vscode-editorStickyScroll-background: light-dark(#fbfaff, #2d2b55);
 }
 
-/* Brand (Spell Brand):  white cards with soft shadows on the brand's pale page;  the bar has no box */
+/* Brand (Spell):  white cards with soft shadows on the brand's pale page;  the bar has no box */
 :root[data-spell-look="brand"] {
   --spell-page-padding: 16px 20px 20px;
   --spell-gap: 16px;
@@ -74,7 +74,7 @@
     0 2px 8px light-dark(rgb(60 40 140 / 0.06), rgb(0 0 0 / 0.3));
 }
 
-/* Studio:  flat panels joined by hairlines, edge to edge */
+/* Studio (Merlot):  flat panels joined by hairlines, edge to edge */
 :root[data-spell-look="studio"] {
   --spell-page-padding: 0;
   --spell-gap: 0;
