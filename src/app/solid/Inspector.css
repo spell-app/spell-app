@@ -258,15 +258,17 @@
     font-size: 13px;
     font-weight: var(--ui-font-weight-semibold, 600);
   }
+  /* a `<ui-textarea grow>`:  one line, growing with its code (Owen:  "textarea should be one line");  this look on its
+     native textarea, its `control` part */
   & > .InspectorCode {
-    box-sizing: border-box;
     width: 100%;
-    /* one line, growing with its code (Owen:  "textarea should be one line") */
-    min-height: calc(1lh + 14px);
-    max-height: 20lh;
+  }
+  & > .InspectorCode::part(control) {
+    box-sizing: border-box;
+    min-block-size: calc(1lh + 14px);
+    max-block-size: 20lh;
     padding: 6px 8px;
     resize: none;
-    field-sizing: content;
     /* an input's well, as the fields above it (the theme's), and their corners */
     border: 1px solid var(--ui-input-border-color, var(--ui-border-color));
     border-radius: 6px;
@@ -278,7 +280,7 @@
       monospace;
   }
   /* its hint as light as an input's, so it never reads as typed */
-  & > .InspectorCode::placeholder {
+  & > .InspectorCode::part(control)::placeholder {
     color: color-mix(in oklab, var(--ui-text-light) 55%, transparent);
   }
 }

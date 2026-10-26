@@ -361,6 +361,8 @@ export function InspectorEvents(): JSX.Element {
 
 /**
  * One of a part's events:  its name, then its code, in a box that grows as it's typed into.
+ * - The box:  a `<ui-textarea grow>` (epic `ui-gaps` P14), one line to start;  its monospace look through its
+ *   `control` part (`Inspector.css`).
  * - Its code:  what was typed here, else what the program was written with (`written`), else empty.
  */
 function EventCode(props: { element: Element; event: string; written?: string }): JSX.Element {
@@ -368,27 +370,18 @@ function EventCode(props: { element: Element; event: string; written?: string })
   return (
     <section class="InspectorEvent">
       <h3>{appTexts.text("inspectorEventHeading", { event: eventText(props.event) })}</h3>
-      <textarea
+      <ui-textarea
         class="InspectorCode"
-        rows={1}
-        spellcheck={false}
+        grow=""
+        fluid=""
+        spellcheck="false"
+        aria-label={appTexts.text("inspectorEventHeading", { event: eventText(props.event) })}
         placeholder={appTexts.text("inspectorEventCode", { event: eventText(props.event) })}
         value={eventCode()[key()] ?? props.written ?? ""}
-        ref={(textarea) => requestAnimationFrame(() => fitHeight(textarea))}
-        onInput={(input) => {
-          fitHeight(input.currentTarget)
-          setEventCode(key(), input.currentTarget.value)
-        }}
+        ref={on<{ value: string }>("ui-typed", (event) => setEventCode(key(), event.detail.value))}
       />
     </section>
   )
-}
-
-/** Grow (or shrink) `textarea` to its text:  where the browser can't (`field-sizing`), by hand. */
-function fitHeight(textarea: HTMLTextAreaElement): void {
-  if (CSS.supports("field-sizing", "content")) return
-  textarea.style.height = "auto"
-  textarea.style.height = `${textarea.scrollHeight}px`
 }
 
 /** The code typed for events, by part and event (`<key>|<event>`;  reactive):  this project's, remembered. */

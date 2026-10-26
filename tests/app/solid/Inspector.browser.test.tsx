@@ -145,6 +145,34 @@ describe("the parts tree and events", () => {
     flush()
     expect(Inspector.eventsOf(button)).toEqual(["click", "mousedown"])
   })
+
+  // epic `ui-gaps` P14:  its own growing box (`fitHeight()`) became `<ui-textarea grow>`
+  test("an event's code box:  a <ui-textarea grow>, one line in the Output tab's type, taller as code is typed", async () => {
+    const area = await inArea(`<ui-button>Go</ui-button>`)
+    cleanups.push(Inspector.watch(area))
+    const host = await mount(() => <InspectorColumn />)
+    Inspector.toggle()
+    const button = area.querySelector("ui-button")!
+    Inspector.pick(button)
+    Inspector.addEvent(button, "click")
+    flush()
+    await ElementFixture.settle(host)
+    const box = host.querySelector<HTMLElement & { value: string }>(".InspectorEvent .InspectorCode")!
+    const code = box.shadowRoot!.querySelector("textarea")!
+    const style = getComputedStyle(code)
+    expect([box.localName, box.hasAttribute("grow"), style.fontFamily, style.fontSize]).toEqual([
+      "ui-textarea",
+      true,
+      "monaco, monospace",
+      "13px"
+    ])
+    const one = code.getBoundingClientRect().height
+    expect(Math.round(one)).toBe(Math.round(parseFloat(style.lineHeight) + 14))
+    code.value = "go()\nstop()\nagain()"
+    code.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }))
+    await ElementFixture.settle(host)
+    expect(Math.round(code.getBoundingClientRect().height - one)).toBe(Math.round(2 * parseFloat(style.lineHeight)))
+  })
 })
 
 describe("the cards", () => {
