@@ -113,11 +113,6 @@
   text-decoration: underline;
 }
 
-/* its label, for the row it becomes on a narrow pane (below):  the card says the page's title instead */
-.NotebookTocLabel {
-  display: none;
-}
-
 /* hidden from the toolbar:  the page alone */
 .NotebookToc.hidden {
   display: none;
@@ -127,35 +122,53 @@
   grid-template-columns: minmax(0, var(--notebook-width));
 }
 
-/* on a narrow pane, "On this page" goes above the page:  a row of links */
+/* on a narrow pane, no room for "On this page":  the title row's icon opens it as a flyout instead (below) */
 @container (max-width: 760px) {
   .NotebookColumns {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: 16px;
     padding-top: 16px;
   }
 
-  .NotebookToc {
-    position: static;
-    order: -1;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 2px 16px;
-    padding: 10px 16px;
-  }
-
-  /* a row says what it is, quietly:  the page's title is right under it */
-  .NotebookTocTitle {
+  .NotebookColumns > .NotebookToc {
     display: none;
   }
+}
 
-  .NotebookTocLabel {
-    display: block;
-    margin-inline-end: 8px;
-    font-size: 0.8em;
-    color: var(--ui-text-muted);
-  }
+/*
+ * "On this page" where its column doesn't show:  an icon at the end of the title's row opens the same card in a flyout
+ * over the page's right edge, as the docs site's nav opens on a narrow window (`site.css`, "Nav flyout")
+ * - the icon floats at the title's right, the box round it one of the title's lines tall (`1lh`, the title's own
+ *   font):  centred on its first line, whatever the theme's title size
+ */
+.NotebookTocSlot {
+  float: right;
+  display: flex;
+  align-items: center;
+  height: 1lh;
+  margin-inline-start: 16px;
+}
+
+.NotebookTocButton {
+  font-size: var(--ui-font-size, 1rem);
+}
+
+/*
+ * the flyout itself clear, the card inside it the column's, as wide, opaque over the page
+ * - at the flyout's top right, 16px in:  over the pane's own bars too, as the docs site's nav card is over its top bar
+ */
+.NotebookTocFlyout {
+  --ui-flyout-width: calc(12rem + 32px);
+  --ui-flyout-background: transparent;
+  --ui-flyout-shadow: none;
+}
+
+.NotebookTocFlyout > .NotebookToc {
+  position: static;
+  box-sizing: border-box;
+  width: 12rem;
+  margin: 16px;
+  background: linear-gradient(var(--ui-surface), var(--ui-surface)), Canvas;
+  box-shadow: var(--ui-shadow-raised, var(--ui-shadow-subtle, none));
 }
 
 /* the page's title and the line under it, as a component page's masthead (`<ui-header level="1">` and its sub header) */

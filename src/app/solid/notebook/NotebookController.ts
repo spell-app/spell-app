@@ -56,6 +56,7 @@ export class NotebookController {
     ;[this.held, this.setHeld] = createSignal<Record<string, string>>({})
     const contents = PrefStore.getAt(this.contentsKey)
     ;[this.contentsShown, this.setContentsShown] = createSignal(contents !== false)
+    ;[this.contentsOpen, this.setContentsOpenSignal] = createSignal(PrefStore.getAt(this.contentsOpenKey) === true)
     const view = PrefStore.getAt(this.viewKey) as CodeView | undefined
     ;[this.codeView, this.setCodeViewSignal] = createSignal<CodeView>(CODE_VIEWS.includes(view!) ? view! : "spellx")
   }
@@ -201,6 +202,29 @@ export class NotebookController {
     } catch (error) {
       console.error("NotebookController:  couldn't remember the contents", error)
     }
+  }
+
+  /**
+   * Is "On this page" open as a flyout, from the icon on the title row, while its column isn't showing?
+   * - remembered per notebook, as the column is
+   */
+  readonly contentsOpen: Accessor<boolean>
+  private readonly setContentsOpenSignal: (open: boolean) => void
+
+  /** Open or close "On this page"'s flyout, and remember it for this notebook. */
+  setContentsOpen(open: boolean) {
+    if (open === this.contentsOpen()) return
+    this.setContentsOpenSignal(open)
+    try {
+      PrefStore.setAt(this.contentsOpenKey, open)
+    } catch (error) {
+      console.error("NotebookController:  couldn't remember the contents' flyout", error)
+    }
+  }
+
+  /** Where "On this page"'s flyout being open is remembered:  per notebook. */
+  private get contentsOpenKey(): string {
+    return `spellEditor:notebook-contents-open:${this.file.path}`
   }
 
   /** Where "On this page" being shown is remembered:  per notebook. */
