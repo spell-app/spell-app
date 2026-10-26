@@ -27,8 +27,7 @@
 			<example description="In a card, an avatar is a small round image before a name.">
 				<card>
 					<content>
-						<avatar src="/components/ui/images/avatar/small/jenny.jpg"/>
-						Jenny Hess
+						<avatar src="/components/ui/images/avatar/small/jenny.jpg"/> Jenny Hess
 					</content>
 				</card>
 			</example>
@@ -39,8 +38,7 @@
 				<items>
 					<item>
 						<content>
-							<avatar src="/components/ui/images/avatar/small/stevie.jpg"/>
-							Stevie Feliciano
+							<avatar src="/components/ui/images/avatar/small/stevie.jpg"/> Stevie Feliciano
 						</content>
 					</item>
 				</items>
