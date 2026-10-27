@@ -3,7 +3,7 @@
  * - `spellx`:  as written, `<button>`, `<counter/>`.
  * - `html`:  its drawing with each bare name as its element's tag, `<ui-button>`, `<counter-counter/>`, and each `</>`
  *   naming what it closes:  the page's own tags.
- * - `spell`:  the code spell it reads as (`SX.CodeSpellWriter`'s):  an example's markup inside its `<example "...">`,
+ * - `spell`:  the code spell it reads as (`SX.CodeSpellWriter`'s):  an example's markup alone (`writeMarkup()`),
  *   a template's outline.
  * - The tag for a bare name is the one the file's last compile chose (`tagFor`):  the project's own views, then its
  *   packs' components, as `SpellJSX.componentTagFor()` chooses.

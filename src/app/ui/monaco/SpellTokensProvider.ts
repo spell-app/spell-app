@@ -18,6 +18,8 @@ import { monaco } from "./monaco"
  * - Blocks of another language are coloured as that language, by Monaco's own colouring (`EMBEDDED_BLOCKS`):
  *   - a type's `<css>` block as CSS -- see `LSP.SpellCSS`
  *   - a `<markdown>` block as markdown, in a drawing or a type's outline -- see spell's `markdown_block`
+ * - Markup, `<ui-card>`, `<avatar src="...">`, as html, by Monaco's html colouring:  a drawing's lines, a notebook
+ *   example's code (`markupTokens()`).
  * - The only state carried between lines is which block we're in, if any (`SPELL_LINE`, `CSS_LINE` ...),
  *   and in spellx, the tags open (`SpellxLineState`).
  * - A block's lines are each coloured on their own too,
@@ -115,7 +117,13 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
           pieces.push({ start: token.start, end: token.end, scopes: "delimiter" })
         else if (token instanceof SP.SpellxProseToken)
           pieces.push({ start: token.start, end: token.end, scopes: "comment" })
-        else {
+        else if (token instanceof P.JSXToken) {
+          const markup = this.markupTokens(line, token.start, token.end)
+          markup.forEach(({ startIndex, scopes }, index) => {
+            const pieceEnd = markup[index + 1]?.startIndex ?? token.end
+            if (scopes) pieces.push({ start: startIndex, end: pieceEnd, scopes })
+          })
+        } else {
           const scopes = this.scopesFor(token)
           if (scopes) pieces.push({ start: token.start, end: token.end, scopes })
         }
@@ -203,7 +211,8 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
       for (const token of SP.spellParser.tokenize(line, "") ?? []) {
         // whitespace between tokens is uncoloured
         if (token.start > end) tokens.push({ startIndex: end, scopes: "" })
-        tokens.push({ startIndex: token.start, scopes: this.scopesFor(token) ?? "" })
+        if (token instanceof P.JSXToken) tokens.push(...this.markupTokens(line, token.start, token.end))
+        else tokens.push({ startIndex: token.start, scopes: this.scopesFor(token) ?? "" })
         end = token.end
       }
     } catch (error) {
@@ -229,6 +238,16 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
       console.warn(`SpellTokensProvider.tokenize():  couldn't tokenize ${language}`, { line, error })
       return []
     }
+  }
+
+  /**
+   * Tokens of markup from `start` to `end` of `line`, `<ui-card>`, coloured by Monaco's html colouring.
+   * - Read from a line's start, so a tag's head over several lines colours its first line only.
+   */
+  private markupTokens(line: string, start: number, end: number): monaco.languages.IToken[] {
+    const tokens = this.embeddedTokens(line.slice(start, end), "html")
+    if (!tokens.length) return [{ startIndex: start, scopes: "" }]
+    return tokens.map(({ startIndex, scopes }) => ({ startIndex: startIndex + start, scopes }))
   }
 
   /** Tokens of a block's opening or closing line, e.g. `<css>` or `</css>`, coloured as a tag. */

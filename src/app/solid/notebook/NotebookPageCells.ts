@@ -197,20 +197,40 @@ export class NotebookPageCells {
     return cell
   }
 
-  /** Example `node`'s name and body:  what's between its tags, its code without its indent. */
+  /**
+   * Example `node`'s name and body:  what's between its tags, its code without its indent.
+   * - A body that's one `<html>` block (J144) is what's INSIDE it, marked `html`:  the block's own tags are how the
+   *   file marks web markup, not part of what the example draws (P18).
+   */
   private static exampleOf(text: string, node: SX.SpellxElement): ExampleSpan {
-    const [first] = node.children.filter((child) => child.kind !== "text" || child.text.trim())
-    const last = node.children.filter((child) => child.kind !== "text" || child.text.trim()).at(-1)
+    const shown = node.children.filter((child) => child.kind !== "text" || child.text.trim())
+    const [first] = shown
+    const last = shown.at(-1)
     const span =
       first && last
         ? { start: first.span.start, end: last.span.end }
         : { start: node.headSpan.end, end: node.headSpan.end }
-    const indent = first ? indentAt(text, span.start) : ""
+    const block = shown.length === 1 && first?.kind === "element" && first.name === HTML_TAG ? first : undefined
+    const inner = block && NotebookPageCells.insideOf(text, block)
+    const bodySpan = inner ?? span
+    const indent = first ? indentAt(text, bodySpan.start) : ""
     return {
       name: nameOf(node),
       span: node.span,
-      body: { span, indent, code: dedented(text.slice(span.start, span.end), indent) }
+      body: { span: bodySpan, indent, code: dedented(text.slice(bodySpan.start, bodySpan.end), indent) },
+      ...(inner && { html: true })
     }
+  }
+
+  /** What's inside element `node`, from its first line's text to its last's:  `undefined` when it's empty. */
+  private static insideOf(text: string, node: SX.SpellxElement): SX.SpellxSpan | undefined {
+    if (node.selfClosing) return undefined
+    const closer = text.lastIndexOf("</", node.span.end)
+    if (closer < node.headSpan.end) return undefined
+    const inside = text.slice(node.headSpan.end, closer)
+    const start = node.headSpan.end + (inside.length - inside.trimStart().length)
+    const end = node.headSpan.end + inside.trimEnd().length
+    return end > start ? { start, end } : undefined
   }
 
   /** Where the notebook's body ends:  just before its closer's line, else its end. */
@@ -281,8 +301,10 @@ export type ExampleSpan = {
   name: string
   /** where the whole `<example>` is */
   span: SX.SpellxSpan
-  /** what's inside it */
+  /** what's inside it;  a lone `<html>` block's:  what's inside that */
   body: CodeSpan
+  /** is its body a lone `<html>` block's markup?  Shown as written, in every view */
+  html?: boolean
 }
 
 ////////////////
@@ -370,6 +392,9 @@ const TITLE = /^#\s+(.*)$/
 
 /** An example's tag, in each language:  `example_block`'s words. */
 const EXAMPLE_TAGS = new Set(["example", "ejemplo"])
+
+/** An `<html>` block's tag:  web markup, drawn as written (J144);  the same word in every language. */
+const HTML_TAG = "html"
 
 /** `<ui-header>`'s bare name, in each language:  the page's title, at `level="1"`. */
 const HEADER_TAGS: ReadonlySet<string> = new Set(["header", "encabezado"])
