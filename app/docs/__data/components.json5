@@ -3074,6 +3074,10 @@
           "file": "src/app/solid/Inspector.tsx"
         },
         {
+          "name": "InspectorPane",
+          "file": "src/app/solid/Inspector.tsx"
+        },
+        {
           "name": "SpellEditor",
           "file": "src/app/pages/SpellEditor.tsx"
         }

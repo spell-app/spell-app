@@ -294,6 +294,9 @@ export const APP_TEXTS = {
   inspectorExpandAll: "Expand all",
   inspectorCollapseAll: "Collapse all",
   inspectorPanels: "Show or hide panels",
+  // the phone's sheet (`<InspectorSheetBar>`)
+  inspectorSheetHandle: "Drag to make it taller or shorter;  down, to put it away",
+  inspectorSheetClose: "Put the Inspector away",
   inspectorAddEvent: "Add event",
   inspectorParts: "Views",
   inspectorNoParts: "Run the app to see its parts.",

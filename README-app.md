@@ -488,17 +488,18 @@ Each one dresses the whole editor:
 | --- | --- |
 | Fruity, the default | frosted panels over a soft pastel wallpaper, as macOS draws them |
 | Glass | the same frosted panels, on a plain page |
-| Merlot | flat panels on hairlines, edge to edge, in wine reds;  a warm amber in dark |
+| Merlot | flat panels on hairlines, edge to edge, in wine reds;  a warm gold in dark |
 | Spell | white cards with soft shadows on Spell's pale page |
 
 - The top bar floats as a rounded bar, and the code, the Program panel and the app sit in rounded panels
   with gaps between them;  Spell's hat and name lead the bar, the hat in the theme's primary colour.
-  - Merlot's panels meet edge to edge, and Spell's bar has no box of its own.
+  - Glass and Fruity's bar is a full pill;  Merlot's panels meet edge to edge, and Spell's bar has no box of its own.
 - The bars' and panels' colours, corners and shadows are the theme's own, as the docs pages' bars are.
 - The editor remembers its own theme, apart from the docs site's;  light or dark is ONE choice for every Spell site.
 - The code itself is always Shades of Purple, the VS Code theme, ported to Monaco with a matching light version.
   It follows the page's light or dark, under any theme, and colours Spell's headings, keywords, types, properties,
   actions and constants from the parse.
+  - In Glass, Fruity and Merlot the code has no background of its own:  the panel shows through behind it.
 - A theme made with Spell UI's theme editor and kept in the browser is worn over its base,
   while that base is the theme chosen.
 - All of it is [EditorTheme.tsx](src/app/solid/EditorTheme.tsx) and [the code themes](src/app/ui/monaco/themes/).

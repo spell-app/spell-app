@@ -10,7 +10,7 @@ import {
   EditorMode,
   InputRoot,
   Inspector,
-  InspectorColumn,
+  InspectorPane,
   InspectorPick,
   InspectorToggle,
   ModeButtons,
@@ -49,9 +49,10 @@ import "./SpellEditor.css"
  * - In Debug (`EditorMode`), the Program panel (`<ProgramPanel>`) sits under the code:
  *   its output, things, types and compiled code.  Closing it goes back to Edit.
  * - Showing or hiding the panel never redraws the code or the program:  the panel keeps each pane by its node.
- * - The Inspector, while it's open, is a pane at the far right (`<InspectorColumn>`, epic `debut` P13):
+ * - The Inspector, while it's open, is a pane at the far right (`<InspectorPane>`, epic `debut` P13):
  *   a pane of the same panel, so the same room round it as the app, and a bar to drag it wider or narrower.
  *   - Its own remembered sizes (`spellEditor-columns-inspector`):  three panes, not two.
+ *   - On a phone, a sheet that slides up over the page as something's picked (epic `debut` P17, Q6).
  * - SIDE EFFECT:  the page's keyboard shortcuts while it's up, outside Monaco (`editorHotkeys()`).
  ****************/
 export function SpellEditor(props: { mode: Mode }) {
@@ -75,9 +76,7 @@ export function SpellEditor(props: { mode: Mode }) {
           <AppPane />
         </SplitPanel>
         <Show when={Inspector.isOpen}>
-          <SplitPanel rows rounded class="InspectorPane">
-            <InspectorColumn />
-          </SplitPanel>
+          <InspectorPane />
         </Show>
       </SplitPanel>
     </SpellPage>
