@@ -11,12 +11,13 @@ import { isStaticBuild } from "spell-app/app/static/staticBuild"
 import type { SpellRuntime } from "spell-app/app/runner"
 import { NotebookCode, CODE_VIEWS, type CodeView } from "./NotebookCode"
 import { NotebookKeys } from "./NotebookKeys"
+import { NotebookOriginal } from "./NotebookOriginal"
 import { NotebookPageCells, type NotebookPageModel, type PageCell } from "./NotebookPageCells"
 import { CellRunner, ChunkTreeAdapter } from "./NotebookPatch"
 
 /**
  * The controller of a notebook's page (epic `elemental-spell` P16):  its text, its cells and what each one draws;
- * every edit the page makes, saved cell by cell;  edit mode, the selection, the code view, the lock.
+ * every edit the page makes, saved cell by cell;  what the page says of saving;  the code view, the lock.
  * - The page is `<NotebookPage>`:  it draws what this says, and calls these methods from its clicks and editors.
  * - Its text is the notebook's `.spellx` file's:  an edit changes only its own cell's span (`NotebookPageCells`), and
  *   the file is saved 600ms after the last one, through the spaces API the editor saves with (`SP.SpellFile.save()`).
@@ -28,8 +29,11 @@ import { CellRunner, ChunkTreeAdapter } from "./NotebookPatch"
  *   - a broken edit keeps the last good drawing, and says what's wrong under its code (`errorsOf()`)
  * - Each example's code panel is made once and MOVED into its example when the example draws again:  an editor being
  *   typed in keeps its text, cursor and focus.
- * - Locked (`<spell-notebook "..." locked>`), only whoever can write the file saves:  anyone else's edits are a
- *   try-out, drawn but never saved, gone on reload.  "Try as a visitor" shows that side.
+ * - An example's code is always editable, and each edit draws its example again as it's typed.
+ *   - Unlocked:  every edit is saved.
+ *   - Locked (`<spell-notebook "..." locked>`):  NOTHING is ever saved, for anyone (Owen, 2026-10-26:  "If doc is
+ *     locked, nothing is ever saved").  An edit is a try-out:  drawn, never saved, gone on reload, or put back by
+ *     its example's Reset (`resetExample()`).  Unlocking it is how an admin saves again.
  * - Plain TypeScript and Solid's signals:  made in `<NotebookPage>`'s body, so its signals are the page's.
  */
 export class NotebookController {
@@ -44,14 +48,12 @@ export class NotebookController {
     const text = file.contents ?? ""
     this.onDisk = text
     const model = NotebookPageCells.of(text, file.path)
-    this.now = { text, model, keys: model?.cells.map(() => NotebookKeys.next()) ?? [], selected: undefined }
+    this.now = { text, model, keys: model?.cells.map(() => NotebookKeys.next()) ?? [] }
     ;[this.text, this.setText] = createSignal(text)
     ;[this.model, this.setModel] = createSignal<NotebookPageModel | undefined>(model)
     ;[this.keys, this.setKeys] = createSignal<string[]>(this.now.keys)
-    ;[this.editing, this.setEditing] = createSignal(false)
-    ;[this.selected, this.setSelected] = createSignal<string | undefined>(undefined)
-    ;[this.visitor, this.setVisitor] = createSignal(false)
     ;[this.saving, this.setSaving] = createSignal(false)
+    ;[this.status, this.setStatus] = createSignal<SaveStatus | undefined>(undefined)
     ;[this.errors, this.setErrors] = createSignal<Record<string, string[]>>({})
     ;[this.held, this.setHeld] = createSignal<Record<string, string>>({})
     const contents = PrefStore.getAt(this.contentsKey)
@@ -61,16 +63,25 @@ export class NotebookController {
     ;[this.codeView, this.setCodeViewSignal] = createSignal<CodeView>(CODE_VIEWS.includes(view!) ? view! : "spellx")
   }
 
+  /**
+   * `project`'s notebooks:  its `.spellx` files holding a `<spell-notebook>` (`<encanto-cuaderno>`), in its order.
+   * - Read from the files' text, so the page shows as soon as the project's loaded;  `[]` until then.
+   */
+  static notebooksIn(project: SP.SpellProject | undefined): SP.SpellFile[] {
+    if (!project?.isLoaded) return []
+    return project.spellFiles.filter((file) => file.form === "spellx" && NOTEBOOK_TAG.test(file.contents ?? ""))
+  }
+
   ////////////////
   // ## State
   ////////////////
 
   /**
-   * The text, its cells and their keys, and the selection, as they are NOW:  what an edit reads.
+   * The text, its cells and their keys, as they are NOW:  what an edit reads.
    * - Solid's signals below are what the page draws from;  a write to one is read back only once Solid has flushed,
    *   so two edits in a row would read the first one's old text.  This never lags.
    */
-  private now: { text: string; model: NotebookPageModel | undefined; keys: string[]; selected: string | undefined }
+  private now: { text: string; model: NotebookPageModel | undefined; keys: string[] }
 
   /** Set what's true now (`now`), and the signals the page draws from. */
   private setNow(now: Partial<NotebookController["now"]>) {
@@ -78,7 +89,6 @@ export class NotebookController {
     if ("text" in now) this.setText(this.now.text)
     if ("model" in now) this.setModel(this.now.model)
     if ("keys" in now) this.setKeys(this.now.keys)
-    if ("selected" in now) this.setSelected(this.now.selected)
   }
 
   /** Cell `key` as it is now (`now`):  for an edit. */
@@ -96,18 +106,16 @@ export class NotebookController {
   /** Each cell's key, in order:  what keeps its place (`NotebookKeys`). */
   readonly keys: Accessor<string[]>
   private readonly setKeys: (keys: string[]) => void
-  /** Is the page in edit mode? */
-  readonly editing: Accessor<boolean>
-  private readonly setEditing: (editing: boolean) => void
-  /** The selected cell's key:  what the toolbar acts on. */
-  readonly selected: Accessor<string | undefined>
-  private readonly setSelected: (key: string | undefined) => void
-  /** Is an admin trying it as a visitor? */
-  readonly visitor: Accessor<boolean>
-  private readonly setVisitor: (visitor: boolean) => void
   /** Is a save on its way? */
   readonly saving: Accessor<boolean>
   private readonly setSaving: (saving: boolean) => void
+  /**
+   * What the pane's header says of the last edit, for `STATUS_SHOWN` seconds after it, else nothing:
+   * - `saving`, then `saved`:  an unlocked notebook's edit
+   * - `locked`:  a locked one's, never saved
+   */
+  readonly status: Accessor<SaveStatus | undefined>
+  private readonly setStatus: (status: SaveStatus | undefined) => void
   /** What's wrong with each cell's last edit, by its key:  `"<line>:<ch> <message>"`. */
   readonly errors: Accessor<Record<string, string[]>>
   private readonly setErrors: (errors: Record<string, string[]>) => void
@@ -153,29 +161,19 @@ export class NotebookController {
     return !!after && this.descriptionFor(after.key)?.key === key
   }
 
-  /** May this person save:  the notebook's unlocked, or they can write its file and aren't trying as a visitor? */
+  /** Is an edit saved?  Only while the notebook's unlocked:  a locked one never saves, for anyone. */
   canSave(): boolean {
-    return !this.model()?.locked || this.isAdmin()
+    return !this.model()?.locked
   }
 
-  /** Can this person write the file?  Today:  the page server lets anyone (not the static build), but a visitor. */
+  /** May this person lock and unlock it, writing its file?  Today:  anyone the page server serves (not the static build). */
   isAdmin(): boolean {
-    return !isStaticBuild && !this.visitor()
+    return !isStaticBuild
   }
 
   ////////////////
   // ## Modes
   ////////////////
-
-  /** Edit mode on or off:  every example's code becomes editable, prose and templates too. */
-  toggleEditing() {
-    this.setEditing(!this.editing())
-  }
-
-  /** Select cell `key`:  the toolbar's Delete and Move act on it. */
-  select(key: string | undefined) {
-    this.setNow({ selected: key })
-  }
 
   /** Show every example's code as `view`, and remember it for this notebook. */
   setCodeView(view: CodeView) {
@@ -187,12 +185,7 @@ export class NotebookController {
     }
   }
 
-  /** Try it as a visitor, or stop. */
-  toggleVisitor() {
-    this.setVisitor(!this.visitor())
-  }
-
-  /** Is "On this page" shown?  Always, unless hidden from the toolbar:  remembered per notebook. */
+  /** Is "On this page" shown as a column?  Always, unless its Hide hid it:  remembered per notebook. */
   readonly contentsShown: Accessor<boolean>
   private readonly setContentsShown: (shown: boolean) => void
 
@@ -254,49 +247,50 @@ export class NotebookController {
   /**
    * Example `index` of cell `key` now has `code`, in the page's code view:  an html edit is mapped back to spellx.
    * - The spell view is read only:  never called for it.
+   * - Its example draws again;  saved only while the notebook's unlocked (`apply()`).
    */
   editExample(key: string, index: number, code: string) {
     const example = this.currentCell(key)?.examples?.[index]
     if (!example) return
-    const spellx = this.codeView() === "html" ? NotebookCode.toSpellx(code, (tag) => this.wordFor(tag)) : code
+    // an `<html>` block's markup is written as it is, in any view
+    const isHtml = this.codeView() === "html" && !example.html
+    const spellx = isHtml ? NotebookCode.toSpellx(code, (tag) => this.wordFor(tag)) : code
     if (spellx === example.body.code) return
     this.apply(NotebookPageCells.withCode(this.now.text, example.body, spellx), { undoable: false })
   }
 
-  /** Move the selected cell up or down one. */
-  move(direction: "up" | "down") {
-    const index = this.selectedIndex()
-    if (index < 0) return
-    this.apply(NotebookPageCells.moved(this.now.text, this.now.model!.cells, index, direction))
+  /**
+   * Example `index` of cell `key`'s code as the FILE has it, when a try-out changed it (a locked notebook's edit);
+   * else `undefined`.
+   * - What its Reset puts back (`resetExample()`);  reactive, on the page's text.
+   */
+  triedOutExample(key: string, index: number): string | undefined {
+    this.text()
+    if (this.canSave()) return undefined
+    const now = this.currentCell(key)?.examples?.[index]
+    const cellIndex = this.now.keys.indexOf(key)
+    const onDisk = NotebookPageCells.of(this.onDisk, this.file.path)?.cells[cellIndex]?.examples?.[index]
+    return now && onDisk && now.body.code !== onDisk.body.code ? onDisk.body.code : undefined
   }
 
-  /** Delete the selected cell:  ⌘Z brings it back. */
-  remove() {
-    const index = this.selectedIndex()
-    const cell = this.now.model?.cells[index]
-    if (!cell) return
-    this.apply(NotebookPageCells.deleted(this.now.text, cell))
-    this.setNow({ selected: undefined })
+  /** Put example `index` of cell `key`'s code back as the file has it:  a try-out's Reset. */
+  resetExample(key: string, index: number) {
+    const example = this.currentCell(key)?.examples?.[index]
+    const code = this.triedOutExample(key, index)
+    if (example && code !== undefined)
+      this.apply(NotebookPageCells.withCode(this.now.text, example.body, code), { undoable: false })
   }
 
-  /** Add `code`, a new cell, after the selected one (none:  at the end), and select it. */
-  add(code: string) {
-    const { model } = this.now
-    if (!model) return
-    const after = model.cells[this.selectedIndex()]
-    const { text, start } = NotebookPageCells.inserted(this.now.text, model, after, code)
-    this.apply(text)
-    const index = this.now.model?.cells.findIndex((cell) => cell.span.start === start) ?? -1
-    if (index >= 0) this.setNow({ selected: this.now.keys[index] })
-  }
-
-  /** Lock the notebook, or unlock it:  its tag's `locked`. */
+  /**
+   * Lock the notebook, or unlock it:  its tag's `locked`, saved either way.
+   * - Locked, nothing else is ever saved, for anyone;  unlocking it is how an admin saves again.
+   */
   setLocked(locked: boolean) {
     const { model } = this.now
-    if (model) this.apply(NotebookPageCells.withLock(this.now.text, model, locked))
+    if (model) this.apply(NotebookPageCells.withLock(this.now.text, model, locked), { save: "always" })
   }
 
-  /** Undo the last move, delete, add or lock:  the text, its cells and their keys as they were. */
+  /** Undo the last lock or unlock:  the text, its cells and their keys as they were. */
   undo(): boolean {
     const last = this.history.pop()
     if (!last) return false
@@ -311,11 +305,11 @@ export class NotebookController {
 
   /**
    * The text is now `text`:  its cells, their keys, what draws again, and a save.
-   * - `undoable`:  ⌘Z puts it back (a move, delete, add);  typing in an editor has the editor's own undo.
+   * - `undoable`:  ⌘Z puts it back (a lock);  typing in an editor has the editor's own undo.
    * - `keys`:  the cells' keys, as an undo had them;  else carried over from the old cells (`NotebookKeys`).
-   * - Locked and not an admin:  a try-out, never saved.
+   * - Locked:  a try-out, never saved (`canSave()`), unless `save` is `always` (the lock itself).
    */
-  private apply(text: string, options: { undoable?: boolean; keys?: string[] } = {}) {
+  private apply(text: string, options: { undoable?: boolean; keys?: string[]; save?: "always" } = {}) {
     const before = this.now.model?.cells ?? []
     const oldKeys = this.now.keys
     if (options.undoable !== false) this.history.push({ text: this.now.text, keys: oldKeys })
@@ -324,13 +318,8 @@ export class NotebookController {
     const keys = options.keys?.length === cells.length ? options.keys : NotebookKeys.carried(before, oldKeys, cells)
     this.setNow({ text, model, keys })
     this.later(() => this.redrawChanged(before, oldKeys, cells, keys, text))
-    if (this.canSave()) this.saveSoon()
-  }
-
-  /** Index of the selected cell;  -1 for none. */
-  private selectedIndex(): number {
-    const key = this.now.selected
-    return key ? this.now.keys.indexOf(key) : -1
+    if (this.canSave() || options.save === "always") this.saveSoon()
+    else this.show("locked")
   }
 
   /** What `undo()` puts back, newest last. */
@@ -357,6 +346,7 @@ export class NotebookController {
   private saveSoon() {
     this.pendingSave?.cancel()
     this.setSaving(true)
+    this.show("saving")
     this.pendingSave = after(SAVE_DELAY, () => {
       this.pendingSave = undefined
       // the file holds the latest text first:  its parse, after the edits before it
@@ -366,6 +356,8 @@ export class NotebookController {
           await this.parsed(text)
           await this.file.save(undefined)
           this.onDisk = text
+          // still the last edit's save:  no edit since
+          if (!this.pendingSave) this.show("saved")
         } catch (error) {
           editor.showError(error)
         } finally {
@@ -375,6 +367,19 @@ export class NotebookController {
     })
     this.pendingSave.catch(() => undefined)
   }
+
+  /** Say `status` in the pane's header (`status()`), for `STATUS_SHOWN` seconds, or until the next edit says more. */
+  private show(status: SaveStatus) {
+    this.statusTimer?.cancel()
+    this.setStatus(status)
+    // "Saving…" stays until its save is done
+    if (status === "saving") return
+    this.statusTimer = after(STATUS_SHOWN, () => this.setStatus(undefined))
+    this.statusTimer.catch(() => undefined)
+  }
+
+  /** Clears `status()` once it's been shown long enough. */
+  private statusTimer: ReturnType<typeof after> | undefined
 
   /**
    * The file's text changed from OUTSIDE the page (another tab, an agent, a text editor):
@@ -480,6 +485,17 @@ export class NotebookController {
    * `<NotebookPage>` hands it in.
    */
   panelMaker: ((key: string, index: number) => HTMLElement[]) | undefined
+
+  /**
+   * Each example's "Original" fold, under it:  the page the notebook was converted from (`original=`).
+   * - TODO:  TEMPORARY, gone after P19's Button page with `NotebookOriginal`.
+   */
+  private readonly originals = new NotebookOriginal(() => this.originalPage())
+
+  /** The page the notebook was converted from, its `original="..."`, if it names one. */
+  private originalPage(): string | undefined {
+    return this.now.model?.notebook.attributes.find((attribute) => attribute.name === "original")?.value
+  }
 
   /** Cell `key` is drawn in `host`, a place on the page:  draw it there. */
   attach(key: string, host: HTMLElement) {
@@ -634,6 +650,7 @@ export class NotebookController {
       const was = panels[index][0]?.parentElement
       if (was?.hasAttribute("code")) example.setAttribute("code", "")
       example.append(...panels[index])
+      this.originals.place(key, index, example)
     })
     this.panels.set(key, panels)
   }
@@ -651,17 +668,20 @@ export class NotebookController {
   ////////////////
 
   /**
-   * Example `index` of `cell`'s code in `view`.
-   * - spellx:  as written;  html:  its bare names as their tags;  spell:  its `<example>` as code spell writes it.
+   * Example `index` of `cell`'s code in `view`:  only what it DRAWS, never its `<example>` tags (P18).
+   * - spellx:  its body as written;  html:  its bare names as their tags;  spell:  its body's code spell twin
+   *   (`SX.CodeSpellWriter.writeMarkup()`).
+   * - A body that's one `<html>` block:  what's inside it, as written, in every view.
    */
   exampleCode(cell: PageCell, index: number, view = this.codeView()): string {
     const example = cell.examples?.[index]
     if (!example) return ""
-    if (view === "spellx") return example.body.code
-    const html = NotebookCode.toHtml(example.body.code, (word) => this.tagFor(word))
-    if (view === "html") return html
-    const word = this.model()?.language === "es" ? "ejemplo" : "example"
-    return [`<${word} "${example.name}">`, ...html.split("\n").map((line) => `\t${line}`), `</${word}>`].join("\n")
+    if (view === "spellx" || example.html) return example.body.code
+    if (view === "html") return NotebookCode.toHtml(example.body.code, (word) => this.tagFor(word))
+    return SX.CodeSpellWriter.writeMarkup(example.body.code, {
+      path: this.file.path,
+      componentTag: (word) => this.tagFor(word)
+    })
   }
 
   /** `cell`'s whole code in `view`:  a template's outline in code spell, a drawing's tags.  Read only but spellx. */
@@ -725,6 +745,9 @@ export class NotebookController {
 /** A cell and its key. */
 export type KeyedCell = { cell: PageCell; key: string }
 
+/** What the pane's header says of the last edit (`NotebookController.status()`). */
+export type SaveStatus = "saving" | "saved" | "locked"
+
 /** How long a cell waits for the editor's first parse of its project, seconds;  and how often it looks. */
 const PARSE_WAIT = 15
 const PARSE_POLL = 0.1
@@ -734,6 +757,12 @@ const FILE_POLL = 2
 
 /** How long after the last edit the file's saved, seconds. */
 const SAVE_DELAY = 0.6
+
+/** How long the pane's header says "Saved" (or "Locked") after an edit, seconds:  then it fades (Owen, 2026-10-26). */
+const STATUS_SHOWN = 15
+
+/** A notebook's tag, at a line's start:  `<spell-notebook`, Spanish's `<encanto-cuaderno`. */
+const NOTEBOOK_TAG = /^[ \t]*<(?:spell-notebook|encanto-cuaderno)\b/m
 
 /** The tag a notebook's example draws as:  `example_block`'s. */
 const EXAMPLE_TAG = "spell-example"

@@ -1,0 +1,60 @@
+/*
+ * A notebook's tools in the program pane's header (`<NotebookHeader>`):  its title as a menu of the project's
+ * notebooks, the lock about 40px after it, and the save status, small and grey, fading out.
+ * - Hosts are `display: contents`:  the dropdown's box is reached through `::part()`.
+ * - The lock is the header's own icon look (`ui-icon.IconAction`, `chrome.css`).
+ */
+
+.NotebookHeader {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+
+  /* the title, as the header's `<h2>`, the menu's arrow after it */
+  & > ui-dropdown.NotebookPicker::part(trigger) {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    min-height: 0;
+  }
+  & h2 {
+    display: flex;
+    color: var(--ui-text-color);
+    align-items: center;
+    gap: 0.5em;
+    margin: 0;
+    font-family: var(--ui-font-family);
+    font-size: 1.05em;
+    font-weight: var(--ui-font-weight-semibold, 600);
+    white-space: nowrap;
+
+    & > ui-icon {
+      color: var(--ui-primary, currentColor);
+    }
+  }
+
+  /* about 40px after the title (Owen, 2026-10-26) */
+  & > .NotebookLock {
+    display: inline-flex;
+    margin-inline-start: 40px;
+  }
+
+  /* "Saved", for a while after an edit, then faded out */
+  & > .NotebookStatus {
+    margin-inline-start: 16px;
+    font-size: 0.85em;
+    color: var(--ui-text-muted);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 600ms ease;
+
+    &.shown {
+      opacity: 1;
+    }
+    &.locked {
+      color: var(--ui-orange-text, var(--ui-orange, #f2711c));
+    }
+  }
+}

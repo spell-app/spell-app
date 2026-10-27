@@ -13,8 +13,8 @@ import "spell-app/spaces"
 
 /**
  * `<NotebookPage>` in the browser (epic `elemental-spell` P16):  a notebook's page, its cells drawn live by the
- * program's runtime;  an edit draws only its own cell again, saves 600ms after, and a locked notebook's visitor only
- * tries things out.
+ * program's runtime;  an edit draws only its own cell again, saves 600ms after, and a locked notebook never saves:
+ * an edit there is a try-out.
  * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL, as the runner's tests do;  the program
  *   (the notebook, compiled) runs on it first, as the editor runs it, out of sight.
  * - The project:  an incremental parse of the notebook (`incrementalSpellProject()`), standing in for the editor's;
@@ -85,34 +85,42 @@ describe("<NotebookPage>", () => {
     expect(file.contents).toBe(COUNTER.replace("Clicked", "Pressed"))
   })
 
-  test('"On this page":  its column where there\'s room, else an icon on the title row opening it as a flyout', async () => {
+  test("\"On this page\":  the docs site's contents in a column, hidden by its Hide;  else a flyout under the title row's icon", async () => {
     const { host, controller } = await mount({ width: 1000 })
-    const column = () => host.querySelector<HTMLElement>(".NotebookColumns > .NotebookToc")!
+    const column = () => host.querySelector<HTMLElement>(".NotebookAside:not(.hidden)")
     const button = () => host.querySelector<HTMLElement>(".NotebookMasthead .NotebookTocButton")
-    const flyout = () => host.querySelector<HTMLElement & { visible: boolean }>(".NotebookTocFlyout")!
-    await until(() => !!host.querySelector(".NotebookTitle"))
-    // room for the column:  no icon, and no row of links above the page any more
-    expect(getComputedStyle(column()).display).not.toBe("none")
+    const flyout = () => host.querySelector<HTMLElement>(".NotebookTocFlyout")
+    const sectionLinks = (toc: Element | null | undefined) =>
+      [...(toc?.shadowRoot?.querySelectorAll("[part~=section]") ?? [])].map((item) => item.textContent!.trim())
+    await until(() => sectionLinks(column()?.querySelector("ui-docs-toc")).length === 2)
+    // room for the column:  Spell UI's `<ui-docs-toc>`, headed by the page's title;  no icon
+    expect(sectionLinks(column()!.querySelector("ui-docs-toc"))).toEqual(["Try it", "Two of them"])
+    expect(column()!.querySelector("ui-docs-toc")!.getAttribute("header")).toBe("A counter")
     expect(button()).toBeNull()
-    // hidden from the toolbar:  the icon gets it back
-    controller.toggleContents()
-    await until(() => !!button())
+    // its Hide:  the icon gets it back, as a flyout
+    column()!.querySelector<HTMLElement>(".NotebookTocHide")!.click()
+    await until(() => !column() && !!button())
+    expect(controller.contentsShown()).toBe(false)
+    // opening and closing it never moves the page
+    const scroller = host.querySelector<HTMLElement>(".NotebookScroller")!
+    scroller.scrollTop = 40
+    const before = scroller.scrollTop
+    button()!.click()
+    await until(() => sectionLinks(flyout()?.querySelector("ui-docs-toc")).length === 2)
+    expect(scroller.scrollTop).toBe(before)
+    // under the icon, never over the pane above the page
+    expect(flyout()!.getBoundingClientRect().top).toBeGreaterThanOrEqual(host.getBoundingClientRect().top)
+    button()!.click()
+    await until(() => !flyout())
+    expect(scroller.scrollTop).toBe(before)
+    // its "Show contents" pins it back as the column
+    button()!.click()
+    await until(() => !!flyout()?.querySelector(".NotebookTocShow"))
+    flyout()!.querySelector<HTMLElement>(".NotebookTocShow")!.click()
+    await until(() => !!column() && !flyout() && !button())
     // a narrow pane:  no column, the icon
-    controller.toggleContents()
-    await until(() => !button())
     host.style.width = "500px"
-    await until(() => !!button() && getComputedStyle(column()).display === "none")
-    expect(button()!.getAttribute("commandfor")).toBe(flyout().id)
-    controller.setContentsOpen(true)
-    await until(() => flyout().hasAttribute("visible"))
-    expect([...flyout().querySelectorAll(".NotebookTocLink")].map((link) => link.textContent)).toEqual([
-      "Try it",
-      "Two of them"
-    ])
-    // picking an entry closes it
-    flyout().querySelector<HTMLElement>(".NotebookTocLink")!.click()
-    await until(() => !flyout().hasAttribute("visible"))
-    expect(controller.contentsOpen()).toBe(false)
+    await until(() => !column() && !!button())
   })
 
   test("saves 600ms after the last edit, once", async () => {
@@ -127,21 +135,33 @@ describe("<NotebookPage>", () => {
     expect(file.saves).toBe(0)
     await until(() => file.saves === 1)
     expect(file.contents).toContain('\t<example "one counter">\n\t\t<counter/>\n\t\t<counter/>\n\t\t<counter/>\n')
+    expect(controller.status()).toBe("saved")
   })
 
-  test("locked, a visitor's edit draws but isn't saved", async () => {
+  test("locked, nothing is ever saved:  an edit is a try-out, drawn but not saved, and its Reset puts it back", async () => {
     const { host, file, controller } = await mount()
     controller.setLocked(true)
     await until(() => file.saves === 1)
     expect(file.contents.split("\n")[0]).toBe('<spell-notebook "counter notebook" locked>')
-    controller.toggleVisitor()
-    await until(() => !controller.canSave())
-    const template = keyOf(controller, "template")
-    controller.editCell(template, controller.cellFor(template)!.code.replace("Clicked", "Tapped"))
-    await until(() => resultsOf(host).every((text) => /Tapped 0 times/.test(text)))
+    expect(controller.canSave()).toBe(false)
+    // a try-out:  the example draws again as it's typed, and the file stays as it was
+    const example = keyOf(controller, "drawing")
+    expect(controller.triedOutExample(example, 0)).toBeUndefined()
+    controller.editExample(example, 0, "<counter/>\n<counter/>")
+    await until(() => resultsOf(host)[0] === "Clicked 0 times Clicked 0 times")
     await new Promise((resolve) => setTimeout(resolve, 900))
     expect(file.saves).toBe(1)
-    expect(host.querySelector(".NotebookStatus")?.textContent).toMatch(/Trying it out/)
+    expect(controller.status()).toBe("locked")
+    // its Reset:  the example's code as the file has it
+    expect(controller.triedOutExample(example, 0)).toBe("<counter/>")
+    controller.resetExample(example, 0)
+    await until(() => resultsOf(host)[0] === "Clicked 0 times")
+    expect(controller.triedOutExample(example, 0)).toBeUndefined()
+    expect(file.saves).toBe(1)
+    // unlocked:  saved again
+    controller.setLocked(false)
+    await until(() => file.saves === 2)
+    expect(file.contents).toBe(COUNTER)
   })
 })
 

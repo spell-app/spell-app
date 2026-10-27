@@ -1,9 +1,19 @@
-<spell-notebook "avatar api">
+<spell-notebook "avatar api" original="/components/ui/ui-avatar.html">
 	<header level="1">
 		Avatar
 		<header>An avatar is a small picture of a person, beside a comment, an item or a card.</header>
 	</header>
 	<avatar-tab-bar showing="api"/>
+	<section>
+		<html>
+			<ui-menu class="ui-docs-section-tabs" appearance="segmented" aria-label="Sections">
+				<ui-item link="#attributes">Attributes</ui-item>
+				<ui-item link="#slots">Slots</ui-item>
+				<ui-item link="#parts">Parts</ui-item>
+				<ui-item link="#states">States</ui-item>
+			</ui-menu>
+		</html>
+	</section>
 
 	<section label="Attributes">
 		<html>

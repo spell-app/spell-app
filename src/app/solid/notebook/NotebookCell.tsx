@@ -10,16 +10,14 @@ import type { PageCell } from "./NotebookPageCells"
 /****************
  * ### `<NotebookCell>`
  * One cell of a notebook's page (epic `elemental-spell` P16), by its key:  what it shows, by its kind.
- * - `prose`:  its markdown;  in edit mode, selected, its editor over it.
+ * - `prose`:  its markdown.
  *   The text just before an example is that example's description, shown in it (`<ExampleDescription>`).
- * - `heading`:  nothing of its own (the page draws the title, or its section's title);  in edit mode, selected, its
- *   spellx in an editor.
+ * - `heading`:  nothing of its own (the page draws the title, or its section's title).
  * - A `<text>` that's an example's description draws nothing here:  it shows in its example.
- * - `template`:  its code, in the page's code view (read only but in spellx, in edit mode).
+ * - `template`:  its code, in the page's code view (editable in spellx).
  * - `drawing`:  what it draws, live, in its own place (`NotebookController.attach()`);  its examples' code in each
- *   example's frame (`<ExampleCode>`);  in edit mode, a selected one that isn't a lone example shows its code too.
+ *   example's frame (`<ExampleCode>`).
  * - `html`, `member`:  their code;  an `<html>` block's drawing under it.
- * - A click selects it:  a focus ring, and the toolbar acts on it.
  * - Its errors, from its last edit, under its code:  what's drawn stays the last good drawing.
  ****************/
 export function NotebookCell(props: {
@@ -29,14 +27,8 @@ export function NotebookCell(props: {
   heading?: boolean
 }) {
   const { controller } = props
-  const isSelected = () => controller.selected() === props.key
-  const isEditing = () => controller.editing()
   return (
-    <div
-      class={["NotebookCell", props.cell.kind, { selected: isSelected() && isEditing() }]}
-      data-cell-key={props.key}
-      onClick={() => controller.select(props.key)}
-    >
+    <div class={["NotebookCell", props.cell.kind]} data-cell-key={props.key}>
       <Show when={controller.held()[props.key] !== undefined}>
         <div class="NotebookHeld" role="status">
           <span>{appTexts.text("notebookPageChangedElsewhere")}</span>
@@ -50,23 +42,11 @@ export function NotebookCell(props: {
       </Show>
       <Switch>
         <Match when={props.cell.kind === "prose"}>
-          <Show when={isEditing() && isSelected()}>
-            <CellEditor
-              code={props.cell.code}
-              language="markdown"
-              readOnly={false}
-              onChange={(code) => controller.editCell(props.key, code)}
-            />
-          </Show>
           <Show when={!controller.isDescription(props.key) && proseShown(props.cell, props.heading)}>
             {(text) => <ui-markdown class="NotebookProse">{text()}</ui-markdown>}
           </Show>
         </Match>
-        <Match when={props.cell.kind === "heading"}>
-          <Show when={isEditing() && isSelected()}>
-            <CodeOf controller={controller} key={props.key} cell={props.cell} />
-          </Show>
-        </Match>
+        <Match when={props.cell.kind === "heading"}>{null}</Match>
         <Match when={props.cell.kind === "template"}>
           <div class="NotebookCellLabel">
             <ui-icon name="cube" />
@@ -92,9 +72,6 @@ export function NotebookCell(props: {
           <CodeOf controller={controller} key={props.key} cell={props.cell} />
         </Match>
         <Match when={props.cell.kind === "drawing"}>
-          <Show when={isEditing() && isSelected() && !isLoneExample(props.cell)}>
-            <CodeOf controller={controller} key={props.key} cell={props.cell} />
-          </Show>
           <Show when={!controller.isDescription(props.key)}>
             <div
               class="NotebookResultHost"
@@ -123,10 +100,10 @@ export function NotebookCell(props: {
   )
 }
 
-/** A cell's whole code, in the page's view:  editable only in spellx, in edit mode. */
+/** A cell's whole code, in the page's view:  editable only in spellx. */
 function CodeOf(props: { controller: NotebookController; key: string; cell: PageCell }) {
   const view = () => props.controller.codeView()
-  const editable = () => props.controller.editing() && view() === "spellx"
+  const editable = () => view() === "spellx"
   return (
     <CellEditor
       code={props.controller.cellCode(props.cell)}
@@ -143,7 +120,6 @@ function CodeOf(props: { controller: NotebookController; key: string; cell: Page
  * (`<spell-example>`'s `description` slot), as a component page's example reads.
  * - Only the first example of its cell has one (`NotebookController.descriptionFor()`).
  * - Its panel is slotted only while there's text:  an empty description takes no room.
- * - A click selects that prose cell:  in edit mode, its editor shows in its place.
  ****************/
 export function ExampleDescription(props: {
   controller: NotebookController
@@ -158,17 +134,7 @@ export function ExampleDescription(props: {
   })
   return (
     <Show when={description()}>
-      {(shown) => (
-        <ui-markdown
-          class="NotebookExampleDescription"
-          onClick={(event: MouseEvent) => {
-            event.stopPropagation()
-            controller.select(shown().key)
-          }}
-        >
-          {shown().text}
-        </ui-markdown>
-      )}
+      {(shown) => <ui-markdown class="NotebookExampleDescription">{shown().text}</ui-markdown>}
     </Show>
   )
 }
@@ -177,8 +143,11 @@ export function ExampleDescription(props: {
  * ### `<ExampleCode>`
  * An example's code, in its code pane (`<spell-example>`'s `source` slot), which its `</>` button rolls open
  * under its result:  the page's code view, and a small switch for it at the pane's top right.
- * - Flipping the switch here flips the page's:  every example's code, and the toolbar's.
- * - Editable in edit mode, in spellx or html (mapped back to spellx before it's saved);  spell is read only.
+ * - Flipping the switch here flips every example's:  remembered per notebook.
+ * - ALWAYS editable, in spellx or html (mapped back to spellx);  spell is read only.
+ *   Typing draws the example above it again, as it's typed.
+ *   - Unlocked:  saved.  Locked:  a try-out, never saved;  a small Reset beside the switch puts its code back as
+ *     the file has it (Owen, 2026-10-26:  "Yes as try-out.  If doc is locked, nothing is ever saved").
  * - Made once per example and MOVED into its example each time it draws again (`NotebookController`):
  *   typing in it never loses its place.
  ****************/
@@ -186,10 +155,22 @@ export function ExampleCode(props: { controller: NotebookController; key: string
   const { controller } = props
   const cell = () => controller.cellFor(props.key)
   const view = () => controller.codeView()
-  const editable = () => controller.editing() && view() !== "spell"
+  const editable = () => view() !== "spell"
   return (
     <div class="NotebookExampleCode" onClick={(event) => event.stopPropagation()}>
       <div class="NotebookExampleBar">
+        <Show when={controller.triedOutExample(props.key, props.index) !== undefined}>
+          <ui-button
+            class="NotebookReset"
+            size="tiny"
+            appearance="basic"
+            icon="undo"
+            title={appTexts.text("notebookPageResetTip")}
+            onClick={() => controller.resetExample(props.key, props.index)}
+          >
+            {appTexts.text("notebookPageReset")}
+          </ui-button>
+        </Show>
         <CodeViewSwitch controller={controller} size="tiny" />
       </div>
       <Show when={cell()}>
@@ -207,7 +188,7 @@ export function ExampleCode(props: { controller: NotebookController; key: string
   )
 }
 
-/** The switch between the code views, spellx / spell / html:  one for the whole page. */
+/** The switch between the code views, spellx / spell / html:  each example's, flipping them all. */
 export function CodeViewSwitch(props: { controller: NotebookController; size?: "tiny" | "small" }) {
   return (
     <ui-buttons
@@ -239,7 +220,7 @@ export function CodeViewSwitch(props: { controller: NotebookController; size?: "
 /****************
  * ### `<CellEditor>`
  * A cell's code in a small Monaco editor, as tall as its lines (at most 30), no line numbers or minimap.
- * - `readOnly` follows its prop:  edit mode makes it editable, without a new editor.
+ * - `readOnly` follows its prop:  switching to an editable view makes it editable, without a new editor.
  * - Marked `data-spell-editor`:  a change from outside the page never replaces it while it's open (epic-engine P40's
  *   shared rules).
  * - Until Monaco's loaded, its code as plain text.
@@ -292,11 +273,6 @@ function Errors(props: { errors: string[] | undefined }) {
 function proseShown(cell: PageCell, heading: boolean | undefined): string | undefined {
   const text = heading ? cell.code.split("\n").slice(1).join("\n").trim() : cell.code
   return text || undefined
-}
-
-/** Is drawing cell `cell` one example and nothing else?  Its example's own code is its editor then. */
-function isLoneExample(cell: PageCell): boolean {
-  return cell.examples?.length === 1 && cell.examples[0]!.span.start === cell.span.start
 }
 
 /** The views, in the switch's order. */
