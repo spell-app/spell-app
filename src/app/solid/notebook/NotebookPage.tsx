@@ -3,14 +3,14 @@ import { render, type JSX } from "@solidjs/web"
 
 import { setDebugGlobal } from "spell/util"
 import { UI } from "spell-ui/core"
-import type { SP } from "spell-parser/spell"
+import { SP } from "spell-parser/spell"
 // Import directly:  the barrel brings the site header and the section editor too
 import { PagePatch } from "spell/server/site/PagePatch"
 import { appTexts } from "spell-app/app/ui/AppTexts"
 import { NotebookController, type KeyedCell } from "./NotebookController"
-import { CellEditor, ExampleCode, ExampleDescription, NotebookCell } from "./NotebookCell"
+import { ExampleCode, ExampleDescription, NotebookCell } from "./NotebookCell"
 import { NotebookDocs } from "./NotebookDocs"
-import { NotebookToolbar } from "./NotebookToolbar"
+import { showNotebook } from "./NotebookHeader"
 import { SpellExample } from "./SpellExample"
 
 // the section titles' look, as a component page draws them
@@ -21,31 +21,46 @@ import "./NotebookPage.css"
  * ### `<NotebookPage>`
  * A `.spellx` NOTEBOOK's page (epic `elemental-spell` P16):  the page its `<spell-notebook>` template draws, in the
  * editor app, editable in place.
- * - A sticky toolbar (`<NotebookToolbar>`);  a masthead, the page's title and the line under it;  each section a
- *   `<ui-section sticky collapsible>`, listed in "On this page" at the right.
+ * - Drawn as Spell UI's docs site draws a component page, on the pane's own glass (no background of its own):
+ *   a masthead, the page's title and the line under it;  each section a `<ui-section sticky collapsible>`, listed in
+ *   "On this page" at the right, the site's own `<ui-docs-toc>`.
  *   - written either way (`NotebookPageCells`):  markdown (`# Counter`, `## Several counters`), or tags
  *     (`<header level="1">`, `<section label="Several counters">`)
+ * - Its tools (the notebooks' menu, the lock, what happened to the last edit) are in the pane's header
+ *   (`<NotebookHeader>`):  no toolbar of its own.
  * - Each cell (`<NotebookCell>`) in order:  prose drawn as markdown, templates as code, and what the notebook
  *   draws -- examples, sections, text -- live, each in its own place, drawn by the running program's runtime.
- * - Editing it changes only that cell's span of the file, saves it, and draws only that cell again
- *   (`NotebookController`):  nothing else on the page moves.
- * - ⌘Z, outside an editor:  undoes the last move, delete, add or lock.
+ * - An example's code is always editable:  an edit changes only that cell's span of the file, draws only that cell
+ *   again, and saves it, unless the notebook's locked (`NotebookController`).
+ * - ⌘Z, outside an editor:  undoes the last lock or unlock.
  * - A change to the file from outside the page (read every couple of seconds):  only the cells it changed draw again,
  *   planned by epic-engine's shared page patch;  the cell being typed in keeps its text, with a note
  *   (`NotebookController.outsideChange()`).
- * - "On this page" shows at the right, unless the toolbar hides it;  where it doesn't show (hidden, or a pane too
- *   narrow for it), an icon at the end of the title's row opens it as a flyout over the page's right edge.
+ * - "On this page" shows at the right where there's room, unless its Hide hid it;  where it doesn't show, an icon at
+ *   the end of the title's row opens it as a flyout, just under that icon, over the page but never over the pane's
+ *   header.
+ * - A link to another notebook of the project (its tab bar's) shows it through the app's router:  no reload.
  * - The program still runs as ever, drawn out of sight:  its classes and its notebook are what the cells draw with.
  * - SIDE EFFECT:  defines `<spell-example>`, the example frame the notebook's examples draw as;  and loads
- *   `<ui-docs-api>`, which an `<html>` block may draw (`NotebookDocs`).
+ *   `<ui-docs-toc>`, and `<ui-docs-api>`, which an `<html>` block may draw (`NotebookDocs`).
  ****************/
-export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProject }) {
+export function NotebookPage(props: {
+  file: SP.SpellFile
+  project: SP.SpellProject
+  /** hears the page's controller once it's made, and `undefined` as the page goes:  the pane's header's tools */
+  onController?: (controller: NotebookController | undefined) => void
+}) {
   SpellExample.define()
-  // Spell UI's `<ui-docs-api>`, for an `<html>` block's API tables:  a chunk of its own, loaded once
+  // Spell UI's `<ui-docs-toc>` and `<ui-docs-api>`:  a chunk of their own, loaded once
   void NotebookDocs.load()
   const controller = new NotebookController(props.file, props.project)
   // DEBUG:  `notebook` at the devtools console
   setDebugGlobal({ notebook: controller })
+  // the pane's header's tools:  once drawn (a write, never in the body)
+  onSettled(() => {
+    props.onController?.(controller)
+    return () => props.onController?.(undefined)
+  })
   const owner = getOwner()
   const panelDisposers: Array<() => void> = []
   /** A panel for an example's `slot`, drawing `view` (its description, its code). */
@@ -84,15 +99,7 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
     })
   )
 
-  // the toolbar's height, which wraps on a narrow pane:  where a section's title sticks, just under it
-  const [toolbarHeight, setToolbarHeight] = createSignal(0)
-  const followToolbar = (toolbar: HTMLElement) => {
-    const observer = new ResizeObserver(() => setToolbarHeight(Math.round(toolbar.getBoundingClientRect().height)))
-    observer.observe(toolbar)
-    onCleanup(() => observer.disconnect())
-  }
-
-  // "On this page"'s column showing:  not hidden from the toolbar, and room for it (as the page's CSS lays it out)
+  // "On this page"'s column showing:  not hidden, and room for it (as the page's CSS lays it out)
   const [isNarrow, setNarrow] = createSignal(false)
   const followWidth = (div: HTMLDivElement) => {
     page = div
@@ -101,100 +108,164 @@ export function NotebookPage(props: { file: SP.SpellFile; project: SP.SpellProje
     onCleanup(() => observer.disconnect())
   }
   const isColumnShown = () => controller.contentsShown() && !isNarrow()
+  const ids = { scroller: `notebook-scroller-${++pages}`, main: `notebook-main-${pages}` }
+
+  // the flyout, where the column doesn't show:  just under the title row's icon, and closed by a click elsewhere
+  const [flyoutTop, setFlyoutTop] = createSignal(FLYOUT_GAP)
+  const isFlyoutOpen = () => !isColumnShown() && controller.contentsOpen()
   const contents: ContentsFlyout = {
-    id: `notebook-contents-${++flyouts}`,
-    isShown: () => !isColumnShown()
+    isShown: () => !isColumnShown(),
+    toggle: (button) => {
+      if (isFlyoutOpen()) return controller.setContentsOpen(false)
+      const top = button.getBoundingClientRect().bottom - page.getBoundingClientRect().top + FLYOUT_GAP
+      setFlyoutTop(Math.max(FLYOUT_GAP, Math.round(top)))
+      controller.setContentsOpen(true)
+    }
+  }
+  const closeOnOutside = (event: Event) => {
+    const path = event.composedPath()
+    const inside = path.some(
+      (node) => node instanceof Element && node.matches(".NotebookTocFlyout, .NotebookTocButton")
+    )
+    if (!inside) controller.setContentsOpen(false)
+  }
+  const closeOnEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape") controller.setContentsOpen(false)
+  }
+  onSettled(() => {
+    document.addEventListener("pointerdown", closeOnOutside, true)
+    document.addEventListener("keydown", closeOnEscape)
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutside, true)
+      document.removeEventListener("keydown", closeOnEscape)
+    }
+  })
+
+  // a link to another of the project's notebooks (the tab bar's):  through the router, never a reload
+  const followNotebookLinks = (event: MouseEvent) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
+    const link = event.composedPath().find((node): node is HTMLAnchorElement => node instanceof HTMLAnchorElement)
+    const notebook = link && notebookAt(link, controller)
+    if (!notebook) return
+    event.preventDefault()
+    if (notebook.path !== controller.file.path) showNotebook(notebook.path)
   }
 
   const sections = () => sectionsOf(controller.cells())
+  const pageTitle = () => controller.cells().find((each) => each.cell.title)?.cell.title
   return (
-    <div class="NotebookPage ui-docs-sections" ref={followWidth}>
-      <NotebookToolbar controller={controller} ref={followToolbar} />
-      <div class="NotebookColumns">
-        <main class="NotebookMain">
-          <For each={sections()} keyed={(section) => section.key}>
-            {(section) => (
-              <Show
-                when={section().heading !== undefined}
-                fallback={<Cells controller={controller} cells={section().cells} masthead={contents} />}
-              >
-                <ui-section
-                  id={slugOf(section().heading!)}
-                  label={section().heading}
-                  sticky=""
-                  offset={toolbarHeight()}
-                  level="2"
-                  collapsible=""
-                  dividing=""
-                  class="NotebookSection"
+    <div class="NotebookPage" ref={followWidth} onClick={followNotebookLinks}>
+      <div class="NotebookScroller ui-docs-sections" id={ids.scroller}>
+        <div class="NotebookColumns">
+          <main class="NotebookMain" id={ids.main}>
+            <For each={sections()} keyed={(section) => section.key}>
+              {(section) => (
+                <Show
+                  when={section().heading !== undefined}
+                  fallback={<Cells controller={controller} cells={section().cells} masthead={contents} />}
                 >
-                  <Cells controller={controller} cells={section().cells} />
-                </ui-section>
-              </Show>
-            )}
-          </For>
-        </main>
-        <Contents controller={controller} sections={sections()} hidden={!controller.contentsShown()} />
+                  <ui-section
+                    id={slugOf(section().heading!)}
+                    label={section().heading}
+                    sticky=""
+                    level="2"
+                    collapsible=""
+                    dividing=""
+                    class="NotebookSection"
+                  >
+                    <Cells controller={controller} cells={section().cells} />
+                  </ui-section>
+                </Show>
+              )}
+            </For>
+          </main>
+          <Show when={isColumnShown()}>
+            <aside class="NotebookAside">
+              <Contents ids={ids} title={pageTitle()}>
+                <ui-icon
+                  slot="tools"
+                  name="eye slash outline"
+                  link=""
+                  class="IconAction NotebookTocHide"
+                  label={appTexts.text("notebookPageHideContents")}
+                  title={appTexts.text("notebookPageHideContents")}
+                  onClick={() => controller.toggleContents()}
+                />
+              </Contents>
+            </aside>
+          </Show>
+        </div>
       </div>
-      {/* where the column doesn't show:  the same card, over the page's right edge, from the title row's icon */}
-      <ui-flyout
-        id={contents.id}
-        class="NotebookTocFlyout"
-        position="right"
-        modeless=""
-        visible={contents.isShown() && controller.contentsOpen() ? "" : undefined}
-        aria-label={appTexts.text("notebookPageContents")}
-        on-ui-opened={() => controller.setContentsOpen(true)}
-        on-ui-closed={() => controller.setContentsOpen(false)}
-      >
-        <Contents controller={controller} sections={sections()} onPick={() => controller.setContentsOpen(false)} />
-      </ui-flyout>
+      {/* where the column doesn't show:  the same contents, under the title row's icon */}
+      <Show when={isFlyoutOpen()}>
+        <div
+          class="NotebookTocFlyout"
+          role="dialog"
+          aria-label={appTexts.text("notebookPageContents")}
+          style={{ top: `${flyoutTop()}px` }}
+        >
+          <Contents ids={ids} title={pageTitle()} onPick={() => controller.setContentsOpen(false)}>
+            <Show when={!isNarrow()}>
+              <ui-icon
+                slot="tools"
+                name="columns"
+                link=""
+                class="IconAction NotebookTocShow"
+                label={appTexts.text("notebookPageShowContents")}
+                title={appTexts.text("notebookPageShowContents")}
+                onClick={() => {
+                  controller.setContentsOpen(false)
+                  controller.toggleContents()
+                }}
+              />
+            </Show>
+          </Contents>
+        </div>
+      </Show>
     </div>
   )
 }
 
 /**
- * "On this page":  a card, headed by the page's title as a component page's is, a link to each section under it.
- * - in its column at the right, `hidden` from the toolbar;  or in the flyout, closing it once a link is picked
+ * "On this page":  Spell UI's `<ui-docs-toc>`, as the docs site's, headed by the page's title, following the page's
+ * scroll inside its pane (`scroller`);  `children`, its own buttons in its header's row.
+ * - A link scrolls its section into view within the page, never changing the editor's address;  `onPick` then.
  */
 function Contents(props: {
-  controller: NotebookController
-  sections: Section[]
-  hidden?: boolean
+  ids: { scroller: string; main: string }
+  title?: string
   onPick?: () => void
+  children?: JSX.Element
 }) {
-  const pageTitle = () => props.controller.cells().find((each) => each.cell.title)?.cell.title
   return (
-    <nav class={["NotebookToc", { hidden: props.hidden }]} aria-label={appTexts.text("notebookPageContents")}>
-      <div class="NotebookTocTitle">{pageTitle() ?? appTexts.text("notebookPageContents")}</div>
-      <For each={props.sections.filter((section) => section.heading !== undefined)} keyed={(section) => section.key}>
-        {(section) => (
-          <a
-            class="NotebookTocLink"
-            href={`#${slugOf(section().heading!)}`}
-            onClick={(event) => {
-              scrollTo(event)
-              props.onPick?.()
-            }}
-          >
-            {section().heading}
-          </a>
-        )}
-      </For>
-    </nav>
+    <ui-docs-toc
+      class="NotebookToc"
+      for={props.ids.main}
+      scroller={props.ids.scroller}
+      header={props.title}
+      aria-label={appTexts.text("notebookPageContents")}
+      onClick={(event: MouseEvent) => {
+        if (scrollTo(event)) props.onPick?.()
+      }}
+    >
+      {props.children}
+    </ui-docs-toc>
   )
 }
 
 /** The flyout "On this page" opens as, where its column doesn't show. */
 type ContentsFlyout = {
-  /** the flyout's id, its opener's `commandfor`:  one per page */
-  id: string
   /** is its column not showing, so the title row's icon is? */
   isShown: () => boolean
+  /** open it under `button` (the title row's icon), or close it */
+  toggle: (button: HTMLElement) => void
 }
 
-/** How many contents flyouts there have been:  each page's id its own. */
-let flyouts = 0
+/** How many notebook pages there have been:  each page's ids its own. */
+let pages = 0
+
+/** The flyout's gap under the icon that opened it, and from the page's top edge at least, px. */
+const FLYOUT_GAP = 6
 
 /** A section's cells;  the first section's first cell with a title (`#`, or `<header level="1">`) is the masthead. */
 function Cells(props: { controller: NotebookController; cells: KeyedCell[]; masthead?: ContentsFlyout }) {
@@ -212,34 +283,18 @@ function Cells(props: { controller: NotebookController; cells: KeyedCell[]; mast
             />
           }
         >
-          <Show when={props.controller.editing() && props.controller.selected() === each().key}>
-            <CellEditor
-              code={each().cell.code}
-              language={each().cell.kind === "prose" ? "markdown" : "spellx"}
-              readOnly={false}
-              onChange={(code) => props.controller.editCell(each().key, code)}
-            />
-          </Show>
-          <header
-            class={[
-              "NotebookMasthead",
-              { selected: props.controller.editing() && props.controller.selected() === each().key }
-            ]}
-            onClick={() => props.controller.select(each().key)}
-          >
+          <header class="NotebookMasthead">
             <ui-header level="1" class="NotebookTitle">
-              {/* "On this page", where its column doesn't show:  the docs site's own opener for its nav flyout */}
+              {/* "On this page", where its column doesn't show:  an icon opening it, as the pane header's icons */}
               <Show when={props.masthead!.isShown()}>
                 <span class="NotebookTocSlot">
-                  <ui-button
-                    class="NotebookTocButton"
-                    icon="bars"
-                    appearance="basic circular"
+                  <ui-icon
+                    name="list"
+                    link=""
+                    class="IconAction NotebookTocButton"
+                    label={appTexts.text("notebookPageContents")}
                     title={appTexts.text("notebookPageContents")}
-                    aria-label={appTexts.text("notebookPageContents")}
-                    commandfor={props.masthead!.id}
-                    command="--show"
-                    onClick={(event) => event.stopPropagation()}
+                    onClick={(event: MouseEvent) => props.masthead!.toggle(event.currentTarget as HTMLElement)}
                   />
                 </span>
               </Show>
@@ -277,13 +332,31 @@ function slugOf(heading: string): string {
     .replace(/^-|-$/g, "")
 }
 
-/** Scroll a "On this page" link's section into view, within the page:  the page scrolls, not the window. */
-function scrollTo(event: MouseEvent) {
-  const href = (event.currentTarget as HTMLAnchorElement).getAttribute("href") ?? ""
-  const target = (event.currentTarget as HTMLElement).closest(".NotebookPage")?.querySelector(href)
-  if (!target) return
+/**
+ * Scroll the section an "On this page" link names into view, within the page:  the page scrolls, not the window,
+ * and the editor's address keeps no hash.
+ * - Returns whether it was such a link.
+ */
+function scrollTo(event: MouseEvent): boolean {
+  const link = event.composedPath().find((node): node is HTMLAnchorElement => node instanceof HTMLAnchorElement)
+  const href = link?.getAttribute("href") ?? ""
+  if (!href.startsWith("#")) return false
+  const target = (event.currentTarget as HTMLElement)
+    .closest(".NotebookPage")
+    ?.querySelector(`[id="${CSS.escape(href.slice(1))}"]`)
   event.preventDefault()
-  target.scrollIntoView({ behavior: "smooth", block: "start" })
+  target?.scrollIntoView({ behavior: "smooth", block: "start" })
+  return true
+}
+
+/** The project's notebook `link` points at (`/edit/...`, `/run/...`), if it's one of `controller`'s project's. */
+function notebookAt(link: HTMLAnchorElement, controller: NotebookController): SP.SpellFile | undefined {
+  const url = new URL(link.href, location.href)
+  if (url.origin !== location.origin) return undefined
+  return NotebookController.notebooksIn(controller.project).find((file) => {
+    const location = new SP.SpellLocation(file.path)
+    return url.pathname === location.editorUrl || url.pathname === location.runnerUrl
+  })
 }
 
 /**
@@ -294,4 +367,13 @@ function isForPage(event: KeyboardEvent, page: HTMLElement): boolean {
   const path = event.composedPath()
   if (path.some((node) => node instanceof HTMLElement && node.classList.contains("monaco-editor"))) return false
   return path.includes(page) || path[0] === document.body
+}
+
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      // Spell UI's docs-only "On this page":  not in its generated types, which name the component tags only
+      "ui-docs-toc": JSX.HTMLAttributes<HTMLElement> & { for?: string; scroller?: string; header?: string }
+    }
+  }
 }
