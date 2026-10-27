@@ -480,27 +480,30 @@ Point at the app and a part of it is outlined;  click, and its properties are th
 
 ### Themes, and Purple code
 
-The palette button at the top bar's right picks light, dark or auto, and any of Spell UI's 28 themes.
-Three of them are the editor's looks, and change its whole shape:
+The palette button at the top bar's right picks light, dark or auto, and one of Spell's four themes:
+the same menu, and the same themes, as on Spell's docs pages.
+Each one dresses the whole editor:
 
-| Look | Its Spell UI theme | What it looks like |
-| --- | --- | --- |
-| Glass, the default | `fruity` | frosted panels over a soft wallpaper, as macOS draws them |
-| Studio | `studio` | flat panels on hairlines, in Shades of Purple's navy and yellow, or lavender and violet in light |
-| the third | Spell's own, with warm surfaces | the white cards of Spell's own pages |
+| Theme | What it looks like |
+| --- | --- |
+| Fruity, the default | frosted panels over a soft pastel wallpaper, as macOS draws them |
+| Glass | the same frosted panels, on a plain page |
+| Merlot | flat panels on hairlines, edge to edge, in wine reds;  a warm gold in dark |
+| Spell | white cards with soft shadows on Spell's pale page |
 
-- In a look, the top bar floats as a rounded bar, and the code, the Program panel and the app sit in rounded panels
-  with gaps between them;  Spell's hat and name lead the bar, the hat in the theme's main colour.
-  Any other theme brings back the editor's older violet bars.
-- The looks are picked from the palette like any other theme:  there's no switch of their own.
+- The top bar floats as a rounded bar, and the code, the Program panel and the app sit in rounded panels
+  with gaps between them;  Spell's hat and name lead the bar, the hat in the theme's primary colour.
+  - Glass and Fruity's bar is a full pill;  Merlot's panels meet edge to edge, and Spell's bar has no box of its own.
+- The bars' and panels' colours, corners and shadows are the theme's own, as the docs pages' bars are.
 - The editor remembers its own theme, apart from the docs site's;  light or dark is ONE choice for every Spell site.
 - The code itself is always Shades of Purple, the VS Code theme, ported to Monaco with a matching light version.
   It follows the page's light or dark, under any theme, and colours Spell's headings, keywords, types, properties,
   actions and constants from the parse.
+  - In Glass, Fruity and Merlot the code has no background of its own:  the panel shows through behind it.
 - A theme made with Spell UI's theme editor and kept in the browser is worn over its base,
-  while that base is the look chosen.
+  while that base is the theme chosen.
 - All of it is [EditorTheme.tsx](src/app/solid/EditorTheme.tsx) and [the code themes](src/app/ui/monaco/themes/).
-- **Not yet:**  a menu entry for that kept theme, and a design pass on the two looks besides Glass,
+- **Not yet:**  a menu entry for that kept theme, and a design pass on Merlot and Spell,
   which were built to their first drawings with no round of polish.
 
 ### Run, Edit and Debug:  the app, and the Program panel

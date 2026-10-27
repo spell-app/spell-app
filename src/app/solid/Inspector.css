@@ -4,7 +4,11 @@
  *   a 380px column, 16px in, 16px between panels, fields 4px under their labels, segmented tracks tinted to the panel.
  * - Its colours, fonts and radii are the Spell Brand theme's, re-declared on `.Inspector` (`InspectorColumn`):
  *   this sheet reads only tokens.
+ * - On a phone, its pane is a sheet over the page's lower part (below, "The phone's sheet").
  */
+
+/* Spell UI's breakpoints (`@custom-media`), inlined at build time */
+@import "spell-ui/styles/media.css";
 
 /* a card's inside, in the brand's theme:  filling its card */
 .Inspector {
@@ -258,15 +262,17 @@
     font-size: 13px;
     font-weight: var(--ui-font-weight-semibold, 600);
   }
+  /* a `<ui-textarea grow>`:  one line, growing with its code (Owen:  "textarea should be one line");  this look on its
+     native textarea, its `control` part */
   & > .InspectorCode {
-    box-sizing: border-box;
     width: 100%;
-    /* one line, growing with its code (Owen:  "textarea should be one line") */
-    min-height: calc(1lh + 14px);
-    max-height: 20lh;
+  }
+  & > .InspectorCode::part(control) {
+    box-sizing: border-box;
+    min-block-size: calc(1lh + 14px);
+    max-block-size: 20lh;
     padding: 6px 8px;
     resize: none;
-    field-sizing: content;
     /* an input's well, as the fields above it (the theme's), and their corners */
     border: 1px solid var(--ui-input-border-color, var(--ui-border-color));
     border-radius: 6px;
@@ -278,7 +284,7 @@
       monospace;
   }
   /* its hint as light as an input's, so it never reads as typed */
-  & > .InspectorCode::placeholder {
+  & > .InspectorCode::part(control)::placeholder {
     color: color-mix(in oklab, var(--ui-text-light) 55%, transparent);
   }
 }
@@ -416,5 +422,96 @@ ui-icon.InspectorPick.picking {
   & > .InspectorItemsLabel {
     font-size: 13px;
     font-weight: var(--ui-font-weight-semibold, 600);
+  }
+}
+
+/*******************************
+         The phone's sheet
+*******************************/
+
+/*
+ * On a phone, the Inspector's pane (`<InspectorPane>`) is a sheet over the page's lower part, up while something's
+ * just been picked (`.up`;  Owen's pick, epic `debut` P17, Q6)
+ * - the page's own ground behind its cards, as the column's seams show it, and the theme's room round them
+ *   (`--spell-gap`:  none in Merlot, whose sheet runs edge to edge under a hairline)
+ * - its top corners rounder than its cards' by that room
+ *   (Owen:  "rounding of outer rings needs to be greater than rounding of inner bits")
+ * - as tall as it was dragged (`--InspectorPane-sheet-height`, `<InspectorPane>`), else a bit over half the screen
+ * - it slides up as it comes, and down as it goes;  at once, for people who ask for less motion
+ * - its bar (`<InspectorSheetBar>`):  a handle to drag, and Close;  shown only here
+ * - the outlines over the app go under it:  the picked part, low on the screen, is outlined under the sheet, not on it
+ */
+.InspectorSheetBar {
+  display: none;
+}
+
+@media (--ui-mobile) {
+  .SplitPanel.InspectorPane {
+    --InspectorPane-room: var(--spell-gap, 14px);
+    --InspectorPane-corner: calc(var(--spell-pane-radius, 12px) + var(--InspectorPane-room));
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 900;
+    box-sizing: border-box;
+    height: var(--InspectorPane-sheet-height, 55dvh);
+    min-width: 0;
+    padding: 0 var(--InspectorPane-room) var(--InspectorPane-room);
+    background-color: var(--ui-background);
+    background-image: var(--ui-bar-wallpaper, none);
+    background-attachment: fixed;
+    border-start-start-radius: var(--InspectorPane-corner);
+    border-start-end-radius: var(--InspectorPane-corner);
+    box-shadow:
+      0 -1px 0 var(--ui-border-color),
+      0 -8px 28px color-mix(in oklab, var(--ui-text-color) 18%, transparent);
+    transition:
+      translate 0.25s ease-out,
+      display 0.25s allow-discrete;
+
+    @starting-style {
+      translate: 0 100%;
+    }
+    &:not(.up) {
+      display: none;
+      translate: 0 100%;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  /*
+   * the outlines under the sheet, over the rest:  the panel holding the sheet is a layer of its own
+   * (`SplitPanel.css`'s `z-index: 1`), which would keep the sheet under them, so it isn't one while the sheet's up
+   */
+  .InspectorBox {
+    z-index: 899;
+  }
+  .SplitPanel:has(> .SplitPanel.InspectorPane.up) {
+    z-index: auto;
+  }
+
+  /* its bar:  the handle in the middle, Close at the right;  the whole bar drags */
+  .InspectorSheetBar {
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    touch-action: none;
+    cursor: ns-resize;
+  }
+  .InspectorSheetHandle {
+    width: 36px;
+    height: 5px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--ui-text-muted) 45%, transparent);
+  }
+  .InspectorSheetBar > ui-icon.InspectorSheetClose {
+    position: absolute;
+    inset-inline-end: 4px;
+    font-size: 1em;
+    cursor: pointer;
   }
 }

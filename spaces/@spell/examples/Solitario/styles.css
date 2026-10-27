@@ -37,7 +37,7 @@
 
 /* A narrow window, a phone's:  the menu loses its title, so the score and buttons fit on one line */
 @media (width < 36rem) {
-  es-elemento[tipo="encabezado"] {
+  es-elemento[clase="encabezado"] {
     display: none;
   }
 }
@@ -97,9 +97,9 @@
   border-radius: 0.035em;
 }
 
-/* An empty pile's placeholder:  a light grey card */
+/* An empty pile's placeholder:  a faint card in the page's text colour, so it shows on a dark page too */
 [disposición]::part(marcador) {
-  color: #000;
+  color: var(--ui-text-color, #000);
   opacity: 0.15;
 }
 [disposición]::part(marcador):hover {

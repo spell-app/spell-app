@@ -106,7 +106,7 @@ ui-icon.IconAction {
   --ui-section-tip-color: white;
 }
 /* the palette's tip, a popup:  the same colours, and the same two seconds' wait (a popup's own is 800ms) */
-ui-item.ThemeMenu ui-docs-themes {
+ui-item.ThemeMenu ui-theme-menu {
   --ui-hover-delay: 2s;
   --ui-popup-inverted-background: var(--spell-tooltip-background);
   --ui-popup-inverted-color: white;
@@ -150,6 +150,12 @@ ui-item.ThemeMenu ui-docs-themes {
   border-radius: 999px;
 }
 
+/* Monaco's touch-keyboard button (`.iPadShowKeyboard`), on a phone:  it sat over the code, and a tap on the code
+   brings the keyboard up anyway */
+#app-root .monaco-editor .iPadShowKeyboard {
+  display: none;
+}
+
 /* `Actions.you`:  the person's avatar, a round button */
 .YouAvatar {
   display: inline-flex;
@@ -163,16 +169,16 @@ ui-item.ThemeMenu ui-docs-themes {
   background: none;
   cursor: pointer;
 
-  & > ui-avatar::part(avatar) {
-    display: block;
-    margin: 0;
-  }
-  & > ui-avatar::part(image) {
-    display: block;
+  /* the letter in a circle, in the theme's primary colours:  a picture of it kept Spell's violet in every theme */
+  & > .YouLetter {
+    display: grid;
+    place-items: center;
     width: 28px;
     height: 28px;
-    margin: 0;
     border-radius: 50%;
+    background: var(--ui-primary, #6d3fd9);
+    color: var(--ui-primary-on, #fff);
+    font: var(--ui-font-weight-bold, 700) 15px/1 var(--ui-font-family, sans-serif);
   }
   &:focus-visible {
     outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color);
@@ -243,6 +249,9 @@ ui-menu.AppMenu ui-item.ModeButtons::part(item) {
  * raised white pill
  */
 ui-menu.ModeTabs {
+  /* no border of its own (below), so none taken off its inside:  Spell UI's menu still took 1px,
+     and Merlot's chosen tab sat 5px in from its 8px track, not 6px (J117);  `0px`, as a bare 0 breaks its calc() */
+  --ui-border-width: 0px;
   --ui-menu-segmented-item-padding: 0.45em 1.1em;
   --ui-menu-segmented-border: 0 solid transparent;
   /* the track and its band let the bar's background show through (Owen:  "what if the background bled through") */
@@ -265,11 +274,11 @@ ui-menu.ModeTabs ui-item::part(item) {
 
 /* `<ThemeMenu>`:  the palette a bare icon, a little bigger (its spacing:  the bar's rule, above) */
 /* its glyph centred on the bar, as the other icons:  its inline controls left a line's descent under it, 1px high */
-ui-item.ThemeMenu ui-docs-themes {
+ui-item.ThemeMenu ui-theme-menu {
   display: flex;
   align-items: center;
 }
-ui-item.ThemeMenu ui-docs-themes::part(palette) {
+ui-item.ThemeMenu ui-theme-menu::part(palette) {
   width: auto;
   min-width: 0;
   height: auto;
@@ -281,7 +290,7 @@ ui-item.ThemeMenu ui-docs-themes::part(palette) {
   /* the bar's icon colour, as Home's (above) */
   color: var(--spell-bar-icon-color);
 }
-ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
+ui-item.ThemeMenu ui-theme-menu::part(palette):hover {
   background: transparent;
   color: var(--spell-bar-icon-color);
 }
@@ -316,6 +325,22 @@ ui-item.ThemeMenu ui-docs-themes::part(palette):hover {
   font-weight: 500;
   min-width: max-content;
   justify-content: center;
+}
+/*
+ * the Program panel's tabs scroll (`<ui-toolbar>`):  the track is the toolbar's own box, not its menu's,
+ * so its rounded ends stay put while the tabs scroll under them, the fade and the `‹` / `›` inside them
+ * - on the menu, the fade took the track's end with it, cut square under the `›`
+ */
+ui-toolbar.RunnerPaneToolbar {
+  --ui-menu-segmented-background: transparent;
+}
+ui-toolbar.RunnerPaneToolbar::part(toolbar) {
+  border-radius: 9999px;
+  background: var(--spell-tabs-track);
+}
+/* ... as tall as its tabs:  a menu keeps room above and below it for the text round it, and here there's none */
+ui-toolbar.RunnerPaneToolbar::part(menu) {
+  margin-block: 0;
 }
 
 /*

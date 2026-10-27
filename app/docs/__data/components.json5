@@ -2412,7 +2412,7 @@
         {
           "name": "tools",
           "type": "JSX.Element",
-          "description": "Plain `<ui-icon link>`s at the toolbar's right, whatever tab shows, e.g. Restart."
+          "description": "Plain `<ui-icon link>`s at the header's right, beside the toolbar, whatever tab shows, e.g. Restart."
         },
         {
           "name": "class",
@@ -3074,6 +3074,10 @@
           "file": "src/app/solid/Inspector.tsx"
         },
         {
+          "name": "InspectorPane",
+          "file": "src/app/solid/Inspector.tsx"
+        },
+        {
           "name": "SpellEditor",
           "file": "src/app/pages/SpellEditor.tsx"
         }
@@ -3224,7 +3228,7 @@
         {
           "name": "mark",
           "type": "boolean",
-          "description": "Spell's hat first (`<AppMark>`), in one of the editor's looks:  an app bar's left section. - Inside the section, so it counts in that third, and the centre one stays on the bar's middle."
+          "description": "Spell's hat first (`<AppMark>`):  an app bar's left section. - Inside the section, so it counts in that third, and the centre one stays on the bar's middle."
         }
       ],
       "usedIn": [
@@ -6444,182 +6448,6 @@
           "type": "length"
         }
       ]
-    }
-  ],
-  "themes": [
-    {
-      "name": "amazon",
-      "title": "Amazon",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "basic",
-      "title": "Basic",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "bookish",
-      "title": "Bookish",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "bootstrap3",
-      "title": "Bootstrap 3",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "chubby",
-      "title": "Chubby",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "classic",
-      "title": "Classic",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "colored",
-      "title": "Colored",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "dark",
-      "title": "Dark",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "duo",
-      "title": "Duo",
-      "families": [],
-      "global": false
-    },
-    {
-      "name": "fixed-width",
-      "title": "Fixed-width",
-      "families": [],
-      "global": false
-    },
-    {
-      "name": "flat",
-      "title": "Flat",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "fomantic-classic",
-      "title": "Fomantic-classic",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "fruity",
-      "title": "Fruity",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "github",
-      "title": "GitHub",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "gmail",
-      "title": "Gmail",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "instagram",
-      "title": "Instagram",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "material",
-      "title": "Material",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "pulsar",
-      "title": "Pulsar",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "raised",
-      "title": "Raised",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "resetcss",
-      "title": "Resetcss",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "round",
-      "title": "Round",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "rtl",
-      "title": "Rtl",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "spell",
-      "title": "Spell",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "spell-brand",
-      "title": "Spell Brand",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "striped",
-      "title": "Striped",
-      "families": [],
-      "global": false
-    },
-    {
-      "name": "studio",
-      "title": "Studio",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "systemfont",
-      "title": "Systemfont",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "timeline",
-      "title": "Timeline",
-      "families": [],
-      "global": true
-    },
-    {
-      "name": "twitter",
-      "title": "Twitter",
-      "families": [],
-      "global": true
     }
   ],
   "nav": {

@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, test } from "vite-plus/test"
+import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "spell/test-helpers/ElementFixture"
-import { Inspector, InspectorColumn, isThing, itemsOf, uiReady } from "spell-app/app/solid"
+import { Viewport } from "spell/test-helpers/Viewport"
+import { Inspector, InspectorColumn, InspectorPane, isThing, itemsOf, uiReady } from "spell-app/app/solid"
 
 /**
  * The Inspector (`Inspector.tsx`):  what a part of the app is, picking it, and the column that shows it.
@@ -145,6 +146,34 @@ describe("the parts tree and events", () => {
     flush()
     expect(Inspector.eventsOf(button)).toEqual(["click", "mousedown"])
   })
+
+  // epic `ui-gaps` P14:  its own growing box (`fitHeight()`) became `<ui-textarea grow>`
+  test("an event's code box:  a <ui-textarea grow>, one line in the Output tab's type, taller as code is typed", async () => {
+    const area = await inArea(`<ui-button>Go</ui-button>`)
+    cleanups.push(Inspector.watch(area))
+    const host = await mount(() => <InspectorColumn />)
+    Inspector.toggle()
+    const button = area.querySelector("ui-button")!
+    Inspector.pick(button)
+    Inspector.addEvent(button, "click")
+    flush()
+    await ElementFixture.settle(host)
+    const box = host.querySelector<HTMLElement & { value: string }>(".InspectorEvent .InspectorCode")!
+    const code = box.shadowRoot!.querySelector("textarea")!
+    const style = getComputedStyle(code)
+    expect([box.localName, box.hasAttribute("grow"), style.fontFamily, style.fontSize]).toEqual([
+      "ui-textarea",
+      true,
+      "monaco, monospace",
+      "13px"
+    ])
+    const one = code.getBoundingClientRect().height
+    expect(Math.round(one)).toBe(Math.round(parseFloat(style.lineHeight) + 14))
+    code.value = "go()\nstop()\nagain()"
+    code.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }))
+    await ElementFixture.settle(host)
+    expect(Math.round(code.getBoundingClientRect().height - one)).toBe(Math.round(2 * parseFloat(style.lineHeight)))
+  })
 })
 
 describe("the cards", () => {
@@ -168,6 +197,66 @@ describe("the cards", () => {
     Inspector.setShown("events", true)
     Inspector.toggleFolded("views")
     flush()
+  })
+})
+
+describe("the phone's sheet", () => {
+  test("at phone width, a pick puts the Inspector up as a sheet;  Close puts it away, the part still picked", async () => {
+    const area = await inArea(`<ui-button>Go</ui-button>`)
+    cleanups.push(Inspector.watch(area))
+    const host = await mount(() => <InspectorPane />)
+    await Viewport.resize(390, 844)
+    const sheet = host.querySelector<HTMLElement>(".InspectorPane")!
+    // the crosshairs:  open, picking, the sheet still down so the whole app can be picked from
+    Inspector.toggle()
+    flush()
+    expect(getComputedStyle(sheet).display).toBe("none")
+
+    area.querySelector("ui-button")!.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }))
+    flush()
+    await ElementFixture.settle(host)
+    expect(Inspector.isSheetUp).toBe(true)
+    const style = getComputedStyle(sheet)
+    expect({
+      display: style.display,
+      position: style.position,
+      bottom: style.bottom,
+      width: sheet.offsetWidth
+    }).toEqual({ display: "flex", position: "fixed", bottom: "0px", width: 390 })
+    expect(host.querySelector(".InspectorCard h2")!.textContent!.trim()).toBe('<ui-button "Go" />')
+
+    host.querySelector<HTMLElement>(".InspectorSheetClose")!.click()
+    flush()
+    expect(Inspector.isSheetUp).toBe(false)
+    await vi.waitFor(() => expect(getComputedStyle(sheet).display).toBe("none"))
+    expect(Inspector.picked?.label).toBe('<ui-button "Go" />')
+    expect(document.querySelector<HTMLElement>("body > .InspectorPicked")!.hidden).toBe(false)
+  })
+
+  test("Esc puts the sheet away;  picking again puts it down until the next pick", async () => {
+    const area = await inArea(`<ui-button>Go</ui-button>`)
+    cleanups.push(Inspector.watch(area))
+    await mount(() => <InspectorPane />)
+    await Viewport.resize(390, 844)
+    const pickButton = () => {
+      area.querySelector("ui-button")!.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }))
+      flush()
+    }
+    Inspector.toggle()
+    pickButton()
+    expect(Inspector.isSheetUp).toBe(true)
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+    flush()
+    expect(Inspector.isSheetUp).toBe(false)
+
+    pickButton() // not picking:  the app has its clicks
+    expect(Inspector.isSheetUp).toBe(false)
+    Inspector.startPicking()
+    pickButton()
+    expect(Inspector.isSheetUp).toBe(true)
+    Inspector.startPicking()
+    flush()
+    expect(Inspector.isSheetUp).toBe(false)
   })
 })
 

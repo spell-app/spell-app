@@ -1,7 +1,7 @@
 import { Show, omit } from "solid-js"
 
 import type { UIDropdownJSXAttributes, UIItemJSXAttributes, UIMenuJSXAttributes } from "spell-ui/jsx"
-import { AppMark, EditorTheme, on } from "spell-app/app/solid"
+import { AppMark, on } from "spell-app/app/solid"
 
 import "./chrome.css"
 
@@ -16,15 +16,14 @@ import "./chrome.css"
 /****************
  * ### `<AppMenu>`
  * Top-level app menu, attached to the top of the page.
- * - In one of the editor's looks (`EditorTheme.look`):  a plain menu, which the look shapes (`EditorTheme.css`),
- *   its left section starting with Spell's hat (`<Submenu left mark>`).  Else the violet bar it always was.
+ * - A plain menu, which the editor's theme shapes (`EditorTheme.css`),
+ *   its left section starting with Spell's hat (`<Submenu left mark>`).
+ *   - The violet bar it was under any other theme went in epic `debut` P17:  every theme of the set dresses it.
  * - SEE:  its App UI components page, `app/docs/chrome.html` (`/components/app/chrome.html`).
  ****************/
 export function AppMenu(props: MenuProps) {
   return (
     <ui-menu
-      inverted={EditorTheme.look ? undefined : ""}
-      color={EditorTheme.look ? undefined : "violet"}
       attach="both"
       {...omit(props, "class", "children")}
       class={["AppMenu", "medium-short", "tight", props.class]}
@@ -37,17 +36,11 @@ export function AppMenu(props: MenuProps) {
 /****************
  * ### `<PanelMenu>`
  * Menu attached to the top of a panel, e.g. a viewer's toolbar.
- * - In one of the editor's looks (`EditorTheme.look`):  a plain menu, the panel's header.  Else purple.
+ * - A plain menu, the panel's header, which the editor's theme shapes (`EditorTheme.css`).
  ****************/
 export function PanelMenu(props: MenuProps) {
   return (
-    <ui-menu
-      inverted={EditorTheme.look ? undefined : ""}
-      color={EditorTheme.look ? undefined : "purple"}
-      attach="top"
-      {...omit(props, "class", "children")}
-      class={["PanelMenu", "short", "tight", props.class]}
-    >
+    <ui-menu attach="top" {...omit(props, "class", "children")} class={["PanelMenu", "short", "tight", props.class]}>
       {props.children}
     </ui-menu>
   )
@@ -74,7 +67,7 @@ export function Submenu(props: SubmenuProps) {
       <Show when={props.spring && (props.center || props.right)}>
         <Spring />
       </Show>
-      <Show when={props.mark && EditorTheme.look}>
+      <Show when={props.mark}>
         <AppMark />
       </Show>
       {props.children}
@@ -96,7 +89,7 @@ export type SubmenuProps = UIMenuJSXAttributes & {
   /** Add a `<Spring>` between this section and its neighbor(s). */
   spring?: boolean
   /**
-   * Spell's hat first (`<AppMark>`), in one of the editor's looks:  an app bar's left section.
+   * Spell's hat first (`<AppMark>`):  an app bar's left section.
    * - Inside the section, so it counts in that third, and the centre one stays on the bar's middle.
    */
   mark?: boolean

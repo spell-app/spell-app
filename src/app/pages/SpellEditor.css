@@ -84,7 +84,9 @@
 /*
  * Phones (Owen:  "Fix it now"):  the code above the app, each the page's full width, instead of side by side
  * - no bars to drag (they'd drag sideways):  the room between the panes stays
- * - no Inspector:  a phone has no room for a third column, so neither its pane nor the buttons that open it
+ * - no third column for the Inspector:  its pane is a sheet over the page instead (`Inspector.css`), up as the
+ *   crosshairs pick something (Owen's pick, epic `debut` P17, Q6);  so the crosshairs show, the Inspector's
+ *   button and its menu of cards don't
  */
 @media (--ui-mobile) {
   #SpellEditor > .SplitPanel.horizontal {
@@ -93,9 +95,8 @@
   #SpellEditor > .SplitPanel.horizontal > .SplitPanelSizer {
     pointer-events: none;
   }
-  #SpellEditor > .SplitPanel.horizontal > .InspectorPane,
   #SpellEditor > .SplitPanel.horizontal > .SplitPanelSizer:has(+ .InspectorPane),
-  .AppPaneHeader > :is(.InspectorPick, .InspectorToggle) {
+  .AppPaneHeader > .InspectorToggle {
     display: none;
   }
 }

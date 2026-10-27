@@ -130,6 +130,8 @@ const APP_TEXTS_ES: AppTextPack = {
   inspectorExpandAll: "Desplegar todo",
   inspectorCollapseAll: "Plegar todo",
   inspectorPanels: "Mostrar u ocultar paneles",
+  inspectorSheetHandle: "Arrastra para hacerlo más alto o más bajo;  hacia abajo, para guardarlo",
+  inspectorSheetClose: "Guardar el inspector",
   inspectorAddEvent: "Añadir evento",
   inspectorParts: "Vistas",
   inspectorNoParts: "Ejecuta la app para ver sus partes.",

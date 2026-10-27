@@ -1,4 +1,4 @@
-import { For, Show, createMemo, createSignal, onCleanup } from "solid-js"
+import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "spell/element"
@@ -31,7 +31,10 @@ import "./Inspector.css"
  *     (`ClassSchemas`)
  *   - a Spell UI element (`<ui-input>`):  the element, with its tag's attributes (its vocabulary)
  * - Edits change the running app at once (J62):  writing them back into the code is later (T18).
- * - The column is `<InspectorColumn>`;  the app's area it watches is handed over by `<AppPane>` (`watch()`).
+ * - The column is `<InspectorColumn>`, in its pane (`<InspectorPane>`);
+ *   the app's area it watches is handed over by `<AppPane>` (`watch()`).
+ * - On a phone, the pane is a SHEET over the page's lower part, up while something's just been picked
+ *   (`isSheetUp`;  Owen's pick, epic `debut` P17, Q6).
  ****************/
 export class Inspector {
   /** Is the column showing (reactive)? */
@@ -47,6 +50,32 @@ export class Inspector {
   /** The part picked, if any (reactive). */
   static get picked(): Picked | undefined {
     return picked()
+  }
+
+  /**
+   * On a phone, is the Inspector up, a sheet over the page's lower part (reactive)?
+   * - A pick in the app puts it up;  its close, Esc, dragging it down, or picking again puts it away.
+   * - Put away, what's picked stays picked, and outlined.
+   * - Read only by a phone's layout (`Inspector.css`):  wider, the Inspector is a column, whatever this says.
+   */
+  static get isSheetUp(): boolean {
+    return isSheetUp()
+  }
+
+  /** Put the phone's sheet away:  what's picked stays picked. */
+  static putSheetAway(): void {
+    setSheetUp(false)
+  }
+
+  /** The phone's sheet's height, px, as last dragged (reactive);  `undefined`:  its usual share of the screen. */
+  static get sheetHeight(): number | undefined {
+    return sheetHeight()
+  }
+
+  /** Make the phone's sheet `height` px tall, and remember it. */
+  static setSheetHeight(height: number): void {
+    setSheetHeight(height)
+    editorPrefs.set(SHEET_HEIGHT_PREF, height)
   }
 
   /**
@@ -105,14 +134,19 @@ export class Inspector {
   /** Close the column:  no picking, nothing picked. */
   static close(): void {
     setOpen(false)
+    setSheetUp(false)
     editorPrefs.set(OPEN_PREF, false)
     Inspector.stopPicking()
     Inspector.pick(undefined)
   }
 
-  /** Start picking:  outline what's pointed at in the app, pick what's clicked. */
+  /**
+   * Start picking:  outline what's pointed at in the app, pick what's clicked.
+   * - On a phone the sheet goes down meanwhile, so the whole app can be picked from.
+   */
   static startPicking(): void {
     setPicking(true)
+    setSheetUp(false)
     const area = appArea
     if (area) Picker.listen(area)
   }
@@ -498,6 +532,8 @@ const INSPECTOR_ICON = "sliders horizontal"
 const PICKED_PREF = "inspector:picked"
 /** The start of the pref remembering the events added, a project's each (`Inspector.eventsPref`). */
 const EVENTS_PREF = "inspector:events"
+/** The pref remembering the phone's sheet's height, as dragged (`Inspector.sheetHeight`). */
+const SHEET_HEIGHT_PREF = "inspector:sheetHeight"
 /** Spell UI's tags start so. */
 const UI_PREFIX = "ui-"
 /** Spell UI's controls:  what a plain click picks, beside a drawn thing (Alt-click:  any Spell UI element). */
@@ -545,6 +581,10 @@ function setPanels(panels: readonly InspectorPanel[]): void {
 }
 const [isPicking, setPicking] = createSignal(false)
 const [picked, setPicked] = createSignal<Picked | undefined>(undefined)
+/** On a phone, is the sheet up (`Inspector.isSheetUp`)?  Down as the page opens:  the app its full size until a pick. */
+const [isSheetUp, setSheetUp] = createSignal(false)
+/** The phone's sheet's height as dragged, px (remembered:  `SHEET_HEIGHT_PREF`). */
+const [sheetHeight, setSheetHeight] = createSignal(editorPrefs.get(SHEET_HEIGHT_PREF) as number | undefined)
 /** The trail from what's picked (`Inspector.inspected`):  property names and list items (`#3`). */
 const [trail, setTrail] = createSignal<readonly string[]>([])
 
@@ -664,6 +704,8 @@ class Picker {
         Picker.hover(undefined)
         Inspector.pick(part)
         Inspector.stopPicking()
+        // on a phone, the sheet comes up with what's picked
+        setSheetUp(true)
       },
       options
     )
@@ -789,15 +831,30 @@ const FLUID_CONTROLS = "ui-property > :is(ui-input, ui-select, ui-dropdown, ui-t
  *   wears:  that theme's tokens, re-declared on `.Inspector` (`UI.themes.scopedTokens()`, J63);
  *   their headers are the App pane's, in the editor's theme.
  * - The app's parts are walked here (`appParts()`), so what was picked comes back whichever cards show.
+ * - On a phone, its pane is a sheet (`<InspectorPane>`):  a bar to drag or close it heads the cards
+ *   (`<InspectorSheetBar>`), and Esc puts it away.
  ****************/
 export function InspectorColumn(): JSX.Element {
   void loadBrandTokens()
   const rows = appParts()
   const layout = createMemo(() => cardsLayout(INSPECTOR_PANELS.filter((panel) => Inspector.isShown(panel))))
+  // on a phone, Esc puts the sheet away while it's up
+  createEffect(
+    () => Inspector.isSheetUp,
+    (isUp) => {
+      if (!isUp) return
+      const putAway = (event: KeyboardEvent) => {
+        if (event.key === "Escape") Inspector.putSheetAway()
+      }
+      window.addEventListener("keydown", putAway)
+      return () => window.removeEventListener("keydown", putAway)
+    }
+  )
   return (
     <Show when={Inspector.isOpen}>
       <aside class="InspectorColumn" aria-label={appTexts.text("inspector")}>
         <style>{brandTokens()}</style>
+        <InspectorSheetBar />
         <SplitPanel
           id={layout().id}
           rows={layout().rows}
@@ -819,6 +876,93 @@ export function InspectorColumn(): JSX.Element {
     </Show>
   )
 }
+
+/****************
+ * ### `<InspectorPane>`
+ * The Inspector's pane in the editor's page:  `<InspectorColumn>`, at the page's far right.
+ * - On a phone, a SHEET over the page's lower part instead (`Inspector.css`;  Owen's pick, epic `debut` P17, Q6):
+ *   - up while something's just been picked (`Inspector.isSheetUp`), the app its full size till then
+ *   - as tall as it was last dragged (`Inspector.sheetHeight`), else its usual share of the screen
+ * - The caller shows it while the Inspector's open (`Inspector.isOpen`).
+ ****************/
+export function InspectorPane(): JSX.Element {
+  const height = () => (Inspector.sheetHeight ? `${Inspector.sheetHeight}px` : undefined)
+  return (
+    <SplitPanel
+      rows
+      rounded
+      class={["InspectorPane", { up: Inspector.isSheetUp }]}
+      style={{ "--InspectorPane-sheet-height": height() }}
+    >
+      <InspectorColumn />
+    </SplitPanel>
+  )
+}
+
+/****************
+ * ### `<InspectorSheetBar>`
+ * The top of the phone's sheet:  a handle, and Close at the right (`Inspector.putSheetAway()`).
+ * - Drag it to make the sheet taller or shorter;  dragged under `SMALLEST_SHEET` px, the sheet goes away,
+ *   keeping the height it had.
+ * - Shown only on a phone (`Inspector.css`).
+ ****************/
+function InspectorSheetBar(): JSX.Element {
+  /** While dragging:  the pointer's distance from the sheet's top, and the height the sheet had. */
+  let drag: { grab: number; height: number } | undefined
+  return (
+    <div
+      class="InspectorSheetBar"
+      onPointerDown={startDrag}
+      onPointerMove={dragTo}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+    >
+      <span class="InspectorSheetHandle" title={appTexts.text("inspectorSheetHandle")} />
+      <ui-icon
+        name="close"
+        link=""
+        class="IconAction InspectorSheetClose"
+        label={appTexts.text("inspectorSheetClose")}
+        data-tooltip={appTexts.text("inspectorSheetClose")}
+        data-position="top right"
+        data-inverted=""
+        onClick={() => Inspector.putSheetAway()}
+      />
+    </div>
+  )
+
+  /** Start dragging the sheet by its bar (not by Close). */
+  function startDrag(event: PointerEvent) {
+    const bar = event.currentTarget as HTMLElement
+    const sheet = bar.closest(".InspectorPane")
+    if (!sheet || (event.target as Element).closest(".InspectorSheetClose")) return
+    const box = sheet.getBoundingClientRect()
+    drag = { grab: event.clientY - box.top, height: box.height }
+    bar.setPointerCapture(event.pointerId)
+  }
+
+  /** The sheet's top follows the pointer, no taller than `TALLEST_SHEET` of the screen. */
+  function dragTo(event: PointerEvent) {
+    if (!drag) return
+    setSheetHeight(Math.min(innerHeight * TALLEST_SHEET, innerHeight - (event.clientY - drag.grab)))
+  }
+
+  /** Remember the height dragged to;  too short, and the sheet goes away at the height it had. */
+  function endDrag() {
+    if (!drag) return
+    const height = sheetHeight() ?? drag.height
+    if (height < SMALLEST_SHEET) {
+      Inspector.setSheetHeight(drag.height)
+      Inspector.putSheetAway()
+    } else Inspector.setSheetHeight(Math.round(height))
+    drag = undefined
+  }
+}
+
+/** The phone's sheet, dragged shorter than this (px), goes away. */
+const SMALLEST_SHEET = 160
+/** The most of the screen's height the phone's sheet takes. */
+const TALLEST_SHEET = 0.9
 
 /**
  * The column's sizes for the cards `shown`:  a folded card its header's height, Events as tall as its events,
@@ -1188,11 +1332,11 @@ async function loadBrandTokens(): Promise<void> {
     await UI.load()
     setBrandTokens(await UI.themes.scopedTokens(BRAND_THEME, ".Inspector"))
   } catch (error) {
-    console.error("InspectorColumn:  couldn't load the Spell Brand theme's tokens", error)
+    console.error("InspectorColumn:  couldn't load the Spell theme's tokens", error)
   }
 }
 
 /** The theme the Inspector wears (Owen:  "in the brand's theme"). */
-const BRAND_THEME = "spell-brand"
+const BRAND_THEME = "spell"
 /** A load of the brand's tokens has started. */
 let loadingBrandTokens = false
