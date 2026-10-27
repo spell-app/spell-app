@@ -4,6 +4,14 @@
 		<header>An avatar is a small picture of a person, beside a comment, an item or a card.</header>
 	</header>
 	<avatar-tab-bar showing="examples"/>
+	<section>
+		<html>
+			<ui-menu class="ui-docs-section-tabs" appearance="segmented" aria-label="Sections">
+				<ui-item link="#owners">Owners</ui-item>
+				<ui-item link="#content">Content</ui-item>
+			</ui-menu>
+		</html>
+	</section>
 
 	<section label="Owners">
 		<section label="Comment" sticky collapsible dividing>

@@ -2,6 +2,7 @@ import { For, Show, createSignal, getOwner, onCleanup, onSettled, runWithOwner }
 import { render, type JSX } from "@solidjs/web"
 
 import { setDebugGlobal } from "spell/util"
+import { after } from "spell/element"
 import { UI } from "spell-ui/core"
 import { SP } from "spell-parser/spell"
 // Import directly:  the barrel brings the site header and the section editor too
@@ -13,8 +14,9 @@ import { NotebookDocs } from "./NotebookDocs"
 import { showNotebook } from "./NotebookHeader"
 import { SpellExample } from "./SpellExample"
 
-// the section titles' look, as a component page draws them
+// the docs site's look:  the section titles', the subtitle's and the tabs panel's, as a component page draws them
 import "spell-ui/docs-components/docs-sections.css"
+import "spell-ui/docs-components/docs-page.css"
 import "./NotebookPage.css"
 
 /****************
@@ -141,9 +143,11 @@ export function NotebookPage(props: {
     }
   })
 
-  // a link to another of the project's notebooks (the tab bar's):  through the router, never a reload
+  // a link to another of the project's notebooks (the tab bar's):  through the router, never a reload;
+  // a link to a section of the page (the section tabs'):  scrolled to within the page
   const followNotebookLinks = (event: MouseEvent) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
+    if (scrollTo(event)) return
     const link = event.composedPath().find((node): node is HTMLAnchorElement => node instanceof HTMLAnchorElement)
     const notebook = link && notebookAt(link, controller)
     if (!notebook) return
@@ -179,21 +183,20 @@ export function NotebookPage(props: {
               )}
             </For>
           </main>
-          <Show when={isColumnShown()}>
-            <aside class="NotebookAside">
-              <Contents ids={ids} title={pageTitle()}>
-                <ui-icon
-                  slot="tools"
-                  name="eye slash outline"
-                  link=""
-                  class="IconAction NotebookTocHide"
-                  label={appTexts.text("notebookPageHideContents")}
-                  title={appTexts.text("notebookPageHideContents")}
-                  onClick={() => controller.toggleContents()}
-                />
-              </Contents>
-            </aside>
-          </Show>
+          {/* drawn while hidden too:  it follows the scroll for the section tabs (`selectSectionTab()`) */}
+          <aside class={["NotebookAside", { hidden: !isColumnShown() }]}>
+            <Contents ids={ids} title={pageTitle()} onScrolledTo={(id) => selectSectionTab(page, id)}>
+              <ui-icon
+                slot="tools"
+                name="eye slash outline"
+                link=""
+                class="IconAction NotebookTocHide"
+                label={appTexts.text("notebookPageHideContents")}
+                title={appTexts.text("notebookPageHideContents")}
+                onClick={() => controller.toggleContents()}
+              />
+            </Contents>
+          </aside>
         </div>
       </div>
       {/* where the column doesn't show:  the same contents, under the title row's icon */}
@@ -235,6 +238,8 @@ function Contents(props: {
   ids: { scroller: string; main: string }
   title?: string
   onPick?: () => void
+  /** hears the entry in view change:  its target's id */
+  onScrolledTo?: (id: string) => void
   children?: JSX.Element
 }) {
   return (
@@ -247,6 +252,11 @@ function Contents(props: {
       onClick={(event: MouseEvent) => {
         if (scrollTo(event)) props.onPick?.()
       }}
+      ref={(toc: HTMLElement) =>
+        toc.addEventListener("ui-scrolled-to", (event) =>
+          props.onScrolledTo?.((event as CustomEvent<{ value: string }>).detail.value)
+        )
+      }
     >
       {props.children}
     </ui-docs-toc>
@@ -349,6 +359,36 @@ function scrollTo(event: MouseEvent): boolean {
   return true
 }
 
+/**
+ * Select the section tab (`<ui-menu class="ui-docs-section-tabs">`, under the page's tabs) of the top-level section
+ * holding `id`, the entry in view, as the docs site's section toolbar follows the scroll.
+ * - SIDE EFFECT:  sets `selected` on the notebook's own drawn items;  drawn again, they're set again on the next scroll
+ */
+function selectSectionTab(page: HTMLElement, id: string, tries = SECTION_TAB_TRIES) {
+  const tabs = page.querySelector(SECTION_TABS)
+  // the first entry in view is known before the notebook's drawings are in:  look again shortly
+  if (!tabs) {
+    if (tries > 0) after(0.1, () => selectSectionTab(page, id, tries - 1)).catch(() => undefined)
+    return
+  }
+  let section = page.querySelector(`[id="${CSS.escape(id)}"]`)?.closest("ui-section")
+  for (
+    let outer = section?.parentElement?.closest("ui-section");
+    outer;
+    outer = outer.parentElement?.closest("ui-section")
+  )
+    section = outer
+  if (!section?.id) return
+  for (const item of tabs.querySelectorAll("ui-item[link]"))
+    item.toggleAttribute("selected", item.getAttribute("link") === `#${section.id}`)
+}
+
+/** How many times, 0.1s apart, `selectSectionTab()` looks for the section tabs while they aren't drawn yet. */
+const SECTION_TAB_TRIES = 30
+
+/** The section tabs a notebook draws under its tabs (`docs-page.css`). */
+const SECTION_TABS = "ui-menu.ui-docs-section-tabs"
+
 /** The project's notebook `link` points at (`/edit/...`, `/run/...`), if it's one of `controller`'s project's. */
 function notebookAt(link: HTMLAnchorElement, controller: NotebookController): SP.SpellFile | undefined {
   const url = new URL(link.href, location.href)
@@ -373,7 +413,11 @@ declare module "@solidjs/web/types/jsx.js" {
   namespace JSX {
     interface IntrinsicElements {
       // Spell UI's docs-only "On this page":  not in its generated types, which name the component tags only
-      "ui-docs-toc": JSX.HTMLAttributes<HTMLElement> & { for?: string; scroller?: string; header?: string }
+      "ui-docs-toc": JSX.HTMLAttributes<HTMLElement> & {
+        for?: string
+        scroller?: string
+        header?: string
+      }
     }
   }
 }

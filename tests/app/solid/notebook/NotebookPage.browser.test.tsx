@@ -87,7 +87,7 @@ describe("<NotebookPage>", () => {
 
   test("\"On this page\":  the docs site's contents in a column, hidden by its Hide;  else a flyout under the title row's icon", async () => {
     const { host, controller } = await mount({ width: 1000 })
-    const column = () => host.querySelector<HTMLElement>(".NotebookAside")
+    const column = () => host.querySelector<HTMLElement>(".NotebookAside:not(.hidden)")
     const button = () => host.querySelector<HTMLElement>(".NotebookMasthead .NotebookTocButton")
     const flyout = () => host.querySelector<HTMLElement>(".NotebookTocFlyout")
     const sectionLinks = (toc: Element | null | undefined) =>

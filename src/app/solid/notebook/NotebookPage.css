@@ -9,6 +9,9 @@
 
 .NotebookPage {
   --notebook-gutter: 24px;
+  /* the docs site's text size, the theme's (the editor's own is a little smaller) */
+  font-size: var(--ui-font-size);
+  line-height: var(--ui-line-height);
   /*
    * a section title's bar reaches out past the column, as a component page's does (`docs-sections.css`):
    * its edge 8px out from the text, half the gutter:  the pane's edge keeps its own room
@@ -70,6 +73,14 @@
   overscroll-behavior: contain;
   padding-inline-start: 16px;
   border-inline-start: 1px solid var(--ui-border-color, rgb(34 36 38 / 0.15));
+}
+
+/* hidden by its Hide, or no room for it:  still drawn, following the scroll for the section tabs */
+.NotebookAside.hidden {
+  display: none;
+}
+.NotebookColumns:has(> .NotebookAside.hidden) {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* on a narrow pane, no room for "On this page":  the title row's icon opens it as a flyout instead (below) */
@@ -157,16 +168,22 @@
 
 /* the page's title and the line under it, as a component page's masthead (`<ui-header level="1">` and its sub header) */
 .NotebookMasthead {
-  padding-block: 0 8px;
+  /* the site's room under the subtitle:  its `padding-block-end`, a quarter of the subtitle's size and 8px */
+  /* ... and the site's body's top padding, above its tabs (`.site-body`, 0.5em) */
+  padding-block: 0 calc(var(--ui-font-size) * var(--ui-docs-subtitle-scale, 1.34) * 0.25 + 8px + 0.5em);
 }
 
-.NotebookLead {
-  margin-top: 0.4em;
+/* the section tabs under the page's tabs:  no cell spacing between the two, so their panel is one (`docs-page.css`) */
+.NotebookCell:has(+ .NotebookCell ui-menu.ui-docs-section-tabs),
+.NotebookCell:has(ui-menu.ui-docs-section-tabs) {
+  margin-block: 0;
 }
 
 .NotebookTitle {
   --ui-header-margin-top: 0;
   --ui-header-margin-bottom: 0;
+  /* the site's room between the title and the subtitle:  its masthead's bottom padding (`site.css`) */
+  --ui-header-sub-margin: calc(var(--ui-font-size) * 0.25 + 8px) 0 0;
 }
 
 /*
@@ -179,6 +196,17 @@
 }
 .NotebookResult ui-section:not([label])::part(title) {
   border-bottom: none;
+}
+/*
+ * a page section whose first drawing opens with a nested section:  that title right under its own, as the site's
+ * (`docs-sections.css` does it for a section that's its parent's first child;  here a cell stands between them)
+ */
+.NotebookSection:has(> .NotebookCell .NotebookResult > ui-section[sticky]:first-child)::part(content) {
+  padding-block-start: 0;
+}
+/* ... nor a title's room:  it has none to show (its padding stood 7.5px over the section tabs) */
+.NotebookResult ui-section:not([label], :has(> [slot="label"]))::part(title) {
+  display: none;
 }
 /* ... nor space of its own round what it holds:  its example sits under the page's section title, as the first */
 .NotebookResult ui-section:not([label])::part(section) {

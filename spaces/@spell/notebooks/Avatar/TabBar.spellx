@@ -2,13 +2,14 @@
 The Avatar page's tab bar:  Examples, Usage and API, each a notebook of this project.
 Each notebook draws it under its title, `<avatar-tab-bar showing="usage"/>`, its own tab selected;  a click opens
 another.  A view of several words is drawn by its element's name.
+Under it, each notebook draws its own sections' tabs, the docs site's second row:  `<ui-menu class="ui-docs-section-tabs">`.
 
 <spell-view "tab bar">
 	<property "showing" one-of="examples, usage or api" description="Which notebook it's drawn in:  its tab is selected"/>
 
-	<draw description="The tab strip a component page's tabs draw:  a segmented bar the width of the page, its tabs one size">
+	<draw description="The tab strip a component page's tabs draw:  a segmented bar the width of the page, its tabs one size, on the docs site's panel (its box exported as docs-tabs)">
 		<html>
-			<ui-menu class="AvatarTabs" appearance="segmented" align="fluid" equal aria-label="Avatar">
+			<ui-menu class="AvatarTabs" appearance="segmented" align="fluid" equal aria-label="Avatar" exportparts="menu: docs-tabs">
 				<ui-item link="/edit/@spell/notebooks/Avatar/Examples.spellx" selected={its showing is examples}>Examples</ui-item>
 				<ui-item link="/edit/@spell/notebooks/Avatar/Usage.spellx" selected={its showing is usage}>Usage</ui-item>
 				<ui-item link="/edit/@spell/notebooks/Avatar/API.spellx" selected={its showing is api}>API</ui-item>
