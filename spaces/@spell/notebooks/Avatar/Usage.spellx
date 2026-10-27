@@ -1,4 +1,4 @@
-<spell-notebook "avatar usage">
+<spell-notebook "avatar usage" original="/components/ui/ui-avatar.html">
 	<header level="1">
 		Avatar
 		<header>An avatar is a small picture of a person, beside a comment, an item or a card.</header>
