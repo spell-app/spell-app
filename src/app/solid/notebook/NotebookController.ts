@@ -258,7 +258,9 @@ export class NotebookController {
   editExample(key: string, index: number, code: string) {
     const example = this.currentCell(key)?.examples?.[index]
     if (!example) return
-    const spellx = this.codeView() === "html" ? NotebookCode.toSpellx(code, (tag) => this.wordFor(tag)) : code
+    // an `<html>` block's markup is written as it is, in any view
+    const isHtml = this.codeView() === "html" && !example.html
+    const spellx = isHtml ? NotebookCode.toSpellx(code, (tag) => this.wordFor(tag)) : code
     if (spellx === example.body.code) return
     this.apply(NotebookPageCells.withCode(this.now.text, example.body, spellx), { undoable: false })
   }
@@ -651,17 +653,20 @@ export class NotebookController {
   ////////////////
 
   /**
-   * Example `index` of `cell`'s code in `view`.
-   * - spellx:  as written;  html:  its bare names as their tags;  spell:  its `<example>` as code spell writes it.
+   * Example `index` of `cell`'s code in `view`:  only what it DRAWS, never its `<example>` tags (P18).
+   * - spellx:  its body as written;  html:  its bare names as their tags;  spell:  its body's code spell twin
+   *   (`SX.CodeSpellWriter.writeMarkup()`).
+   * - A body that's one `<html>` block:  what's inside it, as written, in every view.
    */
   exampleCode(cell: PageCell, index: number, view = this.codeView()): string {
     const example = cell.examples?.[index]
     if (!example) return ""
-    if (view === "spellx") return example.body.code
-    const html = NotebookCode.toHtml(example.body.code, (word) => this.tagFor(word))
-    if (view === "html") return html
-    const word = this.model()?.language === "es" ? "ejemplo" : "example"
-    return [`<${word} "${example.name}">`, ...html.split("\n").map((line) => `\t${line}`), `</${word}>`].join("\n")
+    if (view === "spellx" || example.html) return example.body.code
+    if (view === "html") return NotebookCode.toHtml(example.body.code, (word) => this.tagFor(word))
+    return SX.CodeSpellWriter.writeMarkup(example.body.code, {
+      path: this.file.path,
+      componentTag: (word) => this.tagFor(word)
+    })
   }
 
   /** `cell`'s whole code in `view`:  a template's outline in code spell, a drawing's tags.  Read only but spellx. */

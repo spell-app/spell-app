@@ -85,6 +85,26 @@ describe("NotebookPageCells", () => {
     )
   })
 
+  test("an example that's one `<html>` block:  its body is what's inside the block, and an edit lands there (P18)", () => {
+    const text = [
+      '<spell-notebook "avatar examples">',
+      '\t<example description="A comment\'s avatar.">',
+      "\t\t<html>",
+      "\t\t\t<ui-comment>",
+      '\t\t\t\t<ui-avatar src="elliot.jpg"></ui-avatar>',
+      "\t\t\t</ui-comment>",
+      "\t\t</html>",
+      "\t</example>",
+      "</spell-notebook>",
+      ""
+    ].join("\n")
+    const [example] = NotebookPageCells.of(text, "/Examples.spellx")!.cells[0]!.examples!
+    expect(example).toMatchObject({ name: "", html: true })
+    expect(example!.body.code).toBe('<ui-comment>\n\t<ui-avatar src="elliot.jpg"></ui-avatar>\n</ui-comment>')
+    const edited = NotebookPageCells.withCode(text, example!.body, "<ui-comment>\n\t<code>hi</code>\n</ui-comment>")
+    expect(edited).toBe(text.replace('<ui-avatar src="elliot.jpg"></ui-avatar>', "<code>hi</code>"))
+  })
+
   test("move up, then down:  back as it was;  delete, add and lock", () => {
     const moved = NotebookPageCells.moved(COUNTER, model.cells, 2, "up")
     expect(moved.indexOf('<example "One counter">')).toBeLessThan(moved.indexOf("## Counter"))

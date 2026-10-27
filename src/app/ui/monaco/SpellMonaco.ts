@@ -144,10 +144,12 @@ export class SpellMonaco {
     for (const language of LANGUAGES) monaco.languages.setLanguageConfiguration(language, SpellMonaco.CONFIGURATION)
     colourEach()
     // `<css>` and `<markdown>` blocks colour with Monaco's own colouring, which loads lazily:
-    // colour spell again once it has
-    void Promise.all([monaco.editor.colorize("", "css", {}), monaco.editor.colorize("", "markdown", {})])
+    // colour spell again once it has;
+    // and markup with its html colouring
+    const lazyColouring = ["css", "markdown", "html"].map((language) => monaco.editor.colorize("", language, {}))
+    void Promise.all(lazyColouring)
       .then(colourEach)
-      .catch((error) => console.warn("SpellMonaco.register():  CSS or markdown colouring didn't load", error))
+      .catch((error) => console.warn("SpellMonaco.register():  CSS, markdown or html colouring didn't load", error))
 
     const addresses = new AppAddresses()
     const service = new LSP.SpellLanguageService(addresses)
