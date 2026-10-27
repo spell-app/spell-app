@@ -32,6 +32,8 @@ import { editorPrefs } from "spell-app/app/editorPrefs"
 import { appTexts, type AppTextKey } from "spell-app/app/ui/AppTexts"
 // Import directly, NOT through the runner barrel, which brings the runners themselves
 import { RunnerPane, type RunnerTab } from "spell-app/app/runner/RunnerPane"
+import { NotebookController } from "spell-app/app/solid/notebook/NotebookController"
+import { NotebookHeader } from "spell-app/app/solid/notebook/NotebookHeader"
 import { NotebookPage } from "spell-app/app/solid/notebook/NotebookPage"
 import { editorHotkeys } from "./editorHotkeys"
 import { followRoute } from "./followRoute"
@@ -86,36 +88,47 @@ export function SpellEditor(props: { mode: Mode }) {
 /****************
  * ### `<AppPane>`
  * The running program, under a header:  the project's group icon and its title;
- * at the right, Restart, the Inspector's crosshairs, its button (and its menu of cards) and Settings.
+ * at the right, Restart, the Inspector's crosshairs, Settings, and the Inspector's button (and its menu of cards).
  * - The program's mount point (`<AppRoot>`) is drawn once, and never redrawn.
  * - Its body is the area the Inspector picks parts in (`Inspector.watch()`).
  * - Shown in every mode, Run's too:  the page keeps it as the code column comes and goes.
  * - A NOTEBOOK's project (a `.spellx` file holding a `<spell-notebook>`, epic `elemental-spell` P16) shows its page
  *   instead, editable in place (`<NotebookPage>`):  the program still runs in its mount point, out of sight, its
  *   classes and its notebook what the page's cells draw with.
+ *   - Its title is then a menu of the project's notebooks, the lock after it, and what happened to the last edit
+ *     (`<NotebookHeader>`).
  ****************/
 export function AppPane() {
   const root = trackProjectRoot(() => undefined)
   const title = tracked(() => (editor.project ? new SP.SpellProject(editor.project.path).title : ""))
   const notebook = tracked(() => notebookOf(editor.project, editor.file))
+  const [notebookPage, setNotebookPage] = createSignal<NotebookController>()
   return (
     <div class="AppPane">
       <header class="AppPaneHeader">
-        <h2>
-          <ui-icon name={root().icon ?? PROJECT_ICON} />
-          {title()}
-        </h2>
+        <Show
+          when={notebookPage()}
+          keyed
+          fallback={
+            <h2>
+              <ui-icon name={root().icon ?? PROJECT_ICON} />
+              {title()}
+            </h2>
+          }
+        >
+          {(page) => <NotebookHeader controller={page} icon={root().icon ?? PROJECT_ICON} title={title()} />}
+        </Show>
         <Actions.restartApp iconOnly />
         <InspectorPick />
-        <InspectorToggle />
         <Actions.showProjectSettings iconOnly />
+        <InspectorToggle />
       </header>
       <div class="AppPaneBody" ref={(area) => onCleanup(Inspector.watch(area))}>
         <div class={["AppPaneProgram", { hidden: !!notebook() }]}>
           <AppRoot showToolbar={false} />
         </div>
         <Show when={notebook()} keyed>
-          {(file) => <NotebookPage file={file} project={editor.project!} />}
+          {(file) => <NotebookPage file={file} project={editor.project!} onController={setNotebookPage} />}
         </Show>
       </div>
     </div>
@@ -199,25 +212,18 @@ export function ProgramPanel(props: { onClose: () => void }) {
 }
 
 /**
- * `project`'s notebook, if it's one:  a `.spellx` file holding a `<spell-notebook>` (`<encanto-cuaderno>`).
+ * `project`'s notebook, if it's one (`NotebookController.notebooksIn()`).
  * - The one open in the editor (`open`), when it's a notebook:  a project of several shows each at its own address,
  *   `/edit/@spell/notebooks/Avatar/Usage.spellx` (epic `elemental-spell` P18).
  * - Else its first.
- * - Read from the files' text, so the page shows as soon as the project's loaded.
  */
 function notebookOf(
   project: SP.SpellProject | undefined,
   open: { path?: string } | undefined
 ): SP.SpellFile | undefined {
-  if (!project?.isLoaded) return undefined
-  const notebooks = project.spellFiles.filter(
-    (file) => file.form === "spellx" && NOTEBOOK_TAG.test(file.contents ?? "")
-  )
+  const notebooks = NotebookController.notebooksIn(project)
   return notebooks.find((file) => file.path === open?.path) ?? notebooks[0]
 }
-
-/** A notebook's tag, at a line's start:  `<spell-notebook`, Spanish's `<encanto-cuaderno`. */
-const NOTEBOOK_TAG = /^[ \t]*<(?:spell-notebook|encanto-cuaderno)\b/m
 
 /**
  * The page's columns and the preference that remembers their sizes, for each set of panes:
