@@ -66,8 +66,15 @@
  * read as a white box laid in it (Owen:  "white background under `<spell-view "card">` is distracting")
  * - Merlot too:  the code on its wine panel, not a navy block in dark (Owen's pick, epic `debut` P17, Q4);
  *   the code's colours stay Purple's, only its background goes
+ * - Spell too (its facelift, epic `debut` P19):  dark, the code on the aubergine panel, not Purple's navy block
  */
-:root:is([data-spell-theme="glass"], [data-spell-theme="fruity"], [data-spell-theme="merlot"]) .monaco-editor {
+:root:is(
+    [data-spell-theme="spell"],
+    [data-spell-theme="glass"],
+    [data-spell-theme="fruity"],
+    [data-spell-theme="merlot"]
+  )
+  .monaco-editor {
   --vscode-editor-background: transparent;
   --vscode-editorGutter-background: transparent;
   /* the lines stuck at the top while scrolling keep Purple's own page (`ShadesOfPurple`):  the code scrolls under them */
@@ -80,6 +87,8 @@
   --spell-gap: 16px;
   --spell-bar-background: transparent;
   --spell-bar-border: 1px solid transparent;
+  /* a panel's edge:  the brand card's hairline round its soft shadow, so a white panel shows on the pale page */
+  --spell-pane-shadow: 0 0 0 1px var(--spell-border-subtle), var(--ui-shadow-raised);
 }
 
 /* Merlot:  flat panels joined by hairlines, edge to edge */
