@@ -408,16 +408,3 @@ function isForPage(event: KeyboardEvent, page: HTMLElement): boolean {
   if (path.some((node) => node instanceof HTMLElement && node.classList.contains("monaco-editor"))) return false
   return path.includes(page) || path[0] === document.body
 }
-
-declare module "@solidjs/web/types/jsx.js" {
-  namespace JSX {
-    interface IntrinsicElements {
-      // Spell UI's docs-only "On this page":  not in its generated types, which name the component tags only
-      "ui-toc": JSX.HTMLAttributes<HTMLElement> & {
-        for?: string
-        scroller?: string
-        header?: string
-      }
-    }
-  }
-}
