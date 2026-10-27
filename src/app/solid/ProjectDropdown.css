@@ -10,7 +10,7 @@ ui-dropdown.ProjectDropdown::part(trigger) {
 }
 
 /* HACK: a vertical menu's `link` item is a `<button>`, which shrinks to its text even at `display: block`, so its
-   divider stops short:  fill the menu's width.  (`SUSPECTED-BUGS.md`, ui, `<ui-menu vertical>` link items) */
+   divider stops short:  fill the menu's width.  (`SUSPECTED-BUGS.md`, ui, `<ui-menu direction="vertical">` link items) */
 ui-menu.ProjectMenu[vertical] > ui-item::part(item) {
   width: 100%;
   text-align: start;

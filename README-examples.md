@@ -157,7 +157,7 @@ to draw (a calculator)
 			<ui-button onClick={append "7" to it}>7</ui-button>
 			<ui-button onClick={append "8" to it}>8</ui-button>
 			<ui-button onClick={append "9" to it}>9</ui-button>
-			<ui-button primary onClick={apply "×" to it}>×</ui-button>
+			<ui-button color="primary" onClick={apply "×" to it}>×</ui-button>
 	...
 ```
 

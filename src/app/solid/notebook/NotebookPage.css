@@ -82,7 +82,7 @@
 }
 
 /*
- * "On this page":  a card, as a component page's is (`<ui-docs-toc>` in its side column), headed by the page's title,
+ * "On this page":  a card, as a component page's is (`<ui-toc>` in its side column), headed by the page's title,
  * its sections' links under it
  * - stuck where it starts:  the toolbar's height and the page's top padding, level with the masthead
  */

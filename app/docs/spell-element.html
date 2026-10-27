@@ -63,15 +63,13 @@
               <code>&lt;solitaire-card&gt;</code> element, and each pile, e.g. a <code>&lt;solitaire-tableau&gt;</code>,
               holds its cards' elements.
             </p>
-            <ui-docs-example
-              description="Every card and pile in this game is a SpellElement, styled by its type's own CSS."
-            >
+            <ui-example description="Every card and pile in this game is a SpellElement, styled by its type's own CSS.">
               <spell-viewer project="@spell/examples/Solitaire" toolbar height="420px"></spell-viewer>
-            </ui-docs-example>
+            </ui-example>
             <p>
               Its tags work outside the program too. Written by hand, each card makes its own card from its attributes:
             </p>
-            <ui-docs-example
+            <ui-example
               description="Cards written by hand:  the hidden app only runs the project, which defines the tags."
             >
               <spell-viewer project="@spell/examples/Solitaire" hidden></spell-viewer>
@@ -86,7 +84,7 @@
                   <solitaire-card rank="7" suit="clubs" direction="down"></solitaire-card>
                 </ui-column>
               </ui-grid>
-            </ui-docs-example>
+            </ui-example>
             <p class="meta">
               Live, from the app's element build, which this set's pages load: <code>/element/spell.pack.js</code>.
               <a href="../../src/app/" target="src-packages-app">The app package</a> builds it with
