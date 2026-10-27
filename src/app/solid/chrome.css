@@ -113,9 +113,41 @@ ui-item.ThemeMenu ui-theme-menu {
 }
 
 /* Scrollbars:  a grey thumb on no track of its own, so a pane's fill runs to its edge
-   (Owen:  "Can we NOT make scroll channel darker?  Thumb looks fine") */
+   (Owen:  "Can we NOT make scroll channel darker?  Thumb looks fine")
+   - a ROUND thumb, kept off a pane's rounded corners (Owen:  "why is this scrollbar square?"):
+     Chrome and Safari draw `scrollbar-color` as a square thumb, so they take the `::-webkit-scrollbar` parts instead;
+     Firefox, which has no such parts, keeps `scrollbar-color` */
 #app-root {
-  scrollbar-color: light-dark(rgb(0 0 0 / 0.28), rgb(255 255 255 / 0.28)) transparent;
+  --spell-scroll-thumb: light-dark(rgb(0 0 0 / 0.28), rgb(255 255 255 / 0.28));
+  scrollbar-color: var(--spell-scroll-thumb) transparent;
+}
+@supports selector(::-webkit-scrollbar) {
+  #app-root {
+    scrollbar-color: auto;
+  }
+  #app-root ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background: transparent;
+  }
+  #app-root ::-webkit-scrollbar-track {
+    background: transparent;
+    margin: var(--spell-pane-radius, 12px);
+  }
+  #app-root ::-webkit-scrollbar-thumb {
+    background: var(--spell-scroll-thumb);
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+  }
+  #app-root ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* Monaco's own scrollbar (it draws its own, not the browser's):  the same round thumb */
+#app-root .monaco-scrollable-element > .scrollbar > .slider {
+  border-radius: 999px;
 }
 
 /* Monaco's touch-keyboard button (`.iPadShowKeyboard`), on a phone:  it sat over the code, and a tap on the code

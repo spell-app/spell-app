@@ -85,6 +85,36 @@ describe("<NotebookPage>", () => {
     expect(file.contents).toBe(COUNTER.replace("Clicked", "Pressed"))
   })
 
+  test('"On this page":  its column where there\'s room, else an icon on the title row opening it as a flyout', async () => {
+    const { host, controller } = await mount({ width: 1000 })
+    const column = () => host.querySelector<HTMLElement>(".NotebookColumns > .NotebookToc")!
+    const button = () => host.querySelector<HTMLElement>(".NotebookMasthead .NotebookTocButton")
+    const flyout = () => host.querySelector<HTMLElement & { visible: boolean }>(".NotebookTocFlyout")!
+    await until(() => !!host.querySelector(".NotebookTitle"))
+    // room for the column:  no icon, and no row of links above the page any more
+    expect(getComputedStyle(column()).display).not.toBe("none")
+    expect(button()).toBeNull()
+    // hidden from the toolbar:  the icon gets it back
+    controller.toggleContents()
+    await until(() => !!button())
+    // a narrow pane:  no column, the icon
+    controller.toggleContents()
+    await until(() => !button())
+    host.style.width = "500px"
+    await until(() => !!button() && getComputedStyle(column()).display === "none")
+    expect(button()!.getAttribute("commandfor")).toBe(flyout().id)
+    controller.setContentsOpen(true)
+    await until(() => flyout().hasAttribute("visible"))
+    expect([...flyout().querySelectorAll(".NotebookTocLink")].map((link) => link.textContent)).toEqual([
+      "Try it",
+      "Two of them"
+    ])
+    // picking an entry closes it
+    flyout().querySelector<HTMLElement>(".NotebookTocLink")!.click()
+    await until(() => !flyout().hasAttribute("visible"))
+    expect(controller.contentsOpen()).toBe(false)
+  })
+
   test("saves 600ms after the last edit, once", async () => {
     const { file, controller } = await mount()
     const example = keyOf(controller, "drawing")
@@ -119,7 +149,7 @@ describe("<NotebookPage>", () => {
 type TestFile = { path: string; form: "spellx"; contents: string; match: unknown; saves: number; save(): Promise<void> }
 
 /** The Counter's page, its program running first;  its controller, at the page's debug global. */
-async function mount() {
+async function mount(options: { width?: number } = {}) {
   const runtime = await testRuntime()
   const { code } = compiledSpellProject([{ path: "/Counter.spellx", contents: COUNTER }])
   const appRoot = document.createElement("div")
@@ -152,6 +182,7 @@ async function mount() {
   }
   const host = document.createElement("div")
   host.style.height = "800px"
+  if (options.width) host.style.width = `${options.width}px`
   document.body.append(host)
   const dispose = render(
     () => <NotebookPage file={file as unknown as SP.SpellFile} project={project as unknown as SP.SpellProject} />,
@@ -166,7 +197,7 @@ async function mount() {
   return { host, file, controller }
 }
 
-/** Each example's result's text, its views' shadow roots and all, in order. */
+/** Each example's result's text, its views' shadow roots and all, in order:  not its description and code panels. */
 function resultsOf(host: HTMLElement): string[] {
   const deep = (node: Node): string =>
     node.nodeType === Node.TEXT_NODE
@@ -174,7 +205,7 @@ function resultsOf(host: HTMLElement): string[] {
       : [...((node as Element).shadowRoot?.childNodes ?? []), ...node.childNodes].map(deep).join("")
   return [...host.querySelectorAll(".NotebookResult spell-example")].map((example) =>
     [...example.childNodes]
-      .filter((node) => (node as Element).slot !== "code")
+      .filter((node) => !(node as Element).slot)
       .map(deep)
       .join(" ")
       .replace(/\s+/g, " ")

@@ -1,0 +1,65 @@
+<spell-notebook "avatar examples">
+	<header level="1">
+		Avatar
+		<header>An avatar is a small picture of a person, beside a comment, an item or a card.</header>
+	</header>
+	<avatar-tab-bar showing="examples"/>
+
+	<section label="Owners">
+		<section label="Comment" sticky collapsible dividing>
+			<example description="A comment's avatar sits beside its content.">
+				<html>
+					<ui-comments>
+						<ui-comment>
+							<ui-avatar src="/components/ui/images/avatar/small/elliot.jpg"></ui-avatar>
+							<ui-content>
+								<ui-author link="#elliot">Elliot Fu</ui-author>
+								<ui-meta><span>Yesterday at 12:30AM</span></ui-meta>
+								<ui-description>This has been very useful for my research. Thanks as well!</ui-description>
+							</ui-content>
+						</ui-comment>
+					</ui-comments>
+				</html>
+			</example>
+		</section>
+
+		<section label="Card" sticky collapsible dividing>
+			<example description="In a card, an avatar is a small round image before a name.">
+				<card>
+					<content>
+						<avatar src="/components/ui/images/avatar/small/jenny.jpg"/> Jenny Hess
+					</content>
+				</card>
+			</example>
+		</section>
+
+		<section label="Item" sticky collapsible dividing>
+			<example description="In an item, a round image before a name.">
+				<items>
+					<item>
+						<content>
+							<avatar src="/components/ui/images/avatar/small/stevie.jpg"/> Stevie Feliciano
+						</content>
+					</item>
+				</items>
+			</example>
+		</section>
+	</section>
+
+	<section label="Content">
+		<section label="Image" sticky collapsible dividing>
+			<example description="`src` renders the image;  or slot your own `<img>`.">
+				<html>
+					<ui-comments>
+						<ui-comment>
+							<ui-avatar><img src="/components/ui/images/avatar/small/joe.jpg" alt="Joe Henderson" /></ui-avatar>
+							<ui-content>
+								<ui-description>A slotted image, with its own <code>alt</code>.</ui-description>
+							</ui-content>
+						</ui-comment>
+					</ui-comments>
+				</html>
+			</example>
+		</section>
+	</section>
+</spell-notebook>

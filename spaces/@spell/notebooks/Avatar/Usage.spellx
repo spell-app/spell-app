@@ -1,0 +1,38 @@
+<spell-notebook "avatar usage">
+	<header level="1">
+		Avatar
+		<header>An avatar is a small picture of a person, beside a comment, an item or a card.</header>
+	</header>
+	<avatar-tab-bar showing="usage"/>
+
+	<section label="Using it">
+		<markdown>
+			`<ui-avatar>` is a small picture of a person: a comment's, an item's or a card's.
+
+			- `src` renders the `<img>`; or slot your own `<img>`.
+			- `alt` defaults to `""` (decorative): the person's name is right beside it. Give it text when it isn't.
+			- Its look comes from its owner: 2.5em beside a comment, 2em and round inline in a card, round in an item.
+		</markdown>
+	</section>
+
+	<section label="Owners">
+		<markdown>
+			`<ui-avatar>` finds its nearest owner and sets `:state(in-<owner>)` on itself; `UIParts.css` styles it by that
+			state. Its owners, and what each makes of it:
+
+			- [Comment](/components/ui/ui-comment.html) (`:state(in-comment)`): beside the content, on the left
+			- [Card](/components/ui/ui-card.html) (`:state(in-card)`): small and round, inline before a name
+			- [Item](/components/ui/ui-items.html) (`:state(in-item)`): round, inline before a name
+
+			Anywhere else it is an unstyled block. More on how parts find their owners: [Content parts](/components/ui/ui-header.html#usage-owners).
+		</markdown>
+	</section>
+
+	<section label="Accessibility">
+		<markdown>
+			- `alt` defaults to `""`, so the image is decorative: the name next to it already says who it is. Set `alt` (or
+			  slot an `<img alt>`) when the avatar stands alone.
+			- No role of its own, no tab stop.
+		</markdown>
+	</section>
+</spell-notebook>
