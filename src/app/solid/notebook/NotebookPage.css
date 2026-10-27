@@ -18,7 +18,9 @@
   position: relative;
   height: 100%;
   overflow: auto;
-  background: var(--ui-background, var(--ui-surface));
+  /* see-through:  the pane's own glass shows behind the page, as behind the code (Owen:  "lack of transparency behind
+     the notebook is super distracting") */
+  background: transparent;
   color: var(--ui-text-color, inherit);
 }
 
@@ -34,8 +36,11 @@
   align-items: center;
   gap: 8px 24px;
   padding: 8px var(--notebook-gutter);
-  /* opaque:  what scrolls under it never shows through (the theme's surface may be see-through glass) */
-  background: linear-gradient(var(--ui-surface), var(--ui-surface)), Canvas;
+  /* the pane's own header look, frosted:  what scrolls under it blurs away rather than showing through
+     (Owen:  "This blinding white header ... super distracting";  it was opaque white) */
+  background: var(--spell-header-background, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
   border-bottom: 1px solid var(--ui-border-color, rgb(34 36 38 / 0.15));
 }
 
